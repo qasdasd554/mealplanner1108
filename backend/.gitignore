@@ -1,0 +1,58 @@
+# ── SEKRETY — NIGDY nie commitować ──────────────────────────────
+# Brak tego pliku był bezpośrednią przyczyną wycieku hasła do bazy Neon
+# i sekretu JWT do repozytorium. Wzorzec konfiguracji trzymamy w
+# .env.example (bez prawdziwych wartości), a same sekrety wyłącznie
+# w zmiennych środowiskowych panelu Render.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+service-account*.json
+
+# ── Python ──────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib60/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ── Środowiska wirtualne ────────────────────────────────────────
+venv/
+env/
+ENV/
+.venv/
+
+# ── Testy / narzędzia ───────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.tox/
+
+# ── Bazy lokalne ────────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+
+# ── IDE / system ────────────────────────────────────────────────
+.idea/
+.vscode/
+.DS_Store
+*.swp
