@@ -7,6 +7,9 @@ services:
       - ..:/workspace:cached
     command: sleep infinity
     environment:
+      ENVIRONMENT: "development"
+      SECRET_KEY: "dev-only-secret-nie-uzywaj-na-produkcji-0123456789abcdef"
+      API_V1_PREFIX: "/api/v1"
       DATABASE_URL: "postgresql+asyncpg://postgres:postgres@db:5432/mealplanner"
     depends_on:
       - db
