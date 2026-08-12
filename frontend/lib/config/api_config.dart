@@ -7,7 +7,7 @@ class ApiConfig {
   // adresem działającym WYŁĄCZNIE wewnątrz emulatora Android Studio.
   // Efekt: każde żądanie sieciowe w zainstalowanej aplikacji kończyło się
   // błędem połączenia.
-  static const String _productionBaseUrl = 'https://mealplanner-wv11.onrender.com';
+  static const String _productionBaseUrl = 'https://mealplanner1108.onrender.com';
 
   // Dynamiczne dopasowanie adresu URL w zależności od platformy
   static String get baseUrl {
