@@ -1,5 +1,6 @@
 """Smart Meal Planner PL — punkt wejścia aplikacji FastAPI."""
 
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
@@ -19,37 +20,79 @@ logger = logging.getLogger(__name__)
 async def _create_tables() -> None:
     """Tworzy tabele w bazie danych (tylko do celów deweloperskich)."""
     from app.db.session import engine
+    from sqlalchemy import text
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        # UWAGA: create_all() tworzy TYLKO brakujące tabele — nie dokłada
+        # nowych kolumn do tabel, które już istnieją. Kolumna `instructions`
+        # została dodana do modelu Recipe już PO tym, jak tabela `recipes`
+        # powstała na produkcji (Neon), więc trzeba ją dołożyć ręcznie.
+        # IF NOT EXISTS sprawia, że to bezpieczne do uruchamiania przy
+        # każdym starcie, także na świeżo utworzonej bazie.
+        await conn.execute(
+            text("ALTER TABLE recipes ADD COLUMN IF NOT EXISTS instructions JSON")
+        )
     logger.info("Tabele bazy danych zostały utworzone/zweryfikowane.")
 
 
 async def _seed_database_if_empty() -> None:
-    """Wypełnia bazę danych danymi początkowymi, jeśli jest pusta.
+    """Synchronizuje dane początkowe (sklepy, produkty, przepisy).
 
-    Importuje i uruchamia funkcję seed_database, o ile jest dostępna.
-    Błędy seedowania są logowane, ale nie blokują uruchomienia aplikacji.
+    UWAGA: nazwa funkcji jest dziś myląca (historyczna) — `seed_database()`
+    używa deterministycznych UUID i `session.merge()`, więc jest w pełni
+    idempotentna: bezpiecznie AKTUALIZUJE istniejące rekordy (np. dokłada
+    nowe przepisy, zdjęcia, instrukcje przygotowania) i niczego nie
+    duplikuje. Wcześniej ta funkcja uruchamiała seed tylko wtedy, gdy
+    tabela sklepów była pusta — na produkcyjnej bazie, która już miała
+    dane, nowe przepisy z `seed.py` nigdy by się tam nie pojawiły.
     """
     try:
         from app.db.seed import seed_database
         from app.db.session import async_session_factory
-        from sqlalchemy import select
-        from app.models.store import Store
 
         async with async_session_factory() as db:
-            result = await db.execute(select(Store).limit(1))
-            if result.first() is None:
-                logger.info("Baza danych jest pusta. Rozpoczynam seedowanie...")
-                await seed_database(db)
-                await db.commit()
-                logger.info("Dane początkowe zostały załadowane.")
-            else:
-                logger.info("Baza danych zawiera już dane. Pomijam seedowanie.")
+            logger.info("Synchronizuję dane początkowe (seed)...")
+            await seed_database(db)
+            await db.commit()
+            logger.info("Dane początkowe zsynchronizowane.")
     except ImportError:
         logger.debug("Moduł seed_database nie jest dostępny — pomijam seedowanie.")
     except Exception:
         logger.exception("Błąd podczas seedowania bazy danych.")
+
+
+async def _run_price_scraper_once() -> None:
+    """Uruchamia jeden przebieg scrapera cen i loguje wynik.
+
+    Błędy są przechwytywane i logowane, ale nigdy nie przerywają działania
+    aplikacji — aktualizacja cen jest funkcją dodatkową, nie krytyczną."""
+    try:
+        from app.db.session import async_session_factory
+        from app.services.promo_scraper import scrape_and_update_prices
+
+        async with async_session_factory() as db:
+            await scrape_and_update_prices(db)
+    except Exception:
+        logger.exception("Scraper cen zakończył się błędem — ceny w bazie bez zmian.")
+
+
+async def _price_scraper_background_loop() -> None:
+    """Uruchamia scraper cen przy starcie, a potem cyklicznie co 12 godzin.
+
+    UWAGA: to nie jest prawdziwy cron ani zewnętrzny scheduler (poprzednia
+    wersja tego komentarza obiecywała APScheduler, który nigdy nie został
+    dodany) — to zwykła pętla w tym samym procesie FastAPI. Działa tylko
+    tak długo, jak długo żyje proces. Na darmowym planie Render usługa
+    usypia po ~15 minutach bezczynności, więc pętla też wtedy przestaje
+    działać — wznawia się (i od razu robi jeden przebieg) przy najbliższym
+    obudzeniu usługi przez żądanie HTTP.
+    """
+    # Odczekaj chwilę po starcie, żeby nie kolidować z tworzeniem tabel/seedem.
+    await asyncio.sleep(10)
+    while True:
+        await _run_price_scraper_once()
+        await asyncio.sleep(12 * 60 * 60)  # 12 godzin
 
 
 @asynccontextmanager
@@ -58,9 +101,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("Uruchamianie Smart Meal Planner PL API...")
     await _create_tables()
     await _seed_database_if_empty()
+    scraper_task = asyncio.create_task(_price_scraper_background_loop())
     logger.info("Aplikacja gotowa do obsługi żądań.")
     yield
     logger.info("Zamykanie Smart Meal Planner PL API...")
+    scraper_task.cancel()
 
 
 app = FastAPI(

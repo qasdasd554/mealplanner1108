@@ -95,9 +95,7 @@ class _PriceCompareScreenState extends State<PriceCompareScreen> {
           margin: const EdgeInsets.only(bottom: 12.0),
           child: ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            leading: result.storeLogoUrl != null 
-                ? Image.network(result.storeLogoUrl!, width: 40, height: 40)
-                : const Icon(Icons.store, size: 40, color: Colors.grey),
+            leading: const Icon(Icons.store, size: 40, color: Colors.grey),
             title: Text(
               result.storeName,
               style: TextStyle(
@@ -105,9 +103,11 @@ class _PriceCompareScreenState extends State<PriceCompareScreen> {
                 fontSize: 18,
               ),
             ),
-            subtitle: result.missingItemsCount > 0 
-                ? Text('Brakujących produktów: ${result.missingItemsCount}', style: TextStyle(color: Colors.red.shade700))
-                : const Text('Wszystkie produkty dostępne', style: TextStyle(color: Colors.green)),
+            subtitle: Text(
+              '${result.items.length} ${result.items.length == 1 ? "produkt" : "produktów"}'
+              '${result.savingsVsMostExpensive > 0 ? " • oszczędzasz ${result.savingsVsMostExpensive.toStringAsFixed(2)} zł" : ""}',
+              style: TextStyle(color: Colors.grey.shade700),
+            ),
             trailing: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.end,

@@ -1,10 +1,11 @@
 """Endpointy dziennika żywieniowego (licznik kalorii i makroskładników).
 
-UWAGA: cały ten moduł był wcześniej napisany synchronicznie (`def`, `db.execute`,
-`db.commit()`), podczas gdy `get_db` dostarcza **asynchroniczną** sesję
-SQLAlchemy. W efekcie każde wywołanie kończyło się błędem
-`AttributeError: 'coroutine' object has no attribute 'scalars'`, czyli
-odpowiedzią 500 — dziennik kalorii nie działał wcale.
+Historia napraw:
+* Cały moduł był kiedyś napisany synchronicznie na asynchronicznej sesji
+  SQLAlchemy — każde wywołanie kończyło się błędem 500.
+* Odpowiedzi nie zawierały nazwy przepisu (tylko `recipe_id` — surowy UUID),
+  więc aplikacja nie miała jak pokazać, co użytkownik zjadł. Dodano pole
+  `recipe_name`, wypełniane z załadowanej relacji `recipe`.
 """
 
 import uuid
@@ -36,11 +37,30 @@ def _macros_from_recipe(recipe: Optional[Recipe], servings: float) -> dict:
         return {"calories": 0.0, "protein": 0.0, "fat": 0.0, "carbs": 0.0}
     n = recipe.nutrition_total
     return {
-        "calories": (n.get("calories", 0.0) or 0.0) * servings,
+        "calories": (n.get("kcal", n.get("calories", 0.0)) or 0.0) * servings,
         "protein": (n.get("protein", 0.0) or 0.0) * servings,
         "fat": (n.get("fat", 0.0) or 0.0) * servings,
-        "carbs": (n.get("carbohydrates", 0.0) or 0.0) * servings,
+        "carbs": (n.get("carbs", n.get("carbohydrates", 0.0)) or 0.0) * servings,
     }
+
+
+def _to_response(entry: FoodLogEntry) -> FoodLogEntryResponse:
+    """Buduje odpowiedź API, dołączając nazwę przepisu (jeśli wpis go ma)."""
+    return FoodLogEntryResponse(
+        id=entry.id,
+        user_id=entry.user_id,
+        date=entry.date,
+        meal_type=entry.meal_type,
+        recipe_id=entry.recipe_id,
+        custom_name=entry.custom_name,
+        calories=entry.calories,
+        protein=entry.protein,
+        fat=entry.fat,
+        carbs=entry.carbs,
+        servings=entry.servings,
+        created_at=entry.created_at,
+        recipe_name=entry.recipe.name if entry.recipe_id and entry.recipe else None,
+    )
 
 
 @router.post("/", response_model=FoodLogEntryResponse, status_code=status.HTTP_201_CREATED)
@@ -57,20 +77,25 @@ async def create_food_log_entry(
 
     db_entry = FoodLogEntry(**entry_in.model_dump(), user_id=current_user.id)
 
-    # Jeśli wskazano przepis, przelicz makro na podstawie jego wartości.
+    recipe: Optional[Recipe] = None
     if db_entry.recipe_id:
         recipe = await db.get(Recipe, db_entry.recipe_id)
         if recipe:
-            macros = _macros_from_recipe(recipe, entry_in.servings)
-            db_entry.calories = macros["calories"]
-            db_entry.protein = macros["protein"]
-            db_entry.fat = macros["fat"]
-            db_entry.carbs = macros["carbs"]
+            # Jeśli formularz nie podał gotowych wartości (np. dodanie
+            # "z przepisu" bez ręcznego wpisania kalorii), przelicz je
+            # automatycznie na podstawie przepisu i liczby porcji.
+            if entry_in.calories == 0.0 and entry_in.protein == 0.0:
+                macros = _macros_from_recipe(recipe, entry_in.servings)
+                db_entry.calories = macros["calories"]
+                db_entry.protein = macros["protein"]
+                db_entry.fat = macros["fat"]
+                db_entry.carbs = macros["carbs"]
 
     db.add(db_entry)
     await db.commit()
     await db.refresh(db_entry)
-    return db_entry
+    db_entry.recipe = recipe
+    return _to_response(db_entry)
 
 
 @router.get("/", response_model=List[FoodLogEntryResponse])
@@ -79,13 +104,18 @@ async def read_food_log_entries(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    query = select(FoodLogEntry).where(FoodLogEntry.user_id == current_user.id)
+    query = (
+        select(FoodLogEntry)
+        .where(FoodLogEntry.user_id == current_user.id)
+        .options(selectinload(FoodLogEntry.recipe))
+    )
     if entry_date:
         query = query.where(FoodLogEntry.date == entry_date)
     query = query.order_by(FoodLogEntry.created_at)
 
     result = await db.execute(query)
-    return result.scalars().all()
+    entries = result.scalars().all()
+    return [_to_response(e) for e in entries]
 
 
 @router.get("/summary", response_model=DailySummaryResponse)
@@ -94,14 +124,19 @@ async def get_daily_summary(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    query = select(FoodLogEntry).where(
-        FoodLogEntry.user_id == current_user.id,
-        FoodLogEntry.date == entry_date,
+    query = (
+        select(FoodLogEntry)
+        .where(
+            FoodLogEntry.user_id == current_user.id,
+            FoodLogEntry.date == entry_date,
+        )
+        .options(selectinload(FoodLogEntry.recipe))
     )
     result = await db.execute(query)
     entries = result.scalars().all()
 
-    summary = DailySummaryResponse(date=entry_date, entries=entries)
+    responses = [_to_response(e) for e in entries]
+    summary = DailySummaryResponse(date=entry_date, entries=responses)
     for entry in entries:
         summary.total_calories += entry.calories
         summary.total_protein += entry.protein
@@ -158,10 +193,6 @@ async def create_from_meal_plan_entry(
             status_code=403, detail="Brak uprawnień do tej pozycji planu posiłków"
         )
 
-    # UWAGA: poprzednia wersja odwoływała się do pól, których model nie ma
-    # (`plan_entry.meal_type`, `plan_entry.servings`, `plan_entry.meal_plan.date`).
-    # Rzeczywiste nazwy to `meal_slot`, `servings_multiplier` oraz
-    # `meal_plan.start_date` + `day_number`.
     servings = float(plan_entry.servings_multiplier or 1)
     macros = _macros_from_recipe(plan_entry.recipe, servings)
 
@@ -185,4 +216,5 @@ async def create_from_meal_plan_entry(
     db.add(db_entry)
     await db.commit()
     await db.refresh(db_entry)
-    return db_entry
+    db_entry.recipe = plan_entry.recipe
+    return _to_response(db_entry)

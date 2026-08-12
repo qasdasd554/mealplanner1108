@@ -30,6 +30,10 @@ class RecipeService {
     if (search != null && search.isNotEmpty) {
       params.add('search=${Uri.encodeComponent(search)}');
     }
+    // Backend domyślnie zwraca tylko 50 przepisów (paginacja). Baza ma ich
+    // teraz ~80, więc bez podania limitu część z nich byłaby niewidoczna
+    // w aplikacji. 200 to maksimum akceptowane przez backend.
+    params.add('limit=200');
 
     path += params.join('&');
     final response = await _client.get(path);

@@ -28,9 +28,7 @@ class FoodLogProvider with ChangeNotifier {
   }
 
   /// Pobiera token sesji — najpierw ten ustawiony ręcznie przez [updateAuth],
-  /// a w razie jego braku bezpośrednio z [ApiClient]. Wcześniej `updateAuth`
-  /// nie było wywoływane nigdzie w aplikacji, więc `_token` zawsze pozostawał
-  /// pusty i dziennik kalorii pokazywał wyłącznie dane testowe (mock).
+  /// a w razie jego braku bezpośrednio z [ApiClient].
   Future<String?> _resolveToken() async {
     final token = _token ?? await _apiClient.getToken();
     return token;
@@ -43,75 +41,126 @@ class FoodLogProvider with ChangeNotifier {
 
   Future<void> fetchLogsForDate(DateTime date) async {
     final token = await _resolveToken();
-    if (token == null) return;
+    if (token == null) {
+      _error = 'Musisz być zalogowany, aby zobaczyć dziennik.';
+      notifyListeners();
+      return;
+    }
 
     _isLoading = true;
     _error = null;
     notifyListeners();
 
+    // UWAGA: wcześniej błąd (jakikolwiek — także 401 czy chwilowy problem
+    // sieci) był po cichu zamieniany na ZMYŚLONE dane testowe, więc
+    // użytkownik widział fałszywy dziennik i nie wiedział, że coś nie
+    // działa. Teraz błąd jest pokazywany wprost, a dziennik zostaje pusty.
     try {
       _logs = await _service.getLogsForDate(date, token);
       _summary = await _service.getDailySummary(date, token);
     } catch (e) {
-      // Mock data for UI development if backend is not ready
-      _generateMockData(date);
+      _error = e.toString().replaceAll('Exception: ', '');
+      _logs = [];
+      _summary = null;
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<void> addFoodEntry({
+  /// Dodaje wpis ręczny. Zwraca `true` po sukcesie — w razie błędu ustawia
+  /// [error] i zwraca `false`, zamiast (jak wcześniej) po cichu dodawać
+  /// zmyślony wpis, który i tak zniknąłby po ponownym otwarciu aplikacji.
+  Future<bool> addManualEntry({
     required String mealType,
     required String foodName,
-    required double portionSize,
     required double calories,
     required double protein,
     required double carbs,
     required double fat,
   }) async {
     final token = await _resolveToken();
-    if (token == null) return;
+    if (token == null) {
+      _error = 'Musisz być zalogowany, aby dodać wpis.';
+      notifyListeners();
+      return false;
+    }
 
     try {
-      final newEntry = await _service.addFoodLog(
-        {
-          'date': _currentDate.toIso8601String(),
-          'meal_type': mealType,
-          'food_name': foodName,
-          'portion_size': portionSize,
-          'calories': calories,
-          'protein': protein,
-          'carbs': carbs,
-          'fat': fat,
-        },
-        token,
-      );
-      
-      _logs.add(newEntry);
-      
-      // Update summary locally to avoid extra API call, or re-fetch
-      await fetchLogsForDate(_currentDate);
-    } catch (e) {
-      // Mock flow
       final entry = FoodLogEntry(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        userId: '123',
+        id: '',
+        userId: '',
         date: _currentDate,
         mealType: mealType,
-        foodName: foodName,
-        portionSize: portionSize,
+        customName: foodName,
+        servings: 1.0,
         calories: calories,
         protein: protein,
         carbs: carbs,
         fat: fat,
       );
-      _logs.add(entry);
-      _updateMockSummary();
+      await _service.addFoodLog(entry.toCreateJson(), token);
+      await fetchLogsForDate(_currentDate);
+      return true;
+    } catch (e) {
+      _error = e.toString().replaceAll('Exception: ', '');
       notifyListeners();
+      return false;
     }
   }
-  
+
+  /// Dodaje wpis na podstawie przepisu z bazy — makra przelicza backend
+  /// automatycznie na podstawie wartości odżywczych przepisu i liczby porcji.
+  Future<bool> addRecipeEntry({
+    required String recipeId,
+    required String mealType,
+    required double servings,
+  }) async {
+    final token = await _resolveToken();
+    if (token == null) {
+      _error = 'Musisz być zalogowany, aby dodać wpis.';
+      notifyListeners();
+      return false;
+    }
+
+    try {
+      await _service.addFoodLog({
+        'date': '${_currentDate.year.toString().padLeft(4, '0')}-'
+            '${_currentDate.month.toString().padLeft(2, '0')}-'
+            '${_currentDate.day.toString().padLeft(2, '0')}',
+        'meal_type': mealType,
+        'recipe_id': recipeId,
+        'servings': servings,
+      }, token);
+      await fetchLogsForDate(_currentDate);
+      return true;
+    } catch (e) {
+      _error = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Loguje posiłek bezpośrednio z pozycji dzisiejszego planu posiłków.
+  Future<bool> addFromMealPlanEntry(String mealPlanEntryId) async {
+    final token = await _resolveToken();
+    if (token == null) {
+      _error = 'Musisz być zalogowany, aby dodać wpis.';
+      notifyListeners();
+      return false;
+    }
+
+    try {
+      await _service.addFromMealPlanEntry(mealPlanEntryId, token);
+      await fetchLogsForDate(_currentDate);
+      return true;
+    } catch (e) {
+      _error = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
+  }
+
   Future<void> deleteEntry(String logId) async {
     final token = await _resolveToken();
     if (token == null) return;
@@ -120,36 +169,13 @@ class FoodLogProvider with ChangeNotifier {
       await _service.deleteFoodLog(logId, token);
       await fetchLogsForDate(_currentDate);
     } catch (e) {
-      // Mock flow
-      _logs.removeWhere((l) => l.id == logId);
-      _updateMockSummary();
+      _error = e.toString().replaceAll('Exception: ', '');
       notifyListeners();
     }
   }
 
-  void _generateMockData(DateTime date) {
-    _logs = [
-      FoodLogEntry(id: '1', userId: '123', date: date, mealType: 'Śniadanie', foodName: 'Owsianka z owocami', portionSize: 300, calories: 350, protein: 12, carbs: 55, fat: 8),
-      FoodLogEntry(id: '2', userId: '123', date: date, mealType: 'Obiad', foodName: 'Kurczak z ryżem i warzywami', portionSize: 450, calories: 600, protein: 45, carbs: 70, fat: 15),
-    ];
-    _updateMockSummary();
-  }
-
-  void _updateMockSummary() {
-    double totalCal = 0, totalP = 0, totalC = 0, totalF = 0;
-    for (var log in _logs) {
-      totalCal += log.calories;
-      totalP += log.protein;
-      totalC += log.carbs;
-      totalF += log.fat;
-    }
-    _summary = DailySummary(
-      date: _currentDate,
-      totalCalories: totalCal,
-      totalProtein: totalP,
-      totalCarbs: totalC,
-      totalFat: totalF,
-      targetCalories: 2200,
-    );
+  void clearError() {
+    _error = null;
+    notifyListeners();
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../models/recipe.dart';
 import '../../theme/app_theme.dart';
 
@@ -13,7 +14,9 @@ class RecipeDetailScreen extends StatelessWidget {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          // 1. Premium Hero AppBar
+          // 1. Premium Hero AppBar — ilustracja kategorii dania zamiast
+          // pustego gradientu (wcześniej próbowano tu wyświetlić emoji,
+          // które w międzyczasie zostały usunięte z całej aplikacji).
           SliverAppBar(
             expandedHeight: 220,
             pinned: true,
@@ -22,7 +25,7 @@ class RecipeDetailScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      AppTheme.secondaryColor.withOpacity(0.4),
+                      AppTheme.secondaryColor.withOpacity(0.15),
                       AppTheme.backgroundColor,
                     ],
                     begin: Alignment.topCenter,
@@ -30,15 +33,16 @@ class RecipeDetailScreen extends StatelessWidget {
                   ),
                 ),
                 child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 32),
-                      Text(
-                        recipe.mealTypeEmoji,
-                        style: const TextStyle(fontSize: 72),
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 24, bottom: 16),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: SvgPicture.asset(
+                        recipe.categoryImageAsset,
+                        width: 140,
+                        height: 140,
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -98,7 +102,7 @@ class RecipeDetailScreen extends StatelessWidget {
                   // Czas, Porcje, Trudność (Info Row)
                   Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: AppTheme.surfaceColor,
                       borderRadius: BorderRadius.all(Radius.circular(16)),
                     ),
@@ -162,6 +166,59 @@ class RecipeDetailScreen extends StatelessWidget {
                       ),
                     );
                   }).toList(),
+                  const SizedBox(height: 28),
+
+                  // Sposób przygotowania — wcześniej ta sekcja w ogóle nie
+                  // istniała w aplikacji, mimo że backend/dane mogły
+                  // zawierać instrukcje krok po kroku.
+                  if (recipe.instructions.isNotEmpty) ...[
+                    Text(
+                      'Sposób przygotowania',
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    const SizedBox(height: 12),
+                    ...recipe.instructions.asMap().entries.map((entry) {
+                      final stepNumber = entry.key + 1;
+                      final stepText = entry.value;
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 14),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 28,
+                              height: 28,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryColor.withOpacity(0.12),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Text(
+                                '$stepNumber',
+                                style: const TextStyle(
+                                  color: AppTheme.primaryColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.only(top: 3),
+                                child: Text(
+                                  stepText,
+                                  style: Theme.of(context).textTheme.bodyLarge,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                  ],
                   const SizedBox(height: 48),
                 ],
               ),
@@ -175,7 +232,7 @@ class RecipeDetailScreen extends StatelessWidget {
   Widget _buildInfoColumn(BuildContext context, String label, String value) {
     return Column(
       children: [
-        Text(label, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+        Text(label, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
         const SizedBox(height: 4),
         Text(
           value,
@@ -191,7 +248,7 @@ class RecipeDetailScreen extends StatelessWidget {
 
   Widget _buildNutritionGrid(Recipe recipe) {
     if (recipe.nutritionTotal == null) {
-      return const Padding(
+      return Padding(
         padding: EdgeInsets.symmetric(vertical: 8.0),
         child: Text(
           'Brak danych o wartościach odżywczych.',
@@ -236,7 +293,7 @@ class RecipeDetailScreen extends StatelessWidget {
             children: [
               Text(
                 item['label'] as String,
-                style: const TextStyle(color: AppTheme.textSecondary, fontSize: 11),
+                style: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
               ),
               const SizedBox(height: 2),
               Text(

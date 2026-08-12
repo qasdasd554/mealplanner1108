@@ -155,7 +155,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   if (_currentPage > 0)
                     TextButton(
                       onPressed: _previousPage,
-                      child: const Text('Wstecz', style: TextStyle(color: AppTheme.textSecondary)),
+                      child: Text('Wstecz', style: TextStyle(color: AppTheme.textSecondary)),
                     )
                   else
                     const SizedBox.shrink(),

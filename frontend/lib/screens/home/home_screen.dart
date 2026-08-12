@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../providers/auth_provider.dart';
@@ -82,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.local_fire_department_outlined),
             activeIcon: Icon(Icons.local_fire_department),
-            label: 'Tracker',
+            label: 'Śledzenie',
           ),
         ],
       ),
@@ -219,6 +220,15 @@ class HomeTab extends StatelessWidget {
                         color: AppTheme.accentColor,
                         onTap: () => Navigator.of(context).pushNamed('/products'),
                       ),
+                      const SizedBox(width: 16),
+                      _buildQuickActionCard(
+                        context,
+                        title: 'Promocje',
+                        subtitle: 'Aktualne okazje',
+                        icon: Icons.local_offer_outlined,
+                        color: Colors.red,
+                        onTap: () => Navigator.of(context).pushNamed('/promotions'),
+                      ),
                     ],
                   ),
                 ).animate().fadeIn(delay: 100.ms),
@@ -332,7 +342,7 @@ class HomeTab extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppTheme.surfaceColor,
         borderRadius: BorderRadius.all(Radius.circular(20)),
       ),
@@ -427,15 +437,16 @@ class HomeTab extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: AppTheme.surfaceColor,
           borderRadius: BorderRadius.all(Radius.circular(16)),
         ),
         child: Row(
           children: [
-            Text(
-              entry.recipe.mealTypeEmoji,
-              style: const TextStyle(fontSize: 28),
+            SvgPicture.asset(
+              entry.recipe.categoryImageAsset,
+              width: 36,
+              height: 36,
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -463,7 +474,7 @@ class HomeTab extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: AppTheme.textSecondary),
+            Icon(Icons.chevron_right, color: AppTheme.textSecondary),
           ],
         ),
       ),
@@ -473,7 +484,7 @@ class HomeTab extends StatelessWidget {
   Widget _buildNoPlanCard(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(24),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppTheme.surfaceColor,
         borderRadius: BorderRadius.all(Radius.circular(20)),
       ),

@@ -55,6 +55,10 @@ class Recipe(Base):
     )
     nutrition_total: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    # Instrukcje przygotowania krok po kroku (lista tekstów). Wcześniej ta
+    # kolumna w ogóle nie istniała — aplikacja nie miała jak pokazać "jak to
+    # ugotować", tylko listę składników i wartości odżywcze.
+    instructions: Mapped[list | None] = mapped_column(JSON, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

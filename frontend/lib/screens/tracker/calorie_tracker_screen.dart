@@ -32,7 +32,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
       builder: (context, child) {
         return Theme(
           data: ThemeData.dark().copyWith(
-            colorScheme: const ColorScheme.dark(
+            colorScheme: ColorScheme.dark(
               primary: AppTheme.primaryColor,
               onPrimary: Colors.white,
               surface: AppTheme.surfaceColor,
@@ -54,7 +54,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tracker Kalorii'),
+        title: const Text('Śledzenie kalorii'),
         actions: [
           IconButton(
             icon: const Icon(Icons.calendar_today),
@@ -64,22 +64,24 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
       ),
       body: provider.isLoading
           ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor))
-          : RefreshIndicator(
-              onRefresh: () => provider.fetchLogsForDate(provider.currentDate),
-              color: AppTheme.primaryColor,
-              child: ListView(
-                padding: const EdgeInsets.all(24.0),
-                children: [
-                  _buildDateHeader(provider.currentDate),
-                  const SizedBox(height: 24),
-                  _buildProgressSection(provider.summary),
-                  const SizedBox(height: 32),
-                  _buildMacrosSection(provider.summary),
-                  const SizedBox(height: 32),
-                  _buildLogsList(provider.logs),
-                ],
-              ),
-            ),
+          : provider.error != null
+              ? _buildErrorState(context, provider)
+              : RefreshIndicator(
+                  onRefresh: () => provider.fetchLogsForDate(provider.currentDate),
+                  color: AppTheme.primaryColor,
+                  child: ListView(
+                    padding: const EdgeInsets.all(24.0),
+                    children: [
+                      _buildDateHeader(provider.currentDate),
+                      const SizedBox(height: 24),
+                      _buildProgressSection(provider.summary),
+                      const SizedBox(height: 32),
+                      _buildMacrosSection(provider.summary),
+                      const SizedBox(height: 32),
+                      _buildLogsList(context, provider.logs),
+                    ],
+                  ),
+                ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.pushNamed(context, '/tracker/add');
@@ -90,15 +92,39 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
     );
   }
 
-  Widget _buildDateHeader(DateTime date) {
-    String formattedDate = DateFormat('dd MMMM yyyy', 'pl_PL').format(date);
+  Widget _buildErrorState(BuildContext context, FoodLogProvider provider) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.cloud_off_outlined, size: 48, color: AppTheme.textSecondary),
+            const SizedBox(height: 16),
+            Text(
+              provider.error ?? 'Nie udało się załadować dziennika.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppTheme.textSecondary),
+            ),
+            const SizedBox(height: 16),
+            OutlinedButton(
+              onPressed: () => provider.fetchLogsForDate(provider.currentDate),
+              child: const Text('Spróbuj ponownie'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDateHeader(DateTime date) {    String formattedDate = DateFormat('dd MMMM yyyy', 'pl_PL').format(date);
     if (date.year == DateTime.now().year && date.month == DateTime.now().month && date.day == DateTime.now().day) {
       formattedDate = 'Dzisiaj, $formattedDate';
     }
     
     return Text(
       formattedDate,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.bold,
         color: AppTheme.textSecondary,
@@ -132,13 +158,13 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
             children: [
               Text(
                 '${remaining.toInt()}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 42,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.textPrimary,
                 ),
               ),
-              const Text(
+              Text(
                 'kcal pozostało',
                 style: TextStyle(
                   fontSize: 14,
@@ -168,7 +194,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
       children: [
         Text(
           '${amount.toInt()}g',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
             color: AppTheme.textPrimary,
@@ -187,9 +213,9 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
     );
   }
 
-  Widget _buildLogsList(List<FoodLogEntry> logs) {
+  Widget _buildLogsList(BuildContext context, List<FoodLogEntry> logs) {
     if (logs.isEmpty) {
-      return const Center(
+      return Center(
         child: Padding(
           padding: EdgeInsets.all(32.0),
           child: Text(
@@ -231,7 +257,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                 children: [
                   Text(
                     type,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: AppTheme.textPrimary,
@@ -248,7 +274,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                 ],
               ),
               const SizedBox(height: 12),
-              ...items.map((item) => _buildLogItem(item)).toList(),
+              ...items.map((item) => _buildLogItem(context, item)).toList(),
             ],
           ),
         );
@@ -256,65 +282,87 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
     );
   }
 
-  Widget _buildLogItem(FoodLogEntry item) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(16),
+  Widget _buildLogItem(BuildContext context, FoodLogEntry item) {
+    return Dismissible(
+      key: ValueKey(item.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        decoration: BoxDecoration(
+          color: AppTheme.errorColor,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        alignment: Alignment.centerRight,
+        child: const Icon(Icons.delete_outline, color: Colors.white),
       ),
-      child: Row(
-        children: [
-          const Icon(Icons.restaurant_menu, color: AppTheme.textSecondary),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      onDismissed: (_) {
+        Provider.of<FoodLogProvider>(context, listen: false).deleteEntry(item.id);
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceColor,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              item.recipeId != null ? Icons.menu_book_outlined : Icons.restaurant_menu,
+              color: AppTheme.textSecondary,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.displayName,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    item.servings == 1
+                        ? '1 porcja'
+                        : '${item.servings.toStringAsFixed(item.servings.truncateToDouble() == item.servings ? 0 : 1)} porcji',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  item.foodName,
-                  style: const TextStyle(
+                  '${item.calories.toInt()} kcal',
+                  style: TextStyle(
                     fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.bold,
                     color: AppTheme.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  '${item.portionSize.toInt()}g',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: AppTheme.textSecondary,
-                  ),
+                Row(
+                  children: [
+                    Text('B:${item.protein.toInt()}', style: const TextStyle(fontSize: 12, color: AppTheme.accentColor)),
+                    const SizedBox(width: 4),
+                    Text('W:${item.carbs.toInt()}', style: const TextStyle(fontSize: 12, color: Colors.orange)),
+                    const SizedBox(width: 4),
+                    Text('T:${item.fat.toInt()}', style: const TextStyle(fontSize: 12, color: Colors.redAccent)),
+                  ],
                 ),
               ],
             ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '${item.calories.toInt()} kcal',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Text('B:${item.protein.toInt()}', style: const TextStyle(fontSize: 12, color: AppTheme.accentColor)),
-                  const SizedBox(width: 4),
-                  Text('W:${item.carbs.toInt()}', style: const TextStyle(fontSize: 12, color: Colors.orange)),
-                  const SizedBox(width: 4),
-                  Text('T:${item.fat.toInt()}', style: const TextStyle(fontSize: 12, color: Colors.redAccent)),
-                ],
-              ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

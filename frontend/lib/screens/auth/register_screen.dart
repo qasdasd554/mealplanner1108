@@ -203,7 +203,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           Navigator.of(context).pop();
                         },
                         child: RichText(
-                          text: const TextSpan(
+                          text: TextSpan(
                             text: 'Masz już konto?',
                             style: TextStyle(color: AppTheme.textSecondary),
                             children: [

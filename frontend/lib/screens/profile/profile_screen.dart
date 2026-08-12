@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/store_provider.dart';
+import '../../providers/theme_provider.dart';
 import '../../theme/app_theme.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -12,6 +13,7 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final storeProvider = Provider.of<StoreProvider>(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
 
     final user = authProvider.currentUser;
 
@@ -64,7 +66,7 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     user?.email ?? '',
-                    style: const TextStyle(color: AppTheme.textSecondary),
+                    style: TextStyle(color: AppTheme.textSecondary),
                   ),
                 ],
               ),
@@ -116,6 +118,42 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 32),
 
+            // Przełącznik trybu ciemnego
+            Material(
+              color: AppTheme.surfaceColor,
+              borderRadius: const BorderRadius.all(Radius.circular(16)),
+              child: InkWell(
+                onTap: () => themeProvider.toggle(),
+                borderRadius: const BorderRadius.all(Radius.circular(16)),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Icon(
+                        themeProvider.isDark
+                            ? Icons.dark_mode_outlined
+                            : Icons.light_mode_outlined,
+                        color: AppTheme.primaryColor,
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          'Tryb ciemny',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 15),
+                        ),
+                      ),
+                      Switch(
+                        value: themeProvider.isDark,
+                        activeColor: AppTheme.primaryColor,
+                        onChanged: (value) => themeProvider.setDark(value),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 32),
+
             // 3. Wylogowanie
             OutlinedButton(
               style: OutlinedButton.styleFrom(
@@ -133,7 +171,7 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 48),
 
             // Wersja aplikacji
-            const Center(
+            Center(
               child: Text(
                 'v1.0.0 (Smart Meal Planner PL)',
                 style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
@@ -258,34 +296,41 @@ class ProfileScreen extends StatelessWidget {
     required String value,
     required VoidCallback onTap,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: const BoxDecoration(
-        color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.all(Radius.circular(16)),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: AppTheme.primaryColor),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+    // UWAGA: wcześniej ten Container przyjmował parametr `onTap`, ale nigdy
+    // go nie używał — kafelek wyglądał jak przycisk, ale dotknięcie nic nie
+    // robiło. Stąd "żaden przycisk oprócz Wyloguj się nie działał".
+    return Material(
+      color: AppTheme.surfaceColor,
+      borderRadius: const BorderRadius.all(Radius.circular(16)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: const BorderRadius.all(Radius.circular(16)),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Icon(icon, color: AppTheme.primaryColor),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      value,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 15),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  value,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 15),
-                ),
-              ],
-            ),
+              ),
+              Icon(Icons.chevron_right, color: AppTheme.textSecondary),
+            ],
           ),
-          const Icon(Icons.chevron_right, color: AppTheme.textSecondary),
-        ],
+        ),
       ),
     );
   }

@@ -189,7 +189,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                 const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: AppTheme.surfaceColor,
                     borderRadius: BorderRadius.all(Radius.circular(16)),
                   ),
@@ -209,7 +209,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                           });
                         },
                       ),
-                      const Padding(
+                      Padding(
                         padding: EdgeInsets.symmetric(horizontal: 16.0),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -235,7 +235,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                 const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.all(16),
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: AppTheme.surfaceColor,
                     borderRadius: BorderRadius.all(Radius.circular(16)),
                   ),
@@ -344,7 +344,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       'Maksymalizujemy ponowne wykorzystanie składników, aby zmniejszyć cenę zakupów.',
                       style: TextStyle(color: AppTheme.textSecondary),
                       textAlign: TextAlign.center,

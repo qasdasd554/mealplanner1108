@@ -25,6 +25,10 @@ class FoodLogEntryResponse(FoodLogEntryBase):
     id: uuid.UUID
     user_id: uuid.UUID
     created_at: datetime
+    # Nazwa przepisu, jeśli wpis powstał z przepisu (recipe_id ustawiony).
+    # Bez tego pola aplikacja mobilna nie miała jak pokazać nazwy posiłku —
+    # backend zwracał tylko surowe recipe_id (UUID), a nie nazwę dania.
+    recipe_name: Optional[str] = None
 
     class Config:
         orm_mode = True

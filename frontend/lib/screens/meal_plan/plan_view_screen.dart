@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../../providers/meal_plan_provider.dart';
 import '../../providers/store_provider.dart';
@@ -102,7 +103,7 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
                   const SizedBox(height: 16),
                   Expanded(
                     child: _swapRecipes.isEmpty
-                        ? const Center(
+                        ? Center(
                             child: Text(
                               'Brak dostępnych alternatywnych przepisów',
                               style: TextStyle(color: AppTheme.textSecondary),
@@ -115,9 +116,10 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
 
                               return ListTile(
                                 contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                                leading: Text(
-                                  recipe.mealTypeEmoji,
-                                  style: const TextStyle(fontSize: 28),
+                                leading: SvgPicture.asset(
+                                  recipe.categoryImageAsset,
+                                  width: 32,
+                                  height: 32,
                                 ),
                                 title: Text(
                                   recipe.name,
@@ -125,7 +127,7 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
                                 ),
                                 subtitle: Text(
                                   '${recipe.totalTimeMin} min • ${recipe.difficulty}',
-                                  style: const TextStyle(color: AppTheme.textSecondary),
+                                  style: TextStyle(color: AppTheme.textSecondary),
                                 ),
                                 trailing: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
@@ -304,15 +306,16 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
                         child: Container(
                           margin: const EdgeInsets.only(bottom: 16),
                           padding: const EdgeInsets.all(18),
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             color: AppTheme.surfaceColor,
                             borderRadius: BorderRadius.all(Radius.circular(16)),
                           ),
                           child: Row(
                             children: [
-                              Text(
-                                entry.recipe.mealTypeEmoji,
-                                style: const TextStyle(fontSize: 32),
+                              SvgPicture.asset(
+                                entry.recipe.categoryImageAsset,
+                                width: 40,
+                                height: 40,
                               ),
                               const SizedBox(width: 16),
                               Expanded(
@@ -338,7 +341,7 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
                                     const SizedBox(height: 4),
                                     Text(
                                       '⏱ ${entry.recipe.totalTimeMin} min • ${entry.recipe.nutritionTotal.kcal.toInt()} kcal',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         color: AppTheme.textSecondary,
                                         fontSize: 12,
                                       ),

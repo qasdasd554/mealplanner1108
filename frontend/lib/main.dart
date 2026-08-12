@@ -6,6 +6,8 @@ import 'providers/store_provider.dart';
 import 'providers/meal_plan_provider.dart';
 import 'providers/shopping_list_provider.dart';
 import 'providers/food_log_provider.dart';
+import 'providers/theme_provider.dart';
+import 'providers/promotion_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,11 +15,13 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => StoreProvider()),
         ChangeNotifierProvider(create: (_) => MealPlanProvider()),
         ChangeNotifierProvider(create: (_) => ShoppingListProvider()),
         ChangeNotifierProvider(create: (_) => FoodLogProvider()),
+        ChangeNotifierProvider(create: (_) => PromotionProvider()),
       ],
       child: const SmartMealPlannerApp(),
     ),

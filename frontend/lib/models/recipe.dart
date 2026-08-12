@@ -52,6 +52,7 @@ class Recipe {
   final bool isActive;
   final List<String> tags;
   final List<RecipeIngredient> ingredients;
+  final List<String> instructions;
 
   Recipe({
     required this.id,
@@ -68,6 +69,7 @@ class Recipe {
     required this.isActive,
     required this.tags,
     required this.ingredients,
+    this.instructions = const [],
   });
 
   factory Recipe.fromJson(Map<String, dynamic> json) {
@@ -91,16 +93,75 @@ class Recipe {
               ?.map((e) => RecipeIngredient.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
+      instructions: (json['instructions'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
     );
   }
 
   int get totalTimeMin => (prepTimeMin ?? 0) + (cookTimeMin ?? 0);
 
-  String get mealTypeEmoji => switch (mealType.toLowerCase()) {
-        'śniadanie' => '',
-        'obiad' => '',
-        'kolacja' => '',
-        'przekąska' => '',
-        _ => '',
-      };
+  /// Ścieżka do lokalnej ilustracji kategorii dania (bez zależności od
+  /// sieci — nie hotlinkujemy zdjęć z zewnętrznych serwisów, więc nic nie
+  /// może się "zepsuć" ani naruszyć praw autorskich cudzych fotografii).
+  /// Dopasowanie na podstawie nazwy, tagów i typu kuchni.
+  String get categoryImageAsset {
+    final haystack = ('$name ${tags.join(' ')} ${cuisine ?? ''}').toLowerCase();
+
+    bool has(List<String> words) => words.any((w) => haystack.contains(w));
+
+    if (has(['zupa', 'krem z', 'bulion', 'rosół'])) {
+      return 'assets/recipe_categories/soup.svg';
+    }
+    if (has(['makaron', 'spaghetti', 'penne', 'pasta', 'lasagne'])) {
+      return 'assets/recipe_categories/pasta.svg';
+    }
+    if (has(['sałatka', 'salatka', 'salad'])) {
+      return 'assets/recipe_categories/salad.svg';
+    }
+    if (has(['kanapk', 'tost', 'bułk', 'bulka', 'quesadilla', 'tacos'])) {
+      return 'assets/recipe_categories/sandwich.svg';
+    }
+    if (has(['łosoś', 'losos', 'ryba', 'ryby', 'dorsz', 'tuńczyk', 'tunczyk'])) {
+      return 'assets/recipe_categories/fish.svg';
+    }
+    if (has(['pad thai', 'curry', 'sushi', 'wok', 'azjatyck'])) {
+      return 'assets/recipe_categories/asian.svg';
+    }
+    if (has(['ryż', 'ryz', 'quinoa', 'risotto', 'bowl', 'kasz'])) {
+      return 'assets/recipe_categories/rice_bowl.svg';
+    }
+    if (has([
+      'kotlet',
+      'schab',
+      'kurczak',
+      'mielone',
+      'wołowin',
+      'wolowin',
+      'wieprzow',
+      'indyk',
+      'gulasz',
+      'chili con',
+    ])) {
+      return 'assets/recipe_categories/meat.svg';
+    }
+    if (has([
+      'owsiank',
+      'jajecznic',
+      'naleśnik',
+      'nalesnik',
+      'jogurt',
+      'granola',
+      'omlet',
+    ]) ||
+        mealType.toLowerCase() == 'śniadanie') {
+      return 'assets/recipe_categories/breakfast.svg';
+    }
+    if (has(['deser', 'ciast', 'mus', 'owoc', 'jabłk', 'jablk', 'malin', 'banan']) ||
+        mealType.toLowerCase() == 'przekąska') {
+      return 'assets/recipe_categories/sweet_snack.svg';
+    }
+    return 'assets/recipe_categories/generic.svg';
+  }
 }

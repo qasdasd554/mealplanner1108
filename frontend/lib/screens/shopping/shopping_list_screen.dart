@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import '../../providers/shopping_list_provider.dart';
 import '../../providers/meal_plan_provider.dart';
+import '../../providers/store_provider.dart';
+import '../../providers/promotion_provider.dart';
 import '../../models/shopping_list.dart';
 import '../../models/product.dart';
 import '../../services/api_client.dart';
@@ -36,6 +38,8 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
   void _loadData() {
     final mealPlanProvider = Provider.of<MealPlanProvider>(context, listen: false);
     final shoppingListProvider = Provider.of<ShoppingListProvider>(context, listen: false);
+    final storeProvider = Provider.of<StoreProvider>(context, listen: false);
+    final promotionProvider = Provider.of<PromotionProvider>(context, listen: false);
 
     final activePlan = mealPlanProvider.activePlan;
     if (activePlan != null) {
@@ -44,20 +48,28 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
       // Domyślnie na serwerze możemy pobrać listę zakupów bezpośrednio, przekażemy id planu lub pobierzemy najnowszą
       shoppingListProvider.loadShoppingList(activePlan.id);
     }
+
+    // Wcześniej ta funkcja "czy jest promocja na produkt X w sklepie Y" nie
+    // istniała wcale (patrz naprawa modułu promocji) — teraz ładujemy
+    // aktywne promocje dla wybranego sklepu, żeby pokazać odznaki przy
+    // pozycjach listy zakupów.
+    promotionProvider.ensureLoadedForStore(storeProvider.selectedStore?.name);
   }
 
-  // Mapowanie emoji do kategorii/działów
-  String _getDeptEmoji(String deptName) {
+  // Ikony działów (wcześniej tu było mapowanie na emoji — usunięte razem
+  // z resztą emotek w aplikacji; funkcja zwracała odtąd puste stringi,
+  // czyli renderowała nic zamiast ikony).
+  IconData _getDeptIcon(String deptName) {
     return switch (deptName.toLowerCase()) {
-      'warzywa i owoce' || 'warzywa' || 'owoce' => '',
-      'pieczywo' => '',
-      'mięso i wędliny' || 'mięso' => '',
-      'ryby' => '',
-      'nabiał' => '',
-      'produkty suche' || 'suche' => '',
-      'mrożonki' => '',
-      'przyprawy i sosy' || 'przyprawy' => '',
-      _ => '',
+      'warzywa i owoce' || 'warzywa' || 'owoce' => Icons.eco_outlined,
+      'pieczywo' => Icons.bakery_dining_outlined,
+      'mięso i wędliny' || 'mięso' => Icons.set_meal_outlined,
+      'ryby' => Icons.set_meal_outlined,
+      'nabiał' => Icons.icecream_outlined,
+      'produkty suche' || 'suche' => Icons.grain_outlined,
+      'mrożonki' => Icons.ac_unit_outlined,
+      'przyprawy i sosy' || 'przyprawy' => Icons.local_dining_outlined,
+      _ => Icons.shopping_basket_outlined,
     };
   }
 
@@ -131,7 +143,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                   const SizedBox(height: 4),
                   Text(
                     'Dla produktu: ${item.productName}',
-                    style: const TextStyle(color: AppTheme.textSecondary),
+                    style: TextStyle(color: AppTheme.textSecondary),
                   ),
                   const SizedBox(height: 16),
                   Expanded(
@@ -258,18 +270,18 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                         itemBuilder: (context, index) {
                           final deptName = list.itemsByDepartment.keys.elementAt(index);
                           final items = list.itemsByDepartment[deptName]!;
-                          final emoji = _getDeptEmoji(deptName);
+                          final deptIcon = _getDeptIcon(deptName);
 
                           return Container(
                             margin: const EdgeInsets.only(bottom: 20),
-                            decoration: const BoxDecoration(
+                            decoration: BoxDecoration(
                               color: AppTheme.surfaceColor,
                               borderRadius: BorderRadius.all(Radius.circular(20)),
                             ),
                             child: ExpansionTile(
                               initiallyExpanded: true,
                               shape: const Border(),
-                              leading: Text(emoji, style: const TextStyle(fontSize: 24)),
+                              leading: Icon(deptIcon, color: AppTheme.primaryColor),
                               title: Text(
                                 deptName,
                                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -278,7 +290,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                               ),
                               subtitle: Text(
                                 '${items.where((i) => i.isChecked).length} z ${items.length} kupione',
-                                style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                                style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                               ),
                               children: items.map((item) {
                                 return _buildShoppingItemTile(item, shoppingListProvider, list.storeId);
@@ -297,7 +309,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     return Container(
       margin: const EdgeInsets.all(24),
       padding: const EdgeInsets.all(20),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppTheme.surfaceColor,
         borderRadius: BorderRadius.all(Radius.circular(20)),
       ),
@@ -330,7 +342,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                 const SizedBox(height: 4),
                 Text(
                   '${list.checkedItems} z ${list.totalItems} produktów',
-                  style: const TextStyle(color: AppTheme.textSecondary),
+                  style: TextStyle(color: AppTheme.textSecondary),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -353,6 +365,10 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     ShoppingListProvider provider,
     String storeId,
   ) {
+    // Odznaka promocji — sprawdzana z już wczytanej listy promocji
+    // (patrz _loadData), bez dodatkowego zapytania sieciowego na każdą pozycję.
+    final promotion = Provider.of<PromotionProvider>(context).findForProduct(item.productName);
+
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
       leading: Checkbox(
@@ -375,7 +391,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
           Text('${item.requiredQuantity} ${item.unit}'),
           if (item.brand != null) ...[
             const SizedBox(width: 8),
-            Text('• ${item.brand}', style: const TextStyle(color: AppTheme.textSecondary)),
+            Text('• ${item.brand}', style: TextStyle(color: AppTheme.textSecondary)),
           ],
           if (item.substitutedForName != null) ...[
             const SizedBox(width: 8),
@@ -391,6 +407,25 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
               ),
             ),
           ],
+          if (promotion != null) ...[
+            const SizedBox(width: 8),
+            Tooltip(
+              message: promotion.promoDescription ??
+                  '${promotion.regularPrice.toStringAsFixed(2)} zł → '
+                      '${promotion.promoPrice.toStringAsFixed(2)} zł',
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.12),
+                  borderRadius: const BorderRadius.all(Radius.circular(6)),
+                ),
+                child: Text(
+                  'PROMOCJA -${promotion.savingsPercent}%',
+                  style: const TextStyle(color: Colors.red, fontSize: 8, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
       trailing: Row(
@@ -403,7 +438,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
             ),
           const SizedBox(width: 8),
           IconButton(
-            icon: const Icon(Icons.swap_horiz, size: 20, color: AppTheme.textSecondary),
+            icon: Icon(Icons.swap_horiz, size: 20, color: AppTheme.textSecondary),
             onPressed: () => _openSubstitutePicker(item, storeId),
           ),
         ],
@@ -418,14 +453,14 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.shopping_cart_outlined, size: 64, color: AppTheme.textSecondary),
+            Icon(Icons.shopping_cart_outlined, size: 64, color: AppTheme.textSecondary),
             const SizedBox(height: 24),
             Text(
               'Brak aktywnej listy zakupów',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Zatwierdź swój plan posiłków na ekranie startowym, aby wygenerować listę zakupów.',
               textAlign: TextAlign.center,
               style: TextStyle(color: AppTheme.textSecondary),

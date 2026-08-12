@@ -243,7 +243,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     if (kcal != null) '${kcal.toInt()} kcal / 100${product?.unit =='ml'|| product?.unit =='l'?'ml':'g'}',
                     if (!sp.isAvailable) 'niedostępny',
                   ].join('•'),
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppTheme.textSecondary,
                     fontSize: 12,
                   ),
@@ -265,7 +265,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
               ),
               Text(
                 '/ ${product?.defaultQuantity ?? 1} ${product?.unit ??''}',
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppTheme.textSecondary,
                   fontSize: 10,
                 ),
@@ -299,7 +299,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
             const SizedBox(height: 8),
             Text(
               subtitle,
-              style: const TextStyle(color: AppTheme.textSecondary),
+              style: TextStyle(color: AppTheme.textSecondary),
               textAlign: TextAlign.center,
             ),
             if (action != null) ...[

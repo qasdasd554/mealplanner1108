@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../models/recipe.dart';
 import '../../services/recipe_service.dart';
 import '../../theme/app_theme.dart';
@@ -221,7 +222,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
         );
       },
       child: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: AppTheme.surfaceColor,
           borderRadius: BorderRadius.all(Radius.circular(16)),
         ),
@@ -236,17 +237,21 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      AppTheme.secondaryColor.withOpacity(0.3),
-                      AppTheme.primaryColor.withOpacity(0.1),
+                      AppTheme.secondaryColor.withOpacity(0.15),
+                      AppTheme.primaryColor.withOpacity(0.06),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                 ),
                 child: Center(
-                  child: Text(
-                    recipe.mealTypeEmoji,
-                    style: const TextStyle(fontSize: 48),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: SvgPicture.asset(
+                      recipe.categoryImageAsset,
+                      width: 64,
+                      height: 64,
+                    ),
                   ),
                 ),
               ),
@@ -288,7 +293,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       children: [
                         Text(
                           '⏱ ${recipe.totalTimeMin} min • ${recipe.nutritionTotal.kcal.toInt()} kcal',
-                          style: const TextStyle(color: AppTheme.textSecondary, fontSize: 11),
+                          style: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
                         ),
                         Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -314,7 +319,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   }
 
   Widget _buildEmptyState() {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

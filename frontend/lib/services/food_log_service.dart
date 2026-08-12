@@ -12,64 +12,93 @@ class FoodLogService {
   final http.Client _client = http.Client();
 
   String _formatDate(DateTime date) =>
-      "${date.year}-${date.month.toString().padLeft(2,'0')}-${date.day.toString().padLeft(2,'0')}";
+      "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+
+  Map<String, String> _headers(String token) => {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      };
 
   Future<List<FoodLogEntry>> getLogsForDate(DateTime date, String token) async {
     // Backend: GET /food-log/?entry_date=YYYY-MM-DD
     final response = await _client.get(
       Uri.parse('$baseUrl/food-log/?entry_date=${_formatDate(date)}'),
-      headers: {'Authorization': 'Bearer $token'},
+      headers: _headers(token),
     );
 
     if (response.statusCode == 200) {
-      final List data = json.decode(response.body);
-      return data.map((json) => FoodLogEntry.fromJson(json)).toList();
-    } else {
-      throw Exception('Nie udało się pobrać dziennika żywieniowego');
+      final List data = json.decode(utf8.decode(response.bodyBytes));
+      return data.map((e) => FoodLogEntry.fromJson(e as Map<String, dynamic>)).toList();
     }
+    throw Exception('Nie udało się pobrać dziennika żywieniowego (${response.statusCode})');
   }
 
   Future<DailySummary> getDailySummary(DateTime date, String token) async {
     // Backend: GET /food-log/summary?entry_date=YYYY-MM-DD
     final response = await _client.get(
       Uri.parse('$baseUrl/food-log/summary?entry_date=${_formatDate(date)}'),
-      headers: {'Authorization': 'Bearer $token'},
+      headers: _headers(token),
     );
 
     if (response.statusCode == 200) {
-      return DailySummary.fromJson(json.decode(response.body));
-    } else {
-      throw Exception('Nie udało się pobrać podsumowania dnia');
+      return DailySummary.fromJson(json.decode(utf8.decode(response.bodyBytes)));
     }
+    throw Exception('Nie udało się pobrać podsumowania dnia (${response.statusCode})');
   }
 
-  Future<FoodLogEntry> addFoodLog(Map<String, dynamic> entryData, String token) async {
+  /// Dodaje wpis ręczny (z własną nazwą) albo z przepisu (recipe_id +
+  /// liczba porcji — makra przeliczy wtedy backend automatycznie, o ile nie
+  /// podano ich wprost).
+  Future<FoodLogEntry> addFoodLog(
+    Map<String, dynamic> entryData,
+    String token,
+  ) async {
     // Backend: POST /food-log/
     final response = await _client.post(
       Uri.parse('$baseUrl/food-log/'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
+      headers: _headers(token),
       body: json.encode(entryData),
     );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
-      return FoodLogEntry.fromJson(json.decode(response.body));
-    } else {
-      throw Exception('Nie udało się dodać wpisu do dziennika');
+      return FoodLogEntry.fromJson(json.decode(utf8.decode(response.bodyBytes)));
     }
+    throw Exception(_extractError(response) ?? 'Nie udało się dodać wpisu do dziennika');
+  }
+
+  /// Loguje posiłek bezpośrednio z pozycji planu posiłków (przycisk
+  /// "Zjedzone" przy pozycji planu na dany dzień).
+  Future<FoodLogEntry> addFromMealPlanEntry(
+    String mealPlanEntryId,
+    String token,
+  ) async {
+    final response = await _client.post(
+      Uri.parse('$baseUrl/food-log/from-plan-entry/$mealPlanEntryId'),
+      headers: _headers(token),
+    );
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return FoodLogEntry.fromJson(json.decode(utf8.decode(response.bodyBytes)));
+    }
+    throw Exception(_extractError(response) ?? 'Nie udało się dodać posiłku z planu');
   }
 
   Future<void> deleteFoodLog(String logId, String token) async {
     // Backend: DELETE /food-log/{entry_id}
     final response = await _client.delete(
       Uri.parse('$baseUrl/food-log/$logId'),
-      headers: {'Authorization': 'Bearer $token'},
+      headers: _headers(token),
     );
 
     if (response.statusCode != 200 && response.statusCode != 204) {
-      throw Exception('Nie udało się usunąć wpisu z dziennika');
+      throw Exception(_extractError(response) ?? 'Nie udało się usunąć wpisu z dziennika');
     }
+  }
+
+  String? _extractError(http.Response response) {
+    try {
+      final body = json.decode(utf8.decode(response.bodyBytes));
+      if (body is Map && body['detail'] != null) return body['detail'].toString();
+    } catch (_) {}
+    return null;
   }
 }

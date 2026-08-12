@@ -91,6 +91,7 @@ class RecipeResponse(RecipeBase):
     id: uuid.UUID
     nutrition_total: dict | None = None
     image_url: str | None = None
+    instructions: list[str] | None = None
     is_active: bool
     tags: list[str] = []
     ingredients: list[RecipeIngredientResponse] = []

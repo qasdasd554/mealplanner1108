@@ -5,6 +5,7 @@ from fastapi import APIRouter
 from app.api.v1.auth import router as auth_router
 from app.api.v1.meal_plans import router as meal_plans_router
 from app.api.v1.products import router as products_router
+from app.api.v1.promotions import router as promotions_router
 from app.api.v1.recipes import router as recipes_router
 from app.api.v1.shopping_lists import router as shopping_lists_router
 from app.api.v1.stores import router as stores_router
@@ -25,3 +26,4 @@ router.include_router(
 )
 router.include_router(food_log_router, prefix="/food-log", tags=["Food Log"])
 router.include_router(price_compare_router, prefix="/price-compare", tags=["Price Comparison"])
+router.include_router(promotions_router, prefix="/promotions", tags=["Promotions"])
