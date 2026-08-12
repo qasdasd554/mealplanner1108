@@ -97,10 +97,10 @@ class Recipe {
   int get totalTimeMin => (prepTimeMin ?? 0) + (cookTimeMin ?? 0);
 
   String get mealTypeEmoji => switch (mealType.toLowerCase()) {
-        'śniadanie' => '🌅',
-        'obiad' => '☀️',
-        'kolacja' => '🌙',
-        'przekąska' => '🍎',
-        _ => '🍽️',
+        'śniadanie' => '',
+        'obiad' => '',
+        'kolacja' => '',
+        'przekąska' => '',
+        _ => '',
       };
 }

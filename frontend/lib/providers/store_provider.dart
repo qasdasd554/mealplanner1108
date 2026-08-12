@@ -22,7 +22,7 @@ class StoreProvider with ChangeNotifier {
     try {
       _stores = await _storeService.getStores();
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('ApiException: ', '');
+      _errorMessage = e.toString().replaceAll('ApiException:', '');
     } finally {
       _isLoading = false;
       notifyListeners();

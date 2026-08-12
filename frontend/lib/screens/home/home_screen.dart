@@ -48,6 +48,10 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: tabs[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
+        // 5 zakladek wymaga trybu 'fixed' — bez tego Flutter przechodzi
+        // w tryb 'shifting' i rzuca wyjatek, co wywalalo aplikacje
+        // zaraz po zakonczeniu onboardingu.
+        type: BottomNavigationBarType.fixed,
         currentIndex: _currentIndex,
         onTap: (index) {
           setState(() {
@@ -144,7 +148,7 @@ class HomeTab extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Cześć, ${user?.displayName ?? 'użytkowniku'}! 👋',
+                            'Cześć, ${user?.displayName ??'użytkowniku'}!',
                             style: Theme.of(context).textTheme.displaySmall?.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -402,7 +406,7 @@ class HomeTab extends StatelessWidget {
                     // Przejdź do zakupów
                     Navigator.of(context).pushNamed('/shopping');
                   },
-                  child: const Text('Zakupy 🛒'),
+                  child: const Text('Zakupy'),
                 ),
               ),
             ],
@@ -497,7 +501,7 @@ class HomeTab extends StatelessWidget {
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pushNamed('/plan/config'),
-            child: const Text('Stwórz nowy plan posiłków 🍳'),
+            child: const Text('Stwórz nowy plan posiłków'),
           ),
         ],
       ),

@@ -118,7 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 24),
                       // Tytuł powitalny
                       Text(
-                        'Witaj ponownie! 👋',
+                        'Witaj ponownie!',
                         style: Theme.of(context).textTheme.displaySmall?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -231,7 +231,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         },
                         child: RichText(
                           text: const TextSpan(
-                            text: 'Nie masz konta? ',
+                            text: 'Nie masz konta?',
                             style: TextStyle(color: AppTheme.textSecondary),
                             children: [
                               TextSpan(

@@ -61,7 +61,7 @@ class AuthProvider with ChangeNotifier {
       _setLoading(false);
       return true;
     } catch (e) {
-      _setErrorMessage(e.toString().replaceAll('ApiException: ', ''));
+      _setErrorMessage(e.toString().replaceAll('ApiException:', ''));
       _setLoading(false);
       return false;
     }
@@ -84,7 +84,7 @@ class AuthProvider with ChangeNotifier {
       _setLoading(false);
       return true;
     } catch (e) {
-      _setErrorMessage(e.toString().replaceAll('ApiException: ', ''));
+      _setErrorMessage(e.toString().replaceAll('ApiException:', ''));
       _setLoading(false);
       return false;
     }
@@ -100,7 +100,7 @@ class AuthProvider with ChangeNotifier {
       _setLoading(false);
       return success;
     } catch (e) {
-      _setErrorMessage(e.toString().replaceAll('ApiException: ', ''));
+      _setErrorMessage(e.toString().replaceAll('ApiException:', ''));
       _setLoading(false);
       return false;
     }
@@ -136,7 +136,7 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _setErrorMessage(e.toString().replaceAll('ApiException: ', ''));
+      _setErrorMessage(e.toString().replaceAll('ApiException:', ''));
       return false;
     }
   }
@@ -161,7 +161,7 @@ class AuthProvider with ChangeNotifier {
       _setLoading(false);
       return true;
     } catch (e) {
-      _setErrorMessage(e.toString().replaceAll('ApiException: ', ''));
+      _setErrorMessage(e.toString().replaceAll('ApiException:', ''));
       _setLoading(false);
       return false;
     }

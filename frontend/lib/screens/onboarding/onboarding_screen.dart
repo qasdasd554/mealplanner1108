@@ -24,23 +24,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   int _householdSize = 1;
 
   final List<Map<String, String>> _allergensList = [
-    {'id': 'gluten', 'name': 'Gluten', 'emoji': '🌾'},
-    {'id': 'laktoza', 'name': 'Laktoza', 'emoji': '🥛'},
-    {'id': 'orzechy', 'name': 'Orzechy', 'emoji': '🥜'},
-    {'id': 'jaja', 'name': 'Jaja', 'emoji': '🥚'},
-    {'id': 'soja', 'name': 'Soja', 'emoji': '🫘'},
-    {'id': 'seler', 'name': 'Seler', 'emoji': '🥬'},
-    {'id': 'ryby', 'name': 'Ryby', 'emoji': '🐟'},
-    {'id': 'skorupiaki', 'name': 'Skorupiaki', 'emoji': '🍤'},
+    {'id': 'gluten', 'name': 'Gluten'},
+    {'id': 'laktoza', 'name': 'Laktoza'},
+    {'id': 'orzechy', 'name': 'Orzechy'},
+    {'id': 'jaja', 'name': 'Jaja'},
+    {'id': 'soja', 'name': 'Soja'},
+    {'id': 'seler', 'name': 'Seler'},
+    {'id': 'ryby', 'name': 'Ryby'},
+    {'id': 'skorupiaki', 'name': 'Skorupiaki'},
   ];
 
   final List<Map<String, String>> _dietsList = [
-    {'name': 'Bez ograniczeń', 'desc': 'Jesz wszystko, na co masz ochotę', 'emoji': '🍽️'},
-    {'name': 'Wegetariańska', 'desc': 'Posiłki bez mięsa i ryb', 'emoji': '🥦'},
-    {'name': 'Wegańska', 'desc': 'Posiłki w 100% roślinne', 'emoji': '🌱'},
-    {'name': 'Bezglutenowa', 'desc': 'Dania bez zawartości glutenu', 'emoji': '🌾❌'},
-    {'name': 'Keto', 'desc': 'Niska zawartość węglowodanów', 'emoji': '🥩'},
-    {'name': 'Wysokobiałkowa', 'desc': 'Dla aktywnych, budujących masę', 'emoji': '💪'},
+    {'name': 'Bez ograniczeń', 'desc': 'Jesz wszystko, na co masz ochotę'},
+    {'name': 'Wegetariańska', 'desc': 'Posiłki bez mięsa i ryb'},
+    {'name': 'Wegańska', 'desc': 'Posiłki w 100% roślinne'},
+    {'name': 'Bezglutenowa', 'desc': 'Dania bez zawartości glutenu'},
+    {'name': 'Keto', 'desc': 'Niska zawartość węglowodanów'},
+    {'name': 'Wysokobiałkowa', 'desc': 'Dla aktywnych, budujących masę'},
   ];
 
   @override
@@ -166,7 +166,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(120, 48),
                     ),
-                    child: Text(_currentPage == 3 ? 'Gotowe! 🎉' : 'Dalej'),
+                    child: Text(_currentPage == 3 ? 'Gotowe!' : 'Dalej'),
                   ),
                 ],
               ),
@@ -201,7 +201,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Gdzie robisz zakupy? 🛒',
+            'Gdzie robisz zakupy?',
             style: Theme.of(context).textTheme.displaySmall,
             textAlign: TextAlign.center,
           ),
@@ -302,7 +302,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Czy masz jakieś alergie? 🚫',
+            'Czy masz jakieś alergie?',
             style: Theme.of(context).textTheme.displaySmall,
             textAlign: TextAlign.center,
           ),
@@ -352,11 +352,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     child: Row(
                       children: [
                         Text(
-                          allergen['emoji']!,
-                          style: const TextStyle(fontSize: 22),
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
                           allergen['name']!,
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                 fontSize: 16,
@@ -383,7 +378,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Wybierz swoją dietę 🥗',
+            'Wybierz swoją dietę',
             style: Theme.of(context).textTheme.displaySmall,
             textAlign: TextAlign.center,
           ),
@@ -420,11 +415,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                     child: Row(
                       children: [
-                        Text(
-                          diet['emoji']!,
-                          style: const TextStyle(fontSize: 24),
-                        ),
-                        const SizedBox(width: 16),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -464,7 +454,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Dla ilu osób gotujesz? 👨‍👩‍👧‍👦',
+            'Dla ilu osób gotujesz?',
             style: Theme.of(context).textTheme.displaySmall,
             textAlign: TextAlign.center,
           ),

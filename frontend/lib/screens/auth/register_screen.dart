@@ -91,7 +91,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     children: [
                       // Tytuł powitalny
                       Text(
-                        'Utwórz konto 📝',
+                        'Utwórz konto',
                         style: Theme.of(context).textTheme.displaySmall?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -204,7 +204,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         },
                         child: RichText(
                           text: const TextSpan(
-                            text: 'Masz już konto? ',
+                            text: 'Masz już konto?',
                             style: TextStyle(color: AppTheme.textSecondary),
                             children: [
                               TextSpan(

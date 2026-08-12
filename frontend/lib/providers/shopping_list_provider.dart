@@ -20,7 +20,7 @@ class ShoppingListProvider with ChangeNotifier {
     try {
       _currentList = await _shoppingListService.getShoppingList(listId);
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('ApiException: ', '');
+      _errorMessage = e.toString().replaceAll('ApiException:', '');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -55,7 +55,7 @@ class ShoppingListProvider with ChangeNotifier {
     } catch (e) {
       // Cofnij zmianę w razie błędu
       targetItem.isChecked = !targetItem.isChecked;
-      _errorMessage = e.toString().replaceAll('ApiException: ', '');
+      _errorMessage = e.toString().replaceAll('ApiException:', '');
       notifyListeners();
     }
   }
@@ -74,7 +74,7 @@ class ShoppingListProvider with ChangeNotifier {
       await loadShoppingList(_currentList!.id);
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('ApiException: ', '');
+      _errorMessage = e.toString().replaceAll('ApiException:', '');
       return false;
     } finally {
       _isLoading = false;

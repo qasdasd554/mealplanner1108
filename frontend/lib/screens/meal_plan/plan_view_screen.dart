@@ -337,7 +337,7 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      '⏱️ ${entry.recipe.totalTimeMin} min • 🔥 ${entry.recipe.nutritionTotal.kcal.toInt()} kcal',
+                                      '⏱ ${entry.recipe.totalTimeMin} min • ${entry.recipe.nutritionTotal.kcal.toInt()} kcal',
                                       style: const TextStyle(
                                         color: AppTheme.textSecondary,
                                         fontSize: 12,
@@ -385,7 +385,7 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
                     onPressed: () {
                       Navigator.of(context).pushNamed('/shopping');
                     },
-                    child: const Text('Przejdź do zakupów 🛒'),
+                    child: const Text('Przejdź do zakupów'),
                   ),
           ),
         ],

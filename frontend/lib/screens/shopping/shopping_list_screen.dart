@@ -49,15 +49,15 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
   // Mapowanie emoji do kategorii/działów
   String _getDeptEmoji(String deptName) {
     return switch (deptName.toLowerCase()) {
-      'warzywa i owoce' || 'warzywa' || 'owoce' => '🥬',
-      'pieczywo' => '🥖',
-      'mięso i wędliny' || 'mięso' => '🥩',
-      'ryby' => '🐟',
-      'nabiał' => '🧀',
-      'produkty suche' || 'suche' => '🥫',
-      'mrożonki' => '🧊',
-      'przyprawy i sosy' || 'przyprawy' => '🧴',
-      _ => '🛒',
+      'warzywa i owoce' || 'warzywa' || 'owoce' => '',
+      'pieczywo' => '',
+      'mięso i wędliny' || 'mięso' => '',
+      'ryby' => '',
+      'nabiał' => '',
+      'produkty suche' || 'suche' => '',
+      'mrożonki' => '',
+      'przyprawy i sosy' || 'przyprawy' => '',
+      _ => '',
     };
   }
 
@@ -141,7 +141,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                         final sub = _substitutes[index];
                         return ListTile(
                           title: Text(sub['name'] as String),
-                          subtitle: Text('${sub['brand'] as String? ?? ''}${sub['kcal'] != null ? ' (${sub['kcal']} kcal)' : ''}'),
+                          subtitle: Text('${sub['brand'] as String? ??''}${sub['kcal'] != null ?' (${sub['kcal']} kcal)':''}'),
                           trailing: Text(
                             '${((sub['price'] as num?)?.toDouble() ?? 0.0).toStringAsFixed(2)} zł',
                             style: const TextStyle(

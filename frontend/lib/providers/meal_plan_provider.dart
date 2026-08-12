@@ -42,7 +42,7 @@ class MealPlanProvider with ChangeNotifier {
         _currentPlan = activePlan;
       }
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('ApiException: ', '');
+      _errorMessage = e.toString().replaceAll('ApiException:', '');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -56,7 +56,7 @@ class MealPlanProvider with ChangeNotifier {
     try {
       _currentPlan = await _mealPlanService.getPlan(planId);
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('ApiException: ', '');
+      _errorMessage = e.toString().replaceAll('ApiException:', '');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -75,7 +75,7 @@ class MealPlanProvider with ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('ApiException: ', '');
+      _errorMessage = e.toString().replaceAll('ApiException:', '');
       _isGenerating = false;
       notifyListeners();
       return false;
@@ -90,7 +90,7 @@ class MealPlanProvider with ChangeNotifier {
       await loadPlans(); // przeładuj, aby statusy się zaktualizowały
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('ApiException: ', '');
+      _errorMessage = e.toString().replaceAll('ApiException:', '');
       return false;
     } finally {
       _isLoading = false;
@@ -115,7 +115,7 @@ class MealPlanProvider with ChangeNotifier {
       }
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('ApiException: ', '');
+      _errorMessage = e.toString().replaceAll('ApiException:', '');
       return false;
     } finally {
       _isLoading = false;
@@ -134,7 +134,7 @@ class MealPlanProvider with ChangeNotifier {
       }
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('ApiException: ', '');
+      _errorMessage = e.toString().replaceAll('ApiException:', '');
       return false;
     } finally {
       _isLoading = false;

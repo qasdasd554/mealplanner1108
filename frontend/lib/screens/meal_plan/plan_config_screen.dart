@@ -245,11 +245,11 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                     children: ['śniadanie', 'obiad', 'kolacja', 'przekąska'].map((type) {
                       final isSelected = _selectedMealTypes.contains(type);
                       final emoji = {
-                        'śniadanie': '🌅',
-                        'obiad': '☀️',
-                        'kolacja': '🌙',
-                        'przekąska': '🍎',
-                      }[type] ?? '🍽️';
+                        'śniadanie': '',
+                        'obiad': '',
+                        'kolacja': '',
+                        'przekąska': '',
+                      }[type] ?? '';
                       return FilterChip(
                         label: Text('$emoji $type'),
                         selected: isSelected,
@@ -321,7 +321,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                 // Przycisk generowania
                 ElevatedButton(
                   onPressed: mealPlanProvider.isGenerating ? null : _generate,
-                  child: Text(mealPlanProvider.isGenerating ? 'Generowanie...' : 'Wygeneruj plan! 🍳'),
+                  child: Text(mealPlanProvider.isGenerating ? 'Generowanie...' : 'Wygeneruj plan!'),
                 ).animate().fadeIn(delay: 400.ms),
               ],
             ),

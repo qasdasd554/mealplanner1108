@@ -126,7 +126,7 @@ class ApiClient {
           errMsg = detail;
         } else if (detail is List) {
           // Błędy walidacji Pydantic
-          errMsg = detail.map((e) => e['msg'] ?? '').join(', ');
+          errMsg = detail.map((e) => e['msg'] ?? '').join(',');
         }
       }
       throw ApiException(response.statusCode, errMsg);

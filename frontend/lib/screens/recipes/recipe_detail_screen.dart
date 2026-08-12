@@ -105,11 +105,11 @@ class RecipeDetailScreen extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        _buildInfoColumn(context, '⏱️ Czas', '${recipe.totalTimeMin} min'),
+                        _buildInfoColumn(context, '⏱ Czas', '${recipe.totalTimeMin} min'),
                         _buildDivider(),
-                        _buildInfoColumn(context, '🍽️ Porcje', '${recipe.servings} porcje'),
+                        _buildInfoColumn(context, 'Porcje', '${recipe.servings} porcje'),
                         _buildDivider(),
-                        _buildInfoColumn(context, '📊 Trudność', recipe.difficulty),
+                        _buildInfoColumn(context, 'Trudność', recipe.difficulty),
                       ],
                     ),
                   ).animate().fadeIn(delay: 300.ms),
@@ -152,7 +152,7 @@ class RecipeDetailScreen extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            '${ing.quantity} ${ing.unit}${ing.kcal != null ? ' (${ing.kcal} kcal)' : ''}',
+                            '${ing.quantity} ${ing.unit}${ing.kcal != null ?' (${ing.kcal} kcal)':''}',
                             style: const TextStyle(
                               color: AppTheme.primaryColor,
                               fontWeight: FontWeight.bold,

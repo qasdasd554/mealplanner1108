@@ -12,7 +12,7 @@ class FoodLogService {
   final http.Client _client = http.Client();
 
   String _formatDate(DateTime date) =>
-      "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+      "${date.year}-${date.month.toString().padLeft(2,'0')}-${date.day.toString().padLeft(2,'0')}";
 
   Future<List<FoodLogEntry>> getLogsForDate(DateTime date, String token) async {
     // Backend: GET /food-log/?entry_date=YYYY-MM-DD

@@ -94,28 +94,28 @@ class _RecipesScreenState extends State<RecipesScreen> {
                   _loadRecipes();
                 }),
                 const SizedBox(width: 8),
-                _buildFilterChip('Śniadania 🌅', 'śniadanie', _selectedMealType == 'śniadanie', (val) {
+                _buildFilterChip('Śniadania', 'śniadanie', _selectedMealType == 'śniadanie', (val) {
                   setState(() {
                     _selectedMealType = 'śniadanie';
                   });
                   _loadRecipes();
                 }),
                 const SizedBox(width: 8),
-                _buildFilterChip('Obiady ☀️', 'obiad', _selectedMealType == 'obiad', (val) {
+                _buildFilterChip('Obiady', 'obiad', _selectedMealType == 'obiad', (val) {
                   setState(() {
                     _selectedMealType = 'obiad';
                   });
                   _loadRecipes();
                 }),
                 const SizedBox(width: 8),
-                _buildFilterChip('Kolacje 🌙', 'kolacja', _selectedMealType == 'kolacja', (val) {
+                _buildFilterChip('Kolacje', 'kolacja', _selectedMealType == 'kolacja', (val) {
                   setState(() {
                     _selectedMealType = 'kolacja';
                   });
                   _loadRecipes();
                 }),
                 const SizedBox(width: 8),
-                _buildFilterChip('Przekąski 🍎', 'przekąska', _selectedMealType == 'przekąska', (val) {
+                _buildFilterChip('Przekąski', 'przekąska', _selectedMealType == 'przekąska', (val) {
                   setState(() {
                     _selectedMealType = 'przekąska';
                   });
@@ -287,7 +287,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '⏱️ ${recipe.totalTimeMin} min • 🔥 ${recipe.nutritionTotal.kcal.toInt()} kcal',
+                          '⏱ ${recipe.totalTimeMin} min • ${recipe.nutritionTotal.kcal.toInt()} kcal',
                           style: const TextStyle(color: AppTheme.textSecondary, fontSize: 11),
                         ),
                         Container(

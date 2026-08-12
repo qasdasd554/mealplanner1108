@@ -240,9 +240,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 Text(
                   [
                     if (product?.brand != null) product!.brand!,
-                    if (kcal != null) '${kcal.toInt()} kcal / 100${product?.unit == 'ml' || product?.unit == 'l' ? 'ml' : 'g'}',
+                    if (kcal != null) '${kcal.toInt()} kcal / 100${product?.unit =='ml'|| product?.unit =='l'?'ml':'g'}',
                     if (!sp.isAvailable) 'niedostępny',
-                  ].join(' • '),
+                  ].join('•'),
                   style: const TextStyle(
                     color: AppTheme.textSecondary,
                     fontSize: 12,
@@ -264,7 +264,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 ),
               ),
               Text(
-                '/ ${product?.defaultQuantity ?? 1} ${product?.unit ?? ''}',
+                '/ ${product?.defaultQuantity ?? 1} ${product?.unit ??''}',
                 style: const TextStyle(
                   color: AppTheme.textSecondary,
                   fontSize: 10,
