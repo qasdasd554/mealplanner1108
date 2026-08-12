@@ -19,6 +19,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
   Store? _selectedStore;
   int _durationDays = 5;
   int _mealsPerDay = 3;
+  int _householdSize = 1;
   final _budgetController = TextEditingController();
   final _kcalController = TextEditingController(text: '2000');
   final Set<String> _selectedMealTypes = {'śniadanie', 'obiad', 'kolacja'};
@@ -35,6 +36,14 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
         storeProvider.selectStoreById(authProvider.currentUser!.preferredStoreId!);
         setState(() {
           _selectedStore = storeProvider.selectedStore;
+        });
+      }
+      // Domyślna liczba osób — z profilu użytkownika, ale można ją zmienić
+      // tylko dla tego konkretnego planu (np. akurat gotujesz dla gości).
+      final profileHouseholdSize = authProvider.currentUser?.householdSize;
+      if (profileHouseholdSize != null && profileHouseholdSize > 0) {
+        setState(() {
+          _householdSize = profileHouseholdSize;
         });
       }
     });
@@ -74,6 +83,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
       mealsPerDay: _selectedMealTypes.length,
       maxBudget: maxBudget,
       targetKcal: targetKcal,
+      householdSize: _householdSize,
       preferences: {
         'meal_types': _selectedMealTypes.toList(),
       },
@@ -84,7 +94,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
 
     if (mounted) {
       if (success) {
-        Navigator.of(context).pushReplacementNamed('/plan/view');
+        await _showBudgetConfirmation(mealPlanProvider.currentPlan);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -94,6 +104,69 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
         );
       }
     }
+  }
+
+  /// Pokazuje szacowany minimalny koszt zakupów od razu w momencie
+  /// utworzenia planu — zanim użytkownik przejdzie do jego pełnego
+  /// widoku — zamiast chować tę informację na osobnym ekranie.
+  Future<void> _showBudgetConfirmation(MealPlan? plan) async {
+    final budget = plan?.estimatedMinBudget;
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Plan gotowy! 🎉'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Twój plan na $_durationDays dni dla '
+              '${_householdSize == 1 ? "1 osoby" : "$_householdSize osób"} jest gotowy.',
+            ),
+            const SizedBox(height: 16),
+            if (budget != null)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Szacowany minimalny koszt zakupów',
+                      style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${budget.toStringAsFixed(2)} zł',
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.primaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              Navigator.of(context).pushReplacementNamed('/plan/view');
+            },
+            child: const Text('Zobacz plan'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -223,6 +296,63 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                     ],
                   ),
                 ).animate().fadeIn(delay: 100.ms),
+                const SizedBox(height: 32),
+
+                // 2b. Liczba osób
+                Text(
+                  'Dla ilu osób gotujesz: $_householdSize'
+                  '${_householdSize == 1 ? " osoba" : (_householdSize < 5 ? " osoby" : " osób")}',
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Domyślnie z Twojego profilu — możesz to zmienić tylko dla tego planu.',
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceColor,
+                    borderRadius: BorderRadius.all(Radius.circular(16)),
+                  ),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.remove_circle_outline),
+                        color: AppTheme.primaryColor,
+                        onPressed: _householdSize > 1
+                            ? () => setState(() => _householdSize--)
+                            : null,
+                      ),
+                      Expanded(
+                        child: Slider(
+                          value: _householdSize.toDouble(),
+                          min: 1,
+                          max: 8,
+                          divisions: 7,
+                          activeColor: AppTheme.primaryColor,
+                          inactiveColor: AppTheme.backgroundColor,
+                          label: '$_householdSize',
+                          onChanged: (value) {
+                            setState(() {
+                              _householdSize = value.toInt();
+                            });
+                          },
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.add_circle_outline),
+                        color: AppTheme.primaryColor,
+                        onPressed: _householdSize < 8
+                            ? () => setState(() => _householdSize++)
+                            : null,
+                      ),
+                    ],
+                  ),
+                ).animate().fadeIn(delay: 150.ms),
                 const SizedBox(height: 32),
 
                 // 3. Typy posiłków

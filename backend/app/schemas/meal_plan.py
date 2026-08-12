@@ -58,5 +58,14 @@ class MealPlanGenerateRequest(BaseModel):
     duration_days: int = Field(default=7, ge=1, le=14)
     meals_per_day: int = Field(default=3, ge=1, le=5)
     max_budget: float | None = None
+    # Dla ilu osób gotować W TYM planie. Jeśli nie podano, backend użyje
+    # wartości z profilu użytkownika (household_size ustawione w onboardingu
+    # / profilu). Podanie tej wartości NIE zmienia trwale profilu — dotyczy
+    # tylko generowanego teraz planu.
+    household_size: int | None = Field(default=None, ge=1, le=20)
+    # Docelowa dzienna kaloryczność na osobę. Wcześniej aplikacja wysyłała
+    # to pole, ale backend go nie przyjmował (Pydantic po cichu odrzucał
+    # nieznane pole) — ustawienie w formularzu nic nie robiło.
+    target_kcal: float | None = Field(default=None, gt=0, le=6000)
     target_kcal: int | None = Field(default=None, ge=800, le=5000)
     preferences: dict | None = None

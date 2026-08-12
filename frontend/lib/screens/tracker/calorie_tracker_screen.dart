@@ -117,7 +117,18 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
     );
   }
 
-  Widget _buildDateHeader(DateTime date) {    String formattedDate = DateFormat('dd MMMM yyyy', 'pl_PL').format(date);
+  Widget _buildDateHeader(DateTime date) {
+    // Zabezpieczenie: jeśli z jakiegoś powodu dane locale 'pl_PL' nie są
+    // zainicjalizowane (mimo initializeDateFormatting w main.dart),
+    // DateFormat rzuciłby wyjątek i wywalił CAŁY ekran na biało — tak jak
+    // się to wcześniej działo. Fallback gwarantuje, że w najgorszym razie
+    // data wygląda gorzej (format domyślny), ale ekran zawsze się wyrenderuje.
+    String formattedDate;
+    try {
+      formattedDate = DateFormat('dd MMMM yyyy', 'pl_PL').format(date);
+    } catch (_) {
+      formattedDate = DateFormat('dd.MM.yyyy').format(date);
+    }
     if (date.year == DateTime.now().year && date.month == DateTime.now().month && date.day == DateTime.now().day) {
       formattedDate = 'Dzisiaj, $formattedDate';
     }

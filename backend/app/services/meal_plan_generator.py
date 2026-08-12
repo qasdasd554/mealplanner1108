@@ -83,6 +83,8 @@ class MealPlanGenerator:
         meals_per_day: int,
         max_budget: float | None = None,
         preferences: dict[str, Any] | None = None,
+        household_size: int | None = None,
+        target_kcal: float | None = None,
     ) -> MealPlan:
         """Generuje kompletny plan posiłków.
 
@@ -93,6 +95,14 @@ class MealPlanGenerator:
             meals_per_day: ile posiłków dziennie (1-5).
             max_budget: opcjonalny budżet w PLN.
             preferences: opcjonalne preferencje (np. ``{'diet': 'vegetarian'}``).
+            household_size: dla ilu osób gotować w TYM planie — nadpisuje
+                (tylko na potrzeby tego planu, bez trwałej zmiany profilu)
+                domyślną wartość z profilu użytkownika.
+            target_kcal: docelowa dzienna kaloryczność na osobę. Wcześniej
+                to pole było wysyłane przez aplikację, ale backend w ogóle
+                go nie przyjmował (Pydantic po cichu je odrzucał) — algorytm
+                zawsze dobierał przepisy pod sztywne, domyślne 2000 kcal,
+                niezależnie od tego, co użytkownik ustawił w formularzu.
 
         Returns:
             Utworzony obiekt ``MealPlan`` ze statusem ``'draft'``.
@@ -117,6 +127,7 @@ class MealPlanGenerator:
             slot_distribution=slot_distribution,
             max_budget=max_budget,
             store_id=store_id,
+            target_kcal=target_kcal,
         )
 
         # Krok 4 — macierz dzień × slot
@@ -124,6 +135,7 @@ class MealPlanGenerator:
             selected=selected,
             slot_distribution=slot_distribution,
             user=user,
+            household_size=household_size,
         )
 
         # Krok 5 — zapis do bazy
@@ -137,10 +149,23 @@ class MealPlanGenerator:
 
         # Krok 6 — automatyczna lista zakupów
         builder = ShoppingListBuilder(self.db)
-        await builder.build_from_meal_plan(meal_plan.id)
+        shopping_list = await builder.build_from_meal_plan(meal_plan.id)
+
+        # Zsumuj koszt listy zakupów i zapisz jako szacowany minimalny
+        # budżet planu — wcześniej to pole istniało w API (zawsze null),
+        # ale nigdy nie było faktycznie liczone.
+        from app.models import ShoppingListItem
+        from sqlalchemy import func
+
+        total_result = await self.db.execute(
+            select(func.coalesce(func.sum(ShoppingListItem.estimated_price), 0)).where(
+                ShoppingListItem.shopping_list_id == shopping_list.id
+            )
+        )
+        meal_plan.estimated_min_budget = total_result.scalar_one()
+        await self.db.commit()
 
         # Obiekt meal_plan wygasł po commicie z ShoppingListBuilder, trzeba przeładować
-        from sqlalchemy import select
         from sqlalchemy.orm import selectinload
         from app.models import MealPlan, MealPlanEntry, Recipe, RecipeIngredient
 
@@ -323,6 +348,7 @@ class MealPlanGenerator:
         slot_distribution: list[tuple[int, str]],
         max_budget: float | None,
         store_id: UUID,
+        target_kcal: float | None = None,
     ) -> list[tuple[int, str, Recipe]]:
         """Zachłanny algorytm selekcji przepisów z reuse składników.
 
@@ -379,6 +405,7 @@ class MealPlanGenerator:
                     used_ingredient_ids=used_ingredient_ids,
                     recipe_usage_count=recipe_usage_count,
                     daily_recipes=daily_recipes,
+                    target_kcal=target_kcal,
                 )
                 if score > best_score:
                     best_score = score
@@ -393,6 +420,7 @@ class MealPlanGenerator:
                         recipe_usage_count=recipe_usage_count,
                         daily_recipes=daily_recipes,
                         ignore_repeat_limit=True,
+                        target_kcal=target_kcal,
                     )
                     if score > best_score:
                         best_score = score
@@ -426,6 +454,7 @@ class MealPlanGenerator:
         recipe_usage_count: dict[UUID, int],
         daily_recipes: list[Recipe],
         ignore_repeat_limit: bool = False,
+        target_kcal: float | None = None,
     ) -> float:
         """Oblicza łączny scoring kandydującego przepisu.
 
@@ -465,7 +494,10 @@ class MealPlanGenerator:
                 k: current_daily.get(k, 0.0) + candidate_nutrition.get(k, 0.0)
                 for k in ("kcal", "protein", "fat", "carbs", "fiber")
             }
-            nutrition_score = self.nutrition.check_nutrition_balance(projected)
+            nutrition_target = {"kcal": target_kcal} if target_kcal else None
+            nutrition_score = self.nutrition.check_nutrition_balance(
+                projected, target=nutrition_target
+            )
         else:
             nutrition_score = 0.5  # brak kontekstu — neutralna ocena
 
@@ -485,20 +517,26 @@ class MealPlanGenerator:
         selected: list[tuple[int, str, Recipe]],
         slot_distribution: list[tuple[int, str]],
         user: User,
+        household_size: int | None = None,
     ) -> list[dict[str, Any]]:
         """Tworzy dane wpisów planu posiłków.
 
-        Uwzględnia ``household_size`` użytkownika do przeliczenia porcji.
+        Uwzględnia liczbę osób do przeliczenia porcji — domyślnie z profilu
+        użytkownika (``user.household_size``), ale można ją nadpisać per
+        plan przez parametr ``household_size`` (np. gdy ktoś tym razem
+        gotuje na więcej osób niż zwykle). Celowo NIE modyfikujemy obiektu
+        ``user`` — to jednorazowe ustawienie tylko dla tego planu, a nie
+        trwała zmiana profilu.
 
         Returns:
             Lista słowników gotowych do utworzenia ``MealPlanEntry``.
         """
-        household_size = getattr(user, "household_size", 1) or 1
+        effective_household_size = household_size or getattr(user, "household_size", 1) or 1
         entries: list[dict[str, Any]] = []
 
         for day, meal_type, recipe in selected:
             recipe_servings = float(recipe.servings or 1)
-            servings_multiplier = round(household_size / recipe_servings, 2)
+            servings_multiplier = round(effective_household_size / recipe_servings, 2)
             # Minimalna mnożnik = 1.0 (nie zmniejszamy poniżej jednej porcji)
             servings_multiplier = max(servings_multiplier, 1.0)
 

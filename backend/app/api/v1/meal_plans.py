@@ -64,6 +64,8 @@ async def generate_meal_plan(
             meals_per_day=request.meals_per_day,
             max_budget=request.max_budget,
             preferences=request.preferences,
+            household_size=request.household_size,
+            target_kcal=request.target_kcal,
         )
         return meal_plan
     except ServiceError as e:

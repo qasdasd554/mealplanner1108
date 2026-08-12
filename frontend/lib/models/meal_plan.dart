@@ -40,6 +40,7 @@ class MealPlan {
   final int durationDays;
   final int mealsPerDay;
   final String status; // 'draft', 'active', 'completed', 'archived'
+  final double? estimatedMinBudget;
   final List<MealPlanEntry> entries;
   final DateTime createdAt;
 
@@ -51,6 +52,7 @@ class MealPlan {
     required this.durationDays,
     required this.mealsPerDay,
     required this.status,
+    this.estimatedMinBudget,
     required this.entries,
     required this.createdAt,
   });
@@ -64,6 +66,7 @@ class MealPlan {
       durationDays: json['duration_days'] as int? ?? 3,
       mealsPerDay: json['meals_per_day'] as int? ?? 3,
       status: json['status'] as String? ?? 'draft',
+      estimatedMinBudget: (json['estimated_min_budget'] as num?)?.toDouble(),
       entries: (json['entries'] as List<dynamic>?)
               ?.map((e) => MealPlanEntry.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -91,6 +94,7 @@ class MealPlanGenerateRequest {
   final int mealsPerDay;
   final double? maxBudget;
   final int? targetKcal;
+  final int? householdSize;
   final Map<String, dynamic>? preferences;
 
   MealPlanGenerateRequest({
@@ -99,6 +103,7 @@ class MealPlanGenerateRequest {
     required this.mealsPerDay,
     this.maxBudget,
     this.targetKcal,
+    this.householdSize,
     this.preferences,
   });
 
@@ -108,6 +113,7 @@ class MealPlanGenerateRequest {
         'meals_per_day': mealsPerDay,
         'max_budget': maxBudget,
         'target_kcal': targetKcal,
+        'household_size': householdSize,
         'preferences': preferences,
       };
 }
