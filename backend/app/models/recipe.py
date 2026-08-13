@@ -59,6 +59,10 @@ class Recipe(Base):
     # kolumna w ogóle nie istniała — aplikacja nie miała jak pokazać "jak to
     # ugotować", tylko listę składników i wartości odżywcze.
     instructions: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    # Proponowane (opcjonalne) przyprawy, które można dodać, żeby wzbogacić
+    # smak dania — odrębne od `ingredients`, które są WYMAGANE do
+    # przygotowania przepisu. To tylko sugestie, nie obowiązkowa lista.
+    suggested_seasonings: Mapped[list | None] = mapped_column(JSON, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

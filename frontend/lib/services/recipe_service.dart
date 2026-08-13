@@ -1,5 +1,4 @@
 import '../models/recipe.dart';
-import '../models/product.dart';
 import 'api_client.dart';
 import '../config/api_config.dart';
 

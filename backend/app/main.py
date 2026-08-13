@@ -39,6 +39,9 @@ async def _create_tables() -> None:
                 "store_brand_name VARCHAR(100)"
             )
         )
+        await conn.execute(
+            text("ALTER TABLE recipes ADD COLUMN IF NOT EXISTS suggested_seasonings JSON")
+        )
     logger.info("Tabele bazy danych zostały utworzone/zweryfikowane.")
 
 

@@ -53,6 +53,7 @@ class Recipe {
   final List<String> tags;
   final List<RecipeIngredient> ingredients;
   final List<String> instructions;
+  final List<String> suggestedSeasonings;
 
   Recipe({
     required this.id,
@@ -70,6 +71,7 @@ class Recipe {
     required this.tags,
     required this.ingredients,
     this.instructions = const [],
+    this.suggestedSeasonings = const [],
   });
 
   factory Recipe.fromJson(Map<String, dynamic> json) {
@@ -94,6 +96,10 @@ class Recipe {
               .toList() ??
           [],
       instructions: (json['instructions'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
+      suggestedSeasonings: (json['suggested_seasonings'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           [],

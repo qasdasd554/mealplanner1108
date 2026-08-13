@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import '../../providers/food_log_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../models/food_log.dart';
-import 'add_food_entry_screen.dart';
 
 class CalorieTrackerScreen extends StatefulWidget {
   const CalorieTrackerScreen({super.key});

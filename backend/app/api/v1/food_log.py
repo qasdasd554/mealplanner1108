@@ -12,7 +12,7 @@ import uuid
 from datetime import date, timedelta
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -181,6 +181,13 @@ async def delete_food_log_entry(
 )
 async def create_from_meal_plan_entry(
     meal_plan_entry_id: uuid.UUID,
+    # Opcjonalna, jawnie podana data — jeśli obecna, ma pierwszeństwo przed
+    # datą wyliczoną z harmonogramu planu (start_date + numer dnia).
+    # Wcześniej brak tego parametru sprawiał, że nawet gdy użytkownik
+    # przeglądał w "Śledzeniu" inny dzień niż dziś, dodanie posiłku z
+    # planu i tak zapisywało się pod datą wynikającą z harmonogramu, co
+    # w praktyce mogło rozjechać się z tym, co widział na ekranie.
+    entry_date_override: Optional[date] = Query(None, alias="date"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -208,10 +215,13 @@ async def create_from_meal_plan_entry(
     servings = float(plan_entry.servings_multiplier or 1)
     macros = _macros_from_recipe(plan_entry.recipe, servings)
 
-    # Dzień wpisu = data startu planu + (numer dnia - 1); day_number liczony od 1.
-    entry_date = plan_entry.meal_plan.start_date + timedelta(
-        days=max((plan_entry.day_number or 1) - 1, 0)
-    )
+    if entry_date_override is not None:
+        entry_date = entry_date_override
+    else:
+        # Dzień wpisu = data startu planu + (numer dnia - 1); day_number liczony od 1.
+        entry_date = plan_entry.meal_plan.start_date + timedelta(
+            days=max((plan_entry.day_number or 1) - 1, 0)
+        )
 
     db_entry = FoodLogEntry(
         user_id=current_user.id,

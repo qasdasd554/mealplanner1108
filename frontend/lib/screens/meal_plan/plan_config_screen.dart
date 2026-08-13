@@ -18,7 +18,6 @@ class PlanConfigScreen extends StatefulWidget {
 class _PlanConfigScreenState extends State<PlanConfigScreen> {
   Store? _selectedStore;
   int _durationDays = 5;
-  int _mealsPerDay = 3;
   int _householdSize = 1;
   final _budgetController = TextEditingController();
   final _kcalController = TextEditingController(text: '2000');
@@ -173,14 +172,6 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
   Widget build(BuildContext context) {
     final storeProvider = Provider.of<StoreProvider>(context);
     final mealPlanProvider = Provider.of<MealPlanProvider>(context);
-
-    // Domyślne mapowanie wyświetlania posiłków dla danej liczby posiłków dziennie
-    final mealTypesInfo = {
-      2: 'śniadanie, obiad',
-      3: 'śniadanie, obiad, kolacja',
-      4: 'śniadanie, obiad, kolacja, przekąska',
-      5: 'śniadanie, obiad, kolacja, 2x przekąska',
-    };
 
     return Scaffold(
       appBar: AppBar(

@@ -75,6 +75,10 @@ class StoreProduct {
   final String productId;
   final String? departmentId;
   final double price;
+  // Marka własna sklepu (np. "Mleczna Dolina"), jeśli potwierdzona.
+  // Wcześniej to pole w ogóle nie było tu parsowane — mimo że backend
+  // je zwracał — więc ekran produktów nigdy nie mógł go pokazać.
+  final String? storeBrandName;
   final bool isAvailable;
   final Product? product;
 
@@ -84,6 +88,7 @@ class StoreProduct {
     required this.productId,
     this.departmentId,
     required this.price,
+    this.storeBrandName,
     required this.isAvailable,
     this.product,
   });
@@ -95,6 +100,7 @@ class StoreProduct {
       productId: json['product_id'] as String,
       departmentId: json['department_id'] as String?,
       price: (json['price'] as num? ?? 0.0).toDouble(),
+      storeBrandName: json['store_brand_name'] as String?,
       isAvailable: json['is_available'] as bool? ?? true,
       product: json['product'] != null
           ? Product.fromJson(json['product'] as Map<String, dynamic>)

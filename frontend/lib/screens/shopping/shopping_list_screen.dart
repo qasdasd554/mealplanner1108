@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import '../../providers/shopping_list_provider.dart';
@@ -7,7 +6,6 @@ import '../../providers/meal_plan_provider.dart';
 import '../../providers/store_provider.dart';
 import '../../providers/promotion_provider.dart';
 import '../../models/shopping_list.dart';
-import '../../models/product.dart';
 import '../../services/api_client.dart';
 import '../../config/api_config.dart';
 import '../../theme/app_theme.dart';

@@ -223,7 +223,40 @@ class RecipeDetailScreen extends StatelessWidget {
                       );
                     }),
                   ],
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 28),
+
+                  // ── Proponowane przyprawy (opcjonalne) ────────────
+                  if (recipe.suggestedSeasonings.isNotEmpty) ...[
+                    Text(
+                      'Możesz też dodać',
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    Text(
+                      'opcjonalne przyprawy, żeby wzbogacić smak',
+                      style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                    ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: recipe.suggestedSeasonings.map((s) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: AppTheme.accentColor.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            s,
+                            style: const TextStyle(color: AppTheme.accentColor, fontSize: 13),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 28),
+                  ],
 
                   // ── Komentarze (zapowiedź) ────────────────────────
                   // Wyszarzone celowo — funkcja jeszcze nie działa, ale

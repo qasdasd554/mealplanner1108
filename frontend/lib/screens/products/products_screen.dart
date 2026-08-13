@@ -239,7 +239,11 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 const SizedBox(height: 2),
                 Text(
                   [
-                    if (product?.brand != null) product!.brand!,
+                    // Marka WŁASNA sklepu (np. "Mleczna Dolina") ma
+                    // pierwszeństwo przed ogólną marką produktu — to ona
+                    // realnie odpowiada temu, co kupisz w TYM sklepie.
+                    if (sp.storeBrandName != null) sp.storeBrandName!
+                    else if (product?.brand != null) product!.brand!,
                     if (kcal != null) '${kcal.toInt()} kcal / 100${product?.unit =='ml'|| product?.unit =='l'?'ml':'g'}',
                     if (!sp.isAvailable) 'niedostępny',
                   ].join('•'),

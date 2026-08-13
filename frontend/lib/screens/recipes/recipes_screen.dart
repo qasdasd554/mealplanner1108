@@ -296,7 +296,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
                           // Kcal na porcję (nie na cały przepis) — to jest
                           // wartość, jakiej ktoś przeglądający listę przepisów
                           // się spodziewa (jak na etykiecie dania, nie garnka).
-                          '⏱ ${recipe.totalTimeMin} min • ${(recipe.nutritionTotal.kcal / recipe.servings).round()} kcal/porcję',
+                          // Zabezpieczenie przed dzieleniem przez zero: gdyby
+                          // servings kiedyś było 0 (błędne dane), Dart rzuca
+                          // wyjątkiem przy .round() na Infinity i wywala ekran.
+                          '⏱ ${recipe.totalTimeMin} min • ${(recipe.nutritionTotal.kcal / (recipe.servings > 0 ? recipe.servings : 1)).round()} kcal/porcję',
                           style: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
                         ),
                         Container(

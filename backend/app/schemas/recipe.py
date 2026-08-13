@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.services.nutrition_calculator import quantity_to_grams
 
@@ -72,7 +72,7 @@ class RecipeBase(BaseModel):
     meal_type: str
     prep_time_min: int | None = None
     cook_time_min: int | None = None
-    servings: int = 2
+    servings: int = Field(default=2, ge=1)
     difficulty: str = "łatwy"
 
 
@@ -92,6 +92,7 @@ class RecipeResponse(RecipeBase):
     nutrition_total: dict | None = None
     image_url: str | None = None
     instructions: list[str] | None = None
+    suggested_seasonings: list[str] | None = None
     is_active: bool
     tags: list[str] = []
     ingredients: list[RecipeIngredientResponse] = []

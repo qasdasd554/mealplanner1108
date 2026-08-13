@@ -68,12 +68,24 @@ class FoodLogService {
 
   /// Loguje posiłek bezpośrednio z pozycji planu posiłków (przycisk
   /// "Zjedzone" przy pozycji planu na dany dzień).
+  ///
+  /// [forDate] — dzień, pod którym ma się zapisać wpis (np. aktualnie
+  /// przeglądany dzień w ekranie śledzenia). Jeśli pominięty, backend
+  /// wyliczy datę z harmonogramu planu — ale jawne podanie jest
+  /// bezpieczniejsze, żeby wpis zawsze trafiał tam, gdzie użytkownik
+  /// faktycznie patrzy.
   Future<FoodLogEntry> addFromMealPlanEntry(
     String mealPlanEntryId,
-    String token,
-  ) async {
+    String token, {
+    DateTime? forDate,
+  }) async {
+    final query = forDate != null
+        ? '?date=${forDate.year.toString().padLeft(4, '0')}-'
+            '${forDate.month.toString().padLeft(2, '0')}-'
+            '${forDate.day.toString().padLeft(2, '0')}'
+        : '';
     final response = await _client.post(
-      Uri.parse('$baseUrl/food-log/from-plan-entry/$mealPlanEntryId'),
+      Uri.parse('$baseUrl/food-log/from-plan-entry/$mealPlanEntryId$query'),
       headers: _headers(token),
     );
     if (response.statusCode == 200 || response.statusCode == 201) {

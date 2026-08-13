@@ -81,16 +81,23 @@ class _PlanTabState extends State<_PlanTab> {
     });
   }
 
-  /// Numer dnia planu odpowiadający dzisiejszej dacie (1-indeksowany,
-  /// tak jak `day_number` w backendzie), przycięty do zakresu planu.
-  int? _todayDayNumber(String? startDateStr, int durationDays) {
+  /// Numer dnia planu odpowiadający PODANEJ dacie (1-indeksowany, tak jak
+  /// `day_number` w backendzie), przycięty do zakresu planu.
+  ///
+  /// UWAGA (naprawa): wcześniej ta funkcja zawsze liczyła względem
+  /// `DateTime.now()` (dzisiaj), całkowicie ignorując datę aktualnie
+  /// przeglądaną w ekranie śledzenia. Efekt: zakładka "Z planu" zawsze
+  /// pokazywała DZISIEJSZE posiłki z planu, nawet gdy użytkownik cofnął
+  /// się strzałkami na inny dzień — a zalogowanie takiego posiłku i tak
+  /// zapisywało się pod dzisiejszą datą (bo tyle właśnie wynikało z dnia
+  /// planu, który został pokazany).
+  int? _dayNumberFor(DateTime targetDate, String? startDateStr, int durationDays) {
     if (startDateStr == null) return null;
     final start = DateTime.tryParse(startDateStr);
     if (start == null) return null;
-    final today = DateTime.now();
     final startDay = DateTime(start.year, start.month, start.day);
-    final todayDay = DateTime(today.year, today.month, today.day);
-    final diff = todayDay.difference(startDay).inDays + 1;
+    final targetDay = DateTime(targetDate.year, targetDate.month, targetDate.day);
+    final diff = targetDay.difference(startDay).inDays + 1;
     if (diff < 1 || diff > durationDays) return null;
     return diff;
   }
@@ -99,6 +106,7 @@ class _PlanTabState extends State<_PlanTab> {
   Widget build(BuildContext context) {
     final mealPlanProvider = Provider.of<MealPlanProvider>(context);
     final foodLogProvider = Provider.of<FoodLogProvider>(context);
+    final targetDate = foodLogProvider.currentDate;
 
     if (mealPlanProvider.isLoading) {
       return const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor));
@@ -112,11 +120,12 @@ class _PlanTabState extends State<_PlanTab> {
       );
     }
 
-    final dayNumber = _todayDayNumber(plan.startDate, plan.durationDays);
+    final dayNumber = _dayNumberFor(targetDate, plan.startDate, plan.durationDays);
     if (dayNumber == null) {
-      return const _EmptyHint(
+      return _EmptyHint(
         icon: Icons.event_busy_outlined,
-        text: 'Twój aktywny plan nie obejmuje dzisiejszej daty.',
+        text: 'Twój aktywny plan nie obejmuje wybranej daty '
+            '(${targetDate.day.toString().padLeft(2, '0')}.${targetDate.month.toString().padLeft(2, '0')}).',
       );
     }
 
@@ -124,7 +133,7 @@ class _PlanTabState extends State<_PlanTab> {
     if (entries.isEmpty) {
       return const _EmptyHint(
         icon: Icons.no_meals_outlined,
-        text: 'Brak zaplanowanych posiłków na dziś.',
+        text: 'Brak zaplanowanych posiłków na wybrany dzień.',
       );
     }
 
@@ -315,8 +324,9 @@ class _RecipesTabState extends State<_RecipesTab> {
                                               // wartości dla CAŁEGO przepisu, nie na porcję —
                                               // trzeba podzielić przez recipe.servings, inaczej
                                               // dosłowny podpis "/ porcja" pokazywał wartość
-                                              // 2-4x za wysoką.
-                                              '${(recipe.nutritionTotal.kcal / recipe.servings).round()} kcal / porcja',
+                                              // 2-4x za wysoką. Zabezpieczenie przed servings=0
+                                              // (Infinity.round() rzuca wyjątkiem w Dart).
+                                              '${(recipe.nutritionTotal.kcal / (recipe.servings > 0 ? recipe.servings : 1)).round()} kcal / porcja',
                                               style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
                                             ),
                                           ],

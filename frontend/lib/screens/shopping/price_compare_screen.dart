@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../../services/price_compare_service.dart';
 
 class PriceCompareScreen extends StatefulWidget {
