@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../../providers/meal_plan_provider.dart';
 import '../../providers/store_provider.dart';
@@ -8,6 +7,7 @@ import '../../models/meal_plan.dart';
 import '../../models/recipe.dart';
 import '../../services/recipe_service.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/recipe_photo.dart';
 
 class PlanViewScreen extends StatefulWidget {
   const PlanViewScreen({super.key});
@@ -116,10 +116,14 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
 
                               return ListTile(
                                 contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                                leading: SvgPicture.asset(
-                                  recipe.categoryImageAsset,
+                                leading: SizedBox(
                                   width: 32,
                                   height: 32,
+                                  child: RecipePhoto(
+                                    recipe: recipe,
+                                    borderRadius: BorderRadius.circular(6),
+                                    showAiBadge: false,
+                                  ),
                                 ),
                                 title: Text(
                                   recipe.name,
@@ -312,10 +316,14 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
                           ),
                           child: Row(
                             children: [
-                              SvgPicture.asset(
-                                entry.recipe.categoryImageAsset,
+                              SizedBox(
                                 width: 40,
                                 height: 40,
+                                child: RecipePhoto(
+                                  recipe: entry.recipe,
+                                  borderRadius: BorderRadius.circular(8),
+                                  showAiBadge: false,
+                                ),
                               ),
                               const SizedBox(width: 16),
                               Expanded(

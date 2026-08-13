@@ -14,38 +14,91 @@ class RecipeDetailScreen extends StatelessWidget {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          // 1. Premium Hero AppBar — ilustracja kategorii dania zamiast
-          // pustego gradientu (wcześniej próbowano tu wyświetlić emoji,
-          // które w międzyczasie zostały usunięte z całej aplikacji).
+          // 1. Premium Hero AppBar — prawdziwe zdjęcie AI na pełną
+          // szerokość, jeśli dostępne; w przeciwnym razie (przepis bez
+          // zdjęcia) zachowujemy poprzednie traktowanie z ilustracją
+          // kategorii na gradientowym tle.
           SliverAppBar(
             expandedHeight: 220,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppTheme.secondaryColor.withOpacity(0.15),
-                      AppTheme.backgroundColor,
-                    ],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
-                ),
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 24, bottom: 16),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(24),
-                      child: SvgPicture.asset(
-                        recipe.categoryImageAsset,
-                        width: 140,
-                        height: 140,
+              background: recipe.realPhotoAsset != null
+                  ? Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Image.asset(
+                          recipe.realPhotoAsset!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppTheme.secondaryColor.withOpacity(0.15),
+                                  AppTheme.backgroundColor,
+                                ],
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                              ),
+                            ),
+                            child: Center(
+                              child: SvgPicture.asset(recipe.categoryImageAsset, width: 140, height: 140),
+                            ),
+                          ),
+                        ),
+                        // Delikatny gradient u dołu — poprawia czytelność
+                        // przycisku "wstecz" i plakietki AI na jasnych zdjęciach.
+                        DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Colors.transparent, Colors.black.withOpacity(0.25)],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              stops: const [0.6, 1.0],
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          right: 12,
+                          bottom: 12,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.55),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Text(
+                              'Zdjęcie poglądowe, wygenerowane przez AI',
+                              style: TextStyle(color: Colors.white, fontSize: 10),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  : Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppTheme.secondaryColor.withOpacity(0.15),
+                            AppTheme.backgroundColor,
+                          ],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
+                      ),
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 24, bottom: 16),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(24),
+                            child: SvgPicture.asset(
+                              recipe.categoryImageAsset,
+                              width: 140,
+                              height: 140,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-              ),
             ),
           ),
 

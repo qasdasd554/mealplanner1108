@@ -48,3 +48,4 @@ flutter:
   assets:
     - assets/recipe_categories/
     - assets/branding/
+    - assets/recipe_photos/

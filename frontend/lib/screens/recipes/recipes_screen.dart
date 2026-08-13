@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../models/recipe.dart';
 import '../../services/recipe_service.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/recipe_photo.dart';
 import 'coming_soon_add_recipe_screen.dart';
 
 class RecipesScreen extends StatefulWidget {
@@ -248,28 +249,30 @@ class _RecipesScreenState extends State<RecipesScreen> {
             // Górna część z gradientem / placeholderem (Premium look)
             Expanded(
               flex: 5,
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppTheme.secondaryColor.withOpacity(0.15),
-                      AppTheme.primaryColor.withOpacity(0.06),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: SvgPicture.asset(
-                      recipe.categoryImageAsset,
-                      width: 64,
-                      height: 64,
+              child: recipe.realPhotoAsset != null
+                  ? RecipePhoto(recipe: recipe, showAiBadge: true)
+                  : Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppTheme.secondaryColor.withOpacity(0.15),
+                            AppTheme.primaryColor.withOpacity(0.06),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: SvgPicture.asset(
+                            recipe.categoryImageAsset,
+                            width: 64,
+                            height: 64,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              ),
             ),
             // Dolne informacje
             Expanded(

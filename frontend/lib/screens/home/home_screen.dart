@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/meal_plan_provider.dart';
 import '../../providers/store_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/recipe_photo.dart';
 import '../../models/meal_plan.dart';
 import '../recipes/recipes_screen.dart';
 import '../shopping/shopping_list_screen.dart';
@@ -465,10 +465,14 @@ class HomeTab extends StatelessWidget {
         ),
         child: Row(
           children: [
-            SvgPicture.asset(
-              entry.recipe.categoryImageAsset,
+            SizedBox(
               width: 36,
               height: 36,
+              child: RecipePhoto(
+                recipe: entry.recipe,
+                borderRadius: BorderRadius.circular(8),
+                showAiBadge: false,
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(

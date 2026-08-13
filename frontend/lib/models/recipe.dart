@@ -1,4 +1,5 @@
 import 'product.dart';
+import '../data/recipe_photo_map.dart';
 
 class RecipeIngredient {
   final String id;
@@ -112,6 +113,11 @@ class Recipe {
   /// sieci — nie hotlinkujemy zdjęć z zewnętrznych serwisów, więc nic nie
   /// może się "zepsuć" ani naruszyć praw autorskich cudzych fotografii).
   /// Dopasowanie na podstawie nazwy, tagów i typu kuchni.
+  /// Prawdziwe zdjęcie dania (wygenerowane przez AI, dostarczone przez
+  /// użytkownika) — jeśli istnieje dla tego przepisu. `null`, jeśli nie ma
+  /// (wtedy UI powinno pokazać [categoryImageAsset] jako zapasową ilustrację).
+  String? get realPhotoAsset => kRecipePhotoAssets[name];
+
   String get categoryImageAsset {
     final haystack = ('$name ${tags.join(' ')} ${cuisine ?? ''}').toLowerCase();
 
