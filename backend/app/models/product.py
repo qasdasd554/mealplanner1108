@@ -115,6 +115,16 @@ class StoreProduct(Base):
         nullable=True,
     )
     price: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    # Marka własna sklepu dla tego konkretnego produktu (np. "Mleczna Dolina"
+    # dla mleka w Biedronce, "Pilos" w Lidlu, "Krasula" w Dino). Produkt
+    # (Product.name) zostaje ogólny — dzięki temu przepisy, wartości
+    # odżywcze i porównywanie cen między sklepami nadal działają na
+    # wspólnym, uniwersalnym produkcie. To pole jest wyłącznie do
+    # wyświetlania: "Mleko 2% — Mleczna Dolina" na liście zakupów dla
+    # Biedronki, "Mleko 2% — Pilos" dla Lidla, itd. Puste = brak
+    # potwierdzonej marki własnej dla tej kategorii w danym sklepie
+    # (celowo nie zgadujemy nieistniejących marek).
+    store_brand_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
     is_available: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     last_verified: Mapped[date | None] = mapped_column(Date, nullable=True)
     withdrawn_at: Mapped[date | None] = mapped_column(Date, nullable=True)

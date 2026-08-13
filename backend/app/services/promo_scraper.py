@@ -40,7 +40,7 @@ import difflib
 import json
 import logging
 import re
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
 
 import httpx
@@ -53,6 +53,22 @@ from app.models.promotion import Promotion
 from app.models.store import Store
 
 logger = logging.getLogger(__name__)
+
+# Stan ostatniego przebiegu scrapera — trzymany w pamięci procesu (nie w
+# bazie, bo to tylko informacja diagnostyczna "czy i kiedy ostatnio coś
+# znalazło", a nie dane biznesowe). Pozwala sprawdzić przez API, czy
+# automatyczna aktualizacja cen w ogóle coś znajduje, zamiast grzebać
+# w logach Render.
+_last_run_state: dict = {
+    "last_run_at": None,
+    "summary": None,
+    "total_updated": 0,
+}
+
+
+def get_last_run_status() -> dict:
+    """Zwraca informację o ostatnim przebiegu scrapera (do wglądu przez API)."""
+    return dict(_last_run_state)
 
 # Realistyczny nagłówek przeglądarki — bez tego wiele stron odrzuca
 # zapytania z domyślnym User-Agentem biblioteki HTTP.
@@ -302,6 +318,13 @@ async def scrape_and_update_prices(db: AsyncSession) -> dict:
     await db.commit()
 
     total_updated = sum(s.get("prices_updated", 0) for s in summary.values())
+
+    # Zapisz stan ostatniego przebiegu do wglądu przez API (patrz
+    # get_last_run_status() / endpoint GET /promotions/scraper-status).
+    _last_run_state["last_run_at"] = datetime.now(timezone.utc).isoformat()
+    _last_run_state["summary"] = summary
+    _last_run_state["total_updated"] = total_updated
+
     if total_updated == 0:
         logger.warning(
             "Scraper cen nie zaktualizował ŻADNEJ ceny w tym przebiegu. "

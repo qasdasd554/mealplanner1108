@@ -93,8 +93,8 @@ class _PriceCompareScreenState extends State<PriceCompareScreen> {
           elevation: isCheapest ? 4.0 : 1.0,
           color: isCheapest ? Colors.green.shade50 : null,
           margin: const EdgeInsets.only(bottom: 12.0),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: ExpansionTile(
+            tilePadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             leading: const Icon(Icons.store, size: 40, color: Colors.grey),
             title: Text(
               result.storeName,
@@ -104,11 +104,12 @@ class _PriceCompareScreenState extends State<PriceCompareScreen> {
               ),
             ),
             subtitle: Text(
-              '${result.items.length} ${result.items.length == 1 ? "produkt" : "produktów"}'
+              '${result.items.length} ${result.items.length == 1 ? "produkt" : "produktów"} • dotknij, aby zobaczyć listę'
               '${result.savingsVsMostExpensive > 0 ? " • oszczędzasz ${result.savingsVsMostExpensive.toStringAsFixed(2)} zł" : ""}',
-              style: TextStyle(color: Colors.grey.shade700),
+              style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
             ),
             trailing: Column(
+              mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -135,6 +136,24 @@ class _PriceCompareScreenState extends State<PriceCompareScreen> {
                 ),
               ],
             ),
+            children: [
+              const Divider(height: 1),
+              ...result.items.map((item) {
+                return ListTile(
+                  dense: true,
+                  title: Text(item.displayName, style: const TextStyle(fontSize: 14)),
+                  subtitle: Text(
+                    '${item.quantityNeeded.toStringAsFixed(item.quantityNeeded == item.quantityNeeded.roundToDouble() ? 0 : 1)} ${item.unit}',
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                  ),
+                  trailing: Text(
+                    '${item.priceInStore.toStringAsFixed(2)} zł',
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                  ),
+                );
+              }),
+              const SizedBox(height: 8),
+            ],
           ),
         );
       },

@@ -59,34 +59,53 @@ class _HomeScreenState extends State<HomeScreen> {
             _currentIndex = index;
           });
         },
-        items: const [
-          BottomNavigationBarItem(
+        items: [
+          const BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
             activeIcon: Icon(Icons.home),
             label: 'Start',
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.restaurant_outlined),
             activeIcon: Icon(Icons.restaurant),
             label: 'Przepisy',
           ),
+          // "Zakupy" i "Śledzenie" to dwie najważniejsze funkcje aplikacji —
+          // wizualnie wyróżnione kolorową plakietką pod ikoną, żeby
+          // odróżniały się od pozostałych, zwykłych zakładek.
           BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart_outlined),
-            activeIcon: Icon(Icons.shopping_cart),
+            icon: _buildHighlightedIcon(Icons.shopping_cart_outlined, active: false),
+            activeIcon: _buildHighlightedIcon(Icons.shopping_cart, active: true),
             label: 'Zakupy',
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
             activeIcon: Icon(Icons.person),
             label: 'Profil',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.local_fire_department_outlined),
-            activeIcon: Icon(Icons.local_fire_department),
+            icon: _buildHighlightedIcon(Icons.local_fire_department_outlined, active: false),
+            activeIcon: _buildHighlightedIcon(Icons.local_fire_department, active: true),
             label: 'Śledzenie',
           ),
         ],
       ),
+    );
+  }
+
+  /// Ikona z kolorową plakietką w tle — używana dla "Zakupy" i "Śledzenie",
+  /// dwóch najważniejszych funkcji aplikacji, żeby wizualnie wyróżniały się
+  /// na tle pozostałych, zwykłych zakładek nawigacji.
+  Widget _buildHighlightedIcon(IconData icon, {required bool active}) {
+    return Container(
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: active
+            ? AppTheme.primaryColor.withOpacity(0.15)
+            : AppTheme.primaryColor.withOpacity(0.08),
+        shape: BoxShape.circle,
+      ),
+      child: Icon(icon, size: active ? 26 : 24),
     );
   }
 }
@@ -144,6 +163,12 @@ class HomeTab extends StatelessWidget {
                 // Powitanie
                 Row(
                   children: [
+                    Image.asset(
+                      'assets/branding/logo.png',
+                      width: 44,
+                      height: 44,
+                    ),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

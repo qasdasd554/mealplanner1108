@@ -31,11 +31,18 @@ class ShoppingListItemResponse(BaseModel):
         if hasattr(data, "store_product") and data.store_product is not None:
             prod = data.store_product.product
             dept = data.department
+            # Marka własna sklepu (np. "Mleczna Dolina") ma pierwszeństwo
+            # przed ogólną marką produktu (prod.brand — zwykle pusta,
+            # bo nasz katalog trzyma produkty jako generyczne, wspólne
+            # dla wszystkich sklepów). Dzięki temu lista zakupów pokazuje
+            # realną nazwę, pod jaką kupisz dany produkt w TYM konkretnym
+            # sklepie.
+            brand = data.store_product.store_brand_name or (prod.brand if prod else None)
             return {
                 "id": data.id,
                 "product_id": prod.id if prod else None,
                 "product_name": prod.name if prod else "Nieznany produkt",
-                "brand": prod.brand if prod else None,
+                "brand": brand,
                 "department_name": dept.name if dept else "Inne",
                 "department_sort_order": dept.sort_order if dept else 99,
                 "required_quantity": data.required_quantity,

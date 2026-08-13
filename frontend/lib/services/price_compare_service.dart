@@ -5,12 +5,16 @@ class PriceCompareItem {
   final double quantityNeeded;
   final String unit;
   final double priceInStore;
+  // Marka własna sklepu dla tego produktu (np. "Mleczna Dolina"), jeśli
+  // potwierdzona — null, jeśli sklep nie ma marki własnej w tej kategorii.
+  final String? storeBrandName;
 
   PriceCompareItem({
     required this.productName,
     required this.quantityNeeded,
     required this.unit,
     required this.priceInStore,
+    this.storeBrandName,
   });
 
   factory PriceCompareItem.fromJson(Map<String, dynamic> json) {
@@ -19,8 +23,13 @@ class PriceCompareItem {
       quantityNeeded: (json['quantity_needed'] as num?)?.toDouble() ?? 0.0,
       unit: json['unit']?.toString() ?? '',
       priceInStore: (json['price_in_store'] as num?)?.toDouble() ?? 0.0,
+      storeBrandName: json['store_brand_name'] as String?,
     );
   }
+
+  /// Nazwa do wyświetlenia — z marką sklepową, jeśli dostępna.
+  String get displayName =>
+      storeBrandName != null ? '$productName ($storeBrandName)' : productName;
 }
 
 class PriceComparisonResult {

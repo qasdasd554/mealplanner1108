@@ -56,27 +56,15 @@ class _SplashScreenState extends State<SplashScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Logo
-              Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: AppTheme.primaryColor,
-                    width: 2.0,
-                  ),
-                ),
-                child: const Icon(
-                  Icons.restaurant_menu,
-                  size: 50,
-                  color: AppTheme.primaryColor,
-                ),
+              Image.asset(
+                'assets/branding/logo.png',
+                width: 120,
+                height: 120,
               ),
               const SizedBox(height: 24),
               // Tytuł
               Text(
-                'Smart Meal Planner',
+                'Meal Planner',
                 style: Theme.of(context).textTheme.displaySmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1.2,

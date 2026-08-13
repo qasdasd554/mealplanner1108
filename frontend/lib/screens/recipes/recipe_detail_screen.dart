@@ -126,6 +126,10 @@ class RecipeDetailScreen extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                   ),
+                  Text(
+                    'na 1 porcję',
+                    style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                  ),
                   const SizedBox(height: 12),
                   _buildNutritionGrid(recipe),
                   const SizedBox(height: 28),
@@ -219,6 +223,47 @@ class RecipeDetailScreen extends StatelessWidget {
                       );
                     }),
                   ],
+                  const SizedBox(height: 32),
+
+                  // ── Komentarze (zapowiedź) ────────────────────────
+                  // Wyszarzone celowo — funkcja jeszcze nie działa, ale
+                  // pokazujemy, że jest planowana, zamiast całkiem ją
+                  // ukrywać.
+                  Opacity(
+                    opacity: 0.5,
+                    child: IgnorePointer(
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppTheme.surfaceColor,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppTheme.textSecondary.withOpacity(0.2)),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.mode_comment_outlined, color: AppTheme.textSecondary),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Komentarze i zdjęcia od innych',
+                                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 15),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Dostępne wkrótce',
+                                    style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 48),
                 ],
               ),
@@ -258,12 +303,18 @@ class RecipeDetailScreen extends StatelessWidget {
     }
 
     final nut = recipe.nutritionTotal!;
+    // Wartości odżywcze przeliczone NA PORCJĘ — recipe.nutritionTotal
+    // przechowuje sumę dla całego przepisu (wszystkich porcji razem),
+    // a to nie jest to, czego ktoś się spodziewa patrząc na "Kalorie"
+    // przy jednym daniu (tak samo jak etykieta żywieniowa zawsze podaje
+    // wartość na porcję, a nie na cały garnek).
+    final servings = recipe.servings > 0 ? recipe.servings : 1;
     final list = [
-      {'label': 'Kalorie', 'val': '${nut.kcal.toInt()} kcal', 'color': AppTheme.accentColor},
-      {'label': 'Białko', 'val': '${nut.protein.toInt()} g', 'color': Colors.blue},
-      {'label': 'Tłuszcze', 'val': '${nut.fat.toInt()} g', 'color': Colors.orange},
-      {'label': 'Węgle', 'val': '${nut.carbs.toInt()} g', 'color': AppTheme.primaryColor},
-      {'label': 'Błonnik', 'val': '${nut.fiber.toInt()} g', 'color': Colors.green},
+      {'label': 'Kalorie', 'val': '${(nut.kcal / servings).round()} kcal', 'color': AppTheme.accentColor},
+      {'label': 'Białko', 'val': '${(nut.protein / servings).round()} g', 'color': Colors.blue},
+      {'label': 'Tłuszcze', 'val': '${(nut.fat / servings).round()} g', 'color': Colors.orange},
+      {'label': 'Węgle', 'val': '${(nut.carbs / servings).round()} g', 'color': AppTheme.primaryColor},
+      {'label': 'Błonnik', 'val': '${(nut.fiber / servings).round()} g', 'color': Colors.green},
     ];
 
     return GridView.builder(

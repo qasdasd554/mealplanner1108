@@ -537,8 +537,16 @@ class MealPlanGenerator:
         for day, meal_type, recipe in selected:
             recipe_servings = float(recipe.servings or 1)
             servings_multiplier = round(effective_household_size / recipe_servings, 2)
-            # Minimalna mnożnik = 1.0 (nie zmniejszamy poniżej jednej porcji)
-            servings_multiplier = max(servings_multiplier, 1.0)
+            # UWAGA (naprawa): wcześniej był tu sztuczny dolny próg
+            # `max(servings_multiplier, 1.0)`, który wymuszał ugotowanie
+            # CO NAJMNIEJ całego przepisu — niezależnie od liczby osób.
+            # Dla przepisu na 4 porcje i planu dla 1 osoby dawało to
+            # absurd: zamiast policzyć 1/4 przepisu (0.25), kod i tak
+            # kazał zrobić cały przepis (1.0), czyli 4x za dużo jedzenia
+            # dla jednej osoby. Teraz mnożnik faktycznie skaluje się w dół.
+            # Jedyne zabezpieczenie to nie zejście do zera/ujemnej wartości
+            # (co i tak nie powinno się zdarzyć, bo obie wartości > 0).
+            servings_multiplier = max(servings_multiplier, 0.1)
 
             entries.append(
                 {

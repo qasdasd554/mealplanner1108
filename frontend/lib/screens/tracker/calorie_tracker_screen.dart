@@ -29,15 +29,18 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
       initialDate: provider.currentDate,
       firstDate: DateTime(2020),
       lastDate: DateTime(2101),
+      // UWAGA (naprawa): wcześniej to okno ZAWSZE wymuszało ciemny motyw
+      // (ThemeData.dark()), niezależnie od tego, jaki motyw był wybrany
+      // w aplikacji. Po wprowadzeniu jasnego motywu jako domyślnego dawało
+      // to niespójny, myjący kontrast wygląd, przez który kalendarz mógł
+      // sprawiać wrażenie zepsutego/nieczytelnego. Teraz respektuje
+      // aktualnie wybrany motyw (Theme.of(context) — jasny albo ciemny).
       builder: (context, child) {
         return Theme(
-          data: ThemeData.dark().copyWith(
-            colorScheme: ColorScheme.dark(
-              primary: AppTheme.primaryColor,
-              onPrimary: Colors.white,
-              surface: AppTheme.surfaceColor,
-              onSurface: Colors.white,
-            ),
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+                  primary: AppTheme.primaryColor,
+                ),
           ),
           child: child!,
         );
@@ -46,6 +49,21 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
     if (picked != null && picked != provider.currentDate) {
       provider.setDate(picked);
     }
+  }
+
+  void _goToPreviousDay() {
+    final provider = Provider.of<FoodLogProvider>(context, listen: false);
+    provider.setDate(provider.currentDate.subtract(const Duration(days: 1)));
+  }
+
+  void _goToNextDay() {
+    final provider = Provider.of<FoodLogProvider>(context, listen: false);
+    provider.setDate(provider.currentDate.add(const Duration(days: 1)));
+  }
+
+  bool _isToday(DateTime date) {
+    final now = DateTime.now();
+    return date.year == now.year && date.month == now.month && date.day == now.day;
   }
 
   @override
@@ -72,7 +90,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                   child: ListView(
                     padding: const EdgeInsets.all(24.0),
                     children: [
-                      _buildDateHeader(provider.currentDate),
+                      _buildDateNavigation(provider.currentDate),
                       const SizedBox(height: 24),
                       _buildProgressSection(provider.summary),
                       const SizedBox(height: 32),
@@ -114,6 +132,56 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  /// Pasek nawigacji dat — strzałki wstecz/dalej + dotknięcie daty otwiera
+  /// kalendarz. Wcześniej jedynym sposobem zmiany daty była mała ikonka
+  /// kalendarza w AppBarze, co nie było oczywiste — stąd wrażenie, że
+  /// "nie da się zmienić daty, pokazuje tylko dziś".
+  Widget _buildDateNavigation(DateTime date) {
+    final isToday = _isToday(date);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          icon: const Icon(Icons.chevron_left, color: AppTheme.primaryColor),
+          tooltip: 'Poprzedni dzień',
+          onPressed: _goToPreviousDay,
+        ),
+        Expanded(
+          child: GestureDetector(
+            onTap: () => _selectDate(context),
+            child: Column(
+              children: [
+                _buildDateHeader(date),
+                if (!isToday) ...[
+                  const SizedBox(height: 4),
+                  TextButton(
+                    onPressed: () {
+                      Provider.of<FoodLogProvider>(context, listen: false)
+                          .setDate(DateTime.now());
+                    },
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(0, 0),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: const Text('Wróć do dziś', style: TextStyle(fontSize: 12)),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.chevron_right, color: AppTheme.primaryColor),
+          tooltip: 'Następny dzień',
+          // Celowo NIE blokujemy nawigacji w przyszłość — użytkownik może
+          // chcieć zaplanować/zapisać wpis z wyprzedzeniem.
+          onPressed: _goToNextDay,
+        ),
+      ],
     );
   }
 

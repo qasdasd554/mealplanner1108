@@ -173,7 +173,7 @@ class ProfileScreen extends StatelessWidget {
             // Wersja aplikacji
             Center(
               child: Text(
-                'v1.0.0 (Smart Meal Planner PL)',
+                'v1.0.0 (Meal Planner)',
                 style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
               ),
             ),

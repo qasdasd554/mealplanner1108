@@ -84,8 +84,20 @@ async def create_food_log_entry(
             # Jeśli formularz nie podał gotowych wartości (np. dodanie
             # "z przepisu" bez ręcznego wpisania kalorii), przelicz je
             # automatycznie na podstawie przepisu i liczby porcji.
+            #
+            # UWAGA: `recipe.nutrition_total` to wartości odżywcze dla
+            # CAŁEGO przepisu (np. przepis na 4 porcje ma nutrition_total
+            # dla wszystkich 4 porcji razem), a `entry_in.servings` to
+            # liczba porcji, które użytkownik faktycznie zjadł (z UI:
+            # "Liczba porcji", domyślnie 1). Trzeba więc przeliczyć na
+            # UŁAMEK całego przepisu — inaczej "1 porcja" dawała kalorie
+            # całego przepisu (np. dla przepisu na 4 porcje wychodziło
+            # 4x za dużo, sprawiając wrażenie, jakby zawsze dodawało
+            # "więcej niż jedną porcję").
+            recipe_servings = float(recipe.servings or 1)
+            recipe_fraction = entry_in.servings / recipe_servings if recipe_servings else entry_in.servings
             if entry_in.calories == 0.0 and entry_in.protein == 0.0:
-                macros = _macros_from_recipe(recipe, entry_in.servings)
+                macros = _macros_from_recipe(recipe, recipe_fraction)
                 db_entry.calories = macros["calories"]
                 db_entry.protein = macros["protein"]
                 db_entry.fat = macros["fat"]

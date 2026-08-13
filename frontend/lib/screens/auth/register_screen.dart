@@ -99,7 +99,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ).animate().fadeIn().slideY(begin: 0.2, end: 0),
                       const SizedBox(height: 8),
                       Text(
-                        'Dołącz do Smart Meal Planner i planuj sprytnie',
+                        'Dołącz do Meal Planner i planuj sprytnie',
                         style: Theme.of(context).textTheme.bodyMedium,
                         textAlign: TextAlign.center,
                       ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.2, end: 0),

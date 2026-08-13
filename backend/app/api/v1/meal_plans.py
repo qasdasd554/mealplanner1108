@@ -29,6 +29,14 @@ class StatusUpdate(BaseModel):
     status: str  # active, completed, archived
 
 
+class StoreUpdate(BaseModel):
+    """Schemat zmiany sklepu przypisanego do planu posiłków."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    store_id: UUID
+
+
 class RecipeSwap(BaseModel):
     """Schemat zamiany przepisu w planie posiłków."""
 
@@ -129,6 +137,70 @@ async def get_meal_plan(
             detail=f"Plan posiłków o ID {plan_id} nie został znaleziony"
         )
     return plan
+
+
+@router.put(
+    "/{plan_id}/store",
+    response_model=MealPlanResponse,
+    summary="Zmień sklep przypisany do planu posiłków i przelicz listę zakupów",
+)
+async def update_meal_plan_store(
+    plan_id: UUID,
+    payload: StoreUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> MealPlan:
+    """Zmienia sklep, do którego przypisany jest plan, i przelicza listę
+    zakupów pod nowe ceny/działy.
+
+    Wcześniej takiego endpointu w ogóle nie było — w ekranie porównania
+    cen dało się zobaczyć, że inny sklep wypada taniej, ale nie dało się
+    nic z tym zrobić (dotknięcie innego sklepu nic nie robiło, bo nie
+    było go do czego podpiąć).
+    """
+    result = await db.execute(
+        select(MealPlan).where(MealPlan.id == plan_id, MealPlan.user_id == current_user.id)
+    )
+    plan = result.scalar_one_or_none()
+    if plan is None:
+        raise NotFoundException(detail=f"Plan posiłków o ID {plan_id} nie został znaleziony")
+
+    from app.models import Store
+
+    store_result = await db.execute(select(Store).where(Store.id == payload.store_id))
+    if store_result.scalar_one_or_none() is None:
+        raise HTTPException(status_code=404, detail="Sklep nie został znaleziony")
+
+    plan.store_id = payload.store_id
+
+    shopping_list_result = await db.execute(
+        select(ShoppingList).where(ShoppingList.meal_plan_id == plan_id)
+    )
+    shopping_list = shopping_list_result.scalar_one_or_none()
+    if shopping_list is not None:
+        shopping_list.store_id = payload.store_id
+
+    await db.commit()
+
+    if shopping_list is not None:
+        builder = ShoppingListBuilder(db)
+        await builder.recalculate(shopping_list.id)
+
+    # Przeładuj plan z relacjami
+    result = await db.execute(
+        select(MealPlan)
+        .options(
+            selectinload(MealPlan.entries)
+            .selectinload(MealPlanEntry.recipe)
+            .selectinload(Recipe.ingredients)
+            .selectinload(RecipeIngredient.product),
+            selectinload(MealPlan.entries)
+            .selectinload(MealPlanEntry.recipe)
+            .selectinload(Recipe.tags),
+        )
+        .where(MealPlan.id == plan_id)
+    )
+    return result.scalar_one()
 
 
 @router.put(

@@ -1,3 +1,15 @@
+"""Porównywanie cen planu posiłków między sklepami.
+
+UWAGA (naprawa): suma tutaj wcześniej różniła się od sumy na liście
+zakupów, bo liczono ją INACZEJ — tu proporcjonalnie do dokładnie
+potrzebnej ilości (np. 0.3 opakowania = 30% ceny), a na liście zakupów
+zaokrąglano W GÓRĘ do pełnych opakowań (bo tyle realnie się kupuje —
+sklep nie sprzeda 30% kostki masła). Teraz obie strony liczą dokładnie
+tak samo, korzystając z tych samych funkcji konwersji jednostek co
+``ShoppingListBuilder``.
+"""
+
+import math
 import uuid
 from typing import List
 
@@ -13,6 +25,7 @@ from app.models.recipe import Recipe, RecipeIngredient
 from app.models.product import Product, StoreProduct
 from app.models.store import Store
 from app.models.user import User
+from app.services.nutrition_calculator import grams_to_quantity, quantity_to_grams
 
 router = APIRouter()
 
@@ -21,6 +34,9 @@ class PriceCompareItem(BaseModel):
     quantity_needed: float
     unit: str
     price_in_store: float
+    # Marka własna sklepu dla tego produktu (np. "Mleczna Dolina"), jeśli
+    # potwierdzona — puste, jeśli w tej kategorii sklep nie ma marki własnej.
+    store_brand_name: str | None = None
 
 class PriceCompareStoreResult(BaseModel):
     store_id: uuid.UUID
@@ -36,10 +52,6 @@ async def compare_prices(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    # UWAGA: ten endpoint był napisany synchronicznie na sesji asynchronicznej
-    # (`def`, `db.get`, `db.execute(...).scalars()`), przez co zawsze kończył
-    # się błędem 500. Poniżej wersja asynchroniczna; relacje ładowane są z góry
-    # (selectinload), bo leniwe doczytywanie w trybie async rzuca MissingGreenlet.
     result = await db.execute(
         select(MealPlan)
         .where(MealPlan.id == meal_plan_id)
@@ -56,55 +68,54 @@ async def compare_prices(
     if meal_plan.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Brak uprawnień do tego planu posiłków")
 
-    # Fetch all stores
     stores = (await db.execute(select(Store))).scalars().all()
     if not stores:
         return []
 
-    # Calculate required quantities per product
-    # MealPlan -> MealPlanEntry -> Recipe -> RecipeIngredient -> Product
-    product_requirements = {} # product_id -> { "product": Product, "quantity": total_quantity_needed, "unit": unit }
+    # ── Agreguj wymagane ilości SKŁADNIKÓW we wspólnej bazie (gramy/ml) ──
+    # Wcześniej sumowanie zakładało, że jednostki zawsze się zgadzają
+    # ("Assuming units match... simplified") — kruche założenie. Konwersja
+    # do wspólnej bazy (tak jak w ShoppingListBuilder) jest odporna na to,
+    # że ten sam produkt może być użyty w różnych przepisach w różnych
+    # jednostkach.
+    product_requirements: dict[uuid.UUID, dict] = {}
 
-    # Fetch entries with relationships eagerly
-    entries = meal_plan.entries
-    for entry in entries:
+    for entry in meal_plan.entries:
         recipe = entry.recipe
         if not recipe:
             continue
-        # Model ma pole `servings_multiplier`, nie `servings`.
-        entry_multiplier = float(entry.servings_multiplier or 1)
-        servings_multiplier = (
-            entry_multiplier / float(recipe.servings) if recipe.servings else entry_multiplier
-        )
-        
+        # UWAGA: `servings_multiplier` zapisany na wpisie planu JEST JUŻ
+        # finalnym mnożnikiem całego przepisu (np. 0.5 = pół przepisu,
+        # 2.0 = podwójna porcja) — dokładnie tak samo liczy to
+        # ShoppingListBuilder._aggregate_ingredients(). Wcześniej ten plik
+        # DZIELIŁ go dodatkowo przez recipe.servings, co zaniżało ilości
+        # (i cenę) względem listy zakupów — stąd różne sumy na obu ekranach
+        # dla tego samego planu.
+        servings_multiplier = float(entry.servings_multiplier or 1)
+
         for ingredient in recipe.ingredients:
             product = ingredient.product
             if not product:
                 continue
-            req_qty = float(ingredient.quantity) * servings_multiplier
-            
-            if product.id not in product_requirements:
-                product_requirements[product.id] = {
-                    "product": product,
-                    "quantity": req_qty,
-                    "unit": ingredient.unit
-                }
-            else:
-                # Assuming units match for the same product across recipes, or we just sum it (simplified)
-                product_requirements[product.id]["quantity"] += req_qty
+            req_qty_native = float(ingredient.quantity) * servings_multiplier
+            req_qty_grams = quantity_to_grams(product.name, req_qty_native, ingredient.unit)
 
-    # Calculate price for each store
+            if product.id not in product_requirements:
+                product_requirements[product.id] = {"product": product, "grams": req_qty_grams}
+            else:
+                product_requirements[product.id]["grams"] += req_qty_grams
+
+    # ── Policz cenę w każdym sklepie — identyczna logika co lista zakupów ──
     store_results = []
-    
+
     for store in stores:
         total_price = 0.0
         items = []
-        
-        # We need to get StoreProduct for each required product in this store
+
         for prod_id, req in product_requirements.items():
             product = req["product"]
-            req_qty = req["quantity"]
-            
+            total_grams = req["grams"]
+
             store_product = (
                 await db.execute(
                     select(StoreProduct).where(
@@ -113,53 +124,44 @@ async def compare_prices(
                     )
                 )
             ).scalars().first()
-            
-            if store_product:
-                # Calculate cost
-                # simplified calculation: cost = (req_qty / default_quantity) * store_product.price
-                default_qty = float(product.default_quantity) if product.default_quantity else 1.0
-                
-                # Check if units match, if not, simplistic conversion (e.g. g to kg if product is kg)
-                # In real scenario, more complex conversion is needed
-                calc_qty = req_qty
-                if req["unit"] == "g" and product.unit == "kg":
-                    calc_qty = req_qty / 1000.0
-                elif req["unit"] == "kg" and product.unit == "g":
-                    calc_qty = req_qty * 1000.0
-                elif req["unit"] == "ml" and product.unit == "l":
-                    calc_qty = req_qty / 1000.0
-                elif req["unit"] == "l" and product.unit == "ml":
-                    calc_qty = req_qty * 1000.0
 
-                item_cost = (calc_qty / default_qty) * float(store_product.price)
-                total_price += item_cost
-                
-                items.append(PriceCompareItem(
-                    product_name=product.name,
-                    quantity_needed=req_qty,
-                    unit=req["unit"],
-                    price_in_store=item_cost
-                ))
-            else:
-                # Product not available in this store, handle appropriately? 
-                # For now just continue, meaning it's missing from the price calculation.
-                pass
-                
+            if not store_product:
+                # Produkt niedostępny w tym sklepie — pomijamy w tej cenie,
+                # tak samo jak robi to lista zakupów.
+                continue
+
+            product_unit = product.unit or "szt"
+            default_qty_native = float(product.default_quantity or 1.0)
+            default_qty_grams = quantity_to_grams(product.name, default_qty_native, product_unit)
+
+            package_count = (
+                math.ceil(total_grams / default_qty_grams) if default_qty_grams > 0 else 1
+            )
+            item_cost = round(float(store_product.price) * package_count, 2)
+            total_price += item_cost
+
+            items.append(PriceCompareItem(
+                product_name=product.name,
+                quantity_needed=round(grams_to_quantity(product.name, total_grams, product_unit), 2),
+                unit=product_unit,
+                price_in_store=item_cost,
+                store_brand_name=store_product.store_brand_name,
+            ))
+
         store_results.append({
             "store_id": store.id,
             "store_name": store.name,
-            "total_price": total_price,
-            "items": items
+            "total_price": round(total_price, 2),
+            "items": items,
         })
 
     if not store_results:
         return []
 
-    # Determine cheapest and most expensive
     store_results.sort(key=lambda x: x["total_price"])
     cheapest_price = store_results[0]["total_price"]
     most_expensive_price = max(res["total_price"] for res in store_results)
-    
+
     final_results = []
     for res in store_results:
         final_results.append(
@@ -168,8 +170,8 @@ async def compare_prices(
                 store_name=res["store_name"],
                 total_price=res["total_price"],
                 is_cheapest=(res["total_price"] == cheapest_price and res["total_price"] > 0),
-                savings_vs_most_expensive=most_expensive_price - res["total_price"],
-                items=res["items"]
+                savings_vs_most_expensive=round(most_expensive_price - res["total_price"], 2),
+                items=res["items"],
             )
         )
 

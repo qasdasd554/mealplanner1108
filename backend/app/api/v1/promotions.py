@@ -72,3 +72,38 @@ async def check_promotion(
 
     result = await db.execute(query)
     return result.scalars().all()
+
+
+@router.get("/scraper-status", summary="Status automatycznej aktualizacji cen")
+async def scraper_status(current_user: User = Depends(get_current_user)):
+    """Pokazuje, kiedy scraper cen ostatnio się uruchomił i co znalazł —
+    bez konieczności grzebania w logach Render.
+
+    `total_updated: 0` (przy braku błędu) najczęściej oznacza, że sklepy
+    (zwłaszcza Lidl, który celowo wstawia ceny jako obrazki) nie
+    udostępniły w tym przebiegu danych, które dałoby się bezpiecznie
+    odczytać — to nie jest błąd tego endpointu, tylko realne ograniczenie
+    tych konkretnych stron. `last_run_at: null` oznacza, że scraper jeszcze
+    w ogóle się nie uruchomił (np. usługa dopiero wystartowała — pierwszy
+    przebieg następuje ok. 10 sekund po starcie backendu).
+    """
+    from app.services.promo_scraper import get_last_run_status
+
+    return get_last_run_status()
+
+
+@router.post("/scraper-run", summary="Uruchom aktualizację cen teraz (bez czekania na cykl)")
+async def trigger_scraper_run(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Uruchamia scraper cen natychmiast i czeka na wynik — do ręcznego
+    testowania, żeby nie czekać do 12 godzin na kolejny automatyczny cykl.
+
+    Zwraca to samo podsumowanie co widoczne potem w `/scraper-status`.
+    """
+    from app.services.promo_scraper import scrape_and_update_prices
+
+    summary = await scrape_and_update_prices(db)
+    total_updated = sum(s.get("prices_updated", 0) for s in summary.values())
+    return {"total_updated": total_updated, "summary": summary}

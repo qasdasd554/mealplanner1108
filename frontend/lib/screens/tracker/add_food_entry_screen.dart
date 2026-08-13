@@ -311,7 +311,12 @@ class _RecipesTabState extends State<_RecipesTab> {
                                             ),
                                             const SizedBox(height: 2),
                                             Text(
-                                              '${recipe.nutritionTotal.kcal.toInt()} kcal / porcja',
+                                              // UWAGA (naprawa): recipe.nutritionTotal to
+                                              // wartości dla CAŁEGO przepisu, nie na porcję —
+                                              // trzeba podzielić przez recipe.servings, inaczej
+                                              // dosłowny podpis "/ porcja" pokazywał wartość
+                                              // 2-4x za wysoką.
+                                              '${(recipe.nutritionTotal.kcal / recipe.servings).round()} kcal / porcja',
                                               style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
                                             ),
                                           ],

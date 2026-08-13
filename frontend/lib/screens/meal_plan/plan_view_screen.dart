@@ -340,7 +340,10 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      '⏱ ${entry.recipe.totalTimeMin} min • ${entry.recipe.nutritionTotal.kcal.toInt()} kcal',
+                                      // Kcal na porcję (na osobę), spójnie z
+                                      // resztą aplikacji — nie łączna wartość
+                                      // dla całego ugotowanego przepisu.
+                                      '⏱ ${entry.recipe.totalTimeMin} min • ${(entry.recipe.nutritionTotal.kcal / (entry.recipe.servings > 0 ? entry.recipe.servings : 1)).round()} kcal',
                                       style: TextStyle(
                                         color: AppTheme.textSecondary,
                                         fontSize: 12,

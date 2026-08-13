@@ -56,6 +56,10 @@ class StoreProductResponse(BaseModel):
     product_id: uuid.UUID
     department_id: uuid.UUID | None = None
     price: float
+    # Marka własna sklepu dla tego produktu, jeśli potwierdzona (np.
+    # "Mleczna Dolina" dla mleka w Biedronce). Puste = brak marki własnej
+    # w tej kategorii w danym sklepie.
+    store_brand_name: str | None = None
     is_available: bool
     last_verified: date | None = None
     product: ProductResponse

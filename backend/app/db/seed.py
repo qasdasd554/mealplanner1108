@@ -179,6 +179,59 @@ PRICE_MULTIPLIERS = {
     "Dino": Decimal("1.12"),
 }
 
+# ── Marki własne sklepów ──────────────────────────────────────────
+# Zweryfikowane, prawdziwe marki własne (nie zmyślone) — zamiast pokazywać
+# generyczną nazwę produktu w liście zakupów, aplikacja pokaże np.
+# "Mleko 2% — Mleczna Dolina" dla Biedronki. Tam, gdzie nie znalazłem
+# potwierdzonej marki własnej w danej kategorii dla danego sklepu (np. Dino
+# przy świeżym mięsie — ich przewagą jest świeżość i lokalni dostawcy, a nie
+# marka własna), pole zostaje puste — celowo nie zgadujemy.
+STORE_BRANDS: dict[tuple[str, str], str] = {
+    # ── Nabiał podstawowy ──
+    ("Biedronka", "Mleko 2%"): "Mleczna Dolina",
+    ("Biedronka", "Masło extra"): "Mleczna Dolina",
+    ("Biedronka", "Jogurt naturalny"): "Mleczna Dolina",
+    ("Biedronka", "Ser żółty gouda"): "Mleczna Dolina",
+    ("Biedronka", "Śmietana 18%"): "Mleczna Dolina",
+    ("Biedronka", "Śmietana 30%"): "Mleczna Dolina",
+    ("Biedronka", "Twaróg półtłusty"): "Mleczna Dolina",
+    ("Lidl", "Mleko 2%"): "Pilos",
+    ("Lidl", "Masło extra"): "Pilos",
+    ("Lidl", "Jogurt naturalny"): "Pilos",
+    ("Lidl", "Ser żółty gouda"): "Pilos",
+    ("Lidl", "Śmietana 18%"): "Pilos",
+    ("Lidl", "Śmietana 30%"): "Pilos",
+    ("Lidl", "Twaróg półtłusty"): "Pilos",
+    ("Dino", "Mleko 2%"): "Krasula",
+    ("Dino", "Masło extra"): "Krasula",
+    ("Dino", "Jogurt naturalny"): "Krasula",
+    ("Dino", "Ser żółty gouda"): "Krasula",
+    ("Dino", "Śmietana 18%"): "Krasula",
+    ("Dino", "Śmietana 30%"): "Krasula",
+    ("Dino", "Twaróg półtłusty"): "Krasula",
+    # ── Sery importowane / specjalne ──
+    ("Biedronka", "Mozzarella"): "Światowid",
+    ("Biedronka", "Parmezan"): "Światowid",
+    ("Biedronka", "Ser feta"): "Światowid",
+    ("Lidl", "Mozzarella"): "Milbona",
+    ("Lidl", "Parmezan"): "Milbona",
+    # ── Wędliny ──
+    ("Biedronka", "Kiełbasa śląska"): "Kraina Wędlin",
+    ("Lidl", "Kiełbasa śląska"): "Dulano",
+    # ── Ryby ──
+    ("Biedronka", "Dorsz filet"): "Marinero",
+    ("Biedronka", "Tuńczyk w sosie własnym"): "Marinero",
+    ("Biedronka", "Krewetki mrożone"): "Marinero",
+    ("Lidl", "Dorsz filet"): "Nautica",
+    ("Lidl", "Tuńczyk w sosie własnym"): "Nautica",
+    ("Lidl", "Krewetki mrożone"): "Nautica",
+    # ── Orzechy / bakalie ──
+    ("Lidl", "Orzechy włoskie"): "Alesto",
+    ("Lidl", "Migdały płatki"): "Alesto",
+    # ── Mąka / pieczenie ──
+    ("Dino", "Mąka pszenna"): "Hania",
+}
+
 # Wartości odżywcze na 100g/ml (lub 1 sztukę, jeśli produkt liczony w sztukach i nie ma sprecyzowanej wagi)
 NUTRITION_DATA = {
     "Mleko 2%": {"kcal": 50, "protein": 3.3, "fat": 2.0, "carbs": 4.8, "fiber": 0.0},
@@ -2312,6 +2365,7 @@ async def seed_database(session: AsyncSession) -> None:
                 product_id=product.id,
                 department_id=dept.id,
                 price=price,
+                store_brand_name=STORE_BRANDS.get((store_name, prod_name)),
                 is_available=True,
                 last_verified=date.today(),
                 withdrawn_at=None,

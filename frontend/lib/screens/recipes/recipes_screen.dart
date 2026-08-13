@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../models/recipe.dart';
 import '../../services/recipe_service.dart';
 import '../../theme/app_theme.dart';
+import 'coming_soon_add_recipe_screen.dart';
 
 class RecipesScreen extends StatefulWidget {
   const RecipesScreen({super.key});
@@ -292,7 +293,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '⏱ ${recipe.totalTimeMin} min • ${recipe.nutritionTotal.kcal.toInt()} kcal',
+                          // Kcal na porcję (nie na cały przepis) — to jest
+                          // wartość, jakiej ktoś przeglądający listę przepisów
+                          // się spodziewa (jak na etykiecie dania, nie garnka).
+                          '⏱ ${recipe.totalTimeMin} min • ${(recipe.nutritionTotal.kcal / recipe.servings).round()} kcal/porcję',
                           style: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
                         ),
                         Container(
@@ -314,6 +318,20 @@ class _RecipesScreenState extends State<RecipesScreen> {
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        // Wyszarzony celowo — funkcja jest zapowiedziana, ale jeszcze
+        // nieaktywna. Dotknięcie pokazuje ekran z wyjaśnieniem, co będzie
+        // można zrobić, zamiast udawać, że coś już działa.
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const ComingSoonAddRecipeScreen()),
+          );
+        },
+        backgroundColor: Colors.grey.shade400,
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.add),
+        label: const Text('Dodaj przepis'),
       ),
     ).animate().fadeIn().scale(begin: const Offset(0.9, 0.9), duration: 200.ms);
   }

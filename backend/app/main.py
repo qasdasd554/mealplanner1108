@@ -33,6 +33,12 @@ async def _create_tables() -> None:
         await conn.execute(
             text("ALTER TABLE recipes ADD COLUMN IF NOT EXISTS instructions JSON")
         )
+        await conn.execute(
+            text(
+                "ALTER TABLE store_products ADD COLUMN IF NOT EXISTS "
+                "store_brand_name VARCHAR(100)"
+            )
+        )
     logger.info("Tabele bazy danych zostały utworzone/zweryfikowane.")
 
 
