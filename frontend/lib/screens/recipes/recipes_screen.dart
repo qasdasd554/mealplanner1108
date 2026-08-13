@@ -188,6 +188,20 @@ class _RecipesScreenState extends State<RecipesScreen> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        // Wyszarzony celowo — funkcja jest zapowiedziana, ale jeszcze
+        // nieaktywna. Dotknięcie pokazuje ekran z wyjaśnieniem, co będzie
+        // można zrobić, zamiast udawać, że coś już działa.
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const ComingSoonAddRecipeScreen()),
+          );
+        },
+        backgroundColor: Colors.grey.shade400,
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.add),
+        label: const Text('Dodaj przepis'),
+      ),
     );
   }
 
@@ -321,20 +335,6 @@ class _RecipesScreenState extends State<RecipesScreen> {
             ),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        // Wyszarzony celowo — funkcja jest zapowiedziana, ale jeszcze
-        // nieaktywna. Dotknięcie pokazuje ekran z wyjaśnieniem, co będzie
-        // można zrobić, zamiast udawać, że coś już działa.
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const ComingSoonAddRecipeScreen()),
-          );
-        },
-        backgroundColor: Colors.grey.shade400,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
-        label: const Text('Dodaj przepis'),
       ),
     ).animate().fadeIn().scale(begin: const Offset(0.9, 0.9), duration: 200.ms);
   }
