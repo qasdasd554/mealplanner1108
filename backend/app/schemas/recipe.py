@@ -97,6 +97,10 @@ class RecipeResponse(RecipeBase):
     tags: list[str] = []
     ingredients: list[RecipeIngredientResponse] = []
     created_at: datetime
+    # Czy AKTUALNIE zalogowany użytkownik ma ten przepis w ulubionych —
+    # dołączane ręcznie w endpointzie, żeby frontend nie musiał robić
+    # osobnego zapytania dla każdego przepisu.
+    is_favorite: bool = False
 
     @field_validator("tags", mode="before")
     @classmethod

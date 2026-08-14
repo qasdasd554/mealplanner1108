@@ -21,10 +21,15 @@ dependencies:
 
   # Local Storage
   shared_preferences: ^2.2.3
+  # Zaszyfrowany magazyn (Android Keystore / iOS Keychain) — token JWT
+  # wcześniej był trzymany w SharedPreferences, czyli zwykłym,
+  # niezaszyfrowanym plikiem na dysku urządzenia.
+  flutter_secure_storage: ^9.2.2
 
   # Utilities
   share_plus: ^10.1.2
   url_launcher: ^6.3.1
+  image_picker: ^1.1.2
 
   # UI & Styling
   google_fonts: ^6.1.0

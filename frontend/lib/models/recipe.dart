@@ -55,6 +55,10 @@ class Recipe {
   final List<RecipeIngredient> ingredients;
   final List<String> instructions;
   final List<String> suggestedSeasonings;
+  // Mutowalne (nie final) celowo — pozwala na natychmiastowe przełączenie
+  // serca w UI bez przebudowy całego obiektu Recipe (optymistyczna
+  // aktualizacja stanu ulubionych).
+  bool isFavorite;
 
   Recipe({
     required this.id,
@@ -73,6 +77,7 @@ class Recipe {
     required this.ingredients,
     this.instructions = const [],
     this.suggestedSeasonings = const [],
+    this.isFavorite = false,
   });
 
   factory Recipe.fromJson(Map<String, dynamic> json) {
@@ -104,6 +109,7 @@ class Recipe {
               ?.map((e) => e.toString())
               .toList() ??
           [],
+      isFavorite: json['is_favorite'] as bool? ?? false,
     );
   }
 

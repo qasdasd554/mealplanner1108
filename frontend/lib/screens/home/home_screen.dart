@@ -6,6 +6,7 @@ import '../../providers/meal_plan_provider.dart';
 import '../../providers/store_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/recipe_photo.dart';
+import '../../widgets/notification_bell.dart';
 import '../../models/meal_plan.dart';
 import '../recipes/recipes_screen.dart';
 import '../shopping/shopping_list_screen.dart';
@@ -184,6 +185,12 @@ class HomeTab extends StatelessWidget {
                         ],
                       ),
                     ),
+                    // Dzwoneczek powiadomień — z odznaką liczby
+                    // nieprzeczytanych. Na razie tylko wewnątrz aplikacji
+                    // (bez powiadomień systemowych/push, które wymagają
+                    // Firebase Cloud Messaging).
+                    const NotificationBell(),
+                    const SizedBox(width: 4),
                     // Szybki skrót do profilu
                     GestureDetector(
                       onTap: () => Navigator.of(context).pushNamed('/profile'),

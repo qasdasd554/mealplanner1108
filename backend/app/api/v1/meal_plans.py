@@ -61,8 +61,16 @@ async def generate_meal_plan(
     Używa serwisu ``MealPlanGenerator`` do inteligentnego doboru
     przepisów z uwzględnieniem alergenów, dostępności produktów
     i różnorodności składników.
+
+    Limit: 15 wywołań na godzinę na użytkownika — to kosztowna operacja
+    (przeszukuje cały katalog przepisów, liczy scoring, buduje listę
+    zakupów), bez limitu można by zasypać serwer żądaniami.
     """
+    from app.core.rate_limit import enforce_user_rate_limit, meal_plan_generation_limiter
     from app.services.exceptions import ServiceError
+
+    enforce_user_rate_limit(meal_plan_generation_limiter, current_user.id, "generowanie planu posiłków")
+
     try:
         generator = MealPlanGenerator(db)
         meal_plan = await generator.generate(

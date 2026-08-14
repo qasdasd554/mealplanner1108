@@ -4,6 +4,10 @@
          przy logowaniu. -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <!-- Wymagane przez image_picker do robienia zdjęć komentarzy pod
+         przepisami (galeria na nowoczesnym Androidzie nie wymaga osobnego
+         uprawnienia dzięki systemowemu Photo Pickerowi, ale aparat — tak). -->
+    <uses-permission android:name="android.permission.CAMERA"/>
     <application
         android:label="Meal Planner"
         android:name="${applicationName}"

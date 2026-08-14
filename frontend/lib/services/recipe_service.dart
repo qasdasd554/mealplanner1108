@@ -11,6 +11,7 @@ class RecipeService {
     String? difficulty,
     String? tag,
     String? search,
+    bool favoritesOnly = false,
   }) async {
     var path = '${ApiConfig.recipes}?';
     final params = <String>[];
@@ -28,6 +29,9 @@ class RecipeService {
     }
     if (search != null && search.isNotEmpty) {
       params.add('search=${Uri.encodeComponent(search)}');
+    }
+    if (favoritesOnly) {
+      params.add('favorites_only=true');
     }
     // Backend domyślnie zwraca tylko 50 przepisów (paginacja). Baza ma ich
     // teraz ~80, więc bez podania limitu część z nich byłaby niewidoczna
@@ -53,5 +57,13 @@ class RecipeService {
       return response.map((e) => Recipe.fromJson(e as Map<String, dynamic>)).toList();
     }
     return [];
+  }
+
+  Future<void> addFavorite(String recipeId) async {
+    await _client.post('${ApiConfig.recipes}$recipeId/favorite');
+  }
+
+  Future<void> removeFavorite(String recipeId) async {
+    await _client.delete('${ApiConfig.recipes}$recipeId/favorite');
   }
 }

@@ -3,6 +3,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../models/recipe.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/recipe_comments_section.dart';
+import '../../widgets/recipe_favorite_button.dart';
 
 class RecipeDetailScreen extends StatelessWidget {
   const RecipeDetailScreen({super.key});
@@ -21,6 +23,12 @@ class RecipeDetailScreen extends StatelessWidget {
           SliverAppBar(
             expandedHeight: 220,
             pinned: true,
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: RecipeFavoriteButton(recipe: recipe, activeColor: Colors.redAccent),
+              ),
+            ],
             flexibleSpace: FlexibleSpaceBar(
               background: recipe.realPhotoAsset != null
                   ? Stack(
@@ -61,14 +69,20 @@ class RecipeDetailScreen extends StatelessWidget {
                           right: 12,
                           bottom: 12,
                           child: Container(
+                            // Tło plakietki zostaje wyraźne (kontrast na
+                            // każdym zdjęciu, jasnym czy ciemnym) — tylko
+                            // sam tekst jest przezroczysty w 50%.
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.55),
+                              color: Colors.black.withOpacity(0.75),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Text(
-                              'Zdjęcie poglądowe, wygenerowane przez AI',
-                              style: TextStyle(color: Colors.white, fontSize: 10),
+                            child: Opacity(
+                              opacity: 0.5,
+                              child: const Text(
+                                'Zdjęcie poglądowe, wygenerowane przez AI',
+                                style: TextStyle(color: Colors.white, fontSize: 10),
+                              ),
                             ),
                           ),
                         ),
@@ -311,45 +325,8 @@ class RecipeDetailScreen extends StatelessWidget {
                     const SizedBox(height: 28),
                   ],
 
-                  // ── Komentarze (zapowiedź) ────────────────────────
-                  // Wyszarzone celowo — funkcja jeszcze nie działa, ale
-                  // pokazujemy, że jest planowana, zamiast całkiem ją
-                  // ukrywać.
-                  Opacity(
-                    opacity: 0.5,
-                    child: IgnorePointer(
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: AppTheme.surfaceColor,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppTheme.textSecondary.withOpacity(0.2)),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.mode_comment_outlined, color: AppTheme.textSecondary),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Komentarze i zdjęcia od innych',
-                                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 15),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    'Dostępne wkrótce',
-                                    style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                  // ── Komentarze i zdjęcia (teraz w pełni działające) ──
+                  RecipeCommentsSection(recipeId: recipe.id),
                   const SizedBox(height: 48),
                 ],
               ),

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/api_config.dart';
 
 class ApiException implements Exception {
@@ -21,23 +22,51 @@ class ApiClient {
 
   String? _token;
 
+  // Token JWT trzymany w zaszyfrowanym magazynie systemowym (Android
+  // Keystore / iOS Keychain), NIE w SharedPreferences — to zwykły,
+  // niezaszyfrowany plik na dysku, czytelny dla każdego z dostępem do
+  // pamięci urządzenia (np. na zrootowanym telefonie albo z kopii
+  // zapasowej aplikacji).
+  static const _secureStorage = FlutterSecureStorage(
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+  );
+  static const _tokenKey = 'auth_token';
+  // Stary klucz w SharedPreferences — używany tylko do jednorazowego
+  // przeniesienia tokenu istniejących, już zalogowanych użytkowników do
+  // nowego, bezpiecznego magazynu, żeby nikogo nie wylogować przy
+  // aktualizacji aplikacji.
+  static const _legacyPrefsKey = 'auth_token';
+
   Future<String?> getToken() async {
     if (_token != null) return _token;
+
+    _token = await _secureStorage.read(key: _tokenKey);
+    if (_token != null) return _token;
+
+    // Migracja jednorazowa: jeśli token istnieje w starym,
+    // niezaszyfrowanym miejscu (z wersji aplikacji sprzed tej poprawki),
+    // przenieś go do bezpiecznego magazynu i usuń stamtąd.
     final prefs = await SharedPreferences.getInstance();
-    _token = prefs.getString('auth_token');
+    final legacyToken = prefs.getString(_legacyPrefsKey);
+    if (legacyToken != null) {
+      _token = legacyToken;
+      await _secureStorage.write(key: _tokenKey, value: legacyToken);
+      await prefs.remove(_legacyPrefsKey);
+    }
     return _token;
   }
 
   Future<void> setToken(String token) async {
     _token = token;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('auth_token', token);
+    await _secureStorage.write(key: _tokenKey, value: token);
   }
 
   Future<void> clearToken() async {
     _token = null;
+    await _secureStorage.delete(key: _tokenKey);
+    // Sprzątamy też ewentualną starą, niezaszyfrowaną kopię.
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('auth_token');
+    await prefs.remove(_legacyPrefsKey);
   }
 
   Map<String, String> _headers(String? token) {

@@ -3,7 +3,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, status
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -21,10 +21,32 @@ class UserProfileUpdate(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    display_name: str | None = None
+    # UWAGA (naprawa bezpieczeństwa): wcześniej display_name i household_size
+    # nie miały żadnych granic — dało się ustawić np. household_size=-999999
+    # albo wyświetlaną nazwę o długości megabajtów. Kolumna w bazie i tak by
+    # to odrzuciła (surowym błędem 500, nie czytelnym komunikatem), a
+    # ekstremalne wartości household_size mogłyby psuć przeliczenia porcji
+    # w generatorze planów posiłków.
+    display_name: str | None = Field(default=None, max_length=200)
     preferred_store_id: UUID | None = None
     dietary_preferences: dict | None = None
-    household_size: int | None = None
+    household_size: int | None = Field(default=None, ge=1, le=20)
+
+    @field_validator("dietary_preferences")
+    @classmethod
+    def limit_dietary_preferences_size(cls, v: dict | None) -> dict | None:
+        """Bez limitu dało się wysłać dowolnie duży, zagnieżdżony słownik
+        JSON pod pozorem preferencji żywieniowych — kolumna w bazie nie
+        ma ograniczenia rozmiaru. 10 KB to i tak wielokrotność tego, czego
+        realnie potrzeba (kilka krótkich pól tekstowych)."""
+        if v is None:
+            return v
+        import json
+
+        size = len(json.dumps(v))
+        if size > 10_000:
+            raise ValueError("Preferencje żywieniowe są za duże (max 10 KB)")
+        return v
 
 
 class AllergenIdsUpdate(BaseModel):

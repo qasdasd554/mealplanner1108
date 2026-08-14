@@ -89,6 +89,28 @@ signup_limiter = SlidingWindowRateLimiter(
     window_seconds=settings.RATE_LIMIT_WINDOW_SECONDS,
 )
 
+# Logowanie przez Google: bez limitu każdy mógłby bombardować endpoint
+# tokenami, wymuszając kosztowną weryfikację po stronie Google przy każdej
+# próbie — limit po IP, jak przy zwykłym logowaniu.
+google_auth_limiter = SlidingWindowRateLimiter(max_events=10, window_seconds=300)
+
+# Ręczne wywołanie scrapera cen: NAJBARDZIEJ newralgiczny endpoint w całej
+# aplikacji z punktu widzenia nadużyć — bez limitu zalogowany użytkownik
+# mógłby w pętli wysyłać żądania, które wykonują PRAWDZIWE zapytania HTTP
+# do stron Biedronki/Lidla/Dino (ryzyko zbanowania adresu IP serwera przez
+# te strony) i przy okazji obciążają bazę danych. Limit liczony PO
+# UŻYTKOWNIKU (nie po IP), bo to endpoint wymagający zalogowania.
+scraper_run_limiter = SlidingWindowRateLimiter(max_events=1, window_seconds=300)
+
+# Generowanie planu posiłków: kosztowna operacja (przeszukuje cały katalog
+# przepisów, liczy scoring, buduje listę zakupów) — limit chroni przed
+# zalogowanym użytkownikiem zasypującym serwer żądaniami generowania.
+meal_plan_generation_limiter = SlidingWindowRateLimiter(max_events=15, window_seconds=3600)
+
+# Dodawanie komentarzy: ochrona przed spamem (w tym spamem zdjęciami,
+# które trafiają bezpośrednio do bazy danych).
+comment_creation_limiter = SlidingWindowRateLimiter(max_events=30, window_seconds=3600)
+
 
 def client_key(request: Request, suffix: str = "") -> str:
     """Klucz licznika na podstawie adresu IP klienta.
@@ -137,3 +159,37 @@ def enforce_login_rate_limit(request: Request) -> str:
             headers={"Retry-After": str(retry_after)},
         )
     return key
+
+
+def enforce_google_auth_rate_limit(request: Request) -> None:
+    """Ogranicza liczbę prób logowania przez Google z jednego adresu IP."""
+    key = client_key(request, "google-auth")
+    google_auth_limiter.cleanup()
+    retry_after = google_auth_limiter.seconds_until_allowed(key)
+    if retry_after:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Zbyt wiele prób. Spróbuj ponownie za {retry_after} s.",
+            headers={"Retry-After": str(retry_after)},
+        )
+    google_auth_limiter.register_failure(key)
+
+
+def enforce_user_rate_limit(limiter: SlidingWindowRateLimiter, user_id, action_name: str) -> None:
+    """Ogólna funkcja egzekwująca limit PO UŻYTKOWNIKU (nie po IP) — do
+    użycia na endpointach wymagających zalogowania, gdzie liczy się
+    nadużycie konta, a nie samego adresu IP (który dla wielu użytkowników
+    za tym samym NAT-em i tak byłby wspólny)."""
+    key = str(user_id)
+    limiter.cleanup()
+    retry_after = limiter.seconds_until_allowed(key)
+    if retry_after:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=(
+                f"Zbyt wiele prób ({action_name}). "
+                f"Spróbuj ponownie za {retry_after} s."
+            ),
+            headers={"Retry-After": str(retry_after)},
+        )
+    limiter.register_failure(key)

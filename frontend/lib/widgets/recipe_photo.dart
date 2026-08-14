@@ -65,15 +65,20 @@ class RecipePhoto extends StatelessWidget {
               right: 6,
               bottom: 6,
               child: Container(
+                // Tło plakietki zostaje wyraźne (kontrast na każdym
+                // zdjęciu) — tylko sam tekst jest przezroczysty w 50%.
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.55),
+                  color: Colors.black.withOpacity(0.75),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: const Text(
-                  'Zdjęcie poglądowe, wygenerowane przez AI',
-                  style: TextStyle(color: Colors.white, fontSize: 8, height: 1.1),
-                  textAlign: TextAlign.right,
+                child: Opacity(
+                  opacity: 0.5,
+                  child: const Text(
+                    'Zdjęcie poglądowe, wygenerowane przez AI',
+                    style: TextStyle(color: Colors.white, fontSize: 8, height: 1.1),
+                    textAlign: TextAlign.right,
+                  ),
                 ),
               ),
             ),

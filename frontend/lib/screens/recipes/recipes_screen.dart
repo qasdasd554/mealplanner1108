@@ -5,6 +5,7 @@ import '../../models/recipe.dart';
 import '../../services/recipe_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/recipe_photo.dart';
+import '../../widgets/recipe_favorite_button.dart';
 import 'coming_soon_add_recipe_screen.dart';
 
 class RecipesScreen extends StatefulWidget {
@@ -21,6 +22,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   String _searchQuery = '';
   String? _selectedMealType;
   String? _selectedDifficulty;
+  bool _favoritesOnly = false;
 
   @override
   void initState() {
@@ -38,6 +40,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
         search: _searchQuery,
         mealType: _selectedMealType,
         difficulty: _selectedDifficulty,
+        favoritesOnly: _favoritesOnly,
       );
       setState(() {
         _recipes = list;
@@ -124,6 +127,26 @@ class _RecipesScreenState extends State<RecipesScreen> {
                   });
                   _loadRecipes();
                 }),
+                const SizedBox(width: 12),
+                Container(width: 1, height: 24, color: AppTheme.textSecondary.withOpacity(0.2)),
+                const SizedBox(width: 12),
+                // Ulubione — osobno wyróżnione (nie jest to filtr typu
+                // posiłku, tylko przełącznik "pokaż tylko to, co lubię").
+                FilterChip(
+                  label: const Text('Ulubione'),
+                  avatar: Icon(
+                    _favoritesOnly ? Icons.favorite : Icons.favorite_border,
+                    size: 18,
+                    color: _favoritesOnly ? Colors.white : Colors.redAccent,
+                  ),
+                  selected: _favoritesOnly,
+                  onSelected: (val) {
+                    setState(() => _favoritesOnly = val);
+                    _loadRecipes();
+                  },
+                  selectedColor: Colors.redAccent,
+                  labelStyle: TextStyle(color: _favoritesOnly ? Colors.white : null),
+                ),
               ],
             ),
           ),
@@ -249,30 +272,57 @@ class _RecipesScreenState extends State<RecipesScreen> {
             // Górna część z gradientem / placeholderem (Premium look)
             Expanded(
               flex: 5,
-              child: recipe.realPhotoAsset != null
-                  ? RecipePhoto(recipe: recipe, showAiBadge: true)
-                  : Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            AppTheme.secondaryColor.withOpacity(0.15),
-                            AppTheme.primaryColor.withOpacity(0.06),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                      ),
-                      child: Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: SvgPicture.asset(
-                            recipe.categoryImageAsset,
-                            width: 64,
-                            height: 64,
-                          ),
-                        ),
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: recipe.realPhotoAsset != null
+                        // Plakietka "wygenerowane przez AI" pokazuje się TYLKO
+                        // po wejściu w szczegóły przepisu — na miniaturce listy
+                        // byłaby zbędnym szumem wizualnym na każdej karcie naraz.
+                        ? RecipePhoto(recipe: recipe, showAiBadge: false)
+                        : Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppTheme.secondaryColor.withOpacity(0.15),
+                                  AppTheme.primaryColor.withOpacity(0.06),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                            ),
+                            child: Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(12.0),
+                                child: SvgPicture.asset(
+                                  recipe.categoryImageAsset,
+                                  width: 64,
+                                  height: 64,
+                                ),
+                              ),
                       ),
                     ),
+                  ),
+                  // Serce w rogu miniaturki — szybkie dodanie/usunięcie
+                  // z ulubionych bez wchodzenia w szczegóły przepisu.
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.35),
+                        shape: BoxShape.circle,
+                      ),
+                      child: RecipeFavoriteButton(
+                        recipe: recipe,
+                        activeColor: Colors.redAccent,
+                        inactiveColor: Colors.white,
+                        size: 18,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             // Dolne informacje
             Expanded(

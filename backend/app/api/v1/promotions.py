@@ -100,8 +100,16 @@ async def trigger_scraper_run(
     """Uruchamia scraper cen natychmiast i czeka na wynik — do ręcznego
     testowania, żeby nie czekać do 12 godzin na kolejny automatyczny cykl.
 
-    Zwraca to samo podsumowanie co widoczne potem w `/scraper-status`.
+    Limit: 1 wywołanie na 5 minut na użytkownika. Bez tego limitu
+    zalogowany użytkownik mógłby w pętli wysyłać żądania, które robią
+    PRAWDZIWE zapytania HTTP do stron Biedronki/Lidla/Dino — ryzyko
+    zbanowania adresu IP serwera przez te strony, oprócz zwykłego
+    obciążenia bazy danych.
     """
+    from app.core.rate_limit import enforce_user_rate_limit, scraper_run_limiter
+
+    enforce_user_rate_limit(scraper_run_limiter, current_user.id, "uruchomienie scrapera cen")
+
     from app.services.promo_scraper import scrape_and_update_prices
 
     summary = await scrape_and_update_prices(db)

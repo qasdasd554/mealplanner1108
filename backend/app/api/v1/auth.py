@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 import json
+import re
 import uuid
 
 from google.auth.exceptions import GoogleAuthError
@@ -10,6 +11,7 @@ from google.oauth2 import id_token as google_id_token
 
 from app.core.config import settings
 from app.core.rate_limit import (
+    enforce_google_auth_rate_limit,
     enforce_login_rate_limit,
     enforce_signup_rate_limit,
     login_limiter,
@@ -31,6 +33,34 @@ async def get_parsed_body(request: Request):
     except Exception:
         raise HTTPException(status_code=400, detail="Nieprawidłowe dane żądania (oczekiwano JSON)")
 
+
+# Prosty, sprawdzony wzorzec formatu e-maila — celowo nie RFC 5322 w pełnej
+# okazałości (to notorycznie odrzuca poprawne adresy), tylko rozsądne
+# "wygląda jak e-mail". `email-validator` (potrzebny do EmailStr z Pydantic)
+# nie jest zależnością tego projektu, więc zamiast dorzucać nowy pakiet,
+# wystarczy prosty regex — usuwa najbardziej oczywiste śmieciowe wartości.
+_EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+MIN_PASSWORD_LENGTH = 8
+
+
+def _validate_credentials(email: str, password: str) -> None:
+    """Wspólna walidacja e-maila i hasła dla rejestracji.
+
+    UWAGA (naprawa bezpieczeństwa): wcześniej rejestracja sprawdzała tylko,
+    że oba pola są niepuste — hasło "a" albo e-mail "x" przechodziły bez
+    problemu. Limiter logowania trochę chroni przed łamaniem takich haseł
+    siłowo, ale to za mało — jednoznakowe hasło jest łamane praktycznie
+    natychmiast, jeśli ktoś w ogóle je odgadnie.
+    """
+    if not _EMAIL_PATTERN.match(email):
+        raise HTTPException(status_code=400, detail="Nieprawidłowy format adresu e-mail")
+    if len(password) < MIN_PASSWORD_LENGTH:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Hasło musi mieć co najmniej {MIN_PASSWORD_LENGTH} znaków",
+        )
+
 @router.post("/register")
 async def register(request: Request, db: AsyncSession = Depends(get_db)):
     # Ogranicza masowe zakładanie kont z jednego adresu IP.
@@ -43,6 +73,7 @@ async def register(request: Request, db: AsyncSession = Depends(get_db)):
 
     if not email or not password:
         raise HTTPException(status_code=400, detail="Email i hasło są wymagane")
+    _validate_credentials(email, password)
 
     result = await db.execute(select(User).where(User.email == email))
     if result.scalar_one_or_none():
@@ -105,6 +136,8 @@ async def google_login(request: Request, db: AsyncSession = Depends(get_db)):
     offline (podpis, wygaśnięcie, audience) — nie wywołujemy żadnego
     dodatkowego zapytania do Google, więc to podejście nie zależy od
     redirect_uri i nie powoduje błędu "invalid_request"."""
+    enforce_google_auth_rate_limit(request)
+
     body = await get_parsed_body(request)
     token = body.get("id_token")
 
