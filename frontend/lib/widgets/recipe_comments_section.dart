@@ -279,6 +279,18 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
                   ),
                   const Spacer(),
                   ElevatedButton(
+                    // UWAGA (naprawa): globalny styl ElevatedButton w
+                    // całej aplikacji wymusza `minimumSize: Size.fromHeight(52)`
+                    // — czyli PEŁNA SZEROKOŚĆ. To dobre dla dużych
+                    // przycisków logowania/rejestracji, ale wstawione bez
+                    // zmian do wąskiego Row (obok ikony zdjęcia) próbowało
+                    // być nieskończenie szerokie, co psuło układ i
+                    // renderowało przycisk jako niewidoczny. Nadpisuję
+                    // styl lokalnie na rozsądny, mały rozmiar.
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(88, 40),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                    ),
                     onPressed: _isSubmitting ? null : _submit,
                     child: _isSubmitting
                         ? const SizedBox(

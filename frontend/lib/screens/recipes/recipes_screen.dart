@@ -99,6 +99,27 @@ class _RecipesScreenState extends State<RecipesScreen> {
                   });
                   _loadRecipes();
                 }),
+                const SizedBox(width: 12),
+                Container(width: 1, height: 24, color: AppTheme.textSecondary.withOpacity(0.2)),
+                const SizedBox(width: 12),
+                // Ulubione — zaraz po "Wszystkie", bo to najważniejszy
+                // skrót (nie jest to filtr typu posiłku, tylko przełącznik
+                // "pokaż tylko to, co lubię").
+                FilterChip(
+                  label: const Text('Ulubione'),
+                  avatar: Icon(
+                    _favoritesOnly ? Icons.favorite : Icons.favorite_border,
+                    size: 18,
+                    color: _favoritesOnly ? Colors.white : Colors.redAccent,
+                  ),
+                  selected: _favoritesOnly,
+                  onSelected: (val) {
+                    setState(() => _favoritesOnly = val);
+                    _loadRecipes();
+                  },
+                  selectedColor: Colors.redAccent,
+                  labelStyle: TextStyle(color: _favoritesOnly ? Colors.white : null),
+                ),
                 const SizedBox(width: 8),
                 _buildFilterChip('Śniadania', 'śniadanie', _selectedMealType == 'śniadanie', (val) {
                   setState(() {
@@ -127,26 +148,6 @@ class _RecipesScreenState extends State<RecipesScreen> {
                   });
                   _loadRecipes();
                 }),
-                const SizedBox(width: 12),
-                Container(width: 1, height: 24, color: AppTheme.textSecondary.withOpacity(0.2)),
-                const SizedBox(width: 12),
-                // Ulubione — osobno wyróżnione (nie jest to filtr typu
-                // posiłku, tylko przełącznik "pokaż tylko to, co lubię").
-                FilterChip(
-                  label: const Text('Ulubione'),
-                  avatar: Icon(
-                    _favoritesOnly ? Icons.favorite : Icons.favorite_border,
-                    size: 18,
-                    color: _favoritesOnly ? Colors.white : Colors.redAccent,
-                  ),
-                  selected: _favoritesOnly,
-                  onSelected: (val) {
-                    setState(() => _favoritesOnly = val);
-                    _loadRecipes();
-                  },
-                  selectedColor: Colors.redAccent,
-                  labelStyle: TextStyle(color: _favoritesOnly ? Colors.white : null),
-                ),
               ],
             ),
           ),
