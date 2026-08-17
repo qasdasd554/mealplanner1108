@@ -214,7 +214,9 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
 
   @override
   Widget build(BuildContext context) {
-    final currentUserId = Provider.of<AuthProvider>(context).currentUser?.id;
+    final currentUser = Provider.of<AuthProvider>(context).currentUser;
+    final currentUserId = currentUser?.id;
+    final isAdmin = currentUser?.isAdmin ?? false;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -327,6 +329,9 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
         else
           ..._comments.map((comment) {
             final isMine = comment.userId == currentUserId;
+            // Admin widzi przycisk usuwania na KAŻDYM komentarzu (potrzebne
+            // do moderacji), nie tylko na własnych.
+            final canDelete = isMine || isAdmin;
             return Container(
               margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.all(12),
@@ -360,11 +365,19 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
                           ],
                         ),
                       ),
-                      if (isMine)
+                      if (canDelete)
                         IconButton(
-                          icon: Icon(Icons.delete_outline, size: 18, color: AppTheme.textSecondary),
+                          icon: Icon(
+                            Icons.delete_outline,
+                            size: 18,
+                            // Wizualne rozróżnienie: usuwanie CUDZEGO
+                            // komentarza jako admin ma inny kolor niż
+                            // usuwanie własnego, żeby nie było wątpliwości,
+                            // że to działanie moderacyjne.
+                            color: isMine ? AppTheme.textSecondary : AppTheme.errorColor,
+                          ),
                           onPressed: () => _delete(comment),
-                          tooltip: 'Usuń komentarz',
+                          tooltip: isMine ? 'Usuń komentarz' : 'Usuń komentarz (moderacja)',
                         ),
                     ],
                   ),

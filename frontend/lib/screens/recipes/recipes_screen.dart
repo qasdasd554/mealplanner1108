@@ -6,7 +6,7 @@ import '../../services/recipe_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/recipe_photo.dart';
 import '../../widgets/recipe_favorite_button.dart';
-import 'coming_soon_add_recipe_screen.dart';
+import 'ai_add_recipe_screen.dart';
 
 class RecipesScreen extends StatefulWidget {
   const RecipesScreen({super.key});
@@ -214,16 +214,14 @@ class _RecipesScreenState extends State<RecipesScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        // Wyszarzony celowo — funkcja jest zapowiedziana, ale jeszcze
-        // nieaktywna. Dotknięcie pokazuje ekran z wyjaśnieniem, co będzie
-        // można zrobić, zamiast udawać, że coś już działa.
+        // Prowadzi do ekranu, który SAM rozpoznaje status premium —
+        // konta bez subskrypcji zobaczą tam czytelną informację zamiast
+        // formularza, więc przycisk nie musi się wcześniej wyszarzać.
         onPressed: () {
           Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const ComingSoonAddRecipeScreen()),
+            MaterialPageRoute(builder: (_) => const AiAddRecipeScreen()),
           );
         },
-        backgroundColor: Colors.grey.shade400,
-        foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
         label: const Text('Dodaj przepis'),
       ),

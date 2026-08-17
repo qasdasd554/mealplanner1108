@@ -4,7 +4,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -62,14 +62,51 @@ async def generate_meal_plan(
     przepisów z uwzględnieniem alergenów, dostępności produktów
     i różnorodności składników.
 
-    Limit: 15 wywołań na godzinę na użytkownika — to kosztowna operacja
-    (przeszukuje cały katalog przepisów, liczy scoring, buduje listę
-    zakupów), bez limitu można by zasypać serwer żądaniami.
+    Limity:
+    - Techniczny (wszyscy): 15 wywołań/godzinę — ochrona przed zasypaniem
+      serwera żądaniami.
+    - Biznesowy (tylko konta bez premium): 3 plany/dzień. Konta premium
+      omijają ten drugi limit całkowicie.
+
+    Dodatkowo: darmowe konta mogą mieć tylko JEDEN aktywny plan naraz —
+    wygenerowanie nowego automatycznie archiwizuje poprzedni. Konta
+    premium mogą mieć wiele aktywnych planów równocześnie (np. osobny
+    na dni robocze i osobny na weekend).
     """
-    from app.core.rate_limit import enforce_user_rate_limit, meal_plan_generation_limiter
+    from app.core.premium import is_premium_active
+    from app.core.rate_limit import (
+        enforce_user_rate_limit,
+        meal_plan_generation_daily_free_limiter,
+        meal_plan_generation_limiter,
+    )
     from app.services.exceptions import ServiceError
 
     enforce_user_rate_limit(meal_plan_generation_limiter, current_user.id, "generowanie planu posiłków")
+
+    user_is_premium = is_premium_active(current_user)
+    if not user_is_premium:
+        enforce_user_rate_limit(
+            meal_plan_generation_daily_free_limiter,
+            current_user.id,
+            "dzienny limit planów (odblokuj Premium dla planów bez limitu)",
+        )
+        # UWAGA: nowo wygenerowany plan dostaje status "draft" (patrz
+        # MealPlanGenerator), NIE "active" — to istniejące zachowanie
+        # sprzed tej zmiany. Frontend traktuje "aktywny plan" jako
+        # pierwszy o statusie "active", a w jego braku pierwszy "draft"
+        # (patrz MealPlanProvider.activePlan). Żeby limit "jeden plan na
+        # darmowym koncie" faktycznie działał, trzeba archiwizować OBA
+        # te statusy, nie tylko "active" — inaczej nic nigdy by się nie
+        # zarchiwizowało (bo plany praktycznie nigdy nie są "active").
+        await db.execute(
+            update(MealPlan)
+            .where(
+                MealPlan.user_id == current_user.id,
+                MealPlan.status.in_(["active", "draft"]),
+            )
+            .values(status="archived")
+        )
+        await db.commit()
 
     try:
         generator = MealPlanGenerator(db)

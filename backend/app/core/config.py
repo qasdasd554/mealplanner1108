@@ -61,6 +61,13 @@ class Settings(BaseSettings):
         "780793039743-6ap1jq18i31hqt04pf7gj8i4jip67uts.apps.googleusercontent.com"
     )
 
+    # ── Dodawanie przepisów przez AI (funkcja Premium) ─────────────
+    # Klucz API z console.anthropic.com — WYMAGANY, żeby funkcja "dodaj
+    # przepis przez AI" w ogóle działała. Bez ustawienia tej zmiennej
+    # środowiskowej na Render, endpoint /recipes/ai-import zwróci czytelny
+    # błąd zamiast wywalać się niejasnym wyjątkiem.
+    ANTHROPIC_API_KEY: str = ""
+
     # ── Aplikacja ────────────────────────────────────────────────
     APP_NAME: str = "Smart Meal Planner PL"
     # UWAGA: cała aplikacja Flutter (lib/config/api_config.dart) zakłada

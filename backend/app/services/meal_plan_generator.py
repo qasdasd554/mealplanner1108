@@ -63,6 +63,15 @@ WEIGHT_NUTRITION: float = 0.25
 # Maksymalna liczba powtórzeń tego samego przepisu
 MAX_RECIPE_REPEATS: int = 14
 
+# Próg tolerancji dopełniania dnia dodatkowymi daniami — jeśli suma
+# kalorii na osobę w danym dniu wypada poniżej tego procentu celu
+# (target_kcal), dokładamy dodatkowe dania (patrz _top_up_low_calorie_days).
+CALORIE_TOP_UP_THRESHOLD: float = 0.85
+# Maksymalna liczba DODATKOWYCH dań dokładanych do jednego dnia — żeby
+# przy bardzo niskokalorycznym katalogu przepisów nie skończyć z absurdalną
+# liczbą "dosypanych" przekąsek zamiast po prostu zbliżenia się do celu.
+MAX_TOP_UP_DISHES_PER_DAY: int = 4
+
 
 class MealPlanGenerator:
     """Generuje zbilansowany plan posiłków z zachłannym reuse składników."""
@@ -440,12 +449,113 @@ class MealPlanGenerator:
                 used_ingredient_ids.add(ing.product_id)
             daily_recipes.append(best_recipe)
 
+        if target_kcal:
+            selected = self._top_up_low_calorie_days(
+                selected=selected,
+                pools=pools,
+                used_ingredient_ids=used_ingredient_ids,
+                recipe_usage_count=recipe_usage_count,
+                target_kcal=target_kcal,
+            )
+
         logger.info(
             "Wybrano %d przepisów, unikalne składniki: %d",
             len(selected),
             len(used_ingredient_ids),
         )
         return selected
+
+    def _top_up_low_calorie_days(
+        self,
+        selected: list[tuple[int, str, Recipe]],
+        pools: dict[str, list[Recipe]],
+        used_ingredient_ids: set[UUID],
+        recipe_usage_count: dict[UUID, int],
+        target_kcal: float,
+    ) -> list[tuple[int, str, Recipe]]:
+        """Dokłada dodatkowe dania do dni, w których suma kalorii NA OSOBĘ
+        wypada wyraźnie poniżej celu (target_kcal).
+
+        Dlaczego to w ogóle jest potrzebne: przy niewielkiej liczbie
+        posiłków dziennie (np. 2) albo katalogu złożonym z niskokalorycznych
+        przepisów, samo dobieranie "najlepiej pasujących" dań może nie
+        wystarczyć, żeby zbliżyć się do celu — np. użytkownik ustawia
+        2000 kcal, a dostaje plan na 600 kcal dziennie, bo tyle wychodzi
+        z dostępnych 2 posiłków. Zamiast zostawić taki wynik, dokładamy
+        dodatkowe dania (preferując przekąski) aż zbliżymy się do celu
+        albo osiągniemy rozsądny limit dodatkowych dań na dzień.
+        """
+        by_day: dict[int, list[Recipe]] = defaultdict(list)
+        for day, _meal_type, recipe in selected:
+            by_day[day].append(recipe)
+
+        # Pula kandydatów do dopełniania — najpierw przekąski (naturalny
+        # wybór do "dobicia" kaloryczności bez robienia z tego kolejnego
+        # pełnego dania), a jeśli ich brak, cokolwiek dostępne.
+        top_up_pool = pools.get("przekąska") or [r for pool in pools.values() for r in pool]
+        if not top_up_pool:
+            return selected
+
+        extra_entries: list[tuple[int, str, Recipe]] = []
+
+        for day, day_recipes in by_day.items():
+            added_count = 0
+            while added_count < MAX_TOP_UP_DISHES_PER_DAY:
+                current_total = self._sum_per_person_nutrition(day_recipes)
+                if current_total["kcal"] >= target_kcal * CALORIE_TOP_UP_THRESHOLD:
+                    break
+
+                best_candidate: Recipe | None = None
+                best_score = -1.0
+                for candidate in top_up_pool:
+                    if recipe_usage_count[candidate.id] >= MAX_RECIPE_REPEATS:
+                        continue
+                    score = self._score_candidate(
+                        candidate=candidate,
+                        used_ingredient_ids=used_ingredient_ids,
+                        recipe_usage_count=recipe_usage_count,
+                        daily_recipes=day_recipes,
+                        target_kcal=target_kcal,
+                    )
+                    if score > best_score:
+                        best_score = score
+                        best_candidate = candidate
+
+                if best_candidate is None:
+                    # Wyczerpaliśmy sensowne opcje (limit powtórzeń) — nie
+                    # ma sensu kręcić się w kółko, kończymy dopełnianie tego dnia.
+                    break
+
+                extra_entries.append((day, "przekąska", best_candidate))
+                day_recipes.append(best_candidate)
+                recipe_usage_count[best_candidate.id] += 1
+                for ing in best_candidate.ingredients:
+                    used_ingredient_ids.add(ing.product_id)
+                added_count += 1
+
+        if extra_entries:
+            logger.info("Dopełniono %d dni dodatkowymi daniami (łącznie +%d)", len(by_day), len(extra_entries))
+        return selected + extra_entries
+
+    def _per_person_nutrition(self, recipe: Recipe) -> dict[str, float]:
+        """Wartości odżywcze CAŁEGO przepisu podzielone przez liczbę porcji
+        — czyli to, co faktycznie zjada JEDNA osoba, niezależnie od tego,
+        na ile osób akurat gotujemy (household_size wpływa tylko na to,
+        ILE razy trzeba pomnożyć przepis, żeby starczyło dla wszystkich —
+        nie zmienia tego, ile je pojedyncza osoba)."""
+        total = self.nutrition.calculate_recipe_nutrition(recipe.ingredients)
+        servings = float(recipe.servings or 1)
+        return {k: v / servings for k, v in total.items()}
+
+    def _sum_per_person_nutrition(self, recipes: list[Recipe]) -> dict[str, float]:
+        """Suma wartości odżywczych NA OSOBĘ dla listy przepisów (np.
+        wszystkich posiłków zaplanowanych na dany dzień)."""
+        result = {"kcal": 0.0, "protein": 0.0, "fat": 0.0, "carbs": 0.0, "fiber": 0.0}
+        for recipe in recipes:
+            per_person = self._per_person_nutrition(recipe)
+            for k in result:
+                result[k] += per_person.get(k, 0.0)
+        return result
 
     def _score_candidate(
         self,
@@ -485,11 +595,17 @@ class MealPlanGenerator:
 
         # -- nutrition_score --
         if daily_recipes:
-            current_daily = self.nutrition.calculate_daily_nutrition(daily_recipes)
-            # Symuluj dodanie tego przepisu
-            candidate_nutrition = self.nutrition.calculate_recipe_nutrition(
-                candidate.ingredients,
-            )
+            # UWAGA (naprawa): wcześniej liczono tu SUMĘ CAŁYCH przepisów
+            # (np. przepis na 4 porcje wliczał się w całości), podczas gdy
+            # realnie każda osoba je tylko SWOJĄ porcję — niezależnie od
+            # household_size, to zawsze `nutrition_total / recipe.servings`
+            # (patrz też naprawa servings_multiplier w _assign_to_slots).
+            # Przez to dobór przepisów "celował" w kaloryczność, która
+            # nigdy nie odpowiadała temu, co faktycznie ląduje na talerzu
+            # jednej osoby — stąd plany typu "2000 kcal celu, a wychodzi
+            # 600 kcal dziennie".
+            current_daily = self._sum_per_person_nutrition(daily_recipes)
+            candidate_nutrition = self._per_person_nutrition(candidate)
             projected = {
                 k: current_daily.get(k, 0.0) + candidate_nutrition.get(k, 0.0)
                 for k in ("kcal", "protein", "fat", "carbs", "fiber")

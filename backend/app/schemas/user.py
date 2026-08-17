@@ -31,6 +31,8 @@ class UserResponse(BaseModel):
     preferred_store_id: uuid.UUID | None = None
     dietary_preferences: dict | None = None
     household_size: int
+    role: str = "user"
+    is_premium: bool = False
     created_at: datetime
 
 

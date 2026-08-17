@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.dialects.postgresql import JSON, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -39,6 +39,20 @@ class User(Base):
     )
     household_size: Mapped[int] = mapped_column(
         Integer, default=1, nullable=False
+    )
+    # Rola konta — "user" (domyślnie) albo "admin". Admin może usuwać
+    # KAŻDY komentarz (nie tylko własny) i w miarę rozwoju aplikacji
+    # będzie naturalnym miejscem na kolejne uprawnienia moderacyjne.
+    # Nadanie roli admina NIE JEST możliwe przez żaden endpoint API —
+    # celowo, żeby nikt nie mógł sam się mianować administratorem;
+    # ustawia się to bezpośrednio w bazie danych.
+    role: Mapped[str] = mapped_column(String(20), default="user", nullable=False)
+    # Fundament pod płatną subskrypcję premium — na razie ustawiane
+    # ręcznie/administracyjnie, docelowo aktualizowane automatycznie po
+    # zweryfikowaniu zakupu przez Google Play Billing.
+    is_premium: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    premium_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

@@ -64,6 +64,15 @@ class Recipe(Base):
     # przygotowania przepisu. To tylko sugestie, nie obowiązkowa lista.
     suggested_seasonings: Mapped[list | None] = mapped_column(JSON, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    # Właściciel przepisu dodanego przez użytkownika (przez AI albo w
+    # przyszłości ręcznie) — NULL dla 81 oficjalnych, wspólnych przepisów
+    # dostarczonych z aplikacją. Przepisy z ustawionym `created_by_user_id`
+    # są widoczne TYLKO dla ich twórcy — nie trafiają automatycznie do
+    # wspólnego katalogu widocznego dla wszystkich (patrz filtrowanie w
+    # GET /recipes/).
+    created_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

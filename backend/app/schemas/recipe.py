@@ -101,6 +101,10 @@ class RecipeResponse(RecipeBase):
     # dołączane ręcznie w endpointzie, żeby frontend nie musiał robić
     # osobnego zapytania dla każdego przepisu.
     is_favorite: bool = False
+    # Czy to przepis dodany przez AI (prywatny, widoczny tylko dla
+    # twórcy) — frontend używa tego np. do pokazania odznaki "Twój
+    # przepis" i opcji edycji/usunięcia (docelowo).
+    is_own_recipe: bool = False
 
     @field_validator("tags", mode="before")
     @classmethod
@@ -131,5 +135,25 @@ class RecipeResponse(RecipeBase):
                 res["tags"] = data.tags
                 res["ingredients"] = data.ingredients
                 res["nutrition_total"] = {k: round(v, 1) for k, v in total.items()}
+                # UWAGA (naprawa): is_favorite i is_own_recipe to atrybuty
+                # ustawiane DYNAMICZNIE w endpointach PO wczytaniu z bazy
+                # (nie są prawdziwymi kolumnami tabeli) — pętla powyżej,
+                # budując `res` tylko z `__table__.columns.keys()`, całkiem
+                # je gubiła. Efekt: KAŻDY przepis bez wcześniej wyliczonego
+                # nutrition_total (czyli m.in. KAŻDY przepis dodany przez
+                # AI) zawsze pokazywał is_own_recipe=False i is_favorite=False,
+                # niezależnie od faktycznej wartości.
+                res["is_favorite"] = getattr(data, "is_favorite", False)
+                res["is_own_recipe"] = getattr(data, "is_own_recipe", False)
                 return res
         return data
+
+
+class AIRecipeImportRequest(BaseModel):
+    """Żądanie rozpoznania przepisu przez AI — dokładnie JEDNO z pól
+    `text` / `photo_base64` musi być podane."""
+
+    text: str | None = Field(default=None, max_length=10_000)
+    # Zdjęcie zakodowane w Base64, bez prefiksu "data:image/...".
+    photo_base64: str | None = None
+

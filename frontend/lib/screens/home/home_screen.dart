@@ -134,7 +134,11 @@ class HomeTab extends StatelessWidget {
     final storeProvider = Provider.of<StoreProvider>(context);
 
     final user = authProvider.currentUser;
-    final activePlan = mealPlanProvider.activePlan;
+    // currentPlan respektuje ręczny wybór z przełącznika planów (patrz
+    // MealPlanProvider.selectPlan) — activePlan zawsze zwraca pierwszy
+    // znaleziony, co uniemożliwiłoby przełączanie się między kilkoma
+    // aktywnymi planami (funkcja premium).
+    final activePlan = mealPlanProvider.currentPlan ?? mealPlanProvider.activePlan;
     final currentDay = activePlan != null ? _getCurrentPlanDay(activePlan) : 1;
 
     // Pobierz nazwę sklepu z ID
@@ -282,6 +286,36 @@ class HomeTab extends StatelessWidget {
                       ),
                     ],
                   ),
+                  // Przełącznik między kilkoma aktywnymi planami naraz —
+                  // funkcja Premium. Widoczny TYLKO gdy faktycznie jest
+                  // więcej niż jeden aktywny plan (darmowe konta mają
+                  // zawsze co najwyżej jeden, więc dla nich ten rząd
+                  // nigdy się nie pojawi).
+                  if (mealPlanProvider.activePlans.length > 1) ...[
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      height: 36,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: mealPlanProvider.activePlans.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 8),
+                        itemBuilder: (context, index) {
+                          final plan = mealPlanProvider.activePlans[index];
+                          final isSelected = plan.id == activePlan.id;
+                          return ChoiceChip(
+                            label: Text('Plan ${plan.durationDays} dni'),
+                            selected: isSelected,
+                            onSelected: (_) => mealPlanProvider.selectPlan(plan),
+                            selectedColor: AppTheme.primaryColor,
+                            labelStyle: TextStyle(
+                              color: isSelected ? Colors.white : null,
+                              fontSize: 12,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 12),
                   _buildActivePlanCard(
                     context,

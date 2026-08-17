@@ -30,6 +30,31 @@ from app.schemas.food_log import (
 
 router = APIRouter()
 
+# Darmowe konta widzą tylko ostatnie 30 dni historii śledzenia — konta
+# premium mają dostęp bez ograniczeń wstecz w czasie.
+FREE_TIER_HISTORY_DAYS = 30
+
+
+def _enforce_history_limit(entry_date: Optional[date], current_user: User) -> None:
+    """Blokuje dostęp do wpisów starszych niż FREE_TIER_HISTORY_DAYS dla
+    kont bez aktywnego premium. Dodawanie NOWYCH wpisów nie jest tu
+    ograniczane — to dotyczy tylko PRZEGLĄDANIA starej historii."""
+    if entry_date is None:
+        return
+    from app.core.premium import is_premium_active
+
+    if is_premium_active(current_user):
+        return
+    oldest_allowed = date.today() - timedelta(days=FREE_TIER_HISTORY_DAYS)
+    if entry_date < oldest_allowed:
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                f"Darmowe konto ma dostęp do ostatnich {FREE_TIER_HISTORY_DAYS} dni historii. "
+                "Odblokuj Premium, aby zobaczyć starsze wpisy."
+            ),
+        )
+
 
 def _macros_from_recipe(recipe: Optional[Recipe], servings: float) -> dict:
     """Przelicza makroskładniki przepisu na podaną liczbę porcji."""
@@ -116,6 +141,8 @@ async def read_food_log_entries(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    _enforce_history_limit(entry_date, current_user)
+
     query = (
         select(FoodLogEntry)
         .where(FoodLogEntry.user_id == current_user.id)
@@ -136,6 +163,8 @@ async def get_daily_summary(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    _enforce_history_limit(entry_date, current_user)
+
     query = (
         select(FoodLogEntry)
         .where(

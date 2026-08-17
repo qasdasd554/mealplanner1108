@@ -193,11 +193,13 @@ async def delete_recipe_comment(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Usuwa własny komentarz. Nie da się usunąć cudzego."""
+    """Usuwa komentarz. Zwykły użytkownik może usuwać tylko własne;
+    administrator (rola "admin") może usunąć KAŻDY komentarz —
+    potrzebne do moderacji treści."""
     comment = await db.get(RecipeComment, comment_id)
     if not comment or comment.recipe_id != recipe_id:
         raise HTTPException(status_code=404, detail="Nie znaleziono komentarza")
-    if comment.user_id != current_user.id:
+    if comment.user_id != current_user.id and current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Możesz usuwać tylko własne komentarze")
 
     await db.delete(comment)

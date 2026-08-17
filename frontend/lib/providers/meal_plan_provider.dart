@@ -30,6 +30,28 @@ class MealPlanProvider with ChangeNotifier {
     }
   }
 
+  /// WSZYSTKIE aktywne plany — dla darmowych kont to zawsze co najwyżej
+  /// jeden (backend automatycznie archiwizuje poprzedni przy generowaniu
+  /// nowego), ale konta premium mogą mieć ich kilka naraz (np. osobny na
+  /// dni robocze i osobny na weekend). UI powinno pokazać przełącznik
+  /// tylko wtedy, gdy ta lista ma więcej niż jeden element.
+  ///
+  /// UWAGA: nowo wygenerowany plan ma status "draft" (nie "active") —
+  /// backend nigdy go automatycznie nie "aktywuje". Traktujemy więc
+  /// "draft" i "active" jako "obecnie w użyciu", spójnie z logiką
+  /// archiwizacji po stronie backendu (patrz meal_plans.py:generate_meal_plan)
+  /// i z istniejącym zachowaniem [activePlan] powyżej.
+  List<MealPlan> get activePlans =>
+      _plans.where((p) => p.status == 'active' || p.status == 'draft').toList();
+
+  /// Ustawia, który plan jest aktualnie przeglądany — używane przez
+  /// przełącznik planów, gdy użytkownik (premium) ma ich kilka aktywnych
+  /// naraz.
+  void selectPlan(MealPlan plan) {
+    _currentPlan = plan;
+    notifyListeners();
+  }
+
   Future<void> loadPlans() async {
     _isLoading = true;
     _errorMessage = null;

@@ -59,6 +59,9 @@ class Recipe {
   // serca w UI bez przebudowy całego obiektu Recipe (optymistyczna
   // aktualizacja stanu ulubionych).
   bool isFavorite;
+  // Czy TEN zalogowany użytkownik jest twórcą tego przepisu (dodanego
+  // przez AI) — takie przepisy są prywatne, widoczne tylko dla twórcy.
+  final bool isOwnRecipe;
 
   Recipe({
     required this.id,
@@ -78,6 +81,7 @@ class Recipe {
     this.instructions = const [],
     this.suggestedSeasonings = const [],
     this.isFavorite = false,
+    this.isOwnRecipe = false,
   });
 
   factory Recipe.fromJson(Map<String, dynamic> json) {
@@ -110,6 +114,7 @@ class Recipe {
               .toList() ??
           [],
       isFavorite: json['is_favorite'] as bool? ?? false,
+      isOwnRecipe: json['is_own_recipe'] as bool? ?? false,
     );
   }
 

@@ -105,11 +105,24 @@ scraper_run_limiter = SlidingWindowRateLimiter(max_events=1, window_seconds=300)
 # Generowanie planu posiłków: kosztowna operacja (przeszukuje cały katalog
 # przepisów, liczy scoring, buduje listę zakupów) — limit chroni przed
 # zalogowanym użytkownikiem zasypującym serwer żądaniami generowania.
+# To limit TECHNICZNY (przeciw nadużyciom), obowiązuje WSZYSTKICH,
+# niezależnie od statusu premium.
 meal_plan_generation_limiter = SlidingWindowRateLimiter(max_events=15, window_seconds=3600)
+
+# Limit BIZNESOWY (nie techniczny) — ile planów dziennie może wygenerować
+# darmowe konto. Premium omija ten limiter całkowicie (patrz endpoint).
+meal_plan_generation_daily_free_limiter = SlidingWindowRateLimiter(
+    max_events=3, window_seconds=24 * 3600
+)
 
 # Dodawanie komentarzy: ochrona przed spamem (w tym spamem zdjęciami,
 # które trafiają bezpośrednio do bazy danych).
 comment_creation_limiter = SlidingWindowRateLimiter(max_events=30, window_seconds=3600)
+
+# Rozpoznawanie przepisu przez AI: każde wywołanie kosztuje realne pieniądze
+# (API Anthropic) — limit dzienny, niezależny od statusu premium (nawet
+# premium nie powinno móc wygenerować kosztów bez żadnego sufitu).
+ai_recipe_import_limiter = SlidingWindowRateLimiter(max_events=20, window_seconds=24 * 3600)
 
 
 def client_key(request: Request, suffix: str = "") -> str:

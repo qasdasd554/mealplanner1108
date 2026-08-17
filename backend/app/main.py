@@ -42,6 +42,18 @@ async def _create_tables() -> None:
         await conn.execute(
             text("ALTER TABLE recipes ADD COLUMN IF NOT EXISTS suggested_seasonings JSON")
         )
+        await conn.execute(
+            text("ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(20) NOT NULL DEFAULT 'user'")
+        )
+        await conn.execute(
+            text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_premium BOOLEAN NOT NULL DEFAULT false")
+        )
+        await conn.execute(
+            text("ALTER TABLE users ADD COLUMN IF NOT EXISTS premium_expires_at TIMESTAMPTZ")
+        )
+        await conn.execute(
+            text("ALTER TABLE recipes ADD COLUMN IF NOT EXISTS created_by_user_id UUID")
+        )
     logger.info("Tabele bazy danych zostały utworzone/zweryfikowane.")
 
 

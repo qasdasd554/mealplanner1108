@@ -50,3 +50,32 @@ async def get_current_user(
         raise credentials_exception
 
     return user
+
+
+async def get_current_admin(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    """Jak get_current_user, ale odrzuca (403), jeśli konto nie ma roli
+    "admin". Nadanie roli admina nie jest możliwe przez żaden endpoint —
+    ustawia się to bezpośrednio w bazie danych."""
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Ta operacja wymaga uprawnień administratora",
+        )
+    return current_user
+
+
+async def get_current_premium(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    """Jak get_current_user, ale odrzuca (403), jeśli konto nie ma
+    aktywnego statusu premium (uwzględnia datę wygaśnięcia subskrypcji)."""
+    from app.core.premium import is_premium_active
+
+    if not is_premium_active(current_user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Ta funkcja wymaga aktywnej subskrypcji Premium",
+        )
+    return current_user

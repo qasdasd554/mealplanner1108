@@ -2,12 +2,12 @@
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, status
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.api.deps import get_current_user
+from app.api.deps import get_current_premium, get_current_user
 from app.core.exceptions import NotFoundException
 from app.db.session import get_db
 from app.models import (
@@ -18,7 +18,7 @@ from app.models import (
     StoreProduct,
     User,
 )
-from app.schemas.recipe import RecipeCreate, RecipeResponse
+from app.schemas.recipe import AIRecipeImportRequest, RecipeCreate, RecipeResponse
 
 router = APIRouter()
 
@@ -31,6 +31,12 @@ async def _get_favorite_recipe_ids(db: AsyncSession, user_id: UUID) -> set[UUID]
         select(RecipeFavorite.recipe_id).where(RecipeFavorite.user_id == user_id)
     )
     return set(result.scalars().all())
+
+
+def _visibility_filter(current_user_id: UUID):
+    """Warunek widoczności przepisu: wspólny katalog (created_by_user_id
+    puste) LUB własny, prywatny przepis dodany przez AI."""
+    return or_(Recipe.created_by_user_id.is_(None), Recipe.created_by_user_id == current_user_id)
 
 
 @router.get(
@@ -59,7 +65,7 @@ async def list_recipes(
     query = select(Recipe).options(
         selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product),
         selectinload(Recipe.tags),
-    )
+    ).where(_visibility_filter(current_user.id))
 
     if meal_type is not None:
         query = query.where(Recipe.meal_type == meal_type)
@@ -87,6 +93,7 @@ async def list_recipes(
     favorite_ids = await _get_favorite_recipe_ids(db, current_user.id)
     for recipe in recipes:
         recipe.is_favorite = recipe.id in favorite_ids
+        recipe.is_own_recipe = recipe.created_by_user_id == current_user.id
 
     if favorites_only:
         recipes = [r for r in recipes if r.is_favorite]
@@ -127,6 +134,7 @@ async def list_available_recipes(
             selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product),
             selectinload(Recipe.tags),
         )
+        .where(_visibility_filter(current_user.id))
         .order_by(Recipe.name)
     )
     all_recipes = recipes_result.unique().scalars().all()
@@ -143,10 +151,40 @@ async def list_available_recipes(
         }
         if ingredient_product_ids and ingredient_product_ids.issubset(available_product_ids):
             recipe.is_favorite = recipe.id in favorite_ids
+            recipe.is_own_recipe = recipe.created_by_user_id == current_user.id
             available_recipes.append(recipe)
 
     # Paginacja w pamięci (po filtracji)
     return available_recipes[skip : skip + limit]
+
+
+@router.get(
+    "/mine",
+    response_model=list[RecipeResponse],
+    summary="Moje przepisy dodane przez AI",
+)
+async def list_my_recipes(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> list[Recipe]:
+    """Zwraca WYŁĄCZNIE przepisy dodane przez zalogowanego użytkownika
+    (przez AI) — nie miesza ich ze wspólnym katalogiem 81 oficjalnych
+    przepisów."""
+    result = await db.execute(
+        select(Recipe)
+        .options(
+            selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product),
+            selectinload(Recipe.tags),
+        )
+        .where(Recipe.created_by_user_id == current_user.id)
+        .order_by(Recipe.created_at.desc())
+    )
+    recipes = list(result.unique().scalars().all())
+    favorite_ids = await _get_favorite_recipe_ids(db, current_user.id)
+    for recipe in recipes:
+        recipe.is_favorite = recipe.id in favorite_ids
+        recipe.is_own_recipe = True
+    return recipes
 
 
 @router.get(
@@ -173,8 +211,14 @@ async def get_recipe(
         raise NotFoundException(
             detail=f"Przepis o ID {recipe_id} nie został znaleziony"
         )
+    # Prywatne przepisy (dodane przez AI) są widoczne TYLKO dla właściciela
+    # — traktujemy próbę dostępu do cudzego jak nieistniejący przepis,
+    # żeby nie ujawniać nawet samego faktu jego istnienia.
+    if recipe.created_by_user_id is not None and recipe.created_by_user_id != current_user.id:
+        raise NotFoundException(detail=f"Przepis o ID {recipe_id} nie został znaleziony")
     favorite_ids = await _get_favorite_recipe_ids(db, current_user.id)
     recipe.is_favorite = recipe.id in favorite_ids
+    recipe.is_own_recipe = recipe.created_by_user_id == current_user.id
     return recipe
 
 
@@ -309,3 +353,119 @@ async def remove_recipe_favorite(
     if favorite is not None:
         await db.delete(favorite)
         await db.commit()
+
+
+@router.post(
+    "/ai-import",
+    response_model=RecipeResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Rozpoznaj i dodaj przepis przez AI (Premium)",
+)
+async def ai_import_recipe(
+    payload: AIRecipeImportRequest,
+    current_user: User = Depends(get_current_premium),
+    db: AsyncSession = Depends(get_db),
+) -> Recipe:
+    """Rozpoznaje przepis z wklejonego tekstu ALBO zdjęcia i tworzy z niego
+    nowy, PRYWATNY przepis (widoczny tylko dla Ciebie — nie trafia
+    automatycznie do wspólnego katalogu).
+
+    Funkcja Premium. Limit: 20 wywołań/dzień (niezależnie od statusu
+    premium) — każde wywołanie kosztuje realne pieniądze (API Anthropic).
+    """
+    from app.core.rate_limit import ai_recipe_import_limiter, enforce_user_rate_limit
+    from app.services.ai_recipe_import import (
+        AIRecipeImportError,
+        extract_recipe_from_photo,
+        extract_recipe_from_text,
+        validate_and_clean_recipe_dict,
+    )
+
+    if not payload.text and not payload.photo_base64:
+        raise HTTPException(
+            status_code=400, detail="Podaj tekst przepisu albo zdjęcie (dokładnie jedno z nich)"
+        )
+
+    enforce_user_rate_limit(ai_recipe_import_limiter, current_user.id, "rozpoznawanie przepisu przez AI")
+
+    # Pełna lista nazw produktów — AI dobiera składniki WYŁĄCZNIE spośród
+    # nich, żeby lista zakupów/porównanie cen dalej działały poprawnie
+    # dla przepisów dodanych przez AI.
+    products_result = await db.execute(select(Product.name))
+    available_products = list(products_result.scalars().all())
+
+    try:
+        if payload.text:
+            parsed = await extract_recipe_from_text(payload.text, available_products)
+        else:
+            parsed = await extract_recipe_from_photo(payload.photo_base64, available_products)
+    except AIRecipeImportError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+
+    parsed = validate_and_clean_recipe_dict(parsed)
+
+    if not parsed["ingredients"]:
+        raise HTTPException(
+            status_code=422,
+            detail="AI nie rozpoznało żadnych składników pasujących do dostępnych produktów.",
+        )
+
+    # Dopasuj nazwy produktów zwrócone przez AI do prawdziwych wierszy
+    # Product (dokładne dopasowanie po nazwie, bez rozróżniania wielkości
+    # liter — prompt instruuje AI, żeby używało DOKŁADNIE tych nazw).
+    all_products_result = await db.execute(select(Product))
+    products_by_name = {p.name.lower(): p for p in all_products_result.scalars().all()}
+
+    recipe = Recipe(
+        name=parsed["name"][:300],
+        description=parsed.get("description"),
+        cuisine=parsed.get("cuisine"),
+        meal_type=parsed["meal_type"],
+        prep_time_min=parsed.get("prep_time_min"),
+        cook_time_min=parsed.get("cook_time_min"),
+        servings=parsed["servings"],
+        difficulty=parsed["difficulty"],
+        instructions=parsed["instructions"],
+        suggested_seasonings=parsed["suggested_seasonings"],
+        created_by_user_id=current_user.id,
+    )
+    db.add(recipe)
+    await db.flush()
+
+    matched_count = 0
+    for ing in parsed["ingredients"]:
+        product = products_by_name.get(ing["product_name"].lower())
+        if product is None:
+            continue
+        db.add(
+            RecipeIngredient(
+                recipe_id=recipe.id,
+                product_id=product.id,
+                quantity=ing["quantity"],
+                unit=ing["unit"],
+                is_optional=False,
+            )
+        )
+        matched_count += 1
+
+    if matched_count == 0:
+        await db.rollback()
+        raise HTTPException(
+            status_code=422,
+            detail="Żaden ze składników rozpoznanych przez AI nie pasował do dostępnych produktów.",
+        )
+
+    await db.commit()
+
+    result = await db.execute(
+        select(Recipe)
+        .options(
+            selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product),
+            selectinload(Recipe.tags),
+        )
+        .where(Recipe.id == recipe.id)
+    )
+    final_recipe = result.scalar_one()
+    final_recipe.is_favorite = False
+    final_recipe.is_own_recipe = True
+    return final_recipe
