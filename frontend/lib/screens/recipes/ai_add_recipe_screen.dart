@@ -8,6 +8,7 @@ import '../../providers/auth_provider.dart';
 import '../../services/recipe_service.dart';
 import '../../theme/app_theme.dart';
 import 'recipe_detail_screen.dart';
+import '../profile/premium_screen.dart';
 
 /// Ekran dodawania własnego przepisu przez AI — z wklejonego tekstu albo
 /// zdjęcia. Funkcja Premium: konta bez aktywnej subskrypcji widzą tu
@@ -360,9 +361,22 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
             ),
             const SizedBox(height: 8),
             Text(
-              'Płatna subskrypcja będzie dostępna wkrótce bezpośrednio w aplikacji.',
+              'Zobacz, co jeszcze zyskujesz z Premium.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppTheme.textSecondary, fontSize: 13, fontStyle: FontStyle.italic),
+              style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const PremiumScreen()),
+                  );
+                },
+                icon: const Icon(Icons.workspace_premium),
+                label: const Text('Zobacz Premium'),
+              ),
             ),
           ],
         ),

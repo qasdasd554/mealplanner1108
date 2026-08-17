@@ -21,14 +21,26 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import re
 
 import httpx
 
 from app.core.config import settings
 
+logger = logging.getLogger(__name__)
+
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-GEMINI_MODEL = "gemini-3.7-flash"
+
+# Kolejność modeli do wypróbowania — każdy model na darmowym poziomie
+# Gemini ma WŁASNY, OSOBNY limit (RPM/TPM/RPD), więc wyczerpanie limitu
+# głównego modelu wcale nie oznacza, że limit "lite" jest też wyczerpany.
+# Jeśli główny model odmawia (limit dzienny/minutowy albo uporczywe
+# przeciążenie mimo ponawiania), automatycznie próbujemy kolejnego z listy
+# zamiast od razu poddawać się użytkownikowi.
+GEMINI_MODEL_PRIMARY = "gemini-3.7-flash"
+GEMINI_MODEL_FALLBACK = "gemini-3.5-flash-lite"
+GEMINI_MODELS = [GEMINI_MODEL_PRIMARY, GEMINI_MODEL_FALLBACK]
 
 ALLOWED_UNITS = {"g", "kg", "ml", "l", "szt"}
 ALLOWED_MEAL_TYPES = {"śniadanie", "obiad", "kolacja", "przekąska"}
@@ -38,6 +50,14 @@ ALLOWED_DIFFICULTIES = {"łatwy", "średni", "trudny"}
 class AIRecipeImportError(Exception):
     """Błąd czytelny dla użytkownika (np. brak klucza API, AI nie
     rozpoznało przepisu, przekroczony limit)."""
+
+
+class _ModelUnavailableError(Exception):
+    """Wewnętrzny sygnał (NIE pokazywany użytkownikowi wprost) — ten
+    KONKRETNY model jest chwilowo niedostępny (wyczerpany limit albo
+    uporczywe przeciążenie mimo ponowień). Funkcja nadrzędna łapie ten
+    wyjątek i próbuje KOLEJNEGO modelu z listy GEMINI_MODELS, zamiast
+    od razu poddawać się użytkownikowi."""
 
 
 def _build_prompt(available_products: list[str]) -> str:
@@ -90,14 +110,13 @@ FORMAT ODPOWIEDZI (przykład struktury, wypełnij prawdziwymi danymi):
 }}"""
 
 
-async def _call_gemini(parts: list[dict]) -> str:
-    if not settings.GEMINI_API_KEY:
-        raise AIRecipeImportError(
-            "Funkcja dodawania przepisów przez AI nie jest jeszcze skonfigurowana "
-            "(brak klucza API po stronie serwera). Skontaktuj się z administratorem."
-        )
-
-    url = GEMINI_API_URL.format(model=GEMINI_MODEL)
+async def _call_gemini_model(parts: list[dict], model: str) -> str:
+    """Wywołuje JEDEN, konkretny model Gemini. Ponawia próbę przy błędach
+    przejściowych (503/502/500), ale przy wyczerpanym limicie (429) albo
+    uporczywym przeciążeniu mimo ponowień rzuca `_ModelUnavailableError`
+    — to sygnał dla `_call_gemini`, żeby spróbować NASTĘPNEGO modelu
+    z listy, a nie od razu poddawać się użytkownikowi."""
+    url = GEMINI_API_URL.format(model=model)
     request_body = {
         "contents": [{"parts": parts, "role": "user"}],
         # Wymuszenie czystego JSON-a w odpowiedzi — bez tego trzeba by
@@ -106,15 +125,11 @@ async def _call_gemini(parts: list[dict]) -> str:
         "generationConfig": {"responseMimeType": "application/json"},
     }
 
-    # UWAGA (naprawa): 503 od Gemini zwykle oznacza chwilowe przeciążenie
-    # serwerów Google (typowe na darmowym poziomie, zwłaszcza przy szybkich
-    # modelach) — to błąd PRZEJŚCIOWY, nie problem z naszej strony. Zamiast
-    # od razu poddawać się przy pierwszej takiej odpowiedzi, ponawiamy
-    # próbę kilka razy z rosnącym opóźnieniem. 429 (wyczerpany dzienny
-    # limit) celowo NIE jest ponawiane — to nie pomoże w ramach tego
-    # samego dnia, więc od razu zwracamy czytelny komunikat.
+    # 503 od Gemini zwykle oznacza chwilowe przeciążenie serwerów Google
+    # (typowe na darmowym poziomie) — to błąd PRZEJŚCIOWY. Zamiast od razu
+    # poddawać się przy pierwszej takiej odpowiedzi, ponawiamy próbę kilka
+    # razy z rosnącym opóźnieniem, zanim uznamy TEN model za niedostępny.
     max_attempts = 3
-    last_error: str | None = None
 
     for attempt in range(1, max_attempts + 1):
         async with httpx.AsyncClient(timeout=60.0) as client:
@@ -128,11 +143,10 @@ async def _call_gemini(parts: list[dict]) -> str:
                     json=request_body,
                 )
             except httpx.TimeoutException:
-                last_error = "Rozpoznawanie przepisu trwało zbyt długo."
                 if attempt < max_attempts:
                     await asyncio.sleep(attempt * 1.5)
                     continue
-                raise AIRecipeImportError(f"{last_error} Spróbuj ponownie.")
+                raise AIRecipeImportError("Rozpoznawanie przepisu trwało zbyt długo. Spróbuj ponownie.")
             except httpx.HTTPError as exc:
                 raise AIRecipeImportError(f"Nie udało się połączyć z usługą AI: {exc}")
 
@@ -140,23 +154,18 @@ async def _call_gemini(parts: list[dict]) -> str:
             break
 
         if response.status_code == 429:
-            raise AIRecipeImportError(
-                "Darmowy dzienny limit usługi AI został wyczerpany. Spróbuj ponownie później."
-            )
+            # Wyczerpany limit TEGO modelu — każdy model Gemini ma własny,
+            # osobny limit, więc to NIE znaczy, że kolejny model też jest
+            # niedostępny.
+            raise _ModelUnavailableError(f"Model {model}: wyczerpany limit (429)")
 
         if response.status_code in (503, 502, 500) and attempt < max_attempts:
-            # Serwery Google chwilowo przeciążone/niedostępne — czekaj
-            # chwilę i spróbuj jeszcze raz, zanim uznamy to za trwały błąd.
             await asyncio.sleep(attempt * 1.5)
             continue
 
         if response.status_code in (503, 502, 500):
-            # Ostatnia próba i nadal błąd przejściowy — poddajemy się
-            # z komunikatem jasno mówiącym, że próbowaliśmy kilka razy
-            # (a nie tylko raz, jak przy zwykłym błędzie).
-            raise AIRecipeImportError(
-                f"Usługa AI jest chwilowo przeciążona (błąd {response.status_code}) mimo "
-                f"{max_attempts} prób. Spróbuj ponownie za minutę."
+            raise _ModelUnavailableError(
+                f"Model {model}: przeciążony ({response.status_code}) mimo {max_attempts} prób"
             )
 
         raise AIRecipeImportError(
@@ -174,6 +183,33 @@ async def _call_gemini(parts: list[dict]) -> str:
     if not text.strip():
         raise AIRecipeImportError("Usługa AI nie zwróciła żadnej treści.")
     return text
+
+
+async def _call_gemini(parts: list[dict]) -> str:
+    """Próbuje kolejnych modeli z GEMINI_MODELS (najpierw główny, potem
+    "lite" jako zapasowy), przechodząc do następnego, gdy poprzedni
+    zgłosi `_ModelUnavailableError` (limit wyczerpany albo uporczywe
+    przeciążenie). Dopiero gdy WSZYSTKIE modele zawiodą, zwraca
+    użytkownikowi czytelny, ostateczny komunikat."""
+    if not settings.GEMINI_API_KEY:
+        raise AIRecipeImportError(
+            "Funkcja dodawania przepisów przez AI nie jest jeszcze skonfigurowana "
+            "(brak klucza API po stronie serwera). Skontaktuj się z administratorem."
+        )
+
+    unavailable_reasons: list[str] = []
+    for model in GEMINI_MODELS:
+        try:
+            return await _call_gemini_model(parts, model)
+        except _ModelUnavailableError as exc:
+            logger.warning("Gemini: %s — próbuję kolejnego modelu, jeśli jest", exc)
+            unavailable_reasons.append(str(exc))
+            continue
+
+    raise AIRecipeImportError(
+        f"Usługa AI jest chwilowo niedostępna (wypróbowano {len(GEMINI_MODELS)} modeli, "
+        "wszystkie osiągnęły limit lub są przeciążone). Spróbuj ponownie za chwilę."
+    )
 
 
 def _parse_recipe_json(raw_text: str) -> dict:

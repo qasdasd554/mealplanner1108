@@ -5,6 +5,8 @@ import '../../providers/auth_provider.dart';
 import '../../providers/store_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/premium_badge.dart';
+import 'premium_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -63,6 +65,10 @@ class ProfileScreen extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                   ),
+                  if (user?.hasPremiumAccess ?? false) ...[
+                    const SizedBox(height: 8),
+                    const PremiumBadge(),
+                  ],
                   const SizedBox(height: 4),
                   Text(
                     user?.email ?? '',
@@ -71,7 +77,63 @@ class ProfileScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
+
+            // Baner "Zostań Premium" — widoczny TYLKO dla kont bez
+            // dostępu premium (admini i już-premium go nie widzą, bo im
+            // niepotrzebny).
+            if (!(user?.hasPremiumAccess ?? false))
+              InkWell(
+                borderRadius: BorderRadius.circular(18),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const PremiumScreen()),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(18),
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF6D28D9), Color(0xFFE0A62E)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.workspace_premium, color: Colors.white, size: 22),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Zostań Premium',
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Plany bez limitu, przepisy AI i więcej',
+                              style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
+                    ],
+                  ),
+                ),
+              ).animate().fadeIn().shimmer(delay: 600.ms, duration: 1200.ms),
+
+            const SizedBox(height: 24),
 
             // 2. Sekcja preferencji i ustawień
             Text(

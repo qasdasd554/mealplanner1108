@@ -7,6 +7,7 @@ import '../../providers/store_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/recipe_photo.dart';
 import '../../widgets/notification_bell.dart';
+import '../../widgets/premium_badge.dart';
 import '../../models/meal_plan.dart';
 import '../recipes/recipes_screen.dart';
 import '../shopping/shopping_list_screen.dart';
@@ -175,11 +176,22 @@ class HomeTab extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Cześć, ${user?.displayName ??'użytkowniku'}!',
-                            style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  'Cześć, ${user?.displayName ?? 'użytkowniku'}!',
+                                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
+                              ),
+                              if (user?.hasPremiumAccess ?? false) ...[
+                                const SizedBox(width: 8),
+                                const PremiumBadge(fontSize: 9),
+                              ],
+                            ],
                           ),
                           const SizedBox(height: 4),
                           Text(
