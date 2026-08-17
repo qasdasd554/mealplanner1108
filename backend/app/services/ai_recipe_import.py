@@ -1,10 +1,17 @@
-"""Serwis rozpoznawania przepisów przez AI (Claude) — z wklejonego tekstu
-albo zdjęcia.
+"""Serwis rozpoznawania przepisów przez AI (Google Gemini) — z wklejonego
+tekstu albo zdjęcia.
 
-WYMAGA zmiennej środowiskowej ANTHROPIC_API_KEY (klucz z
-console.anthropic.com) ustawionej w środowisku backendu (Render). Bez
-niej wywołania kończą się czytelnym błędem AIRecipeImportError, zamiast
+WYMAGA zmiennej środowiskowej GEMINI_API_KEY (klucz z
+aistudio.google.com) ustawionej w środowisku backendu (Render). Bez niej
+wywołania kończą się czytelnym błędem AIRecipeImportError, zamiast
 niejasnym wyjątkiem.
+
+Użyty jest darmowy poziom Google Gemini — hojniejszy limit niż wiele
+innych darmowych API i jeden z nielicznych, który dobrze radzi sobie
+zarówno z tekstem, jak i obrazami bez opłat. Żaden dostawca nie oferuje
+FAKTYCZNIE nieograniczonego darmowego dostępu — zawsze jest jakiś dzienny
+limit, więc endpoint ma też WŁASNY, niezależny limit (patrz
+app/core/rate_limit.py) jako dodatkowe zabezpieczenie.
 
 Wideo NIE jest obsługiwane w tej wersji — wymagałoby dodatkowej
 infrastruktury do wyciągania klatek/transkrypcji dźwięku.
@@ -19,9 +26,8 @@ import httpx
 
 from app.core.config import settings
 
-ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages"
-ANTHROPIC_MODEL = "claude-sonnet-5"
-ANTHROPIC_API_VERSION = "2023-06-01"
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+GEMINI_MODEL = "gemini-3.7-flash"
 
 ALLOWED_UNITS = {"g", "kg", "ml", "l", "szt"}
 ALLOWED_MEAL_TYPES = {"śniadanie", "obiad", "kolacja", "przekąska"}
@@ -83,26 +89,28 @@ FORMAT ODPOWIEDZI (przykład struktury, wypełnij prawdziwymi danymi):
 }}"""
 
 
-async def _call_claude(messages: list[dict]) -> str:
-    if not settings.ANTHROPIC_API_KEY:
+async def _call_gemini(parts: list[dict]) -> str:
+    if not settings.GEMINI_API_KEY:
         raise AIRecipeImportError(
             "Funkcja dodawania przepisów przez AI nie jest jeszcze skonfigurowana "
             "(brak klucza API po stronie serwera). Skontaktuj się z administratorem."
         )
 
+    url = GEMINI_API_URL.format(model=GEMINI_MODEL)
     async with httpx.AsyncClient(timeout=60.0) as client:
         try:
             response = await client.post(
-                ANTHROPIC_API_URL,
+                url,
                 headers={
-                    "x-api-key": settings.ANTHROPIC_API_KEY,
-                    "anthropic-version": ANTHROPIC_API_VERSION,
+                    "x-goog-api-key": settings.GEMINI_API_KEY,
                     "content-type": "application/json",
                 },
                 json={
-                    "model": ANTHROPIC_MODEL,
-                    "max_tokens": 2000,
-                    "messages": messages,
+                    "contents": [{"parts": parts, "role": "user"}],
+                    # Wymuszenie czystego JSON-a w odpowiedzi — bez tego
+                    # trzeba by ręcznie wyciągać JSON spośród ewentualnego
+                    # tekstu/markdown wokół niego.
+                    "generationConfig": {"responseMimeType": "application/json"},
                 },
             )
         except httpx.TimeoutException:
@@ -110,20 +118,32 @@ async def _call_claude(messages: list[dict]) -> str:
         except httpx.HTTPError as exc:
             raise AIRecipeImportError(f"Nie udało się połączyć z usługą AI: {exc}")
 
+    if response.status_code == 429:
+        raise AIRecipeImportError(
+            "Darmowy dzienny limit usługi AI został wyczerpany. Spróbuj ponownie później."
+        )
     if response.status_code != 200:
         raise AIRecipeImportError(
             f"Usługa AI zwróciła błąd ({response.status_code}). Spróbuj ponownie później."
         )
 
     data = response.json()
-    text_blocks = [b["text"] for b in data.get("content", []) if b.get("type") == "text"]
-    if not text_blocks:
+    try:
+        candidates = data["candidates"]
+        text_parts = candidates[0]["content"]["parts"]
+        text = "".join(p.get("text", "") for p in text_parts)
+    except (KeyError, IndexError):
         raise AIRecipeImportError("Usługa AI nie zwróciła żadnej treści.")
-    return "".join(text_blocks)
+
+    if not text.strip():
+        raise AIRecipeImportError("Usługa AI nie zwróciła żadnej treści.")
+    return text
 
 
 def _parse_recipe_json(raw_text: str) -> dict:
-    # Na wypadek, gdyby model mimo instrukcji owinął odpowiedź w blok markdown.
+    # Na wypadek, gdyby model mimo instrukcji owinął odpowiedź w blok markdown
+    # (responseMimeType="application/json" zwykle to eliminuje, ale nie ma
+    # gwarancji przy każdym modelu/wersji API).
     cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw_text.strip())
     try:
         parsed = json.loads(cleaned)
@@ -145,13 +165,8 @@ def _parse_recipe_json(raw_text: str) -> dict:
 async def extract_recipe_from_text(recipe_text: str, available_products: list[str]) -> dict:
     """Zwraca ustrukturyzowany przepis (dict) rozpoznany z wklejonego tekstu."""
     prompt = _build_prompt(available_products)
-    messages = [
-        {
-            "role": "user",
-            "content": f"{prompt}\n\nTREŚĆ DO ROZPOZNANIA (tekst przepisu):\n{recipe_text}",
-        }
-    ]
-    raw = await _call_claude(messages)
+    parts = [{"text": f"{prompt}\n\nTREŚĆ DO ROZPOZNANIA (tekst przepisu):\n{recipe_text}"}]
+    raw = await _call_gemini(parts)
     return _parse_recipe_json(raw)
 
 
@@ -160,19 +175,11 @@ async def extract_recipe_from_photo(photo_base64: str, available_products: list[
     fotografii karty przepisu, strony książki kucharskiej, albo
     gotowego dania — AI oszacuje wtedy prawdopodobny przepis)."""
     prompt = _build_prompt(available_products)
-    messages = [
-        {
-            "role": "user",
-            "content": [
-                {
-                    "type": "image",
-                    "source": {"type": "base64", "media_type": "image/jpeg", "data": photo_base64},
-                },
-                {"type": "text", "text": prompt},
-            ],
-        }
+    parts = [
+        {"inline_data": {"mime_type": "image/jpeg", "data": photo_base64}},
+        {"text": prompt},
     ]
-    raw = await _call_claude(messages)
+    raw = await _call_gemini(parts)
     return _parse_recipe_json(raw)
 
 

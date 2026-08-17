@@ -62,11 +62,11 @@ class Settings(BaseSettings):
     )
 
     # ── Dodawanie przepisów przez AI (funkcja Premium) ─────────────
-    # Klucz API z console.anthropic.com — WYMAGANY, żeby funkcja "dodaj
-    # przepis przez AI" w ogóle działała. Bez ustawienia tej zmiennej
-    # środowiskowej na Render, endpoint /recipes/ai-import zwróci czytelny
-    # błąd zamiast wywalać się niejasnym wyjątkiem.
-    ANTHROPIC_API_KEY: str = ""
+    # Klucz API z aistudio.google.com (Google Gemini) — WYMAGANY, żeby
+    # funkcja "dodaj przepis przez AI" w ogóle działała. Bez ustawienia
+    # tej zmiennej środowiskowej na Render, endpoint /recipes/ai-import
+    # zwróci czytelny błąd zamiast wywalać się niejasnym wyjątkiem.
+    GEMINI_API_KEY: str = ""
 
     # ── Aplikacja ────────────────────────────────────────────────
     APP_NAME: str = "Smart Meal Planner PL"
