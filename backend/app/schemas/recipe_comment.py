@@ -6,22 +6,26 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.core.profanity_filter import contains_profanity
+
 # Maksymalny rozmiar zdjęcia PO zdekodowaniu z Base64 — 3 MB. Zdjęcie jest
 # przechowywane bezpośrednio w bazie danych (patrz komentarz w modelu
 # RecipeComment), więc limit chroni bazę przed nadmiernym rozrostem, gdyby
 # ktoś spróbował wysłać nieskompresowane, bardzo duże zdjęcie.
 MAX_PHOTO_BYTES = 3 * 1024 * 1024
 
+# Limit długości komentarza — 500 znaków. Dobrane tak, żeby starczyło na
+# konkretną wskazówkę albo krótką recenzję ("zamiast masła użyłam oliwy,
+# piekłam 5 minut dłużej"), ale nie na ścianę tekstu, która zdominowałaby
+# sekcję komentarzy pod przepisem. Podobny rząd wielkości (500 znaków)
+# spotyka się w polach odpowiedzi/komentarza w innych aplikacjach.
+MAX_COMMENT_LENGTH = 500
+
 
 class RecipeCommentCreate(BaseModel):
     """Dane przesyłane przy dodawaniu komentarza."""
 
-    # UWAGA (naprawa bezpieczeństwa): wcześniej `text` nie miał żadnego
-    # limitu długości, a kolumna w bazie to nieograniczony typ Text —
-    # ktoś mógłby wysłać komentarz o rozmiarze wielu megabajtów, obciążając
-    # bazę danych i spowalniając wyświetlanie listy komentarzy każdemu,
-    # kto ją przegląda.
-    text: str | None = Field(default=None, max_length=2000)
+    text: str | None = Field(default=None, max_length=MAX_COMMENT_LENGTH)
     # Zdjęcie zakodowane w Base64, BEZ prefiksu "data:image/jpeg;base64,"
     # (sam ciąg base64 danych obrazu).
     photo_base64: str | None = None
@@ -32,7 +36,13 @@ class RecipeCommentCreate(BaseModel):
         if v is None:
             return v
         v = v.strip()
-        return v if v else None
+        if not v:
+            return None
+        if contains_profanity(v):
+            raise ValueError(
+                "Komentarz zawiera niedozwolony język. Popraw treść i spróbuj ponownie."
+            )
+        return v
 
     @field_validator("photo_base64")
     @classmethod

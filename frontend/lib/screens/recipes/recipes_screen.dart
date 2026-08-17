@@ -255,6 +255,12 @@ class _RecipesScreenState extends State<RecipesScreen> {
 
   Widget _buildRecipeCard(Recipe recipe) {
     return GestureDetector(
+      // UWAGA (naprawa): bez klucza powiązanego z ID przepisu, GridView
+      // przy zmianie listy (np. przełączenie filtra "Ulubione") mogło
+      // odzyskać ten sam obiekt stanu (w tym serca ulubionych) dla
+      // zupełnie innego przepisu na tej samej pozycji siatki, pokazując
+      // nieaktualny/błędny stan przez chwilę po przeładowaniu.
+      key: ValueKey(recipe.id),
       onTap: () {
         Navigator.of(context).pushNamed(
           '/recipe/detail',

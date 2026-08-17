@@ -34,6 +34,21 @@ class _RecipeFavoriteButtonState extends State<RecipeFavoriteButton> {
     _isFavorite = widget.recipe.isFavorite;
   }
 
+  @override
+  void didUpdateWidget(RecipeFavoriteButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // UWAGA (naprawa): jeśli Flutter odzyska ten sam obiekt stanu dla
+    // INNEGO przepisu (np. brak klucza w liście nadrzędnej, przy zmianie
+    // filtrów) — bez tego przycisk pokazywałby stan ulubionych z
+    // POPRZEDNIEGO przepisu, bo initState() uruchamia się tylko raz.
+    // Klucz w GridView (patrz recipes_screen.dart) to naprawia u źródła,
+    // ale to dodatkowa warstwa zabezpieczenia, gdyby ktoś użył tego
+    // widgetu gdzie indziej bez klucza.
+    if (oldWidget.recipe.id != widget.recipe.id) {
+      _isFavorite = widget.recipe.isFavorite;
+    }
+  }
+
   Future<void> _toggle() async {
     if (_isBusy) return;
     final previous = _isFavorite;

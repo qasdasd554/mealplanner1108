@@ -24,6 +24,11 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
   final TextEditingController _textController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
 
+  // Musi się zgadzać z MAX_COMMENT_LENGTH w backendzie
+  // (backend/app/schemas/recipe_comment.py) — tam jest to, co faktycznie
+  // egzekwowane, tu tylko UI podpowiadający limit na bieżąco.
+  static const int _maxCommentLength = 500;
+
   List<RecipeComment> _comments = [];
   bool _isLoading = true;
   bool _isSubmitting = false;
@@ -265,9 +270,11 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
                 controller: _textController,
                 minLines: 1,
                 maxLines: 4,
-                decoration: const InputDecoration(
+                maxLength: _maxCommentLength,
+                decoration: InputDecoration(
                   hintText: 'Podziel się swoją opinią lub wskazówką...',
                   border: InputBorder.none,
+                  counterStyle: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
                 ),
               ),
               Row(
