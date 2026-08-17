@@ -19,6 +19,7 @@ infrastruktury do wyciągania klatek/transkrypcji dźwięku.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import re
 
@@ -97,34 +98,69 @@ async def _call_gemini(parts: list[dict]) -> str:
         )
 
     url = GEMINI_API_URL.format(model=GEMINI_MODEL)
-    async with httpx.AsyncClient(timeout=60.0) as client:
-        try:
-            response = await client.post(
-                url,
-                headers={
-                    "x-goog-api-key": settings.GEMINI_API_KEY,
-                    "content-type": "application/json",
-                },
-                json={
-                    "contents": [{"parts": parts, "role": "user"}],
-                    # Wymuszenie czystego JSON-a w odpowiedzi — bez tego
-                    # trzeba by ręcznie wyciągać JSON spośród ewentualnego
-                    # tekstu/markdown wokół niego.
-                    "generationConfig": {"responseMimeType": "application/json"},
-                },
-            )
-        except httpx.TimeoutException:
-            raise AIRecipeImportError("Rozpoznawanie przepisu trwało zbyt długo. Spróbuj ponownie.")
-        except httpx.HTTPError as exc:
-            raise AIRecipeImportError(f"Nie udało się połączyć z usługą AI: {exc}")
+    request_body = {
+        "contents": [{"parts": parts, "role": "user"}],
+        # Wymuszenie czystego JSON-a w odpowiedzi — bez tego trzeba by
+        # ręcznie wyciągać JSON spośród ewentualnego tekstu/markdown wokół
+        # niego.
+        "generationConfig": {"responseMimeType": "application/json"},
+    }
 
-    if response.status_code == 429:
+    # UWAGA (naprawa): 503 od Gemini zwykle oznacza chwilowe przeciążenie
+    # serwerów Google (typowe na darmowym poziomie, zwłaszcza przy szybkich
+    # modelach) — to błąd PRZEJŚCIOWY, nie problem z naszej strony. Zamiast
+    # od razu poddawać się przy pierwszej takiej odpowiedzi, ponawiamy
+    # próbę kilka razy z rosnącym opóźnieniem. 429 (wyczerpany dzienny
+    # limit) celowo NIE jest ponawiane — to nie pomoże w ramach tego
+    # samego dnia, więc od razu zwracamy czytelny komunikat.
+    max_attempts = 3
+    last_error: str | None = None
+
+    for attempt in range(1, max_attempts + 1):
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            try:
+                response = await client.post(
+                    url,
+                    headers={
+                        "x-goog-api-key": settings.GEMINI_API_KEY,
+                        "content-type": "application/json",
+                    },
+                    json=request_body,
+                )
+            except httpx.TimeoutException:
+                last_error = "Rozpoznawanie przepisu trwało zbyt długo."
+                if attempt < max_attempts:
+                    await asyncio.sleep(attempt * 1.5)
+                    continue
+                raise AIRecipeImportError(f"{last_error} Spróbuj ponownie.")
+            except httpx.HTTPError as exc:
+                raise AIRecipeImportError(f"Nie udało się połączyć z usługą AI: {exc}")
+
+        if response.status_code == 200:
+            break
+
+        if response.status_code == 429:
+            raise AIRecipeImportError(
+                "Darmowy dzienny limit usługi AI został wyczerpany. Spróbuj ponownie później."
+            )
+
+        if response.status_code in (503, 502, 500) and attempt < max_attempts:
+            # Serwery Google chwilowo przeciążone/niedostępne — czekaj
+            # chwilę i spróbuj jeszcze raz, zanim uznamy to za trwały błąd.
+            await asyncio.sleep(attempt * 1.5)
+            continue
+
+        if response.status_code in (503, 502, 500):
+            # Ostatnia próba i nadal błąd przejściowy — poddajemy się
+            # z komunikatem jasno mówiącym, że próbowaliśmy kilka razy
+            # (a nie tylko raz, jak przy zwykłym błędzie).
+            raise AIRecipeImportError(
+                f"Usługa AI jest chwilowo przeciążona (błąd {response.status_code}) mimo "
+                f"{max_attempts} prób. Spróbuj ponownie za minutę."
+            )
+
         raise AIRecipeImportError(
-            "Darmowy dzienny limit usługi AI został wyczerpany. Spróbuj ponownie później."
-        )
-    if response.status_code != 200:
-        raise AIRecipeImportError(
-            f"Usługa AI zwróciła błąd ({response.status_code}). Spróbuj ponownie później."
+            f"Usługa AI zwróciła błąd ({response.status_code}). Spróbuj ponownie za chwilę."
         )
 
     data = response.json()

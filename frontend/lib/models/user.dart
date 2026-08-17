@@ -26,6 +26,12 @@ class User {
   /// w miejscach użycia.
   bool get isAdmin => role == 'admin';
 
+  /// Czy konto ma dostęp do funkcji premium — admini mają go zawsze
+  /// (zgodnie z zasadą "admin ma pełne uprawnienia do wszystkiego"),
+  /// niezależnie od flagi isPremium. Używaj TEGO gettera przy sprawdzaniu
+  /// dostępu do funkcji premium w UI, nie samego isPremium.
+  bool get hasPremiumAccess => isPremium || isAdmin;
+
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['id'] as String,

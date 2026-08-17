@@ -152,9 +152,9 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
 
   @override
   Widget build(BuildContext context) {
-    final isPremium = Provider.of<AuthProvider>(context).currentUser?.isPremium ?? false;
+    final hasPremiumAccess = Provider.of<AuthProvider>(context).currentUser?.hasPremiumAccess ?? false;
 
-    if (!isPremium) {
+    if (!hasPremiumAccess) {
       return _buildPaywall(context);
     }
 
