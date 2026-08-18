@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import 'package:flutter/services.dart';
 import '../screens/recipes/ai_add_recipe_screen.dart';
 
 /// Nasłuchuje na treści udostępnione z innych aplikacji (np. link do
@@ -8,47 +8,53 @@ import '../screens/recipes/ai_add_recipe_screen.dart';
 /// "Udostępnij") i otwiera ekran rozpoznawania przepisu przez AI z
 /// gotowym, wypełnionym linkiem.
 ///
+/// UWAGA: to WŁASNA implementacja przez MethodChannel (patrz
+/// android/.../MainActivity.kt), nie zewnętrzny pakiet z pub.dev. Dwie
+/// kolejne biblioteki do tego celu (receive_sharing_intent,
+/// listen_receive_sharing_intent) miały problemy z budowaniem — ten kod
+/// używa wyłącznie stabilnego, wieloletniego API Fluttera (MethodChannel)
+/// i komunikuje się z natywnym kodem Kotlin napisanym specjalnie dla tej
+/// aplikacji, więc nie zależy od jakości/aktualności żadnej zewnętrznej
+/// paczki.
+///
 /// Działa w dwóch przypadkach:
-/// 1. Aplikacja jest już otwarta — udostępnienie przychodzi jako strumień.
+/// 1. Aplikacja jest już otwarta — natywna strona wypycha tekst przez
+///    `onSharedText` (patrz MainActivity.onNewIntent).
 /// 2. Aplikacja zostaje DOPIERO uruchomiona przez samo udostępnienie
-///    (użytkownik miał ją zamkniętą i wybrał ją z menu "Udostępnij") —
-///    tzw. zimny start, obsługiwany osobno przez `getInitialMedia()`.
+///    (zimny start) — Dart pyta o to przez `getInitialSharedText` zaraz
+///    po starcie.
 ///
 /// UWAGA (znane ograniczenie): jeśli użytkownik nie jest jeszcze
 /// zalogowany w momencie udostępnienia, ekran rozpoznawania i tak się
 /// otworzy, ale próba rozpoznania przepisu zakończy się błędem
 /// autoryzacji (401) — istniejąca obsługa błędów na tym ekranie pokaże
-/// wtedy czytelny komunikat. Pełne "zapamiętaj i wróć po zalogowaniu"
-/// to możliwe do zbudowania rozszerzenie, jeśli okaże się potrzebne.
+/// wtedy czytelny komunikat.
 class ShareIntentHandler {
-  static StreamSubscription? _intentSub;
+  static const MethodChannel _channel = MethodChannel('com.meal_planner_polska_v1/share_intent');
   static final RegExp _urlPattern = RegExp(r'https?://\S+');
 
   static void initialize(GlobalKey<NavigatorState> navigatorKey) {
-    _intentSub = ReceiveSharingIntent.instance.getMediaStream().listen(
-      (files) => _handleShared(files, navigatorKey),
-      onError: (_) {
-        // Cicho ignorujemy błędy strumienia — to nie jest krytyczna
-        // funkcja aplikacji, nie chcemy przez nią wywalać całej reszty.
-      },
-    );
+    _channel.setMethodCallHandler((call) async {
+      if (call.method == 'onSharedText') {
+        _handleSharedText(call.arguments as String?, navigatorKey);
+      }
+    });
 
-    ReceiveSharingIntent.instance.getInitialMedia().then((files) {
-      _handleShared(files, navigatorKey);
-      ReceiveSharingIntent.instance.reset();
+    _channel.invokeMethod<String>('getInitialSharedText').then((text) {
+      _handleSharedText(text, navigatorKey);
+    }).catchError((_) {
+      // Cicho ignorujemy — to nie jest krytyczna funkcja aplikacji, nie
+      // chcemy przez nią wywalać reszty startu aplikacji.
     });
   }
 
-  static void _handleShared(List<SharedMediaFile> files, GlobalKey<NavigatorState> navigatorKey) {
-    if (files.isEmpty) return;
+  static void _handleSharedText(String? sharedText, GlobalKey<NavigatorState> navigatorKey) {
+    if (sharedText == null || sharedText.isEmpty) return;
 
-    final sharedText = files.first.path;
     final match = _urlPattern.firstMatch(sharedText);
     if (match == null) return;
     final url = match.group(0)!;
 
-    // Poczekaj na pełną inicjalizację nawigatora (zwłaszcza przy zimnym
-    // starcie, gdy aplikacja dopiero się uruchamia) przed próbą nawigacji.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final navigator = navigatorKey.currentState;
       if (navigator == null) return;
@@ -56,9 +62,5 @@ class ShareIntentHandler {
         MaterialPageRoute(builder: (_) => AiAddRecipeScreen(initialUrl: url)),
       );
     });
-  }
-
-  static void dispose() {
-    _intentSub?.cancel();
   }
 }

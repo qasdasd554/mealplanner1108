@@ -19,6 +19,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
 
   String? _scanningStore;
   bool _isLoadingPending = true;
+  String? _pendingError;
   List<Promotion> _pending = [];
   final Set<String> _busyPromotionIds = {};
 
@@ -29,7 +30,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   }
 
   Future<void> _loadPending() async {
-    setState(() => _isLoadingPending = true);
+    setState(() {
+      _isLoadingPending = true;
+      _pendingError = null;
+    });
     try {
       final list = await _service.getPendingPromotions();
       if (!mounted) return;
@@ -39,7 +43,15 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() => _isLoadingPending = false);
+      // UWAGA (naprawa): wcześniej błąd był tu całkowicie połykany —
+      // lista po prostu zostawała pusta, bez żadnej wskazówki, że coś
+      // poszło nie tak (np. gdy odpowiedź serwera nie dała się
+      // poprawnie sparsować). Teraz pokazujemy czytelny komunikat
+      // zamiast fałszywego "brak promocji do akceptacji".
+      setState(() {
+        _isLoadingPending = false;
+        _pendingError = 'Nie udało się wczytać listy oczekujących promocji.';
+      });
     }
   }
 
@@ -143,6 +155,18 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                 child: Padding(
                   padding: EdgeInsets.all(24.0),
                   child: CircularProgressIndicator(color: AppTheme.primaryColor),
+                ),
+              )
+            else if (_pendingError != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(_pendingError!, style: TextStyle(color: AppTheme.errorColor)),
+                    const SizedBox(height: 8),
+                    TextButton(onPressed: _loadPending, child: const Text('Spróbuj ponownie')),
+                  ],
                 ),
               )
             else if (_pending.isEmpty)

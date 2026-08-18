@@ -42,10 +42,13 @@ _AGGREGATOR_SLUGS: dict[str, str] = {
     "Dino": "dino",
 }
 
-# Bezpiecznik: gazetki bywają bardzo duże (kilkadziesiąt stron) — powyżej
-# tego rozmiaru rezygnujemy, zamiast wysyłać do AI coś, co i tak
-# prawdopodobnie przekroczy limity/będzie bardzo kosztowne.
-_MAX_PDF_BYTES = 15 * 1024 * 1024
+# Bezpiecznik: gazetki bywają duże (kilkadziesiąt stron) — ale Gemini
+# podniosło limit danych "inline" z 20 MB do 100 MB (12 stycznia 2026).
+# Wcześniejszy limit 15 MB był dużo bardziej restrykcyjny niż faktycznie
+# potrzeba i odrzucał zupełnie normalne gazetki. 40 MB surowego pliku PDF
+# to po zakodowaniu Base64 (+ok. 33% narzutu) wciąż bezpiecznie poniżej
+# rzeczywistego limitu 100 MB, z dużym zapasem.
+_MAX_PDF_BYTES = 40 * 1024 * 1024
 
 
 class PromoAIScanError(Exception):

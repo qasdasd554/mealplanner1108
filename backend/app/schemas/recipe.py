@@ -152,23 +152,33 @@ class RecipeResponse(RecipeBase):
                             total[k] += float(prod.nutrition_per_100.get(k, 0) or 0) * (w / 100.0)
                     except:
                         pass
-            if any(v > 0 for v in total.values()):
-                # Obejście problemu ze zmianą obiektu SQLAlchemy - zwracamy dict z oryginalnymi wartościami
-                res = {k: getattr(data, k) for k in data.__table__.columns.keys() if hasattr(data, k)}
-                res["tags"] = data.tags
-                res["ingredients"] = data.ingredients
-                res["nutrition_total"] = {k: round(v, 1) for k, v in total.items()}
-                # UWAGA (naprawa): is_favorite i is_own_recipe to atrybuty
-                # ustawiane DYNAMICZNIE w endpointach PO wczytaniu z bazy
-                # (nie są prawdziwymi kolumnami tabeli) — pętla powyżej,
-                # budując `res` tylko z `__table__.columns.keys()`, całkiem
-                # je gubiła. Efekt: KAŻDY przepis bez wcześniej wyliczonego
-                # nutrition_total (czyli m.in. KAŻDY przepis dodany przez
-                # AI) zawsze pokazywał is_own_recipe=False i is_favorite=False,
-                # niezależnie od faktycznej wartości.
-                res["is_favorite"] = getattr(data, "is_favorite", False)
-                res["is_own_recipe"] = getattr(data, "is_own_recipe", False)
-                return res
+            # UWAGA (naprawa): wcześniej ten blok wykonywał się TYLKO gdy
+            # `any(v > 0 for v in total.values())` — czyli jeśli policzona
+            # suma wyszła zerowa (np. bo żaden składnik się nie dopasował,
+            # albo `ing.product` nie było załadowane), funkcja po cichu
+            # zwracała ORYGINALNE dane BEZ ZMIAN zamiast ustawić
+            # nutrition_total na wyliczone (choćby zerowe) wartości. Efekt:
+            # przepis z realnym, ale nie do końca dopasowanym składnikiem
+            # pokazywał puste/null wartości zamiast choćby częściowego,
+            # jawnego wyniku — mylące i trudne do zdiagnozowania z
+            # perspektywy użytkownika. Teraz zawsze budujemy i zwracamy
+            # `res` z wyliczoną wartością (nawet jeśli to same zera),
+            # więc zachowanie jest przewidywalne i widoczne wprost.
+            res = {k: getattr(data, k) for k in data.__table__.columns.keys() if hasattr(data, k)}
+            res["tags"] = data.tags
+            res["ingredients"] = data.ingredients
+            res["nutrition_total"] = {k: round(v, 1) for k, v in total.items()}
+            # UWAGA (naprawa): is_favorite i is_own_recipe to atrybuty
+            # ustawiane DYNAMICZNIE w endpointach PO wczytaniu z bazy
+            # (nie są prawdziwymi kolumnami tabeli) — pętla powyżej,
+            # budując `res` tylko z `__table__.columns.keys()`, całkiem
+            # je gubiła. Efekt: KAŻDY przepis bez wcześniej wyliczonego
+            # nutrition_total (czyli m.in. KAŻDY przepis dodany przez
+            # AI) zawsze pokazywał is_own_recipe=False i is_favorite=False,
+            # niezależnie od faktycznej wartości.
+            res["is_favorite"] = getattr(data, "is_favorite", False)
+            res["is_own_recipe"] = getattr(data, "is_own_recipe", False)
+            return res
         return data
 
 

@@ -163,4 +163,18 @@ class MealPlanProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
+  /// Czyści cały stan — wywoływane przy wylogowaniu. Bez tego, po
+  /// zalogowaniu się jako inny użytkownik, ekrany korzystające z tego
+  /// providera (np. zakładka "Plan" w Śledzeniu kalorii, która ładuje
+  /// dane TYLKO gdy lista jest pusta) pokazywałyby plany POPRZEDNIEGO
+  /// użytkownika, dopóki coś jawnie nie wymusiłoby ponownego pobrania.
+  void clear() {
+    _currentPlan = null;
+    _plans = [];
+    _isLoading = false;
+    _isGenerating = false;
+    _errorMessage = null;
+    notifyListeners();
+  }
 }

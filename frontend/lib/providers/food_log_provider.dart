@@ -179,4 +179,16 @@ class FoodLogProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
   }
+
+  /// Czyści cały stan — wywoływane przy wylogowaniu, żeby dane
+  /// poprzedniego użytkownika (wpisy dziennika, podsumowanie kalorii)
+  /// nie były widoczne po zalogowaniu się jako ktoś inny.
+  void clear() {
+    _logs = [];
+    _summary = null;
+    _currentDate = DateTime.now();
+    _isLoading = false;
+    _error = null;
+    notifyListeners();
+  }
 }

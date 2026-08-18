@@ -13,6 +13,11 @@ class CalorieTrackerScreen extends StatefulWidget {
 }
 
 class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
+  // Id pozycji aktualnie "odsłoniętej" na czerwono po dotknięciu — tylko
+  // jedna naraz. Dotknięcie tej samej pozycji ponownie (albo usunięcie)
+  // ją chowa z powrotem.
+  String? _revealedDeleteItemId;
+
   @override
   void initState() {
     super.initState();
@@ -361,6 +366,13 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
   }
 
   Widget _buildLogItem(BuildContext context, FoodLogEntry item) {
+    // UWAGA (zmiana): wcześniej jedynym sposobem usunięcia pozycji było
+    // przesunięcie palcem (Dismissible) — gest niezbyt odkrywalny bez
+    // podpowiedzi. Teraz zwykłe DOTKNIĘCIE pozycji też "odsłania" ją na
+    // czerwono z wyraźnym przyciskiem "Usuń", jako bardziej intuicyjna,
+    // dodatkowa droga do tego samego celu (przesunięcie dalej działa).
+    final isRevealed = _revealedDeleteItemId == item.id;
+
     return Dismissible(
       key: ValueKey(item.id),
       direction: DismissDirection.endToStart,
@@ -377,69 +389,107 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
       onDismissed: (_) {
         Provider.of<FoodLogProvider>(context, listen: false).deleteEntry(item.id);
       },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceColor,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              item.recipeId != null ? Icons.menu_book_outlined : Icons.restaurant_menu,
-              color: AppTheme.textSecondary,
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.displayName,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.textPrimary,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          setState(() {
+            _revealedDeleteItemId = isRevealed ? null : item.id;
+          });
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isRevealed ? AppTheme.errorColor.withOpacity(0.12) : AppTheme.surfaceColor,
+            borderRadius: BorderRadius.circular(16),
+            border: isRevealed ? Border.all(color: AppTheme.errorColor, width: 1.5) : null,
+          ),
+          child: isRevealed
+              ? Row(
+                  children: [
+                    Icon(Icons.delete_outline, color: AppTheme.errorColor),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Usunąć „${item.displayName}"?',
+                        style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.errorColor),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    item.servings == 1
-                        ? '1 porcja'
-                        : '${item.servings.toStringAsFixed(item.servings.truncateToDouble() == item.servings ? 0 : 1)} porcji',
-                    style: TextStyle(
-                      fontSize: 14,
+                    TextButton(
+                      onPressed: () {
+                        setState(() => _revealedDeleteItemId = null);
+                      },
+                      child: const Text('Anuluj'),
+                    ),
+                    const SizedBox(width: 4),
+                    FilledButton(
+                      style: FilledButton.styleFrom(backgroundColor: AppTheme.errorColor),
+                      onPressed: () {
+                        Provider.of<FoodLogProvider>(context, listen: false).deleteEntry(item.id);
+                        setState(() => _revealedDeleteItemId = null);
+                      },
+                      child: const Text('Usuń'),
+                    ),
+                  ],
+                )
+              : Row(
+                  children: [
+                    Icon(
+                      item.recipeId != null ? Icons.menu_book_outlined : Icons.restaurant_menu,
                       color: AppTheme.textSecondary,
                     ),
-                  ),
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '${item.calories.toInt()} kcal',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Text('B:${item.protein.toInt()}', style: const TextStyle(fontSize: 12, color: AppTheme.accentColor)),
-                    const SizedBox(width: 4),
-                    Text('W:${item.carbs.toInt()}', style: const TextStyle(fontSize: 12, color: Colors.orange)),
-                    const SizedBox(width: 4),
-                    Text('T:${item.fat.toInt()}', style: const TextStyle(fontSize: 12, color: Colors.redAccent)),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.displayName,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            item.servings == 1
+                                ? '1 porcja'
+                                : '${item.servings.toStringAsFixed(item.servings.truncateToDouble() == item.servings ? 0 : 1)} porcji',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppTheme.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          '${item.calories.toInt()} kcal',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Text('B:${item.protein.toInt()}', style: const TextStyle(fontSize: 12, color: AppTheme.accentColor)),
+                            const SizedBox(width: 4),
+                            Text('W:${item.carbs.toInt()}', style: const TextStyle(fontSize: 12, color: Colors.orange)),
+                            const SizedBox(width: 4),
+                            Text('T:${item.fat.toInt()}', style: const TextStyle(fontSize: 12, color: Colors.redAccent)),
+                          ],
+                        ),
+                      ],
+                    ),
                   ],
                 ),
-              ],
-            ),
-          ],
         ),
       ),
     );

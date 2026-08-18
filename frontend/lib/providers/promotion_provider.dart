@@ -52,4 +52,13 @@ class PromotionProvider with ChangeNotifier {
     }
     return null;
   }
+
+  /// Czyści cały stan — wywoływane przy wylogowaniu.
+  void clear() {
+    _promotions = [];
+    _isLoading = false;
+    _error = null;
+    _loadedForStore = null;
+    notifyListeners();
+  }
 }

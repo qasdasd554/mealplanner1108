@@ -30,9 +30,15 @@ dependencies:
   share_plus: ^10.1.2
   url_launcher: ^6.3.1
   image_picker: ^1.1.2
-  # Odbieranie udostępnień z innych aplikacji (np. link do filmiku
-  # udostępniony wprost z TikToka przez systemowe menu "Udostępnij").
-  receive_sharing_intent: ^1.8.1
+  # UWAGA: obsługa udostępnień z TikToka (link -> rozpoznanie przepisu
+  # przez AI) NIE korzysta z żadnego pakietu z pub.dev. Dwie kolejne
+  # biblioteki do tego celu (receive_sharing_intent,
+  # listen_receive_sharing_intent) miały problemy z budowaniem —
+  # nieaktualne/niespójnie opublikowane paczki. Zamiast tego używamy
+  # własnej, kilkudziesięciolinijkowej implementacji przez MethodChannel
+  # (patrz android/.../MainActivity.kt i lib/services/share_intent_handler.dart)
+  # — stabilne, wieloletnie API Androida i Fluttera, bez zależności od
+  # jakości/aktualności jakiegokolwiek pakietu trzeciej strony.
 
   # UI & Styling
   google_fonts: ^6.1.0

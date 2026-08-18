@@ -285,6 +285,21 @@ class ProfileScreen extends StatelessWidget {
                 side: const BorderSide(color: AppTheme.errorColor, width: 1.5),
               ),
               onPressed: () async {
+                // UWAGA (naprawa poważnego błędu): wcześniej wylogowanie
+                // czyściło TYLKO stan AuthProvider — żaden z pozostałych
+                // providerów (plany posiłków, dziennik kalorii, lista
+                // zakupów, promocje, sklepy) nie był resetowany. Niektóre
+                // ekrany (np. zakładka "Plan" w Śledzeniu kalorii) ładują
+                // dane TYLKO gdy lokalna lista jest pusta — efekt: po
+                // zalogowaniu się jako inny użytkownik, wciąż widoczne
+                // były dane POPRZEDNIEGO użytkownika, dopóki coś jawnie
+                // nie wymusiło ponownego pobrania. To realny wyciek
+                // danych między kontami na tym samym urządzeniu.
+                Provider.of<MealPlanProvider>(context, listen: false).clear();
+                Provider.of<FoodLogProvider>(context, listen: false).clear();
+                Provider.of<ShoppingListProvider>(context, listen: false).clear();
+                Provider.of<PromotionProvider>(context, listen: false).clear();
+                Provider.of<StoreProvider>(context, listen: false).clear();
                 await authProvider.logout();
                 if (context.mounted) {
                   Navigator.of(context).pushReplacementNamed('/login');

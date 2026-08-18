@@ -43,4 +43,16 @@ class StoreProvider with ChangeNotifier {
       // Sklepu nie ma na liście
     }
   }
+
+  /// Czyści cały stan — wywoływane przy wylogowaniu. Najważniejsze tu
+  /// jest `_selectedStore` (preferencja KONKRETNEGO użytkownika) — lista
+  /// samych sklepów jest wspólna dla wszystkich, ale czyścimy ją też dla
+  /// spójności (i tak odświeży się bezboleśnie przy następnym ładowaniu).
+  void clear() {
+    _stores = [];
+    _selectedStore = null;
+    _isLoading = false;
+    _errorMessage = null;
+    notifyListeners();
+  }
 }

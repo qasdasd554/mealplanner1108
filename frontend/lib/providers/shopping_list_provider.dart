@@ -81,4 +81,12 @@ class ShoppingListProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
+  /// Czyści cały stan — wywoływane przy wylogowaniu.
+  void clear() {
+    _currentList = null;
+    _isLoading = false;
+    _errorMessage = null;
+    notifyListeners();
+  }
 }
