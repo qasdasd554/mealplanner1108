@@ -233,9 +233,24 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
                       style: TextButton.styleFrom(foregroundColor: AppTheme.errorColor),
                       onPressed: () async {
                         Navigator.of(context).pop();
-                        await mealPlanProvider.deletePlan(plan.id);
-                        if (mounted) {
+                        // UWAGA (naprawa): wcześniej ekran zamykał się
+                        // ZAWSZE, niezależnie od tego, czy usunięcie
+                        // faktycznie się powiodło — błąd był cicho
+                        // gubiony, więc plan zostawał, a użytkownik
+                        // widział tylko "coś się zamknęło", bez żadnej
+                        // informacji, że nic nie zostało usunięte.
+                        final success = await mealPlanProvider.deletePlan(plan.id);
+                        if (!mounted) return;
+                        if (success) {
                           Navigator.of(context).pop();
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                mealPlanProvider.errorMessage ?? 'Nie udało się usunąć planu',
+                              ),
+                            ),
+                          );
                         }
                       },
                       child: const Text('Usuń'),

@@ -1,18 +1,21 @@
 """Endpointy list zakupów — przeglądanie, oznaczanie, zamienniki."""
 
+from datetime import date
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.api.deps import get_current_user
+from app.api.deps import get_current_premium, get_current_user
 from app.core.exceptions import NotFoundException
 from app.db.session import get_db
 from app.models import (
     MealPlan,
+    MealPlanEntry,
+    Recipe,
     ShoppingList,
     ShoppingListItem,
     StoreDepartment,
@@ -21,8 +24,97 @@ from app.models import (
 )
 from app.schemas.shopping_list import ShoppingListItemResponse, ShoppingListResponse
 from app.services import ProductSubstitutionService
+from app.services.shopping_list_builder import ShoppingListBuilder
 
 router = APIRouter()
+
+
+class ShoppingListFromRecipesRequest(BaseModel):
+    """Żądanie stworzenia listy zakupów na konkretne dania (bez pełnego
+    planu posiłków) — funkcja Premium."""
+
+    recipe_ids: list[UUID]
+    store_id: UUID
+
+
+@router.post(
+    "/from-recipes",
+    response_model=ShoppingListResponse,
+    status_code=201,
+    summary="Stwórz listę zakupów na konkretne danie/dania (Premium)",
+)
+async def create_shopping_list_from_recipes(
+    payload: ShoppingListFromRecipesRequest,
+    current_user: User = Depends(get_current_premium),
+    db: AsyncSession = Depends(get_db),
+) -> ShoppingList:
+    """Generuje listę zakupów na podstawie WYBRANYCH przepisów — bez
+    tworzenia pełnego, wielodniowego planu posiłków. Przydatne, gdy
+    chcesz kupić składniki na jedno konkretne danie (albo kilka), a nie
+    na cały tydzień.
+
+    Pod spodem tworzy lekki, "techniczny" plan posiłków (status
+    "archived" — nigdy nie pojawia się jako Twój aktywny plan) i używa
+    dokładnie tego samego, sprawdzonego mechanizmu budowania listy
+    zakupów co przy zwykłych planach — więc ceny, zaokrąglanie do
+    opakowań i grupowanie po działach sklepu działają identycznie.
+    """
+    if not payload.recipe_ids:
+        raise HTTPException(status_code=400, detail="Podaj przynajmniej jeden przepis")
+
+    # Sprawdź, że wszystkie przepisy istnieją i są widoczne dla użytkownika
+    # (własne prywatne, publiczne, albo oficjalne — ta sama reguła co przy
+    # normalnym przeglądaniu przepisów).
+    from app.api.v1.recipes import _visibility_filter
+
+    recipes_result = await db.execute(
+        select(Recipe.id).where(
+            Recipe.id.in_(payload.recipe_ids),
+            _visibility_filter(current_user.id),
+        )
+    )
+    found_ids = set(recipes_result.scalars().all())
+    missing = set(payload.recipe_ids) - found_ids
+    if missing:
+        raise NotFoundException(detail=f"Nie znaleziono przepisu/przepisów: {missing}")
+
+    plan = MealPlan(
+        user_id=current_user.id,
+        store_id=payload.store_id,
+        start_date=date.today(),
+        duration_days=1,
+        meals_per_day=len(payload.recipe_ids),
+        status="archived",
+    )
+    db.add(plan)
+    await db.flush()
+
+    for recipe_id in payload.recipe_ids:
+        db.add(
+            MealPlanEntry(
+                meal_plan_id=plan.id,
+                recipe_id=recipe_id,
+                day_number=1,
+                meal_slot="obiad",
+            )
+        )
+    await db.commit()
+
+    builder = ShoppingListBuilder(db)
+    shopping_list = await builder.build_from_meal_plan(plan.id)
+
+    result = await db.execute(
+        select(ShoppingList)
+        .options(
+            selectinload(ShoppingList.items).selectinload(ShoppingListItem.store_product).selectinload(StoreProduct.product),
+            selectinload(ShoppingList.items).selectinload(ShoppingListItem.department),
+            selectinload(ShoppingList.items).selectinload(ShoppingListItem.substituted_for_product),
+            selectinload(ShoppingList.store),
+        )
+        .where(ShoppingList.id == shopping_list.id)
+    )
+    return result.scalar_one()
+
 
 
 class SubstituteRequest(BaseModel):

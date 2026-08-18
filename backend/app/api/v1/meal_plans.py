@@ -4,7 +4,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import select, update
+from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -65,48 +65,47 @@ async def generate_meal_plan(
     Limity:
     - Techniczny (wszyscy): 15 wywołań/godzinę — ochrona przed zasypaniem
       serwera żądaniami.
-    - Biznesowy (tylko konta bez premium): 3 plany/dzień. Konta premium
-      omijają ten drugi limit całkowicie.
-
-    Dodatkowo: darmowe konta mogą mieć tylko JEDEN aktywny plan naraz —
-    wygenerowanie nowego automatycznie archiwizuje poprzedni. Konta
-    premium mogą mieć wiele aktywnych planów równocześnie (np. osobny
-    na dni robocze i osobny na weekend).
+    - Biznesowy (tylko konta bez premium): tylko JEDEN plan naraz. Żeby
+      wygenerować nowy, trzeba najpierw usunąć obecny. Konta premium
+      omijają ten limit całkowicie i mogą mieć wiele aktywnych planów
+      równocześnie (np. osobny na dni robocze i osobny na weekend).
     """
     from app.core.premium import is_premium_active
-    from app.core.rate_limit import (
-        enforce_user_rate_limit,
-        meal_plan_generation_daily_free_limiter,
-        meal_plan_generation_limiter,
-    )
+    from app.core.rate_limit import enforce_user_rate_limit, meal_plan_generation_limiter
     from app.services.exceptions import ServiceError
 
     enforce_user_rate_limit(meal_plan_generation_limiter, current_user.id, "generowanie planu posiłków")
 
     user_is_premium = is_premium_active(current_user)
     if not user_is_premium:
-        enforce_user_rate_limit(
-            meal_plan_generation_daily_free_limiter,
-            current_user.id,
-            "dzienny limit planów (odblokuj Premium dla planów bez limitu)",
-        )
-        # UWAGA: nowo wygenerowany plan dostaje status "draft" (patrz
+        # UWAGA (zmiana): darmowe konto może mieć tylko JEDEN plan naraz —
+        # nie auto-archiwizujemy już starego przy generowaniu nowego (tak
+        # było wcześniej), tylko wprost ODRZUCAMY żądanie, jeśli
+        # użytkownik ma już jakiś nieusunięty plan. Musi go najpierw
+        # usunąć (funkcja usuwania planu jest już naprawiona), żeby
+        # stworzyć kolejny — albo przejść na Premium, gdzie ten limit
+        # w ogóle nie obowiązuje.
+        #
+        # Nowo wygenerowany plan dostaje status "draft" (patrz
         # MealPlanGenerator), NIE "active" — to istniejące zachowanie
-        # sprzed tej zmiany. Frontend traktuje "aktywny plan" jako
-        # pierwszy o statusie "active", a w jego braku pierwszy "draft"
-        # (patrz MealPlanProvider.activePlan). Żeby limit "jeden plan na
-        # darmowym koncie" faktycznie działał, trzeba archiwizować OBA
-        # te statusy, nie tylko "active" — inaczej nic nigdy by się nie
-        # zarchiwizowało (bo plany praktycznie nigdy nie są "active").
-        await db.execute(
-            update(MealPlan)
-            .where(
+        # tej aplikacji. Frontend traktuje "aktywny plan" jako pierwszy
+        # o statusie "active", a w jego braku pierwszy "draft" (patrz
+        # MealPlanProvider.activePlan) — sprawdzamy więc OBA te statusy.
+        existing_plan = await db.execute(
+            select(MealPlan.id).where(
                 MealPlan.user_id == current_user.id,
                 MealPlan.status.in_(["active", "draft"]),
             )
-            .values(status="archived")
         )
-        await db.commit()
+        if existing_plan.scalar_one_or_none() is not None:
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Darmowe konto może mieć tylko jeden plan posiłków naraz. "
+                    "Usuń obecny plan, żeby wygenerować nowy, albo odblokuj Premium "
+                    "dla wielu planów jednocześnie."
+                ),
+            )
 
     try:
         generator = MealPlanGenerator(db)
@@ -407,6 +406,31 @@ async def delete_meal_plan(
         raise NotFoundException(
             detail=f"Plan posiłków o ID {plan_id} nie został znaleziony"
         )
+
+    # UWAGA (naprawa): usuwamy powiązane wiersze RĘCZNIE, zamiast polegać
+    # wyłącznie na kaskadowym usuwaniu w bazie danych (ON DELETE CASCADE).
+    # Tabele tej aplikacji są tworzone przez `Base.metadata.create_all()`
+    # przy starcie, nie przez pełne migracje Alembic — jeśli ograniczenie
+    # klucza obcego zostało zdefiniowane w modelu PO TYM, jak dana tabela
+    # już istniała w bazie produkcyjnej, `create_all()` NIE aktualizuje
+    # wstecznie istniejących ograniczeń. Efekt: próba usunięcia planu
+    # z wciąż powiązaną listą zakupów mogła kończyć się cichym błędem
+    # integralności bazy (500), zanim dotarła do frontendu jako "nie
+    # działa". Jawne usuwanie w prawidłowej kolejności działa niezależnie
+    # od faktycznego stanu ograniczeń w bazie.
+    from app.models import ShoppingList, ShoppingListItem
+
+    shopping_list_result = await db.execute(
+        select(ShoppingList).where(ShoppingList.meal_plan_id == plan.id)
+    )
+    shopping_list = shopping_list_result.scalar_one_or_none()
+    if shopping_list is not None:
+        await db.execute(
+            delete(ShoppingListItem).where(ShoppingListItem.shopping_list_id == shopping_list.id)
+        )
+        await db.delete(shopping_list)
+
+    await db.execute(delete(MealPlanEntry).where(MealPlanEntry.meal_plan_id == plan.id))
 
     await db.delete(plan)
     await db.commit()

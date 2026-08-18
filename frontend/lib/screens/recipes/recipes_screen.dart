@@ -6,7 +6,7 @@ import '../../services/recipe_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/recipe_photo.dart';
 import '../../widgets/recipe_favorite_button.dart';
-import 'ai_add_recipe_screen.dart';
+import 'manual_add_recipe_screen.dart';
 
 class RecipesScreen extends StatefulWidget {
   const RecipesScreen({super.key});
@@ -214,12 +214,12 @@ class _RecipesScreenState extends State<RecipesScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        // Prowadzi do ekranu, który SAM rozpoznaje status premium —
-        // konta bez subskrypcji zobaczą tam czytelną informację zamiast
-        // formularza, więc przycisk nie musi się wcześniej wyszarzać.
+        // Prowadzi najpierw do zwykłego, ręcznego formularza (jak w
+        // Śledzeniu kalorii) — dodawanie przez AI jest dostępne jako
+        // opcja Z POZIOMU tego ekranu, nie jako pierwszy krok.
         onPressed: () {
           Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const AiAddRecipeScreen()),
+            MaterialPageRoute(builder: (_) => const ManualAddRecipeScreen()),
           );
         },
         icon: const Icon(Icons.add),

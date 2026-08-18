@@ -24,4 +24,5 @@ class PromotionResponse(BaseModel):
     requires_loyalty_card: bool
     savings: Decimal
     savings_percent: int
+    review_status: str = "approved"
     created_at: datetime

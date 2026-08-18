@@ -62,6 +62,8 @@ class Recipe {
   // Czy TEN zalogowany użytkownik jest twórcą tego przepisu (dodanego
   // przez AI) — takie przepisy są prywatne, widoczne tylko dla twórcy.
   final bool isOwnRecipe;
+  // "private" / "pending" / "public" / "rejected"
+  final String visibility;
 
   Recipe({
     required this.id,
@@ -82,6 +84,7 @@ class Recipe {
     this.suggestedSeasonings = const [],
     this.isFavorite = false,
     this.isOwnRecipe = false,
+    this.visibility = 'private',
   });
 
   factory Recipe.fromJson(Map<String, dynamic> json) {
@@ -115,10 +118,18 @@ class Recipe {
           [],
       isFavorite: json['is_favorite'] as bool? ?? false,
       isOwnRecipe: json['is_own_recipe'] as bool? ?? false,
+      visibility: json['visibility'] as String? ?? 'private',
     );
   }
 
   int get totalTimeMin => (prepTimeMin ?? 0) + (cookTimeMin ?? 0);
+
+  /// Czy przepis zawiera makaron jako składnik — używane do pokazania
+  /// podpowiedzi z odmierzaniem porcji bez wagi kuchennej. Działa dla
+  /// KAŻDEGO przepisu z makaronem (obecnego i przyszłego, w tym dodanego
+  /// przez AI), bo sprawdza nazwę składnika, a nie konkretny przepis.
+  bool get containsPasta =>
+      ingredients.any((i) => (i.productName ?? '').toLowerCase().contains('makaron'));
 
   /// Ścieżka do lokalnej ilustracji kategorii dania (bez zależności od
   /// sieci — nie hotlinkujemy zdjęć z zewnętrznych serwisów, więc nic nie

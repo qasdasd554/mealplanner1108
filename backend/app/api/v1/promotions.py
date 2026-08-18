@@ -6,15 +6,17 @@ nic nie wystawiało tych danych na zewnątrz. Aplikacja nie miała jak
 zapytać "czy jest promocja na produkt X w sklepie Y".
 """
 
-from datetime import date
+from datetime import date, timedelta
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user, get_db
+from app.api.deps import get_current_admin, get_current_user, get_db
 from app.models.promotion import Promotion
+from app.models.store import Store
+from app.models.product import Product, StoreProduct
 from app.models.user import User
 from app.schemas.promotion import PromotionResponse
 
@@ -115,3 +117,175 @@ async def trigger_scraper_run(
     summary = await scrape_and_update_prices(db)
     total_updated = sum(s.get("prices_updated", 0) for s in summary.values())
     return {"total_updated": total_updated, "summary": summary}
+
+
+@router.post(
+    "/ai-scan",
+    summary="Skanuj internet w poszukiwaniu promocji przez AI (admin)",
+)
+async def trigger_ai_scan(
+    store_name: str = Query(..., description="Nazwa sklepu: Biedronka, Lidl albo Dino"),
+    current_user: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Szuka aktualnej gazetki promocyjnej danego sklepu w internecie
+    (przez niezależny serwis agregujący gazetki, nie bezpośrednio stronę
+    sklepu — ta zwykle blokuje automatyczne zapytania) i rozpoznaje z niej
+    promocje przez AI.
+
+    Wynik trafia do kolejki OCZEKUJĄCEJ na akceptację — NIC nie
+    aktualizuje realnych cen automatycznie. Admin przegląda i akceptuje
+    (PUT /promotions/{id}/approve) albo odrzuca (PUT /promotions/{id}/reject)
+    każdą znalezioną promocję osobno.
+
+    Tylko administrator — to kosztowna operacja (pobiera duży plik PDF,
+    wywołuje AI), więc celowo nie jest dostępna dla zwykłych użytkowników
+    ani nawet kont Premium.
+    """
+    from app.services.promo_ai_scanner import PromoAIScanError, find_promotions_for_store
+
+    store_result = await db.execute(select(Store).where(Store.name == store_name))
+    store = store_result.scalar_one_or_none()
+    if store is None:
+        raise HTTPException(status_code=404, detail=f"Sklep '{store_name}' nie istnieje w bazie")
+
+    products_result = await db.execute(select(Product.name))
+    available_products = list(products_result.scalars().all())
+
+    try:
+        found = await find_promotions_for_store(store_name, available_products)
+    except PromoAIScanError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+
+    created = 0
+    for item in found:
+        # Dopasuj do prawdziwego produktu w katalogu, żeby znać jego
+        # AKTUALNĄ cenę regularną (nie ufamy ślepo cenie odczytanej z PDF-a
+        # przez AI, jeśli mamy własne, bardziej wiarygodne dane).
+        product_result = await db.execute(
+            select(Product).where(Product.name.ilike(item["product_name"]))
+        )
+        product = product_result.scalar_one_or_none()
+        if product is None:
+            continue
+
+        db.add(
+            Promotion(
+                product_name=product.name,
+                store_name=store_name,
+                regular_price=item["regular_price"],
+                promo_price=item["promo_price"],
+                promo_type="price_cut",
+                promo_description=f"Znalezione przez AI w gazetce {store_name}",
+                source="ai_scan",
+                valid_from=date.today(),
+                valid_until=date.today() + timedelta(days=14),
+                is_active=True,
+                review_status="pending",
+            )
+        )
+        created += 1
+    await db.commit()
+
+    if created > 0:
+        await _notify_admins_pending_promotions(db, store_name, created)
+
+    return {"store_name": store_name, "found": len(found), "queued_for_review": created}
+
+
+async def _notify_admins_pending_promotions(db: AsyncSession, store_name: str, count: int) -> None:
+    """Powiadamia wszystkich administratorów o nowych promocjach
+    czekających na akceptację."""
+    from app.models.notification import Notification
+
+    admins_result = await db.execute(select(User.id).where(User.role == "admin"))
+    admin_ids = list(admins_result.scalars().all())
+    if not admin_ids:
+        return
+
+    message = f"AI znalazło {count} nowych promocji w gazetce {store_name} — czekają na akceptację."
+    for admin_id in admin_ids:
+        db.add(Notification(user_id=admin_id, notification_type="promotion_pending_approval", message=message))
+    await db.commit()
+
+
+@router.get(
+    "/pending",
+    response_model=List[PromotionResponse],
+    summary="Promocje czekające na akceptację (admin)",
+)
+async def list_pending_promotions(
+    current_user: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Zwraca wszystkie promocje znalezione przez AI, które jeszcze nie
+    zostały zaakceptowane ani odrzucone."""
+    result = await db.execute(
+        select(Promotion)
+        .where(Promotion.review_status == "pending")
+        .order_by(Promotion.created_at.desc())
+    )
+    return result.scalars().all()
+
+
+@router.put(
+    "/{promotion_id}/approve",
+    response_model=PromotionResponse,
+    summary="Zaakceptuj promocję znalezioną przez AI (admin)",
+)
+async def approve_promotion(
+    promotion_id: str,
+    current_user: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Akceptuje promocję — od tego momentu WPŁYWA na cenę widoczną
+    w aplikacji (aktualizuje StoreProduct.price dla dopasowanego produktu
+    w danym sklepie, jeśli taki wiersz istnieje)."""
+    promotion = await db.get(Promotion, promotion_id)
+    if promotion is None:
+        raise HTTPException(status_code=404, detail="Nie znaleziono promocji")
+
+    promotion.review_status = "approved"
+
+    store_result = await db.execute(select(Store).where(Store.name == promotion.store_name))
+    store = store_result.scalar_one_or_none()
+    product_result = await db.execute(
+        select(Product).where(Product.name == promotion.product_name)
+    )
+    product = product_result.scalar_one_or_none()
+    if store and product:
+        sp_result = await db.execute(
+            select(StoreProduct).where(
+                StoreProduct.store_id == store.id, StoreProduct.product_id == product.id
+            )
+        )
+        store_product = sp_result.scalar_one_or_none()
+        if store_product:
+            store_product.price = promotion.promo_price
+            store_product.last_verified = date.today()
+
+    await db.commit()
+    await db.refresh(promotion)
+    return promotion
+
+
+@router.put(
+    "/{promotion_id}/reject",
+    response_model=PromotionResponse,
+    summary="Odrzuć promocję znalezioną przez AI (admin)",
+)
+async def reject_promotion(
+    promotion_id: str,
+    current_user: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Odrzuca promocję — NIE wpływa na żadne ceny."""
+    promotion = await db.get(Promotion, promotion_id)
+    if promotion is None:
+        raise HTTPException(status_code=404, detail="Nie znaleziono promocji")
+
+    promotion.review_status = "rejected"
+    promotion.is_active = False
+    await db.commit()
+    await db.refresh(promotion)
+    return promotion

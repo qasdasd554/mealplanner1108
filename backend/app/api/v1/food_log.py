@@ -32,7 +32,7 @@ router = APIRouter()
 
 # Darmowe konta widzą tylko ostatnie 30 dni historii śledzenia — konta
 # premium mają dostęp bez ograniczeń wstecz w czasie.
-FREE_TIER_HISTORY_DAYS = 30
+FREE_TIER_HISTORY_DAYS = 7
 
 
 def _enforce_history_limit(entry_date: Optional[date], current_user: User) -> None:

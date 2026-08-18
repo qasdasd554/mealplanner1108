@@ -5,6 +5,8 @@ import '../../models/recipe.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/recipe_comments_section.dart';
 import '../../widgets/recipe_favorite_button.dart';
+import '../../widgets/recipe_approval_bar.dart';
+import '../../widgets/dish_shopping_list_button.dart';
 
 class RecipeDetailScreen extends StatelessWidget {
   const RecipeDetailScreen({super.key});
@@ -113,6 +115,23 @@ class RecipeDetailScreen extends StatelessWidget {
                         ),
                       ),
                     ),
+            ),
+          ),
+
+          // 1b. Pasek akceptacji/odrzucenia — widoczny TYLKO adminom,
+          // TYLKO gdy przepis czeka na akceptację (visibility="pending").
+          // Sam widget zwraca pusty SizedBox we wszystkich innych
+          // przypadkach, więc bezpiecznie wstawiamy go bezwarunkowo.
+          SliverToBoxAdapter(
+            child: RecipeApprovalBar(recipe: recipe),
+          ),
+
+          // 1c. Przycisk "Lista zakupów na to danie" — funkcja Premium.
+          // Sam widget zwraca pusty SizedBox dla kont bez dostępu premium.
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: DishShoppingListButton(recipe: recipe),
             ),
           ),
 
@@ -238,6 +257,46 @@ class RecipeDetailScreen extends StatelessWidget {
                     );
                   }).toList(),
                   const SizedBox(height: 28),
+
+                  // Lifehack odmierzania porcji makaronu bez wagi
+                  // kuchennej — pokazuje się dla KAŻDEGO przepisu
+                  // zawierającego makaron jako składnik.
+                  if (recipe.containsPasta) ...[
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.2)),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.lightbulb_outline, color: AppTheme.primaryColor, size: 22),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Lifehack: porcja makaronu bez wagi',
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Chwyć suchy makaron w dwa palce, formując kółko — jeśli '
+                                  'jego średnica odpowiada mniej więcej monecie 5 zł, to '
+                                  'jedna porcja (ok. 80-100 g) na osobę.',
+                                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, height: 1.4),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
 
                   // Sposób przygotowania — wcześniej ta sekcja w ogóle nie
                   // istniała w aplikacji, mimo że backend/dane mogły

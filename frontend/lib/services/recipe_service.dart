@@ -94,4 +94,59 @@ class RecipeService {
     );
     return Recipe.fromJson(response as Map<String, dynamic>);
   }
+
+  /// Rozpoznaje przepis na podstawie treści strony pod danym linkiem
+  /// (blog kulinarny, TikTok, Instagram itp.) — funkcja Premium.
+  Future<Recipe> importRecipeFromUrl(String url) async {
+    final response = await _client.post(
+      '${ApiConfig.recipes}ai-import',
+      body: {'url': url},
+    );
+    return Recipe.fromJson(response as Map<String, dynamic>);
+  }
+
+  /// Tworzy przepis ręcznie wprowadzony przez użytkownika. Domyślnie
+  /// prywatny; [requestPublic] (tylko Premium) zgłasza go do wspólnego
+  /// katalogu, gdzie czeka na akceptację administratora.
+  Future<Recipe> createRecipeManually({
+    required String name,
+    String? description,
+    required String mealType,
+    required String difficulty,
+    int? prepTimeMin,
+    int? cookTimeMin,
+    required int servings,
+    required List<String> instructions,
+    required List<Map<String, dynamic>> ingredients,
+    bool requestPublic = false,
+  }) async {
+    final response = await _client.post(
+      ApiConfig.recipes,
+      body: {
+        'name': name,
+        'description': description,
+        'meal_type': mealType,
+        'difficulty': difficulty,
+        'prep_time_min': prepTimeMin,
+        'cook_time_min': cookTimeMin,
+        'servings': servings,
+        'instructions': instructions,
+        'ingredients': ingredients,
+        'request_public': requestPublic,
+      },
+    );
+    return Recipe.fromJson(response as Map<String, dynamic>);
+  }
+
+  /// Akceptuje przepis zgłoszony do wspólnego katalogu (tylko admin).
+  Future<Recipe> approveRecipe(String recipeId) async {
+    final response = await _client.put('${ApiConfig.recipes}$recipeId/approve');
+    return Recipe.fromJson(response as Map<String, dynamic>);
+  }
+
+  /// Odrzuca przepis zgłoszony do wspólnego katalogu (tylko admin).
+  Future<Recipe> rejectRecipe(String recipeId) async {
+    final response = await _client.put('${ApiConfig.recipes}$recipeId/reject');
+    return Recipe.fromJson(response as Map<String, dynamic>);
+  }
 }

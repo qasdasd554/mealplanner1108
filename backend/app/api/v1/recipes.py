@@ -7,7 +7,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.api.deps import get_current_premium, get_current_user
+from app.api.deps import get_current_admin, get_current_premium, get_current_user
 from app.core.exceptions import NotFoundException
 from app.db.session import get_db
 from app.models import (
@@ -34,9 +34,16 @@ async def _get_favorite_recipe_ids(db: AsyncSession, user_id: UUID) -> set[UUID]
 
 
 def _visibility_filter(current_user_id: UUID):
-    """Warunek widoczności przepisu: wspólny katalog (created_by_user_id
-    puste) LUB własny, prywatny przepis dodany przez AI."""
-    return or_(Recipe.created_by_user_id.is_(None), Recipe.created_by_user_id == current_user_id)
+    """Warunek widoczności przepisu:
+    - wspólny katalog (created_by_user_id puste — 81 oficjalnych) LUB
+    - własny przepis (dowolny status — prywatny, oczekujący, odrzucony) LUB
+    - cudzy przepis zaakceptowany do wspólnego katalogu (visibility="public")
+    """
+    return or_(
+        Recipe.created_by_user_id.is_(None),
+        Recipe.created_by_user_id == current_user_id,
+        Recipe.visibility == "public",
+    )
 
 
 @router.get(
@@ -211,14 +218,17 @@ async def get_recipe(
         raise NotFoundException(
             detail=f"Przepis o ID {recipe_id} nie został znaleziony"
         )
-    # Prywatne przepisy (dodane przez AI) są widoczne TYLKO dla właściciela
-    # — traktujemy próbę dostępu do cudzego jak nieistniejący przepis,
+    # Prywatne przepisy są widoczne TYLKO dla właściciela — chyba że są
+    # publicznie zaakceptowane (visibility="public"). Próbę dostępu do
+    # cudzego, nadal-prywatnego przepisu traktujemy jak nieistniejący,
     # żeby nie ujawniać nawet samego faktu jego istnienia.
-    if recipe.created_by_user_id is not None and recipe.created_by_user_id != current_user.id:
+    is_own = recipe.created_by_user_id == current_user.id
+    is_public = recipe.visibility == "public"
+    if recipe.created_by_user_id is not None and not is_own and not is_public:
         raise NotFoundException(detail=f"Przepis o ID {recipe_id} nie został znaleziony")
     favorite_ids = await _get_favorite_recipe_ids(db, current_user.id)
     recipe.is_favorite = recipe.id in favorite_ids
-    recipe.is_own_recipe = recipe.created_by_user_id == current_user.id
+    recipe.is_own_recipe = is_own
     return recipe
 
 
@@ -226,24 +236,32 @@ async def get_recipe(
     "/",
     response_model=RecipeResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Utwórz nowy przepis",
+    summary="Utwórz nowy przepis ręcznie",
 )
 async def create_recipe(
     recipe_in: RecipeCreate,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> Recipe:
-    """Tworzy nowy przepis z listą składników.
+    """Tworzy nowy przepis ręcznie wprowadzony przez użytkownika.
 
-    UWAGA (naprawa bezpieczeństwa): wcześniej ten endpoint w ogóle nie
-    wymagał zalogowania — dosłownie każdy w internecie, bez konta, mógł
-    zaśmiecać bazę fałszywymi przepisami. Teraz wymaga przynajmniej
-    zalogowania. To wciąż nie jest docelowy model uprawnień dla funkcji
-    "dodaj własny przepis" (zapowiedzianej w aplikacji, ale jeszcze
-    niezbudowanej od strony UI) — gdy ta funkcja powstanie, prawdopodobnie
-    będzie też potrzebować moderacji/oznaczenia autora, zanim przepis
-    trafi do wspólnego katalogu widocznego dla wszystkich.
+    Domyślnie przepis jest PRYWATNY — widoczny tylko dla twórcy, tak jak
+    przepisy dodawane przez AI. Jeśli `request_public=True`, przepis
+    zostaje zgłoszony do wspólnego katalogu widocznego dla wszystkich —
+    ale wymaga to konta Premium ORAZ akceptacji administratora, zanim
+    faktycznie stanie się publiczny (patrz PUT /recipes/{id}/approve).
     """
+    from app.core.premium import is_premium_active
+
+    visibility = "private"
+    if recipe_in.request_public:
+        if not is_premium_active(current_user):
+            raise HTTPException(
+                status_code=403,
+                detail="Zgłaszanie przepisów do wspólnego katalogu wymaga konta Premium.",
+            )
+        visibility = "pending"
+
     recipe = Recipe(
         name=recipe_in.name,
         description=recipe_in.description,
@@ -253,30 +271,32 @@ async def create_recipe(
         prep_time_min=recipe_in.prep_time_min,
         cook_time_min=recipe_in.cook_time_min,
         servings=recipe_in.servings,
-        image_url=getattr(recipe_in, "image_url", None),
+        instructions=recipe_in.instructions,
+        suggested_seasonings=recipe_in.suggested_seasonings,
+        created_by_user_id=current_user.id,
+        visibility=visibility,
     )
     db.add(recipe)
     await db.flush()
 
-    # Dodaj składniki
-    if hasattr(recipe_in, "ingredients") and recipe_in.ingredients:
-        for ing_data in recipe_in.ingredients:
-            ingredient = RecipeIngredient(
+    for ing_data in recipe_in.ingredients:
+        db.add(
+            RecipeIngredient(
                 recipe_id=recipe.id,
                 product_id=ing_data.product_id,
                 quantity=ing_data.quantity,
                 unit=ing_data.unit,
-                is_optional=getattr(ing_data, "is_optional", False),
+                is_optional=ing_data.is_optional,
             )
-            db.add(ingredient)
+        )
 
-    # Dodaj tagi
-    if hasattr(recipe_in, "tags") and recipe_in.tags:
-        for tag_name in recipe_in.tags:
-            tag = RecipeTag(recipe_id=recipe.id, tag=tag_name)
-            db.add(tag)
+    for tag_name in recipe_in.tags:
+        db.add(RecipeTag(recipe_id=recipe.id, tag=tag_name))
 
     await db.commit()
+
+    if visibility == "pending":
+        await _notify_admins_pending_recipe(db, recipe, current_user)
 
     # Załaduj ponownie z relacjami
     result = await db.execute(
@@ -287,7 +307,137 @@ async def create_recipe(
         )
         .where(Recipe.id == recipe.id)
     )
-    return result.scalar_one()
+    final_recipe = result.scalar_one()
+    final_recipe.is_favorite = False
+    final_recipe.is_own_recipe = True
+    return final_recipe
+
+
+async def _notify_admins_pending_recipe(db: AsyncSession, recipe: Recipe, author: User) -> None:
+    """Powiadamia WSZYSTKICH administratorów o nowym przepisie czekającym
+    na akceptację do wspólnego katalogu."""
+    from app.models.notification import Notification
+
+    admins_result = await db.execute(select(User.id).where(User.role == "admin"))
+    admin_ids = list(admins_result.scalars().all())
+    if not admin_ids:
+        return
+
+    author_name = author.display_name or "Ktoś"
+    message = f'{author_name} zgłosił(a) przepis "{recipe.name}" do wspólnego katalogu — wymaga akceptacji.'
+    for admin_id in admin_ids:
+        db.add(
+            Notification(
+                user_id=admin_id,
+                notification_type="recipe_pending_approval",
+                message=message,
+                recipe_id=recipe.id,
+            )
+        )
+    await db.commit()
+
+
+@router.put(
+    "/{recipe_id}/approve",
+    response_model=RecipeResponse,
+    summary="Zaakceptuj przepis do wspólnego katalogu (admin)",
+)
+async def approve_recipe(
+    recipe_id: UUID,
+    current_user: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
+) -> Recipe:
+    """Akceptuje zgłoszony przepis — staje się widoczny dla wszystkich."""
+    recipe = await db.get(Recipe, recipe_id)
+    if recipe is None:
+        raise NotFoundException(detail=f"Przepis o ID {recipe_id} nie został znaleziony")
+    recipe.visibility = "public"
+    await db.commit()
+
+    # Powiadom autora, że jego przepis został zaakceptowany.
+    if recipe.created_by_user_id is not None:
+        from app.models.notification import Notification
+
+        db.add(
+            Notification(
+                user_id=recipe.created_by_user_id,
+                notification_type="recipe_approved",
+                message=f'Twój przepis "{recipe.name}" został zaakceptowany i jest teraz widoczny dla wszystkich!',
+                recipe_id=recipe.id,
+            )
+        )
+        await db.commit()
+
+    result = await db.execute(
+        select(Recipe)
+        .options(
+            selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product),
+            selectinload(Recipe.tags),
+        )
+        .where(Recipe.id == recipe.id)
+    )
+    final_recipe = result.scalar_one()
+    final_recipe.is_favorite = False
+    final_recipe.is_own_recipe = final_recipe.created_by_user_id == current_user.id
+    return final_recipe
+
+
+@router.put(
+    "/{recipe_id}/reject",
+    response_model=RecipeResponse,
+    summary="Odrzuć przepis zgłoszony do wspólnego katalogu (admin)",
+)
+async def reject_recipe(
+    recipe_id: UUID,
+    current_user: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
+) -> Recipe:
+    """Odrzuca zgłoszenie — przepis wraca do stanu prywatnego, ale
+    zachowuje ślad, że nie przeszedł akceptacji."""
+    recipe = await db.get(Recipe, recipe_id)
+    if recipe is None:
+        raise NotFoundException(detail=f"Przepis o ID {recipe_id} nie został znaleziony")
+    recipe.visibility = "rejected"
+    await db.commit()
+
+    result = await db.execute(
+        select(Recipe)
+        .options(
+            selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product),
+            selectinload(Recipe.tags),
+        )
+        .where(Recipe.id == recipe.id)
+    )
+    final_recipe = result.scalar_one()
+    final_recipe.is_favorite = False
+    final_recipe.is_own_recipe = final_recipe.created_by_user_id == current_user.id
+    return final_recipe
+
+
+@router.get(
+    "/pending/review",
+    response_model=list[RecipeResponse],
+    summary="Lista przepisów czekających na akceptację (admin)",
+)
+async def list_pending_recipes(
+    current_user: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
+) -> list[Recipe]:
+    """Zwraca wszystkie przepisy oczekujące na akceptację administratora."""
+    result = await db.execute(
+        select(Recipe)
+        .options(
+            selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product),
+            selectinload(Recipe.tags),
+        )
+        .where(Recipe.visibility == "pending")
+        .order_by(Recipe.created_at)
+    )
+    recipes = list(result.unique().scalars().all())
+    for recipe in recipes:
+        recipe.is_favorite = False
+        recipe.is_own_recipe = False
+    return recipes
 
 
 @router.post(
@@ -366,24 +516,28 @@ async def ai_import_recipe(
     current_user: User = Depends(get_current_premium),
     db: AsyncSession = Depends(get_db),
 ) -> Recipe:
-    """Rozpoznaje przepis z wklejonego tekstu ALBO zdjęcia i tworzy z niego
-    nowy, PRYWATNY przepis (widoczny tylko dla Ciebie — nie trafia
+    """Rozpoznaje przepis z wklejonego tekstu, zdjęcia ALBO linku
+    (np. blog kulinarny, TikTok, Instagram) i tworzy z niego nowy,
+    PRYWATNY przepis (widoczny tylko dla Ciebie — nie trafia
     automatycznie do wspólnego katalogu).
 
     Funkcja Premium. Limit: 20 wywołań/dzień (niezależnie od statusu
-    premium) — każde wywołanie kosztuje realne pieniądze (API Anthropic).
+    premium) — każde wywołanie kosztuje realne pieniądze (API Gemini).
     """
     from app.core.rate_limit import ai_recipe_import_limiter, enforce_user_rate_limit
     from app.services.ai_recipe_import import (
         AIRecipeImportError,
         extract_recipe_from_photo,
         extract_recipe_from_text,
+        extract_recipe_from_url,
         validate_and_clean_recipe_dict,
     )
 
-    if not payload.text and not payload.photo_base64:
+    provided = [bool(payload.text), bool(payload.photo_base64), bool(payload.url)]
+    if sum(provided) != 1:
         raise HTTPException(
-            status_code=400, detail="Podaj tekst przepisu albo zdjęcie (dokładnie jedno z nich)"
+            status_code=400,
+            detail="Podaj dokładnie jedno z: tekst przepisu, zdjęcie albo link.",
         )
 
     enforce_user_rate_limit(ai_recipe_import_limiter, current_user.id, "rozpoznawanie przepisu przez AI")
@@ -397,8 +551,10 @@ async def ai_import_recipe(
     try:
         if payload.text:
             parsed = await extract_recipe_from_text(payload.text, available_products)
-        else:
+        elif payload.photo_base64:
             parsed = await extract_recipe_from_photo(payload.photo_base64, available_products)
+        else:
+            parsed = await extract_recipe_from_url(payload.url, available_products)
     except AIRecipeImportError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
 

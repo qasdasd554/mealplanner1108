@@ -11,6 +11,7 @@ class Promotion {
   final bool requiresLoyaltyCard;
   final double savings;
   final int savingsPercent;
+  final String reviewStatus;
 
   Promotion({
     required this.id,
@@ -25,6 +26,7 @@ class Promotion {
     required this.requiresLoyaltyCard,
     required this.savings,
     required this.savingsPercent,
+    this.reviewStatus = 'approved',
   });
 
   factory Promotion.fromJson(Map<String, dynamic> json) {
@@ -41,6 +43,7 @@ class Promotion {
       requiresLoyaltyCard: json['requires_loyalty_card'] as bool? ?? false,
       savings: (json['savings'] as num?)?.toDouble() ?? 0.0,
       savingsPercent: json['savings_percent'] as int? ?? 0,
+      reviewStatus: json['review_status'] as String? ?? 'approved',
     );
   }
 }

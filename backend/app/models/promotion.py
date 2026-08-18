@@ -100,6 +100,16 @@ class Promotion(Base):
     is_active: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=True,
     )
+    # Status akceptacji — istotny TYLKO dla promocji znalezionych
+    # automatycznie przez AI (source="ai_scan"). Promocje z innych źródeł
+    # (ręczne, stary scraper HTML) mają domyślnie "approved", żeby nie
+    # zmieniać ich dotychczasowego zachowania.
+    #   "approved" — zastosowana, wpływa na ceny widoczne w aplikacji
+    #   "pending"  — czeka na akceptację administratora
+    #   "rejected" — administrator odrzucił, NIE wpływa na ceny
+    review_status: Mapped[str] = mapped_column(
+        String(20), nullable=False, default="approved",
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False,
     )

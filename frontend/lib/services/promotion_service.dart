@@ -36,4 +36,34 @@ class PromotionService {
     }
     return [];
   }
+
+  /// Uruchamia skanowanie gazetki danego sklepu przez AI (tylko admin).
+  /// Zwraca podsumowanie — ile promocji znaleziono i zakolejkowano do
+  /// akceptacji. To NIE tworzy żadnych aktywnych promocji od razu.
+  Future<Map<String, dynamic>> triggerAiScan(String storeName) async {
+    final response = await _client.post(
+      '/promotions/ai-scan?store_name=${Uri.encodeComponent(storeName)}',
+    );
+    return response as Map<String, dynamic>;
+  }
+
+  /// Lista promocji znalezionych przez AI, czekających na akceptację
+  /// administratora.
+  Future<List<Promotion>> getPendingPromotions() async {
+    final response = await _client.get('/promotions/pending');
+    if (response is List) {
+      return response.map((e) => Promotion.fromJson(e as Map<String, dynamic>)).toList();
+    }
+    return [];
+  }
+
+  Future<Promotion> approvePromotion(String promotionId) async {
+    final response = await _client.put('/promotions/$promotionId/approve');
+    return Promotion.fromJson(response as Map<String, dynamic>);
+  }
+
+  Future<Promotion> rejectPromotion(String promotionId) async {
+    final response = await _client.put('/promotions/$promotionId/reject');
+    return Promotion.fromJson(response as Map<String, dynamic>);
+  }
 }

@@ -146,7 +146,7 @@ class PremiumScreen extends StatelessWidget {
                 _buildPricingCard(
                   context: context,
                   title: 'Miesięcznie',
-                  price: '14,99 zł',
+                  price: '19,99 zł',
                   period: '/ miesiąc',
                   highlight: false,
                 ).animate().fadeIn(delay: 700.ms),
@@ -154,14 +154,14 @@ class PremiumScreen extends StatelessWidget {
                 _buildPricingCard(
                   context: context,
                   title: 'Rocznie',
-                  price: '119,99 zł',
+                  price: '199,99 zł',
                   period: '/ rok',
-                  badge: 'Oszczędzasz 33%',
+                  badge: 'Oszczędzasz 17%',
                   highlight: true,
                 ).animate().fadeIn(delay: 800.ms),
                 const SizedBox(height: 20),
                 Text(
-                  'Ceny przykładowe — subskrypcję można anulować w dowolnym momencie.',
+                  'Subskrypcję można anulować w dowolnym momencie.',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
                 ),

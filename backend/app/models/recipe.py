@@ -73,6 +73,17 @@ class Recipe(Base):
     created_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=True
     )
+    # Status widoczności przepisu dodanego przez użytkownika (nieistotne
+    # dla 81 oficjalnych przepisów — te zawsze mają created_by_user_id=NULL
+    # i są widoczne dla wszystkich niezależnie od tej wartości):
+    #   "private" — widoczny TYLKO dla twórcy (domyślne, tak działają
+    #               wszystkie konta standardowe)
+    #   "pending" — zgłoszony do wspólnego katalogu, czeka na akceptację
+    #               administratora (tylko konta Premium mogą zgłaszać)
+    #   "public"  — zaakceptowany, widoczny dla wszystkich
+    #   "rejected" — administrator odrzucił zgłoszenie; twórca nadal go
+    #               widzi (jak "private"), ale wie, że nie przeszedł
+    visibility: Mapped[str] = mapped_column(String(20), default="private", nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

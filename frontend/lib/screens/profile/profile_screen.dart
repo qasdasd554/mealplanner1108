@@ -7,6 +7,7 @@ import '../../providers/theme_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/premium_badge.dart';
 import 'premium_screen.dart';
+import '../admin/admin_panel_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -134,6 +135,48 @@ class ProfileScreen extends StatelessWidget {
               ).animate().fadeIn().shimmer(delay: 600.ms, duration: 1200.ms),
 
             const SizedBox(height: 24),
+
+            // Wejście do panelu administratora — widoczne TYLKO dla
+            // kont z rolą "admin".
+            if (user?.isAdmin ?? false)
+              InkWell(
+                borderRadius: BorderRadius.circular(18),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const AdminPanelScreen()),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(18),
+                    color: AppTheme.surfaceColor,
+                    border: Border.all(color: AppTheme.textSecondary.withOpacity(0.2)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: AppTheme.secondaryColor.withOpacity(0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.admin_panel_settings_outlined, color: AppTheme.secondaryColor),
+                      ),
+                      const SizedBox(width: 14),
+                      const Expanded(
+                        child: Text(
+                          'Panel administratora',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                        ),
+                      ),
+                      Icon(Icons.arrow_forward_ios, color: AppTheme.textSecondary, size: 16),
+                    ],
+                  ),
+                ),
+              ),
+
+            if (user?.isAdmin ?? false) const SizedBox(height: 24),
 
             // 2. Sekcja preferencji i ustawień
             Text(

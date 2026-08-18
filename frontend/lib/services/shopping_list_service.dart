@@ -25,4 +25,17 @@ class ShoppingListService {
     final response = await _client.get('${ApiConfig.shoppingLists}$listId/summary');
     return response as Map<String, dynamic>;
   }
+
+  /// Tworzy listę zakupów na konkretne danie/dania (funkcja Premium) —
+  /// bez tworzenia pełnego planu posiłków.
+  Future<ShoppingList> createFromRecipes({
+    required List<String> recipeIds,
+    required String storeId,
+  }) async {
+    final response = await _client.post(
+      '${ApiConfig.shoppingLists}from-recipes',
+      body: {'recipe_ids': recipeIds, 'store_id': storeId},
+    );
+    return ShoppingList.fromJson(response as Map<String, dynamic>);
+  }
 }

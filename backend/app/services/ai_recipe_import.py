@@ -242,13 +242,91 @@ async def extract_recipe_from_text(recipe_text: str, available_products: list[st
     return _parse_recipe_json(raw)
 
 
+async def _fetch_url_text(url: str) -> str:
+    """Pobiera i wyciąga tekst czytelny dla człowieka ze strony pod danym
+    adresem — do rozpoznawania przepisu z linku (blog kulinarny, TikTok,
+    Instagram itp.).
+
+    UCZCIWE OGRANICZENIE: strony takie jak TikTok są w większości
+    renderowane przez JavaScript — surowe pobranie strony (bez
+    uruchamiania przeglądarki) zwykle daje dostęp TYLKO do opisu/tytułu
+    w metadanych strony (Open Graph), NIE do treści samego nagrania ani
+    napisów mówionych. Jeśli twórca opisał przepis w podpisie pod
+    filmikiem — zadziała. Jeśli przepis pada wyłącznie w mowie w
+    nagraniu — rozpoznawanie może się nie udać.
+    """
+    import httpx
+    from bs4 import BeautifulSoup
+
+    async with httpx.AsyncClient(timeout=20.0, follow_redirects=True) as client:
+        try:
+            response = await client.get(
+                url,
+                headers={
+                    "User-Agent": (
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+                    )
+                },
+            )
+        except httpx.HTTPError as exc:
+            raise AIRecipeImportError(f"Nie udało się otworzyć podanego linku: {exc}")
+
+    if response.status_code != 200:
+        raise AIRecipeImportError(
+            f"Podana strona zwróciła błąd ({response.status_code}). Sprawdź, czy link jest poprawny."
+        )
+
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    parts: list[str] = []
+    title = soup.find("title")
+    if title and title.get_text(strip=True):
+        parts.append(title.get_text(strip=True))
+
+    for meta_name, attrs in (
+        ("og:title", {"property": "og:title"}),
+        ("og:description", {"property": "og:description"}),
+        ("description", {"name": "description"}),
+    ):
+        tag = soup.find("meta", attrs=attrs)
+        if tag and tag.get("content"):
+            parts.append(tag["content"])
+
+    for tag in soup(["script", "style", "noscript"]):
+        tag.decompose()
+    body_text = soup.get_text(separator="\n", strip=True)
+    if body_text:
+        # Limit rozmiaru — nie chcemy wysyłać całej, ogromnej strony do AI.
+        parts.append(body_text[:8000])
+
+    combined = "\n\n".join(p for p in parts if p)
+    if not combined.strip():
+        raise AIRecipeImportError(
+            "Nie udało się wyciągnąć żadnej treści z podanego linku."
+        )
+    return combined
+
+
+async def extract_recipe_from_url(url: str, available_products: list[str]) -> dict:
+    """Rozpoznaje przepis na podstawie treści strony pod danym adresem
+    URL (blog kulinarny, TikTok, Instagram itp.) — patrz ograniczenia
+    w docstringu `_fetch_url_text`."""
+    page_text = await _fetch_url_text(url)
+    return await extract_recipe_from_text(page_text, available_products)
+
+
 async def extract_recipe_from_photo(photo_base64: str, available_products: list[str]) -> dict:
     """Zwraca ustrukturyzowany przepis (dict) rozpoznany ze zdjęcia (np.
     fotografii karty przepisu, strony książki kucharskiej, albo
     gotowego dania — AI oszacuje wtedy prawdopodobny przepis)."""
     prompt = _build_prompt(available_products)
     parts = [
-        {"inline_data": {"mime_type": "image/jpeg", "data": photo_base64}},
+        # UWAGA: celowo camelCase (inlineData/mimeType) — to bezpieczniejszy,
+        # szerzej udokumentowany wariant dla obrazów w Gemini API. Parser
+        # Google zwykle akceptuje też snake_case, ale camelCase eliminuje
+        # wszelkie wątpliwości.
+        {"inlineData": {"mimeType": "image/jpeg", "data": photo_base64}},
         {"text": prompt},
     ]
     raw = await _call_gemini(parts)

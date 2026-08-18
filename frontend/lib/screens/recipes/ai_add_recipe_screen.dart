@@ -25,6 +25,7 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
   late final TabController _tabController;
   final RecipeService _recipeService = RecipeService();
   final TextEditingController _textController = TextEditingController();
+  final TextEditingController _urlController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
 
   File? _pickedImage;
@@ -34,13 +35,14 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     _textController.dispose();
+    _urlController.dispose();
     super.dispose();
   }
 
@@ -112,6 +114,24 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
     }
   }
 
+  Future<void> _submitUrl() async {
+    final url = _urlController.text.trim();
+    if (url.isEmpty) return;
+
+    setState(() {
+      _isSubmitting = true;
+      _error = null;
+    });
+    try {
+      final recipe = await _recipeService.importRecipeFromUrl(url);
+      await _onSuccess(recipe);
+    } catch (e) {
+      _handleError(e);
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
   Future<void> _submitPhoto() async {
     if (_pickedImage == null) return;
 
@@ -168,6 +188,7 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
           tabs: const [
             Tab(text: 'Wklej tekst', icon: Icon(Icons.text_snippet_outlined)),
             Tab(text: 'Zdjęcie', icon: Icon(Icons.photo_camera_outlined)),
+            Tab(text: 'Link', icon: Icon(Icons.link)),
           ],
         ),
       ),
@@ -175,7 +196,7 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
           ? _buildLoadingState()
           : TabBarView(
               controller: _tabController,
-              children: [_buildTextTab(), _buildPhotoTab()],
+              children: [_buildTextTab(), _buildPhotoTab(), _buildLinkTab()],
             ),
     );
   }
@@ -321,6 +342,50 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
             width: double.infinity,
             child: ElevatedButton(
               onPressed: _pickedImage != null ? _submitPhoto : null,
+              child: const Text('Rozpoznaj przepis'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLinkTab() {
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Wklej link do przepisu',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Blog kulinarny, TikTok, Instagram — AI spróbuje rozpoznać przepis '
+            'na podstawie treści strony. Jeśli przepis pada wyłącznie w mowie '
+            'w nagraniu (nie ma go w opisie), rozpoznanie może się nie udać.',
+            style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+          ),
+          const SizedBox(height: 24),
+          TextField(
+            controller: _urlController,
+            keyboardType: TextInputType.url,
+            decoration: InputDecoration(
+              hintText: 'https://...',
+              prefixIcon: const Icon(Icons.link),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+          if (_error != null) ...[
+            const SizedBox(height: 8),
+            Text(_error!, style: const TextStyle(color: AppTheme.errorColor, fontSize: 13)),
+          ],
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _submitUrl,
               child: const Text('Rozpoznaj przepis'),
             ),
           ),

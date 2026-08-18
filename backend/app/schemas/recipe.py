@@ -81,6 +81,12 @@ class RecipeCreate(RecipeBase):
 
     tags: list[str] = []
     ingredients: list[RecipeIngredientCreate] = []
+    instructions: list[str] = []
+    suggested_seasonings: list[str] = []
+    # Zgłoszenie do wspólnego katalogu widocznego dla wszystkich — tylko
+    # konta Premium mogą to ustawić na True. Domyślnie przepis jest
+    # prywatny (widoczny tylko dla twórcy).
+    request_public: bool = False
 
 
 class RecipeResponse(RecipeBase):
@@ -105,6 +111,9 @@ class RecipeResponse(RecipeBase):
     # twórcy) — frontend używa tego np. do pokazania odznaki "Twój
     # przepis" i opcji edycji/usunięcia (docelowo).
     is_own_recipe: bool = False
+    # "private" / "pending" / "public" / "rejected" — nieistotne dla 81
+    # oficjalnych przepisów (zawsze widoczne, niezależnie od tej wartości).
+    visibility: str = "private"
 
     @field_validator("tags", mode="before")
     @classmethod
@@ -151,9 +160,13 @@ class RecipeResponse(RecipeBase):
 
 class AIRecipeImportRequest(BaseModel):
     """Żądanie rozpoznania przepisu przez AI — dokładnie JEDNO z pól
-    `text` / `photo_base64` musi być podane."""
+    `text` / `photo_base64` / `url` musi być podane."""
 
     text: str | None = Field(default=None, max_length=10_000)
     # Zdjęcie zakodowane w Base64, bez prefiksu "data:image/...".
     photo_base64: str | None = None
+    # Link do strony/posta (np. blog kulinarny, TikTok, Instagram) — AI
+    # rozpozna przepis na podstawie tekstu strony (patrz ograniczenia
+    # w app/services/ai_recipe_import.py, sekcja _fetch_url_text).
+    url: str | None = Field(default=None, max_length=2000)
 
