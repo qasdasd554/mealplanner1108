@@ -18,6 +18,7 @@ przed zastosowaniem.
 
 from __future__ import annotations
 
+import asyncio
 import base64
 import logging
 import re
@@ -83,22 +84,59 @@ async def _find_flyer_pdf_url(store_name: str) -> str:
     raise PromoAIScanError(f"Nie znaleziono linku do PDF-a z gazetką dla {store_name}")
 
 
-async def _download_pdf(url: str) -> bytes:
-    async with httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client:
-        try:
-            response = await client.get(url)
-        except httpx.HTTPError as exc:
-            raise PromoAIScanError(f"Nie udało się pobrać pliku PDF z gazetką: {exc}")
+async def _download_pdf(url: str, referer: str) -> bytes:
+    """Pobiera plik PDF spod danego adresu.
 
-    if response.status_code != 200:
-        raise PromoAIScanError(f"Pobieranie PDF-a zwróciło błąd ({response.status_code})")
+    UWAGA (naprawa): wcześniej zapytanie leciało bez żadnych nagłówków
+    przeglądarki — niektóre serwery hostujące pliki (np. odpowiedzialne
+    za "server disconnected") oczekują choćby minimalnego, realistycznego
+    zestawu nagłówków (w tym Referer wskazujący stronę, z której pobrano
+    link) i po cichu zrywają połączenie zamiast zwrócić czytelny błąd
+    HTTP. Dodatkowo: "server disconnected" bywa PRZEJŚCIOWE — ponawiamy
+    próbę, zamiast od razu się poddawać.
+    """
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+        ),
+        "Accept": "application/pdf,*/*",
+        "Referer": referer,
+    }
 
-    if len(response.content) > _MAX_PDF_BYTES:
-        raise PromoAIScanError(
-            f"Gazetka jest za duża ({len(response.content) // 1024 // 1024} MB) — pomijam."
-        )
+    max_attempts = 3
+    last_error: str | None = None
 
-    return response.content
+    for attempt in range(1, max_attempts + 1):
+        timeout = httpx.Timeout(connect=15.0, read=60.0, write=15.0, pool=15.0)
+        async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
+            try:
+                response = await client.get(url, headers=headers)
+            except httpx.HTTPError as exc:
+                last_error = str(exc)
+                logger.warning(
+                    "Pobieranie PDF-a nieudane (próba %d/%d): %s", attempt, max_attempts, exc
+                )
+                if attempt < max_attempts:
+                    await asyncio.sleep(attempt * 2.0)
+                    continue
+                raise PromoAIScanError(
+                    f"Nie udało się pobrać pliku PDF z gazetką mimo {max_attempts} prób: {last_error}"
+                )
+
+        if response.status_code != 200:
+            raise PromoAIScanError(f"Pobieranie PDF-a zwróciło błąd ({response.status_code})")
+
+        if len(response.content) > _MAX_PDF_BYTES:
+            raise PromoAIScanError(
+                f"Gazetka jest za duża ({len(response.content) // 1024 // 1024} MB) — pomijam."
+            )
+
+        return response.content
+
+    # Nieosiągalne (pętla zawsze albo zwraca, albo rzuca wyjątek powyżej),
+    # ale jawny błąd na wszelki wypadek, gdyby to się kiedyś zmieniło.
+    raise PromoAIScanError(f"Nie udało się pobrać pliku PDF z gazetką: {last_error}")
 
 
 def _build_prompt(store_name: str, available_products: list[str]) -> str:
@@ -197,6 +235,8 @@ async def find_promotions_for_store(store_name: str, available_products: list[st
     rozpoznaj promocje przez AI. Zwraca listę dictów
     {product_name, regular_price, promo_price}."""
     pdf_url = await _find_flyer_pdf_url(store_name)
-    pdf_bytes = await _download_pdf(pdf_url)
+    slug = _AGGREGATOR_SLUGS.get(store_name, "")
+    referer = f"https://www.iulotka.pl/{slug}"
+    pdf_bytes = await _download_pdf(pdf_url, referer=referer)
     raw = await _call_gemini_with_pdf(pdf_bytes, store_name, available_products)
     return _parse_promotions_json(raw)

@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/food_log_provider.dart';
 import '../../providers/meal_plan_provider.dart';
+import '../../models/meal_plan.dart';
 import '../../services/recipe_service.dart';
 import '../../models/recipe.dart';
 import '../../theme/app_theme.dart';
@@ -70,6 +72,61 @@ class _PlanTab extends StatefulWidget {
 }
 
 class _PlanTabState extends State<_PlanTab> {
+  /// Pokazuje krótki dialog wyboru liczby porcji przed zalogowaniem
+  /// posiłku z planu — wcześniej "+" logował ZAWSZE dokładnie tyle porcji,
+  /// ile było zapisane w planie, bez możliwości powiedzenia "zjadłem
+  /// tylko połowę" albo "dołożyłem sobie".
+  Future<void> _pickServingsAndLog(BuildContext context, FoodLogProvider provider, MealPlanEntry entry) async {
+    double servings = 1.0;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Text(entry.recipe.name),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Ile porcji zjadłeś/-aś?'),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.remove_circle_outline),
+                    onPressed: servings > 0.5
+                        ? () => setDialogState(() => servings = (servings - 0.5).clamp(0.5, 10))
+                        : null,
+                  ),
+                  Text(servings.toStringAsFixed(1), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  IconButton(
+                    icon: const Icon(Icons.add_circle_outline),
+                    onPressed: () => setDialogState(() => servings = (servings + 0.5).clamp(0.5, 10)),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Anuluj')),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Dodaj')),
+          ],
+        ),
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+
+    final success = await provider.addFromMealPlanEntry(entry.id, servings: servings);
+    if (context.mounted) {
+      if (success) {
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(provider.error ?? 'Nie udało się dodać posiłku')),
+        );
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -176,18 +233,7 @@ class _PlanTabState extends State<_PlanTab> {
                   : IconButton(
                       icon: const Icon(Icons.add_circle, color: AppTheme.primaryColor, size: 28),
                       tooltip: 'Dodaj do dziennika',
-                      onPressed: () async {
-                        final success = await foodLogProvider.addFromMealPlanEntry(entry.id);
-                        if (context.mounted) {
-                          if (success) {
-                            Navigator.pop(context);
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(foodLogProvider.error ?? 'Nie udało się dodać posiłku')),
-                            );
-                          }
-                        }
-                      },
+                      onPressed: () => _pickServingsAndLog(context, foodLogProvider, entry),
                     ),
             ],
           ),
@@ -214,11 +260,23 @@ class _RecipesTabState extends State<_RecipesTab> {
   List<Recipe> _results = [];
   bool _loading = false;
   String? _error;
+  Timer? _debounce;
 
   @override
   void initState() {
     super.initState();
     _search('');
+  }
+
+  // UWAGA (naprawa): pole wcześniej wywoływało wyszukiwanie TYLKO po
+  // wciśnięciu Enter/Gotowe na klawiaturze (onSubmitted) — w praktyce
+  // wyglądało to jak "wyszukiwanie nie działa", bo nic się nie działo
+  // podczas pisania, jak w każdym typowym polu wyszukiwania. Teraz
+  // wyszukuje na bieżąco, z małym opóźnieniem (debounce), żeby nie
+  // odpytywać serwera przy każdym pojedynczym znaku.
+  void _onSearchChanged(String query) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 350), () => _search(query));
   }
 
   Future<void> _search(String query) async {
@@ -269,6 +327,7 @@ class _RecipesTabState extends State<_RecipesTab> {
   @override
   void dispose() {
     _searchController.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
 
@@ -284,6 +343,7 @@ class _RecipesTabState extends State<_RecipesTab> {
               hintText: 'Szukaj przepisu...',
               prefixIcon: Icon(Icons.search),
             ),
+            onChanged: _onSearchChanged,
             onSubmitted: _search,
           ),
         ),

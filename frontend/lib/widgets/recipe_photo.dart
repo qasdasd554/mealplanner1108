@@ -1,15 +1,20 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../models/recipe.dart';
 
-/// Pokazuje zdjęcie przepisu — prawdziwe (wygenerowane przez AI), jeśli
-/// istnieje, w przeciwnym razie ilustrację kategorii jako zapasową.
+/// Pokazuje zdjęcie przepisu:
+/// 1. Prawdziwe zdjęcie z zasobów aplikacji (81 oficjalnych przepisów),
+/// 2. w jego braku — zdjęcie przesłane przez użytkownika (ręcznie dodany
+///    przepis albo rozpoznany ze zdjęcia przez AI), bez plakietki "AI"
+///    (to prawdziwe zdjęcie, nie wygenerowane),
+/// 3. w ostateczności — ilustrację kategorii jako zapasową.
 ///
-/// Prawdziwe zdjęcia mają zawsze widoczną plakietkę "Zdjęcie poglądowe,
-/// wygenerowane przez AI" w prawym dolnym rogu — to element interfejsu
-/// (nie wypalony w pikselach obrazu), więc tekst zawsze jest czytelny
-/// i poprawnie napisany, niezależnie od tego, jak dobrze narzędzie
-/// graficzne radzi sobie z renderowaniem tekstu.
+/// Prawdziwe zdjęcia z pkt 1 mają zawsze widoczną plakietkę "Zdjęcie
+/// poglądowe, wygenerowane przez AI" w prawym dolnym rogu — to element
+/// interfejsu (nie wypalony w pikselach obrazu), więc tekst zawsze jest
+/// czytelny i poprawnie napisany, niezależnie od tego, jak dobrze
+/// narzędzie graficzne radzi sobie z renderowaniem tekstu.
 class RecipePhoto extends StatelessWidget {
   final Recipe recipe;
   final BorderRadius? borderRadius;
@@ -30,6 +35,7 @@ class RecipePhoto extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final realPhoto = recipe.realPhotoAsset;
+    final userPhoto = recipe.photoBase64;
     final radius = borderRadius ?? BorderRadius.zero;
 
     Widget image;
@@ -42,6 +48,18 @@ class RecipePhoto extends StatelessWidget {
         // Gdyby plik jednak nie zaladowal sie poprawnie (np. blad przy
         // buildzie), pokaz ilustracje kategorii zamiast pustego/czerwonego
         // ekranu bledu.
+        errorBuilder: (context, error, stackTrace) {
+          return Center(
+            child: SvgPicture.asset(recipe.categoryImageAsset, width: 64, height: 64),
+          );
+        },
+      );
+    } else if (userPhoto != null && userPhoto.isNotEmpty) {
+      image = Image.memory(
+        base64Decode(userPhoto),
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
         errorBuilder: (context, error, stackTrace) {
           return Center(
             child: SvgPicture.asset(recipe.categoryImageAsset, width: 64, height: 64),

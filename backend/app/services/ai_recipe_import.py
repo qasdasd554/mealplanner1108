@@ -316,11 +316,19 @@ async def extract_recipe_from_url(url: str, available_products: list[str]) -> di
     return await extract_recipe_from_text(page_text, available_products)
 
 
-async def extract_recipe_from_photo(photo_base64: str, available_products: list[str]) -> dict:
+async def extract_recipe_from_photo(
+    photo_base64: str, available_products: list[str], hint: str | None = None
+) -> dict:
     """Zwraca ustrukturyzowany przepis (dict) rozpoznany ze zdjęcia (np.
     fotografii karty przepisu, strony książki kucharskiej, albo
-    gotowego dania — AI oszacuje wtedy prawdopodobny przepis)."""
+    gotowego dania — AI oszacuje wtedy prawdopodobny przepis).
+
+    [hint] to opcjonalna, krótka podpowiedź od użytkownika (np. "to jest
+    szarlotka") — pomaga AI, gdy zdjęcie samo w sobie jest niejednoznaczne
+    (np. danie trudne do rozpoznania wizualnie)."""
     prompt = _build_prompt(available_products)
+    if hint:
+        prompt += f'\n\nDODATKOWA PODPOWIEDŹ OD UŻYTKOWNIKA (potraktuj jako wskazówkę, co widać na zdjęciu): "{hint}"'
     parts = [
         # UWAGA: celowo camelCase (inlineData/mimeType) — to bezpieczniejszy,
         # szerzej udokumentowany wariant dla obrazów w Gemini API. Parser

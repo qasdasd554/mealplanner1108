@@ -9,6 +9,7 @@ import 'providers/shopping_list_provider.dart';
 import 'providers/food_log_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/promotion_provider.dart';
+import 'services/share_intent_handler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,4 +36,9 @@ void main() async {
       child: const SmartMealPlannerApp(),
     ),
   );
+
+  // Nasłuchiwanie na udostępnienia z innych aplikacji (np. TikTok) — po
+  // uruchomieniu aplikacji, żeby GlobalKey nawigatora był już podłączony
+  // do zbudowanego drzewa widgetów.
+  ShareIntentHandler.initialize(SmartMealPlannerApp.navigatorKey);
 }

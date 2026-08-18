@@ -87,6 +87,19 @@ class RecipeCreate(RecipeBase):
     # konta Premium mogą to ustawić na True. Domyślnie przepis jest
     # prywatny (widoczny tylko dla twórcy).
     request_public: bool = False
+    # Prawdziwe zdjęcie dania (Base64, bez prefiksu "data:image/...") —
+    # opcjonalne, tylko dla ręcznie dodawanych przepisów.
+    photo_base64: str | None = None
+
+    @field_validator("photo_base64")
+    @classmethod
+    def validate_photo(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        from app.core.photo_validation import validate_and_check_photo_base64
+
+        # 3 MB po dekompresji — ten sam limit co przy zdjęciach komentarzy.
+        return validate_and_check_photo_base64(v, 3 * 1024 * 1024)
 
 
 class RecipeResponse(RecipeBase):
@@ -97,6 +110,7 @@ class RecipeResponse(RecipeBase):
     id: uuid.UUID
     nutrition_total: dict | None = None
     image_url: str | None = None
+    photo_base64: str | None = None
     instructions: list[str] | None = None
     suggested_seasonings: list[str] | None = None
     is_active: bool
@@ -165,8 +179,16 @@ class AIRecipeImportRequest(BaseModel):
     text: str | None = Field(default=None, max_length=10_000)
     # Zdjęcie zakodowane w Base64, bez prefiksu "data:image/...".
     photo_base64: str | None = None
+    # Krótki opis/podpowiedź ułatwiająca AI rozpoznanie zdjęcia (np. "to
+    # jest szarlotka", "danie kuchni tajskiej") — opcjonalne, tylko dla
+    # zdjęcia. Puste dla tekstu/linku (tam kontekst już jest w treści).
+    photo_hint: str | None = Field(default=None, max_length=200)
     # Link do strony/posta (np. blog kulinarny, TikTok, Instagram) — AI
     # rozpozna przepis na podstawie tekstu strony (patrz ograniczenia
     # w app/services/ai_recipe_import.py, sekcja _fetch_url_text).
     url: str | None = Field(default=None, max_length=2000)
+    # Zgłoszenie do wspólnego katalogu widocznego dla wszystkich — jak
+    # przy ręcznym dodawaniu (ten endpoint i tak wymaga Premium, więc nie
+    # trzeba tu dodatkowo sprawdzać uprawnień).
+    request_public: bool = False
 

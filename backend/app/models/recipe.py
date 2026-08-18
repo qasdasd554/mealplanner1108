@@ -55,6 +55,13 @@ class Recipe(Base):
     )
     nutrition_total: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    # Prawdziwe zdjęcie dania załączone przez użytkownika (ręcznie dodany
+    # przepis, albo zdjęcie użyte do rozpoznania przez AI) — zakodowane
+    # w Base64, przechowywane bezpośrednio w bazie (Render nie ma trwałego
+    # dysku, więc nie można po prostu zapisać pliku na serwerze). Dotyczy
+    # TYLKO przepisów dodanych przez użytkowników — 81 oficjalnych
+    # przepisów ma swoje zdjęcia jako zasoby aplikacji (recipe.realPhotoAsset).
+    photo_base64: Mapped[str | None] = mapped_column(Text, nullable=True)
     # Instrukcje przygotowania krok po kroku (lista tekstów). Wcześniej ta
     # kolumna w ogóle nie istniała — aplikacja nie miała jak pokazać "jak to
     # ugotować", tylko listę składników i wartości odżywcze.

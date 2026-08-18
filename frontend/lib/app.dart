@@ -21,11 +21,18 @@ import 'screens/promotions/promotions_screen.dart';
 class SmartMealPlannerApp extends StatelessWidget {
   const SmartMealPlannerApp({super.key});
 
+  // Globalny klucz nawigatora — potrzebny, żeby ShareIntentHandler mógł
+  // otworzyć ekran rozpoznawania przepisu z linku POZA drzewem widgetów
+  // (udostępnienie z innej aplikacji może przyjść w dowolnym momencie,
+  // nie tylko wtedy, gdy mamy pod ręką zwykły BuildContext).
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, _) {
         return MaterialApp(
+          navigatorKey: navigatorKey,
           title: 'Meal Planner',
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,

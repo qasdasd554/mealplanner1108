@@ -37,12 +37,15 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     // Podział na taby
+    // UWAGA (zmiana): kolejność "Śledzenie" i "Profil" zamieniona miejscami
+    // na życzenie — Śledzenie (częściej używana funkcja) jest teraz na
+    // czwartej pozycji, Profil na piątej.
     final List<Widget> tabs = [
       const HomeTab(),
       const RecipesScreen(),
       const ShoppingListScreen(isTab: true),
-      const ProfileScreen(),
       const CalorieTrackerScreen(),
+      const ProfileScreen(),
     ];
 
     return Scaffold(
@@ -64,35 +67,34 @@ class _HomeScreenState extends State<HomeScreen> {
             activeIcon: Icon(Icons.home),
             label: 'Start',
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.restaurant_outlined),
-            activeIcon: Icon(Icons.restaurant),
+          // "Przepisy" ma teraz tę samą kolorową plakietkę co "Zakupy" i
+          // "Śledzenie" — spójne wizualne wyróżnienie głównych funkcji.
+          BottomNavigationBarItem(
+            icon: _buildHighlightedIcon(Icons.restaurant_outlined, active: false),
+            activeIcon: _buildHighlightedIcon(Icons.restaurant, active: true),
             label: 'Przepisy',
           ),
-          // "Zakupy" i "Śledzenie" to dwie najważniejsze funkcje aplikacji —
-          // wizualnie wyróżnione kolorową plakietką pod ikoną, żeby
-          // odróżniały się od pozostałych, zwykłych zakładek.
           BottomNavigationBarItem(
             icon: _buildHighlightedIcon(Icons.shopping_cart_outlined, active: false),
             activeIcon: _buildHighlightedIcon(Icons.shopping_cart, active: true),
             label: 'Zakupy',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profil',
           ),
           BottomNavigationBarItem(
             icon: _buildHighlightedIcon(Icons.local_fire_department_outlined, active: false),
             activeIcon: _buildHighlightedIcon(Icons.local_fire_department, active: true),
             label: 'Śledzenie',
           ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: 'Profil',
+          ),
         ],
       ),
     );
   }
 
-  /// Ikona z kolorową plakietką w tle — używana dla "Zakupy" i "Śledzenie",
+  /// Ikona z kolorową plakietką w tle — używana dla \"Zakupy\" i \"Śledzenie\",
   /// dwóch najważniejszych funkcji aplikacji, żeby wizualnie wyróżniały się
   /// na tle pozostałych, zwykłych zakładek nawigacji.
   Widget _buildHighlightedIcon(IconData icon, {required bool active}) {
@@ -176,23 +178,26 @@ class HomeTab extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  'Cześć, ${user?.displayName ?? 'użytkowniku'}!',
-                                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                  overflow: TextOverflow.ellipsis,
+                          // UWAGA (naprawa): wcześniej odznaka Premium
+                          // dzieliła jeden, wąski rząd z nickiem (obok
+                          // logo, dzwoneczka i awatara po drugiej stronie)
+                          // — przy dłuższym imieniu odznaka "wygryzała"
+                          // większość tekstu powitania, sprawiając wrażenie,
+                          // że nick jest przez nią zasłonięty. Teraz
+                          // powitanie ma pełną szerokość dla siebie, a
+                          // odznaka jest na osobnej linii pod spodem.
+                          Text(
+                            'Cześć, ${user?.displayName ?? 'użytkowniku'}!',
+                            style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
                                 ),
-                              ),
-                              if (user?.hasPremiumAccess ?? false) ...[
-                                const SizedBox(width: 8),
-                                const PremiumBadge(fontSize: 9),
-                              ],
-                            ],
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
+                          if (user?.hasPremiumAccess ?? false) ...[
+                            const SizedBox(height: 4),
+                            const PremiumBadge(fontSize: 9),
+                          ],
                           const SizedBox(height: 4),
                           Text(
                             'Co dziś gotujemy?',

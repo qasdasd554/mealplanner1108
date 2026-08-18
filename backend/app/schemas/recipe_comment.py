@@ -1,11 +1,11 @@
 """Schematy Pydantic dla komentarzy pod przepisami."""
 
-import base64
 import uuid
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.core.photo_validation import validate_and_check_photo_base64
 from app.core.profanity_filter import contains_profanity
 
 # Maksymalny rozmiar zdjęcia PO zdekodowaniu z Base64 — 3 MB. Zdjęcie jest
@@ -49,28 +49,7 @@ class RecipeCommentCreate(BaseModel):
     def validate_photo_size(cls, v: str | None) -> str | None:
         if v is None:
             return v
-        try:
-            decoded = base64.b64decode(v, validate=True)
-        except Exception as exc:
-            raise ValueError("Nieprawidłowe dane zdjęcia (błędny Base64)") from exc
-        if len(decoded) > MAX_PHOTO_BYTES:
-            raise ValueError(
-                f"Zdjęcie jest za duże (max {MAX_PHOTO_BYTES // 1024 // 1024} MB po dekompresji)"
-            )
-        # UWAGA (naprawa bezpieczeństwa): wcześniej nic nie sprawdzało, czy
-        # przesłane dane są w ogóle obrazem — ktokolwiek mógłby zapisać w
-        # bazie dowolne dane binarne pod pozorem "zdjęcia komentarza".
-        # Sprawdzamy sygnaturę pliku (magic bytes) dla najpopularniejszych
-        # formatów obrazów.
-        is_jpeg = decoded[:3] == b"\xff\xd8\xff"
-        is_png = decoded[:8] == b"\x89PNG\r\n\x1a\n"
-        is_webp = decoded[:4] == b"RIFF" and decoded[8:12] == b"WEBP"
-        is_gif = decoded[:6] in (b"GIF87a", b"GIF89a")
-        if not (is_jpeg or is_png or is_webp or is_gif):
-            raise ValueError(
-                "Przesłany plik nie jest rozpoznawalnym obrazem (JPEG, PNG, WebP lub GIF)"
-            )
-        return v
+        return validate_and_check_photo_base64(v, MAX_PHOTO_BYTES)
 
 
 class RecipeCommentResponse(BaseModel):

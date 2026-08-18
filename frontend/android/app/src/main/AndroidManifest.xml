@@ -33,6 +33,16 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Pozwala aplikacji pojawić się w systemowym menu "Udostępnij"
+                 z innych aplikacji (np. TikTok, Instagram) — użytkownik
+                 udostępnia link do filmiku, a aplikacja rozpoznaje z niego
+                 przepis przez AI. Wymaga MIME "text/plain", bo to właśnie
+                 tym typem TikTok udostępnia linki. -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/plain"/>
+            </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

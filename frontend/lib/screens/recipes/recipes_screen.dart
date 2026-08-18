@@ -23,6 +23,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   String? _selectedMealType;
   String? _selectedDifficulty;
   bool _favoritesOnly = false;
+  bool _communityOnly = false;
 
   @override
   void initState() {
@@ -41,6 +42,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
         mealType: _selectedMealType,
         difficulty: _selectedDifficulty,
         favoritesOnly: _favoritesOnly,
+        communityOnly: _communityOnly,
       );
       setState(() {
         _recipes = list;
@@ -119,6 +121,25 @@ class _RecipesScreenState extends State<RecipesScreen> {
                   },
                   selectedColor: Colors.redAccent,
                   labelStyle: TextStyle(color: _favoritesOnly ? Colors.white : null),
+                ),
+                const SizedBox(width: 8),
+                // Filtr "Społeczność" — pokazuje TYLKO przepisy dodane przez
+                // innych użytkowników i zaakceptowane do wspólnego katalogu
+                // (nie 81 oficjalnych, nie własne prywatne).
+                FilterChip(
+                  label: const Text('Społeczność'),
+                  avatar: Icon(
+                    Icons.groups_outlined,
+                    size: 18,
+                    color: _communityOnly ? Colors.white : AppTheme.secondaryColor,
+                  ),
+                  selected: _communityOnly,
+                  onSelected: (val) {
+                    setState(() => _communityOnly = val);
+                    _loadRecipes();
+                  },
+                  selectedColor: AppTheme.secondaryColor,
+                  labelStyle: TextStyle(color: _communityOnly ? Colors.white : null),
                 ),
                 const SizedBox(width: 8),
                 _buildFilterChip('Śniadania', 'śniadanie', _selectedMealType == 'śniadanie', (val) {

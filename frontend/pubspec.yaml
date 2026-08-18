@@ -30,6 +30,9 @@ dependencies:
   share_plus: ^10.1.2
   url_launcher: ^6.3.1
   image_picker: ^1.1.2
+  # Odbieranie udostępnień z innych aplikacji (np. link do filmiku
+  # udostępniony wprost z TikToka przez systemowe menu "Udostępnij").
+  receive_sharing_intent: ^1.8.1
 
   # UI & Styling
   google_fonts: ^6.1.0

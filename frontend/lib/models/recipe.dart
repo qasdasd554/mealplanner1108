@@ -62,6 +62,11 @@ class Recipe {
   // Czy TEN zalogowany użytkownik jest twórcą tego przepisu (dodanego
   // przez AI) — takie przepisy są prywatne, widoczne tylko dla twórcy.
   final bool isOwnRecipe;
+  // Prawdziwe zdjęcie dania (Base64) załączone przez użytkownika — przy
+  // ręcznie dodanym przepisie albo rozpoznanym ze zdjęcia przez AI.
+  // Osobne od `realPhotoAsset` (te dotyczą TYLKO 81 oficjalnych przepisów
+  // dostarczonych z aplikacją jako zasoby, nie danych z bazy).
+  final String? photoBase64;
   // "private" / "pending" / "public" / "rejected"
   final String visibility;
 
@@ -84,6 +89,7 @@ class Recipe {
     this.suggestedSeasonings = const [],
     this.isFavorite = false,
     this.isOwnRecipe = false,
+    this.photoBase64,
     this.visibility = 'private',
   });
 
@@ -118,6 +124,7 @@ class Recipe {
           [],
       isFavorite: json['is_favorite'] as bool? ?? false,
       isOwnRecipe: json['is_own_recipe'] as bool? ?? false,
+      photoBase64: json['photo_base64'] as String?,
       visibility: json['visibility'] as String? ?? 'private',
     );
   }

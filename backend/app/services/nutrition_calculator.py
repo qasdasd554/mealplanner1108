@@ -47,6 +47,24 @@ WEIGHT_PER_SZT_G: dict[str, float] = {
     "Awokado": 150,
     "Jabłka": 150,
     "Banan": 120,
+    # UWAGA (naprawa): tabela wcześniej miała tylko 9 pozycji — każdy inny
+    # produkt użyty z jednostką "szt" (typowe dla przepisów z AI, które
+    # swobodniej dobierają jednostki niż starannie wyselekcjonowane 81
+    # oficjalnych przepisów) dostawał ten sam, generyczny fallback 100 g,
+    # niezależnie czy to była kostka rosołowa (~10 g, 10x zawyżenie) czy
+    # duży kalafior (~500 g, 5x zaniżenie). Rozszerzona lista pokrywa
+    # pozostałe produkty z katalogu, które sensownie liczy się "na sztuki".
+    "Papryka słodka": 180,
+    "Cytryna": 80,
+    "Limonka": 50,
+    "Cukinia": 300,
+    "Bakłażan": 250,
+    "Por": 150,
+    "Mango": 200,
+    "Kalafior": 500,
+    "Brokuł": 400,
+    "Kapusta pekińska": 800,
+    "Cebula": 120,
 }
 _DEFAULT_SZT_WEIGHT_G = 100.0
 

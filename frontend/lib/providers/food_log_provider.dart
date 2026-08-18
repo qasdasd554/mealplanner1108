@@ -143,7 +143,7 @@ class FoodLogProvider with ChangeNotifier {
 
   /// Loguje posiłek bezpośrednio z pozycji planu posiłków przypisanej do
   /// aktualnie przeglądanego dnia (`_currentDate`) — nie zawsze "dziś".
-  Future<bool> addFromMealPlanEntry(String mealPlanEntryId) async {
+  Future<bool> addFromMealPlanEntry(String mealPlanEntryId, {double? servings}) async {
     final token = await _resolveToken();
     if (token == null) {
       _error = 'Musisz być zalogowany, aby dodać wpis.';
@@ -152,7 +152,7 @@ class FoodLogProvider with ChangeNotifier {
     }
 
     try {
-      await _service.addFromMealPlanEntry(mealPlanEntryId, token, forDate: _currentDate);
+      await _service.addFromMealPlanEntry(mealPlanEntryId, token, forDate: _currentDate, servings: servings);
       await fetchLogsForDate(_currentDate);
       return true;
     } catch (e) {

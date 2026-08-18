@@ -59,6 +59,10 @@ async def list_recipes(
     max_prep_time: int | None = Query(None, ge=1, description="Maksymalny czas przygotowania w minutach"),
     search: str | None = Query(None, description="Szukaj po nazwie przepisu"),
     favorites_only: bool = Query(False, description="Pokaż tylko przepisy dodane do ulubionych"),
+    # Przepisy dodane przez społeczność — publiczne, ale NIE część
+    # oryginalnych 81 oficjalnych przepisów dostarczonych z aplikacją
+    # (te mają created_by_user_id puste).
+    community_only: bool = Query(False, description="Pokaż tylko przepisy dodane przez społeczność"),
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
     current_user: User = Depends(get_current_user),
@@ -88,6 +92,9 @@ async def list_recipes(
 
     if search:
         query = query.where(Recipe.name.ilike(f"%{search}%"))
+
+    if community_only:
+        query = query.where(Recipe.created_by_user_id.is_not(None), Recipe.visibility == "public")
 
     if tags:
         query = query.join(Recipe.tags).where(RecipeTag.tag.in_(tags))
@@ -275,6 +282,7 @@ async def create_recipe(
         suggested_seasonings=recipe_in.suggested_seasonings,
         created_by_user_id=current_user.id,
         visibility=visibility,
+        photo_base64=recipe_in.photo_base64,
     )
     db.add(recipe)
     await db.flush()
@@ -552,7 +560,9 @@ async def ai_import_recipe(
         if payload.text:
             parsed = await extract_recipe_from_text(payload.text, available_products)
         elif payload.photo_base64:
-            parsed = await extract_recipe_from_photo(payload.photo_base64, available_products)
+            parsed = await extract_recipe_from_photo(
+                payload.photo_base64, available_products, hint=payload.photo_hint
+            )
         else:
             parsed = await extract_recipe_from_url(payload.url, available_products)
     except AIRecipeImportError as exc:
@@ -565,6 +575,11 @@ async def ai_import_recipe(
             status_code=422,
             detail="AI nie rozpoznało żadnych składników pasujących do dostępnych produktów.",
         )
+
+    # Zgłoszenie do wspólnego katalogu — jak przy ręcznym dodawaniu. Ten
+    # endpoint już wymaga Premium (Depends(get_current_premium) powyżej),
+    # więc nie trzeba tu dodatkowo sprawdzać uprawnień.
+    visibility = "pending" if payload.request_public else "private"
 
     # Dopasuj nazwy produktów zwrócone przez AI do prawdziwych wierszy
     # Product (dokładne dopasowanie po nazwie, bez rozróżniania wielkości
@@ -584,6 +599,11 @@ async def ai_import_recipe(
         instructions=parsed["instructions"],
         suggested_seasonings=parsed["suggested_seasonings"],
         created_by_user_id=current_user.id,
+        visibility=visibility,
+        # Jeśli przepis rozpoznano ZE ZDJĘCIA, to samo zdjęcie staje się
+        # zdjęciem przepisu — to zwykle prawdziwe zdjęcie tego dania,
+        # więc szkoda by było go nie wykorzystać.
+        photo_base64=payload.photo_base64,
     )
     db.add(recipe)
     await db.flush()
@@ -612,6 +632,10 @@ async def ai_import_recipe(
         )
 
     await db.commit()
+
+    if visibility == "pending":
+        await _notify_admins_pending_recipe(db, recipe, current_user)
+
 
     result = await db.execute(
         select(Recipe)

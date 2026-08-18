@@ -78,12 +78,20 @@ class FoodLogService {
     String mealPlanEntryId,
     String token, {
     DateTime? forDate,
+    double? servings,
   }) async {
-    final query = forDate != null
-        ? '?date=${forDate.year.toString().padLeft(4, '0')}-'
-            '${forDate.month.toString().padLeft(2, '0')}-'
-            '${forDate.day.toString().padLeft(2, '0')}'
-        : '';
+    final params = <String>[];
+    if (forDate != null) {
+      params.add(
+        'date=${forDate.year.toString().padLeft(4, '0')}-'
+        '${forDate.month.toString().padLeft(2, '0')}-'
+        '${forDate.day.toString().padLeft(2, '0')}',
+      );
+    }
+    if (servings != null) {
+      params.add('servings=$servings');
+    }
+    final query = params.isEmpty ? '' : '?${params.join('&')}';
     final response = await _client.post(
       Uri.parse('$baseUrl/food-log/from-plan-entry/$mealPlanEntryId$query'),
       headers: _headers(token),

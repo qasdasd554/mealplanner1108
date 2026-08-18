@@ -155,3 +155,46 @@ async def update_my_allergens(
     user = result.scalar_one()
     return user
 
+
+class RecipeLeaderboardEntry(BaseModel):
+    """Pojedynczy wpis w rankingu — ile PUBLICZNYCH przepisów (widocznych
+    dla wszystkich, zaakceptowanych przez administratora) dodał dany
+    użytkownik. Celowo NIE liczymy przepisów prywatnych — to ranking
+    wkładu we WSPÓLNY katalog, nie licznik "ile razy ktoś kliknął dodaj"."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    display_name: str
+    recipe_count: int
+
+
+@router.get(
+    "/leaderboard/recipes",
+    response_model=list[RecipeLeaderboardEntry],
+    summary="Ranking użytkowników wg liczby dodanych publicznych przepisów",
+)
+async def get_recipe_leaderboard(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> list[RecipeLeaderboardEntry]:
+    """Zwraca ranking (top 50) użytkowników, którzy dodali najwięcej
+    przepisów zaakceptowanych do wspólnego katalogu."""
+    from app.models import Recipe
+    from sqlalchemy import func
+
+    result = await db.execute(
+        select(
+            User.display_name,
+            func.count(Recipe.id).label("recipe_count"),
+        )
+        .join(Recipe, Recipe.created_by_user_id == User.id)
+        .where(Recipe.visibility == "public")
+        .group_by(User.id, User.display_name)
+        .order_by(func.count(Recipe.id).desc())
+        .limit(50)
+    )
+    return [
+        RecipeLeaderboardEntry(display_name=name or "Użytkownik", recipe_count=count)
+        for name, count in result.all()
+    ]
+

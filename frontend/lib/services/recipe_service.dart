@@ -12,6 +12,7 @@ class RecipeService {
     String? tag,
     String? search,
     bool favoritesOnly = false,
+    bool communityOnly = false,
   }) async {
     var path = '${ApiConfig.recipes}?';
     final params = <String>[];
@@ -32,6 +33,9 @@ class RecipeService {
     }
     if (favoritesOnly) {
       params.add('favorites_only=true');
+    }
+    if (communityOnly) {
+      params.add('community_only=true');
     }
     // Backend domyślnie zwraca tylko 50 przepisów (paginacja). Baza ma ich
     // teraz ~80, więc bez podania limitu część z nich byłaby niewidoczna

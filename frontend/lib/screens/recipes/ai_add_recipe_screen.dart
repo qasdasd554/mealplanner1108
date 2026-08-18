@@ -15,7 +15,11 @@ import '../profile/premium_screen.dart';
 /// czytelną informację zamiast formularza (bez udawania niedziałającego
 /// przycisku zakupu — prawdziwe płatności jeszcze nie są podłączone).
 class AiAddRecipeScreen extends StatefulWidget {
-  const AiAddRecipeScreen({super.key});
+  // Jeśli podany (np. z udostępnienia linku z TikToka), ekran otwiera
+  // się od razu na zakładce "Link" z tym adresem wpisanym w polu.
+  final String? initialUrl;
+
+  const AiAddRecipeScreen({super.key, this.initialUrl});
 
   @override
   State<AiAddRecipeScreen> createState() => _AiAddRecipeScreenState();
@@ -36,6 +40,11 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    if (widget.initialUrl != null && widget.initialUrl!.isNotEmpty) {
+      _urlController.text = widget.initialUrl!;
+      // Indeks 2 = zakładka "Link" (Tekst=0, Zdjęcie=1, Link=2).
+      _tabController.index = 2;
+    }
   }
 
   @override

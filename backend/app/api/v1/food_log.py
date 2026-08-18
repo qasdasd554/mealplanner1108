@@ -217,6 +217,12 @@ async def create_from_meal_plan_entry(
     # planu i tak zapisywało się pod datą wynikającą z harmonogramu, co
     # w praktyce mogło rozjechać się z tym, co widział na ekranie.
     entry_date_override: Optional[date] = Query(None, alias="date"),
+    # UWAGA (naprawa): wcześniej liczba porcji przy logowaniu z planu
+    # ZAWSZE była tym, co zapisano w planie (servings_multiplier) — nie
+    # było jak powiedzieć "zjadłem tylko połowę" albo "zjadłem podwójną
+    # porcję". Ten opcjonalny parametr, jeśli podany, NADPISUJE wartość
+    # z planu.
+    servings_override: Optional[float] = Query(None, ge=0.1, le=20, alias="servings"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -241,7 +247,7 @@ async def create_from_meal_plan_entry(
             status_code=403, detail="Brak uprawnień do tej pozycji planu posiłków"
         )
 
-    servings = float(plan_entry.servings_multiplier or 1)
+    servings = servings_override if servings_override is not None else float(plan_entry.servings_multiplier or 1)
     macros = _macros_from_recipe(plan_entry.recipe, servings)
 
     if entry_date_override is not None:

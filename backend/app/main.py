@@ -60,6 +60,9 @@ async def _create_tables() -> None:
         await conn.execute(
             text("ALTER TABLE promotions ADD COLUMN IF NOT EXISTS review_status VARCHAR(20) NOT NULL DEFAULT 'approved'")
         )
+        await conn.execute(
+            text("ALTER TABLE recipes ADD COLUMN IF NOT EXISTS photo_base64 TEXT")
+        )
     logger.info("Tabele bazy danych zostały utworzone/zweryfikowane.")
 
 

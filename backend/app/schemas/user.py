@@ -33,6 +33,7 @@ class UserResponse(BaseModel):
     household_size: int
     role: str = "user"
     is_premium: bool = False
+    premium_expires_at: datetime | None = None
     created_at: datetime
 
 

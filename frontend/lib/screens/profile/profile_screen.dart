@@ -9,6 +9,11 @@ import '../../widgets/premium_badge.dart';
 import 'premium_screen.dart';
 import '../admin/admin_panel_screen.dart';
 
+/// Odmiana słowa "dzień" — w polskim wystarczy rozróżnić TYLKO liczbę 1
+/// (dzień) od wszystkich pozostałych (dni), w przeciwieństwie do wielu
+/// innych rzeczowników z trójstopniową odmianą (1/2-4/5+).
+String _dayWord(int days) => days == 1 ? 'dzień' : 'dni';
+
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
@@ -69,6 +74,20 @@ class ProfileScreen extends StatelessWidget {
                   if (user?.hasPremiumAccess ?? false) ...[
                     const SizedBox(height: 8),
                     const PremiumBadge(),
+                  ],
+                  // Dni pozostałe do wygaśnięcia subskrypcji — widoczne
+                  // tylko dla kont Premium z ustawioną datą wygaśnięcia
+                  // (konta administratora mają dostęp premium bez
+                  // subskrypcji, więc premiumDaysRemaining jest tam null).
+                  if (user?.premiumDaysRemaining != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      user!.premiumDaysRemaining == 0
+                          ? 'Subskrypcja wygasa dziś'
+                          : 'Subskrypcja aktywna jeszcze przez ${user.premiumDaysRemaining} '
+                              '${_dayWord(user.premiumDaysRemaining!)}',
+                      style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                    ),
                   ],
                   const SizedBox(height: 4),
                   Text(
