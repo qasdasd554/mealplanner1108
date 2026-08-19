@@ -78,7 +78,7 @@ dependencies {
     // MainActivity.kt — Android 15 (SDK 35) domyślnie wyświetla
     // aplikacje "bez ramki" (edge-to-edge), to zapewnia wsteczną
     // zgodność i poprawne zachowanie na starszych wersjach Androida też.
-    implementation("androidx.core:core-ktx:1.19.0")
+    implementation("androidx.core:core-ktx:1.17.0")
 }
 
 flutter {
