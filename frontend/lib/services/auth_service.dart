@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../models/user.dart';
@@ -59,6 +60,18 @@ class AuthService {
     try {
       googleUser = await _googleSignIn.authenticate();
     } on GoogleSignInException catch (e) {
+      // UWAGA (diagnostyka): biblioteka google_sign_in na Androidzie ma
+      // znaną usterkę — prawdziwy błąd konfiguracji (np. niezgodność
+      // SHA-1/identyfikatora klienta, kod natywny "DEVELOPER_ERROR")
+      // bywa czasem błędnie zgłaszany jako zwykłe "canceled", nawet gdy
+      // użytkownik FAKTYCZNIE wybrał konto, a nie kliknął "anuluj". Bez
+      // tego logu taki przypadek wyglądał identycznie jak świadome
+      // anulowanie — nie dało się ich odróżnić. `debugPrint` trafia do
+      // `flutter logs`/`adb logcat`, więc widać PRAWDZIWY kod błędu
+      // nawet wtedy, gdy interfejs aplikacji celowo nic nie pokazuje.
+      debugPrint(
+        '[Google Sign-In] Wyjątek: code=${e.code.name}, description=${e.description}, details=${e.details}',
+      );
       if (e.code == GoogleSignInExceptionCode.canceled) {
         return false;
       }
