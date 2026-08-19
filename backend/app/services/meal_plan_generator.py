@@ -33,6 +33,26 @@ from app.models import (
     User,
     UserAllergen,
 )
+
+# UWAGA (naprawa POWAŻNEGO błędu): interfejs (ekran onboardingu) zapisuje
+# dietę jako spolszczoną nazwę z wielkiej litery w formie rzeczownikowej
+# ("Wegetariańska", "Bezglutenowa", "Keto"...), ale tagi faktycznie
+# przypisane przepisom w bazie (app/db/seed.py) są małymi literami w
+# formie przymiotnikowej mnogiej ("wegetariańskie", "bezglutenowe"...).
+# Dokładne porównanie stringów (Recipe.tag == diet) NIGDY się nie
+# zgadzało — filtr diety był FAKTYCZNIE MARTWY dla każdej opcji poza
+# "Bez ograniczeń": albo generator rzucał błąd "za mało przepisów"
+# (gdy diета trafiała bezpośrednio do zapytania), albo — jeśli diety
+# w ogóle nie przekazywano (patrz naprawa we frontendzie) — ograniczenie
+# było całkowicie ignorowane, więc np. osoba na diecie ketogenicznej
+# mogła dostać w planie pizzę.
+_DIET_NAME_TO_TAG: dict[str, str] = {
+    "Wegetariańska": "wegetariańskie",
+    "Wegańska": "wegańskie",
+    "Bezglutenowa": "bezglutenowe",
+    "Wysokobiałkowa": "wysokobiałkowe",
+    "Keto": "keto",
+}
 from app.services.exceptions import (
     InsufficientRecipesError,
     StoreNotFoundError,
@@ -255,13 +275,22 @@ class MealPlanGenerator:
             )
         )
 
-        # Filtr po tagu dietetycznym
+        # Filtr po tagu dietetycznym — mapujemy nazwę z interfejsu na
+        # rzeczywisty tag w bazie (patrz komentarz przy _DIET_NAME_TO_TAG
+        # na górze pliku). Nierozpoznana wartość diety NIE powinna po
+        # cichu zostać zignorowana (to dokładnie ten błąd, który
+        # naprawiamy) — logujemy ostrzeżenie, żeby było widać w logach,
+        # gdyby interfejs kiedyś zaczął wysyłać nieznaną wartość.
         if diet:
-            stmt = stmt.where(
-                Recipe.id.in_(
-                    select(RecipeTag.recipe_id).where(RecipeTag.tag == diet)
+            tag = _DIET_NAME_TO_TAG.get(diet)
+            if tag is None:
+                logger.warning("Nieznana wartość diety '%s' — filtr diety pominięty.", diet)
+            else:
+                stmt = stmt.where(
+                    Recipe.id.in_(
+                        select(RecipeTag.recipe_id).where(RecipeTag.tag == tag)
+                    )
                 )
-            )
 
         result = await self.db.execute(stmt)
         all_recipes: Sequence[Recipe] = result.scalars().unique().all()

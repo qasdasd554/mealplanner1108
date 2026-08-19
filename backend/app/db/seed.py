@@ -474,7 +474,7 @@ RECIPES_DATA = [
         "cook_time_min": 0,
         "servings": 2,
         "difficulty": 'łatwy',
-        "tags": ['wegetariańskie', 'bezglutenowe'],
+        "tags": ['wegetariańskie', 'bezglutenowe', 'keto'],
         "instructions": [
             'Pokrój pomidory (300 g) i ogórka w kostkę, cebulę (100 g) w piórka.',
             'Wymieszaj warzywa w misce, dodaj pokruszoną fetę i oliwki (50 g).',
@@ -502,7 +502,7 @@ RECIPES_DATA = [
         "cook_time_min": 5,
         "servings": 2,
         "difficulty": 'łatwy',
-        "tags": ['szybkie', 'bezglutenowe'],
+        "tags": ['szybkie', 'bezglutenowe', 'keto'],
         "instructions": [
             'Rozgrzej masło (20 g) na patelni na średnim ogniu.',
             'Pokrój pomidory (200 g) w kostkę i podsmaż je 2-3 minuty.',
@@ -723,7 +723,7 @@ RECIPES_DATA = [
         "cook_time_min": 0,
         "servings": 2,
         "difficulty": 'łatwy',
-        "tags": ['zdrowe', 'lekkie', 'wysokobiałkowe'],
+        "tags": ['zdrowe', 'lekkie', 'wysokobiałkowe', 'keto'],
         "instructions": [
             'Rozłóż sałatę (0,5 szt.) lodową na talerzu jako bazę.',
             'Pokrój pomidory (200 g) i ogórka w kostkę, dodaj do sałaty.',
@@ -811,7 +811,7 @@ RECIPES_DATA = [
         "cook_time_min": 20,
         "servings": 2,
         "difficulty": 'średni',
-        "tags": ['bezglutenowe', 'wegetariańskie'],
+        "tags": ['bezglutenowe', 'wegetariańskie', 'keto'],
         "instructions": [
             'Cebulę (100 g) pokrój w drobną kostkę, czosnek (2 ząbki) drobno posiekaj.',
             'Rozgrzej oliwę (30 ml) na patelni z wysokim brzegiem (żeby jajka się zmieściły), podsmaż cebulę i czosnek 3-4 minuty, aż zmiękną.',
@@ -1075,7 +1075,7 @@ RECIPES_DATA = [
         "cook_time_min": 10,
         "servings": 1,
         "difficulty": 'łatwy',
-        "tags": ['wegetariańskie', 'szybkie', 'bezglutenowe'],
+        "tags": ['wegetariańskie', 'szybkie', 'bezglutenowe', 'keto'],
         "instructions": [
             'Roztrzep jajka (3 szt.) z odrobiną soli.',
             'Podsmaż pokrojoną paprykę (0,5 szt.) i cebulę na maśle 3-4 minuty.',
@@ -1233,7 +1233,7 @@ RECIPES_DATA = [
         "cook_time_min": 8,
         "servings": 1,
         "difficulty": 'łatwy',
-        "tags": ['wegetariańskie', 'szybkie', 'bezglutenowe'],
+        "tags": ['wegetariańskie', 'szybkie', 'bezglutenowe', 'keto'],
         "instructions": [
             'Rozgrzej masło (10 g) na patelni, podsmaż pokrojone pomidory 3 minuty.',
             'Wbij jajka (2 szt.) bezpośrednio na patelnię między pomidory.',
@@ -1373,7 +1373,7 @@ RECIPES_DATA = [
         "cook_time_min": 20,
         "servings": 3,
         "difficulty": 'łatwy',
-        "tags": ['wegetariańskie'],
+        "tags": ['wegetariańskie', 'keto'],
         "instructions": [
             'Podsmaż pokrojoną cebulę (100 g) na maśle, dodaj plastry pieczarek i smaż 8 minut.',
             'Zalej bulionem (2 szt.) rozpuszczonym w wodzie, gotuj 10 minut.',
@@ -1614,7 +1614,7 @@ RECIPES_DATA = [
         "cook_time_min": 10,
         "servings": 2,
         "difficulty": 'łatwy',
-        "tags": ['bezglutenowe'],
+        "tags": ['bezglutenowe', 'keto'],
         "instructions": [
             'Dopraw kurczaka (300 g) solą i pieprzem, usmaż na patelni 8-10 minut, ostudź i pokrój.',
             'Porwij sałatę (0,3 szt.), pokrój pomidory (150 g) i awokado.',
@@ -1754,7 +1754,7 @@ RECIPES_DATA = [
         "cook_time_min": 20,
         "servings": 2,
         "difficulty": 'łatwy',
-        "tags": ['ryby', 'bezglutenowe'],
+        "tags": ['ryby', 'bezglutenowe', 'keto'],
         "instructions": [
             'Nagrzej piekarnik do 190°C.',
             'Ułóż filety dorsza (400 g) na blasze, skrop oliwą (15 ml) i sokiem z cytryny (1 szt.).',
@@ -2012,7 +2012,7 @@ RECIPES_DATA = [
         "cook_time_min": 30,
         "servings": 3,
         "difficulty": 'łatwy',
-        "tags": ['wegetariańskie', 'bezglutenowe'],
+        "tags": ['wegetariańskie', 'bezglutenowe', 'keto'],
         "instructions": [
             'Nagrzej piekarnik do 190°C.',
             'Pokrój cukinię (2 szt.) i pomidory (200 g) w plastry, ułóż naprzemiennie w naczyniu żaroodpornym.',
@@ -2070,7 +2070,7 @@ RECIPES_DATA = [
         "cook_time_min": 10,
         "servings": 2,
         "difficulty": 'łatwy',
-        "tags": ['ryby', 'bezglutenowe'],
+        "tags": ['ryby', 'bezglutenowe', 'keto'],
         "instructions": [
             'Ugotuj jajka (3 szt.) na twardo, ostudź, obierz i pokrój.',
             'Porwij sałatę (0,3 szt.), pokrój pomidory (150 g).',
@@ -2125,7 +2125,7 @@ RECIPES_DATA = [
         "cook_time_min": 0,
         "servings": 2,
         "difficulty": 'łatwy',
-        "tags": ['wegetariańskie', 'bezglutenowe'],
+        "tags": ['wegetariańskie', 'bezglutenowe', 'keto'],
         "instructions": [
             'Pokrój pomidory (300 g) i mozzarellę w plastry.',
             'Ułóż na talerzu naprzemiennie.',
@@ -2152,7 +2152,7 @@ RECIPES_DATA = [
         "cook_time_min": 8,
         "servings": 1,
         "difficulty": 'łatwy',
-        "tags": ['wegetariańskie', 'szybkie', 'bezglutenowe'],
+        "tags": ['wegetariańskie', 'szybkie', 'bezglutenowe', 'keto'],
         "instructions": [
             'Roztrzep jajka (3 szt.) z solą i pieprzem.',
             'Rozgrzej masło (10 g) na patelni, wlej jajka, smaż na małym ogniu pod przykryciem.',
@@ -2282,7 +2282,7 @@ RECIPES_DATA = [
         "cook_time_min": 20,
         "servings": 3,
         "difficulty": 'łatwy',
-        "tags": ['wegetariańskie', 'bezglutenowe'],
+        "tags": ['wegetariańskie', 'bezglutenowe', 'keto'],
         "instructions": [
             'Ugotuj brokuł (1 szt.) w bulionie do miękkości (ok. 15 minut).',
             'Zblenduj na gładki krem.',
@@ -2336,7 +2336,7 @@ RECIPES_DATA = [
         "cook_time_min": 8,
         "servings": 2,
         "difficulty": 'średni',
-        "tags": ['skorupiaki', 'bezglutenowe'],
+        "tags": ['skorupiaki', 'bezglutenowe', 'keto'],
         "instructions": [
             'Jeśli krewetki są mrożone, rozmroź je wcześniej.',
             'Rozgrzej odrobinę oleju na patelni, smaż krewetki 3-4 minuty, aż zrobią się różowe i nieprzezroczyste — nie przesmażaj, bo zrobią się gumowate. Odstaw do ostygnięcia.',
@@ -2416,7 +2416,7 @@ RECIPES_DATA = [
         "cook_time_min": 10,
         "servings": 2,
         "difficulty": 'łatwy',
-        "tags": ['wegetariańskie', 'bezglutenowe'],
+        "tags": ['wegetariańskie', 'bezglutenowe', 'keto'],
         "instructions": [
             'Ugotuj jajka (3 szt.) na twardo, ostudź, obierz i pokrój na ćwiartki.',
             'Pokrój awokado (1 szt.) w kostkę, porwij sałatę (0,3 szt.).',
@@ -2443,7 +2443,7 @@ RECIPES_DATA = [
         "cook_time_min": 20,
         "servings": 2,
         "difficulty": 'łatwy',
-        "tags": ['wegańskie', 'bezglutenowe'],
+        "tags": ['wegańskie', 'bezglutenowe', 'keto'],
         "instructions": [
             'Nagrzej piekarnik do 200°C.',
             'Podziel kalafior (1 szt.) na małe różyczki.',
@@ -2597,7 +2597,7 @@ RECIPES_DATA = [
         "cook_time_min": 0,
         "servings": 2,
         "difficulty": 'łatwy',
-        "tags": ['wegańskie', 'szybkie', 'bezglutenowe'],
+        "tags": ['wegańskie', 'szybkie', 'bezglutenowe', 'keto'],
         "instructions": [
             'Rozgnieć miąższ awokado (2 szt.) widelcem.',
             'Dodaj sok z cytryny (0,5 szt.) i drobno posiekaną cebulę (50 g), wymieszaj.',

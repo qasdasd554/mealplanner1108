@@ -77,6 +77,16 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
       targetKcal = int.tryParse(_kcalController.text);
     }
 
+    // UWAGA (naprawa poważnego błędu): wcześniej preferencja diety
+    // zapisana podczas onboardingu (np. "Keto", "Wegańska") NIGDY nie
+    // była faktycznie wysyłana przy generowaniu planu — tylko meal_types.
+    // Efekt: filtr diety w backendzie nigdy się nie uruchamiał, więc
+    // KAŻDY plan ignorował ograniczenia dietetyczne całkowicie —
+    // użytkownik na diecie ketogenicznej mógł dostać w planie pizzę.
+    final userDiet = Provider.of<AuthProvider>(context, listen: false)
+        .currentUser
+        ?.dietaryPreferences?['diet'] as String?;
+
     final request = MealPlanGenerateRequest(
       storeId: _selectedStore!.id,
       durationDays: _durationDays,
@@ -86,6 +96,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
       householdSize: _householdSize,
       preferences: {
         'meal_types': _selectedMealTypes.toList(),
+        if (userDiet != null && userDiet != 'Bez ograniczeń') 'diet': userDiet,
       },
     );
 

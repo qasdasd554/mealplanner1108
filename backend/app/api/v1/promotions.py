@@ -167,6 +167,7 @@ async def trigger_ai_scan(
         raise HTTPException(status_code=422, detail=str(exc))
 
     created = 0
+    skipped_duplicates = 0
     for item in found:
         # Dopasuj do prawdziwego produktu w katalogu, żeby znać jego
         # AKTUALNĄ cenę regularną (nie ufamy ślepo cenie odczytanej z PDF-a
@@ -222,6 +223,28 @@ async def trigger_ai_scan(
         else:
             valid_until = date.today() + timedelta(days=14)
 
+        # UWAGA (naprawa): wcześniej KAŻDE uruchomienie skanu tworzyło
+        # nową promocję dla znalezionego produktu, nawet jeśli identyczna
+        # (ten sam produkt w tym samym sklepie, wciąż ważna) już istniała
+        # w kolejce oczekujących ALBO była już zaakceptowana przez admina
+        # wcześniej. Efekt: powtórne skanowanie tej samej, wciąż aktualnej
+        # gazetki zaśmiecało kolejkę duplikatami do przejrzenia od nowa.
+        # Odrzucone promocje CELOWO pomijamy w tym sprawdzeniu — jeśli
+        # admin coś odrzucił, a AI przy kolejnym skanie znajdzie to
+        # ponownie (może z innymi warunkami), warto dać mu szansę
+        # spojrzeć jeszcze raz.
+        existing_result = await db.execute(
+            select(Promotion.id).where(
+                Promotion.product_name == product.name,
+                Promotion.store_name == store_name,
+                Promotion.review_status.in_(["pending", "approved"]),
+                Promotion.valid_until >= date.today(),
+            )
+        )
+        if existing_result.scalar_one_or_none() is not None:
+            skipped_duplicates += 1
+            continue
+
         db.add(
             Promotion(
                 product_name=product.name,
@@ -252,7 +275,12 @@ async def trigger_ai_scan(
     if created > 0:
         await _notify_admins_pending_promotions(db, store_name, created)
 
-    return {"store_name": store_name, "found": len(found), "queued_for_review": created}
+    return {
+        "store_name": store_name,
+        "found": len(found),
+        "queued_for_review": created,
+        "skipped_duplicates": skipped_duplicates,
+    }
 
 
 async def _notify_admins_pending_promotions(db: AsyncSession, store_name: str, count: int) -> None:
