@@ -2,7 +2,7 @@ package com.example.smart_meal_planner
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
+import androidx.core.view.WindowCompat
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -29,13 +29,16 @@ class MainActivity : FlutterActivity() {
     private var pendingSharedText: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // UWAGA (naprawa): od Androida 15 (SDK 35) aplikacje domyślnie
-        // wyświetlają się "bez ramki" (edge-to-edge) — Google Play
-        // zgłasza to jako zalecane działanie. enableEdgeToEdge() musi
-        // być wywołane PRZED super.onCreate(), zapewnia poprawne
-        // zachowanie (obsługę "wcięć" ekranu) też na starszych wersjach
-        // Androida wstecznie.
-        enableEdgeToEdge()
+        // UWAGA (naprawa): enableEdgeToEdge() z androidx.activity wymaga
+        // odbiornika typu ComponentActivity — FlutterActivity NIM NIE
+        // JEST (dziedziczy bezpośrednio po zwykłej Activity), stąd błąd
+        // kompilacji "receiver type mismatch". WindowCompat to niżej
+        // poziomowe API, które robi dokładnie to samo (wyłącza domyślne
+        // "dopasowywanie" okna do systemowych pasków, czyli włącza
+        // tryb "bez ramki"/edge-to-edge), ale działa z KAŻDĄ Activity,
+        // nie tylko ComponentActivity — dlatego jest tu właściwym
+        // wyborem zamiast wygodniejszej, ale niekompatybilnej funkcji.
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         super.onCreate(savedInstanceState)
         pendingSharedText = extractSharedText(intent)
     }
