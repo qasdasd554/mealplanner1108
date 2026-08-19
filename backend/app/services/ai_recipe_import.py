@@ -319,10 +319,25 @@ async def _fetch_url_text(url: str) -> str:
             response = await client.get(
                 url,
                 headers={
+                    # UWAGA (naprawa): nagłówki tylko z User-Agent są łatwym
+                    # sygnałem "to nie jest prawdziwa przeglądarka" dla stron
+                    # z ochroną przed botami (a TikTok jest pod tym względem
+                    # szczególnie agresywny, zwłaszcza na krótkich linkach
+                    # przekierowujących typu vm.tiktok.com). Pełniejszy,
+                    # bardziej realistyczny zestaw nagłówków (dokładnie taki,
+                    # jaki wysyła prawdziwa przeglądarka) zmniejsza ryzyko
+                    # trafienia na stronę z wyzwaniem/CAPTCHA zamiast
+                    # prawdziwej treści.
                     "User-Agent": (
                         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                         "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
-                    )
+                    ),
+                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+                    "Accept-Language": "pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7",
+                    "Sec-Fetch-Mode": "navigate",
+                    "Sec-Fetch-Dest": "document",
+                    "Sec-Fetch-Site": "none",
+                    "Upgrade-Insecure-Requests": "1",
                 },
             )
         except httpx.HTTPError as exc:
@@ -349,6 +364,18 @@ async def _fetch_url_text(url: str) -> str:
         if tag and tag.get("content"):
             parts.append(tag["content"])
 
+    # UWAGA (nowe): TikTok (i podobne strony renderowane po stronie serwera
+    # przez React/Next.js) NIE trzyma opisu filmiku jako zwykłego,
+    # widocznego tekstu HTML — jest on zaszyty w bloku JSON wewnątrz tagu
+    # <script>, którego zwykłe wyciąganie tekstu (get_text) w ogóle nie
+    # widzi (bo skrypty są celowo pomijane). Szukamy więc DODATKOWO w
+    # treści tych skryptów, przeszukując zagnieżdżony JSON pod kątem pól
+    # o nazwie "desc"/"description" — to najbardziej odporne podejście,
+    # bo nie zależy od DOKŁADNEJ struktury zagnieżdżenia, którą TikTok
+    # może zmieniać bez ostrzeżenia.
+    json_texts = _extract_desc_fields_from_scripts(soup)
+    parts.extend(json_texts)
+
     for tag in soup(["script", "style", "noscript"]):
         tag.decompose()
     body_text = soup.get_text(separator="\n", strip=True)
@@ -361,7 +388,62 @@ async def _fetch_url_text(url: str) -> str:
         raise AIRecipeImportError(
             "Nie udało się wyciągnąć żadnej treści z podanego linku."
         )
+    # UWAGA (nowe): jeśli strona zwróciła bardzo mało treści — typowy
+    # objaw tego, że np. TikTok pokazał generyczną stronę/wyzwanie
+    # zamiast prawdziwej treści filmiku (ochrona przed botami) — lepiej
+    # od razu jasno to powiedzieć, niż wysłać AI prawie pustą treść i
+    # dostać mylące "nie rozpoznano przepisu", nie wiedząc dlaczego.
+    if len(combined.strip()) < 40:
+        raise AIRecipeImportError(
+            "Nie udało się odczytać treści z tego linku (strona mogła zablokować "
+            "automatyczny dostęp). Spróbuj wkleić opis/podpis filmiku bezpośrednio "
+            "jako tekst, w zakładce \"Wklej tekst\"."
+        )
     return combined
+
+
+def _extract_desc_fields_from_scripts(soup) -> list[str]:
+    """Przeszukuje wszystkie tagi <script type="application/json"> (i
+    podobne) na stronie w poszukiwaniu zagnieżdżonych pól "desc" —
+    dokładnie tak TikTok (i inne strony renderowane po stronie serwera)
+    przechowuje opis/podpis filmiku w danych do "rehydracji" strony przez
+    JavaScript. Zwraca listę znalezionych, sensownie długich tekstów."""
+    import json as json_module
+
+    found: list[str] = []
+
+    def _walk(node, depth=0):
+        if depth > 12 or len(found) >= 5:
+            return
+        if isinstance(node, dict):
+            for key, value in node.items():
+                if key in ("desc", "description", "caption") and isinstance(value, str) and len(value.strip()) > 3:
+                    found.append(value.strip())
+                else:
+                    _walk(value, depth + 1)
+        elif isinstance(node, list):
+            for item in node:
+                _walk(item, depth + 1)
+
+    for script in soup.find_all("script"):
+        script_type = script.get("type", "")
+        script_id = script.get("id", "")
+        # Ograniczamy się do skryptów, które WYGLĄDAJĄ jak dane stanu
+        # aplikacji (JSON), nie każdy <script> na stronie (np. Google
+        # Analytics) — po samym typie/id, albo po prostu próbując
+        # sparsować jako JSON i po cichu pomijając te, które nim nie są.
+        if script_type not in ("application/json", "application/ld+json") and "SIGI_STATE" not in script_id and "REHYDRATION" not in script_id:
+            continue
+        raw = script.string
+        if not raw:
+            continue
+        try:
+            data = json_module.loads(raw)
+        except (json_module.JSONDecodeError, TypeError):
+            continue
+        _walk(data)
+
+    return found
 
 
 async def extract_recipe_from_url(url: str, available_products: list[str]) -> dict:
