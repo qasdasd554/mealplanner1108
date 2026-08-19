@@ -26,7 +26,6 @@ _PROFANITY_ROOTS = [
     "spierdal",
     "skurwi", "skurwy",
     "dziwk",
-    "suka", "suki", "suko",
     "pizd",
     "cip[ae]",  # osobny wzorzec (regex) - "cipa"/"cipe" ale nie np. "cipka" w neutralnym kontekscie
     "gowni", "gowno", "gowna",
@@ -39,9 +38,17 @@ _PROFANITY_ROOTS = [
 
 # Osobne, PEŁNE wyrazy (nie rdzenie) — krótkie słowa, gdzie dopasowanie
 # prefiksowe byłoby zbyt ryzykowne (złapałoby niewinne słowa).
+#
+# UWAGA (naprawa): "suka"/"suki"/"suko" były wcześniej w liście rdzeni
+# powyżej (dopasowanie prefiksowe) — ale "suki" jest jednocześnie
+# dosłownym PREFIKSEM zupełnie niewinnego słowa "sukienki" (i całej
+# rodziny: sukienka, sukience, sukienek...). Efekt: komentarz "Kupiłem
+# sukienki" byłby błędnie zablokowany jako wulgarny. Przeniesione tutaj
+# — wymaga DOKŁADNEGO dopasowania całego słowa, nie tylko prefiksu.
 _PROFANITY_EXACT_WORDS = {
     "cwel",
     "cwele",
+    "suka", "suki", "suko", "sukami", "sukach",
 }
 
 _DIACRITIC_MAP = str.maketrans({
@@ -69,16 +76,47 @@ def contains_profanity(text: str | None) -> bool:
         return False
 
     normalized = _normalize(text)
-    squashed = _squash(normalized)
 
-    for root in _PROFANITY_ROOTS:
-        # Dopasowanie na tekście "ściśniętym" (bez spacji/znaków) —
-        # łapie zarówno normalne użycie, jak i próby obejścia filtra.
-        if re.search(root, squashed):
-            return True
-
-    words = re.findall(r"[a-z0-9]+", normalized)
-    if any(w in _PROFANITY_EXACT_WORDS for w in words):
+    # KROK 1: dopasowanie na POJEDYNCZYCH słowach (podzielonych po dowolnym
+    # znaku niebędącym literą/cyfrą) — najbardziej niezawodne, zero ryzyka
+    # fałszywych trafień na granicy słów.
+    tokens = [t for t in re.split(r"[^a-z0-9]+", normalized) if t]
+    for token in tokens:
+        for root in _PROFANITY_ROOTS:
+            if re.search(root, token):
+                return True
+    if any(t in _PROFANITY_EXACT_WORDS for t in tokens):
         return True
+
+    # KROK 2: obejście przez rozdzielenie POJEDYNCZYCH LITER (np. "k u r w
+    # a", "k.u.r.w.a") — łączymy TYLKO sąsiadujące, jednoznakowe "słowa"
+    # (bo tak wyglądają realne próby obejścia filtra), NIGDY całych,
+    # normalnych, wieloznakowych słów ze sobą.
+    #
+    # UWAGA (naprawa): wcześniej ten krok "ściskał" CAŁY tekst na raz
+    # (usuwając WSZYSTKIE spacje na raz, łącznie z tymi między zupełnie
+    # różnymi, normalnymi słowami), co dawało fałszywe trafienia —
+    # np. zdanie "Kupiłem mąkę, sukienki nie kupiłem" było błędnie
+    # blokowane, bo "mąkę, sukienki" po ściśnięciu zawierało "suki"
+    # (koniec jednego słowa + początek drugiego). Teraz łączymy tylko
+    # sekwencje pojedynczych liter, które same w sobie nie są normalnymi
+    # polskimi słowami.
+    i = 0
+    while i < len(tokens):
+        if len(tokens[i]) == 1:
+            j = i
+            combined = ""
+            while j < len(tokens) and len(tokens[j]) == 1:
+                combined += tokens[j]
+                j += 1
+            if len(combined) >= 3:
+                for root in _PROFANITY_ROOTS:
+                    if re.search(root, combined):
+                        return True
+                if combined in _PROFANITY_EXACT_WORDS:
+                    return True
+            i = j
+        else:
+            i += 1
 
     return False

@@ -8,6 +8,7 @@ import '../screens/shopping/dish_shopping_list_screen.dart';
 import '../screens/profile/premium_screen.dart';
 import '../theme/app_theme.dart';
 import 'premium_feature_tag.dart';
+import '../utils/error_utils.dart';
 
 /// Przycisk "Lista zakupów na to danie" — funkcja Premium.
 ///
@@ -53,7 +54,7 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceAll('ApiException:', '').trim())),
+        SnackBar(content: Text(friendlyError(e))),
       );
     } finally {
       if (mounted) setState(() => _isBusy = false);

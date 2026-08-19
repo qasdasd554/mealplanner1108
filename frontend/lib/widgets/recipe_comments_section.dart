@@ -129,6 +129,7 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
         text: text.isEmpty ? null : text,
         photoBase64: photoBase64,
       );
+      if (!mounted) return;
       _textController.clear();
       setState(() => _pickedImage = null);
       await _load();

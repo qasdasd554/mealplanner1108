@@ -3,7 +3,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import or_, select
+from sqlalchemy import delete, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -202,6 +202,22 @@ async def list_my_recipes(
 
 
 @router.get(
+    "/ai-status",
+    summary="Sprawdź stan klucza/limitów Gemini API (admin)",
+)
+async def get_ai_status(
+    current_user: User = Depends(get_current_admin),
+) -> dict:
+    """Proaktywnie sprawdza, czy klucz Gemini API działa i czy limity
+    tokenów/zapytań nie zostały wyczerpane — zanim natrafi na to
+    prawdziwy użytkownik próbujący dodać przepis przez AI. Sprawdza
+    KAŻDY model z osobna (każdy ma własny, niezależny limit)."""
+    from app.services.gemini_status import check_gemini_status
+
+    return await check_gemini_status()
+
+
+@router.get(
     "/{recipe_id}",
     response_model=RecipeResponse,
     summary="Szczegóły przepisu",
@@ -268,6 +284,22 @@ async def create_recipe(
                 detail="Zgłaszanie przepisów do wspólnego katalogu wymaga konta Premium.",
             )
         visibility = "pending"
+
+    # UWAGA (naprawa): wcześniej brakujący/nieistniejący product_id w
+    # składniku nie był w ogóle sprawdzany — dopiero baza danych odrzucała
+    # to jako naruszenie klucza obcego, kończąc się nieobsłużonym błędem
+    # 500 zamiast czytelnej odpowiedzi. Sprawdzamy WSZYSTKIE product_id na
+    # raz (jedno zapytanie) PRZED zapisaniem czegokolwiek do bazy.
+    if recipe_in.ingredients:
+        requested_ids = {ing.product_id for ing in recipe_in.ingredients}
+        existing_result = await db.execute(select(Product.id).where(Product.id.in_(requested_ids)))
+        existing_ids = set(existing_result.scalars().all())
+        missing_ids = requested_ids - existing_ids
+        if missing_ids:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Nie znaleziono produktu/produktów: {', '.join(str(i) for i in missing_ids)}",
+            )
 
     recipe = Recipe(
         name=recipe_in.name,
@@ -649,3 +681,75 @@ async def ai_import_recipe(
     final_recipe.is_favorite = False
     final_recipe.is_own_recipe = True
     return final_recipe
+
+
+@router.delete(
+    "/{recipe_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Usuń własny przepis",
+)
+async def delete_recipe(
+    recipe_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    """Usuwa przepis dodany przez użytkownika (ręcznie albo przez AI) wraz
+    ze wszystkimi powiązanymi danymi.
+
+    UWAGA (naprawa braku funkcji): wcześniej w ogóle nie było jak usunąć
+    własnego przepisu — dało się go dodać, polubić, skomentować, ale nie
+    usunąć. Tylko WŁAŚCICIEL przepisu (albo administrator) może go
+    usunąć — 81 oficjalnych przepisów (created_by_user_id puste) nie da
+    się usunąć tą drogą w ogóle.
+
+    Powiązane dane są usuwane JAWNIE w kodzie, a nie tylko przez
+    kaskadowe ograniczenia w bazie (ON DELETE CASCADE) — z tego samego
+    powodu, co przy usuwaniu planu posiłków (patrz meal_plans.py):
+    tabele tej aplikacji są tworzone przez `Base.metadata.create_all()`
+    przy starcie, nie przez pełne migracje, więc ograniczenia dodane do
+    modeli PO TYM, jak dana tabela już istniała w bazie produkcyjnej,
+    mogły nie zostać tam faktycznie zastosowane.
+
+    Jeśli przepis był PUBLICZNY (zaakceptowany do wspólnego katalogu),
+    usunięcie go usuwa go też z list zakupów/planów innych użytkowników,
+    którzy go używali — to świadoma decyzja: to Twój przepis, masz prawo
+    go usunąć, ale skutek dotyczy wszystkich, którzy z niego korzystali.
+    """
+    from app.models import FoodLogEntry, MealPlanEntry, Notification, RecipeComment, RecipeCommentLike, RecipeFavorite
+
+    recipe = await db.get(Recipe, recipe_id)
+    if recipe is None:
+        raise NotFoundException(detail=f"Przepis o ID {recipe_id} nie został znaleziony")
+
+    if recipe.created_by_user_id is None:
+        raise HTTPException(
+            status_code=403,
+            detail="Nie można usunąć oficjalnego przepisu dostarczonego z aplikacją.",
+        )
+    if recipe.created_by_user_id != current_user.id and current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Możesz usunąć tylko własny przepis.")
+
+    # Polubienia komentarzy pod komentarzami DO TEGO przepisu — trzeba
+    # usunąć PRZED samymi komentarzami (klucz obcy wskazuje na comment_id).
+    comment_ids_result = await db.execute(
+        select(RecipeComment.id).where(RecipeComment.recipe_id == recipe_id)
+    )
+    comment_ids = list(comment_ids_result.scalars().all())
+    if comment_ids:
+        await db.execute(delete(RecipeCommentLike).where(RecipeCommentLike.comment_id.in_(comment_ids)))
+
+    await db.execute(delete(RecipeComment).where(RecipeComment.recipe_id == recipe_id))
+    await db.execute(delete(RecipeFavorite).where(RecipeFavorite.recipe_id == recipe_id))
+    await db.execute(delete(MealPlanEntry).where(MealPlanEntry.recipe_id == recipe_id))
+    await db.execute(delete(Notification).where(Notification.recipe_id == recipe_id))
+    # Wpisy dziennika kalorii NIE są usuwane — tylko odłączane od przepisu
+    # (zachowują już policzone wartości odżywcze, tak jak historyczny zapis
+    # tego, co ktoś faktycznie zjadł, niezależnie od losu samego przepisu).
+    await db.execute(
+        update(FoodLogEntry).where(FoodLogEntry.recipe_id == recipe_id).values(recipe_id=None)
+    )
+    await db.execute(delete(RecipeIngredient).where(RecipeIngredient.recipe_id == recipe_id))
+    await db.execute(delete(RecipeTag).where(RecipeTag.recipe_id == recipe_id))
+
+    await db.delete(recipe)
+    await db.commit()

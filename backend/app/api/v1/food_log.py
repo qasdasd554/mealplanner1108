@@ -18,6 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import get_current_user, get_db
+from app.core.exceptions import NotFoundException
 from app.models.food_log import FoodLogEntry
 from app.models.meal_plan import MealPlanEntry
 from app.models.recipe import Recipe
@@ -105,28 +106,35 @@ async def create_food_log_entry(
     recipe: Optional[Recipe] = None
     if db_entry.recipe_id:
         recipe = await db.get(Recipe, db_entry.recipe_id)
-        if recipe:
-            # Jeśli formularz nie podał gotowych wartości (np. dodanie
-            # "z przepisu" bez ręcznego wpisania kalorii), przelicz je
-            # automatycznie na podstawie przepisu i liczby porcji.
-            #
-            # UWAGA: `recipe.nutrition_total` to wartości odżywcze dla
-            # CAŁEGO przepisu (np. przepis na 4 porcje ma nutrition_total
-            # dla wszystkich 4 porcji razem), a `entry_in.servings` to
-            # liczba porcji, które użytkownik faktycznie zjadł (z UI:
-            # "Liczba porcji", domyślnie 1). Trzeba więc przeliczyć na
-            # UŁAMEK całego przepisu — inaczej "1 porcja" dawała kalorie
-            # całego przepisu (np. dla przepisu na 4 porcje wychodziło
-            # 4x za dużo, sprawiając wrażenie, jakby zawsze dodawało
-            # "więcej niż jedną porcję").
-            recipe_servings = float(recipe.servings or 1)
-            recipe_fraction = entry_in.servings / recipe_servings if recipe_servings else entry_in.servings
-            if entry_in.calories == 0.0 and entry_in.protein == 0.0:
-                macros = _macros_from_recipe(recipe, recipe_fraction)
-                db_entry.calories = macros["calories"]
-                db_entry.protein = macros["protein"]
-                db_entry.fat = macros["fat"]
-                db_entry.carbs = macros["carbs"]
+        # UWAGA (naprawa): wcześniej brak przepisu o podanym recipe_id był
+        # cicho ignorowany — kod po prostu pomijał automatyczne przeliczenie
+        # wartości odżywczych, ale NADAL próbował zapisać wpis z
+        # nieistniejącym recipe_id, co naruszało klucz obcy w bazie i
+        # kończyło się nieobsłużonym błędem 500 zamiast czytelnej
+        # odpowiedzi 404.
+        if not recipe:
+            raise NotFoundException(detail=f"Nie znaleziono przepisu o ID {db_entry.recipe_id}")
+        # Jeśli formularz nie podał gotowych wartości (np. dodanie
+        # "z przepisu" bez ręcznego wpisania kalorii), przelicz je
+        # automatycznie na podstawie przepisu i liczby porcji.
+        #
+        # UWAGA: `recipe.nutrition_total` to wartości odżywcze dla
+        # CAŁEGO przepisu (np. przepis na 4 porcje ma nutrition_total
+        # dla wszystkich 4 porcji razem), a `entry_in.servings` to
+        # liczba porcji, które użytkownik faktycznie zjadł (z UI:
+        # "Liczba porcji", domyślnie 1). Trzeba więc przeliczyć na
+        # UŁAMEK całego przepisu — inaczej "1 porcja" dawała kalorie
+        # całego przepisu (np. dla przepisu na 4 porcje wychodziło
+        # 4x za dużo, sprawiając wrażenie, jakby zawsze dodawało
+        # "więcej niż jedną porcję").
+        recipe_servings = float(recipe.servings or 1)
+        recipe_fraction = entry_in.servings / recipe_servings if recipe_servings else entry_in.servings
+        if entry_in.calories == 0.0 and entry_in.protein == 0.0:
+            macros = _macros_from_recipe(recipe, recipe_fraction)
+            db_entry.calories = macros["calories"]
+            db_entry.protein = macros["protein"]
+            db_entry.fat = macros["fat"]
+            db_entry.carbs = macros["carbs"]
 
     db.add(db_entry)
     await db.commit()

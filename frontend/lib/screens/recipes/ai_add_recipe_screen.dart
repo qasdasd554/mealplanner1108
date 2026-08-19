@@ -9,6 +9,7 @@ import '../../services/recipe_service.dart';
 import '../../theme/app_theme.dart';
 import 'recipe_detail_screen.dart';
 import '../profile/premium_screen.dart';
+import '../../utils/error_utils.dart';
 
 /// Ekran dodawania własnego przepisu przez AI — z wklejonego tekstu albo
 /// zdjęcia. Funkcja Premium: konta bez aktywnej subskrypcji widzą tu
@@ -64,6 +65,7 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
         imageQuality: 85,
       );
       if (picked != null) {
+        if (!mounted) return;
         setState(() {
           _pickedImage = File(picked.path);
           _error = null;
@@ -163,7 +165,7 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
   void _handleError(Object e) {
     if (!mounted) return;
     setState(() {
-      _error = e.toString().replaceAll('ApiException:', '').trim();
+      _error = friendlyError(e);
     });
   }
 

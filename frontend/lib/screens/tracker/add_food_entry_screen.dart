@@ -131,8 +131,14 @@ class _PlanTabState extends State<_PlanTab> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // UWAGA (naprawa): wcześniej ładowało dane TYLKO gdy lista była
+      // pusta — nawet w ramach tej samej sesji, jeśli użytkownik wrócił
+      // na ten ekran po zmianie planu (np. usunął stary, wygenerował
+      // nowy), widział nieaktualne dane, dopóki coś innego nie wymusiło
+      // odświeżenia. Teraz odświeża zawsze przy wejściu na ekran
+      // (chyba że akurat trwa już inne ładowanie).
       final provider = Provider.of<MealPlanProvider>(context, listen: false);
-      if (provider.plans.isEmpty && !provider.isLoading) {
+      if (!provider.isLoading) {
         provider.loadPlans();
       }
     });

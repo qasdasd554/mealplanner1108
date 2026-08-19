@@ -8,6 +8,7 @@ class User {
   final String role;
   final bool isPremium;
   final DateTime? premiumExpiresAt;
+  final String? premiumProductId;
   final DateTime createdAt;
 
   User({
@@ -20,6 +21,7 @@ class User {
     this.role = 'user',
     this.isPremium = false,
     this.premiumExpiresAt,
+    this.premiumProductId,
     required this.createdAt,
   });
 
@@ -57,6 +59,7 @@ class User {
       premiumExpiresAt: json['premium_expires_at'] != null
           ? DateTime.tryParse(json['premium_expires_at'] as String)
           : null,
+      premiumProductId: json['premium_product_id'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
     );
   }
@@ -71,6 +74,7 @@ class User {
     String? role,
     bool? isPremium,
     DateTime? premiumExpiresAt,
+    String? premiumProductId,
     DateTime? createdAt,
   }) {
     return User(
@@ -83,6 +87,7 @@ class User {
       role: role ?? this.role,
       isPremium: isPremium ?? this.isPremium,
       premiumExpiresAt: premiumExpiresAt ?? this.premiumExpiresAt,
+      premiumProductId: premiumProductId ?? this.premiumProductId,
       createdAt: createdAt ?? this.createdAt,
     );
   }

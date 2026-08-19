@@ -96,7 +96,16 @@ async def scraper_status(current_user: User = Depends(get_current_user)):
 
 @router.post("/scraper-run", summary="Uruchom aktualizację cen teraz (bez czekania na cykl)")
 async def trigger_scraper_run(
-    current_user: User = Depends(get_current_user),
+    # UWAGA (naprawa poważnej luki bezpieczeństwa): ten endpoint wysyła
+    # PRAWDZIWE zapytania HTTP do stron sklepów (Biedronka, Lidl, Dino)
+    # i aktualizuje ceny WIDOCZNE DLA WSZYSTKICH użytkowników — to
+    # kosztowna, potencjalnie ryzykowna operacja (może doprowadzić do
+    # zablokowania adresu IP serwera przez te strony przy nadużyciu), a
+    # mimo to wymagał tylko zwykłego zalogowania (get_current_user), nie
+    # uprawnień administratora. Limit "1 wywołanie na 5 minut na
+    # użytkownika" chronił przed nadużyciem przez JEDNEGO użytkownika,
+    # ale nie przed setkami różnych kont wywołującymi to niezależnie.
+    current_user: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ):
     """Uruchamia scraper cen natychmiast i czeka na wynik — do ręcznego
@@ -169,17 +178,70 @@ async def trigger_ai_scan(
         if product is None:
             continue
 
+        # UWAGA (nowe): promo_description teraz zawiera WARUNEK promocji
+        # (np. "Kup 2, zapłać za 1"), jeśli AI go znalazło — użytkownik
+        # MUSI wiedzieć, że cena dotyczy zakupu przy spełnieniu warunku,
+        # nie pojedynczej sztuki bez zobowiązań. Bez tego pole zostawało
+        # generycznym "Znalezione przez AI...", co ukrywało ewentualne
+        # ograniczenia przed użytkownikiem.
+        condition = item.get("condition")
+        if condition:
+            description = f"{condition} — znalezione przez AI w gazetce {store_name}"
+        else:
+            description = f"Znalezione przez AI w gazetce {store_name}"
+
+        # UWAGA (nowe): rozróżniamy PRZYCZYNĘ warunku, jeśli to możliwe —
+        # karta lojalnościowa to inny rodzaj ograniczenia niż "kup 2,
+        # trzeci gratis" (jedno wymaga posiadania konkretnej karty,
+        # drugie kupna kilku sztuk), a model ma już PRZYGOTOWANE osobne
+        # pole `requires_loyalty_card`, wcześniej nigdy nieustawiane.
+        condition_lower = (condition or "").lower()
+        requires_loyalty_card = any(
+            kw in condition_lower for kw in ("kart", "lojalnościow", "zarejestrowan")
+        )
+        if requires_loyalty_card:
+            promo_type = "loyalty_card"
+        elif condition:
+            promo_type = "multipack"
+        else:
+            promo_type = "price_cut"
+
+        # UWAGA (nowe): używamy PRAWDZIWEJ daty ważności z gazetki, jeśli
+        # AI ją znalazło i wygląda na sensowną (nie w przeszłości, nie
+        # absurdalnie odległa — np. AI nie pomyliło formatu daty) —
+        # wcześniej ZAWSZE używaliśmy sztywnych "+14 dni od dziś",
+        # niezależnie od tego, co faktycznie było wydrukowane na
+        # plakacie, więc promocja mogła zniknąć za wcześnie albo zbyt
+        # późno względem rzeczywistości.
+        extracted_valid_until = item.get("valid_until")
+        if (
+            extracted_valid_until
+            and date.today() <= extracted_valid_until <= date.today() + timedelta(days=90)
+        ):
+            valid_until = extracted_valid_until
+        else:
+            valid_until = date.today() + timedelta(days=14)
+
         db.add(
             Promotion(
                 product_name=product.name,
                 store_name=store_name,
                 regular_price=item["regular_price"],
                 promo_price=item["promo_price"],
-                promo_type="price_cut",
-                promo_description=f"Znalezione przez AI w gazetce {store_name}",
+                # UWAGA (naprawa): wcześniej ZAWSZE "price_cut", niezależnie
+                # od tego, czy AI znalazło warunek (np. "2+1" albo karta
+                # lojalnościowa). To ważne, bo promo_type decyduje PÓŹNIEJ
+                # (patrz approve_promotion), czy zaakceptowanie promocji
+                # może bezpiecznie nadpisać CENĘ BAZOWĄ produktu w
+                # katalogu — dla promocji warunkowej NIE WOLNO tego robić,
+                # bo promo_price to nie jest cena za pojedynczą sztukę
+                # bez zobowiązań.
+                promo_type=promo_type,
+                requires_loyalty_card=requires_loyalty_card,
+                promo_description=description,
                 source="ai_scan",
                 valid_from=date.today(),
-                valid_until=date.today() + timedelta(days=14),
+                valid_until=valid_until,
                 is_active=True,
                 review_status="pending",
             )
@@ -240,29 +302,41 @@ async def approve_promotion(
 ):
     """Akceptuje promocję — od tego momentu WPŁYWA na cenę widoczną
     w aplikacji (aktualizuje StoreProduct.price dla dopasowanego produktu
-    w danym sklepie, jeśli taki wiersz istnieje)."""
+    w danym sklepie, jeśli taki wiersz istnieje).
+
+    UWAGA (naprawa poważnego błędu): promo_price przy promocjach
+    WARUNKOWYCH (promo_type="multipack", np. "kup 2, zapłać za 1") to
+    NIE jest cena za pojedynczą sztukę — to efektywna cena PRZY SPEŁNIENIU
+    warunku. Nadpisanie nią StoreProduct.price (czyli "ile kosztuje 1
+    sztuka tego produktu" używane w KAŻDYM innym miejscu aplikacji: listy
+    zakupów, budżety planów, porównania cen) zaniżałoby realny koszt dla
+    każdego, kto nie kupuje wymaganej liczby sztuk. Dla takich promocji
+    zatwierdzamy samą promocję (widoczną z opisem warunku), ale NIE
+    ruszamy ceny bazowej w katalogu.
+    """
     promotion = await db.get(Promotion, promotion_id)
     if promotion is None:
         raise HTTPException(status_code=404, detail="Nie znaleziono promocji")
 
     promotion.review_status = "approved"
 
-    store_result = await db.execute(select(Store).where(Store.name == promotion.store_name))
-    store = store_result.scalar_one_or_none()
-    product_result = await db.execute(
-        select(Product).where(Product.name == promotion.product_name)
-    )
-    product = product_result.scalar_one_or_none()
-    if store and product:
-        sp_result = await db.execute(
-            select(StoreProduct).where(
-                StoreProduct.store_id == store.id, StoreProduct.product_id == product.id
-            )
+    if promotion.promo_type == "price_cut":
+        store_result = await db.execute(select(Store).where(Store.name == promotion.store_name))
+        store = store_result.scalar_one_or_none()
+        product_result = await db.execute(
+            select(Product).where(Product.name == promotion.product_name)
         )
-        store_product = sp_result.scalar_one_or_none()
-        if store_product:
-            store_product.price = promotion.promo_price
-            store_product.last_verified = date.today()
+        product = product_result.scalar_one_or_none()
+        if store and product:
+            sp_result = await db.execute(
+                select(StoreProduct).where(
+                    StoreProduct.store_id == store.id, StoreProduct.product_id == product.id
+                )
+            )
+            store_product = sp_result.scalar_one_or_none()
+            if store_product:
+                store_product.price = promotion.promo_price
+                store_product.last_verified = date.today()
 
     await db.commit()
     await db.refresh(promotion)

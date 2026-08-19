@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../services/price_compare_service.dart';
+import '../../providers/meal_plan_provider.dart';
 
 class PriceCompareScreen extends StatefulWidget {
   final String mealPlanId;
@@ -13,8 +15,27 @@ class PriceCompareScreen extends StatefulWidget {
 class _PriceCompareScreenState extends State<PriceCompareScreen> {
   final PriceCompareService _priceCompareService = PriceCompareService();
   bool _isLoading = true;
+  bool _isSwitchingStore = false;
   List<PriceComparisonResult> _results = [];
   String? _error;
+
+  Future<void> _switchToStore(PriceComparisonResult result) async {
+    setState(() => _isSwitchingStore = true);
+    final provider = Provider.of<MealPlanProvider>(context, listen: false);
+    final success = await provider.updateStore(widget.mealPlanId, result.storeId);
+    if (!mounted) return;
+    setState(() => _isSwitchingStore = false);
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Plan przełączony na ${result.storeName}')),
+      );
+      Navigator.of(context).pop();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(provider.errorMessage ?? 'Nie udało się przełączyć sklepu')),
+      );
+    }
+  }
 
   @override
   void initState() {
@@ -32,12 +53,14 @@ class _PriceCompareScreenState extends State<PriceCompareScreen> {
       final results = await _priceCompareService.comparePrices(widget.mealPlanId);
       // Sort by price ascending
       results.sort((a, b) => a.totalPrice.compareTo(b.totalPrice));
-      
+
+      if (!mounted) return;
       setState(() {
         _results = results;
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = 'Nie udało się załadować porównania: $e';
         _isLoading = false;
@@ -151,6 +174,27 @@ class _PriceCompareScreenState extends State<PriceCompareScreen> {
                   ),
                 );
               }),
+              const SizedBox(height: 8),
+              // Wcześniej porównanie cen było czysto informacyjne — dało
+              // się zobaczyć, że inny sklep wypada taniej, ale nie dało
+              // się nic z tym zrobić. Backend do tego już istniał (patrz
+              // PUT /meal-plans/{id}/store), brakowało tylko przycisku.
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: _isSwitchingStore ? null : () => _switchToStore(result),
+                    child: _isSwitchingStore
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Przełącz plan na ten sklep'),
+                  ),
+                ),
+              ),
               const SizedBox(height: 8),
             ],
           ),

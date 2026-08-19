@@ -8,6 +8,7 @@ import '../../theme/app_theme.dart';
 import 'recipe_detail_screen.dart';
 import 'ai_add_recipe_screen.dart';
 import '../../widgets/premium_feature_tag.dart';
+import '../../utils/error_utils.dart';
 
 class _IngredientRow {
   Product product;
@@ -158,7 +159,7 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceAll('ApiException:', '').trim())),
+        SnackBar(content: Text(friendlyError(e))),
       );
     } finally {
       if (mounted) setState(() => _isSubmitting = false);

@@ -34,6 +34,7 @@ class UserResponse(BaseModel):
     role: str = "user"
     is_premium: bool = False
     premium_expires_at: datetime | None = None
+    premium_product_id: str | None = None
     created_at: datetime
 
 

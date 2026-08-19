@@ -39,6 +39,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     if (storeProvider.stores.isEmpty) {
       await storeProvider.loadStores();
     }
+    if (!mounted) return;
 
     final preferredId = authProvider.currentUser?.preferredStoreId;
     final availableIds = storeProvider.stores.map((s) => s.id).toList();
@@ -70,17 +71,21 @@ class _ProductsScreenState extends State<ProductsScreen> {
         limit: 100,
         search: _searchQuery,
       );
+      if (!mounted) return;
       setState(() {
         _products = list;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = 'Nie udało się pobrać produktów: $e';
       });
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 

@@ -7,6 +7,7 @@ import '../../providers/meal_plan_provider.dart';
 import '../../models/store.dart';
 import '../../models/meal_plan.dart';
 import '../../theme/app_theme.dart';
+import '../profile/premium_screen.dart';
 
 class PlanConfigScreen extends StatefulWidget {
   const PlanConfigScreen({super.key});
@@ -95,10 +96,27 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
       if (success) {
         await _showBudgetConfirmation(mealPlanProvider.currentPlan);
       } else {
+        final errorMsg = mealPlanProvider.errorMessage ?? 'Nie udało się wygenerować planu';
+        // Błąd limitu darmowego konta wspomina Premium w treści (patrz
+        // backend) — dokładamy wtedy przycisk prowadzący wprost do
+        // ekranu zakupu, zamiast zostawiać to tylko jako tekst.
+        final isLimitError = errorMsg.contains('Premium');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(mealPlanProvider.errorMessage ?? 'Nie udało się wygenerować planu'),
+            content: Text(errorMsg),
             backgroundColor: AppTheme.errorColor,
+            duration: const Duration(seconds: 6),
+            action: isLimitError
+                ? SnackBarAction(
+                    label: 'PREMIUM',
+                    textColor: Colors.white,
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const PremiumScreen()),
+                      );
+                    },
+                  )
+                : null,
           ),
         );
       }
@@ -153,9 +171,57 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                   ],
                 ),
               ),
+            // Dla kont standardowych (bez Premium) — proaktywna informacja
+            // o limicie, ZANIM na niego trafią (nie tylko reaktywnie, gdy
+            // spróbują wygenerować drugi plan i zostaną zablokowani).
+            if (!(Provider.of<AuthProvider>(context, listen: false).currentUser?.hasPremiumAccess ?? false)) ...[
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppTheme.secondaryColor.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppTheme.secondaryColor.withOpacity(0.25)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.info_outline, color: AppTheme.secondaryColor, size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Na koncie standardowym masz jeden plan naraz',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Premium pozwala mieć kilka planów jednocześnie (np. osobny na dni robocze i weekend).',
+                            style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
         actions: [
+          if (!(Provider.of<AuthProvider>(context, listen: false).currentUser?.hasPremiumAccess ?? false))
+            TextButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const PremiumScreen()),
+                );
+              },
+              child: const Text('Poznaj Premium'),
+            ),
           ElevatedButton(
             onPressed: () {
               Navigator.of(ctx).pop();

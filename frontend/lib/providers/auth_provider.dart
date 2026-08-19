@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/user.dart';
 import '../services/auth_service.dart';
 import '../services/api_client.dart';
+import '../utils/error_utils.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
@@ -61,7 +62,7 @@ class AuthProvider with ChangeNotifier {
       _setLoading(false);
       return true;
     } catch (e) {
-      _setErrorMessage(e.toString().replaceAll('ApiException:', ''));
+      _setErrorMessage(friendlyError(e));
       _setLoading(false);
       return false;
     }
@@ -84,7 +85,7 @@ class AuthProvider with ChangeNotifier {
       _setLoading(false);
       return true;
     } catch (e) {
-      _setErrorMessage(e.toString().replaceAll('ApiException:', ''));
+      _setErrorMessage(friendlyError(e));
       _setLoading(false);
       return false;
     }
@@ -100,7 +101,7 @@ class AuthProvider with ChangeNotifier {
       _setLoading(false);
       return success;
     } catch (e) {
-      _setErrorMessage(e.toString().replaceAll('ApiException:', ''));
+      _setErrorMessage(friendlyError(e));
       _setLoading(false);
       return false;
     }
@@ -136,7 +137,7 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _setErrorMessage(e.toString().replaceAll('ApiException:', ''));
+      _setErrorMessage(friendlyError(e));
       return false;
     }
   }
@@ -161,7 +162,7 @@ class AuthProvider with ChangeNotifier {
       _setLoading(false);
       return true;
     } catch (e) {
-      _setErrorMessage(e.toString().replaceAll('ApiException:', ''));
+      _setErrorMessage(friendlyError(e));
       _setLoading(false);
       return false;
     }

@@ -57,7 +57,15 @@ class _ModelUnavailableError(Exception):
     KONKRETNY model jest chwilowo niedostępny (wyczerpany limit albo
     uporczywe przeciążenie mimo ponowień). Funkcja nadrzędna łapie ten
     wyjątek i próbuje KOLEJNEGO modelu z listy GEMINI_MODELS, zamiast
-    od razu poddawać się użytkownikowi."""
+    od razu poddawać się użytkownikowi.
+
+    `reason` niesie ROZPOZNANĄ przyczynę ("quota_exhausted" /
+    "rate_limited" / "overloaded" / "unknown") — używane do zbudowania
+    trafniejszego komunikatu KOŃCOWEGO, jeśli WSZYSTKIE modele zawiodą."""
+
+    def __init__(self, message: str, reason: str = "unknown"):
+        super().__init__(message)
+        self.reason = reason
 
 
 def _build_prompt(available_products: list[str]) -> str:
@@ -156,8 +164,19 @@ async def _call_gemini_model(parts: list[dict], model: str) -> str:
         if response.status_code == 429:
             # Wyczerpany limit TEGO modelu — każdy model Gemini ma własny,
             # osobny limit, więc to NIE znaczy, że kolejny model też jest
-            # niedostępny.
-            raise _ModelUnavailableError(f"Model {model}: wyczerpany limit (429)")
+            # niedostępny. Rozróżniamy PRZYCZYNĘ (limit dzienny wyczerpany
+            # vs chwilowy natłok zapytań na minutę) na podstawie treści
+            # odpowiedzi, żeby komunikat końcowy dla użytkownika (jeśli
+            # WSZYSTKIE modele zawiodą) mógł być trafniejszy niż ogólne
+            # "spróbuj później".
+            from app.services.gemini_status import classify_gemini_error
+
+            try:
+                error_body = response.json()
+            except Exception:
+                error_body = None
+            reason = classify_gemini_error(429, error_body)
+            raise _ModelUnavailableError(f"Model {model}: wyczerpany limit (429)", reason=reason)
 
         if response.status_code in (503, 502, 500) and attempt < max_attempts:
             await asyncio.sleep(attempt * 1.5)
@@ -165,7 +184,8 @@ async def _call_gemini_model(parts: list[dict], model: str) -> str:
 
         if response.status_code in (503, 502, 500):
             raise _ModelUnavailableError(
-                f"Model {model}: przeciążony ({response.status_code}) mimo {max_attempts} prób"
+                f"Model {model}: przeciążony ({response.status_code}) mimo {max_attempts} prób",
+                reason="overloaded",
             )
 
         raise AIRecipeImportError(
@@ -198,13 +218,29 @@ async def _call_gemini(parts: list[dict]) -> str:
         )
 
     unavailable_reasons: list[str] = []
+    reason_types: list[str] = []
     for model in GEMINI_MODELS:
         try:
             return await _call_gemini_model(parts, model)
         except _ModelUnavailableError as exc:
             logger.warning("Gemini: %s — próbuję kolejnego modelu, jeśli jest", exc)
             unavailable_reasons.append(str(exc))
+            reason_types.append(exc.reason)
             continue
+
+    # UWAGA (nowe): jeśli WSZYSTKIE modele zawiodły z powodu wyczerpanego
+    # DZIENNEGO limitu (nie chwilowego natłoku zapytań na minutę), mówimy
+    # to userowi wprost — "spróbuj za chwilę" byłoby mylące, skoro limit
+    # dzienny reali się dopiero następnego dnia.
+    if reason_types and all(r == "quota_exhausted" for r in reason_types):
+        raise AIRecipeImportError(
+            "Dzienny limit zapytań do AI został wyczerpany dla wszystkich dostępnych "
+            "modeli. Spróbuj ponownie jutro, albo skontaktuj się z administratorem."
+        )
+    if reason_types and all(r == "rate_limited" for r in reason_types):
+        raise AIRecipeImportError(
+            "Zbyt wiele zapytań do AI w krótkim czasie. Odczekaj minutę i spróbuj ponownie."
+        )
 
     raise AIRecipeImportError(
         f"Usługa AI jest chwilowo niedostępna (wypróbowano {len(GEMINI_MODELS)} modeli, "

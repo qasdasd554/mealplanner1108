@@ -14,6 +14,7 @@ from app.api.v1.stores import router as stores_router
 from app.api.v1.users import router as users_router
 from app.api.v1.food_log import router as food_log_router
 from app.api.v1.price_compare import router as price_compare_router
+from app.api.v1.billing import router as billing_router
 
 router = APIRouter()
 
@@ -31,3 +32,4 @@ router.include_router(
 router.include_router(food_log_router, prefix="/food-log", tags=["Food Log"])
 router.include_router(price_compare_router, prefix="/price-compare", tags=["Price Comparison"])
 router.include_router(promotions_router, prefix="/promotions", tags=["Promotions"])
+router.include_router(billing_router, prefix="/billing", tags=["Billing"])

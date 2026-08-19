@@ -52,6 +52,12 @@ async def _create_tables() -> None:
             text("ALTER TABLE users ADD COLUMN IF NOT EXISTS premium_expires_at TIMESTAMPTZ")
         )
         await conn.execute(
+            text("ALTER TABLE users ADD COLUMN IF NOT EXISTS premium_product_id VARCHAR(100)")
+        )
+        await conn.execute(
+            text("ALTER TABLE users ADD COLUMN IF NOT EXISTS premium_purchase_token TEXT")
+        )
+        await conn.execute(
             text("ALTER TABLE recipes ADD COLUMN IF NOT EXISTS created_by_user_id UUID")
         )
         await conn.execute(

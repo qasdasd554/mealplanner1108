@@ -66,14 +66,20 @@ class RecipeIngredientResponse(BaseModel):
 class RecipeBase(BaseModel):
     """Wspólne pola przepisu."""
 
-    name: str
+    # UWAGA (naprawa): pola tekstowe nie miały limitów długości — dłuższa
+    # wartość niż kolumna w bazie (patrz app/models/recipe.py) powodowała
+    # nieobsłużony błąd bazy danych (surowy 500) zamiast czytelnej
+    # odpowiedzi walidacyjnej. Ten sam wzorzec błędu co przy display_name
+    # w rejestracji (już naprawiony) — limity dobrane tak, żeby dokładnie
+    # odpowiadały ograniczeniom odpowiednich kolumn.
+    name: str = Field(..., max_length=300)
     description: str | None = None
-    cuisine: str | None = None
-    meal_type: str
+    cuisine: str | None = Field(default=None, max_length=100)
+    meal_type: str = Field(..., max_length=50)
     prep_time_min: int | None = None
     cook_time_min: int | None = None
     servings: int = Field(default=2, ge=1)
-    difficulty: str = "łatwy"
+    difficulty: str = Field(default="łatwy", max_length=50)
 
 
 class RecipeCreate(RecipeBase):
@@ -201,4 +207,21 @@ class AIRecipeImportRequest(BaseModel):
     # przy ręcznym dodawaniu (ten endpoint i tak wymaga Premium, więc nie
     # trzeba tu dodatkowo sprawdzać uprawnień).
     request_public: bool = False
+
+    @field_validator("photo_base64")
+    @classmethod
+    def validate_photo(cls, v: str | None) -> str | None:
+        # UWAGA (naprawa): to jedyne z trzech miejsc z photo_base64
+        # w aplikacji (obok ręcznego dodania przepisu i komentarzy), które
+        # NIE miało żadnej walidacji — dało się wysłać dowolnie duże albo
+        # zupełnie niebędące obrazem dane, które trafiały prosto do
+        # płatnego API Gemini. Co gorsza: to samo zdjęcie staje się
+        # POTEM zdjęciem utworzonego przepisu (photo_base64=payload...),
+        # więc bez tej walidacji całkiem omijało też sprawdzenie w
+        # RecipeCreate.
+        if v is None:
+            return v
+        from app.core.photo_validation import validate_and_check_photo_base64
+
+        return validate_and_check_photo_base64(v, 3 * 1024 * 1024)
 

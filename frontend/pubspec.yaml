@@ -19,6 +19,11 @@ dependencies:
   # Logowanie przez Google (natywny SDK — bez przeglądarki/redirect_uri)
   google_sign_in: ^7.2.0
 
+  # Płatności w aplikacji (subskrypcja Premium) — oficjalny pakiet
+  # zespołu Fluttera, wspiera Google Play Billing Library 8+ (wymóg
+  # Google od 31 sierpnia 2026).
+  in_app_purchase: ^3.2.3
+
   # Local Storage
   shared_preferences: ^2.2.3
   # Zaszyfrowany magazyn (Android Keystore / iOS Keychain) — token JWT

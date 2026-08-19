@@ -153,4 +153,30 @@ class RecipeService {
     final response = await _client.put('${ApiConfig.recipes}$recipeId/reject');
     return Recipe.fromJson(response as Map<String, dynamic>);
   }
+
+  /// Lista przepisów oczekujących na akceptację do wspólnego katalogu
+  /// (tylko admin) — wcześniej ten endpoint istniał w backendzie, ale
+  /// żaden ekran go nie wywoływał, więc admin nie miał jak w ogóle
+  /// odkryć, że jakiś przepis czeka na decyzję.
+  Future<List<Recipe>> getPendingRecipes() async {
+    final response = await _client.get('${ApiConfig.recipes}pending/review');
+    if (response is List) {
+      return response.map((e) => Recipe.fromJson(e as Map<String, dynamic>)).toList();
+    }
+    return [];
+  }
+
+  /// Sprawdza stan klucza/limitów Gemini API — czy funkcje AI (import
+  /// przepisów, skanowanie gazetek) są aktualnie dostępne, czy limit
+  /// tokenów/zapytań został wyczerpany (tylko admin).
+  Future<Map<String, dynamic>> getAiStatus() async {
+    final response = await _client.get('${ApiConfig.recipes}ai-status');
+    return response as Map<String, dynamic>;
+  }
+
+  /// Usuwa własny przepis (ręcznie dodany albo przez AI). Nie da się
+  /// usunąć oficjalnych przepisów dostarczonych z aplikacją.
+  Future<void> deleteRecipe(String recipeId) async {
+    await _client.delete('${ApiConfig.recipes}$recipeId');
+  }
 }

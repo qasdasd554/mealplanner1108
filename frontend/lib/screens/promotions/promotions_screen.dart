@@ -166,9 +166,28 @@ class _PromotionTile extends StatelessWidget {
                 ),
                 if (promo.promoDescription != null) ...[
                   const SizedBox(height: 4),
-                  Text(
-                    promo.promoDescription!,
-                    style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                  // UWAGA (zmiana): warunek promocji (np. "Kup 2, zapłać
+                  // za 1") to często KLUCZOWA informacja — bez niej
+                  // użytkownik mógłby pomyśleć, że cena dotyczy
+                  // pojedynczej sztuki bez żadnych zobowiązań. Wcześniej
+                  // był stylizowany jak zwykły, drugorzędny podtytuł
+                  // (szary, mały tekst) — teraz wyróżniony wizualnie.
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.info_outline, size: 14, color: AppTheme.secondaryColor),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          promo.promoDescription!,
+                          style: TextStyle(
+                            color: AppTheme.secondaryColor,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
                 if (promo.requiresLoyaltyCard) ...[

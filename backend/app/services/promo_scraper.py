@@ -110,16 +110,37 @@ def _normalize(name: str) -> str:
     return n
 
 
+def _extract_percentages(text: str) -> set[str]:
+    """Wyciąga wartości procentowe z tekstu (np. zawartość tłuszczu w
+    nabiale: "2%", "3,2%") — używane jako dodatkowy warunek dopasowania,
+    NIEZALEŻNY od ogólnego podobieństwa tekstu."""
+    return set(re.findall(r"\d+(?:[.,]\d+)?\s*%", text))
+
+
 def _best_match(scraped_name: str, catalog: dict[str, Product]) -> Product | None:
     """Znajduje najbardziej podobny produkt z katalogu (jeśli wystarczająco
-    podobny), używając wbudowanego difflib — bez dodatkowej zależności."""
+    podobny), używając wbudowanego difflib — bez dodatkowej zależności.
+
+    UWAGA (naprawa): samo podobieństwo tekstu potrafi mylić produkty
+    RÓŻNIĄCE SIĘ TYLKO ZAWARTOŚCIĄ TŁUSZCZU — np. "Mleko 2%" i "Mleko
+    3,2%" mają podobieństwo tekstowe 0.88 (powyżej progu), mimo że to
+    dwa różne produkty z różną ceną. Jeśli OBIE porównywane nazwy mają
+    jakąkolwiek wartość procentową i się RÓŻNIĄ, odmawiamy dopasowania
+    niezależnie od ogólnego podobieństwa reszty tekstu — to bezpieczniej
+    niż ryzykować przypisanie ceny do złego produktu."""
     target = _normalize(scraped_name)
     if not target:
         return None
 
+    target_percentages = _extract_percentages(scraped_name)
+
     best_ratio = 0.0
     best_product: Product | None = None
     for norm_name, product in catalog.items():
+        catalog_percentages = _extract_percentages(product.name)
+        if target_percentages and catalog_percentages and target_percentages != catalog_percentages:
+            continue
+
         ratio = difflib.SequenceMatcher(None, target, norm_name).ratio()
         if ratio > best_ratio:
             best_ratio = ratio

@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import JSON, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -47,13 +47,23 @@ class User(Base):
     # celowo, żeby nikt nie mógł sam się mianować administratorem;
     # ustawia się to bezpośrednio w bazie danych.
     role: Mapped[str] = mapped_column(String(20), default="user", nullable=False)
-    # Fundament pod płatną subskrypcję premium — na razie ustawiane
-    # ręcznie/administracyjnie, docelowo aktualizowane automatycznie po
-    # zweryfikowaniu zakupu przez Google Play Billing.
+    # Fundament pod płatną subskrypcję premium — teraz w pełni podłączone
+    # pod Google Play Billing (patrz app/services/google_play_billing.py):
+    # is_premium/premium_expires_at aktualizowane automatycznie po
+    # zweryfikowaniu zakupu przez Google Play Developer API. Nadal można
+    # też ustawić ręcznie/administracyjnie (np. konta testowe).
     is_premium: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     premium_expires_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    # Który dokładnie produkt subskrypcyjny (premium_monthly /
+    # premium_yearly) — do wyświetlenia użytkownikowi "Twój plan" i do
+    # ponownej weryfikacji przy odnowieniu.
+    premium_product_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    # Token zakupu z Google Play — potrzebny do ponownej weryfikacji
+    # stanu subskrypcji (czy nadal aktywna, czy anulowana/zwrócona) bez
+    # konieczności czekania na kolejne zdarzenie od użytkownika.
+    premium_purchase_token: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

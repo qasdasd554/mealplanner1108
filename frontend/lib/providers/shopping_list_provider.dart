@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/shopping_list.dart';
 import '../services/shopping_list_service.dart';
+import '../utils/error_utils.dart';
 
 class ShoppingListProvider with ChangeNotifier {
   final ShoppingListService _shoppingListService = ShoppingListService();
@@ -20,7 +21,7 @@ class ShoppingListProvider with ChangeNotifier {
     try {
       _currentList = await _shoppingListService.getShoppingList(listId);
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('ApiException:', '');
+      _errorMessage = friendlyError(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -55,7 +56,7 @@ class ShoppingListProvider with ChangeNotifier {
     } catch (e) {
       // Cofnij zmianę w razie błędu
       targetItem.isChecked = !targetItem.isChecked;
-      _errorMessage = e.toString().replaceAll('ApiException:', '');
+      _errorMessage = friendlyError(e);
       notifyListeners();
     }
   }
@@ -74,7 +75,7 @@ class ShoppingListProvider with ChangeNotifier {
       await loadShoppingList(_currentList!.id);
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('ApiException:', '');
+      _errorMessage = friendlyError(e);
       return false;
     } finally {
       _isLoading = false;

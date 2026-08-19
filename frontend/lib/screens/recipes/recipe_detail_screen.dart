@@ -7,6 +7,7 @@ import '../../widgets/recipe_comments_section.dart';
 import '../../widgets/recipe_favorite_button.dart';
 import '../../widgets/recipe_approval_bar.dart';
 import '../../widgets/dish_shopping_list_button.dart';
+import '../../widgets/recipe_delete_button.dart';
 
 class RecipeDetailScreen extends StatelessWidget {
   const RecipeDetailScreen({super.key});
@@ -133,6 +134,12 @@ class RecipeDetailScreen extends StatelessWidget {
               padding: const EdgeInsets.only(top: 12),
               child: DishShoppingListButton(recipe: recipe),
             ),
+          ),
+
+          // "Usuń przepis" — widoczny TYLKO dla właściciela. Sam widget
+          // zwraca pusty SizedBox dla cudzych/oficjalnych przepisów.
+          SliverToBoxAdapter(
+            child: RecipeDeleteButton(recipe: recipe),
           ),
 
           // 2. Karta z detalami przepisu

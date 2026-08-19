@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 import json
 import re
@@ -69,13 +69,28 @@ async def register(request: Request, db: AsyncSession = Depends(get_db)):
     body = await get_parsed_body(request)
     email = body.get("email")
     password = body.get("password")
-    display_name = body.get("display_name", "")
+    display_name = (body.get("display_name") or "").strip()
 
     if not email or not password:
         raise HTTPException(status_code=400, detail="Email i hasło są wymagane")
     _validate_credentials(email, password)
+    # UWAGA (naprawa): wcześniej display_name nie miał ŻADNEJ walidacji —
+    # nazwa dłuższa niż limit kolumny w bazie (200 znaków) powodowała
+    # nieobsłużony błąd bazy danych (surowy 500, bez czytelnego
+    # komunikatu) zamiast czytelnej odpowiedzi 400. Sprawdzamy to PRZED
+    # dotarciem do bazy.
+    if len(display_name) > 200:
+        raise HTTPException(status_code=400, detail="Nazwa użytkownika jest za długa (maks. 200 znaków)")
 
-    result = await db.execute(select(User).where(User.email == email))
+    # UWAGA (naprawa poważnego błędu): adresy e-mail były porównywane z
+    # rozróżnianiem wielkości liter — "User@Example.com" i
+    # "user@example.com" tworzyły DWA OSOBNE konta, a logowanie inną
+    # wielkością liter niż przy rejestracji kończyło się mylącym
+    # "nieprawidłowe hasło" (mimo poprawnego hasła). Normalizujemy do
+    # małych liter PRZED zapisem — wszystkie NOWE konta są odtąd spójne.
+    email = email.strip().lower()
+
+    result = await db.execute(select(User).where(func.lower(User.email) == email))
     if result.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Ten adres e-mail jest już zarejestrowany")
 
@@ -106,7 +121,14 @@ async def login(request: Request, db: AsyncSession = Depends(get_db)):
     if not email or not password:
         raise HTTPException(status_code=400, detail="Email i hasło są wymagane")
 
-    result = await db.execute(select(User).where(User.email == email))
+    # UWAGA (naprawa): dopasowanie bez rozróżniania wielkości liter — patrz
+    # komentarz przy /register. Działa poprawnie też dla KONT ZAŁOŻONYCH
+    # PRZED tą naprawą (niezależnie od tego, jaką wielkością liter zostały
+    # zapisane), bo porównujemy obie strony po sprowadzeniu do małych liter,
+    # a nie zakładamy z góry, że dane w bazie już są znormalizowane.
+    email = email.strip().lower()
+
+    result = await db.execute(select(User).where(func.lower(User.email) == email))
     user = result.scalar_one_or_none()
 
     if not user or not verify_password(password, user.password_hash):
@@ -166,16 +188,28 @@ async def google_login(request: Request, db: AsyncSession = Depends(get_db)):
     if idinfo.get("email_verified") is False:
         raise HTTPException(status_code=400, detail="Adres e-mail konta Google nie jest zweryfikowany")
 
-    result = await db.execute(select(User).where(User.email == email))
+    # UWAGA (naprawa): ta sama normalizacja co przy /register i /login —
+    # bez niej konto założone hasłem jako "User@Example.com" i późniejsze
+    # logowanie Google tym samym adresem (Google zwykle, ale nie zawsze,
+    # zwraca małe litery) mogłoby stworzyć DRUGIE, osobne konto zamiast
+    # zalogować na to samo.
+    email = email.strip().lower()
+
+    result = await db.execute(select(User).where(func.lower(User.email) == email))
     user = result.scalar_one_or_none()
 
     if not user:
+        # UWAGA (naprawa): przycinamy do limitu kolumny (200 znaków) na
+        # wszelki wypadek — to dane z zewnętrznego źródła (token Google),
+        # którym nie warto bezkrytycznie ufać, że zawsze zmieszczą się
+        # w ograniczeniu bazy (patrz ta sama naprawa przy /register).
+        google_name = (idinfo.get("name") or email.split("@")[0])[:200]
         user = User(
             email=email,
             # Hasło losowe i zahaszowane — konto założone przez Google nie
             # ma hasła, którym dałoby się zalogować metodą e-mail/hasło.
             password_hash=get_password_hash(uuid.uuid4().hex),
-            display_name=idinfo.get("name") or email.split("@")[0],
+            display_name=google_name,
         )
         db.add(user)
         await db.commit()

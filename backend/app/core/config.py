@@ -68,6 +68,15 @@ class Settings(BaseSettings):
     # zwróci czytelny błąd zamiast wywalać się niejasnym wyjątkiem.
     GEMINI_API_KEY: str = ""
 
+    # ── Google Play Billing (subskrypcje) ───────────────────────────
+    # Nazwa pakietu aplikacji w Google Play — np. "com.meal_planner_polska_v1".
+    GOOGLE_PLAY_PACKAGE_NAME: str = ""
+    # Pełna zawartość klucza JSON konta serwisowego Google Cloud (patrz
+    # przewodnik konfiguracji płatności) — WYMAGANE, żeby backend mógł
+    # zweryfikować zakup subskrypcji u Google. Bez tego endpoint
+    # weryfikacji zakupu zwróci czytelny błąd zamiast się wywalić.
+    GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: str = ""
+
     # ── Aplikacja ────────────────────────────────────────────────
     APP_NAME: str = "Smart Meal Planner PL"
     # UWAGA: cała aplikacja Flutter (lib/config/api_config.dart) zakłada

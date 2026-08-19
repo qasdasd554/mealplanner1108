@@ -66,6 +66,15 @@ class MealPlanGenerateRequest(BaseModel):
     # Docelowa dzienna kaloryczność na osobę. Wcześniej aplikacja wysyłała
     # to pole, ale backend go nie przyjmował (Pydantic po cichu odrzucał
     # nieznane pole) — ustawienie w formularzu nic nie robiło.
-    target_kcal: float | None = Field(default=None, gt=0, le=6000)
-    target_kcal: int | None = Field(default=None, ge=800, le=5000)
+    #
+    # UWAGA (naprawa): to pole było przez pomyłkę zadeklarowane TUTAJ
+    # DWUKROTNIE (raz jako float z zakresem >0-6000, zaraz potem jako int
+    # z zakresem 800-5000) — druga deklaracja po cichu nadpisywała
+    # pierwszą (tak działa Python przy powtórnej definicji atrybutu
+    # klasy), więc pierwsza była martwym kodem. Scalone w jedną: typ
+    # `float` (zgodny z tym, czego wszędzie indziej w kodzie —
+    # meal_plan_generator.py — oczekuje ta wartość), z granicami 800-5000
+    # (fizjologicznie sensowniejsze niż ">0", które dopuszczało absurdalne
+    # wartości typu target_kcal=1).
+    target_kcal: float | None = Field(default=None, ge=800, le=5000)
     preferences: dict | None = None

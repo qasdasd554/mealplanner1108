@@ -2,7 +2,7 @@
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,7 +10,7 @@ from sqlalchemy.orm import selectinload
 
 from app.api.deps import get_current_user
 from app.db.session import get_db
-from app.models import Allergen, User, UserAllergen
+from app.models import Allergen, Store, User, UserAllergen
 from app.schemas.user import UserResponse
 
 router = APIRouter()
@@ -84,6 +84,17 @@ async def update_me(
     Pomija pola o wartości ``None`` — aktualizowane są tylko jawnie przekazane wartości.
     """
     update_data = payload.model_dump(exclude_unset=True)
+
+    # UWAGA (naprawa): wcześniej `preferred_store_id` nie było w ogóle
+    # sprawdzane — nieistniejący sklep przechodził walidację Pydantic (to
+    # tylko UUID), ale przy zapisie do bazy naruszał ograniczenie klucza
+    # obcego, kończąc się nieobsłużonym błędem 500 zamiast czytelnej
+    # odpowiedzi. Sprawdzamy istnienie PRZED próbą zapisu.
+    if update_data.get("preferred_store_id") is not None:
+        store = await db.get(Store, update_data["preferred_store_id"])
+        if store is None:
+            raise HTTPException(status_code=400, detail="Wskazany sklep nie istnieje")
+
     for field, value in update_data.items():
         setattr(current_user, field, value)
 

@@ -22,6 +22,7 @@ import asyncio
 import base64
 import logging
 import re
+from datetime import date
 
 import httpx
 from bs4 import BeautifulSoup
@@ -144,6 +145,7 @@ async def _download_pdf(url: str, referer: str) -> bytes:
 
 def _build_prompt(store_name: str, available_products: list[str]) -> str:
     products_list = "\n".join(f"- {p}" for p in sorted(available_products))
+    today_str = date.today().isoformat()
     return f"""Jesteś asystentem analizującym gazetkę promocyjną sklepu {store_name}.
 Przeanalizuj załączony PDF i znajdź WSZYSTKIE produkty spożywcze objęte
 promocją, których nazwa pasuje do poniższej listy produktów z naszego
@@ -153,11 +155,38 @@ pasuje do "Masło" w katalogu).
 DOSTĘPNE PRODUKTY W KATALOGU (dopasowuj TYLKO do tych nazw):
 {products_list}
 
+WAŻNE — każda promocja w gazetce ma jakieś OGRANICZENIA. Zwróć na nie
+szczególną uwagę i wypełnij pola:
+
+1. "condition" — WARUNEK, jaki trzeba spełnić, żeby dostać tę cenę.
+   Prawie ŻADNA promocja nie jest "po prostu taniej" — typowe przykłady:
+   "Przy zakupie 2 sztuk", "Kup 2, zapłać za 1" (tzw. 2+1), "Z kartą
+   lojalnościową sklepu", "Tylko dla zarejestrowanych w aplikacji",
+   "Limit 3 sztuk na paragon". Jeśli w gazetce NIE MA żadnego warunku
+   poza samą obniżką ceny, wpisz null.
+
+   KLUCZOWE: jeśli promocja to "kup 2, trzeci gratis" albo podobna —
+   "promo_price" MA BYĆ ceną PRZY SPEŁNIENIU warunku (np. efektywna cena
+   za sztukę przy zakupie wymaganej liczby), a NIE ceną, jaką zapłaci
+   ktoś kupujący tylko jedną sztukę bez spełnienia warunku. Warunek MUSI
+   być opisany w "condition" — inaczej użytkownik pomyśli, że cena
+   dotyczy pojedynczej sztuki bez żadnych zobowiązań.
+
+2. "valid_until" — data, do kiedy promocja jest ważna, w formacie
+   RRRR-MM-DD, DOKŁADNIE tak, jak podano w gazetce (gazetki promocyjne
+   niemal zawsze mają wydrukowany zakres dat ważności, np. "Oferta ważna
+   od 18.08 do 24.08.2026"). Jeśli data ważności NIE jest widoczna w
+   gazetce, wpisz null — NIE zgaduj.
+
+Dzisiejsza data (do kontekstu, np. jeśli gazetka podaje tylko dzień i
+miesiąc bez roku): {today_str}.
+
 Odpowiedz WYŁĄCZNIE poprawnym JSON-em (bez markdown, bez komentarzy) w
 formacie:
 {{
   "promotions": [
-    {{"product_name": "Masło", "regular_price": 8.99, "promo_price": 6.49}}
+    {{"product_name": "Masło", "regular_price": 8.99, "promo_price": 6.49, "condition": null, "valid_until": "2026-08-24"}},
+    {{"product_name": "Mleko 2%", "regular_price": 3.99, "promo_price": 2.66, "condition": "Kup 2, zapłać za 1 (2+1)", "valid_until": null}}
   ]
 }}
 
@@ -176,6 +205,7 @@ async def _call_gemini_with_pdf(pdf_bytes: bytes, store_name: str, available_pro
         {"text": prompt},
     ]
 
+    reason_types: list[str] = []
     for model in GEMINI_MODELS:
         url = GEMINI_API_URL.format(model=model)
         async with httpx.AsyncClient(timeout=120.0) as client:
@@ -206,6 +236,29 @@ async def _call_gemini_with_pdf(pdf_bytes: bytes, store_name: str, available_pro
 
         logger.warning("Gemini (skan promocji, model %s): status %d", model, response.status_code)
 
+        # UWAGA (nowe): rozróżniamy, CZY to wyczerpany dzienny limit tokenów
+        # (klasyfikacja wspólna z ai_recipe_import.py — patrz
+        # gemini_status.classify_gemini_error), żeby komunikat końcowy dla
+        # administratora był konkretny, zamiast ogólnego "nie zwróciła wyniku".
+        if response.status_code == 429:
+            from app.services.gemini_status import classify_gemini_error
+
+            try:
+                error_body = response.json()
+            except Exception:
+                error_body = None
+            reason_types.append(classify_gemini_error(429, error_body))
+
+    if reason_types and all(r == "quota_exhausted" for r in reason_types):
+        raise PromoAIScanError(
+            "Dzienny limit zapytań do AI został wyczerpany dla wszystkich dostępnych "
+            "modeli. Skanowanie gazetek będzie ponownie możliwe po resecie limitu (zwykle następnego dnia)."
+        )
+    if reason_types and all(r == "rate_limited" for r in reason_types):
+        raise PromoAIScanError(
+            "Zbyt wiele zapytań do AI w krótkim czasie. Odczekaj minutę i spróbuj ponownie."
+        )
+
     raise PromoAIScanError("Usługa AI nie zwróciła wyniku dla żadnego z wypróbowanych modeli.")
 
 
@@ -229,7 +282,32 @@ def _parse_promotions_json(raw_text: str) -> list[dict]:
         name = p.get("product_name")
         if not name or promo <= 0 or promo >= regular:
             continue
-        cleaned_promotions.append({"product_name": name, "regular_price": regular, "promo_price": promo})
+
+        # UWAGA (nowe): wyciągamy WARUNEK promocji (np. "2+1", "przy
+        # zakupie 2 sztuk") i prawdziwą DATĘ WAŻNOŚCI wydrukowaną na
+        # gazetce — wcześniej AI było proszone TYLKO o cenę przed/po, bez
+        # żadnej wzmianki o ograniczeniach, przez co "kup 2, trzeci
+        # gratis" mogło wyglądać jak zwykła obniżka ceny pojedynczej
+        # sztuki. Data ważności szła wcześniej na sztywno jako "+14 dni od
+        # dziś", niezależnie od tego, co faktycznie było na plakacie.
+        condition = p.get("condition")
+        condition = condition.strip() if isinstance(condition, str) and condition.strip() else None
+
+        valid_until_str = p.get("valid_until")
+        valid_until = None
+        if isinstance(valid_until_str, str) and valid_until_str.strip():
+            try:
+                valid_until = date.fromisoformat(valid_until_str.strip())
+            except ValueError:
+                valid_until = None
+
+        cleaned_promotions.append({
+            "product_name": name,
+            "regular_price": regular,
+            "promo_price": promo,
+            "condition": condition,
+            "valid_until": valid_until,
+        })
     return cleaned_promotions
 
 

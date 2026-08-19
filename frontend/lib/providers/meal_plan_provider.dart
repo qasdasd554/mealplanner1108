@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/meal_plan.dart';
 import '../services/meal_plan_service.dart';
+import '../utils/error_utils.dart';
 
 class MealPlanProvider with ChangeNotifier {
   final MealPlanService _mealPlanService = MealPlanService();
@@ -64,7 +65,7 @@ class MealPlanProvider with ChangeNotifier {
         _currentPlan = activePlan;
       }
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('ApiException:', '');
+      _errorMessage = friendlyError(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -78,7 +79,7 @@ class MealPlanProvider with ChangeNotifier {
     try {
       _currentPlan = await _mealPlanService.getPlan(planId);
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('ApiException:', '');
+      _errorMessage = friendlyError(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -97,7 +98,7 @@ class MealPlanProvider with ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('ApiException:', '');
+      _errorMessage = friendlyError(e);
       _isGenerating = false;
       notifyListeners();
       return false;
@@ -112,7 +113,7 @@ class MealPlanProvider with ChangeNotifier {
       await loadPlans(); // przeładuj, aby statusy się zaktualizowały
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('ApiException:', '');
+      _errorMessage = friendlyError(e);
       return false;
     } finally {
       _isLoading = false;
@@ -137,7 +138,29 @@ class MealPlanProvider with ChangeNotifier {
       }
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('ApiException:', '');
+      _errorMessage = friendlyError(e);
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Zmienia sklep przypisany do planu — lista zakupów przelicza się
+  /// automatycznie po stronie backendu pod nowe ceny/działy.
+  Future<bool> updateStore(String planId, String storeId) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final updatedPlan = await _mealPlanService.updateStore(planId, storeId);
+      _currentPlan = updatedPlan;
+      final index = _plans.indexWhere((p) => p.id == planId);
+      if (index != -1) {
+        _plans[index] = updatedPlan;
+      }
+      return true;
+    } catch (e) {
+      _errorMessage = friendlyError(e);
       return false;
     } finally {
       _isLoading = false;
@@ -156,7 +179,7 @@ class MealPlanProvider with ChangeNotifier {
       }
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('ApiException:', '');
+      _errorMessage = friendlyError(e);
       return false;
     } finally {
       _isLoading = false;

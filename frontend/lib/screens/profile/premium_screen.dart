@@ -1,14 +1,214 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:provider/provider.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
+import 'dart:async';
 import '../../theme/app_theme.dart';
+import '../../providers/auth_provider.dart';
+import '../../services/billing_service.dart';
+import '../../utils/error_utils.dart';
 
 /// Ekran prezentacji subskrypcji Premium — lista korzyści + przyciski
-/// zakupu. UWAGA: prawdziwe płatności (Google Play Billing) nie są
-/// jeszcze podłączone, więc przyciski celowo NIE udają działającego
-/// zakupu — pokazują uczciwą informację "wkrótce dostępne" zamiast
-/// pretendować, że coś kupują, skoro nic by się nie stało.
-class PremiumScreen extends StatelessWidget {
+/// zakupu, w pełni podłączone pod Google Play Billing. Backend (nie ta
+/// aplikacja) ostatecznie decyduje, czy nadać dostęp premium — dopiero
+/// PO zweryfikowaniu tokenu zakupu bezpośrednio u Google.
+class PremiumScreen extends StatefulWidget {
   const PremiumScreen({super.key});
+
+  @override
+  State<PremiumScreen> createState() => _PremiumScreenState();
+}
+
+class _PremiumScreenState extends State<PremiumScreen> {
+  final BillingService _billing = BillingService();
+  StreamSubscription<List<PurchaseDetails>>? _purchaseSub;
+
+  bool _isLoadingProducts = true;
+  Map<String, ProductDetails> _products = {};
+  String? _productsError;
+
+  // Podczas przetwarzania zakupu blokujemy przyciski i pokazujemy
+  // spinner — zakup przechodzi przez kilka asynchronicznych kroków
+  // (Google -> backend -> potwierdzenie), więc to może potrwać kilka
+  // sekund.
+  bool _isProcessingPurchase = false;
+  bool _isRestoring = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _purchaseSub = _billing.purchaseStream.listen(
+      _handlePurchaseUpdates,
+      onError: (error) {
+        if (!mounted) return;
+        setState(() => _isProcessingPurchase = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Wystąpił błąd podczas zakupu.')),
+        );
+      },
+    );
+    _loadProducts();
+  }
+
+  @override
+  void dispose() {
+    _purchaseSub?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _loadProducts() async {
+    setState(() {
+      _isLoadingProducts = true;
+      _productsError = null;
+    });
+    try {
+      final available = await _billing.isAvailable();
+      if (!available) {
+        if (!mounted) return;
+        setState(() {
+          _isLoadingProducts = false;
+          _productsError = 'Płatności są niedostępne na tym urządzeniu (sprawdź konto Google Play).';
+        });
+        return;
+      }
+
+      final response = await _billing.queryProducts();
+      if (!mounted) return;
+      setState(() {
+        _products = {for (final p in response.productDetails) p.id: p};
+        _isLoadingProducts = false;
+        if (response.productDetails.isEmpty) {
+          _productsError = 'Nie udało się pobrać cen subskrypcji. Spróbuj ponownie za chwilę.';
+        }
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoadingProducts = false;
+        _productsError = friendlyError(e);
+      });
+    }
+  }
+
+  Future<void> _handlePurchaseUpdates(List<PurchaseDetails> purchases) async {
+    for (final purchase in purchases) {
+      if (purchase.status == PurchaseStatus.pending) {
+        if (mounted) setState(() => _isProcessingPurchase = true);
+        continue;
+      }
+
+      if (purchase.status == PurchaseStatus.error) {
+        if (mounted) {
+          setState(() {
+            _isProcessingPurchase = false;
+            _isRestoring = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Zakup nie powiódł się: ${purchase.error?.message ?? "nieznany błąd"}')),
+          );
+        }
+        // Błąd zgłoszony przez sam sklep — nie ma czego potwierdzać
+        // wobec backendu, ale trzeba domknąć transakcję po stronie
+        // Google, jeśli tego wymaga.
+        if (purchase.pendingCompletePurchase) {
+          await _billing.completePurchase(purchase);
+        }
+        continue;
+      }
+
+      if (purchase.status == PurchaseStatus.canceled) {
+        if (mounted) setState(() => _isProcessingPurchase = false);
+        continue;
+      }
+
+      if (purchase.status == PurchaseStatus.purchased || purchase.status == PurchaseStatus.restored) {
+        await _verifyWithBackend(purchase);
+      }
+    }
+  }
+
+  Future<void> _verifyWithBackend(PurchaseDetails purchase) async {
+    final purchaseToken = purchase.verificationData.serverVerificationData;
+    try {
+      final isRestore = purchase.status == PurchaseStatus.restored;
+      final result = isRestore
+          ? await _billing.restoreOnBackend(purchaseToken: purchaseToken, productId: purchase.productID)
+          : await _billing.verifyPurchase(purchaseToken: purchaseToken, productId: purchase.productID);
+
+      // UWAGA: potwierdzamy zakup wobec Google TYLKO po tym, jak backend
+      // faktycznie potwierdził go u Google i nadał premium — jeśli
+      // backend odrzuci zakup (np. nieprawidłowy token), CELOWO NIE
+      // wywołujemy completePurchase, żeby nie "zgubić" transakcji, którą
+      // można by ponownie zweryfikować (np. przez "Przywróć zakupy").
+      if (purchase.pendingCompletePurchase) {
+        await _billing.completePurchase(purchase);
+      }
+
+      if (!mounted) return;
+      if (result['is_premium'] == true) {
+        await Provider.of<AuthProvider>(context, listen: false).loadProfile();
+        if (!mounted) return;
+        setState(() {
+          _isProcessingPurchase = false;
+          _isRestoring = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Premium aktywowane — dziękujemy!')),
+        );
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isProcessingPurchase = false;
+        _isRestoring = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Nie udało się potwierdzić zakupu: ${friendlyError(e)}')),
+      );
+    }
+  }
+
+  Future<void> _buy(String productId) async {
+    final product = _products[productId];
+    if (product == null) return;
+    setState(() => _isProcessingPurchase = true);
+    try {
+      await _billing.buy(product);
+      // Wynik (sukces/błąd) przyjdzie asynchronicznie przez purchaseStream
+      // — patrz _handlePurchaseUpdates.
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isProcessingPurchase = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Nie udało się rozpocząć zakupu: ${friendlyError(e)}')),
+      );
+    }
+  }
+
+  Future<void> _restore() async {
+    setState(() => _isRestoring = true);
+    try {
+      await _billing.restorePurchases();
+      // Jeśli coś się znajdzie, przyjdzie przez purchaseStream jako
+      // PurchaseStatus.restored — patrz _handlePurchaseUpdates.
+      // Dajemy chwilę na dotarcie zdarzenia, zanim uznamy, że nic nie ma.
+      await Future.delayed(const Duration(seconds: 2));
+      if (!mounted) return;
+      if (_isRestoring) {
+        setState(() => _isRestoring = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Nie znaleziono żadnych wcześniejszych zakupów do przywrócenia.')),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isRestoring = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(friendlyError(e))),
+      );
+    }
+  }
 
   static const List<_PremiumFeature> _features = [
     _PremiumFeature(
@@ -32,28 +232,6 @@ class PremiumScreen extends StatelessWidget {
       description: 'Osobny plan na dni robocze i osobny na weekend — jednocześnie.',
     ),
   ];
-
-  void _showComingSoonDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        icon: const Icon(Icons.hourglass_top_rounded, color: AppTheme.secondaryColor, size: 32),
-        title: const Text('Już wkrótce'),
-        content: const Text(
-          'Płatności w aplikacji są w trakcie podłączania (Google Play). '
-          'Ta funkcja pojawi się tu, gdy tylko będzie gotowa.',
-          textAlign: TextAlign.center,
-        ),
-        actionsAlignment: MainAxisAlignment.center,
-        actions: [
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Rozumiem'),
-          ),
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -143,28 +321,7 @@ class PremiumScreen extends StatelessWidget {
                   ).animate().fadeIn(delay: (300 + index * 100).ms).slideX(begin: 0.05, end: 0);
                 }),
                 const SizedBox(height: 12),
-                _buildPricingCard(
-                  context: context,
-                  title: 'Miesięcznie',
-                  price: '19,99 zł',
-                  period: '/ miesiąc',
-                  highlight: false,
-                ).animate().fadeIn(delay: 700.ms),
-                const SizedBox(height: 12),
-                _buildPricingCard(
-                  context: context,
-                  title: 'Rocznie',
-                  price: '199,99 zł',
-                  period: '/ rok',
-                  badge: 'Oszczędzasz 17%',
-                  highlight: true,
-                ).animate().fadeIn(delay: 800.ms),
-                const SizedBox(height: 20),
-                Text(
-                  'Subskrypcję można anulować w dowolnym momencie.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
-                ),
+                ..._buildPricingSection(context),
                 const SizedBox(height: 12),
               ]),
             ),
@@ -174,6 +331,112 @@ class PremiumScreen extends StatelessWidget {
     );
   }
 
+  /// Buduje sekcję cennika: status "już masz Premium", stan ładowania,
+  /// błąd, albo dwie karty z PRAWDZIWYMI, lokalnymi cenami ze sklepu.
+  List<Widget> _buildPricingSection(BuildContext context) {
+    final user = Provider.of<AuthProvider>(context).currentUser;
+    if (user?.hasPremiumAccess ?? false) {
+      final daysLeft = user!.premiumDaysRemaining;
+      return [
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppTheme.primaryColor.withOpacity(0.3)),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.check_circle, color: AppTheme.primaryColor, size: 28),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Masz już aktywne Premium', style: TextStyle(fontWeight: FontWeight.bold)),
+                    if (daysLeft != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        daysLeft == 0 ? 'Wygasa dziś' : 'Aktywne jeszcze przez $daysLeft ${daysLeft == 1 ? "dzień" : "dni"}',
+                        style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ).animate().fadeIn(delay: 700.ms),
+      ];
+    }
+
+    if (_isLoadingProducts) {
+      return const [
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 24),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      ];
+    }
+
+    if (_productsError != null) {
+      return [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            children: [
+              Text(_productsError!, textAlign: TextAlign.center, style: TextStyle(color: AppTheme.errorColor)),
+              const SizedBox(height: 8),
+              TextButton(onPressed: _loadProducts, child: const Text('Spróbuj ponownie')),
+            ],
+          ),
+        ),
+      ];
+    }
+
+    final monthly = _products[kMonthlyProductId];
+    final yearly = _products[kYearlyProductId];
+
+    return [
+      if (monthly != null)
+        _buildPricingCard(
+          context: context,
+          title: 'Miesięcznie',
+          price: monthly.price,
+          period: '',
+          highlight: false,
+          onTap: _isProcessingPurchase ? null : () => _buy(kMonthlyProductId),
+        ).animate().fadeIn(delay: 700.ms),
+      if (monthly != null) const SizedBox(height: 12),
+      if (yearly != null)
+        _buildPricingCard(
+          context: context,
+          title: 'Rocznie',
+          price: yearly.price,
+          period: '',
+          badge: 'Oszczędzasz 17%',
+          highlight: true,
+          onTap: _isProcessingPurchase ? null : () => _buy(kYearlyProductId),
+        ).animate().fadeIn(delay: 800.ms),
+      const SizedBox(height: 20),
+      Text(
+        'Subskrypcję można anulować w dowolnym momencie w ustawieniach Google Play.',
+        textAlign: TextAlign.center,
+        style: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
+      ),
+      const SizedBox(height: 12),
+      Center(
+        child: TextButton.icon(
+          onPressed: _isRestoring ? null : _restore,
+          icon: _isRestoring
+              ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+              : const Icon(Icons.restore, size: 16),
+          label: const Text('Przywróć zakupy'),
+        ),
+      ),
+    ];
+  }
+
   Widget _buildPricingCard({
     required BuildContext context,
     required String title,
@@ -181,6 +444,7 @@ class PremiumScreen extends StatelessWidget {
     required String period,
     String? badge,
     required bool highlight,
+    required VoidCallback? onTap,
   }) {
     return Container(
       padding: const EdgeInsets.all(18),
@@ -245,20 +509,21 @@ class PremiumScreen extends StatelessWidget {
                             color: highlight ? Colors.white : AppTheme.primaryColor,
                           ),
                         ),
-                        TextSpan(
-                          text: ' $period',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: highlight ? Colors.white.withOpacity(0.85) : AppTheme.textSecondary,
+                        if (period.isNotEmpty)
+                          TextSpan(
+                            text: ' $period',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: highlight ? Colors.white.withOpacity(0.85) : AppTheme.textSecondary,
+                            ),
                           ),
-                        ),
                       ],
                     ),
                   ),
                 ],
               ),
               ElevatedButton(
-                onPressed: () => _showComingSoonDialog(context),
+                onPressed: onTap,
                 style: highlight
                     ? ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
@@ -266,7 +531,13 @@ class PremiumScreen extends StatelessWidget {
                         minimumSize: const Size(110, 44),
                       )
                     : ElevatedButton.styleFrom(minimumSize: const Size(110, 44)),
-                child: const Text('Kup Premium'),
+                child: _isProcessingPurchase
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Kup Premium'),
               ),
             ],
           ),

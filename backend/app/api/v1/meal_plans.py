@@ -4,7 +4,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import delete, select, update
+from sqlalchemy import delete, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -78,6 +78,19 @@ async def generate_meal_plan(
 
     user_is_premium = is_premium_active(current_user)
     if not user_is_premium:
+        # UWAGA (naprawa wyścigu/race condition): sprawdzenie "czy już
+        # istnieje plan" i późniejsze UTWORZENIE nowego to DWA osobne
+        # kroki (sprawdź, potem zapisz) — jeśli dwa żądania od tego
+        # samego użytkownika przyjdą niemal jednocześnie (np. podwójne
+        # kliknięcie szybsze niż zdąży się zablokować przycisk w UI,
+        # albo ponowienie po niestabilnym połączeniu), oba mogłyby
+        # przejść sprawdzenie PRZED zapisaniem pierwszego z nich,
+        # skutkując dwoma planami mimo limitu "tylko jeden". Blokada
+        # transakcyjna PostgreSQL (zwalniana automatycznie po
+        # zatwierdzeniu/wycofaniu transakcji) serializuje to sprawdzenie
+        # per-użytkownik, zamykając to okno.
+        await db.execute(text("SELECT pg_advisory_xact_lock(hashtext(:uid))"), {"uid": str(current_user.id)})
+
         # UWAGA (zmiana): darmowe konto może mieć tylko JEDEN plan naraz —
         # nie auto-archiwizujemy już starego przy generowaniu nowego (tak
         # było wcześniej), tylko wprost ODRZUCAMY żądanie, jeśli

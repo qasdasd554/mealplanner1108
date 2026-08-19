@@ -41,6 +41,16 @@ class MealPlanService {
     return MealPlan.fromJson(response as Map<String, dynamic>);
   }
 
+  /// Zmienia sklep przypisany do planu — backend przelicza listę zakupów
+  /// pod nowe ceny/działy automatycznie.
+  Future<MealPlan> updateStore(String planId, String storeId) async {
+    final response = await _client.put(
+      '${ApiConfig.mealPlans}$planId/store',
+      body: {'store_id': storeId},
+    );
+    return MealPlan.fromJson(response as Map<String, dynamic>);
+  }
+
   Future<void> deletePlan(String planId) async {
     await _client.delete('${ApiConfig.mealPlans}$planId');
   }

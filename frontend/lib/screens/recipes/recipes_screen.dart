@@ -44,10 +44,12 @@ class _RecipesScreenState extends State<RecipesScreen> {
         favoritesOnly: _favoritesOnly,
         communityOnly: _communityOnly,
       );
+      if (!mounted) return;
       setState(() {
         _recipes = list;
       });
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Błąd podczas pobierania przepisów: $e'),
@@ -55,9 +57,11 @@ class _RecipesScreenState extends State<RecipesScreen> {
         ),
       );
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -280,11 +284,17 @@ class _RecipesScreenState extends State<RecipesScreen> {
       // zupełnie innego przepisu na tej samej pozycji siatki, pokazując
       // nieaktualny/błędny stan przez chwilę po przeładowaniu.
       key: ValueKey(recipe.id),
-      onTap: () {
-        Navigator.of(context).pushNamed(
+      onTap: () async {
+        // UWAGA (uzupełnienie): po dodaniu możliwości usuwania własnego
+        // przepisu na ekranie szczegółów, lista tutaj musi się odświeżyć
+        // po powrocie — inaczej usunięty przepis zostawałby widoczny
+        // jako "widmowy" wpis, dopóki coś innego nie wymusiłoby
+        // ponownego pobrania.
+        await Navigator.of(context).pushNamed(
           '/recipe/detail',
           arguments: recipe,
         );
+        if (mounted) _loadRecipes();
       },
       child: Container(
         decoration: BoxDecoration(
