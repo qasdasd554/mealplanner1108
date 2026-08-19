@@ -249,8 +249,9 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
           ),
           const SizedBox(height: 4),
           Text(
-            'Skąd chcesz — z notatnika, wiadomości, strony internetowej. '
-            'AI samo rozpozna składniki i kroki przygotowania.',
+            'Wklej gotowy przepis (z notatnika, wiadomości, strony internetowej) — '
+            'AI rozpozna składniki i kroki. Albo po prostu wpisz samą nazwę dania '
+            '(np. "rosół" albo "lasagne") — AI ułoży dla Ciebie cały przepis od zera.',
             style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
           ),
           const SizedBox(height: 16),
@@ -262,7 +263,7 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
               textAlignVertical: TextAlignVertical.top,
               maxLength: 10000,
               decoration: InputDecoration(
-                hintText: 'np. Kotlet schabowy z ziemniakami\n\nSkładniki:\n- 4 kotlety schabowe\n...',
+                hintText: 'np. "rosół"\n\nalbo pełny przepis:\n\nKotlet schabowy z ziemniakami\n\nSkładniki:\n- 4 kotlety schabowe\n...',
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),

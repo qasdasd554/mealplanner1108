@@ -70,9 +70,26 @@ class _ModelUnavailableError(Exception):
 
 def _build_prompt(available_products: list[str]) -> str:
     products_list = "\n".join(f"- {p}" for p in sorted(available_products))
-    return f"""Jesteś asystentem kulinarnym. Twoim zadaniem jest rozpoznanie przepisu
-kulinarnego z dostarczonej treści (tekstu albo zdjęcia) i zwrócenie go w
-ściśle określonym formacie JSON, PO POLSKU.
+    return f"""Jesteś asystentem kulinarnym. Otrzymujesz treść (tekst, zdjęcie albo
+samą nazwę dania) i masz dostarczyć przepis kulinarny w ściśle określonym
+formacie JSON, PO POLSKU.
+
+Treść może być JEDNYM z dwóch rodzajów — rozpoznaj, z którym masz do
+czynienia, i zareaguj odpowiednio:
+
+A) GOTOWY PRZEPIS (np. wklejony tekst z blogu, zdjęcie karty przepisu albo
+   strony książki kucharskiej, zawierające już listę składników i/albo
+   sposób przygotowania) — WYCIĄGNIJ go wiernie, tak jak jest napisany,
+   dopasowując tylko nazwy składników do dostępnego katalogu.
+
+B) SAMA NAZWA DANIA ALBO ZDJĘCIE GOTOWEGO DANIA (np. użytkownik wpisał
+   tylko "rosół" albo "lasagne", albo przesłał zdjęcie ugotowanego
+   posiłku bez żadnego opisu) — to NIE jest błąd ani "brak treści do
+   rozpoznania". W tym przypadku SAM UŁÓŻ autentyczny, typowy przepis na
+   to danie (klasyczna, sprawdzona wersja), używając WYŁĄCZNIE produktów
+   z dostępnego katalogu. To jest oczekiwane, normalne zachowanie — nie
+   proś użytkownika o więcej informacji, po prostu zaproponuj sensowny
+   przepis.
 
 WAŻNE ZASADY:
 1. Odpowiedz WYŁĄCZNIE poprawnym obiektem JSON — bez żadnego tekstu przed
@@ -88,10 +105,13 @@ WAŻNE ZASADY:
 5. Pole "difficulty" MUSI być jednym z: łatwy, średni, trudny.
 6. "instructions" to lista kroków po polsku, każdy z dokładnymi ilościami
    (np. "Podsmaż cebulę (100 g) na oleju"), tak jak w profesjonalnym
-   przepisie kulinarnym.
-7. Jeśli dostarczona treść w ogóle NIE zawiera przepisu kulinarnego (np.
-   to przypadkowe zdjęcie niezwiązane z jedzeniem, albo bezsensowny
-   tekst), zwróć dokładnie: {{"error": "Nie rozpoznano przepisu w podanej treści"}}
+   przepisie kulinarnym — wystarczająco szczegółowe, żeby osoba z
+   niewielkim doświadczeniem kulinarnym poradziła sobie z przygotowaniem.
+7. Zwróć błąd — dokładnie {{"error": "Nie rozpoznano przepisu w podanej treści"}}
+   — TYLKO gdy treść jest zupełnie NIEZWIĄZANA z jedzeniem (np. zdjęcie
+   samochodu, przypadkowy, bezsensowny tekst) — NIGDY dla samej nazwy
+   dania ani zdjęcia posiłku, które trzeba potraktować jak przypadek (B)
+   powyżej.
 
 DOSTĘPNE PRODUKTY (używaj TYLKO tych nazw w "ingredients"):
 {products_list}
