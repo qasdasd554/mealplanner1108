@@ -199,6 +199,19 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
 
     final storeName = getStoreName(plan.storeId);
     final entries = plan.entriesForDay(_selectedDay);
+    // Suma makroskładników "na osobę" dla wybranego dnia — dzielimy
+    // wartości odżywcze CAŁEGO przepisu przez jego liczbę porcji (to
+    // matematycznie to samo, co przypada na jedną osobę, niezależnie od
+    // wielkości gospodarstwa domowego — patrz komentarz przy
+    // _per_person_nutrition w backendzie, ten sam wzór).
+    double totalKcal = 0, totalProtein = 0, totalFat = 0, totalCarbs = 0;
+    for (final entry in entries) {
+      final servings = entry.recipe.servings > 0 ? entry.recipe.servings : 1;
+      totalKcal += entry.recipe.nutritionTotal.kcal / servings;
+      totalProtein += entry.recipe.nutritionTotal.protein / servings;
+      totalFat += entry.recipe.nutritionTotal.fat / servings;
+      totalCarbs += entry.recipe.nutritionTotal.carbs / servings;
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -262,8 +275,36 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
           ),
         ],
       ),
-      body: Column(
+      body: SafeArea(
+        // UWAGA (naprawa — ten sam błąd, co w plan_config_screen.dart):
+        // dolny panel akcji ("Zmień parametry"/"Zatwierdź plan"/"Przejdź
+        // do zakupów") miał tylko sztywny margines 24px, bez SafeArea —
+        // w trybie edge-to-edge mogło to wyglądać, jakby przyciski
+        // częściowo chowały się pod systemowym paskiem nawigacji na
+        // niektórych telefonach.
+        child: Column(
         children: [
+          // Podsumowanie makroskładników DLA WYBRANEGO DNIA — bez tego
+          // nie było wcale widać, ile faktycznie wychodzi kalorii/makro
+          // w wygenerowanym planie, mimo że backend już dobrze to liczy.
+          Container(
+            margin: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceColor,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildMacroStat('${totalKcal.round()}', 'kcal', AppTheme.primaryColor),
+                _buildMacroStat('${totalProtein.round()}g', 'białko', AppTheme.secondaryColor),
+                _buildMacroStat('${totalFat.round()}g', 'tłuszcz', const Color(0xFFE0A62E)),
+                _buildMacroStat('${totalCarbs.round()}g', 'węgl.', const Color(0xFF3B82F6)),
+              ],
+            ),
+          ).animate().fadeIn(),
+
           // 1. Pozioma lista dni (Dzień 1, Dzień 2...)
           Container(
             height: 60,
@@ -418,7 +459,21 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
                   ),
           ),
         ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildMacroStat(String value, String label, Color color) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color),
+        ),
+        const SizedBox(height: 2),
+        Text(label, style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+      ],
     );
   }
 }

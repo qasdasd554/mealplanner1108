@@ -1,7 +1,7 @@
 name: smart_meal_planner
 description: "A smart meal planner mobile application integrated with Polish grocery stores."
 publish_to: 'none'
-version: 1.0.0+16
+version: 1.0.0+17
 
 environment:
   sdk: '>=3.7.0 <4.0.0'
