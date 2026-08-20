@@ -425,7 +425,7 @@ RECIPES_DATA = [
         "cook_time_min": 0,
         "servings": 1,
         "difficulty": 'łatwy',
-        "tags": ['szybkie', 'bezglutenowe', 'wegetariańskie'],
+        "tags": ['szybkie', 'bezglutenowe', 'wegetariańskie', 'keto'],
         "instructions": [
             'Przełóż jogurt (150 g) naturalny do miseczki.',
             'Dodaj maliny (50 g) (świeże lub rozmrożone) na wierzch.',

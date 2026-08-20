@@ -31,6 +31,12 @@ class UserResponse(BaseModel):
     preferred_store_id: uuid.UUID | None = None
     dietary_preferences: dict | None = None
     household_size: int
+    weight_kg: float | None = None
+    height_cm: float | None = None
+    age: int | None = None
+    gender: str | None = None
+    activity_level: str | None = None
+    daily_kcal_goal: int | None = None
     role: str = "user"
     is_premium: bool = False
     premium_expires_at: datetime | None = None

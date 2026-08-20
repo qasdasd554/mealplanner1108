@@ -10,7 +10,7 @@ from datetime import date, timedelta
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_admin, get_current_user, get_db
@@ -233,10 +233,18 @@ async def trigger_ai_scan(
         # admin coś odrzucił, a AI przy kolejnym skanie znajdzie to
         # ponownie (może z innymi warunkami), warto dać mu szansę
         # spojrzeć jeszcze raz.
+        # UWAGA (naprawa błędu): wcześniejsze porównanie było DOKŁADNE
+        # (rozróżniało wielkość liter i białe znaki) — AI przy kolejnym
+        # skanowaniu tej samej gazetki może wyodrębnić nazwę produktu
+        # albo sklepu w lekko innej formie niż poprzednio (np. spacja na
+        # końcu, inna wielkość liter), co całkowicie omijało sprawdzenie
+        # duplikatu, mimo że to faktycznie ten sam produkt w tym samym
+        # sklepie. Porównujemy teraz bez rozróżniania wielkości liter i
+        # po przycięciu białych znaków z obu stron.
         existing_result = await db.execute(
             select(Promotion.id).where(
-                Promotion.product_name == product.name,
-                Promotion.store_name == store_name,
+                func.lower(func.trim(Promotion.product_name)) == product.name.strip().lower(),
+                func.lower(func.trim(Promotion.store_name)) == store_name.strip().lower(),
                 Promotion.review_status.in_(["pending", "approved"]),
                 Promotion.valid_until >= date.today(),
             )

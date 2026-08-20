@@ -185,7 +185,11 @@ async def get_daily_summary(
     entries = result.scalars().all()
 
     responses = [_to_response(e) for e in entries]
-    summary = DailySummaryResponse(date=entry_date, entries=responses)
+    summary = DailySummaryResponse(
+        date=entry_date,
+        entries=responses,
+        target_calories=float(current_user.daily_kcal_goal or 2000),
+    )
     for entry in entries:
         summary.total_calories += entry.calories
         summary.total_protein += entry.protein
@@ -255,8 +259,29 @@ async def create_from_meal_plan_entry(
             status_code=403, detail="Brak uprawnień do tej pozycji planu posiłków"
         )
 
-    servings = servings_override if servings_override is not None else float(plan_entry.servings_multiplier or 1)
-    macros = _macros_from_recipe(plan_entry.recipe, servings)
+    # UWAGA (naprawa poważnej niespójności): wcześniej domyślna liczba
+    # "porcji" tutaj brała się z `servings_multiplier` planu — a to
+    # zupełnie INNE pojęcie niż to, ile porcji ZJADŁA jedna osoba!
+    # `servings_multiplier` to mnożnik użyty przy GOTOWANIU (ile razy
+    # przeskalować cały przepis, żeby starczyło dla całego gospodarstwa
+    # — np. dla przepisu na 4 porcje i gospodarstwa 2-osobowego to 0.5,
+    # bo ugotowanie połowy przepisu da dokładnie 2 porcje). Używanie
+    # tego wprost jako mnożnika CAŁEGO nutrition_total (wartości
+    # odżywcze dla WSZYSTKICH oryginalnych porcji przepisu razem)
+    # dawało wartości dla CAŁEGO GOSPODARSTWA na raz, nie dla JEDNEJ
+    # osoby korzystającej ze Śledzenia — przy większym gospodarstwie
+    # zawyżało to zjedzone kalorie wielokrotnie.
+    #
+    # Domyślna wartość to teraz 1 — czyli "zjadłem jedną (całą) porcję
+    # TAK, JAK DEFINIUJE JĄ PRZEPIS" — to samo znaczenie "porcji", co
+    # przy ręcznym dodawaniu wpisu (patrz create_food_log_entry
+    # wyżej), więc obie ścieżki są teraz ze sobą spójne, a dalsze
+    # przeliczenie na ułamek całego przepisu (recipe_fraction) działa
+    # identycznie w obu miejscach.
+    servings = servings_override if servings_override is not None else 1.0
+    recipe_servings = float(plan_entry.recipe.servings or 1) if plan_entry.recipe else 1.0
+    recipe_fraction = servings / recipe_servings if recipe_servings else servings
+    macros = _macros_from_recipe(plan_entry.recipe, recipe_fraction)
 
     if entry_date_override is not None:
         entry_date = entry_date_override

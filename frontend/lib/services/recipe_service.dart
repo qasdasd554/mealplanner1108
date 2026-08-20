@@ -179,4 +179,12 @@ class RecipeService {
   Future<void> deleteRecipe(String recipeId) async {
     await _client.delete('${ApiConfig.recipes}$recipeId');
   }
+
+  /// Zgłasza własny, PRYWATNY przepis do publikacji we wspólnym
+  /// katalogu — zmienia jego widoczność na "pending" (czeka na
+  /// przegląd administratora).
+  Future<Recipe> requestPublish(String recipeId) async {
+    final response = await _client.put('${ApiConfig.recipes}$recipeId/request-publish');
+    return Recipe.fromJson(response as Map<String, dynamic>);
+  }
 }

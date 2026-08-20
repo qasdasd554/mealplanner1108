@@ -6,6 +6,7 @@ import '../../services/recipe_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/recipe_photo.dart';
 import '../../widgets/recipe_favorite_button.dart';
+import 'recipe_leaderboard_screen.dart';
 import 'manual_add_recipe_screen.dart';
 
 class RecipesScreen extends StatefulWidget {
@@ -24,6 +25,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   String? _selectedDifficulty;
   bool _favoritesOnly = false;
   bool _communityOnly = false;
+  bool _myRecipesOnly = false;
 
   @override
   void initState() {
@@ -37,13 +39,18 @@ class _RecipesScreenState extends State<RecipesScreen> {
     });
 
     try {
-      final list = await _recipeService.getRecipes(
-        search: _searchQuery,
-        mealType: _selectedMealType,
-        difficulty: _selectedDifficulty,
-        favoritesOnly: _favoritesOnly,
-        communityOnly: _communityOnly,
-      );
+      // "Moje" to osobny endpoint (GET /recipes/mine) — istniał już w
+      // backendzie i w serwisie, tylko nigdy nie był podłączony pod
+      // żaden przełącznik w interfejsie.
+      final list = _myRecipesOnly
+          ? await _recipeService.getMyRecipes()
+          : await _recipeService.getRecipes(
+              search: _searchQuery,
+              mealType: _selectedMealType,
+              difficulty: _selectedDifficulty,
+              favoritesOnly: _favoritesOnly,
+              communityOnly: _communityOnly,
+            );
       if (!mounted) return;
       setState(() {
         _recipes = list;
@@ -70,6 +77,17 @@ class _RecipesScreenState extends State<RecipesScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Przepisy'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.emoji_events_outlined),
+            tooltip: 'Ranking autorów przepisów',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const RecipeLeaderboardScreen()),
+              );
+            },
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: Padding(
@@ -144,6 +162,26 @@ class _RecipesScreenState extends State<RecipesScreen> {
                   },
                   selectedColor: AppTheme.secondaryColor,
                   labelStyle: TextStyle(color: _communityOnly ? Colors.white : null),
+                ),
+                const SizedBox(width: 8),
+                // Filtr "Moje" — WYŁĄCZNIE przepisy dodane przez
+                // zalogowanego użytkownika (dowolną metodą: ręcznie, AI,
+                // z linku/zdjęcia) — niezależnie od tego, czy są jeszcze
+                // prywatne, czekają na akceptację, czy już są publiczne.
+                FilterChip(
+                  label: const Text('Moje'),
+                  avatar: Icon(
+                    Icons.person_outline,
+                    size: 18,
+                    color: _myRecipesOnly ? Colors.white : AppTheme.primaryColor,
+                  ),
+                  selected: _myRecipesOnly,
+                  onSelected: (val) {
+                    setState(() => _myRecipesOnly = val);
+                    _loadRecipes();
+                  },
+                  selectedColor: AppTheme.primaryColor,
+                  labelStyle: TextStyle(color: _myRecipesOnly ? Colors.white : null),
                 ),
                 const SizedBox(width: 8),
                 _buildFilterChip('Śniadania', 'śniadanie', _selectedMealType == 'śniadanie', (val) {

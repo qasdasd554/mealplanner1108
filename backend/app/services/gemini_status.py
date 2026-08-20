@@ -28,8 +28,9 @@ logger = logging.getLogger(__name__)
 
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 GEMINI_MODEL_PRIMARY = "gemini-3.7-flash"
+GEMINI_MODEL_SECONDARY = "gemini-3.6-flash"
 GEMINI_MODEL_FALLBACK = "gemini-3.5-flash-lite"
-GEMINI_MODELS = [GEMINI_MODEL_PRIMARY, GEMINI_MODEL_FALLBACK]
+GEMINI_MODELS = [GEMINI_MODEL_PRIMARY, GEMINI_MODEL_SECONDARY, GEMINI_MODEL_FALLBACK]
 
 
 class GeminiModelStatus:

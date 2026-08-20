@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import JSON, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -40,6 +40,26 @@ class User(Base):
     household_size: Mapped[int] = mapped_column(
         Integer, default=1, nullable=False
     )
+    # Dane do kalkulatora zapotrzebowania kalorycznego (Śledzenie) — wzór
+    # Mifflin-St Jeor, ten sam standard, na którym opierają się
+    # najpopularniejsze kalkulatory tego typu (w tym NFZ). Wszystkie
+    # opcjonalne — kalkulator po prostu poprosi o brakujące dane, gdy
+    # użytkownik zechce z niego skorzystać.
+    weight_kg: Mapped[float | None] = mapped_column(Float, nullable=True)
+    height_cm: Mapped[float | None] = mapped_column(Float, nullable=True)
+    age: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # "male" | "female" — wzór Mifflin-St Jeor ma osobny człon dla każdej
+    # płci (różnica w typowym stosunku masy mięśniowej do tłuszczowej).
+    gender: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    # "sedentary" | "light" | "moderate" | "active" | "very_active" —
+    # mnożnik aktywności fizycznej (standardowe wartości Harris-Benedict/
+    # Mifflin, patrz app/services/nutrition_calculator.py).
+    activity_level: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    # Dzienny cel kaloryczny WYBRANY przez użytkownika (kafelek albo
+    # suwak w kalkulatorze) — to on jest pokazywany jako "cel" w
+    # podsumowaniu dnia w Śledzeniu, niezależnie od tego, kiedy/czy
+    # użytkownik ponownie przeliczy kalkulator.
+    daily_kcal_goal: Mapped[int | None] = mapped_column(Integer, nullable=True)
     # Rola konta — "user" (domyślnie) albo "admin". Admin może usuwać
     # KAŻDY komentarz (nie tylko własny) i w miarę rozwoju aplikacji
     # będzie naturalnym miejscem na kolejne uprawnienia moderacyjne.

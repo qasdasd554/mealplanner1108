@@ -78,7 +78,7 @@ class Settings(BaseSettings):
     GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: str = ""
 
     # ── Aplikacja ────────────────────────────────────────────────
-    APP_NAME: str = "Smart Meal Planner PL"
+    APP_NAME: str = "Meal Planner Polska"
     # UWAGA: cała aplikacja Flutter (lib/config/api_config.dart) zakłada
     # prefiks "/api/v1" (podobnie jak docker-compose.yml). Poprzednia
     # wartość domyślna "/api" powodowała, że KAŻDE zapytanie z aplikacji

@@ -7,6 +7,7 @@ import 'api_client.dart';
 /// zostało utworzone w Google Play Console (patrz przewodnik konfiguracji
 /// płatności). Zmiana tych stringów bez zmiany w Play Console spowoduje,
 /// że aplikacja nie znajdzie żadnych produktów do kupienia.
+const String kWeeklyProductId = 'premium_weekly';
 const String kMonthlyProductId = 'premium_monthly';
 const String kYearlyProductId = 'premium_yearly';
 
@@ -28,7 +29,7 @@ class BillingService {
   /// Pobiera prawdziwe, lokalne ceny (uwzględniające walutę i podatki
   /// danego kraju) dla obu planów subskrypcji.
   Future<ProductDetailsResponse> queryProducts() {
-    return _iap.queryProductDetails({kMonthlyProductId, kYearlyProductId});
+    return _iap.queryProductDetails({kWeeklyProductId, kMonthlyProductId, kYearlyProductId});
   }
 
   /// Rozpoczyna zakup — wynik przyjdzie asynchronicznie przez

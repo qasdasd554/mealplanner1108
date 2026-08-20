@@ -16,6 +16,45 @@ if TYPE_CHECKING:
     from app.models import Recipe, RecipeIngredient
 
 
+def compute_recipe_nutrition_total(ingredients: Sequence["RecipeIngredient"]) -> dict[str, float]:
+    """Liczy łączne wartości odżywcze CAŁEGO przepisu (wszystkich porcji
+    razem) na podstawie jego składników — to źródło prawdy, z którego
+    korzysta zarówno zapis przy tworzeniu przepisu, jak i (jako
+    zabezpieczenie) odczyt przez API.
+
+    UWAGA (naprawa poważnego błędu architektonicznego): ta logika
+    wcześniej istniała TYLKO wewnątrz walidatora Pydantic (ensure_nutrition
+    w schemas/recipe.py), uruchamianego jedynie przy budowaniu ODPOWIEDZI
+    API dla konkretnego przepisu — NIGDY nie była wywoływana przy samym
+    TWORZENIU przepisu, więc `nutrition_total` w bazie danych zostawało
+    puste (NULL) dla KAŻDEGO przepisu dodanego ręcznie albo przez AI
+    (w przeciwieństwie do 81 oficjalnych przepisów z seed.py, które mają
+    tę wartość jawnie zapisaną). Każdy inny kod, który czytał
+    `recipe.nutrition_total` BEZPOŚREDNIO z obiektu bazy danych (z
+    pominięciem tego walidatora Pydantic) — jak np. dziennik kalorii w
+    Śledzeniu — zawsze widział puste wartości dla takich przepisów,
+    mimo że przepis miał kompletne, prawidłowe składniki.
+
+    Wyciągnięcie tej logiki do jednej, współdzielonej funkcji pozwala
+    wywołać ją JAWNIE przy tworzeniu przepisu (żeby zapisać prawdziwą
+    wartość w bazie raz na zawsze), a walidator Pydantic zostaje jako
+    dodatkowe zabezpieczenie na wypadek starszych danych.
+    """
+    total = {"kcal": 0.0, "protein": 0.0, "fat": 0.0, "carbs": 0.0, "fiber": 0.0}
+    for ing in ingredients:
+        prod = getattr(ing, "product", None)
+        if prod and prod.nutrition_per_100:
+            try:
+                qty = float(ing.quantity)
+                unit = getattr(ing, "unit", "g")
+                w = quantity_to_grams(prod.name, qty, unit)
+                for k in total:
+                    total[k] += float(prod.nutrition_per_100.get(k, 0) or 0) * (w / 100.0)
+            except Exception:
+                pass
+    return {k: round(v, 1) for k, v in total.items()}
+
+
 @dataclass(frozen=True, slots=True)
 class NutritionTargets:
     """Docelowe dzienne wartości odżywcze (domyślne wg norm)."""
@@ -258,3 +297,72 @@ class NutritionCalculator:
         if norm_a == 0.0 or norm_b == 0.0:
             return 0.0
         return round(dot / (norm_a * norm_b), 4)
+
+
+# Mnożniki aktywności fizycznej — standardowe wartości używane przez
+# większość popularnych kalkulatorów zapotrzebowania kalorycznego
+# (w tym te oparte na wzorze Mifflin-St Jeor, tak jak kalkulator NFZ).
+ACTIVITY_MULTIPLIERS: dict[str, float] = {
+    "sedentary": 1.2,      # Brak/znikoma aktywność (praca siedząca)
+    "light": 1.375,        # Lekka aktywność (1-3 dni treningu/tydzień)
+    "moderate": 1.55,      # Umiarkowana aktywność (3-5 dni/tydzień)
+    "active": 1.725,       # Duża aktywność (6-7 dni/tydzień)
+    "very_active": 1.9,    # Bardzo duża aktywność (praca fizyczna + trening)
+}
+
+
+class InvalidCalorieCalculatorInput(ValueError):
+    """Rzucane, gdy dane wejściowe do kalkulatora są niekompletne/błędne."""
+
+
+def calculate_calorie_needs(
+    weight_kg: float,
+    height_cm: float,
+    age: int,
+    gender: str,
+    activity_level: str,
+) -> dict[str, int]:
+    """Liczy dzienne zapotrzebowanie kaloryczne wzorem Mifflin-St Jeor —
+    tym samym standardem, na którym opiera się większość popularnych
+    kalkulatorów tego typu (w tym kalkulator BMI/kalorii NFZ).
+
+    Zwraca trzy wartości:
+    - "maintenance": zapotrzebowanie do UTRZYMANIA obecnej wagi (TDEE)
+    - "weight_loss": deficyt ~500 kcal/dzień — standardowe, bezpieczne
+      tempo redukcji ok. 0,5 kg tygodniowo (powszechnie rekomendowane
+      przez dietetyków, nie tylko agresywne, krótkoterminowe diety)
+    - "weight_gain": nadwyżka ~500 kcal/dzień — analogiczne, bezpieczne
+      tempo przybierania na wadze ok. 0,5 kg tygodniowo
+
+    Rzuca InvalidCalorieCalculatorInput, jeśli dane wejściowe są poza
+    rozsądnym zakresem (np. ujemna waga) — lepiej jawnie odmówić niż
+    zwrócić bezsensowny wynik.
+    """
+    if weight_kg <= 0 or weight_kg > 400:
+        raise InvalidCalorieCalculatorInput("Nieprawidłowa waga.")
+    if height_cm <= 0 or height_cm > 280:
+        raise InvalidCalorieCalculatorInput("Nieprawidłowy wzrost.")
+    if age <= 0 or age > 130:
+        raise InvalidCalorieCalculatorInput("Nieprawidłowy wiek.")
+    if gender not in ("male", "female"):
+        raise InvalidCalorieCalculatorInput("Płeć musi być 'male' albo 'female'.")
+    if activity_level not in ACTIVITY_MULTIPLIERS:
+        raise InvalidCalorieCalculatorInput(
+            f"Nieznany poziom aktywności — dozwolone: {', '.join(ACTIVITY_MULTIPLIERS)}."
+        )
+
+    # Wzór Mifflin-St Jeor (uznawany za dokładniejszy niż starszy wzór
+    # Harrisa-Benedicta) — osobny stały człon dla każdej płci, bo przy
+    # tej samej wadze/wzroście/wieku kobiety mają średnio wyższy
+    # procent tkanki tłuszczowej niż mężczyźni, co przekłada się na
+    # niższe tempo podstawowej przemiany materii.
+    bmr = 10 * weight_kg + 6.25 * height_cm - 5 * age
+    bmr += 5 if gender == "male" else -161
+
+    maintenance = bmr * ACTIVITY_MULTIPLIERS[activity_level]
+
+    return {
+        "maintenance": round(maintenance),
+        "weight_loss": round(maintenance - 500),
+        "weight_gain": round(maintenance + 500),
+    }

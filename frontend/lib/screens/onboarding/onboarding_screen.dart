@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/store_provider.dart';
 import '../../models/store.dart';
+import '../../config/constants.dart';
 import '../../theme/app_theme.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -34,14 +35,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     {'id': 'skorupiaki', 'name': 'Skorupiaki'},
   ];
 
-  final List<Map<String, String>> _dietsList = [
-    {'name': 'Bez ograniczeń', 'desc': 'Jesz wszystko, na co masz ochotę'},
-    {'name': 'Wegetariańska', 'desc': 'Posiłki bez mięsa i ryb'},
-    {'name': 'Wegańska', 'desc': 'Posiłki w 100% roślinne'},
-    {'name': 'Bezglutenowa', 'desc': 'Dania bez zawartości glutenu'},
-    {'name': 'Keto', 'desc': 'Niska zawartość węglowodanów'},
-    {'name': 'Wysokobiałkowa', 'desc': 'Dla aktywnych, budujących masę'},
-  ];
+  final List<Map<String, String>> _dietsList = kDietOptions;
 
   @override
   void initState() {

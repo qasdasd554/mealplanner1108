@@ -69,4 +69,8 @@ class DailySummaryResponse(BaseModel):
     total_protein: float = 0.0
     total_fat: float = 0.0
     total_carbs: float = 0.0
+    # Cel kaloryczny użytkownika (ustawiony przez kalkulator zapotrzebowania
+    # w Śledzeniu) — wcześniej frontend ZAWSZE zakładał sztywne 2000 kcal,
+    # bo to pole w ogóle nie istniało w odpowiedzi.
+    target_calories: float = 2000.0
     entries: List[FoodLogEntryResponse] = []

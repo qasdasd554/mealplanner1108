@@ -53,6 +53,8 @@ class ApiConfig {
   static const String authGoogle = '/auth/google';
   static const String usersMe = '/users/me';
   static const String usersAllergens = '/users/me/allergens';
+  static const String usersCalorieCalculator = '/users/me/calorie-calculator';
+  static const String usersRecipeLeaderboard = '/users/leaderboard/recipes';
   static const String billingVerify = '/billing/verify-purchase';
   static const String billingRestore = '/billing/restore';
   static const String stores = '/stores/';

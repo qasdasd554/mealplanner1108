@@ -31,6 +31,31 @@ class UserProfileUpdate(BaseModel):
     preferred_store_id: UUID | None = None
     dietary_preferences: dict | None = None
     household_size: int | None = Field(default=None, ge=1, le=20)
+    # Dane do kalkulatora zapotrzebowania kalorycznego (Śledzenie) —
+    # granice dobrane szeroko, ale na tyle rozsądnie, żeby odciąć
+    # oczywiście błędne wartości (patrz komentarz o household_size wyżej
+    # — ten sam wzorzec zabezpieczenia).
+    weight_kg: float | None = Field(default=None, gt=0, le=400)
+    height_cm: float | None = Field(default=None, gt=0, le=280)
+    age: int | None = Field(default=None, gt=0, le=130)
+    gender: str | None = Field(default=None, max_length=10)
+    activity_level: str | None = Field(default=None, max_length=20)
+    daily_kcal_goal: int | None = Field(default=None, ge=800, le=6000)
+
+    @field_validator("gender")
+    @classmethod
+    def validate_gender(cls, v: str | None) -> str | None:
+        if v is not None and v not in ("male", "female"):
+            raise ValueError("Płeć musi być 'male' albo 'female'.")
+        return v
+
+    @field_validator("activity_level")
+    @classmethod
+    def validate_activity_level(cls, v: str | None) -> str | None:
+        allowed = {"sedentary", "light", "moderate", "active", "very_active"}
+        if v is not None and v not in allowed:
+            raise ValueError(f"Poziom aktywności musi być jednym z: {', '.join(allowed)}.")
+        return v
 
     @field_validator("dietary_preferences")
     @classmethod
@@ -102,6 +127,73 @@ async def update_me(
     await db.commit()
     await db.refresh(current_user)
     return current_user
+
+
+class CalorieCalculatorRequest(BaseModel):
+    """Dane wejściowe do kalkulatora zapotrzebowania kalorycznego —
+    celowo NIEZALEŻNE od tego, co jest zapisane w profilu, żeby
+    użytkownik mógł "poeksperymentować" z różnymi wartościami przed
+    zdecydowaniem się i zapisaniem wyniku (PUT /users/me)."""
+
+    weight_kg: float = Field(gt=0, le=400)
+    height_cm: float = Field(gt=0, le=280)
+    age: int = Field(gt=0, le=130)
+    gender: str
+    activity_level: str
+
+    @field_validator("gender")
+    @classmethod
+    def validate_gender(cls, v: str) -> str:
+        if v not in ("male", "female"):
+            raise ValueError("Płeć musi być 'male' albo 'female'.")
+        return v
+
+    @field_validator("activity_level")
+    @classmethod
+    def validate_activity_level(cls, v: str) -> str:
+        allowed = {"sedentary", "light", "moderate", "active", "very_active"}
+        if v not in allowed:
+            raise ValueError(f"Poziom aktywności musi być jednym z: {', '.join(allowed)}.")
+        return v
+
+
+class CalorieCalculatorResponse(BaseModel):
+    maintenance: int
+    weight_loss: int
+    weight_gain: int
+
+
+@router.post(
+    "/me/calorie-calculator",
+    response_model=CalorieCalculatorResponse,
+    summary="Oblicz dzienne zapotrzebowanie kaloryczne (wzór Mifflin-St Jeor)",
+)
+async def calculate_calorie_needs_endpoint(
+    payload: CalorieCalculatorRequest,
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    """Liczy zapotrzebowanie kaloryczne (utrzymanie / redukcja / przyrost
+    masy ciała) na podstawie podanych danych — analogicznie do
+    kalkulatora BMI/kalorii NFZ (diety.nfz.gov.pl). Wynik NIE jest
+    automatycznie zapisywany — użytkownik wybiera jedną z trzech
+    wartości (albo ustawia własną suwakiem) i zapisuje ją osobno przez
+    PUT /users/me z polem daily_kcal_goal.
+    """
+    from app.services.nutrition_calculator import (
+        InvalidCalorieCalculatorInput,
+        calculate_calorie_needs,
+    )
+
+    try:
+        return calculate_calorie_needs(
+            weight_kg=payload.weight_kg,
+            height_cm=payload.height_cm,
+            age=payload.age,
+            gender=payload.gender,
+            activity_level=payload.activity_level,
+        )
+    except InvalidCalorieCalculatorInput as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
 
 @router.put(

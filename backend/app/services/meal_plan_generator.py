@@ -80,8 +80,12 @@ WEIGHT_REUSE: float = 0.50
 WEIGHT_VARIETY: float = 0.25
 WEIGHT_NUTRITION: float = 0.25
 
-# Maksymalna liczba powtórzeń tego samego przepisu
-MAX_RECIPE_REPEATS: int = 14
+# Maksymalna liczba powtórzeń tego samego przepisu — 14 było w praktyce
+# "brakiem limitu" (np. dla planu 7-dniowego to 2/3 wszystkich posiłków
+# mogłoby być tym samym przepisem). Niższa wartość, w połączeniu z
+# rosnącą karą za powtórzenia (patrz variety_score), wymusza realną
+# różnorodność zamiast pozwalać jednemu przepisu dominować plan.
+MAX_RECIPE_REPEATS: int = 4
 
 # Próg tolerancji dopełniania dnia dodatkowymi daniami — jeśli suma
 # kalorii na osobę w danym dniu wypada poniżej tego procentu celu
@@ -614,13 +618,19 @@ class MealPlanGenerator:
             reuse_score = 0.0
 
         # -- variety_score --
+        # UWAGA (naprawa): wcześniej kara za powtórzenia "spłaszczała się"
+        # na stałej wartości 0.2 po drugim użyciu — czyli 3., 5. i 14.
+        # użycie tego samego przepisu miało DOKŁADNIE tak samo niską karę
+        # jak drugie. Przy małej puli pasujących przepisów (np. tylko 2-3
+        # przekąski pasujące do restrykcyjnej diety) prowadziło to do
+        # sytuacji, gdzie jeden przepis (np. "Guacamole") wygrywał wielokrotnie
+        # pod rząd, bo nic dodatkowo nie zniechęcało algorytmu do kolejnego
+        # wyboru TEGO SAMEGO zwycięzcy zamiast przeplatania dostępnych opcji.
+        # Formuła 1/(użycia+1) maleje w NIESKOŃCZONOŚĆ z każdym kolejnym
+        # użyciem, więc im częściej coś było wybrane, tym mocniej jest
+        # spychane w dół rankingu przy każdym kolejnym wyborze.
         usage = recipe_usage_count.get(candidate.id, 0)
-        if usage == 0:
-            variety_score = 1.0
-        elif usage == 1:
-            variety_score = 0.5
-        else:
-            variety_score = 0.2
+        variety_score = 1.0 / (usage + 1)
 
         # -- nutrition_score --
         if daily_recipes:

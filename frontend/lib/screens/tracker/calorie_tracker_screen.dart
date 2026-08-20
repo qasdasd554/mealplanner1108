@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../providers/food_log_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../models/food_log.dart';
+import 'calorie_calculator_screen.dart';
 
 class CalorieTrackerScreen extends StatefulWidget {
   const CalorieTrackerScreen({super.key});
@@ -78,6 +79,21 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
       appBar: AppBar(
         title: const Text('Śledzenie kalorii'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.calculate_outlined),
+            tooltip: 'Kalkulator zapotrzebowania kalorycznego',
+            onPressed: () async {
+              final saved = await Navigator.of(context).push<bool>(
+                MaterialPageRoute(builder: (_) => const CalorieCalculatorScreen()),
+              );
+              // Jeśli użytkownik zapisał nowy cel, podsumowanie dnia
+              // trzeba odświeżyć, żeby koło postępu pokazało nową wartość.
+              if (saved == true && mounted) {
+                Provider.of<FoodLogProvider>(context, listen: false)
+                    .fetchLogsForDate(provider.currentDate);
+              }
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.calendar_today),
             onPressed: () => _selectDate(context),

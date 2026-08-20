@@ -394,10 +394,21 @@ class _PremiumScreenState extends State<PremiumScreen> {
       ];
     }
 
+    final weekly = _products[kWeeklyProductId];
     final monthly = _products[kMonthlyProductId];
     final yearly = _products[kYearlyProductId];
 
     return [
+      if (weekly != null)
+        _buildPricingCard(
+          context: context,
+          title: 'Tygodniowo',
+          price: weekly.price,
+          period: '',
+          highlight: false,
+          onTap: _isProcessingPurchase ? null : () => _buy(kWeeklyProductId),
+        ).animate().fadeIn(delay: 650.ms),
+      if (weekly != null) const SizedBox(height: 12),
       if (monthly != null)
         _buildPricingCard(
           context: context,

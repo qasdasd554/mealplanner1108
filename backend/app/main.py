@@ -58,6 +58,24 @@ async def _create_tables() -> None:
             text("ALTER TABLE users ADD COLUMN IF NOT EXISTS premium_purchase_token TEXT")
         )
         await conn.execute(
+            text("ALTER TABLE users ADD COLUMN IF NOT EXISTS weight_kg DOUBLE PRECISION")
+        )
+        await conn.execute(
+            text("ALTER TABLE users ADD COLUMN IF NOT EXISTS height_cm DOUBLE PRECISION")
+        )
+        await conn.execute(
+            text("ALTER TABLE users ADD COLUMN IF NOT EXISTS age INTEGER")
+        )
+        await conn.execute(
+            text("ALTER TABLE users ADD COLUMN IF NOT EXISTS gender VARCHAR(10)")
+        )
+        await conn.execute(
+            text("ALTER TABLE users ADD COLUMN IF NOT EXISTS activity_level VARCHAR(20)")
+        )
+        await conn.execute(
+            text("ALTER TABLE users ADD COLUMN IF NOT EXISTS daily_kcal_goal INTEGER")
+        )
+        await conn.execute(
             text("ALTER TABLE recipes ADD COLUMN IF NOT EXISTS created_by_user_id UUID")
         )
         await conn.execute(
@@ -96,6 +114,57 @@ async def _seed_database_if_empty() -> None:
         logger.debug("Moduł seed_database nie jest dostępny — pomijam seedowanie.")
     except Exception:
         logger.exception("Błąd podczas seedowania bazy danych.")
+
+
+async def _backfill_missing_nutrition_totals() -> None:
+    """Uzupełnia `nutrition_total` dla przepisów, które go nie mają.
+
+    UWAGA (naprawa poważnego błędu): przepisy dodane ręcznie albo przez
+    import AI nigdy nie zapisywały tej wartości w bazie — była liczona
+    tylko "na żywo" przy odpowiedzi API (patrz ensure_nutrition w
+    schemas/recipe.py), więc np. dziennik kalorii w Śledzeniu (który
+    czyta `recipe.nutrition_total` bezpośrednio z bazy, z pominięciem
+    tego mechanizmu) zawsze widział puste wartości odżywcze dla takich
+    przepisów. Endpointy tworzenia przepisu są już naprawione i zapisują
+    tę wartość od razu — ta funkcja jednorazowo uzupełnia przepisy, które
+    ISTNIAŁY W BAZIE PRZED tą naprawą.
+    """
+    try:
+        from sqlalchemy import select
+        from sqlalchemy.orm import selectinload
+
+        from app.db.session import async_session_factory
+        from app.models.recipe import Recipe, RecipeIngredient
+        from app.services.nutrition_calculator import compute_recipe_nutrition_total
+
+        async with async_session_factory() as db:
+            # UWAGA (naprawa): filtrowanie `WHERE nutrition_total IS NULL`
+            # na poziomie SQL nie wyłapywało wszystkich przypadków — dla
+            # kolumn typu JSON, Python `None` bywa zapisany jako literał
+            # JSON "null" (prawdziwa wartość JSON), a nie jako SQL NULL,
+            # więc `.is_(None)` w zapytaniu SQL nie zawsze to dopasowuje.
+            # Pobieramy więc WSZYSTKIE przepisy i sprawdzamy w Pythonie —
+            # po deserializacji SQLAlchemy oba przypadki (SQL NULL i JSON
+            # "null") stają się identycznie Python `None`, więc to
+            # niezawodne niezależnie od tego, jak faktycznie jest
+            # zapisane w bazie. Tabela przepisów nie jest na tyle duża
+            # (dziesiątki/setki, nie miliony), żeby to było problemem
+            # wydajnościowym przy starcie aplikacji.
+            result = await db.execute(
+                select(Recipe).options(
+                    selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product)
+                )
+            )
+            all_recipes = list(result.scalars().all())
+            recipes = [r for r in all_recipes if not r.nutrition_total]
+            if not recipes:
+                return
+            for recipe in recipes:
+                recipe.nutrition_total = compute_recipe_nutrition_total(recipe.ingredients)
+            await db.commit()
+            logger.info("Uzupełniono nutrition_total dla %d istniejących przepisów.", len(recipes))
+    except Exception:
+        logger.exception("Błąd podczas uzupełniania nutrition_total.")
 
 
 async def _run_price_scraper_once() -> None:
@@ -137,6 +206,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("Uruchamianie Smart Meal Planner PL API...")
     await _create_tables()
     await _seed_database_if_empty()
+    await _backfill_missing_nutrition_totals()
     scraper_task = asyncio.create_task(_price_scraper_background_loop())
     logger.info("Aplikacja gotowa do obsługi żądań.")
     yield

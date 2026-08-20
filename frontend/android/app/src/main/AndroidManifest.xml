@@ -11,7 +11,7 @@
          uprawnienia dzięki systemowemu Photo Pickerowi, ale aparat — tak). -->
     <uses-permission android:name="android.permission.CAMERA"/>
     <application
-        android:label="Meal Planner"
+        android:label="Meal Planner Polska"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

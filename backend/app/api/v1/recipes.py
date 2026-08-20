@@ -19,6 +19,7 @@ from app.models import (
     User,
 )
 from app.schemas.recipe import AIRecipeImportRequest, RecipeCreate, RecipeResponse
+from app.services.nutrition_calculator import compute_recipe_nutrition_total
 
 router = APIRouter()
 
@@ -348,6 +349,23 @@ async def create_recipe(
         .where(Recipe.id == recipe.id)
     )
     final_recipe = result.scalar_one()
+
+    # UWAGA (naprawa poważnego błędu): wcześniej nutrition_total NIGDY nie
+    # było zapisywane w bazie dla przepisów tworzonych ręcznie — liczone
+    # było tylko "na żywo" przy zwracaniu odpowiedzi API (patrz
+    # ensure_nutrition w schemas/recipe.py). Każdy INNY kod czytający
+    # `recipe.nutrition_total` bezpośrednio z bazy (np. dziennik kalorii
+    # w Śledzeniu) zawsze widział puste wartości dla takich przepisów.
+    # Zapisujemy prawdziwą wartość TERAZ, raz na zawsze.
+    final_recipe.nutrition_total = compute_recipe_nutrition_total(final_recipe.ingredients)
+    # UWAGA (naprawa): CELOWO bez db.refresh() tutaj — domyślnie wygasza
+    # ono WSZYSTKIE atrybuty obiektu, łącznie z wcześniej dociągniętymi
+    # relacjami (ingredients, tags), które Pydantic zaraz potem próbuje
+    # zserializować. Bez eager-loadingu leniwe doładowanie w kontekście
+    # asynchronicznym rzuca MissingGreenlet, co objawiało się nieczytelnym
+    # błędem walidacji odpowiedzi. Wartość nutrition_total mam już w
+    # pamięci — nie trzeba jej ponownie czytać z bazy.
+    await db.commit()
     final_recipe.is_favorite = False
     final_recipe.is_own_recipe = True
     return final_recipe
@@ -678,7 +696,77 @@ async def ai_import_recipe(
         .where(Recipe.id == recipe.id)
     )
     final_recipe = result.scalar_one()
+
+    # UWAGA (naprawa poważnego błędu — patrz identyczny komentarz przy
+    # create_recipe wyżej): nutrition_total nigdy nie było zapisywane w
+    # bazie dla przepisów z importu AI, więc dziennik kalorii w
+    # Śledzeniu zawsze widział dla nich puste wartości odżywcze.
+    final_recipe.nutrition_total = compute_recipe_nutrition_total(final_recipe.ingredients)
+    # UWAGA (naprawa): CELOWO bez db.refresh() tutaj — domyślnie wygasza
+    # ono WSZYSTKIE atrybuty obiektu, łącznie z wcześniej dociągniętymi
+    # relacjami (ingredients, tags), które Pydantic zaraz potem próbuje
+    # zserializować. Bez eager-loadingu leniwe doładowanie w kontekście
+    # asynchronicznym rzuca MissingGreenlet, co objawiało się nieczytelnym
+    # błędem walidacji odpowiedzi. Wartość nutrition_total mam już w
+    # pamięci — nie trzeba jej ponownie czytać z bazy.
+    await db.commit()
+
     final_recipe.is_favorite = False
+    final_recipe.is_own_recipe = True
+    return final_recipe
+
+
+@router.put(
+    "/{recipe_id}/request-publish",
+    response_model=RecipeResponse,
+    summary="Zgłoś własny przepis do publikacji we wspólnym katalogu",
+)
+async def request_publish_recipe(
+    recipe_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Recipe:
+    """Zmienia widoczność WŁASNEGO, prywatnego przepisu na "pending" —
+    czeka teraz na przegląd administratora, dokładnie tak samo jak
+    przepisy zgłoszone od razu przy tworzeniu (opcja "Udostępnij
+    społeczności"). Tylko właściciel przepisu może to zrobić, i tylko
+    dla przepisu, który jest jeszcze prywatny (nie da się "ponownie
+    zgłosić" czegoś, co już czeka na przegląd, jest publiczne, albo
+    zostało odrzucone bez zmian — odrzucony przepis trzeba najpierw
+    zedytować, żeby to miało sens, ale edycja przepisów to osobna,
+    jeszcze nieistniejąca funkcja).
+    """
+    recipe = await db.get(Recipe, recipe_id)
+    if recipe is None:
+        raise NotFoundException(detail=f"Przepis o ID {recipe_id} nie został znaleziony")
+    if recipe.created_by_user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Możesz opublikować tylko własny przepis.")
+    if recipe.visibility != "private":
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "pending": "Ten przepis już czeka na przegląd administratora.",
+                "public": "Ten przepis jest już publiczny.",
+                "rejected": "Ten przepis został odrzucony — skontaktuj się z administratorem, żeby dowiedzieć się dlaczego.",
+            }.get(recipe.visibility, "Tego przepisu nie można teraz opublikować."),
+        )
+
+    recipe.visibility = "pending"
+    await db.commit()
+
+    await _notify_admins_pending_recipe(db, recipe, current_user)
+
+    result = await db.execute(
+        select(Recipe)
+        .options(
+            selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product),
+            selectinload(Recipe.tags),
+        )
+        .where(Recipe.id == recipe.id)
+    )
+    final_recipe = result.scalar_one()
+    favorite_ids = await _get_favorite_recipe_ids(db, current_user.id)
+    final_recipe.is_favorite = final_recipe.id in favorite_ids
     final_recipe.is_own_recipe = True
     return final_recipe
 

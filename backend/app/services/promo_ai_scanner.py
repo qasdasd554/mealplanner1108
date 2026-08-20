@@ -32,7 +32,7 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-GEMINI_MODELS = ["gemini-3.7-flash", "gemini-3.5-flash-lite"]
+GEMINI_MODELS = ["gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash-lite"]
 
 # Serwis agreguje gazetki promocyjne wielu sieci w jednym, prostym,
 # statycznym miejscu — bez ochrony przed botami, w przeciwieństwie do

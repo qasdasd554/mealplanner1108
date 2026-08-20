@@ -38,9 +38,14 @@ GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model
 # Jeśli główny model odmawia (limit dzienny/minutowy albo uporczywe
 # przeciążenie mimo ponawiania), automatycznie próbujemy kolejnego z listy
 # zamiast od razu poddawać się użytkownikowi.
+# UWAGA (nowe): dodano trzeci, pośredni model jako dodatkowy zapas —
+# każdy model Gemini ma WŁASNĄ, niezależną pulę limitów (RPM/TPM/RPD),
+# więc trzy modele zamiast dwóch to trzy szanse, zanim usługa AI faktycznie
+# stanie się niedostępna, a nie tylko dwie.
 GEMINI_MODEL_PRIMARY = "gemini-3.7-flash"
+GEMINI_MODEL_SECONDARY = "gemini-3.6-flash"
 GEMINI_MODEL_FALLBACK = "gemini-3.5-flash-lite"
-GEMINI_MODELS = [GEMINI_MODEL_PRIMARY, GEMINI_MODEL_FALLBACK]
+GEMINI_MODELS = [GEMINI_MODEL_PRIMARY, GEMINI_MODEL_SECONDARY, GEMINI_MODEL_FALLBACK]
 
 ALLOWED_UNITS = {"g", "kg", "ml", "l", "szt"}
 ALLOWED_MEAL_TYPES = {"śniadanie", "obiad", "kolacja", "przekąska"}

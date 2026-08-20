@@ -131,15 +131,55 @@ class AuthService {
     String? preferredStoreId,
     Map<String, dynamic>? dietaryPreferences,
     int? householdSize,
+    double? weightKg,
+    double? heightCm,
+    int? age,
+    String? gender,
+    String? activityLevel,
+    int? dailyKcalGoal,
   }) async {
     final body = <String, dynamic>{};
     if (displayName != null) body['display_name'] = displayName;
     if (preferredStoreId != null) body['preferred_store_id'] = preferredStoreId;
     if (dietaryPreferences != null) body['dietary_preferences'] = dietaryPreferences;
     if (householdSize != null) body['household_size'] = householdSize;
+    if (weightKg != null) body['weight_kg'] = weightKg;
+    if (heightCm != null) body['height_cm'] = heightCm;
+    if (age != null) body['age'] = age;
+    if (gender != null) body['gender'] = gender;
+    if (activityLevel != null) body['activity_level'] = activityLevel;
+    if (dailyKcalGoal != null) body['daily_kcal_goal'] = dailyKcalGoal;
 
     final response = await _client.put(ApiConfig.usersMe, body: body);
     return User.fromJson(response as Map<String, dynamic>);
+  }
+
+  /// Liczy zapotrzebowanie kaloryczne (wzór Mifflin-St Jeor) — zwraca
+  /// {maintenance, weight_loss, weight_gain}. Czysta funkcja, nic nie
+  /// zapisuje — do tego służy osobne wywołanie updateProfile.
+  Future<Map<String, int>> calculateCalorieNeeds({
+    required double weightKg,
+    required double heightCm,
+    required int age,
+    required String gender,
+    required String activityLevel,
+  }) async {
+    final response = await _client.post(ApiConfig.usersCalorieCalculator, body: {
+      'weight_kg': weightKg,
+      'height_cm': heightCm,
+      'age': age,
+      'gender': gender,
+      'activity_level': activityLevel,
+    });
+    final data = response as Map<String, dynamic>;
+    return data.map((k, v) => MapEntry(k, v as int));
+  }
+
+  /// Ranking użytkowników wg liczby dodanych, zaakceptowanych przepisów
+  /// do wspólnego katalogu.
+  Future<List<Map<String, dynamic>>> getRecipeLeaderboard() async {
+    final response = await _client.get(ApiConfig.usersRecipeLeaderboard);
+    return (response as List).cast<Map<String, dynamic>>();
   }
 
   Future<void> updateAllergens(List<String> allergenIds) async {

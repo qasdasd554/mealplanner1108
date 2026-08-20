@@ -124,6 +124,12 @@ class AuthProvider with ChangeNotifier {
     String? preferredStoreId,
     Map<String, dynamic>? dietaryPreferences,
     int? householdSize,
+    double? weightKg,
+    double? heightCm,
+    int? age,
+    String? gender,
+    String? activityLevel,
+    int? dailyKcalGoal,
   }) async {
     _clearError();
     try {
@@ -132,6 +138,12 @@ class AuthProvider with ChangeNotifier {
         preferredStoreId: preferredStoreId,
         dietaryPreferences: dietaryPreferences,
         householdSize: householdSize,
+        weightKg: weightKg,
+        heightCm: heightCm,
+        age: age,
+        gender: gender,
+        activityLevel: activityLevel,
+        dailyKcalGoal: dailyKcalGoal,
       );
       _currentUser = updatedUser;
       notifyListeners();

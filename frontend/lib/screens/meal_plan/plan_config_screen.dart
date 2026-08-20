@@ -6,6 +6,7 @@ import '../../providers/store_provider.dart';
 import '../../providers/meal_plan_provider.dart';
 import '../../models/store.dart';
 import '../../models/meal_plan.dart';
+import '../../config/constants.dart';
 import '../../theme/app_theme.dart';
 import '../profile/premium_screen.dart';
 
@@ -23,6 +24,10 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
   final _budgetController = TextEditingController();
   final _kcalController = TextEditingController(text: '2000');
   final Set<String> _selectedMealTypes = {'śniadanie', 'obiad', 'kolacja'};
+  // Dieta DLA TEGO KONKRETNEGO planu — domyślnie ta z profilu, ale można
+  // ją tu zmienić bez trwałej zmiany preferencji w profilu (np. plan
+  // na wizytę gości, którzy jedzą inaczej niż zwykle).
+  String _selectedDiet = 'Bez ograniczeń';
 
   @override
   void initState() {
@@ -36,6 +41,14 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
         storeProvider.selectStoreById(authProvider.currentUser!.preferredStoreId!);
         setState(() {
           _selectedStore = storeProvider.selectedStore;
+        });
+      }
+      // Domyślna dieta — z profilu użytkownika, ale edytowalna tylko dla
+      // tego planu (patrz komentarz przy polu _selectedDiet).
+      final profileDiet = authProvider.currentUser?.dietaryPreferences?['diet'] as String?;
+      if (profileDiet != null && kDietOptions.any((d) => d['name'] == profileDiet)) {
+        setState(() {
+          _selectedDiet = profileDiet;
         });
       }
       // Domyślna liczba osób — z profilu użytkownika, ale można ją zmienić
@@ -77,16 +90,11 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
       targetKcal = int.tryParse(_kcalController.text);
     }
 
-    // UWAGA (naprawa poważnego błędu): wcześniej preferencja diety
-    // zapisana podczas onboardingu (np. "Keto", "Wegańska") NIGDY nie
-    // była faktycznie wysyłana przy generowaniu planu — tylko meal_types.
-    // Efekt: filtr diety w backendzie nigdy się nie uruchamiał, więc
-    // KAŻDY plan ignorował ograniczenia dietetyczne całkowicie —
-    // użytkownik na diecie ketogenicznej mógł dostać w planie pizzę.
-    final userDiet = Provider.of<AuthProvider>(context, listen: false)
-        .currentUser
-        ?.dietaryPreferences?['diet'] as String?;
-
+    // UWAGA (naprawa poważnego błędu, teraz z możliwością wyboru na
+    // ekranie): wcześniej preferencja diety zapisana podczas onboardingu
+    // (np. "Keto", "Wegańska") NIGDY nie była faktycznie wysyłana przy
+    // generowaniu planu — teraz wysyłamy _selectedDiet, edytowalną na
+    // tym ekranie (domyślnie z profilu, patrz initState).
     final request = MealPlanGenerateRequest(
       storeId: _selectedStore!.id,
       durationDays: _durationDays,
@@ -96,7 +104,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
       householdSize: _householdSize,
       preferences: {
         'meal_types': _selectedMealTypes.toList(),
-        if (userDiet != null && userDiet != 'Bez ograniczeń') 'diet': userDiet,
+        if (_selectedDiet != 'Bez ograniczeń') 'diet': _selectedDiet,
       },
     );
 
@@ -338,9 +346,9 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                     children: [
                       Slider(
                         value: _durationDays.toDouble(),
-                        min: 3,
+                        min: 1,
                         max: 14,
-                        divisions: 11,
+                        divisions: 13,
                         activeColor: AppTheme.primaryColor,
                         inactiveColor: AppTheme.backgroundColor,
                         label: '$_durationDays dni',
@@ -355,7 +363,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('3 dni', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                            Text('1 dzień', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
                             Text('7 dni', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
                             Text('14 dni', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
                           ],
@@ -363,7 +371,39 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                       ),
                     ],
                   ),
-                ).animate().fadeIn(delay: 100.ms),
+                ).animate().fadeIn(delay: 150.ms),
+                const SizedBox(height: 20),
+                // Wybór diety DLA TEGO planu — domyślnie ta z profilu
+                // (patrz initState), ale można ją tu zmienić bez trwałej
+                // zmiany preferencji zapisanych w profilu.
+                Text('Dieta', style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceColor,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: kDietOptions.map((diet) {
+                      final isSelected = _selectedDiet == diet['name'];
+                      return ChoiceChip(
+                        label: Text(diet['name']!),
+                        selected: isSelected,
+                        selectedColor: AppTheme.primaryColor.withOpacity(0.2),
+                        labelStyle: TextStyle(
+                          color: isSelected ? AppTheme.primaryColor : AppTheme.textPrimary,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        ),
+                        onSelected: (_) {
+                          setState(() => _selectedDiet = diet['name']!);
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ).animate().fadeIn(delay: 175.ms),
                 const SizedBox(height: 32),
 
                 // 2b. Liczba osób

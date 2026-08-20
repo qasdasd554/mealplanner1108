@@ -33,7 +33,7 @@ class SmartMealPlannerApp extends StatelessWidget {
       builder: (context, themeProvider, _) {
         return MaterialApp(
           navigatorKey: navigatorKey,
-          title: 'Meal Planner',
+          title: 'Meal Planner Polska',
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeProvider.themeMode,
