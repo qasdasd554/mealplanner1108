@@ -73,12 +73,15 @@ kotlin {
     }
 }
 
+// UWAGA (naprawa): androidx.core:core-ktx:1.19.0 wymagał SDK 37 i AGP
+// 9.1.0+, czego ten projekt nie ma (SDK 36, AGP 9.0.1 — celowo NIE
+// podnoszony, patrz wcześniejsze problemy z tym samym AGP przy innym
+// pakiecie w tej samej sesji). Wersja 1.12.0 wymaga tylko SDK 34 —
+// bezpiecznie poniżej granicy tego projektu — a jest wystarczająco nowa,
+// żeby zawierać WindowCompat.setDecorFitsSystemWindows() używane w
+// MainActivity.kt (ta metoda istnieje w androidx.core od bardzo dawna).
 dependencies {
-    // Potrzebne dla WindowCompat.setDecorFitsSystemWindows() w
-    // MainActivity.kt — Android 15 (SDK 35) domyślnie wyświetla
-    // aplikacje "bez ramki" (edge-to-edge), to zapewnia wsteczną
-    // zgodność i poprawne zachowanie na starszych wersjach Androida też.
-    implementation("androidx.core:core-ktx:1.17.0")
+    implementation("androidx.core:core-ktx:1.12.0")
 }
 
 flutter {
