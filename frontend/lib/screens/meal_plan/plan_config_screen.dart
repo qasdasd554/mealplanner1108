@@ -262,7 +262,16 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
       appBar: AppBar(
         title: const Text('Nowy plan posiłków'),
       ),
-      body: Stack(
+      body: SafeArea(
+        // UWAGA (naprawa): po włączeniu trybu edge-to-edge (WindowCompat
+        // w MainActivity.kt) treść może rysować się AŻ pod systemowym
+        // paskiem nawigacji gestów na dole ekranu — sam sztywny margines
+        // 24px w SingleChildScrollView poniżej już nie wystarczał na
+        // niektórych telefonach, więc przycisk "Wygeneruj plan!" (ostatni
+        // element przewijanej listy) wyglądał, jakby "wjeżdżał" pod pasek
+        // systemowy. SafeArea dodaje faktyczny, urządzenie-zależny margines
+        // zamiast sztywnej wartości.
+        child: Stack(
         children: [
           SingleChildScrollView(
             padding: const EdgeInsets.all(24.0),
@@ -592,6 +601,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
               ),
             ),
         ],
+        ),
       ),
     );
   }

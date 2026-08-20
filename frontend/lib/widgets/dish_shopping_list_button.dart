@@ -77,6 +77,11 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
                   : () => Navigator.of(context).push(
                         MaterialPageRoute(builder: (_) => const PremiumScreen()),
                       ),
+          style: hasPremiumAccess
+              ? null
+              : OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Color(0xFFE0A62E), width: 1.5),
+                ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

@@ -263,7 +263,7 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
               textAlignVertical: TextAlignVertical.top,
               maxLength: 10000,
               decoration: InputDecoration(
-                hintText: 'np. "rosół"\n\nalbo pełny przepis:\n\nKotlet schabowy z ziemniakami\n\nSkładniki:\n- 4 kotlety schabowe\n...',
+                hintText: 'np. "rosół" albo pełny przepis ze składnikami i krokami...',
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
