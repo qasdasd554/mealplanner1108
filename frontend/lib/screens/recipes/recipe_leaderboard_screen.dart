@@ -79,10 +79,10 @@ class _RecipeLeaderboardScreenState extends State<RecipeLeaderboardScreen> {
     }
     if (_entries.isEmpty) {
       return ListView(
-        children: const [
-          SizedBox(height: 100),
+        children: [
+          const SizedBox(height: 100),
           Icon(Icons.emoji_events_outlined, size: 56, color: AppTheme.textSecondary),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           Center(
             child: Text(
               'Jeszcze nikt nie dodał zaakceptowanego przepisu\ndo wspólnego katalogu.',
