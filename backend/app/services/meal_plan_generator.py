@@ -76,9 +76,18 @@ MEAL_DISTRIBUTION: dict[int, list[str]] = {
 }
 
 # Wagi algorytmu scoringowego
-WEIGHT_REUSE: float = 0.50
+# UWAGA (druga tura naprawy): nawet po podniesieniu NUTRITION do 0.45,
+# testy na dłuższych planach (7 dni) pokazały systematyczne POGARSZANIE
+# się dopasowania kalorycznego pod koniec tygodnia (dzień 7 potrafił
+# wypaść nawet 55%+ poniżej celu) — presja na ponowne wykorzystanie
+# składników narasta z każdym kolejnym dniem (więcej "już użytych"
+# składników do dopasowania) i systematycznie przebijała dopasowanie
+# kaloryczne. Odżywienie musi być ZDECYDOWANIE dominującym czynnikiem —
+# to podstawowa, oczekiwana funkcja aplikacji; oszczędność na zakupach
+# to wciąż wartościowy, ale wyraźnie drugorzędny cel.
+WEIGHT_REUSE: float = 0.30
 WEIGHT_VARIETY: float = 0.25
-WEIGHT_NUTRITION: float = 0.25
+WEIGHT_NUTRITION: float = 0.45
 
 # Maksymalna liczba powtórzeń tego samego przepisu — 14 było w praktyce
 # "brakiem limitu" (np. dla planu 7-dniowego to 2/3 wszystkich posiłków
@@ -94,7 +103,11 @@ CALORIE_TOP_UP_THRESHOLD: float = 0.85
 # Maksymalna liczba DODATKOWYCH dań dokładanych do jednego dnia — żeby
 # przy bardzo niskokalorycznym katalogu przepisów nie skończyć z absurdalną
 # liczbą "dosypanych" przekąsek zamiast po prostu zbliżenia się do celu.
-MAX_TOP_UP_DISHES_PER_DAY: int = 4
+# UWAGA (naprawa): 4 było w praktyce za mało, żeby domknąć realną lukę
+# kaloryczną w niektórych dniach (plan kończył się wyraźnie poniżej progu
+# 85% celu, mimo wyczerpania limitu dopełniania, a NIE wyczerpania puli
+# przepisów). 8 daje realny margines na domknięcie nawet większej luki.
+MAX_TOP_UP_DISHES_PER_DAY: int = 8
 
 
 class MealPlanGenerator:
@@ -296,6 +309,20 @@ class MealPlanGenerator:
                     )
                 )
 
+        # UWAGA (naprawa poważnego błędu): brak jawnego sortowania w tym
+        # zapytaniu oznaczał, że PostgreSQL mógł zwracać przepisy w
+        # dowolnej, niegwarantowanej kolejności (zależnej od fizycznego
+        # układu danych na dysku, który różni się między np. świeżym
+        # zresetowaniem bazy a normalną pracą) — a zachłanny algorytm
+        # wyboru w _greedy_select przy remisach w punktacji bierze
+        # PIERWSZEGO kandydata z kolejności iteracji. Efekt: te same
+        # ustawienia (dieta, cel kaloryczny, liczba dni) mogły dawać
+        # WYRAŹNIE różne plany w zależności od przypadkowej kolejności
+        # zwróconej przez bazę, co utrudniało też debugowanie (wyniki nie
+        # były powtarzalne między testami). Jawne sortowanie po ID
+        # zapewnia w pełni deterministyczne, powtarzalne zachowanie.
+        stmt = stmt.order_by(Recipe.id)
+
         result = await self.db.execute(stmt)
         all_recipes: Sequence[Recipe] = result.scalars().unique().all()
 
@@ -409,6 +436,13 @@ class MealPlanGenerator:
             if mt not in MEAL_TYPES:
                 pools["obiad"].append(recipe)
 
+        # UWAGA (naprawa): potrzebne do oszacowania "sprawiedliwego udziału"
+        # celu kalorycznego przy PIERWSZYM posiłku dnia — patrz komentarz
+        # przy nutrition_score w _score_candidate.
+        slots_per_day: dict[int, int] = defaultdict(int)
+        for day, _meal_type in slot_distribution:
+            slots_per_day[day] += 1
+
         used_ingredient_ids: set[UUID] = set()
         recipe_usage_count: dict[UUID, int] = defaultdict(int)
         selected: list[tuple[int, str, Recipe]] = []
@@ -448,6 +482,7 @@ class MealPlanGenerator:
                     recipe_usage_count=recipe_usage_count,
                     daily_recipes=daily_recipes,
                     target_kcal=target_kcal,
+                    meals_today=slots_per_day.get(day, 1),
                 )
                 if score > best_score:
                     best_score = score
@@ -463,6 +498,7 @@ class MealPlanGenerator:
                         daily_recipes=daily_recipes,
                         ignore_repeat_limit=True,
                         target_kcal=target_kcal,
+                        meals_today=slots_per_day.get(day, 1),
                     )
                     if score > best_score:
                         best_score = score
@@ -526,6 +562,13 @@ class MealPlanGenerator:
         # wybór do "dobicia" kaloryczności bez robienia z tego kolejnego
         # pełnego dania), a jeśli ich brak, cokolwiek dostępne.
         top_up_pool = pools.get("przekąska") or [r for pool in pools.values() for r in pool]
+        # UWAGA (naprawa): pula ZAPASOWA, używana TYLKO gdy sama pula
+        # przekąsek wprawdzie istnieje, ale WSZYSTKIE jej pozycje trafiły
+        # już w limit powtórzeń — wcześniej w takiej sytuacji dopełnianie
+        # po prostu się poddawało (best_candidate=None), zostawiając dzień
+        # wyraźnie poniżej celu, mimo że INNE kategorie dań wciąż miały
+        # dostępne, nieużyte opcje.
+        all_recipes_pool = [r for pool in pools.values() for r in pool]
         if not top_up_pool:
             return selected
 
@@ -554,12 +597,35 @@ class MealPlanGenerator:
                         best_score = score
                         best_candidate = candidate
 
+                if best_candidate is None and top_up_pool is not all_recipes_pool:
+                    # Przekąski wyczerpane (limit powtórzeń) — spróbuj
+                    # dopełnić DOWOLNYM dostępnym daniem z innej kategorii,
+                    # zamiast od razu się poddawać.
+                    for candidate in all_recipes_pool:
+                        if recipe_usage_count[candidate.id] >= MAX_RECIPE_REPEATS:
+                            continue
+                        score = self._score_candidate(
+                            candidate=candidate,
+                            used_ingredient_ids=used_ingredient_ids,
+                            recipe_usage_count=recipe_usage_count,
+                            daily_recipes=day_recipes,
+                            target_kcal=target_kcal,
+                        )
+                        if score > best_score:
+                            best_score = score
+                            best_candidate = candidate
+
                 if best_candidate is None:
-                    # Wyczerpaliśmy sensowne opcje (limit powtórzeń) — nie
-                    # ma sensu kręcić się w kółko, kończymy dopełnianie tego dnia.
+                    # Naprawdę wyczerpaliśmy wszystkie sensowne opcje (limit
+                    # powtórzeń wszędzie) — nie ma sensu kręcić się w kółko,
+                    # kończymy dopełnianie tego dnia.
                     break
 
-                extra_entries.append((day, "przekąska", best_candidate))
+                # UWAGA (naprawa): etykieta slotu musi odpowiadać
+                # RZECZYWISTEMU typowi posiłku kandydata — wcześniej było to
+                # na sztywno "przekąska", co dawało błędną etykietę, gdy
+                # dopełnienie sięgało po danie z innej kategorii.
+                extra_entries.append((day, best_candidate.meal_type or "przekąska", best_candidate))
                 day_recipes.append(best_candidate)
                 recipe_usage_count[best_candidate.id] += 1
                 for ing in best_candidate.ingredients:
@@ -598,6 +664,7 @@ class MealPlanGenerator:
         daily_recipes: list[Recipe],
         ignore_repeat_limit: bool = False,
         target_kcal: float | None = None,
+        meals_today: int = 1,
     ) -> float:
         """Oblicza łączny scoring kandydującego przepisu.
 
@@ -645,16 +712,51 @@ class MealPlanGenerator:
             # 600 kcal dziennie".
             current_daily = self._sum_per_person_nutrition(daily_recipes)
             candidate_nutrition = self._per_person_nutrition(candidate)
-            projected = {
-                k: current_daily.get(k, 0.0) + candidate_nutrition.get(k, 0.0)
-                for k in ("kcal", "protein", "fat", "carbs", "fiber")
-            }
-            nutrition_target = {"kcal": target_kcal} if target_kcal else None
-            nutrition_score = self.nutrition.check_nutrition_balance(
-                projected, target=nutrition_target
-            )
+            projected_kcal = current_daily.get("kcal", 0.0) + candidate_nutrition.get("kcal", 0.0)
+
+            if target_kcal:
+                # UWAGA (naprawa POWAŻNEGO błędu): wcześniej ta ocena
+                # liczyła odchylenie dla WSZYSTKICH pięciu makroskładników
+                # (kcal, białko, tłuszcz, węglowodany, błonnik) i UŚREDNIAŁA
+                # je — ale użytkownik ustawia tylko docelowe KCAL, więc
+                # pozostałe cztery odchylenia liczyły się względem
+                # GENERYCZNYCH wartości domyślnych, niemających nic
+                # wspólnego z tym, czego użytkownik faktycznie chce. Nawet
+                # OGROMNE przekroczenie kcal (np. 3x za dużo) rozmywało się
+                # w uśrednieniu z czterema nieistotnymi odchyleniami, więc
+                # cel kaloryczny był w praktyce prawie ignorowany. Teraz,
+                # gdy podano konkretny cel kcal, oceniamy WYŁĄCZNIE
+                # dopasowanie do kcal — nic go już nie rozmywa.
+                deviation = abs(projected_kcal - target_kcal) / target_kcal
+                nutrition_score = max(0.0, 1.0 - deviation)
+            else:
+                projected = {
+                    k: current_daily.get(k, 0.0) + candidate_nutrition.get(k, 0.0)
+                    for k in ("kcal", "protein", "fat", "carbs", "fiber")
+                }
+                nutrition_score = self.nutrition.check_nutrition_balance(projected)
         else:
-            nutrition_score = 0.5  # brak kontekstu — neutralna ocena
+            # UWAGA (naprawa POWAŻNEGO błędu): wcześniej PIERWSZY posiłek
+            # każdego dnia (gdy daily_recipes jest jeszcze puste) dostawał
+            # zawsze NEUTRALNĄ ocenę 0.5 dla KAŻDEGO kandydata, niezależnie
+            # od jego kaloryczności — bo nie było z czym porównać "dotychczas
+            # zjedzone". Efekt: pierwszy wybór dnia w ogóle nie kierował się
+            # celem kalorycznym (tylko ponownym użyciem składników i
+            # różnorodnością), a reszta dnia próbowała to później
+            # skompensować — czasem się udawało, czasem nie, dając bardzo
+            # niestabilne wyniki (raz plan wychodził 30% poniżej celu, raz
+            # 15% powyżej, mimo identycznych ustawień). Zamiast neutralnej
+            # oceny, szacujemy "sprawiedliwy udział" tego posiłku w
+            # dziennym celu (target_kcal / liczba posiłków dziś) i oceniamy
+            # względem NIEGO — więc nawet pierwszy wybór dnia świadomie
+            # celuje w rozsądną kaloryczność zamiast być całkowicie losowy.
+            if target_kcal and meals_today > 0:
+                fair_share = target_kcal / meals_today
+                candidate_kcal = self._per_person_nutrition(candidate).get("kcal", 0.0)
+                deviation = abs(candidate_kcal - fair_share) / fair_share if fair_share else 0.0
+                nutrition_score = max(0.0, 1.0 - deviation)
+            else:
+                nutrition_score = 0.5  # brak celu kalorycznego — neutralna ocena
 
         total = (
             WEIGHT_REUSE * reuse_score
