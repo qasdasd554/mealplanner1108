@@ -83,11 +83,8 @@ class Settings(BaseSettings):
     # zadziała (konto się utworzy), ale użytkownik nie dostanie maila i
     # utknie na ekranie weryfikacji — patrz endpoint /auth/resend-code.
     RESEND_API_KEY: str = ""
-    # Adres nadawcy — domyślnie testowa domena Resend, działa od razu bez
-    # weryfikacji własnej domeny. Podmień na własny (np.
-    # "Meal Planner Polska <kontakt@twojadomena.pl>"), gdy zweryfikujesz
-    # domenę w panelu Resend, dla lepszej dostarczalności.
-    RESEND_FROM_EMAIL: str = "Meal Planner Polska <onboarding@resend.dev>"
+    # Adres nadawcy z własnej, zweryfikowanej domeny Resend.
+    RESEND_FROM_EMAIL: str = "Meal Planner Polska <powiadomienia@mealplannerpolska.pl>"
 
     # ── Aplikacja ────────────────────────────────────────────────
     APP_NAME: str = "Meal Planner Polska"
