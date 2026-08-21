@@ -1,7 +1,7 @@
 name: smart_meal_planner
 description: "A smart meal planner mobile application integrated with Polish grocery stores."
 publish_to: 'none'
-version: 1.0.0+17
+version: 1.0.0+22
 
 environment:
   sdk: '>=3.7.0 <4.0.0'
@@ -23,6 +23,10 @@ dependencies:
   # zespołu Fluttera, wspiera Google Play Billing Library 8+ (wymóg
   # Google od 31 sierpnia 2026).
   in_app_purchase: ^3.2.3
+
+  # Reklamy nagradzane (Śledzenie dla kont bez Premium) — oficjalny
+  # pakiet Google dla AdMob.
+  google_mobile_ads: ^5.2.0
 
   # Local Storage
   shared_preferences: ^2.2.3

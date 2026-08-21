@@ -126,6 +126,37 @@ class AuthService {
     return User.fromJson(response as Map<String, dynamic>);
   }
 
+  /// Potwierdza adres e-mail kodem wysłanym przy rejestracji. Rzuca
+  /// ApiException (400), jeśli kod jest nieprawidłowy albo wygasł.
+  Future<void> verifyEmail(String code) async {
+    await _client.post(ApiConfig.authVerifyEmail, body: {'code': code});
+  }
+
+  /// Prosi o wysłanie NOWEGO kodu weryfikacyjnego (limit 3x/10 minut po
+  /// stronie backendu).
+  Future<void> resendVerificationCode() async {
+    await _client.post(ApiConfig.authResendCode);
+  }
+
+  /// Prosi o wysłanie kodu resetu hasła — działa BEZ logowania.
+  Future<void> forgotPassword(String email) async {
+    await _client.post(ApiConfig.authForgotPassword, body: {'email': email});
+  }
+
+  /// Ustawia nowe hasło na podstawie kodu z forgotPassword — też bez
+  /// logowania.
+  Future<void> resetPassword({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    await _client.post(ApiConfig.authResetPassword, body: {
+      'email': email,
+      'code': code,
+      'new_password': newPassword,
+    });
+  }
+
   Future<User> updateProfile({
     String? displayName,
     String? preferredStoreId,

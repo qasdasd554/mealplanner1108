@@ -60,6 +60,22 @@ class User(Base):
     # podsumowaniu dnia w Śledzeniu, niezależnie od tego, kiedy/czy
     # użytkownik ponownie przeliczy kalkulator.
     daily_kcal_goal: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # Weryfikacja adresu e-mail kodem przy rejestracji — konta Google mają
+    # to ustawione na True od razu (Google już zweryfikował adres, nie ma
+    # sensu robić tego drugi raz). Konta email/hasło startują jako
+    # niezweryfikowane, dopóki nie wpiszą poprawnego kodu z maila.
+    is_email_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    email_verification_code: Mapped[str | None] = mapped_column(String(6), nullable=True)
+    email_verification_code_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    # Resetowanie hasła kodem z maila — ten sam wzorzec co weryfikacja
+    # e-mail przy rejestracji, ale celowo OSOBNE pola (i osobny, krótszy
+    # czas ważności), żeby te dwa niezależne mechanizmy się nie mieszały.
+    password_reset_code: Mapped[str | None] = mapped_column(String(6), nullable=True)
+    password_reset_code_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     # Rola konta — "user" (domyślnie) albo "admin". Admin może usuwać
     # KAŻDY komentarz (nie tylko własny) i w miarę rozwoju aplikacji
     # będzie naturalnym miejscem na kolejne uprawnienia moderacyjne.

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import 'forgot_password_screen.dart';
 import '../../theme/app_theme.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -198,7 +199,18 @@ class _LoginScreenState extends State<LoginScreen> {
                               )
                             : const Text('Zaloguj się'),
                       ).animate().fadeIn(delay: 600.ms),
-                      const SizedBox(height: 16),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
+                            );
+                          },
+                          child: const Text('Zapomniałeś hasła?'),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
 
                       // Rozdzielacz "lub"
                       Row(

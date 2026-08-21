@@ -77,6 +77,18 @@ class Settings(BaseSettings):
     # weryfikacji zakupu zwróci czytelny błąd zamiast się wywalić.
     GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: str = ""
 
+    # ── Wysyłka e-maili (weryfikacja konta) ─────────────────────────
+    # Klucz API z resend.com — WYMAGANY, żeby wysyłka kodu weryfikacyjnego
+    # przy rejestracji w ogóle działała. Bez tego rejestracja i tak
+    # zadziała (konto się utworzy), ale użytkownik nie dostanie maila i
+    # utknie na ekranie weryfikacji — patrz endpoint /auth/resend-code.
+    RESEND_API_KEY: str = ""
+    # Adres nadawcy — domyślnie testowa domena Resend, działa od razu bez
+    # weryfikacji własnej domeny. Podmień na własny (np.
+    # "Meal Planner Polska <kontakt@twojadomena.pl>"), gdy zweryfikujesz
+    # domenę w panelu Resend, dla lepszej dostarczalności.
+    RESEND_FROM_EMAIL: str = "Meal Planner Polska <onboarding@resend.dev>"
+
     # ── Aplikacja ────────────────────────────────────────────────
     APP_NAME: str = "Meal Planner Polska"
     # UWAGA: cała aplikacja Flutter (lib/config/api_config.dart) zakłada

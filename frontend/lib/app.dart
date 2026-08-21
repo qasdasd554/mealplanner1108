@@ -5,6 +5,7 @@ import 'providers/theme_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
+import 'screens/auth/email_verification_screen.dart';
 import 'screens/onboarding/onboarding_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/meal_plan/plan_config_screen.dart';
@@ -43,6 +44,7 @@ class SmartMealPlannerApp extends StatelessWidget {
             '/': (context) => const SplashScreen(),
             '/login': (context) => const LoginScreen(),
             '/register': (context) => const RegisterScreen(),
+            '/verify-email': (context) => const EmailVerificationScreen(),
             '/onboarding': (context) => const OnboardingScreen(),
             '/home': (context) => const HomeScreen(),
             '/plan/config': (context) => const PlanConfigScreen(),

@@ -76,6 +76,39 @@ async def _create_tables() -> None:
             text("ALTER TABLE users ADD COLUMN IF NOT EXISTS daily_kcal_goal INTEGER")
         )
         await conn.execute(
+            text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_email_verified BOOLEAN NOT NULL DEFAULT false")
+        )
+        await conn.execute(
+            text("ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verification_code VARCHAR(6)")
+        )
+        await conn.execute(
+            text("ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verification_code_expires_at TIMESTAMPTZ")
+        )
+        await conn.execute(
+            text("ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_code VARCHAR(6)")
+        )
+        await conn.execute(
+            text("ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_code_expires_at TIMESTAMPTZ")
+        )
+        # UWAGA (ważne): istniejący użytkownicy sprzed wprowadzenia tej
+        # funkcji NIE MOGĄ nagle stać się "niezweryfikowani" i zostać
+        # zablokowani — kolumna is_email_verified dodana wyżej domyślnie
+        # ustawia WSZYSTKICH na false. To uzupełnienie oznacza jako
+        # zweryfikowane WYŁĄCZNIE konta, które nigdy nie dostały kodu
+        # weryfikacyjnego (bo funkcja jeszcze nie istniała, gdy się
+        # rejestrowali) — nowe, faktycznie oczekujące na weryfikację konta
+        # ZAWSZE mają ustawiony kod i datę wygaśnięcia, więc ten warunek
+        # ich nie obejmie. Bezpieczne do uruchamiania przy każdym starcie
+        # (drugi raz nic już nie zmienia).
+        await conn.execute(
+            text(
+                "UPDATE users SET is_email_verified = true "
+                "WHERE is_email_verified = false "
+                "AND email_verification_code IS NULL "
+                "AND email_verification_code_expires_at IS NULL"
+            )
+        )
+        await conn.execute(
             text("ALTER TABLE recipes ADD COLUMN IF NOT EXISTS created_by_user_id UUID")
         )
         await conn.execute(

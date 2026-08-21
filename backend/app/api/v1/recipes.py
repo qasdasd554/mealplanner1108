@@ -19,7 +19,7 @@ from app.models import (
     User,
 )
 from app.schemas.recipe import AIRecipeImportRequest, RecipeCreate, RecipeResponse
-from app.services.nutrition_calculator import compute_recipe_nutrition_total
+from app.services.nutrition_calculator import compute_recipe_nutrition_total, is_ingredient_quantity_reasonable
 
 router = APIRouter()
 
@@ -662,6 +662,16 @@ async def ai_import_recipe(
     for ing in parsed["ingredients"]:
         product = products_by_name.get(ing["product_name"].lower())
         if product is None:
+            continue
+        # UWAGA (naprawa): AI generuje przepisy niezależnie od schematu
+        # Pydantic używanego przy ręcznym tworzeniu, więc bez tego
+        # sprawdzenia mogłoby przemknąć się coś tak samo absurdalnego jak
+        # "200 sztuk awokado" — ta sama funkcja co przy ręcznym/API
+        # tworzeniu przepisu, żeby obie ścieżki łapały to samo. Cicho
+        # pomijamy pojedynczy nierozsądny składnik (zamiast wywalać cały
+        # import) — spójne z tym, jak już traktujemy niedopasowane
+        # produkty kilka linijek wyżej.
+        if not is_ingredient_quantity_reasonable(ing["quantity"], ing["unit"]):
             continue
         db.add(
             RecipeIngredient(

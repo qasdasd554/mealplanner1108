@@ -13,6 +13,8 @@ import '../recipes/recipes_screen.dart';
 import '../shopping/shopping_list_screen.dart';
 import '../profile/profile_screen.dart';
 import '../tracker/calorie_tracker_screen.dart';
+import '../ads/ad_gate_screen.dart';
+import '../../services/ad_gate_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -56,7 +58,32 @@ class _HomeScreenState extends State<HomeScreen> {
         // zaraz po zakonczeniu onboardingu.
         type: BottomNavigationBarType.fixed,
         currentIndex: _currentIndex,
-        onTap: (index) {
+        onTap: (index) async {
+          // UWAGA (nowe): "Śledzenie" (indeks 3) wymaga bramki reklamowej
+          // dla kont bez Premium — patrz AdGateService (limit 2 reklamy
+          // na 8 godzin, potem wolny dostęp aż do wygaśnięcia okna).
+          // Premium pomija to całkowicie.
+          if (index == 3) {
+            final hasPremium = Provider.of<AuthProvider>(context, listen: false)
+                .currentUser
+                ?.hasPremiumAccess ??
+                false;
+            if (!hasPremium) {
+              final needsAd = await AdGateService().needsAd();
+              if (needsAd) {
+                if (!context.mounted) return;
+                final watched = await Navigator.of(context).push<bool>(
+                  MaterialPageRoute(builder: (_) => const AdGateScreen()),
+                );
+                if (watched != true) {
+                  // Użytkownik zrezygnował albo reklama się nie
+                  // załadowała — NIE przełączamy zakładki.
+                  return;
+                }
+              }
+            }
+          }
+          if (!mounted) return;
           setState(() {
             _currentIndex = index;
           });

@@ -14,6 +14,14 @@
         android:label="Meal Planner Polska"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <!-- UWAGA: to TESTOWY identyfikator aplikacji AdMob od Google —
+             bezpieczny do developmentu, ZAWSZE zwraca reklamy testowe.
+             Podmień na prawdziwy (ca-app-pub-XXXXXXXXXX~YYYYYYYYYY) z
+             panelu AdMob, gdy konto będzie gotowe do serwowania
+             prawdziwych reklam. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"

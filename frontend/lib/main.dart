@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'app.dart';
 import 'providers/auth_provider.dart';
 import 'providers/store_provider.dart';
@@ -21,6 +23,11 @@ void main() async {
   // biało. Musi się zakończyć PRZED runApp(), inaczej pierwsza klatka
   // mogłaby wyrenderować się zanim dane będą gotowe.
   await initializeDateFormatting('pl_PL', null);
+
+  // Inicjalizacja Google Mobile Ads (reklamy nagradzane w Śledzeniu dla
+  // kont bez Premium) — musi się zakończyć przed pierwszym ładowaniem
+  // jakiejkolwiek reklamy, ale nie musi blokować runApp().
+  unawaited(MobileAds.instance.initialize());
 
   runApp(
     MultiProvider(

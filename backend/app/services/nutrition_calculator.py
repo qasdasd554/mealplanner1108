@@ -366,3 +366,15 @@ def calculate_calorie_needs(
         "weight_loss": round(maintenance - 500),
         "weight_gain": round(maintenance + 500),
     }
+
+
+def is_ingredient_quantity_reasonable(quantity: float, unit: str) -> bool:
+    """Sprawdza, czy ilość składnika mieści się w rozsądnym zakresie —
+    WSPÓLNA funkcja używana zarówno przy ręcznym/API tworzeniu przepisu
+    (schemas/recipe.py), jak i przy imporcie przez AI, żeby oba miejsca
+    łapały te same, oczywiste pomyłki (np. "200" zamiast "2" dla
+    produktu liczonego w sztukach). Limit MUSI zależeć od jednostki —
+    200 sztuk to absurd, ale 200 gramów to normalna ilość.
+    """
+    max_allowed = 50.0 if unit == "szt" else 20000.0
+    return 0 < quantity <= max_allowed

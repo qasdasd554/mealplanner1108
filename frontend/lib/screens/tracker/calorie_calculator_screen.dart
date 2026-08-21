@@ -141,7 +141,13 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Kalkulator zapotrzebowania kalorycznego')),
-      body: SingleChildScrollView(
+      body: SafeArea(
+        // UWAGA (naprawa — ten sam błąd co w plan_config_screen.dart i
+        // plan_view_screen.dart): przycisk "Oblicz zapotrzebowanie" jest
+        // ostatnim elementem przewijanej listy, chroniony tylko sztywnym
+        // marginesem — w trybie edge-to-edge to za mało na niektórych
+        // telefonach, przycisk częściowo chowa się pod paskiem nawigacji.
+        child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -258,6 +264,7 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
 
             if (_result != null) ..._buildResultSection(),
           ],
+        ),
         ),
       ),
     );

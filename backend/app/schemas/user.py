@@ -37,6 +37,7 @@ class UserResponse(BaseModel):
     gender: str | None = None
     activity_level: str | None = None
     daily_kcal_goal: int | None = None
+    is_email_verified: bool = False
     role: str = "user"
     is_premium: bool = False
     premium_expires_at: datetime | None = None

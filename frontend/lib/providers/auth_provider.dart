@@ -119,6 +119,58 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  /// Potwierdza kod weryfikacyjny e-mail. Zwraca true przy sukcesie —
+  /// odświeża przy okazji profil, żeby currentUser.isEmailVerified było
+  /// aktualne od razu, bez osobnego wywołania loadProfile().
+  Future<bool> verifyEmail(String code) async {
+    _clearError();
+    try {
+      await _authService.verifyEmail(code);
+      await loadProfile();
+      return true;
+    } catch (e) {
+      _setErrorMessage(friendlyError(e));
+      return false;
+    }
+  }
+
+  Future<bool> resendVerificationCode() async {
+    _clearError();
+    try {
+      await _authService.resendVerificationCode();
+      return true;
+    } catch (e) {
+      _setErrorMessage(friendlyError(e));
+      return false;
+    }
+  }
+
+  Future<bool> forgotPassword(String email) async {
+    _clearError();
+    try {
+      await _authService.forgotPassword(email);
+      return true;
+    } catch (e) {
+      _setErrorMessage(friendlyError(e));
+      return false;
+    }
+  }
+
+  Future<bool> resetPassword({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    _clearError();
+    try {
+      await _authService.resetPassword(email: email, code: code, newPassword: newPassword);
+      return true;
+    } catch (e) {
+      _setErrorMessage(friendlyError(e));
+      return false;
+    }
+  }
+
   Future<bool> updateProfile({
     String? displayName,
     String? preferredStoreId,

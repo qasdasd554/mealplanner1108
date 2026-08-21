@@ -2,18 +2,25 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 import json
+import logging
 import re
+import secrets
 import uuid
+from datetime import datetime, timedelta, timezone
 
 from google.auth.exceptions import GoogleAuthError
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token as google_id_token
 
 from app.core.config import settings
+from app.services.email_service import EmailSendError, send_password_reset_email, send_verification_email
 from app.core.rate_limit import (
+    email_verification_resend_limiter,
     enforce_google_auth_rate_limit,
     enforce_login_rate_limit,
+    enforce_password_reset_rate_limit,
     enforce_signup_rate_limit,
+    enforce_user_rate_limit,
     login_limiter,
 )
 from app.core.security import create_access_token, get_password_hash, verify_password
@@ -23,6 +30,7 @@ from app.schemas.user import UserCreate, UserResponse
 from app.api.deps import get_current_user
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 async def get_parsed_body(request: Request):
     try:
@@ -99,9 +107,23 @@ async def register(request: Request, db: AsyncSession = Depends(get_db)):
         password_hash=get_password_hash(password),
         display_name=display_name
     )
+    # Generujemy 6-cyfrowy kod weryfikacyjny (secrets, nie random — losowość
+    # kryptograficzna, bo to w końcu mechanizm bezpieczeństwa) i 15-minutowe
+    # okno ważności.
+    verification_code = "".join(secrets.choice("0123456789") for _ in range(6))
+    user.email_verification_code = verification_code
+    user.email_verification_code_expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
     db.add(user)
     await db.commit()
     await db.refresh(user)
+
+    # UWAGA: wysyłka maila NIE przerywa rejestracji, jeśli się nie powiedzie
+    # (np. chwilowa awaria Resend) — konto i tak się tworzy, użytkownik
+    # może poprosić o ponowne wysłanie kodu przez /auth/resend-code.
+    try:
+        await send_verification_email(user.email, verification_code, user.display_name)
+    except EmailSendError:
+        logger.warning("Nie udało się wysłać maila weryfikacyjnego do %s przy rejestracji.", user.email)
 
     return {
         "access_token": create_access_token(data={"sub": str(user.id)}),
@@ -148,8 +170,164 @@ async def get_me(current_user: User = Depends(get_current_user)):
     return {
         "id": str(current_user.id),
         "email": current_user.email,
-        "display_name": current_user.display_name
+        "display_name": current_user.display_name,
+        "is_email_verified": current_user.is_email_verified,
     }
+
+
+@router.post("/verify-email")
+async def verify_email(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Potwierdza adres e-mail kodem wysłanym przy rejestracji.
+
+    Celowo NIE ujawnia w komunikacie błędu, czy kod jest zły, czy
+    wygasł — jedna, ogólna odpowiedź utrudnia zgadywanie kodu metodą
+    prób i błędów (kod ma tylko 6 cyfr, więc bez limitu prób i bez tej
+    dwuznaczności dałoby się go złamać siłowo względnie łatwo).
+    """
+    if current_user.is_email_verified:
+        return {"is_email_verified": True}
+
+    body = await get_parsed_body(request)
+    code = (body.get("code") or "").strip()
+
+    invalid = HTTPException(status_code=400, detail="Nieprawidłowy albo wygasły kod weryfikacyjny.")
+
+    if not code or not current_user.email_verification_code:
+        raise invalid
+    if current_user.email_verification_code != code:
+        raise invalid
+    if (
+        current_user.email_verification_code_expires_at is None
+        or datetime.now(timezone.utc) > current_user.email_verification_code_expires_at
+    ):
+        raise invalid
+
+    current_user.is_email_verified = True
+    current_user.email_verification_code = None
+    current_user.email_verification_code_expires_at = None
+    await db.commit()
+
+    return {"is_email_verified": True}
+
+
+@router.post("/resend-code")
+async def resend_verification_code(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Generuje i wysyła NOWY kod weryfikacyjny — np. gdy poprzedni
+    wygasł, albo mail się zgubił. Limitowane do 3 razy na 10 minut na
+    konto (patrz email_verification_resend_limiter)."""
+    if current_user.is_email_verified:
+        return {"detail": "To konto jest już zweryfikowane."}
+
+    enforce_user_rate_limit(email_verification_resend_limiter, current_user.id, "resend-verification-code")
+
+    verification_code = "".join(secrets.choice("0123456789") for _ in range(6))
+    current_user.email_verification_code = verification_code
+    current_user.email_verification_code_expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
+    await db.commit()
+
+    try:
+        await send_verification_email(current_user.email, verification_code, current_user.display_name)
+    except EmailSendError:
+        logger.warning("Nie udało się wysłać ponownego kodu weryfikacyjnego do %s.", current_user.email)
+        raise HTTPException(
+            status_code=503,
+            detail="Nie udało się wysłać e-maila. Spróbuj ponownie za chwilę.",
+        )
+
+    return {"detail": "Nowy kod został wysłany."}
+
+
+@router.post("/forgot-password")
+async def forgot_password(request: Request, db: AsyncSession = Depends(get_db)):
+    """Wysyła kod resetu hasła na podany adres — JEŚLI konto z tym
+    adresem istnieje. Celowo ZAWSZE zwraca tę samą odpowiedź, niezależnie
+    od tego, czy konto istnieje — inaczej ten endpoint dałoby się użyć do
+    sprawdzania, które adresy e-mail są zarejestrowane w systemie
+    (enumeracja użytkowników), po prostu obserwując różnicę w odpowiedzi.
+    """
+    enforce_password_reset_rate_limit(request)
+
+    body = await get_parsed_body(request)
+    email = (body.get("email") or "").strip().lower()
+
+    generic_response = {
+        "detail": "Jeśli podany adres e-mail istnieje w naszym systemie, wysłaliśmy na niego kod resetu hasła."
+    }
+
+    if not email:
+        return generic_response
+
+    result = await db.execute(select(User).where(func.lower(User.email) == email))
+    user = result.scalar_one_or_none()
+    if user is None:
+        return generic_response
+
+    reset_code = "".join(secrets.choice("0123456789") for _ in range(6))
+    user.password_reset_code = reset_code
+    user.password_reset_code_expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
+    await db.commit()
+
+    try:
+        await send_password_reset_email(user.email, reset_code, user.display_name)
+    except EmailSendError:
+        logger.warning("Nie udało się wysłać maila resetu hasła do %s.", user.email)
+        # UWAGA: mimo błędu wysyłki NADAL zwracamy generyczną odpowiedź —
+        # ujawnienie "wysyłka się nie powiodła" akurat TU zdradziłoby, że
+        # konto istnieje (bo dla nieistniejącego konta nigdy nie próbujemy
+        # nawet wysyłać). Błąd trafia tylko do logów serwera.
+
+    return generic_response
+
+
+@router.post("/reset-password")
+async def reset_password(request: Request, db: AsyncSession = Depends(get_db)):
+    """Ustawia nowe hasło na podstawie kodu wysłanego przez /forgot-password."""
+    body = await get_parsed_body(request)
+    email = (body.get("email") or "").strip().lower()
+    code = (body.get("code") or "").strip()
+    new_password = body.get("new_password") or ""
+
+    # Ta sama, celowo ogólna odpowiedź błędu niezależnie od TEGO, co
+    # dokładnie jest nie tak (konto nie istnieje / zły kod / kod wygasł)
+    # — z tych samych powodów co przy weryfikacji e-mail: nie ułatwiamy
+    # zgadywania 6-cyfrowego kodu metodą prób i błędów przez rozróżnianie
+    # komunikatów, i nie zdradzamy, czy dany e-mail w ogóle istnieje.
+    invalid = HTTPException(status_code=400, detail="Nieprawidłowy albo wygasły kod resetu hasła.")
+
+    if not email or not code:
+        raise invalid
+    if len(new_password) < MIN_PASSWORD_LENGTH:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Nowe hasło musi mieć co najmniej {MIN_PASSWORD_LENGTH} znaków",
+        )
+
+    result = await db.execute(select(User).where(func.lower(User.email) == email))
+    user = result.scalar_one_or_none()
+    if user is None or not user.password_reset_code:
+        raise invalid
+    if user.password_reset_code != code:
+        raise invalid
+    if (
+        user.password_reset_code_expires_at is None
+        or datetime.now(timezone.utc) > user.password_reset_code_expires_at
+    ):
+        raise invalid
+
+    user.password_hash = get_password_hash(new_password)
+    user.password_reset_code = None
+    user.password_reset_code_expires_at = None
+    await db.commit()
+
+    return {"detail": "Hasło zostało zmienione. Możesz się teraz zalogować."}
+
 
 @router.post("/google")
 async def google_login(request: Request, db: AsyncSession = Depends(get_db)):
@@ -210,6 +388,10 @@ async def google_login(request: Request, db: AsyncSession = Depends(get_db)):
             # ma hasła, którym dałoby się zalogować metodą e-mail/hasło.
             password_hash=get_password_hash(uuid.uuid4().hex),
             display_name=google_name,
+            # Google już zweryfikował ten adres e-mail (sprawdzone wyżej
+            # przez idinfo.get("email_verified")) — nie ma sensu prosić
+            # o drugą weryfikację kodem, konto Google potwierdza się samo.
+            is_email_verified=True,
         )
         db.add(user)
         await db.commit()

@@ -6,18 +6,34 @@ import uuid
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from app.services.nutrition_calculator import quantity_to_grams
+from app.services.nutrition_calculator import is_ingredient_quantity_reasonable, quantity_to_grams
 
 
 class RecipeIngredientCreate(BaseModel):
     """Dane składnika przy tworzeniu przepisu."""
 
     product_id: uuid.UUID
-    quantity: float
+    quantity: float = Field(gt=0)
     unit: str
     is_optional: bool = False
+
+    @model_validator(mode="after")
+    def validate_quantity_range(self) -> "RecipeIngredientCreate":
+        # UWAGA (naprawa): brak jakiegokolwiek górnego ograniczenia
+        # oznaczał, że literówka przy wpisywaniu ilości (np. "200" zamiast
+        # "2" dla produktu liczonego w SZTUKACH) tworzyła przepis z
+        # absurdalną wartością odżywczą (np. 48 000 kcal za "200 sztuk
+        # awokado") — nic tego nie łapało, ani przy tworzeniu, ani później
+        # w generatorze planów. Ta sama funkcja (is_ingredient_quantity_
+        # reasonable) jest używana też przy imporcie przez AI, żeby oba
+        # miejsca łapały te same pomyłki tą samą regułą.
+        if not is_ingredient_quantity_reasonable(self.quantity, self.unit):
+            raise ValueError(
+                f"Ilość składnika ({self.quantity} {self.unit}) jest nierealistycznie duża."
+            )
+        return self
 
 
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator

@@ -123,6 +123,16 @@ comment_creation_limiter = SlidingWindowRateLimiter(max_events=30, window_second
 # (API Anthropic) — limit dzienny, niezależny od statusu premium (nawet
 # premium nie powinno móc wygenerować kosztów bez żadnego sufitu).
 ai_recipe_import_limiter = SlidingWindowRateLimiter(max_events=20, window_seconds=24 * 3600)
+# Ponowne wysłanie kodu weryfikacyjnego e-mail — max 3 razy na 10 minut,
+# żeby nie dało się zasypać cudzej skrzynki mailem (albo zużyć darmowy
+# limit Resend) powtarzanym "wyślij ponownie".
+email_verification_resend_limiter = SlidingWindowRateLimiter(max_events=3, window_seconds=600)
+# Prośba o reset hasła — po adresie IP (nie po koncie, bo formularz
+# "zapomniałem hasła" jest dostępny BEZ zalogowania, więc nie ma jeszcze
+# żadnego user_id do policzenia). Limit celowo dość hojny (5/15 min),
+# żeby nie utrudniać życia komuś, kto się pomylił adresem e-mail parę
+# razy z rzędu, ale wciąż chroni przed masową enumeracją/spamem.
+password_reset_request_limiter = SlidingWindowRateLimiter(max_events=5, window_seconds=900)
 
 
 def client_key(request: Request, suffix: str = "") -> str:
@@ -155,6 +165,21 @@ def enforce_signup_rate_limit(request: Request) -> None:
             headers={"Retry-After": str(retry_after)},
         )
     signup_limiter.register_failure(key)
+
+
+def enforce_password_reset_rate_limit(request: Request) -> None:
+    """Ogranicza liczbę próśb o reset hasła z jednego adresu IP — endpoint
+    działa bez logowania, więc jedyny sensowny klucz to adres IP."""
+    key = client_key(request, "password-reset")
+    password_reset_request_limiter.cleanup()
+    retry_after = password_reset_request_limiter.seconds_until_allowed(key)
+    if retry_after:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Zbyt wiele prób. Spróbuj ponownie za {retry_after} s.",
+            headers={"Retry-After": str(retry_after)},
+        )
+    password_reset_request_limiter.register_failure(key)
 
 
 def enforce_login_rate_limit(request: Request) -> str:

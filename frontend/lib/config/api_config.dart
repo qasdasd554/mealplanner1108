@@ -51,6 +51,10 @@ class ApiConfig {
   static const String authLogin = '/auth/login';
   static const String authRegister = '/auth/register';
   static const String authGoogle = '/auth/google';
+  static const String authVerifyEmail = '/auth/verify-email';
+  static const String authResendCode = '/auth/resend-code';
+  static const String authForgotPassword = '/auth/forgot-password';
+  static const String authResetPassword = '/auth/reset-password';
   static const String usersMe = '/users/me';
   static const String usersAllergens = '/users/me/allergens';
   static const String usersCalorieCalculator = '/users/me/calorie-calculator';

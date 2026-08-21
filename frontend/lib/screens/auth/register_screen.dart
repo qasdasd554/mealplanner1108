@@ -40,7 +40,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (mounted) {
       if (success) {
-        Navigator.of(context).pushReplacementNamed('/onboarding');
+        // UWAGA (nowe): konta email/hasło muszą najpierw potwierdzić
+        // adres kodem z maila — dopiero POTEM onboarding. Logowanie
+        // Google w ogóle tu nie trafia (osobna metoda, już zweryfikowana
+        // automatycznie po stronie backendu).
+        Navigator.of(context).pushReplacementNamed('/verify-email');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
