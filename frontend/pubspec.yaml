@@ -1,7 +1,7 @@
 name: smart_meal_planner
 description: "A smart meal planner mobile application integrated with Polish grocery stores."
 publish_to: 'none'
-version: 1.0.0+23
+version: 1.0.0+24
 
 environment:
   sdk: '>=3.7.0 <4.0.0'
@@ -26,11 +26,13 @@ dependencies:
 
   # Reklamy nagradzane (Śledzenie dla kont bez Premium) — oficjalny
   # pakiet Google dla AdMob.
-  # UWAGA (naprawa): wersja 5.x uzywala starszego API konfiguracji
-  # Gradle, niekompatybilnego z bardzo swiezym Gradle w tym projekcie
-  # (blad: "Could not get unknown property 'all'..."). Podniesione na
-  # 9.x - potwierdzone jako dostepne wprost przez `flutter pub get`.
-  google_mobile_ads: ^9.1.0
+  # UWAGA (NAPRAWA AWARYJNA — TYMCZASOWO WYLACZONE, sierpien 2026):
+  # aplikacja zaczela crashowac NATYCHMIAST po otwarciu po skoku wersji
+  # 5->9. Zaleznosc CALKOWICIE usunieta z buildu (nie tylko przestano jej
+  # uzywac w kodzie Dart), zeby wykluczyc mozliwosc, ze natywny kod SDK
+  # ma wlasna, automatyczna inicjalizacje uruchamiana przed main() we
+  # Flutterze. Patrz tez lib/services/ad_gate_service.dart i main.dart.
+  # google_mobile_ads: ^9.1.0
 
   # Local Storage
   shared_preferences: ^2.2.3

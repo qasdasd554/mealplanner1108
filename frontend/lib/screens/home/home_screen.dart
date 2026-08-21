@@ -63,26 +63,31 @@ class _HomeScreenState extends State<HomeScreen> {
           // dla kont bez Premium — patrz AdGateService (limit 2 reklamy
           // na 8 godzin, potem wolny dostęp aż do wygaśnięcia okna).
           // Premium pomija to całkowicie.
-          if (index == 3) {
-            final hasPremium = Provider.of<AuthProvider>(context, listen: false)
-                .currentUser
-                ?.hasPremiumAccess ??
-                false;
-            if (!hasPremium) {
-              final needsAd = await AdGateService().needsAd();
-              if (needsAd) {
-                if (!context.mounted) return;
-                final watched = await Navigator.of(context).push<bool>(
-                  MaterialPageRoute(builder: (_) => const AdGateScreen()),
-                );
-                if (watched != true) {
-                  // Użytkownik zrezygnował albo reklama się nie
-                  // załadowała — NIE przełączamy zakładki.
-                  return;
-                }
-              }
-            }
-          }
+          // UWAGA (NAPRAWA AWARYJNA — TYMCZASOWE WYŁĄCZENIE): patrz
+          // identyczny komentarz w main.dart. Cała bramka reklamowa
+          // jest tymczasowo pominięta — Śledzenie wpuszcza teraz
+          // wszystkich normalnie, bez żadnego kodu SDK reklam w grze,
+          // dopóki nie zdiagnozujemy prawdziwej przyczyny awarii przy
+          // starcie na podstawie logów.
+          //
+          // if (index == 3) {
+          //   final hasPremium = Provider.of<AuthProvider>(context, listen: false)
+          //       .currentUser
+          //       ?.hasPremiumAccess ??
+          //       false;
+          //   if (!hasPremium) {
+          //     final needsAd = await AdGateService().needsAd();
+          //     if (needsAd) {
+          //       if (!context.mounted) return;
+          //       final watched = await Navigator.of(context).push<bool>(
+          //         MaterialPageRoute(builder: (_) => const AdGateScreen()),
+          //       );
+          //       if (watched != true) {
+          //         return;
+          //       }
+          //     }
+          //   }
+          // }
           if (!mounted) return;
           setState(() {
             _currentIndex = index;

@@ -2,7 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+// UWAGA (NAPRAWA AWARYJNA): import usuniety razem z zaleznoscia w
+// pubspec.yaml - patrz komentarz nizej przy (wylaczonej) inicjalizacji.
+// import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'app.dart';
 import 'providers/auth_provider.dart';
 import 'providers/store_provider.dart';
@@ -24,10 +26,27 @@ void main() async {
   // mogłaby wyrenderować się zanim dane będą gotowe.
   await initializeDateFormatting('pl_PL', null);
 
-  // Inicjalizacja Google Mobile Ads (reklamy nagradzane w Śledzeniu dla
-  // kont bez Premium) — musi się zakończyć przed pierwszym ładowaniem
-  // jakiejkolwiek reklamy, ale nie musi blokować runApp().
-  unawaited(MobileAds.instance.initialize());
+  // UWAGA (NAPRAWA AWARYJNA — TYMCZASOWE WYŁĄCZENIE): po skoku wersji
+  // google_mobile_ads (5→9) aplikacja zaczęła crashować NATYCHMIAST po
+  // otwarciu, zanim jakikolwiek kod Dart zdążył się wykonać — to
+  // wskazuje na awarię na poziomie NATYWNYM (Android/Kotlin), której
+  // try-catch po stronie Dart NIE jest w stanie złapać ani naprawić.
+  // Dokumentacja Google wprost mówi, że brak/błąd konfiguracji SDK
+  // reklam w AndroidManifest.xml "results in a crash on app launch" —
+  // ale samo AndroidManifest.xml wygląda poprawnie, więc to może być
+  // konflikt scalania manifestu z zależnościami nowszej wersji SDK,
+  // którego nie da się zdiagnozować bez prawdziwych logów awarii
+  // (adb logcat). Żeby NATYCHMIAST przywrócić działającą aplikację,
+  // inicjalizacja jest tymczasowo wyłączona — Śledzenie po prostu
+  // wpuszcza teraz wszystkich bez bramki reklamowej (patrz
+  // home_screen.dart), dopóki nie zdiagnozujemy prawdziwej przyczyny
+  // na podstawie logów i bezpiecznie przywrócimy tę funkcję.
+  //
+  // unawaited(
+  //   MobileAds.instance.initialize().catchError((Object e) {
+  //     debugPrint('[MobileAds] Błąd inicjalizacji (nie krytyczny): $e');
+  //   }),
+  // );
 
   runApp(
     MultiProvider(
