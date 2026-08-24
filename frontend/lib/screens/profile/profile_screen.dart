@@ -517,22 +517,28 @@ void _showAvatarPicker(BuildContext context, AuthProvider authProvider) {
         );
       }
 
-      return Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Wybierz awatar', style: Theme.of(sheetContext).textTheme.titleLarge),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                option('female', 'Kobieta'),
-                option('male', 'Mężczyzna'),
-              ],
-            ),
-            const SizedBox(height: 16),
-          ],
+      return SafeArea(
+        // UWAGA (naprawa — ten sam błąd, co wcześniej z przyciskami
+        // wjeżdżającymi pod pasek nawigacji): panel wyboru awatara nie
+        // był chroniony SafeArea, więc w trybie edge-to-edge mógł
+        // częściowo chować się pod systemowym paskiem na dole ekranu.
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Wybierz awatar', style: Theme.of(sheetContext).textTheme.titleLarge),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  option('female', 'Kobieta'),
+                  option('male', 'Mężczyzna'),
+                ],
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
         ),
       );
     },

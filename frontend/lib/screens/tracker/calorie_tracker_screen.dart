@@ -278,17 +278,37 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
   }
 
   Widget _buildMacrosSection(DailySummary? summary) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    // UWAGA (naprawa): wcześniej pokazywało TYLKO to, ile faktycznie
+    // zjedzono — bez żadnego odniesienia, ile jest OPTYMALNE dla
+    // dziennego celu kcal. Dodane przewidywane, optymalne wartości (ten
+    // sam podział 25% białko / 30% tłuszcz / 45% węglowodany co w
+    // kalkulatorze kalorii i na ekranie głównym — spójne w całej
+    // aplikacji), żeby można było od razu porównać "zjadłem X, cel to Y".
+    final targetKcal = summary?.targetCalories ?? 2000.0;
+    final targetProtein = targetKcal * 0.25 / 4;
+    final targetFat = targetKcal * 0.30 / 9;
+    final targetCarbs = targetKcal * 0.45 / 4;
+
+    return Column(
       children: [
-        _buildMacroItem('Białko', summary?.totalProtein ?? 0, AppTheme.accentColor),
-        _buildMacroItem('Węgle', summary?.totalCarbs ?? 0, Colors.orange),
-        _buildMacroItem('Tłuszcze', summary?.totalFat ?? 0, Colors.redAccent),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildMacroItem('Białko', summary?.totalProtein ?? 0, AppTheme.accentColor, target: targetProtein),
+            _buildMacroItem('Węgle', summary?.totalCarbs ?? 0, Colors.orange, target: targetCarbs),
+            _buildMacroItem('Tłuszcze', summary?.totalFat ?? 0, Colors.redAccent, target: targetFat),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Optymalny podział dla Twojego celu kcal',
+          style: TextStyle(fontSize: 11, color: AppTheme.textSecondary.withOpacity(0.7)),
+        ),
       ],
     );
   }
 
-  Widget _buildMacroItem(String label, double amount, Color color) {
+  Widget _buildMacroItem(String label, double amount, Color color, {required double target}) {
     return Column(
       children: [
         Text(
@@ -298,6 +318,10 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
             fontWeight: FontWeight.bold,
             color: AppTheme.textPrimary,
           ),
+        ),
+        Text(
+          '/ ${target.round()}g',
+          style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
         ),
         const SizedBox(height: 4),
         Text(
