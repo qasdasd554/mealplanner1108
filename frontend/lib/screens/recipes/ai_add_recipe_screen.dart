@@ -203,12 +203,18 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
           ],
         ),
       ),
-      body: _isSubmitting
-          ? _buildLoadingState()
-          : TabBarView(
-              controller: _tabController,
-              children: [_buildTextTab(), _buildPhotoTab(), _buildLinkTab()],
-            ),
+      // UWAGA (naprawa — ten sam błąd co wcześniej z wyborem awatara):
+      // przyciski na dole każdej z trzech zakładek nie były chronione
+      // SafeArea, więc w trybie edge-to-edge mogły częściowo chować się
+      // pod systemowym paskiem nawigacji na dole ekranu.
+      body: SafeArea(
+        child: _isSubmitting
+            ? _buildLoadingState()
+            : TabBarView(
+                controller: _tabController,
+                children: [_buildTextTab(), _buildPhotoTab(), _buildLinkTab()],
+              ),
+      ),
     );
   }
 
@@ -262,6 +268,14 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
               expands: true,
               textAlignVertical: TextAlignVertical.top,
               maxLength: 10000,
+              // UWAGA (naprawa): expands:true razem z maxLength to znany,
+              // problematyczny wzorzec w Flutterze — domyślny licznik
+              // znaków na dole (np. "123/10000") koliduje z polem
+              // rozciąganym do pełnej dostępnej wysokości, co objawiało
+              // się jako tekst "nie mieszczący się" w ramce do wpisywania.
+              // Ukrycie licznika to standardowa, zalecana poprawka tej
+              // niekompatybilności.
+              buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
               decoration: InputDecoration(
                 hintText: 'np. "rosół" albo pełny przepis ze składnikami i krokami...',
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),

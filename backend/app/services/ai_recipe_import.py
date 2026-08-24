@@ -143,7 +143,7 @@ FORMAT ODPOWIEDZI (przykład struktury, wypełnij prawdziwymi danymi):
 }}"""
 
 
-async def _call_gemini_model(parts: list[dict], model: str) -> str:
+async def _call_gemini_model(parts: list[dict], model: str, *, timeout_seconds: float = 25.0) -> str:
     """Wywołuje JEDEN, konkretny model Gemini. Ponawia próbę przy błędach
     przejściowych (503/502/500), ale przy wyczerpanym limicie (429) albo
     uporczywym przeciążeniu mimo ponowień rzuca `_ModelUnavailableError`
@@ -173,7 +173,7 @@ async def _call_gemini_model(parts: list[dict], model: str) -> str:
     max_attempts = 2
 
     for attempt in range(1, max_attempts + 1):
-        async with httpx.AsyncClient(timeout=25.0) as client:
+        async with httpx.AsyncClient(timeout=timeout_seconds) as client:
             try:
                 response = await client.post(
                     url,
@@ -238,12 +238,17 @@ async def _call_gemini_model(parts: list[dict], model: str) -> str:
     return text
 
 
-async def _call_gemini(parts: list[dict]) -> str:
+async def _call_gemini(parts: list[dict], *, timeout_seconds: float = 25.0) -> str:
     """Próbuje kolejnych modeli z GEMINI_MODELS (najpierw główny, potem
     "lite" jako zapasowy), przechodząc do następnego, gdy poprzedni
     zgłosi `_ModelUnavailableError` (limit wyczerpany albo uporczywe
     przeciążenie). Dopiero gdy WSZYSTKIE modele zawiodą, zwraca
-    użytkownikowi czytelny, ostateczny komunikat."""
+    użytkownikowi czytelny, ostateczny komunikat.
+
+    [timeout_seconds]: analiza ZDJĘCIA (multimodalny prompt) jest z
+    natury cięższa i wolniejsza niż czysty tekst — extract_recipe_from_
+    photo przekazuje tu wyższą wartość niż domyślna, żeby nie odcinać
+    faktycznie udanych, tylko nieco wolniejszych odpowiedzi."""
     if not settings.GEMINI_API_KEY:
         raise AIRecipeImportError(
             "Funkcja dodawania przepisów przez AI nie jest jeszcze skonfigurowana "
@@ -254,7 +259,7 @@ async def _call_gemini(parts: list[dict]) -> str:
     reason_types: list[str] = []
     for model in GEMINI_MODELS:
         try:
-            return await _call_gemini_model(parts, model)
+            return await _call_gemini_model(parts, model, timeout_seconds=timeout_seconds)
         except _ModelUnavailableError as exc:
             logger.warning("Gemini: %s — próbuję kolejnego modelu, jeśli jest", exc)
             unavailable_reasons.append(str(exc))
@@ -488,7 +493,13 @@ async def extract_recipe_from_photo(
         {"inlineData": {"mimeType": "image/jpeg", "data": photo_base64}},
         {"text": prompt},
     ]
-    raw = await _call_gemini(parts)
+    # UWAGA (naprawa wydajności): analiza ZDJĘCIA (multimodalny prompt)
+    # jest z natury cięższa i wolniejsza niż czysty tekst — te same 25s,
+    # które w pełni wystarczają tekstowi, czasem ucinały faktycznie udane,
+    # tylko nieco wolniejsze odpowiedzi dla zdjęć, dając w efekcie błąd
+    # "trwało zbyt długo" nawet gdy model by w końcu odpowiedział. 45s
+    # daje zdjęciom realistyczny zapas, wciąż daleko od pierwotnych 60s.
+    raw = await _call_gemini(parts, timeout_seconds=45.0)
     return _parse_recipe_json(raw)
 
 
