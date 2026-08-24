@@ -386,33 +386,18 @@ class _RecipesScreenState extends State<RecipesScreen> {
               child: Stack(
                 children: [
                   Positioned.fill(
-                    child: recipe.realPhotoAsset != null
-                        // Plakietka "wygenerowane przez AI" pokazuje się TYLKO
-                        // po wejściu w szczegóły przepisu — na miniaturce listy
-                        // byłaby zbędnym szumem wizualnym na każdej karcie naraz.
-                        ? RecipePhoto(recipe: recipe, showAiBadge: false)
-                        : Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  AppTheme.secondaryColor.withOpacity(0.15),
-                                  AppTheme.primaryColor.withOpacity(0.06),
-                                ],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                            ),
-                            child: Center(
-                              child: Padding(
-                                padding: const EdgeInsets.all(12.0),
-                                child: SvgPicture.asset(
-                                  recipe.categoryImageAsset,
-                                  width: 64,
-                                  height: 64,
-                                ),
-                              ),
-                      ),
-                    ),
+                    // UWAGA (naprawa — prawdziwy błąd): wcześniej ten warunek
+                    // sprawdzał TYLKO realPhotoAsset (zdjęcia wbudowane w
+                    // aplikację dla oryginalnych 94 przepisów) i przy braku
+                    // od razu pokazywał ilustrację kategorii — CAŁKOWICIE
+                    // pomijając RecipePhoto (a więc i jego poprawną logikę
+                    // fallbacku do photoBase64). Efekt: przepisy z prawdziwym
+                    // zdjęciem w bazie (photoBase64), ale bez wbudowanego
+                    // assetu, pokazywały tylko generyczną ilustrację —
+                    // dokładnie przypadek nowo dodanych przepisów. RecipePhoto
+                    // samo poprawnie wybiera: realPhotoAsset -> photoBase64 ->
+                    // categoryImageAsset, więc wystarczy wywoływać je zawsze.
+                    child: RecipePhoto(recipe: recipe, showAiBadge: false),
                   ),
                   // Serce w rogu miniaturki — szybkie dodanie/usunięcie
                   // z ulubionych bez wchodzenia w szczegóły przepisu.
@@ -432,6 +417,25 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       ),
                     ),
                   ),
+                  // Znaczek "Nowość" — widoczny przez 14 dni od dodania
+                  // przepisu, niezależnie czy dodany "z zewnątrz" (przy
+                  // aktualizacji katalogu) czy przez użytkownika.
+                  if (recipe.isNew)
+                    Positioned(
+                      top: 6,
+                      left: 6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppTheme.secondaryColor,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'Nowość',
+                          style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),

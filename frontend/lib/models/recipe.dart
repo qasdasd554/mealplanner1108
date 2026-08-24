@@ -69,6 +69,7 @@ class Recipe {
   final String? photoBase64;
   // "private" / "pending" / "public" / "rejected"
   final String visibility;
+  final DateTime? createdAt;
 
   Recipe({
     required this.id,
@@ -91,6 +92,7 @@ class Recipe {
     this.isOwnRecipe = false,
     this.photoBase64,
     this.visibility = 'private',
+    this.createdAt,
   });
 
   factory Recipe.fromJson(Map<String, dynamic> json) {
@@ -126,10 +128,20 @@ class Recipe {
       isOwnRecipe: json['is_own_recipe'] as bool? ?? false,
       photoBase64: json['photo_base64'] as String?,
       visibility: json['visibility'] as String? ?? 'private',
+      createdAt: json['created_at'] != null
+          ? DateTime.tryParse(json['created_at'] as String)
+          : null,
     );
   }
 
   int get totalTimeMin => (prepTimeMin ?? 0) + (cookTimeMin ?? 0);
+
+  /// Czy przepis pojawił się w ostatnich 14 dniach — niezależnie od tego,
+  /// czy dodany "z zewnątrz" (przy starcie/aktualizacji seed danych) czy
+  /// przez użytkownika (ręcznie, przez AI) — jedyne kryterium to data
+  /// utworzenia rekordu w bazie, więc działa jednakowo dla obu źródeł.
+  bool get isNew =>
+      createdAt != null && DateTime.now().difference(createdAt!).inDays < 14;
 
   /// Czy przepis zawiera makaron jako składnik — używane do pokazania
   /// podpowiedzi z odmierzaniem porcji bez wagi kuchennej. Działa dla

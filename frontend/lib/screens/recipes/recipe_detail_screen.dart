@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../../models/recipe.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/recipe_comments_section.dart';
@@ -9,6 +8,7 @@ import '../../widgets/recipe_approval_bar.dart';
 import '../../widgets/dish_shopping_list_button.dart';
 import '../../widgets/recipe_delete_button.dart';
 import '../../widgets/recipe_publish_button.dart';
+import '../../widgets/recipe_photo.dart';
 
 class RecipeDetailScreen extends StatelessWidget {
   const RecipeDetailScreen({super.key});
@@ -34,89 +34,50 @@ class RecipeDetailScreen extends StatelessWidget {
               ),
             ],
             flexibleSpace: FlexibleSpaceBar(
-              background: recipe.realPhotoAsset != null
-                  ? Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Image.asset(
-                          recipe.realPhotoAsset!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  AppTheme.secondaryColor.withOpacity(0.15),
-                                  AppTheme.backgroundColor,
-                                ],
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                              ),
-                            ),
-                            child: Center(
-                              child: SvgPicture.asset(recipe.categoryImageAsset, width: 140, height: 140),
-                            ),
-                          ),
-                        ),
-                        // Delikatny gradient u dołu — poprawia czytelność
-                        // przycisku "wstecz" i plakietki AI na jasnych zdjęciach.
-                        DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [Colors.transparent, Colors.black.withOpacity(0.25)],
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              stops: const [0.6, 1.0],
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          right: 12,
-                          bottom: 12,
-                          child: Container(
-                            // Tło plakietki zostaje wyraźne (kontrast na
-                            // każdym zdjęciu, jasnym czy ciemnym) — tylko
-                            // sam tekst jest przezroczysty w 50%.
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.75),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Opacity(
-                              opacity: 0.5,
-                              child: const Text(
-                                'Zdjęcie poglądowe, wygenerowane przez AI',
-                                style: TextStyle(color: Colors.white, fontSize: 10),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  : Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            AppTheme.secondaryColor.withOpacity(0.15),
-                            AppTheme.backgroundColor,
-                          ],
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                        ),
+              // UWAGA (naprawa — ten sam błąd co w karcie listy): sekcja
+              // dubinowała logikę wyświetlania zdjęcia zamiast reużywać
+              // RecipePhoto, i przy tym sprawdzała TYLKO realPhotoAsset —
+              // całkowicie pomijając photoBase64. Przebudowane na
+              // RecipePhoto (ta sama, poprawna logika fallbacku wszędzie
+              // w aplikacji: realPhotoAsset -> photoBase64 ->
+              // categoryImageAsset), więc plakietka "wygenerowane przez
+              // AI" jest teraz też wbudowana w sam widget, bez dublowania.
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                  RecipePhoto(recipe: recipe, showAiBadge: true),
+                  // Delikatny gradient u dołu — poprawia czytelność
+                  // przycisku "wstecz" i plakietki AI na jasnych zdjęciach.
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Colors.transparent, Colors.black.withOpacity(0.25)],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        stops: const [0.6, 1.0],
                       ),
-                      child: Center(
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 24, bottom: 16),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(24),
-                            child: SvgPicture.asset(
-                              recipe.categoryImageAsset,
-                              width: 140,
-                              height: 140,
-                            ),
-                          ),
+                    ),
+                  ),
+                  // Znaczek "Nowość" — widoczny przez 14 dni od dodania,
+                  // niezależnie od źródła (z zewnątrz czy od użytkownika).
+                  if (recipe.isNew)
+                    Positioned(
+                      top: 50,
+                      left: 12,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppTheme.secondaryColor,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'Nowość',
+                          style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ),
+                ],
+              ),
             ),
           ),
 
