@@ -90,6 +90,9 @@ async def _create_tables() -> None:
         await conn.execute(
             text("ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_code_expires_at TIMESTAMPTZ")
         )
+        await conn.execute(
+            text("ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar VARCHAR(20)")
+        )
         # UWAGA (ważne): istniejący użytkownicy sprzed wprowadzenia tej
         # funkcji NIE MOGĄ nagle stać się "niezweryfikowani" i zostać
         # zablokowani — kolumna is_email_verified dodana wyżej domyślnie

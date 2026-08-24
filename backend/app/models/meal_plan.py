@@ -64,7 +64,16 @@ class MealPlan(Base):
         "MealPlanEntry", back_populates="meal_plan", cascade="all, delete-orphan"
     )
     shopping_list: Mapped["ShoppingList | None"] = relationship(
-        "ShoppingList", back_populates="meal_plan", uselist=False
+        "ShoppingList", back_populates="meal_plan", uselist=False,
+        # UWAGA (naprawa): bez cascade, SQLAlchemy ORM przy usuwaniu
+        # MealPlan próbowało najpierw USTAWIĆ meal_plan_id powiązanej
+        # ShoppingList na NULL (domyślne zachowanie dla relacji bez
+        # cascade) — co naruszało ograniczenie NOT NULL na tej kolumnie,
+        # ZANIM w ogóle doszło do właściwego usunięcia, które mogłoby
+        # skorzystać z ondelete="CASCADE" zadeklarowanego na poziomie
+        # bazy danych. Nikt wcześniej tego nie wykrył, bo nic w
+        # aplikacji nie usuwało MealPlan powiązanego z ShoppingList.
+        cascade="all, delete-orphan",
     )
 
     def __repr__(self) -> str:

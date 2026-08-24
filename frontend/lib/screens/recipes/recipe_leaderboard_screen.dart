@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
+import '../../widgets/user_avatar.dart';
 
 /// Ranking użytkowników wg liczby dodanych, ZAAKCEPTOWANYCH przez
 /// administratora przepisów do wspólnego katalogu. Backend istniał od
@@ -101,6 +102,7 @@ class _RecipeLeaderboardScreenState extends State<RecipeLeaderboardScreen> {
         final entry = _entries[index];
         final name = entry['display_name'] as String;
         final count = entry['recipe_count'] as int;
+        final avatar = entry['avatar'] as String?;
         final medal = index < 3 ? _medals[index] : null;
 
         return Container(
@@ -121,6 +123,8 @@ class _RecipeLeaderboardScreenState extends State<RecipeLeaderboardScreen> {
                 ),
               ),
               const SizedBox(width: 8),
+              UserAvatar(avatar: avatar, size: 32),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
               ),

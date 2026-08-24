@@ -11,6 +11,7 @@ class User {
   final String? gender;
   final String? activityLevel;
   final int? dailyKcalGoal;
+  final String? avatar;
   final bool isEmailVerified;
   final String role;
   final bool isPremium;
@@ -31,6 +32,7 @@ class User {
     this.gender,
     this.activityLevel,
     this.dailyKcalGoal,
+    this.avatar,
     this.isEmailVerified = false,
     this.role = 'user',
     this.isPremium = false,
@@ -74,6 +76,7 @@ class User {
       gender: json['gender'] as String?,
       activityLevel: json['activity_level'] as String?,
       dailyKcalGoal: json['daily_kcal_goal'] as int?,
+      avatar: json['avatar'] as String?,
       isEmailVerified: json['is_email_verified'] as bool? ?? false,
       role: json['role'] as String? ?? 'user',
       isPremium: json['is_premium'] as bool? ?? false,

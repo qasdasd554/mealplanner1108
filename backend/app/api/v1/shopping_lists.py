@@ -9,8 +9,9 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.api.deps import get_current_premium, get_current_user
+from app.api.deps import get_current_user
 from app.core.exceptions import NotFoundException
+from app.core.premium import is_premium_active
 from app.db.session import get_db
 from app.models import (
     MealPlan,
@@ -28,24 +29,62 @@ from app.services.shopping_list_builder import ShoppingListBuilder
 
 router = APIRouter()
 
+# Limity liczby "zarządzalnych" list zakupów (utworzonych explicite z
+# wybranych przepisów, NIE zwykłych list generowanych automatycznie przy
+# każdym planie posiłków — te są bez ograniczeń, bo to podstawowa funkcja
+# aplikacji dostępna dla każdego konta).
+MAX_SHOPPING_LISTS_STANDARD = 1
+MAX_SHOPPING_LISTS_PREMIUM = 5
+
 
 class ShoppingListFromRecipesRequest(BaseModel):
-    """Żądanie stworzenia listy zakupów na konkretne dania (bez pełnego
-    planu posiłków) — funkcja Premium."""
+    """Żądanie stworzenia listy zakupów na konkretne dania — ALBO nowej
+    (podlega limitowi 1 dla standardu / 5 dla Premium), ALBO dopisania
+    składników do JUŻ ISTNIEJĄCEJ listy (existing_list_id) — to drugie
+    nie tworzy nowej listy, więc nie zużywa limitu."""
 
     recipe_ids: list[UUID]
     store_id: UUID
+    existing_list_id: UUID | None = None
+
+
+@router.get(
+    "/mine",
+    response_model=list[ShoppingListResponse],
+    summary="Twoje zarządzalne listy zakupów (utworzone z wybranych przepisów)",
+)
+async def get_my_shopping_lists(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> list[ShoppingList]:
+    """Zwraca listy zakupów utworzone przez /from-recipes — te, do
+    których można dopisywać kolejne przepisy, albo które liczą się do
+    limitu (1 dla standardu, 5 dla Premium). NIE zwraca zwykłych list
+    powiązanych z prawdziwymi, wielodniowymi planami posiłków."""
+    result = await db.execute(
+        select(ShoppingList)
+        .join(MealPlan, MealPlan.id == ShoppingList.meal_plan_id)
+        .options(
+            selectinload(ShoppingList.items).selectinload(ShoppingListItem.store_product).selectinload(StoreProduct.product),
+            selectinload(ShoppingList.items).selectinload(ShoppingListItem.department),
+            selectinload(ShoppingList.items).selectinload(ShoppingListItem.substituted_for_product),
+            selectinload(ShoppingList.store),
+        )
+        .where(MealPlan.user_id == current_user.id, MealPlan.status == "archived")
+        .order_by(ShoppingList.created_at.desc())
+    )
+    return list(result.scalars().all())
 
 
 @router.post(
     "/from-recipes",
     response_model=ShoppingListResponse,
     status_code=201,
-    summary="Stwórz listę zakupów na konkretne danie/dania (Premium)",
+    summary="Stwórz listę zakupów na konkretne danie/dania, albo dopisz do istniejącej",
 )
 async def create_shopping_list_from_recipes(
     payload: ShoppingListFromRecipesRequest,
-    current_user: User = Depends(get_current_premium),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> ShoppingList:
     """Generuje listę zakupów na podstawie WYBRANYCH przepisów — bez
@@ -78,33 +117,104 @@ async def create_shopping_list_from_recipes(
     if missing:
         raise NotFoundException(detail=f"Nie znaleziono przepisu/przepisów: {missing}")
 
-    plan = MealPlan(
-        user_id=current_user.id,
-        store_id=payload.store_id,
-        start_date=date.today(),
-        duration_days=1,
-        meals_per_day=len(payload.recipe_ids),
-        status="archived",
-    )
-    db.add(plan)
-    await db.flush()
-
-    for recipe_id in payload.recipe_ids:
-        db.add(
-            MealPlanEntry(
-                meal_plan_id=plan.id,
-                recipe_id=recipe_id,
-                day_number=1,
-                meal_slot="obiad",
-            )
+    if payload.existing_list_id is not None:
+        # --- Dopisanie do ISTNIEJĄCEJ listy — nie zużywa limitu ---
+        # UWAGA: zgodnie z konwencją całej reszty tego pliku (patrz
+        # komentarz w schemas/shopping_list.py), "ID listy" widziane przez
+        # frontend to FAKTYCZNIE meal_plan_id, nie klucz główny
+        # ShoppingList — dlatego porównujemy MealPlan.id, nie ShoppingList.id.
+        existing = await db.execute(
+            select(ShoppingList)
+            .join(MealPlan, MealPlan.id == ShoppingList.meal_plan_id)
+            .where(MealPlan.id == payload.existing_list_id, MealPlan.user_id == current_user.id)
         )
-    await db.commit()
+        target_list = existing.scalar_one_or_none()
+        if target_list is None:
+            raise NotFoundException(detail="Nie znaleziono podanej listy zakupów.")
 
-    builder = ShoppingListBuilder(db)
-    shopping_list = await builder.build_from_meal_plan(plan.id)
+        max_day_result = await db.execute(
+            select(func.max(MealPlanEntry.day_number)).where(MealPlanEntry.meal_plan_id == target_list.meal_plan_id)
+        )
+        next_day = (max_day_result.scalar() or 0) + 1
+        for recipe_id in payload.recipe_ids:
+            db.add(
+                MealPlanEntry(
+                    meal_plan_id=target_list.meal_plan_id,
+                    recipe_id=recipe_id,
+                    day_number=next_day,
+                    meal_slot="obiad",
+                )
+            )
+        await db.commit()
 
+        builder = ShoppingListBuilder(db)
+        # UWAGA (naprawa): build_from_meal_plan ZAWSZE próbuje UTWORZYĆ
+        # nową ShoppingList — przy istniejącej liście naruszało to
+        # unikalny klucz meal_plan_id (IntegrityError). Właściwa metoda
+        # do PRZELICZENIA już istniejącej listy to recalculate(), która
+        # przyjmuje prawdziwy klucz główny ShoppingList.id (nie
+        # meal_plan_id) i aktualizuje pozycje w miejscu.
+        shopping_list = await builder.recalculate(target_list.id)
+    else:
+        # --- Nowa lista — podlega limitowi ---
+        count_result = await db.execute(
+            select(func.count(ShoppingList.id))
+            .join(MealPlan, MealPlan.id == ShoppingList.meal_plan_id)
+            .where(MealPlan.user_id == current_user.id, MealPlan.status == "archived")
+        )
+        current_count = count_result.scalar() or 0
+        limit = MAX_SHOPPING_LISTS_PREMIUM if is_premium_active(current_user) else MAX_SHOPPING_LISTS_STANDARD
+
+        if current_count >= limit:
+            if limit == MAX_SHOPPING_LISTS_STANDARD:
+                raise HTTPException(
+                    status_code=403,
+                    detail=(
+                        f"Konto standardowe może mieć maksymalnie {MAX_SHOPPING_LISTS_STANDARD} "
+                        "taką listę zakupów. Usuń istniejącą, dopisz do niej kolejne przepisy, "
+                        "albo przejdź na Premium (do 5 list)."
+                    ),
+                )
+            raise HTTPException(
+                status_code=403,
+                detail=f"Konto Premium może mieć maksymalnie {MAX_SHOPPING_LISTS_PREMIUM} takich list zakupów.",
+            )
+
+        plan = MealPlan(
+            user_id=current_user.id,
+            store_id=payload.store_id,
+            start_date=date.today(),
+            duration_days=1,
+            meals_per_day=len(payload.recipe_ids),
+            status="archived",
+        )
+        db.add(plan)
+        await db.flush()
+
+        for recipe_id in payload.recipe_ids:
+            db.add(
+                MealPlanEntry(
+                    meal_plan_id=plan.id,
+                    recipe_id=recipe_id,
+                    day_number=1,
+                    meal_slot="obiad",
+                )
+            )
+        await db.commit()
+
+        builder = ShoppingListBuilder(db)
+        shopping_list = await builder.build_from_meal_plan(plan.id)
+
+    # UWAGA (naprawa): populate_existing=True jest KLUCZOWE w gałęzi
+    # "dopisz do istniejącej" — obiekt ShoppingList o tym ID jest już
+    # częściowo załadowany w identity map tej sesji (przez recalculate()),
+    # więc bez wymuszenia SQLAlchemy po cichu IGNORUJE poniższe
+    # selectinload i zwraca stary, niekompletny stan — co przy próbie
+    # dostępu do np. item.department w kontekście asynchronicznym rzuca
+    # MissingGreenlet (leniwe ładowanie tam, gdzie go nie oczekujemy).
     result = await db.execute(
         select(ShoppingList)
+        .execution_options(populate_existing=True)
         .options(
             selectinload(ShoppingList.items).selectinload(ShoppingListItem.store_product).selectinload(StoreProduct.product),
             selectinload(ShoppingList.items).selectinload(ShoppingListItem.department),
@@ -325,3 +435,36 @@ async def get_shopping_list_summary(
         remaining_price=round(remaining_price, 2),
         completion_percentage=round(completion, 1),
     )
+
+
+@router.delete(
+    "/{list_id}",
+    status_code=204,
+    summary="Usuń zarządzalną listę zakupów (zwalnia miejsce w limicie)",
+)
+async def delete_shopping_list(
+    list_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    """Usuwa listę zakupów WRAZ z powiązanym, technicznym planem
+    (kasowanie kaskadowe). Działa TYLKO na listach utworzonych przez
+    /from-recipes (status "archived") — nie da się tak usunąć listy
+    powiązanej z prawdziwym, aktywnym planem posiłków.
+
+    UWAGA: zgodnie z konwencją całej reszty tego pliku, "ID listy"
+    widziane przez frontend to FAKTYCZNIE meal_plan_id (patrz komentarz
+    w schemas/shopping_list.py) — więc list_id tutaj porównujemy
+    bezpośrednio z MealPlan.id, bez potrzeby złączenia przez ShoppingList.
+    """
+    result = await db.execute(
+        select(MealPlan).where(
+            MealPlan.id == list_id, MealPlan.user_id == current_user.id, MealPlan.status == "archived"
+        )
+    )
+    plan = result.scalar_one_or_none()
+    if plan is None:
+        raise NotFoundException(detail="Nie znaleziono listy zakupów do usunięcia.")
+
+    await db.delete(plan)
+    await db.commit()

@@ -308,6 +308,37 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
         label: '${_selectedGoal!.round()} kcal',
         onChanged: (v) => setState(() => _selectedGoal = v),
       ),
+      const SizedBox(height: 20),
+      // Przewidywane zużycie makroskładników dla WYBRANEJ (kafelek albo
+      // suwak) ilości kcal — standardowy, zbilansowany podział
+      // 25% białko / 30% tłuszcz / 45% węglowodany, przeliczony na gramy
+      // (białko i węglowodany: 4 kcal/g, tłuszcz: 9 kcal/g). To
+      // orientacyjna wskazówka, nie sztywny wymóg — każdy posiłek
+      // logowany w Śledzeniu ma swoje WŁASNE, dokładne wartości.
+      Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceColor,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Column(
+          children: [
+            Text(
+              'Orientacyjny podział makroskładników',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppTheme.textSecondary),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildMacroPrediction('Białko', _selectedGoal! * 0.25 / 4, '25%', AppTheme.secondaryColor),
+                _buildMacroPrediction('Tłuszcz', _selectedGoal! * 0.30 / 9, '30%', const Color(0xFFE0A62E)),
+                _buildMacroPrediction('Węgl.', _selectedGoal! * 0.45 / 4, '45%', const Color(0xFF3B82F6)),
+              ],
+            ),
+          ],
+        ),
+      ),
       const SizedBox(height: 16),
       SizedBox(
         width: double.infinity,
@@ -325,6 +356,20 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
       ),
       const SizedBox(height: 8),
     ];
+  }
+
+  Widget _buildMacroPrediction(String label, double grams, String percent, Color color) {
+    return Column(
+      children: [
+        Text(
+          '${grams.round()}g',
+          style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: color),
+        ),
+        const SizedBox(height: 2),
+        Text(label, style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+        Text(percent, style: TextStyle(fontSize: 10, color: AppTheme.textSecondary.withOpacity(0.7))),
+      ],
+    );
   }
 
   Widget _buildGoalTile(String label, int kcal, IconData icon) {

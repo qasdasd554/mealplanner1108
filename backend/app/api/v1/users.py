@@ -41,6 +41,15 @@ class UserProfileUpdate(BaseModel):
     gender: str | None = Field(default=None, max_length=10)
     activity_level: str | None = Field(default=None, max_length=20)
     daily_kcal_goal: int | None = Field(default=None, ge=800, le=6000)
+    avatar: str | None = None
+
+    @field_validator("avatar")
+    @classmethod
+    def validate_avatar(cls, v: str | None) -> str | None:
+        allowed = {"male", "female"}
+        if v is not None and v not in allowed:
+            raise ValueError(f"Awatar musi być jednym z: {', '.join(allowed)}.")
+        return v
 
     @field_validator("gender")
     @classmethod
@@ -269,6 +278,7 @@ class RecipeLeaderboardEntry(BaseModel):
 
     display_name: str
     recipe_count: int
+    avatar: str | None = None
 
 
 @router.get(
@@ -289,15 +299,16 @@ async def get_recipe_leaderboard(
         select(
             User.display_name,
             func.count(Recipe.id).label("recipe_count"),
+            User.avatar,
         )
         .join(Recipe, Recipe.created_by_user_id == User.id)
         .where(Recipe.visibility == "public")
-        .group_by(User.id, User.display_name)
+        .group_by(User.id, User.display_name, User.avatar)
         .order_by(func.count(Recipe.id).desc())
         .limit(50)
     )
     return [
-        RecipeLeaderboardEntry(display_name=name or "Użytkownik", recipe_count=count)
-        for name, count in result.all()
+        RecipeLeaderboardEntry(display_name=name or "Użytkownik", recipe_count=count, avatar=avatar)
+        for name, count, avatar in result.all()
     ]
 

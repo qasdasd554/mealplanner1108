@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/food_log_provider.dart';
 import '../../providers/meal_plan_provider.dart';
 import '../../providers/store_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/recipe_photo.dart';
 import '../../widgets/notification_bell.dart';
 import '../../widgets/premium_badge.dart';
+import '../../widgets/user_avatar.dart';
 import '../../models/meal_plan.dart';
 import '../recipes/recipes_screen.dart';
 import '../shopping/shopping_list_screen.dart';
@@ -33,6 +35,10 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<MealPlanProvider>(context, listen: false).loadPlans();
       Provider.of<StoreProvider>(context, listen: false).loadStores();
+      // Podsumowanie dnia (kcal/makro) na ekranie głównym — bez tego
+      // FoodLogProvider.summary zostawałby null, dopóki użytkownik nie
+      // odwiedziłby osobno ekranu Śledzenia.
+      Provider.of<FoodLogProvider>(context, listen: false).fetchLogsForDate(DateTime.now());
     });
   }
 
@@ -167,6 +173,7 @@ class HomeTab extends StatelessWidget {
     final authProvider = Provider.of<AuthProvider>(context);
     final mealPlanProvider = Provider.of<MealPlanProvider>(context);
     final storeProvider = Provider.of<StoreProvider>(context);
+    final foodLogProvider = Provider.of<FoodLogProvider>(context);
 
     final user = authProvider.currentUser;
     // currentPlan respektuje ręczny wybór z przełącznika planów (patrz
@@ -247,23 +254,26 @@ class HomeTab extends StatelessWidget {
                     // Szybki skrót do profilu
                     GestureDetector(
                       onTap: () => Navigator.of(context).pushNamed('/profile'),
-                      child: CircleAvatar(
-                        radius: 24,
-                        backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
-                        child: Text(
-                          user?.displayName?.substring(0, 1).toUpperCase() ?? 'U',
-                          style: const TextStyle(
-                            color: AppTheme.primaryColor,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
+                      child: UserAvatar(avatar: user?.avatar, size: 48),
                     ),
                   ],
                 ).animate().fadeIn().slideY(begin: -0.1, end: 0),
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
 
-                // Skróty Szybkich Akcji (H-scroll)
+                // Podsumowanie dnia (kcal + makro) — pokazuje od razu na
+                // ekranie głównym, ile dziś zjedzono, bez konieczności
+                // wchodzenia w Śledzenie. Styl pasków postępu podobny do
+                // popularnych aplikacji (np. Fitatu) — jeden duży pasek
+                // kcal na górze, trzy mniejsze dla makroskładników.
+                _buildDailySummaryCard(context, foodLogProvider),
+                const SizedBox(height: 24),
+
+                // Skróty Szybkich Akcji — siatka 2x2 zamiast poziomo
+                // przewijanej listy. UWAGA (naprawa): poprzednia wersja
+                // (H-scroll) sprawiała, że 2 z 4 akcji były niewidoczne
+                // bez przewinięcia w bok, więc użytkownik mógł ich nie
+                // zauważyć w ogóle. Teraz wszystkie 4 widoczne od razu,
+                // w mniejszych, bardziej kompaktowych kafelkach.
                 Text(
                   'Szybkie akcje',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
@@ -271,48 +281,47 @@ class HomeTab extends StatelessWidget {
                       ),
                 ),
                 const SizedBox(height: 12),
-                SizedBox(
-                  height: 120,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: [
-                      _buildQuickActionCard(
-                        context,
-                        title: 'Nowy plan',
-                        subtitle: 'Zaplanuj posiłki',
-                        icon: Icons.calendar_today_outlined,
-                        color: AppTheme.primaryColor,
-                        onTap: () => Navigator.of(context).pushNamed('/plan/config'),
-                      ),
-                      const SizedBox(width: 16),
-                      _buildQuickActionCard(
-                        context,
-                        title: 'Przepisy',
-                        subtitle: 'Szukaj inspiracji',
-                        icon: Icons.menu_book_outlined,
-                        color: AppTheme.secondaryColor,
-                        onTap: () => Navigator.of(context).pushNamed('/recipes'),
-                      ),
-                      const SizedBox(width: 16),
-                      _buildQuickActionCard(
-                        context,
-                        title: 'Baza produktów',
-                        subtitle: 'Sprawdź ceny',
-                        icon: Icons.storefront_outlined,
-                        color: AppTheme.accentColor,
-                        onTap: () => Navigator.of(context).pushNamed('/products'),
-                      ),
-                      const SizedBox(width: 16),
-                      _buildQuickActionCard(
-                        context,
-                        title: 'Promocje',
-                        subtitle: 'Aktualne okazje',
-                        icon: Icons.local_offer_outlined,
-                        color: Colors.red,
-                        onTap: () => Navigator.of(context).pushNamed('/promotions'),
-                      ),
-                    ],
-                  ),
+                GridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 2.2,
+                  children: [
+                    _buildQuickActionCard(
+                      context,
+                      title: 'Nowy plan',
+                      subtitle: 'Zaplanuj posiłki',
+                      icon: Icons.calendar_today_outlined,
+                      color: AppTheme.primaryColor,
+                      onTap: () => Navigator.of(context).pushNamed('/plan/config'),
+                    ),
+                    _buildQuickActionCard(
+                      context,
+                      title: 'Przepisy',
+                      subtitle: 'Szukaj inspiracji',
+                      icon: Icons.menu_book_outlined,
+                      color: AppTheme.secondaryColor,
+                      onTap: () => Navigator.of(context).pushNamed('/recipes'),
+                    ),
+                    _buildQuickActionCard(
+                      context,
+                      title: 'Baza produktów',
+                      subtitle: 'Sprawdź ceny',
+                      icon: Icons.storefront_outlined,
+                      color: AppTheme.accentColor,
+                      onTap: () => Navigator.of(context).pushNamed('/products'),
+                    ),
+                    _buildQuickActionCard(
+                      context,
+                      title: 'Promocje',
+                      subtitle: 'Aktualne okazje',
+                      icon: Icons.local_offer_outlined,
+                      color: Colors.red,
+                      onTap: () => Navigator.of(context).pushNamed('/promotions'),
+                    ),
+                  ],
                 ).animate().fadeIn(delay: 100.ms),
                 const SizedBox(height: 32),
 
@@ -397,6 +406,85 @@ class HomeTab extends StatelessWidget {
     );
   }
 
+  /// Podsumowanie dnia — jeden duży pasek kcal (spożyte/cel) i trzy
+  /// mniejsze dla makroskładników. Cel makro liczony tym samym,
+  /// standardowym podziałem co w kalkulatorze kalorii (25% białko /
+  /// 30% tłuszcz / 45% węglowodany) z targetCalories — spójne z tym,
+  /// co użytkownik widzi w kalkulatorze.
+  Widget _buildDailySummaryCard(BuildContext context, FoodLogProvider foodLogProvider) {
+    final summary = foodLogProvider.summary;
+    final consumedKcal = summary?.totalCalories ?? 0.0;
+    final targetKcal = summary?.targetCalories ?? 2000.0;
+    final consumedProtein = summary?.totalProtein ?? 0.0;
+    final consumedFat = summary?.totalFat ?? 0.0;
+    final consumedCarbs = summary?.totalCarbs ?? 0.0;
+
+    final targetProtein = targetKcal * 0.25 / 4;
+    final targetFat = targetKcal * 0.30 / 9;
+    final targetCarbs = targetKcal * 0.45 / 4;
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Dziś zjedzono', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+              Text(
+                '${consumedKcal.round()} / ${targetKcal.round()} kcal',
+                style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryColor),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          _buildProgressBar(consumedKcal, targetKcal, AppTheme.primaryColor, height: 10),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(child: _buildMacroBar(context, 'Białko', consumedProtein, targetProtein, AppTheme.secondaryColor)),
+              const SizedBox(width: 12),
+              Expanded(child: _buildMacroBar(context, 'Tłuszcz', consumedFat, targetFat, const Color(0xFFE0A62E))),
+              const SizedBox(width: 12),
+              Expanded(child: _buildMacroBar(context, 'Węgl.', consumedCarbs, targetCarbs, const Color(0xFF3B82F6))),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMacroBar(BuildContext context, String label, double consumed, double target, Color color) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+        const SizedBox(height: 4),
+        Text('${consumed.round()}g', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: color)),
+        const SizedBox(height: 4),
+        _buildProgressBar(consumed, target, color, height: 6),
+      ],
+    );
+  }
+
+  Widget _buildProgressBar(double consumed, double target, Color color, {double height = 8}) {
+    final ratio = target > 0 ? (consumed / target).clamp(0.0, 1.0) : 0.0;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(height / 2),
+      child: LinearProgressIndicator(
+        value: ratio,
+        minHeight: height,
+        backgroundColor: color.withOpacity(0.15),
+        valueColor: AlwaysStoppedAnimation<Color>(color),
+      ),
+    );
+  }
+
   Widget _buildQuickActionCard(
     BuildContext context, {
     required String title,
@@ -405,38 +493,49 @@ class HomeTab extends StatelessWidget {
     required Color color,
     required VoidCallback onTap,
   }) {
+    // UWAGA (naprawa): przebudowane z pionowej karty (ikona nad tekstem)
+    // na poziomy, kompaktowy układ (ikona obok tekstu) — pasuje do
+    // nowej siatki 2x2 zamiast poprzedniej, szerokiej listy przewijanej
+    // w bok.
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 140,
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
           color: AppTheme.surfaceColor,
-          borderRadius: const BorderRadius.all(Radius.circular(16)),
+          borderRadius: const BorderRadius.all(Radius.circular(14)),
           border: Border.all(color: color.withOpacity(0.2), width: 1),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Row(
           children: [
-            Icon(icon, color: color, size: 28),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontSize: 16,
-                      ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontSize: 11,
-                      ),
-                ),
-              ],
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
           ],
         ),

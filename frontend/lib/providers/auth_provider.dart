@@ -31,6 +31,22 @@ class AuthProvider with ChangeNotifier {
         _isAuthenticated = true;
         notifyListeners();
         await loadProfile();
+
+        // UWAGA (naprawa): jeśli loadProfile() zawiodło z powodu INNEGO
+        // błędu niż wprost 401 (np. chwilowy problem sieciowy przy
+        // "cold starcie" darmowego backendu Render po dłuższej
+        // bezczynności) — _currentUser zostawał wtedy pusty NA ZAWSZE,
+        // mimo że użytkownik i tak trafiał do aplikacji (bo
+        // _isAuthenticated jest ustawiane na podstawie samego istnienia
+        // tokenu, nie udanego wczytania profilu). Efekt: aplikacja
+        // wyglądała, jakby zalogowała na konto "Użytkownik" (domyślna
+        // wartość zastępcza dla pustego displayName). Jedna dodatkowa
+        // próba po krótkim opóźnieniu w większości przypadków wystarcza,
+        // żeby backend zdążył się obudzić.
+        if (_currentUser == null && _isAuthenticated) {
+          await Future.delayed(const Duration(seconds: 3));
+          await loadProfile();
+        }
       }
 
       // Jeśli nie mamy sesji (brak tokenu albo zapisany token wygasł i
@@ -182,6 +198,7 @@ class AuthProvider with ChangeNotifier {
     String? gender,
     String? activityLevel,
     int? dailyKcalGoal,
+    String? avatar,
   }) async {
     _clearError();
     try {
@@ -196,6 +213,7 @@ class AuthProvider with ChangeNotifier {
         gender: gender,
         activityLevel: activityLevel,
         dailyKcalGoal: dailyKcalGoal,
+        avatar: avatar,
       );
       _currentUser = updatedUser;
       notifyListeners();

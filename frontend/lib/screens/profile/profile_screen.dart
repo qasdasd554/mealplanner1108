@@ -10,6 +10,7 @@ import '../../providers/shopping_list_provider.dart';
 import '../../providers/promotion_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/premium_badge.dart';
+import '../../widgets/user_avatar.dart';
 import 'premium_screen.dart';
 import '../admin/admin_panel_screen.dart';
 
@@ -56,16 +57,25 @@ class ProfileScreen extends StatelessWidget {
             Center(
               child: Column(
                 children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
-                    child: Text(
-                      user?.displayName?.substring(0, 1).toUpperCase() ?? 'U',
-                      style: const TextStyle(
-                        color: AppTheme.primaryColor,
-                        fontSize: 36,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  GestureDetector(
+                    onTap: () => _showAvatarPicker(context, authProvider),
+                    child: Stack(
+                      children: [
+                        UserAvatar(avatar: user?.avatar, size: 100),
+                        Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryColor,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
+                            child: const Icon(Icons.edit, color: Colors.white, size: 14),
+                          ),
+                        ),
+                      ],
                     ),
                   ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack),
                   const SizedBox(height: 16),
@@ -477,4 +487,54 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Pokazuje dolny panel z wyborem awatara — dwie gotowe opcje (kobieta/
+/// mężczyzna) plus możliwość usunięcia wyboru (powrót do neutralnej
+/// ikony). Zapisuje wybór od razu po dotknięciu, bez osobnego przycisku
+/// "Zapisz" — mniej tarcia dla tak prostej decyzji.
+void _showAvatarPicker(BuildContext context, AuthProvider authProvider) {
+  showModalBottomSheet(
+    context: context,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (sheetContext) {
+      final current = authProvider.currentUser?.avatar;
+      Widget option(String value, String label) {
+        return GestureDetector(
+          onTap: () async {
+            Navigator.of(sheetContext).pop();
+            await authProvider.updateProfile(avatar: value);
+          },
+          child: Column(
+            children: [
+              UserAvatar(avatar: value, size: 72, selected: current == value),
+              const SizedBox(height: 8),
+              Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+            ],
+          ),
+        );
+      }
+
+      return Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Wybierz awatar', style: Theme.of(sheetContext).textTheme.titleLarge),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                option('female', 'Kobieta'),
+                option('male', 'Mężczyzna'),
+              ],
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      );
+    },
+  );
 }

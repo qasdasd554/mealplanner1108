@@ -208,7 +208,14 @@ async def _call_gemini_with_pdf(pdf_bytes: bytes, store_name: str, available_pro
     reason_types: list[str] = []
     for model in GEMINI_MODELS:
         url = GEMINI_API_URL.format(model=model)
-        async with httpx.AsyncClient(timeout=120.0) as client:
+        # UWAGA (naprawa wydajności): 120 sekund na model x3 modele w
+        # łańcuchu zapasowym dawało nawet do 6 minut oczekiwania w
+        # najgorszym scenariuszu. Analiza PDF-a gazetki to zadanie
+        # cięższe niż zwykły tekst (stąd trochę więcej niż w imporcie
+        # przepisu), ale 45s z zapasem wciąż w pełni wystarcza typowej,
+        # udanej odpowiedzi, a dużo szybciej przechodzi do kolejnego
+        # modelu, gdy poprzedni faktycznie ma problem.
+        async with httpx.AsyncClient(timeout=45.0) as client:
             try:
                 response = await client.post(
                     url,

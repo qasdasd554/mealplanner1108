@@ -168,6 +168,7 @@ class AuthService {
     String? gender,
     String? activityLevel,
     int? dailyKcalGoal,
+    String? avatar,
   }) async {
     final body = <String, dynamic>{};
     if (displayName != null) body['display_name'] = displayName;
@@ -180,6 +181,7 @@ class AuthService {
     if (gender != null) body['gender'] = gender;
     if (activityLevel != null) body['activity_level'] = activityLevel;
     if (dailyKcalGoal != null) body['daily_kcal_goal'] = dailyKcalGoal;
+    if (avatar != null) body['avatar'] = avatar;
 
     final response = await _client.put(ApiConfig.usersMe, body: body);
     return User.fromJson(response as Map<String, dynamic>);

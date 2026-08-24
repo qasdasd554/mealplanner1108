@@ -162,10 +162,18 @@ async def _call_gemini_model(parts: list[dict], model: str) -> str:
     # (typowe na darmowym poziomie) — to błąd PRZEJŚCIOWY. Zamiast od razu
     # poddawać się przy pierwszej takiej odpowiedzi, ponawiamy próbę kilka
     # razy z rosnącym opóźnieniem, zanim uznamy TEN model za niedostępny.
-    max_attempts = 3
+    # UWAGA (naprawa wydajności): 60 sekund na PRÓBĘ, x3 próby na model,
+    # x3 modele w łańcuchu zapasowym — w najgorszym, ale realnym
+    # scenariuszu (jeden model chwilowo przeciążony) dawało to nawet
+    # kilka MINUT oczekiwania, zanim aplikacja w ogóle przeszła do
+    # kolejnego modelu. Typowa, udana odpowiedź Gemini na tak duży
+    # (JSON) prompt to zwykle kilka-kilkanaście sekund — 25s z zapasem
+    # w pełni wystarcza normalnym zapytaniom, a znacznie szybciej
+    # wykrywa i omija te faktycznie zawieszone/przeciążone.
+    max_attempts = 2
 
     for attempt in range(1, max_attempts + 1):
-        async with httpx.AsyncClient(timeout=60.0) as client:
+        async with httpx.AsyncClient(timeout=25.0) as client:
             try:
                 response = await client.post(
                     url,
