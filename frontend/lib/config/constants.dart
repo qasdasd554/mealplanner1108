@@ -13,3 +13,16 @@ const List<Map<String, String>> kDietOptions = [
   {'name': 'Keto', 'desc': 'Niska zawartość węglowodanów'},
   {'name': 'Wysokobiałkowa', 'desc': 'Dla aktywnych, budujących masę'},
 ];
+
+/// Mapowanie nazwy diety (z [kDietOptions]) na rzeczywisty tag w bazie
+/// przepisów — używane przy filtrowaniu listy przepisów po diecie.
+/// UWAGA: MUSI dokładnie odpowiadać `_DIET_NAME_TO_TAG` w backendzie
+/// (app/services/meal_plan_generator.py) — to na tej podstawie backend
+/// dopasowuje wybraną nazwę diety do prawdziwego tagu w bazie.
+const Map<String, String> kDietNameToTag = {
+  'Wegetariańska': 'wegetariańskie',
+  'Wegańska': 'wegańskie',
+  'Bezglutenowa': 'bezglutenowe',
+  'Wysokobiałkowa': 'wysokobiałkowe',
+  'Keto': 'keto',
+};
