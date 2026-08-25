@@ -7,6 +7,8 @@ import '../../theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/billing_service.dart';
 import '../../utils/error_utils.dart';
+import '../recipes/recipes_screen.dart';
+import '../recipes/ai_add_recipe_screen.dart';
 
 /// Ekran prezentacji subskrypcji Premium — lista korzyści + przyciski
 /// zakupu, w pełni podłączone pod Google Play Billing. Backend (nie ta
@@ -210,6 +212,65 @@ class _PremiumScreenState extends State<PremiumScreen> {
     }
   }
 
+
+  /// Karta bezpośredniej akcji Premium — dotknięcie prowadzi PROSTO do
+  /// danej funkcji (nie tylko jej opisuje). Dla kont bez Premium mała
+  /// plakietka kłódki sygnalizuje, że dotknięcie skończy się zachętą do
+  /// zakupu wewnątrz docelowego ekranu (te ekrany już mają wbudowaną
+  /// bramkę Premium z wcześniejszych sesji).
+  Widget _buildQuickAction(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required bool isPremium,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceColor,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppTheme.secondaryColor.withOpacity(0.15)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppTheme.secondaryColor.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: AppTheme.secondaryColor, size: 22),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      if (!isPremium) ...[
+                        const SizedBox(width: 6),
+                        Icon(Icons.lock_outline, size: 13, color: AppTheme.textSecondary.withOpacity(0.6)),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: AppTheme.textSecondary.withOpacity(0.5)),
+          ],
+        ),
+      ),
+    );
+  }
+
   static const List<_PremiumFeature> _features = [
     _PremiumFeature(
       icon: Icons.all_inclusive,
@@ -235,6 +296,12 @@ class _PremiumScreenState extends State<PremiumScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // UWAGA (przebudowa): zakładka Premium ma pokazywać FAKTYCZNE
+    // funkcje Premium (bezpośrednie skróty), nie tylko listę/tabelę —
+    // tabela porównawcza przeniesiona do Profilu (PremiumComparisonTable).
+    final user = Provider.of<AuthProvider>(context).currentUser;
+    final isPremium = user?.hasPremiumAccess ?? false;
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -283,6 +350,44 @@ class _PremiumScreenState extends State<PremiumScreen> {
             padding: const EdgeInsets.all(20),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
+                // Skróty do FAKTYCZNYCH funkcji Premium — bezpośrednie
+                // akcje, nie tylko opis. Dla kont bez Premium dotknięcie
+                // prowadzi do tego samego miejsca, gdzie wbudowana
+                // bramka Premium (już istniejąca w tych ekranach) sama
+                // pokaże zachętę do zakupu we właściwym kontekście.
+                _buildQuickAction(
+                  context,
+                  icon: Icons.auto_awesome,
+                  title: 'Dodaj przepis przez AI',
+                  subtitle: 'Zdjęcie, tekst albo link — AI zrobi resztę',
+                  isPremium: isPremium,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const AiAddRecipeScreen()),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                _buildQuickAction(
+                  context,
+                  icon: Icons.groups,
+                  title: 'Publikuj przepisy we wspólnocie',
+                  subtitle: 'Podziel się swoimi przepisami z innymi',
+                  isPremium: isPremium,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const RecipesScreen(initialMyRecipesOnly: true)),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                _buildQuickAction(
+                  context,
+                  icon: Icons.shopping_cart,
+                  title: 'Listy zakupów z przepisów',
+                  subtitle: 'Do 5 zapisanych list (standard: 1)',
+                  isPremium: isPremium,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const RecipesScreen()),
+                  ),
+                ),
+                const SizedBox(height: 28),
                 ..._features.asMap().entries.map((entry) {
                   final index = entry.key;
                   final feature = entry.value;

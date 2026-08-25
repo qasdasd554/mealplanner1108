@@ -10,6 +10,7 @@ import '../../providers/shopping_list_provider.dart';
 import '../../providers/promotion_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/premium_badge.dart';
+import '../../widgets/premium_comparison_table.dart';
 import '../../widgets/user_avatar.dart';
 import 'premium_screen.dart';
 import '../admin/admin_panel_screen.dart';
@@ -166,6 +167,18 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
               ).animate().fadeIn().shimmer(delay: 600.ms, duration: 1200.ms),
+
+            const SizedBox(height: 24),
+
+            // Tabela porównawcza Premium vs Standard — widoczna dla
+            // wszystkich: dla kont bez Premium to zachęta do zakupu, dla
+            // kont Premium potwierdzenie, co dokładnie zyskują.
+            Text(
+              'Porównanie planów',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            const PremiumComparisonTable(),
 
             const SizedBox(height: 24),
 
