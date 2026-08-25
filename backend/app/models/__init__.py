@@ -13,6 +13,7 @@ from app.models.recipe import Recipe, RecipeIngredient, RecipeTag
 from app.models.recipe_comment import RecipeComment, RecipeCommentLike
 from app.models.recipe_favorite import RecipeFavorite
 from app.models.shopping_list import ShoppingList, ShoppingListItem
+from app.models.pantry import PantryItem
 from app.models.store import Store, StoreDepartment
 from app.models.user import User, UserAllergen
 from app.models.food_log import FoodLogEntry
@@ -45,6 +46,8 @@ __all__ = [
     # Shopping List
     "ShoppingList",
     "ShoppingListItem",
+    # Pantry
+    "PantryItem",
     # Food Log
     "FoodLogEntry",
     "Notification",

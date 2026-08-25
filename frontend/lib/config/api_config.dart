@@ -64,6 +64,7 @@ class ApiConfig {
   static const String stores = '/stores/';
   static const String products = '/products/';
   static const String recipes = '/recipes/';
+  static const String pantry = '/pantry/';
   static const String recipesAvailable = '/recipes/available';
   static const String mealPlans = '/meal-plans/';
   static const String shoppingLists = '/shopping-lists/';

@@ -10,6 +10,7 @@ import '../../utils/error_utils.dart';
 import '../recipes/recipes_screen.dart';
 import '../recipes/ai_add_recipe_screen.dart';
 import '../recipes/ingredient_match_select_screen.dart';
+import '../recipes/pantry_screen.dart';
 
 /// Ekran prezentacji subskrypcji Premium — lista korzyści + przyciski
 /// zakupu, w pełni podłączone pod Google Play Billing. Backend (nie ta
@@ -397,6 +398,19 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   isPremium: isPremium,
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const IngredientMatchSelectScreen()),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                _buildQuickAction(
+                  context,
+                  icon: Icons.inventory_2_outlined,
+                  title: 'Twoja spiżarnia',
+                  subtitle: 'Zarządzaj produktami, które masz w domu',
+                  // Spiżarnia jest dostępna dla WSZYSTKICH kont, nie tylko
+                  // Premium — celowo zawsze bez plakietki kłódki.
+                  isPremium: true,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const PantryScreen()),
                   ),
                 ),
                 const SizedBox(height: 28),

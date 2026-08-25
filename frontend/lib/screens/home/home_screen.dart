@@ -18,6 +18,8 @@ import '../profile/premium_screen.dart';
 import '../tracker/calorie_tracker_screen.dart';
 import '../ads/ad_gate_screen.dart';
 import '../../services/ad_gate_service.dart';
+import '../../data/cooking_tips.dart';
+import 'cooking_tips_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -332,6 +334,13 @@ class HomeTab extends StatelessWidget {
                     ),
                   ],
                 ).animate().fadeIn(delay: 100.ms),
+                const SizedBox(height: 24),
+
+                // Porada dnia — kompaktowa karta z jednym, rotującym
+                // trikiem kulinarnym. Deterministyczna na podstawie dnia
+                // roku (nie losowa przy każdym odświeżeniu), więc jest ta
+                // sama przez cały dzień, ale zmienia się jutro.
+                _buildTipOfTheDayCard(context),
                 const SizedBox(height: 32),
 
                 // Aktywny Plan Posiłków
@@ -490,6 +499,67 @@ class HomeTab extends StatelessWidget {
         minHeight: height,
         backgroundColor: color.withOpacity(0.15),
         valueColor: AlwaysStoppedAnimation<Color>(color),
+      ),
+    );
+  }
+
+  /// Kompaktowa karta z jedną, rotującą poradą kulinarną — zmienia się
+  /// raz dziennie (deterministycznie wg dnia roku, nie losowo przy
+  /// każdym odświeżeniu ekranu). Dotknięcie otwiera pełną listę.
+  Widget _buildTipOfTheDayCard(BuildContext context) {
+    final now = DateTime.now();
+    final dayOfYear = now.difference(DateTime(now.year, 1, 1)).inDays;
+    final tip = kCookingTips[dayOfYear % kCookingTips.length];
+
+    return GestureDetector(
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const CookingTipsScreen()),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppTheme.secondaryColor.withOpacity(0.15),
+              AppTheme.primaryColor.withOpacity(0.08),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.lightbulb_outline, color: AppTheme.secondaryColor, size: 28),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'PORADA DNIA',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.secondaryColor,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(tip.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  const SizedBox(height: 2),
+                  Text(
+                    tip.tip,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: AppTheme.textSecondary),
+          ],
+        ),
       ),
     );
   }

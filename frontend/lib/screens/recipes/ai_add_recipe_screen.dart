@@ -19,8 +19,12 @@ class AiAddRecipeScreen extends StatefulWidget {
   // Jeśli podany (np. z udostępnienia linku z TikToka), ekran otwiera
   // się od razu na zakładce "Link" z tym adresem wpisanym w polu.
   final String? initialUrl;
+  // Jeśli podany (np. z "Co ugotować z tego, co mam" — gdy dopasowanie
+  // z bazy nic nie znajdzie), ekran otwiera się od razu na zakładce
+  // "Tekst" z gotowym opisem wypełnionym w polu.
+  final String? initialText;
 
-  const AiAddRecipeScreen({super.key, this.initialUrl});
+  const AiAddRecipeScreen({super.key, this.initialUrl, this.initialText});
 
   @override
   State<AiAddRecipeScreen> createState() => _AiAddRecipeScreenState();
@@ -45,6 +49,10 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
       _urlController.text = widget.initialUrl!;
       // Indeks 2 = zakładka "Link" (Tekst=0, Zdjęcie=1, Link=2).
       _tabController.index = 2;
+    } else if (widget.initialText != null && widget.initialText!.isNotEmpty) {
+      _textController.text = widget.initialText!;
+      // Indeks 0 = zakładka "Tekst" — już domyślna, ale jawnie dla jasności.
+      _tabController.index = 0;
     }
   }
 

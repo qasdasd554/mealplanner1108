@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
-import '../../models/product.dart';
-import '../../services/product_search_service.dart';
+import '../../services/pantry_service.dart';
 import '../../services/recipe_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
 import 'ingredient_match_results_screen.dart';
+import 'pantry_screen.dart';
 
-/// "Co ugotować z tego, co mam" (Premium) — użytkownik zaznacza produkty,
-/// które ma aktualnie w domu, a aplikacja dopasowuje do nich przepisy z
-/// katalogu (bez generowania nowych przez AI — tylko dopasowanie
-/// istniejących, więc działa od razu i bez dodatkowego kosztu).
+/// "Co ugotować z tego, co mam" (Premium) — źródłem składników jest
+/// teraz Spiżarnia (trwała lista tego, co użytkownik ma w domu), nie
+/// ręczne wyszukiwanie za każdym razem. Wszystko domyślnie zaznaczone —
+/// "jedno dotknięcie = użyj całej spiżarni", z możliwością odznaczenia
+/// tego, czego akurat nie chce się użyć w tym wyszukiwaniu.
 class IngredientMatchSelectScreen extends StatefulWidget {
   const IngredientMatchSelectScreen({super.key});
 
@@ -18,56 +19,81 @@ class IngredientMatchSelectScreen extends StatefulWidget {
 }
 
 class _IngredientMatchSelectScreenState extends State<IngredientMatchSelectScreen> {
-  final ProductSearchService _searchService = ProductSearchService();
+  final PantryService _pantryService = PantryService();
   final RecipeService _recipeService = RecipeService();
-  final TextEditingController _searchController = TextEditingController();
 
-  List<Product> _searchResults = [];
-  final Map<String, Product> _selected = {};
-  bool _isSearching = false;
+  List<PantryItem> _pantryItems = [];
+  final Set<String> _selectedIds = {};
+  bool _isLoading = true;
   bool _isSubmitting = false;
+  String? _errorMessage;
 
-  Future<void> _search(String query) async {
-    if (query.trim().length < 2) {
-      setState(() => _searchResults = []);
-      return;
-    }
-    setState(() => _isSearching = true);
+  @override
+  void initState() {
+    super.initState();
+    _loadPantry();
+  }
+
+  Future<void> _loadPantry() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
     try {
-      final results = await _searchService.search(query);
+      final items = await _pantryService.getPantry();
       if (!mounted) return;
-      setState(() => _searchResults = results);
-    } catch (_) {
-      // Cicho ignorujemy błąd pojedynczego wyszukania — użytkownik może
-      // po prostu spróbować ponownie wpisać frazę.
+      setState(() {
+        _pantryItems = items;
+        // Domyślnie zaznacz WSZYSTKO — najczęstszy przypadek to "użyj
+        // całej spiżarni", odznaczanie pojedynczych rzeczy to wyjątek.
+        _selectedIds
+          ..clear()
+          ..addAll(items.map((i) => i.product.id));
+      });
+    } catch (e) {
+      if (!mounted) return;
+      // UWAGA (naprawa): pokazujemy PRAWDZIWY błąd zamiast po cichu
+      // zostawiać pusty ekran — dokładnie ten problem zgłoszony wcześniej
+      // ("po wpisaniu produktów nic nie pokazuje") wynikał z tego, że
+      // poprzednia wersja tego ekranu całkowicie łykała błędy w ciszy.
+      setState(() => _errorMessage = friendlyError(e));
     } finally {
-      if (mounted) setState(() => _isSearching = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  void _toggle(Product product) {
+  void _toggle(String productId) {
     setState(() {
-      if (_selected.containsKey(product.id)) {
-        _selected.remove(product.id);
+      if (_selectedIds.contains(productId)) {
+        _selectedIds.remove(productId);
       } else {
-        _selected[product.id] = product;
+        _selectedIds.add(productId);
       }
     });
   }
 
   Future<void> _submit() async {
-    if (_selected.isEmpty) {
+    if (_selectedIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Zaznacz przynajmniej jeden składnik, który masz w domu.')),
+        const SnackBar(content: Text('Zaznacz przynajmniej jeden składnik.')),
       );
       return;
     }
     setState(() => _isSubmitting = true);
     try {
-      final matches = await _recipeService.matchByIngredients(_selected.keys.toList());
+      final matches = await _recipeService.matchByIngredients(_selectedIds.toList());
       if (!mounted) return;
+      final usedNames = _pantryItems
+          .where((i) => _selectedIds.contains(i.product.id))
+          .map((i) => i.product.name)
+          .toList();
       Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => IngredientMatchResultsScreen(matches: matches)),
+        MaterialPageRoute(
+          builder: (_) => IngredientMatchResultsScreen(
+            matches: matches,
+            usedProductNames: usedNames,
+          ),
+        ),
       );
     } catch (e) {
       if (!mounted) return;
@@ -80,99 +106,137 @@ class _IngredientMatchSelectScreenState extends State<IngredientMatchSelectScree
   }
 
   @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Co ugotować z tego, co mam')),
+      appBar: AppBar(
+        title: const Text('Co ugotować z tego, co mam'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.kitchen_outlined),
+            tooltip: 'Zarządzaj spiżarnią',
+            onPressed: () async {
+              await Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const PantryScreen()),
+              );
+              // Po powrocie ze Spiżarni odśwież — mogło się coś zmienić.
+              _loadPantry();
+            },
+          ),
+        ],
+      ),
       body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
-              child: TextField(
-                controller: _searchController,
-                onChanged: _search,
-                decoration: InputDecoration(
-                  hintText: 'Szukaj produktu, np. "jajka"',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-            ),
-            if (_selected.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: _selected.values
-                        .map((p) => Chip(
-                              label: Text(p.name, style: const TextStyle(fontSize: 12)),
-                              onDeleted: () => _toggle(p),
-                              visualDensity: VisualDensity.compact,
-                            ))
-                        .toList(),
-                  ),
-                ),
-              ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: _isSearching
-                  ? const Center(child: CircularProgressIndicator())
-                  : _searchResults.isEmpty
-                      ? Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(32.0),
-                            child: Text(
-                              _searchController.text.trim().length < 2
-                                  ? 'Wpisz nazwę produktu, żeby go dodać do listy tego, co masz w domu.'
-                                  : 'Brak wyników dla tej frazy.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(color: AppTheme.textSecondary),
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _errorMessage != null
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.cloud_off_outlined, size: 48, color: AppTheme.textSecondary),
+                          const SizedBox(height: 16),
+                          Text(_errorMessage!, textAlign: TextAlign.center),
+                          const SizedBox(height: 16),
+                          OutlinedButton(onPressed: _loadPantry, child: const Text('Spróbuj ponownie')),
+                        ],
+                      ),
+                    ),
+                  )
+                : _pantryItems.isEmpty
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(32.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.kitchen_outlined, size: 56, color: AppTheme.textSecondary),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Twoja spiżarnia jest pusta. Dodaj do niej produkty, które masz w domu, żeby dopasować przepisy.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: AppTheme.textSecondary),
+                              ),
+                              const SizedBox(height: 20),
+                              FilledButton.icon(
+                                onPressed: () async {
+                                  await Navigator.of(context).push(
+                                    MaterialPageRoute(builder: (_) => const PantryScreen()),
+                                  );
+                                  _loadPantry();
+                                },
+                                icon: const Icon(Icons.add),
+                                label: const Text('Przejdź do spiżarni'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    : Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Zaznaczono ${_selectedIds.length} z ${_pantryItems.length}',
+                                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                                ),
+                                TextButton(
+                                  onPressed: () => setState(() {
+                                    if (_selectedIds.length == _pantryItems.length) {
+                                      _selectedIds.clear();
+                                    } else {
+                                      _selectedIds
+                                        ..clear()
+                                        ..addAll(_pantryItems.map((i) => i.product.id));
+                                    }
+                                  }),
+                                  child: Text(
+                                    _selectedIds.length == _pantryItems.length
+                                        ? 'Odznacz wszystko'
+                                        : 'Zaznacz wszystko',
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          itemCount: _searchResults.length,
-                          itemBuilder: (context, index) {
-                            final product = _searchResults[index];
-                            final isSelected = _selected.containsKey(product.id);
-                            return CheckboxListTile(
-                              value: isSelected,
-                              onChanged: (_) => _toggle(product),
-                              title: Text(product.name),
-                              controlAffinity: ListTileControlAffinity.leading,
-                              activeColor: AppTheme.primaryColor,
-                            );
-                          },
-                        ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: _isSubmitting ? null : _submit,
-                  child: _isSubmitting
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                        )
-                      : Text('Szukaj przepisów (${_selected.length})'),
-                ),
-              ),
-            ),
-          ],
-        ),
+                          Expanded(
+                            child: ListView.builder(
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              itemCount: _pantryItems.length,
+                              itemBuilder: (context, index) {
+                                final item = _pantryItems[index];
+                                final isSelected = _selectedIds.contains(item.product.id);
+                                return CheckboxListTile(
+                                  value: isSelected,
+                                  onChanged: (_) => _toggle(item.product.id),
+                                  title: Text(item.product.name),
+                                  controlAffinity: ListTileControlAffinity.leading,
+                                  activeColor: AppTheme.primaryColor,
+                                );
+                              },
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: FilledButton(
+                                onPressed: _isSubmitting ? null : _submit,
+                                child: _isSubmitting
+                                    ? const SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                      )
+                                    : Text('Szukaj przepisów (${_selectedIds.length})'),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
       ),
     );
   }
