@@ -7,6 +7,7 @@ import '../../providers/store_provider.dart';
 import '../../providers/promotion_provider.dart';
 import '../../models/shopping_list.dart';
 import '../../services/api_client.dart';
+import '../../services/pantry_service.dart';
 import '../../config/api_config.dart';
 import '../../theme/app_theme.dart';
 import 'price_compare_screen.dart';
@@ -373,7 +374,23 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
         value: item.isChecked,
         activeColor: AppTheme.primaryColor,
         onChanged: (_) {
+          final wasChecked = item.isChecked;
           provider.toggleItem(item.id);
+          // Integracja ze Spiżarnią: gdy ZAZNACZAMY pozycję jako kupioną
+          // (nie przy odznaczaniu — cofnięcie zakupu nie powinno
+          // wyciągać czegoś ze spiżarni, bo mogło już zostać zużyte),
+          // produkt trafia też do trwałej listy tego, co mamy w domu.
+          // Celowo "w tle" (fire-and-forget) — niepowodzenie tego
+          // dodatkowego kroku nie powinno przeszkadzać w głównym
+          // przepływie odhaczania zakupów.
+          if (!wasChecked && item.productId != null) {
+            PantryService().addItems([item.productId!]).catchError((_) {
+              // Ciche niepowodzenie — spiżarnia to dodatek, nie krytyczna
+              // ścieżka. Użytkownik zawsze może dodać produkt ręcznie
+              // później w samej Spiżarni.
+              return <PantryItem>[];
+            });
+          }
         },
       ),
       title: Text(
