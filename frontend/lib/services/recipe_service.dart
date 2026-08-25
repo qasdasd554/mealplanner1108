@@ -26,7 +26,13 @@ class RecipeService {
       params.add('difficulty=${Uri.encodeComponent(difficulty)}');
     }
     if (tag != null && tag.isNotEmpty) {
-      params.add('tag=${Uri.encodeComponent(tag)}');
+      // UWAGA (naprawa): backend oczekuje parametru "tags" (liczba mnoga,
+      // list[str] w FastAPI Query) — wysyłanie "tag" (liczba pojedyncza)
+      // było CAŁKOWICIE ignorowane przez backend, więc filtrowanie po
+      // tagu/diecie nigdy faktycznie nie działało. Nikt tego wcześniej
+      // nie zauważył, bo do teraz żaden widoczny filtr w UI z tego nie
+      // korzystał.
+      params.add('tags=${Uri.encodeComponent(tag)}');
     }
     if (search != null && search.isNotEmpty) {
       params.add('search=${Uri.encodeComponent(search)}');
@@ -186,5 +192,47 @@ class RecipeService {
   Future<Recipe> requestPublish(String recipeId) async {
     final response = await _client.put('${ApiConfig.recipes}$recipeId/request-publish');
     return Recipe.fromJson(response as Map<String, dynamic>);
+  }
+
+  /// "Co ugotować z tego, co mam" (Premium) — dopasowuje przepisy z
+  /// katalogu do posiadanych w domu produktów, posortowane od
+  /// najlepiej dopasowanych.
+  Future<List<RecipeMatch>> matchByIngredients(List<String> productIds) async {
+    final response = await _client.post(
+      '${ApiConfig.recipes}match-by-ingredients',
+      body: {'product_ids': productIds},
+    );
+    return (response as List)
+        .map((e) => RecipeMatch.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+}
+
+/// Wynik dopasowania przepisu do posiadanych składników — patrz
+/// [RecipeService.matchByIngredients].
+class RecipeMatch {
+  final Recipe recipe;
+  final int matchedCount;
+  final int totalRequired;
+  final List<String> missingIngredientNames;
+
+  RecipeMatch({
+    required this.recipe,
+    required this.matchedCount,
+    required this.totalRequired,
+    required this.missingIngredientNames,
+  });
+
+  bool get isFullMatch => missingIngredientNames.isEmpty;
+
+  factory RecipeMatch.fromJson(Map<String, dynamic> json) {
+    return RecipeMatch(
+      recipe: Recipe.fromJson(json['recipe'] as Map<String, dynamic>),
+      matchedCount: json['matched_count'] as int,
+      totalRequired: json['total_required'] as int,
+      missingIngredientNames: (json['missing_ingredient_names'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
+    );
   }
 }

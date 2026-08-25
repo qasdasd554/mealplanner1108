@@ -38,14 +38,29 @@ GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model
 # Jeśli główny model odmawia (limit dzienny/minutowy albo uporczywe
 # przeciążenie mimo ponawiania), automatycznie próbujemy kolejnego z listy
 # zamiast od razu poddawać się użytkownikowi.
-# UWAGA (nowe): dodano trzeci, pośredni model jako dodatkowy zapas —
-# każdy model Gemini ma WŁASNĄ, niezależną pulę limitów (RPM/TPM/RPD),
-# więc trzy modele zamiast dwóch to trzy szanse, zanim usługa AI faktycznie
-# stanie się niedostępna, a nie tylko dwie.
-GEMINI_MODEL_PRIMARY = "gemini-3.7-flash"
-GEMINI_MODEL_SECONDARY = "gemini-3.6-flash"
+# UWAGA (rozszerzenie): łańcuch zapasowy rozszerzony do 6 modeli — każdy
+# model Gemini ma WŁASNĄ, niezależną pulę limitów (RPM/TPM/RPD), więc
+# więcej modeli to więcej niezależnych szans, zanim usługa AI faktycznie
+# stanie się całkowicie niedostępna. Kolejność (priorytet użycia) ustalona
+# świadomie: trzy nowo dodane modele na start, potem trzy wcześniej już
+# używane jako dalszy zapas. Identyfikatory API zweryfikowane bezpośrednio
+# w oficjalnej dokumentacji Google (ai.google.dev) — "gemini-3-flash" bez
+# przyrostka nie jest prawidłowym identyfikatorem, poprawna nazwa to
+# "gemini-3-flash-preview".
+GEMINI_MODEL_PRIMARY = "gemini-3.5-flash"
+GEMINI_MODEL_SECONDARY = "gemini-3-flash-preview"
+GEMINI_MODEL_TERTIARY = "gemini-3.1-flash-lite"
+GEMINI_MODEL_QUATERNARY = "gemini-3.7-flash"
+GEMINI_MODEL_QUINARY = "gemini-3.6-flash"
 GEMINI_MODEL_FALLBACK = "gemini-3.5-flash-lite"
-GEMINI_MODELS = [GEMINI_MODEL_PRIMARY, GEMINI_MODEL_SECONDARY, GEMINI_MODEL_FALLBACK]
+GEMINI_MODELS = [
+    GEMINI_MODEL_PRIMARY,
+    GEMINI_MODEL_SECONDARY,
+    GEMINI_MODEL_TERTIARY,
+    GEMINI_MODEL_QUATERNARY,
+    GEMINI_MODEL_QUINARY,
+    GEMINI_MODEL_FALLBACK,
+]
 
 ALLOWED_UNITS = {"g", "kg", "ml", "l", "szt"}
 ALLOWED_MEAL_TYPES = {"śniadanie", "obiad", "kolacja", "przekąska"}
@@ -170,7 +185,16 @@ async def _call_gemini_model(parts: list[dict], model: str, *, timeout_seconds: 
     # (JSON) prompt to zwykle kilka-kilkanaście sekund — 25s z zapasem
     # w pełni wystarcza normalnym zapytaniom, a znacznie szybciej
     # wykrywa i omija te faktycznie zawieszone/przeciążone.
-    max_attempts = 2
+    # UWAGA (korekta wydajności): przy rozszerzeniu łańcucha do 6 modeli,
+    # 2 próby na model dawałyby w najgorszym scenariusze (wszystkie modele
+    # zawiodą) nawet 5-9 minut oczekiwania — zbyt długo, koliduje z
+    # wcześniejszą naprawą wydajności (skrócone timeouty). Skoro teraz
+    # jest WIĘCEJ niezależnych modeli jako zapas, redundancja na poziomie
+    # całego łańcucha jest silniejsza niż wcześniej — 1 próba na model
+    # (bez wewnętrznego ponawiania) i szybsze przejście do KOLEJNEGO,
+    # świeżego modelu jest rozsądniejsze niż tracenie czasu na ponowną
+    # próbę tego samego, który właśnie zawiódł.
+    max_attempts = 1
 
     for attempt in range(1, max_attempts + 1):
         async with httpx.AsyncClient(timeout=timeout_seconds) as client:
@@ -216,8 +240,9 @@ async def _call_gemini_model(parts: list[dict], model: str, *, timeout_seconds: 
             continue
 
         if response.status_code in (503, 502, 500):
+            attempts_word = "próby" if max_attempts == 1 else "prób"
             raise _ModelUnavailableError(
-                f"Model {model}: przeciążony ({response.status_code}) mimo {max_attempts} prób",
+                f"Model {model}: przeciążony ({response.status_code}) mimo {max_attempts} {attempts_word}",
                 reason="overloaded",
             )
 

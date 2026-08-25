@@ -9,6 +9,7 @@ import '../../services/billing_service.dart';
 import '../../utils/error_utils.dart';
 import '../recipes/recipes_screen.dart';
 import '../recipes/ai_add_recipe_screen.dart';
+import '../recipes/ingredient_match_select_screen.dart';
 
 /// Ekran prezentacji subskrypcji Premium — lista korzyści + przyciski
 /// zakupu, w pełni podłączone pod Google Play Billing. Backend (nie ta
@@ -385,6 +386,17 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   isPremium: isPremium,
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const RecipesScreen()),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                _buildQuickAction(
+                  context,
+                  icon: Icons.kitchen_outlined,
+                  title: 'Co ugotować z tego, co mam',
+                  subtitle: 'Zaznacz składniki w domu, dopasujemy przepisy',
+                  isPremium: isPremium,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const IngredientMatchSelectScreen()),
                   ),
                 ),
                 const SizedBox(height: 28),

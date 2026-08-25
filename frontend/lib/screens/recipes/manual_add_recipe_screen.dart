@@ -6,8 +6,6 @@ import '../../services/product_search_service.dart';
 import '../../services/recipe_service.dart';
 import '../../theme/app_theme.dart';
 import 'recipe_detail_screen.dart';
-import 'ai_add_recipe_screen.dart';
-import '../../widgets/premium_feature_tag.dart';
 import '../../utils/error_utils.dart';
 
 class _IngredientRow {
@@ -173,32 +171,18 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dodaj przepis ręcznie'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => const AiAddRecipeScreen()),
-              );
-            },
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.auto_awesome, size: 18),
-                const SizedBox(width: 4),
-                const Text('Użyj AI'),
-                if (!isPremium) ...[
-                  const SizedBox(width: 6),
-                  const PremiumFeatureTag(fontSize: 9),
-                ],
-              ],
-            ),
-          ),
-        ],
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(20),
+      // UWAGA (naprawa — ten sam wzorzec błędu, w kolejnym miejscu):
+      // Form(ListView(...)) bez SafeArea — mimo że to przewijana lista,
+      // w trybie edge-to-edge KONIEC przewijania nie uwzględniał
+      // bezpiecznego marginesu systemowego, więc przycisk "Zapisz
+      // przepis" na samym dole mógł kończyć się częściowo pod paskiem
+      // nawigacji Androida.
+      body: SafeArea(
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.all(20),
           children: [
             TextFormField(
               controller: _nameController,
@@ -395,6 +379,7 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
           ],
         ),
       ),
+    ),
     );
   }
 }

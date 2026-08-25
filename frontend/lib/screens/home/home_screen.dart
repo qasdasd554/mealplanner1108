@@ -14,6 +14,7 @@ import '../../models/meal_plan.dart';
 import '../recipes/recipes_screen.dart';
 import '../shopping/shopping_list_screen.dart';
 import '../profile/profile_screen.dart';
+import '../profile/premium_screen.dart';
 import '../tracker/calorie_tracker_screen.dart';
 import '../ads/ad_gate_screen.dart';
 import '../../services/ad_gate_service.dart';
@@ -53,6 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
       const RecipesScreen(),
       const ShoppingListScreen(isTab: true),
       const CalorieTrackerScreen(),
+      const PremiumScreen(),
       const ProfileScreen(),
     ];
 
@@ -121,6 +123,13 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: _buildHighlightedIcon(Icons.local_fire_department_outlined, active: false),
             activeIcon: _buildHighlightedIcon(Icons.local_fire_department, active: true),
             label: 'Śledzenie',
+          ),
+          // Zakładka Premium — bezpośredni dostęp do porównania planów i
+          // zakupu subskrypcji, bez konieczności wchodzenia przez Profil.
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.workspace_premium_outlined),
+            activeIcon: Icon(Icons.workspace_premium),
+            label: 'Premium',
           ),
           const BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),

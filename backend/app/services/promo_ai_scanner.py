@@ -32,7 +32,18 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-GEMINI_MODELS = ["gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash-lite"]
+# UWAGA (rozszerzenie): ta sama, rozszerzona lista co w ai_recipe_import.py
+# — spójność między dwiema funkcjami korzystającymi z Gemini. Priorytet
+# ustalony świadomie: trzy nowo dodane modele na start, potem trzy
+# wcześniej już używane jako dalszy zapas.
+GEMINI_MODELS = [
+    "gemini-3.5-flash",
+    "gemini-3-flash-preview",
+    "gemini-3.1-flash-lite",
+    "gemini-3.7-flash",
+    "gemini-3.6-flash",
+    "gemini-3.5-flash-lite",
+]
 
 # Serwis agreguje gazetki promocyjne wielu sieci w jednym, prostym,
 # statycznym miejscu — bez ochrony przed botami, w przeciwieństwie do

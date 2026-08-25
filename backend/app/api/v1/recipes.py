@@ -3,6 +3,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy import delete, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -851,3 +852,88 @@ async def delete_recipe(
 
     await db.delete(recipe)
     await db.commit()
+
+
+class MatchByIngredientsRequest(BaseModel):
+    """Żądanie dopasowania przepisów do posiadanych w domu produktów —
+    funkcja Premium "Co ugotować z tego, co mam"."""
+
+    product_ids: list[UUID]
+
+
+class RecipeMatchResponse(BaseModel):
+    """Wynik dopasowania — przepis wraz z informacją o tym, ile ze
+    swoich WYMAGANYCH (nieopcjonalnych) składników pokrywają posiadane
+    produkty, i czego dokładnie brakuje."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    recipe: RecipeResponse
+    matched_count: int
+    total_required: int
+    missing_ingredient_names: list[str]
+
+
+@router.post(
+    "/match-by-ingredients",
+    response_model=list[RecipeMatchResponse],
+    summary='Dopasuj przepisy do posiadanych składników — "Co ugotować z tego, co mam" (Premium)',
+)
+async def match_recipes_by_ingredients(
+    payload: MatchByIngredientsRequest,
+    current_user: User = Depends(get_current_premium),
+    db: AsyncSession = Depends(get_db),
+) -> list[dict]:
+    """Zwraca przepisy z katalogu widoczne dla użytkownika (oficjalne,
+    publiczne, własne), posortowane od NAJLEPIEJ dopasowanych do
+    podanej listy posiadanych produktów — czyli takich, gdzie brakuje
+    najmniej (albo wcale) WYMAGANYCH składników. Składniki oznaczone
+    jako opcjonalne (`is_optional`) NIE liczą się do wymogu — ich brak
+    nie obniża dopasowania.
+
+    Celowo NIE generuje nowych przepisów przez AI — dopasowuje wyłącznie
+    istniejący katalog, więc działa natychmiast i bez kosztu wywołania AI.
+    """
+    if not payload.product_ids:
+        raise HTTPException(status_code=400, detail="Podaj przynajmniej jeden posiadany składnik")
+
+    have_ids = set(payload.product_ids)
+
+    result = await db.execute(
+        select(Recipe)
+        .options(
+            selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product),
+            selectinload(Recipe.tags),
+        )
+        .where(_visibility_filter(current_user.id), Recipe.is_active == True)  # noqa: E712
+    )
+    recipes = result.scalars().all()
+
+    matches: list[dict] = []
+    for recipe in recipes:
+        required = [ing for ing in recipe.ingredients if not ing.is_optional]
+        if not required:
+            continue
+        matched = [ing for ing in required if ing.product_id in have_ids]
+        if not matched:
+            # Zero wspólnych składników — nie ma sensu zaśmiecać wyników
+            # przepisem, z którym nie łączy nas absolutnie nic.
+            continue
+        missing_names = [
+            ing.product.name for ing in required if ing.product_id not in have_ids and ing.product
+        ]
+        matches.append(
+            {
+                "recipe": recipe,
+                "matched_count": len(matched),
+                "total_required": len(required),
+                "missing_ingredient_names": missing_names,
+            }
+        )
+
+    # Sortowanie: najpierw najwyższy procent pokrycia (pełne dopasowania
+    # na samej górze), a przy remisie — mniej brakujących składników w
+    # liczbach bezwzględnych (prostszy zakup, nawet przy tym samym %).
+    matches.sort(key=lambda m: (-(m["matched_count"] / m["total_required"]), len(m["missing_ingredient_names"])))
+
+    return matches[:30]
