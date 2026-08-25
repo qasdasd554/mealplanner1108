@@ -38,29 +38,13 @@ GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model
 # Jeśli główny model odmawia (limit dzienny/minutowy albo uporczywe
 # przeciążenie mimo ponawiania), automatycznie próbujemy kolejnego z listy
 # zamiast od razu poddawać się użytkownikowi.
-# UWAGA (rozszerzenie): łańcuch zapasowy rozszerzony do 6 modeli — każdy
-# model Gemini ma WŁASNĄ, niezależną pulę limitów (RPM/TPM/RPD), więc
-# więcej modeli to więcej niezależnych szans, zanim usługa AI faktycznie
-# stanie się całkowicie niedostępna. Kolejność (priorytet użycia) ustalona
-# świadomie: trzy nowo dodane modele na start, potem trzy wcześniej już
-# używane jako dalszy zapas. Identyfikatory API zweryfikowane bezpośrednio
-# w oficjalnej dokumentacji Google (ai.google.dev) — "gemini-3-flash" bez
-# przyrostka nie jest prawidłowym identyfikatorem, poprawna nazwa to
-# "gemini-3-flash-preview".
-GEMINI_MODEL_PRIMARY = "gemini-3.5-flash"
-GEMINI_MODEL_SECONDARY = "gemini-3-flash-preview"
-GEMINI_MODEL_TERTIARY = "gemini-3.1-flash-lite"
-GEMINI_MODEL_QUATERNARY = "gemini-3.7-flash"
-GEMINI_MODEL_QUINARY = "gemini-3.6-flash"
-GEMINI_MODEL_FALLBACK = "gemini-3.5-flash-lite"
-GEMINI_MODELS = [
-    GEMINI_MODEL_PRIMARY,
-    GEMINI_MODEL_SECONDARY,
-    GEMINI_MODEL_TERTIARY,
-    GEMINI_MODEL_QUATERNARY,
-    GEMINI_MODEL_QUINARY,
-    GEMINI_MODEL_FALLBACK,
-]
+# UWAGA (naprawa — centralizacja): lista modeli była wcześniej
+# zduplikowana osobno w tym pliku, promo_ai_scanner.py i
+# gemini_status.py — co doprowadziło do realnego rozjazdu (panel admina
+# przez długi czas pokazywał tylko 3 stare modele, mimo że tutaj
+# faktycznie próbowano już 6). Teraz JEDNO źródło prawdy w
+# gemini_models.py, importowane wszędzie tam, gdzie potrzebne.
+from app.services.gemini_models import GEMINI_MODELS
 
 ALLOWED_UNITS = {"g", "kg", "ml", "l", "szt"}
 ALLOWED_MEAL_TYPES = {"śniadanie", "obiad", "kolacja", "przekąska"}

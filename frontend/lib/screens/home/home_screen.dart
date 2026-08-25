@@ -12,6 +12,7 @@ import '../../widgets/premium_badge.dart';
 import '../../widgets/user_avatar.dart';
 import '../../models/meal_plan.dart';
 import '../recipes/recipes_screen.dart';
+import '../recipes/pantry_screen.dart';
 import '../shopping/shopping_list_screen.dart';
 import '../profile/profile_screen.dart';
 import '../profile/premium_screen.dart';
@@ -331,6 +332,16 @@ class HomeTab extends StatelessWidget {
                       icon: Icons.local_offer_outlined,
                       color: Colors.red,
                       onTap: () => Navigator.of(context).pushNamed('/promotions'),
+                    ),
+                    _buildQuickActionCard(
+                      context,
+                      title: 'Spiżarnia',
+                      subtitle: 'Co masz w domu',
+                      icon: Icons.inventory_2_outlined,
+                      color: AppTheme.secondaryColor,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const PantryScreen()),
+                      ),
                     ),
                   ],
                 ).animate().fadeIn(delay: 100.ms),
