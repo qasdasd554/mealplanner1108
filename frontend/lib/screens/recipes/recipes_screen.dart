@@ -26,6 +26,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   bool _favoritesOnly = false;
   bool _communityOnly = false;
   bool _myRecipesOnly = false;
+  bool _newOnly = false;
 
   @override
   void initState() {
@@ -53,7 +54,11 @@ class _RecipesScreenState extends State<RecipesScreen> {
             );
       if (!mounted) return;
       setState(() {
-        _recipes = list;
+        // Filtr "Nowość" jest liczony CAŁKOWICIE po stronie klienta (na
+        // podstawie createdAt, bez dodatkowego zapytania do backendu) —
+        // prostsze niż dodawanie kolejnego parametru API, i wystarczająco
+        // szybkie, bo lista przepisów i tak jest już pobrana.
+        _recipes = _newOnly ? list.where((r) => r.isNew).toList() : list;
       });
     } catch (e) {
       if (!mounted) return;
@@ -122,165 +127,60 @@ class _RecipesScreenState extends State<RecipesScreen> {
               toolbarHeight: 0,
               floating: true,
               snap: true,
-              expandedHeight: 118,
+              expandedHeight: 60,
               backgroundColor: AppTheme.backgroundColor,
               elevation: 0,
+              // UWAGA (przebudowa): dwa przewijane w bok rzędy chipów (9+4
+              // pozycji) zamienione na JEDEN przycisk "Filtry" (pokazujący
+              // liczbę aktywnych) otwierający panel z WSZYSTKIMI opcjami w
+              // układzie zawijanym (Wrap) — elementy przechodzą do nowej
+              // linii zamiast wypływać poza ekran, więc PRZEWIJANIE W BOK
+              // W OGÓLE nie jest już potrzebne. Ulubione zostaje jako
+              // szybki skrót obok (najczęściej przełączany filtr).
               flexibleSpace: FlexibleSpaceBar(
-                background: Column(
-                  children: [
-                    // 1. Filtry po typie posiłku
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      child: Row(
-                        children: [
-                          _buildFilterChip('Wszystkie', null, _selectedMealType == null, (val) {
-                            setState(() {
-                              _selectedMealType = null;
-                            });
-                            _loadRecipes();
-                          }),
-                          const SizedBox(width: 8),
-                          Container(width: 1, height: 20, color: AppTheme.textSecondary.withOpacity(0.2)),
-                          const SizedBox(width: 8),
-                          // Ulubione — zaraz po "Wszystkie", bo to najważniejszy
-                          // skrót (nie jest to filtr typu posiłku, tylko przełącznik
-                          // "pokaż tylko to, co lubię").
-                          FilterChip(
-                            label: const Text('Ulubione', style: TextStyle(fontSize: 13)),
-                            avatar: Icon(
-                              _favoritesOnly ? Icons.favorite : Icons.favorite_border,
-                              size: 15,
-                              color: _favoritesOnly ? Colors.white : Colors.redAccent,
-                            ),
-                            visualDensity: VisualDensity.compact,
-                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-                            labelPadding: const EdgeInsets.symmetric(horizontal: 2),
-                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            selected: _favoritesOnly,
-                            onSelected: (val) {
-                              setState(() => _favoritesOnly = val);
-                              _loadRecipes();
-                            },
-                            selectedColor: Colors.redAccent,
-                            labelStyle: TextStyle(color: _favoritesOnly ? Colors.white : null),
+                background: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => _showFilterSheet(context),
+                          icon: const Icon(Icons.tune, size: 18),
+                          label: Text(
+                            _activeFilterCount == 0 ? 'Filtry' : 'Filtry (${_activeFilterCount})',
+                            style: const TextStyle(fontSize: 13),
                           ),
-                          const SizedBox(width: 6),
-                          // Filtr "Społeczność" — pokazuje TYLKO przepisy dodane przez
-                          // innych użytkowników i zaakceptowane do wspólnego katalogu
-                          // (nie 81 oficjalnych, nie własne prywatne).
-                          FilterChip(
-                            label: const Text('Społeczność', style: TextStyle(fontSize: 13)),
-                            avatar: Icon(
-                              Icons.groups_outlined,
-                              size: 15,
-                              color: _communityOnly ? Colors.white : AppTheme.secondaryColor,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: _activeFilterCount > 0 ? AppTheme.primaryColor : AppTheme.textPrimary,
+                            side: BorderSide(
+                              color: _activeFilterCount > 0
+                                  ? AppTheme.primaryColor
+                                  : AppTheme.textSecondary.withOpacity(0.3),
                             ),
-                            visualDensity: VisualDensity.compact,
-                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-                            labelPadding: const EdgeInsets.symmetric(horizontal: 2),
-                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            selected: _communityOnly,
-                            onSelected: (val) {
-                              setState(() => _communityOnly = val);
-                              _loadRecipes();
-                            },
-                            selectedColor: AppTheme.secondaryColor,
-                            labelStyle: TextStyle(color: _communityOnly ? Colors.white : null),
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           ),
-                          const SizedBox(width: 6),
-                          // Filtr "Moje" — WYŁĄCZNIE przepisy dodane przez
-                          // zalogowanego użytkownika (dowolną metodą: ręcznie, AI,
-                          // z linku/zdjęcia) — niezależnie od tego, czy są jeszcze
-                          // prywatne, czekają na akceptację, czy już są publiczne.
-                          FilterChip(
-                            label: const Text('Moje', style: TextStyle(fontSize: 13)),
-                            avatar: Icon(
-                              Icons.person_outline,
-                              size: 15,
-                              color: _myRecipesOnly ? Colors.white : AppTheme.primaryColor,
-                            ),
-                            visualDensity: VisualDensity.compact,
-                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-                            labelPadding: const EdgeInsets.symmetric(horizontal: 2),
-                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            selected: _myRecipesOnly,
-                            onSelected: (val) {
-                              setState(() => _myRecipesOnly = val);
-                              _loadRecipes();
-                            },
-                            selectedColor: AppTheme.primaryColor,
-                            labelStyle: TextStyle(color: _myRecipesOnly ? Colors.white : null),
-                          ),
-                          const SizedBox(width: 6),
-                          _buildFilterChip('Śniadania', 'śniadanie', _selectedMealType == 'śniadanie', (val) {
-                            setState(() {
-                              _selectedMealType = 'śniadanie';
-                            });
-                            _loadRecipes();
-                          }),
-                          const SizedBox(width: 6),
-                          _buildFilterChip('Obiady', 'obiad', _selectedMealType == 'obiad', (val) {
-                            setState(() {
-                              _selectedMealType = 'obiad';
-                            });
-                            _loadRecipes();
-                          }),
-                          const SizedBox(width: 6),
-                          _buildFilterChip('Kolacje', 'kolacja', _selectedMealType == 'kolacja', (val) {
-                            setState(() {
-                              _selectedMealType = 'kolacja';
-                            });
-                            _loadRecipes();
-                          }),
-                          const SizedBox(width: 6),
-                          _buildFilterChip('Przekąski', 'przekąska', _selectedMealType == 'przekąska', (val) {
-                            setState(() {
-                              _selectedMealType = 'przekąska';
-                            });
-                            _loadRecipes();
-                          }),
-                        ],
+                        ),
                       ),
-                    ),
-
-                    // 2. Filtry trudności
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
-                      child: Row(
-                        children: [
-                          _buildFilterChip('Każda trudność', null, _selectedDifficulty == null, (val) {
-                            setState(() {
-                              _selectedDifficulty = null;
-                            });
-                            _loadRecipes();
-                          }),
-                          const SizedBox(width: 6),
-                          _buildFilterChip('Łatwe', 'łatwy', _selectedDifficulty == 'łatwy', (val) {
-                            setState(() {
-                              _selectedDifficulty = 'łatwy';
-                            });
-                            _loadRecipes();
-                          }),
-                          const SizedBox(width: 6),
-                          _buildFilterChip('Średnie', 'średni', _selectedDifficulty == 'średni', (val) {
-                            setState(() {
-                              _selectedDifficulty = 'średni';
-                            });
-                            _loadRecipes();
-                          }),
-                          const SizedBox(width: 6),
-                          _buildFilterChip('Trudne', 'trudny', _selectedDifficulty == 'trudny', (val) {
-                            setState(() {
-                              _selectedDifficulty = 'trudny';
-                            });
-                            _loadRecipes();
-                          }),
-                        ],
+                      const SizedBox(width: 10),
+                      FilterChip(
+                        label: const Text('Ulubione', style: TextStyle(fontSize: 13)),
+                        avatar: Icon(
+                          _favoritesOnly ? Icons.favorite : Icons.favorite_border,
+                          size: 15,
+                          color: _favoritesOnly ? Colors.white : Colors.redAccent,
+                        ),
+                        visualDensity: VisualDensity.compact,
+                        selected: _favoritesOnly,
+                        onSelected: (val) {
+                          setState(() => _favoritesOnly = val);
+                          _loadRecipes();
+                        },
+                        selectedColor: Colors.redAccent,
+                        labelStyle: TextStyle(color: _favoritesOnly ? Colors.white : null),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -320,34 +220,190 @@ class _RecipesScreenState extends State<RecipesScreen> {
     );
   }
 
-  Widget _buildFilterChip(
-    String label,
-    String? value,
-    bool isSelected,
-    ValueChanged<bool> onSelected,
-  ) {
-    return FilterChip(
-      label: Text(label, style: const TextStyle(fontSize: 13)),
-      selected: isSelected,
-      onSelected: onSelected,
-      selectedColor: AppTheme.primaryColor.withOpacity(0.2),
-      checkmarkColor: AppTheme.primaryColor,
-      backgroundColor: AppTheme.surfaceColor,
-      // UWAGA (naprawa): gęstość i wypełnienie zmniejszone, żeby więcej
-      // filtrów mieściło się na ekranie bez konieczności przewijania —
-      // to była jedna z głównych skarg (filtry "słabo widoczne, bo
-      // trzeba je przewijać").
-      visualDensity: VisualDensity.compact,
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-      labelPadding: const EdgeInsets.symmetric(horizontal: 2),
-      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      side: BorderSide(
-        color: isSelected ? AppTheme.primaryColor : Colors.transparent,
-        width: 1,
-      ),
+  /// Liczba obecnie aktywnych filtrów (do etykiety na przycisku "Filtry").
+  /// Uwzględnia też Ulubione, mimo że ma osobny, zawsze widoczny chip —
+  /// licznik ma pokazywać PRAWDZIWĄ liczbę aktywnych filtrów, niezależnie
+  /// od tego, w którym miejscu UI dany filtr się przełącza.
+  int get _activeFilterCount {
+    var count = 0;
+    if (_favoritesOnly) count++;
+    if (_communityOnly) count++;
+    if (_myRecipesOnly) count++;
+    if (_newOnly) count++;
+    if (_selectedMealType != null) count++;
+    if (_selectedDifficulty != null) count++;
+    return count;
+  }
+
+  /// Panel ze WSZYSTKIMI filtrami naraz, w układzie zawijanym (Wrap) —
+  /// zamiast przewijania w bok, elementy po prostu przechodzą do nowej
+  /// linii, gdy zabraknie miejsca w rzędzie. To sedno naprawy: użytkownik
+  /// widzi WSZYSTKIE dostępne opcje od razu, bez przesuwania palcem.
+  void _showFilterSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(12)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
+      builder: (sheetContext) {
+        return StatefulBuilder(
+          builder: (sheetContext, setSheetState) {
+            void applyAndClose() {
+              Navigator.of(sheetContext).pop();
+              _loadRecipes();
+            }
+
+            return SafeArea(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: 24,
+                  right: 24,
+                  top: 20,
+                  bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 20,
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Filtry', style: Theme.of(sheetContext).textTheme.titleLarge),
+                          if (_activeFilterCount > 0)
+                            TextButton(
+                              onPressed: () {
+                                setSheetState(() {
+                                  _communityOnly = false;
+                                  _myRecipesOnly = false;
+                                  _newOnly = false;
+                                  _selectedMealType = null;
+                                  _selectedDifficulty = null;
+                                });
+                              },
+                              child: const Text('Wyczyść'),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Specjalne',
+                        style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textSecondary, fontSize: 13),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          FilterChip(
+                            label: const Text('Nowość'),
+                            avatar: const Icon(Icons.fiber_new_outlined, size: 16),
+                            selected: _newOnly,
+                            onSelected: (val) => setSheetState(() => _newOnly = val),
+                            selectedColor: AppTheme.secondaryColor.withOpacity(0.25),
+                          ),
+                          FilterChip(
+                            label: const Text('Społeczność'),
+                            avatar: const Icon(Icons.groups_outlined, size: 16),
+                            selected: _communityOnly,
+                            onSelected: (val) => setSheetState(() => _communityOnly = val),
+                            selectedColor: AppTheme.secondaryColor.withOpacity(0.25),
+                          ),
+                          FilterChip(
+                            label: const Text('Moje'),
+                            avatar: const Icon(Icons.person_outline, size: 16),
+                            selected: _myRecipesOnly,
+                            onSelected: (val) => setSheetState(() => _myRecipesOnly = val),
+                            selectedColor: AppTheme.primaryColor.withOpacity(0.2),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'Typ posiłku',
+                        style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textSecondary, fontSize: 13),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          ChoiceChip(
+                            label: const Text('Wszystkie'),
+                            selected: _selectedMealType == null,
+                            onSelected: (_) => setSheetState(() => _selectedMealType = null),
+                          ),
+                          ChoiceChip(
+                            label: const Text('Śniadania'),
+                            selected: _selectedMealType == 'śniadanie',
+                            onSelected: (_) => setSheetState(() => _selectedMealType = 'śniadanie'),
+                          ),
+                          ChoiceChip(
+                            label: const Text('Obiady'),
+                            selected: _selectedMealType == 'obiad',
+                            onSelected: (_) => setSheetState(() => _selectedMealType = 'obiad'),
+                          ),
+                          ChoiceChip(
+                            label: const Text('Kolacje'),
+                            selected: _selectedMealType == 'kolacja',
+                            onSelected: (_) => setSheetState(() => _selectedMealType = 'kolacja'),
+                          ),
+                          ChoiceChip(
+                            label: const Text('Przekąski'),
+                            selected: _selectedMealType == 'przekąska',
+                            onSelected: (_) => setSheetState(() => _selectedMealType = 'przekąska'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'Trudność',
+                        style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textSecondary, fontSize: 13),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          ChoiceChip(
+                            label: const Text('Każda'),
+                            selected: _selectedDifficulty == null,
+                            onSelected: (_) => setSheetState(() => _selectedDifficulty = null),
+                          ),
+                          ChoiceChip(
+                            label: const Text('Łatwe'),
+                            selected: _selectedDifficulty == 'łatwy',
+                            onSelected: (_) => setSheetState(() => _selectedDifficulty = 'łatwy'),
+                          ),
+                          ChoiceChip(
+                            label: const Text('Średnie'),
+                            selected: _selectedDifficulty == 'średni',
+                            onSelected: (_) => setSheetState(() => _selectedDifficulty = 'średni'),
+                          ),
+                          ChoiceChip(
+                            label: const Text('Trudne'),
+                            selected: _selectedDifficulty == 'trudny',
+                            onSelected: (_) => setSheetState(() => _selectedDifficulty = 'trudny'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton(
+                          onPressed: applyAndClose,
+                          child: const Text('Pokaż wyniki'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
