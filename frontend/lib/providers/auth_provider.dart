@@ -78,7 +78,20 @@ class AuthProvider with ChangeNotifier {
       _setLoading(false);
       return true;
     } catch (e) {
-      _setErrorMessage(friendlyError(e));
+      // UWAGA (naprawa): friendlyError() dla kodu 401 domyślnie pokazuje
+      // "Musisz być zalogowany, żeby to zrobić" — sensowne dla WYGASŁEJ
+      // SESJI gdzieś indziej w aplikacji, ale kompletnie mylące akurat
+      // na ekranie logowania, gdzie 401 oznacza konkretnie złe dane
+      // logowania. Tutaj, w KONTEKŚCIE logowania, pokazujemy prawdziwą
+      // wiadomość z backendu wprost ("Nieprawidłowy e-mail lub hasło"),
+      // zamiast generycznego komunikatu — bez zmiany zachowania
+      // friendlyError() dla pozostałych, poprawnych zastosowań w reszcie
+      // aplikacji.
+      if (e is ApiException && e.statusCode == 401) {
+        _setErrorMessage(e.message);
+      } else {
+        _setErrorMessage(friendlyError(e));
+      }
       _setLoading(false);
       return false;
     }

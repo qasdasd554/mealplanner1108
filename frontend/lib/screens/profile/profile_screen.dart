@@ -11,6 +11,7 @@ import '../../providers/promotion_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/premium_badge.dart';
 import '../../widgets/premium_comparison_table.dart';
+import '../../widgets/decorative_circles.dart';
 import '../../widgets/user_avatar.dart';
 import 'premium_screen.dart';
 import '../admin/admin_panel_screen.dart';
@@ -49,7 +50,10 @@ class ProfileScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Profil'),
       ),
-      body: SingleChildScrollView(
+      body: Stack(
+        children: [
+          const DecorativeCircles(),
+          SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -345,6 +349,8 @@ class ProfileScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+        ],
       ),
     );
   }

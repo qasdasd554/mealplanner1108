@@ -13,6 +13,7 @@ import '../../widgets/user_avatar.dart';
 import '../../models/meal_plan.dart';
 import '../recipes/recipes_screen.dart';
 import '../recipes/pantry_screen.dart';
+import '../../widgets/decorative_circles.dart';
 import '../shopping/shopping_list_screen.dart';
 import '../profile/profile_screen.dart';
 import '../profile/premium_screen.dart';
@@ -205,19 +206,22 @@ class HomeTab extends StatelessWidget {
     }
 
     return Scaffold(
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: () async {
-            await mealPlanProvider.loadPlans();
-          },
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Powitanie
-                Row(
+      body: Stack(
+        children: [
+          const DecorativeCircles(),
+          SafeArea(
+            child: RefreshIndicator(
+              onRefresh: () async {
+                await mealPlanProvider.loadPlans();
+              },
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Powitanie
+                    Row(
                   children: [
                     Image.asset(
                       'assets/branding/logo.png',
@@ -431,6 +435,8 @@ class HomeTab extends StatelessWidget {
             ),
           ),
         ),
+      ),
+        ],
       ),
     );
   }

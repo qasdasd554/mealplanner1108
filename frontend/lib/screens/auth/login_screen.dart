@@ -90,6 +90,47 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ).animate().fadeIn(duration: 1000.ms).scale(duration: 1000.ms),
           ),
+          // UWAGA (nowe): dwa-trzy dodatkowe okręgi w innych odcieniach
+          // palety marki, żeby tło było bardziej żywe wizualnie — te same
+          // rozmyte, półprzezroczyste kółka co powyżej, tylko inne
+          // kolory/rozmiary/pozycje, rozmieszczone POZA obszarem
+          // formularza (który jest wyśrodkowany), więc nic nie zasłaniają.
+          Positioned(
+            bottom: -120,
+            left: -80,
+            child: Container(
+              width: 260,
+              height: 260,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppTheme.primaryColor.withOpacity(0.12),
+              ),
+            ).animate(delay: 200.ms).fadeIn(duration: 1000.ms).scale(duration: 1000.ms),
+          ),
+          Positioned(
+            top: 160,
+            left: -60,
+            child: Container(
+              width: 140,
+              height: 140,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppTheme.accentColor.withOpacity(0.12),
+              ),
+            ).animate(delay: 400.ms).fadeIn(duration: 1000.ms).scale(duration: 1000.ms),
+          ),
+          Positioned(
+            bottom: 80,
+            right: -50,
+            child: Container(
+              width: 170,
+              height: 170,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppTheme.secondaryColor.withOpacity(0.08),
+              ),
+            ).animate(delay: 600.ms).fadeIn(duration: 1000.ms).scale(duration: 1000.ms),
+          ),
           SafeArea(
             child: Center(
               child: SingleChildScrollView(

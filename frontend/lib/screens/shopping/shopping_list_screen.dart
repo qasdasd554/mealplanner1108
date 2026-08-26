@@ -10,6 +10,7 @@ import '../../services/api_client.dart';
 import '../../services/pantry_service.dart';
 import '../../config/api_config.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/decorative_circles.dart';
 import 'price_compare_screen.dart';
 import 'export_list_screen.dart';
 
@@ -207,7 +208,10 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
           ),
         ],
       ),
-      body: shoppingListProvider.isLoading
+      body: Stack(
+        children: [
+          const DecorativeCircles(),
+          shoppingListProvider.isLoading
           ? const Center(child: CircularProgressIndicator())
           : list == null
               ? _buildEmptyState()
@@ -301,6 +305,8 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                     ),
                   ],
                 ),
+        ],
+      ),
     );
   }
 

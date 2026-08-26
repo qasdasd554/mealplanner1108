@@ -6,6 +6,7 @@ import '../../config/constants.dart';
 import '../../services/recipe_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/recipe_photo.dart';
+import '../../widgets/decorative_circles.dart';
 import '../../widgets/recipe_favorite_button.dart';
 import 'recipe_leaderboard_screen.dart';
 import 'manual_add_recipe_screen.dart';
@@ -123,7 +124,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
           ),
         ),
       ),
-      body: NestedScrollView(
+      body: Stack(
+        children: [
+          const DecorativeCircles(),
+          NestedScrollView(
         // UWAGA (naprawa): pasek filtrów przebudowany na SliverAppBar
         // (floating+snap) zamiast zwykłego Column — to standardowy
         // wzorzec Fluttera "chowaj przy przewijaniu w dół, pokaż od razu
@@ -288,6 +292,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       return _buildRecipeCard(recipe);
                     },
                   ),
+      ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         // UWAGA (naprawa widoczności): wcześniej FAB prowadził od razu do

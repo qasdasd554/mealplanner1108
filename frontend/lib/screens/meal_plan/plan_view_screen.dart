@@ -8,6 +8,7 @@ import '../../models/recipe.dart';
 import '../../services/recipe_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/recipe_photo.dart';
+import '../../widgets/decorative_circles.dart';
 
 class PlanViewScreen extends StatefulWidget {
   const PlanViewScreen({super.key});
@@ -275,7 +276,10 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
           ),
         ],
       ),
-      body: SafeArea(
+      body: Stack(
+        children: [
+          const DecorativeCircles(),
+          SafeArea(
         // UWAGA (naprawa — ten sam błąd, co w plan_config_screen.dart):
         // dolny panel akcji ("Zmień parametry"/"Zatwierdź plan"/"Przejdź
         // do zakupów") miał tylko sztywny margines 24px, bez SafeArea —
@@ -459,6 +463,8 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
                   ),
           ),
         ],
+        ),
+          ],
         ),
       ),
     );

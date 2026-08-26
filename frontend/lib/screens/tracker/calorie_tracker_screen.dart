@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../providers/food_log_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/decorative_circles.dart';
 import '../../models/food_log.dart';
 import 'calorie_calculator_screen.dart';
 
@@ -100,7 +101,10 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
           ),
         ],
       ),
-      body: provider.isLoading
+      body: Stack(
+        children: [
+          const DecorativeCircles(),
+          provider.isLoading
           ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor))
           : provider.error != null
               ? _buildErrorState(context, provider)
@@ -120,6 +124,8 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                     ],
                   ),
                 ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.pushNamed(context, '/tracker/add');
