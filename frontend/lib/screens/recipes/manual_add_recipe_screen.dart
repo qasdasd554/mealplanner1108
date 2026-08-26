@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../models/product.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/product_search_service.dart';
+import '../../utils/quantity_formatter.dart';
 import '../../services/recipe_service.dart';
 import '../../theme/app_theme.dart';
 import 'recipe_detail_screen.dart';
@@ -79,7 +80,7 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
   }
 
   Future<double?> _askQuantity(Product product) async {
-    final controller = TextEditingController(text: product.defaultQuantity.toStringAsFixed(0));
+    final controller = TextEditingController(text: formatQuantity(product.defaultQuantity, product.unit));
     return showDialog<double>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -270,7 +271,7 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
               return ListTile(
                 contentPadding: EdgeInsets.zero,
                 title: Text(ing.product.name),
-                subtitle: Text('${ing.quantity.toStringAsFixed(0)} ${ing.unit}'),
+                subtitle: Text('${formatQuantity(ing.quantity, ing.unit)} ${ing.unit}'),
                 trailing: IconButton(
                   icon: const Icon(Icons.delete_outline, color: AppTheme.errorColor),
                   onPressed: () => setState(() => _ingredients.removeAt(i)),

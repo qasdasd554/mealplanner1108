@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/shopping_list.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/quantity_formatter.dart';
 
 /// Prosty, samodzielny podgląd listy zakupów wygenerowanej na konkretne
 /// danie(-a) — bez pełnego planu posiłków. Odbiera już gotowe dane
@@ -67,7 +68,7 @@ class DishShoppingListScreen extends StatelessWidget {
                                 margin: const EdgeInsets.only(bottom: 6),
                                 child: ListTile(
                                   title: Text(item.productName),
-                                  subtitle: Text('${item.requiredQuantity.toStringAsFixed(0)} ${item.unit}'),
+                                  subtitle: Text('${formatQuantity(item.requiredQuantity, item.unit)} ${item.unit}'),
                                   trailing: Text(
                                     '${(item.estimatedPrice ?? 0).toStringAsFixed(2)} zł',
                                     style: const TextStyle(fontWeight: FontWeight.bold),

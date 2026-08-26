@@ -9,6 +9,7 @@ import '../../widgets/dish_shopping_list_button.dart';
 import '../../widgets/recipe_delete_button.dart';
 import '../../widgets/recipe_publish_button.dart';
 import '../../widgets/recipe_photo.dart';
+import '../../utils/quantity_formatter.dart';
 
 class RecipeDetailScreen extends StatelessWidget {
   const RecipeDetailScreen({super.key});
@@ -221,7 +222,7 @@ class RecipeDetailScreen extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            '${ing.quantity} ${ing.unit}${ing.kcal != null ?' (${ing.kcal} kcal)':''}',
+                            '${formatQuantity(ing.quantity, ing.unit)} ${ing.unit}${ing.kcal != null ? ' (${ing.kcal} kcal)' : ''}',
                             style: const TextStyle(
                               color: AppTheme.primaryColor,
                               fontWeight: FontWeight.bold,
