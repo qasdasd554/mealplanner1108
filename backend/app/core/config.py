@@ -109,8 +109,8 @@ class Settings(BaseSettings):
     # w oknie czasowym RATE_LIMIT_WINDOW_SECONDS.
     RATE_LIMIT_LOGIN_ATTEMPTS: int = 10
     # Maksymalna liczba zakładanych kont z jednego adresu IP w tym samym oknie.
-    RATE_LIMIT_SIGNUP_ATTEMPTS: int = 5
-    RATE_LIMIT_WINDOW_SECONDS: int = 300
+    RATE_LIMIT_SIGNUP_ATTEMPTS: int = 3
+    RATE_LIMIT_WINDOW_SECONDS: int = 600
 
     @property
     def cors_origin_list(self) -> list[str]:

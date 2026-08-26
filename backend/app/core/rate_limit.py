@@ -89,6 +89,18 @@ signup_limiter = SlidingWindowRateLimiter(
     window_seconds=settings.RATE_LIMIT_WINDOW_SECONDS,
 )
 
+# UWAGA (zaostrzenie ochrony przed botami): krótki limiter powyżej
+# (domyślnie kilka prób na kilka minut) łapie tylko bota walącego w
+# endpoint bez przerwy — bot, który po prostu rejestruje się WOLNIEJ
+# (np. raz na minutę), zawsze mieści się w krótkim oknie i nigdy nie
+# zostaje zablokowany. Ten DRUGI limiter, z dużo dłuższym horyzontem
+# czasowym, łapie właśnie taki "powolny" wzorzec — musi przejść przez
+# OBA limitery, żeby rejestracja się powiodła. Limit dobrany tak, żeby
+# nie przeszkadzać rodzinie/biuru za tym samym adresem IP (NAT)
+# zakładającym kilka kont tego samego dnia, ale skutecznie odciąć
+# masowe, zautomatyzowane zakładanie kont.
+signup_limiter_daily = SlidingWindowRateLimiter(max_events=8, window_seconds=86400)
+
 # Logowanie przez Google: bez limitu każdy mógłby bombardować endpoint
 # tokenami, wymuszając kosztowną weryfikację po stronie Google przy każdej
 # próbie — limit po IP, jak przy zwykłym logowaniu.
@@ -151,10 +163,20 @@ def client_key(request: Request, suffix: str = "") -> str:
 
 
 def enforce_signup_rate_limit(request: Request) -> None:
-    """Ogranicza liczbę zakładanych kont z jednego adresu IP."""
+    """Ogranicza liczbę zakładanych kont z jednego adresu IP — dwie
+    niezależne warstwy: krótki, restrykcyjny limit (łapie bota walącego
+    w endpoint bez przerwy) ORAZ dłuższy, dobowy limit (łapie bota,
+    który celowo spowalnia rejestracje, żeby zmieścić się w krótkim
+    oknie — bez tej drugiej warstwy taki "powolny" bot nigdy by nie
+    został zablokowany)."""
     key = client_key(request, "signup")
     signup_limiter.cleanup()
+    signup_limiter_daily.cleanup()
+
     retry_after = signup_limiter.seconds_until_allowed(key)
+    if not retry_after:
+        retry_after = signup_limiter_daily.seconds_until_allowed(key)
+
     if retry_after:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
@@ -165,6 +187,7 @@ def enforce_signup_rate_limit(request: Request) -> None:
             headers={"Retry-After": str(retry_after)},
         )
     signup_limiter.register_failure(key)
+    signup_limiter_daily.register_failure(key)
 
 
 def enforce_password_reset_rate_limit(request: Request) -> None:
