@@ -44,6 +44,7 @@ DEPARTMENT_NAMES = [
     "Produkty suche",
     "Mrożonki",
     "Przyprawy i sosy",
+    "Konserwy",
 ]
 
 # ══════════════════════════════════════════════════════════════════
@@ -79,6 +80,7 @@ PRODUCTS_DATA: list[tuple[str, str, Decimal, str, Decimal, list[str]]] = [
     ("Pierś z kurczaka", "kg", Decimal("1"), "Mięso i wędliny", Decimal("21.99"), []),
     ("Mielone wieprzowo-wołowe", "g", Decimal("500"), "Mięso i wędliny", Decimal("12.99"), []),
     ("Szynka konserwowa", "g", Decimal("100"), "Mięso i wędliny", Decimal("4.49"), []),
+    ("Wołowina mielona", "g", Decimal("500"), "Mięso i wędliny", Decimal("16.99"), []),
     ("Schab wieprzowy", "kg", Decimal("1"), "Mięso i wędliny", Decimal("18.99"), []),
     # ── Jajka ────────────────────────────────────────────────────
     ("Jajka", "szt", Decimal("10"), "Nabiał", Decimal("8.99"), ["jaja"]),
@@ -89,9 +91,16 @@ PRODUCTS_DATA: list[tuple[str, str, Decimal, str, Decimal, list[str]]] = [
     ("Ogórek", "szt", Decimal("1"), "Warzywa i owoce", Decimal("2.49"), []),
     ("Cebula", "kg", Decimal("1"), "Warzywa i owoce", Decimal("2.99"), []),
     ("Ziemniaki", "kg", Decimal("1"), "Warzywa i owoce", Decimal("3.49"), []),
+    ("Kapusta biała", "szt", Decimal("1"), "Warzywa i owoce", Decimal("4.99"), []),
+    ("Seler naciowy", "szt", Decimal("1"), "Warzywa i owoce", Decimal("5.99"), []),
     ("Marchew", "kg", Decimal("1"), "Warzywa i owoce", Decimal("2.99"), []),
     ("Papryka czerwona", "szt", Decimal("1"), "Warzywa i owoce", Decimal("4.49"), []),
     ("Sałata lodowa", "szt", Decimal("1"), "Warzywa i owoce", Decimal("3.99"), []),
+    ("Koperek świeży", "szt", Decimal("1"), "Warzywa i owoce", Decimal("3.49"), []),
+    ("Natka pietruszki", "szt", Decimal("1"), "Warzywa i owoce", Decimal("3.49"), []),
+    ("Buraki", "kg", Decimal("1"), "Warzywa i owoce", Decimal("4.99"), []),
+    ("Kapusta czerwona", "szt", Decimal("1"), "Warzywa i owoce", Decimal("5.99"), []),
+    ("Cebula czerwona", "kg", Decimal("1"), "Warzywa i owoce", Decimal("4.99"), []),
     ("Czosnek", "szt", Decimal("1"), "Warzywa i owoce", Decimal("1.99"), []),
     ("Awokado", "szt", Decimal("1"), "Warzywa i owoce", Decimal("5.99"), []),
     ("Pieczarki", "kg", Decimal("0.5"), "Warzywa i owoce", Decimal("9.99"), []),
@@ -111,6 +120,8 @@ PRODUCTS_DATA: list[tuple[str, str, Decimal, str, Decimal, list[str]]] = [
     ("Oliwa z oliwek", "ml", Decimal("500"), "Produkty suche", Decimal("16.99"), []),
     # ── Przyprawy i sosy ────────────────────────────────────────
     ("Sól", "kg", Decimal("1"), "Przyprawy i sosy", Decimal("1.99"), []),
+    ("Majonez", "g", Decimal("400"), "Przyprawy i sosy", Decimal("8.99"), ["jaja"]),
+    ("Ketchup", "g", Decimal("480"), "Przyprawy i sosy", Decimal("6.99"), []),
     ("Pieprz czarny mielony", "g", Decimal("20"), "Przyprawy i sosy", Decimal("3.49"), []),
     ("Papryka słodka", "g", Decimal("20"), "Przyprawy i sosy", Decimal("3.29"), []),
     ("Bazylia suszona", "g", Decimal("10"), "Przyprawy i sosy", Decimal("2.99"), []),
@@ -128,6 +139,18 @@ PRODUCTS_DATA: list[tuple[str, str, Decimal, str, Decimal, list[str]]] = [
     ("Mleko migdałowe", "l", Decimal("1"), "Produkty suche", Decimal("7.99"), ["orzechy"]),
     ("Ser feta", "g", Decimal("200"), "Nabiał", Decimal("6.49"), ["laktoza"]),
     ("Oliwki czarne", "g", Decimal("150"), "Produkty suche", Decimal("5.99"), []),
+    # ── Konserwy ─────────────────────────────────────────────────
+    # UWAGA: gramatury zweryfikowane przez rzeczywiste, aktualne oferty
+    # sklepowe (Biedronka, Frisco, Allegro) dla popularnych, powszechnie
+    # dostępnych marek (Dawtona, Pudliszki, Bonduelle, Krakus, Nasza
+    # Spiżarnia) — nie szacowane/wymyślone.
+    ("Kukurydza konserwowa", "g", Decimal("340"), "Konserwy", Decimal("3.49"), []),
+    ("Groszek konserwowy", "g", Decimal("400"), "Konserwy", Decimal("3.49"), []),
+    ("Fasola biała konserwowa", "g", Decimal("400"), "Konserwy", Decimal("3.49"), []),
+    ("Fasola czerwona konserwowa", "g", Decimal("400"), "Konserwy", Decimal("3.49"), []),
+    ("Koncentrat pomidorowy", "g", Decimal("190"), "Konserwy", Decimal("2.99"), []),
+    ("Ogórki konserwowe", "g", Decimal("920"), "Konserwy", Decimal("8.99"), []),
+    ("Buraczki konserwowe", "g", Decimal("730"), "Konserwy", Decimal("5.99"), []),
     # ── Dodatkowe produkty (rozszerzenie bazy przepisów) ───────────
     ("Cytryna", "szt", Decimal("1"), "Warzywa i owoce", Decimal("1.99"), []),
     ("Limonka", "szt", Decimal("1"), "Warzywa i owoce", Decimal("1.79"), []),
@@ -138,9 +161,9 @@ PRODUCTS_DATA: list[tuple[str, str, Decimal, str, Decimal, list[str]]] = [
     ("Kapusta pekińska", "szt", Decimal("1"), "Warzywa i owoce", Decimal("4.99"), []),
     ("Kalafior", "szt", Decimal("1"), "Warzywa i owoce", Decimal("6.99"), []),
     ("Por", "szt", Decimal("1"), "Warzywa i owoce", Decimal("3.29"), []),
-    ("Groszek zielony mrożony", "g", Decimal("400"), "Mrożonki", Decimal("4.49"), []),
+    ("Groszek zielony mrożony", "g", Decimal("450"), "Mrożonki", Decimal("4.49"), []),
     ("Filet z indyka", "kg", Decimal("1"), "Mięso i wędliny", Decimal("24.99"), []),
-    ("Kiełbasa śląska", "g", Decimal("300"), "Mięso i wędliny", Decimal("9.99"), []),
+    ("Kiełbasa śląska", "g", Decimal("450"), "Mięso i wędliny", Decimal("14.99"), []),
     ("Krewetki mrożone", "g", Decimal("200"), "Mrożonki", Decimal("18.99"), ["skorupiaki"]),
     ("Dorsz filet", "g", Decimal("400"), "Ryby", Decimal("19.99"), ["ryby"]),
     ("Tuńczyk w sosie własnym", "g", Decimal("150"), "Produkty suche", Decimal("6.99"), ["ryby"]),
@@ -168,8 +191,13 @@ PRODUCTS_DATA: list[tuple[str, str, Decimal, str, Decimal, list[str]]] = [
     ("Borówki", "g", Decimal("125"), "Warzywa i owoce", Decimal("8.99"), []),
     ("Cukier", "kg", Decimal("1"), "Produkty suche", Decimal("4.49"), []),
     ("Proszek do pieczenia", "g", Decimal("30"), "Produkty suche", Decimal("2.49"), []),
+    ("Drożdże świeże", "g", Decimal("100"), "Produkty suche", Decimal("2.49"), []),
     ("Wanilia (cukier waniliowy)", "g", Decimal("16"), "Produkty suche", Decimal("1.99"), []),
     ("Płatki jaglane błyskawiczne", "g", Decimal("300"), "Produkty suche", Decimal("6.49"), []),
+    ("Makaron spaghetti", "g", Decimal("400"), "Produkty suche", Decimal("4.99"), ["gluten"]),
+    ("Kasza pęczak", "g", Decimal("500"), "Produkty suche", Decimal("4.49"), []),
+    ("Kasza manna", "g", Decimal("400"), "Produkty suche", Decimal("2.99"), ["gluten"]),
+    ("Olej słonecznikowy", "l", Decimal("1"), "Produkty suche", Decimal("6.99"), []),
 ]
 
 # Mnożniki cen — Biedronka jest bazą (1.0)

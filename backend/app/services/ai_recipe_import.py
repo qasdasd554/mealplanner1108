@@ -341,7 +341,7 @@ async def _fetch_url_text(url: str) -> str:
     import httpx
     from bs4 import BeautifulSoup
 
-    async with httpx.AsyncClient(timeout=20.0, follow_redirects=True) as client:
+    async with httpx.AsyncClient(timeout=12.0, follow_redirects=True) as client:
         try:
             response = await client.get(
                 url,
@@ -425,6 +425,37 @@ async def _fetch_url_text(url: str) -> str:
             "Nie udało się odczytać treści z tego linku (strona mogła zablokować "
             "automatyczny dostęp). Spróbuj wkleić opis/podpis filmiku bezpośrednio "
             "jako tekst, w zakładce \"Wklej tekst\"."
+        )
+    # UWAGA (naprawa — "długo się ładuje i wywala błąd"): treść WYSTARCZAJĄCO
+    # długa (>40 znaków) mogła i tak być bezwartościowa — np. strona logowania
+    # TikToka, baner "zaakceptuj ciasteczka" albo komunikat "włącz JavaScript"
+    # mają wystarczająco dużo tekstu, żeby przejść poprzednią walidację, ale
+    # NIE zawierają żadnego przepisu. Bez tego sprawdzenia taka treść leciała
+    # przez CAŁY, kosztowny łańcuch 6 modeli AI (do 150s w najgorszym razie)
+    # zanim ostatecznie i tak się nie udało — użytkownik czekał długo tylko
+    # po to, żeby dostać ten sam, nieuchronny błąd. Wykrywanie tych sygnałów
+    # PRZED wywołaniem AI daje szybki, czytelny błąd zamiast długiego czekania
+    # na z góry przesądzoną porażkę.
+    _BLOCKED_PAGE_SIGNALS = (
+        "log in to tiktok", "zaloguj się do tiktok", "logowanie do tiktok",
+        "verify you are human", "zweryfikuj, że jesteś człowiekiem",
+        "enable javascript", "włącz javascript", "javascript is required",
+        "captcha", "access denied", "odmowa dostępu",
+        "sign up for tiktok", "zarejestruj się w tiktok",
+    )
+    combined_lower = combined.lower()
+    signal_hits = sum(1 for s in _BLOCKED_PAGE_SIGNALS if s in combined_lower)
+    # Próg 2 (nie 1) celowo — pojedyncze, przypadkowe trafienie słowa
+    # (np. strona faktycznie WSPOMINA o logowaniu w treści przepisu) nie
+    # powinno fałszywie blokować poprawnego rozpoznawania. Dwa niezależne
+    # sygnały naraz to znacznie mocniejszy dowód, że to faktycznie strona
+    # blokady, nie prawdziwa treść.
+    if signal_hits >= 2:
+        raise AIRecipeImportError(
+            "Ten link prowadzi do strony logowania/weryfikacji zamiast prawdziwej "
+            "treści (typowe zabezpieczenie TikToka przed automatycznym dostępem). "
+            "Otwórz filmik w aplikacji TikTok, skopiuj opis pod nim i wklej go "
+            "bezpośrednio jako tekst, w zakładce \"Wklej tekst\"."
         )
     return combined
 

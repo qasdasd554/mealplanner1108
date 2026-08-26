@@ -17,18 +17,18 @@ import '../screens/recipes/ai_add_recipe_screen.dart';
 /// aplikacji, więc nie zależy od jakości/aktualności żadnej zewnętrznej
 /// paczki.
 ///
-/// Działa w dwóch przypadkach:
-/// 1. Aplikacja jest już otwarta — natywna strona wypycha tekst przez
-///    `onSharedText` (patrz MainActivity.onNewIntent).
-/// 2. Aplikacja zostaje DOPIERO uruchomiona przez samo udostępnienie
-///    (zimny start) — Dart pyta o to przez `getInitialSharedText` zaraz
-///    po starcie.
-///
-/// UWAGA (znane ograniczenie): jeśli użytkownik nie jest jeszcze
-/// zalogowany w momencie udostępnienia, ekran rozpoznawania i tak się
-/// otworzy, ale próba rozpoznania przepisu zakończy się błędem
-/// autoryzacji (401) — istniejąca obsługa błędów na tym ekranie pokaże
-/// wtedy czytelny komunikat.
+/// UWAGA (naprawa — błąd "wraca do ekranu głównego po udostępnieniu"):
+/// obsługuje TERAZ WYŁĄCZNIE przypadek "gorącego startu" — aplikacja
+/// jest już otwarta, natywna strona wypycha tekst przez `onSharedText`
+/// (patrz MainActivity.onNewIntent). Przypadek "zimnego startu" (link
+/// otwiera aplikację od zera) jest teraz w CAŁOŚCI obsługiwany przez
+/// SplashScreen — wcześniej OBA miejsca niezależnie pytały o
+/// `getInitialSharedText`, co samo w sobie nie było błędem (wartość jest
+/// zwracana tylko raz, więc drugie zapytanie po prostu dostawało null),
+/// ale SplashScreen i tak NASTĘPNIE bezwarunkowo nadpisywał cokolwiek
+/// ShareIntentHandler zdążył otworzyć, przez swoje własne
+/// pushReplacementNamed('/home'). Scalenie decyzji o trasie w JEDNYM
+/// miejscu (SplashScreen) eliminuje ten problem u źródła.
 class ShareIntentHandler {
   static const MethodChannel _channel = MethodChannel('com.meal_planner_polska_v1/share_intent');
   static final RegExp _urlPattern = RegExp(r'https?://\S+');
@@ -38,13 +38,6 @@ class ShareIntentHandler {
       if (call.method == 'onSharedText') {
         _handleSharedText(call.arguments as String?, navigatorKey);
       }
-    });
-
-    _channel.invokeMethod<String>('getInitialSharedText').then((text) {
-      _handleSharedText(text, navigatorKey);
-    }).catchError((_) {
-      // Cicho ignorujemy — to nie jest krytyczna funkcja aplikacji, nie
-      // chcemy przez nią wywalać reszty startu aplikacji.
     });
   }
 

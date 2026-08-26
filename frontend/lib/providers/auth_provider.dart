@@ -129,8 +129,34 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       if (e is ApiException && e.statusCode == 401) {
-        // Jeśli profil nie załaduje się prawidłowo (np. wygasł token), wyloguj
-        await logout();
+        // UWAGA (naprawa — zgłoszone jednorazowe, niewyjaśnione
+        // wylogowanie): wcześniej POJEDYNCZY błąd 401 z JAKIEGOKOLWIEK
+        // powodu (nawet przejściowego — np. chwilowa niespójność przy
+        // "cold starcie" darmowego backendu Render, krótki błąd sieci
+        // zinterpretowany jako 401 zamiast prawdziwego kodu błędu)
+        // natychmiast i bezwarunkowo wylogowywał użytkownika, bez
+        // żadnej próby ponowienia — inaczej niż pozostałe błędy
+        // (sieciowe/cold-start), które już MAJĄ ponowną próbę kilka
+        // linii wyżej w _checkTokenOnInit. Token ma 30 dni ważności,
+        // więc "zwykłe wygaśnięcie w trakcie sesji" jest mało
+        // prawdopodobne — jeśli 401 pojawia się mimo to, rozsądniej
+        // dać jedną, krótką szansę na ponowienie, zanim bezpowrotnie
+        // skasujemy sesję użytkownika. Prawdziwie wygasły/nieprawidłowy
+        // token i tak zawiedzie przy drugiej próbie — to nic nie
+        // kosztuje w tym przypadku, a chroni przed niepotrzebnym
+        // wylogowaniem przy czysto przejściowym problemie.
+        await Future.delayed(const Duration(seconds: 2));
+        try {
+          _currentUser = await _authService.getProfile();
+          notifyListeners();
+          return;
+        } catch (retryError) {
+          if (retryError is ApiException && retryError.statusCode == 401) {
+            await logout();
+          }
+          // Inny błąd przy ponowieniu (np. dalej sieciowy) — zostawiamy
+          // sesję nietkniętą, tak samo jak dla błędów niebędących 401.
+        }
       }
     }
   }
