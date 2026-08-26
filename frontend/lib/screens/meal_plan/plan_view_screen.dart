@@ -464,9 +464,9 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
           ),
         ],
         ),
+      ),
           ],
         ),
-      ),
     );
   }
 

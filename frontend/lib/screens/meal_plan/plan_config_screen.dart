@@ -606,9 +606,9 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
             ),
         ],
         ),
+      ),
           ],
         ),
-      ),
     );
   }
 }
