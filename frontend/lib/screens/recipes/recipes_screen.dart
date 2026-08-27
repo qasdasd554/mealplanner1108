@@ -656,7 +656,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
           children: [
             // Górna część z gradientem / placeholderem (Premium look)
             Expanded(
-              flex: 5,
+              flex: 4,
               child: Stack(
                 children: [
                   Positioned.fill(
@@ -715,9 +715,9 @@ class _RecipesScreenState extends State<RecipesScreen> {
             ),
             // Dolne informacje
             Expanded(
-              flex: 6,
+              flex: 7,
               child: Padding(
-                padding: const EdgeInsets.all(12.0),
+                padding: const EdgeInsets.all(10.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -748,16 +748,21 @@ class _RecipesScreenState extends State<RecipesScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          // Kcal na porcję (nie na cały przepis) — to jest
-                          // wartość, jakiej ktoś przeglądający listę przepisów
-                          // się spodziewa (jak na etykiecie dania, nie garnka).
-                          // Zabezpieczenie przed dzieleniem przez zero: gdyby
-                          // servings kiedyś było 0 (błędne dane), Dart rzuca
-                          // wyjątkiem przy .round() na Infinity i wywala ekran.
-                          '⏱ ${recipe.totalTimeMin} min • ${(recipe.nutritionTotal.kcal / (recipe.servings > 0 ? recipe.servings : 1)).round()} kcal/porcję',
-                          style: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
+                        Flexible(
+                          child: Text(
+                            // Kcal na porcję (nie na cały przepis) — to jest
+                            // wartość, jakiej ktoś przeglądający listę przepisów
+                            // się spodziewa (jak na etykiecie dania, nie garnka).
+                            // Zabezpieczenie przed dzieleniem przez zero: gdyby
+                            // servings kiedyś było 0 (błędne dane), Dart rzuca
+                            // wyjątkiem przy .round() na Infinity i wywala ekran.
+                            '⏱ ${recipe.totalTimeMin} min • ${(recipe.nutritionTotal.kcal / (recipe.servings > 0 ? recipe.servings : 1)).round()} kcal/porcję',
+                            style: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
+                        const SizedBox(width: 4),
                         Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
