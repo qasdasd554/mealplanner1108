@@ -407,15 +407,23 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
           fontWeight: item.isChecked ? FontWeight.normal : FontWeight.bold,
         ),
       ),
-      subtitle: Row(
+      subtitle: Wrap(
+        // UWAGA (naprawa — przepełnienie "RIGHT OVERFLOWED"): zwykły
+        // Row bez żadnej elastyczności przepełniał się, gdy ilość +
+        // marka + odznaki (ZAMIENNIK/PROMOCJA) razem nie mieściły się w
+        // jednej linii — widoczne dopiero na węższych/innych proporcjach
+        // ekranu niż te testowane wcześniej. Wrap automatycznie
+        // przenosi elementy do nowej linii zamiast wychodzić poza
+        // ekran, z wbudowanymi odstępami (spacing/runSpacing) zamiast
+        // ręcznych SizedBox między elementami.
+        spacing: 8,
+        runSpacing: 4,
+        crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           Text('${item.requiredQuantity} ${item.unit}'),
-          if (item.brand != null) ...[
-            const SizedBox(width: 8),
+          if (item.brand != null)
             Text('• ${item.brand}', style: TextStyle(color: AppTheme.textSecondary)),
-          ],
-          if (item.substitutedForName != null) ...[
-            const SizedBox(width: 8),
+          if (item.substitutedForName != null)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
@@ -427,9 +435,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                 style: TextStyle(color: AppTheme.accentColor, fontSize: 8, fontWeight: FontWeight.bold),
               ),
             ),
-          ],
-          if (promotion != null) ...[
-            const SizedBox(width: 8),
+          if (promotion != null)
             Tooltip(
               message: promotion.promoDescription ??
                   '${promotion.regularPrice.toStringAsFixed(2)} zł → '
@@ -446,7 +452,6 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                 ),
               ),
             ),
-          ],
         ],
       ),
       trailing: Row(

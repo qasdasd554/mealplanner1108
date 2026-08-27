@@ -140,7 +140,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
               toolbarHeight: 0,
               floating: true,
               snap: true,
-              expandedHeight: 70,
+              expandedHeight: 80,
               backgroundColor: AppTheme.backgroundColor,
               elevation: 0,
               // UWAGA (przebudowa #2): teraz WSZYSTKIE 4 szybkie filtry
