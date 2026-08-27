@@ -26,7 +26,17 @@ class ApiConfig {
       return _productionBaseUrl;
     }
     // Emulator Androida w trybie debug — wygodny lokalny backend na hoście.
-    if (kDebugMode) {
+    // UWAGA (naprawa — "usługa chwilowo niedostępna" na iOS): warunek
+    // sprawdzał WYŁĄCZNIE kDebugMode, bez sprawdzenia platformy — więc
+    // uruchomienie aplikacji na iOS w trybie debug (np. z Xcode) TEŻ
+    // trafiało w ten warunek i próbowało łączyć się z 10.0.2.2, adresem
+    // istniejącym WYŁĄCZNIE wewnątrz emulatora Androida, kompletnie
+    // nieosiągalnym na iOS (nawet na symulatorze). Efekt: każde
+    // zapytanie sieciowe na iOS w trybie debug kończyło się błędem
+    // połączenia. Dodane sprawdzenie platformy (przez
+    // defaultTargetPlatform, bezpieczne też na web — w przeciwieństwie
+    // do Platform.isAndroid z dart:io, które nie kompiluje się na web).
+    if (kDebugMode && defaultTargetPlatform == TargetPlatform.android) {
       return 'http://10.0.2.2:8000';
     }
     // Urządzenie fizyczne / build release (to trafia do prawdziwych użytkowników) —
