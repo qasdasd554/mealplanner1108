@@ -31,6 +31,11 @@ class _PremiumScreenState extends State<PremiumScreen> {
   Map<String, ProductDetails> _products = {};
   String? _productsError;
 
+  // Osobne od subskrypcji — pakiety punktów to inna kategoria produktów
+  // (konsumowalne), ładowane niezależnie.
+  Map<String, ProductDetails> _pointsProducts = {};
+  bool _isLoadingPointsProducts = true;
+
   // Podczas przetwarzania zakupu blokujemy przyciski i pokazujemy
   // spinner — zakup przechodzi przez kilka asynchronicznych kroków
   // (Google -> backend -> potwierdzenie), więc to może potrwać kilka
@@ -52,6 +57,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
       },
     );
     _loadProducts();
+    _loadPointsProducts();
   }
 
   @override
@@ -94,6 +100,37 @@ class _PremiumScreenState extends State<PremiumScreen> {
     }
   }
 
+  Future<void> _loadPointsProducts() async {
+    setState(() => _isLoadingPointsProducts = true);
+    try {
+      final response = await _billing.queryPointsProducts();
+      if (!mounted) return;
+      setState(() {
+        _pointsProducts = {for (final p in response.productDetails) p.id: p};
+        _isLoadingPointsProducts = false;
+      });
+    } catch (e) {
+      // Ciche niepowodzenie — punkty to funkcja dodatkowa, nie krytyczna
+      // ścieżka; jeśli się nie uda, sekcja po prostu się nie pokaże,
+      // reszta ekranu Premium działa normalnie.
+      if (!mounted) return;
+      setState(() => _isLoadingPointsProducts = false);
+    }
+  }
+
+  Future<void> _buyPoints(ProductDetails product) async {
+    setState(() => _isProcessingPurchase = true);
+    try {
+      await _billing.buyPoints(product);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isProcessingPurchase = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
+      );
+    }
+  }
+
   Future<void> _handlePurchaseUpdates(List<PurchaseDetails> purchases) async {
     for (final purchase in purchases) {
       if (purchase.status == PurchaseStatus.pending) {
@@ -133,6 +170,18 @@ class _PremiumScreenState extends State<PremiumScreen> {
 
   Future<void> _verifyWithBackend(PurchaseDetails purchase) async {
     final purchaseToken = purchase.verificationData.serverVerificationData;
+
+    // UWAGA (rozszerzenie): pakiety punktów to INNY rodzaj produktu
+    // (konsumowalny, nie subskrypcja) i mają OSOBNĄ ścieżkę weryfikacji
+    // na backendzie — rozpoznajemy je po identyfikatorze produktu.
+    final isPointsPackage = {kPoints10ProductId, kPoints20ProductId, kPoints50ProductId}
+        .contains(purchase.productID);
+
+    if (isPointsPackage) {
+      await _verifyPointsWithBackend(purchase, purchaseToken);
+      return;
+    }
+
     try {
       final isRestore = purchase.status == PurchaseStatus.restored;
       final result = isRestore
@@ -167,6 +216,38 @@ class _PremiumScreenState extends State<PremiumScreen> {
         _isProcessingPurchase = false;
         _isRestoring = false;
       });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Nie udało się potwierdzić zakupu: ${friendlyError(e)}')),
+      );
+    }
+  }
+
+  /// Weryfikacja zakupu PAKIETU PUNKTÓW — osobna od subskrypcji, bo to
+  /// inny endpoint backendu i inny rezultat (saldo punktów, nie status
+  /// premium). Zakup KONSUMOWALNY musi zostać potwierdzony (completePurchase)
+  /// NIEZALEŻNIE od wyniku weryfikacji backendu, bo Google traktuje
+  /// niekonsumowane zakupy jako "wiszące" i po ~3 dniach zwraca pieniądze.
+  Future<void> _verifyPointsWithBackend(PurchaseDetails purchase, String purchaseToken) async {
+    try {
+      final newBalance = await _billing.verifyPointsPurchase(
+        purchaseToken: purchaseToken,
+        productId: purchase.productID,
+      );
+
+      if (purchase.pendingCompletePurchase) {
+        await _billing.completePurchase(purchase);
+      }
+
+      if (!mounted) return;
+      await Provider.of<AuthProvider>(context, listen: false).loadProfile();
+      if (!mounted) return;
+      setState(() => _isProcessingPurchase = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Dodano punkty! Masz teraz $newBalance punktów.')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isProcessingPurchase = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Nie udało się potwierdzić zakupu: ${friendlyError(e)}')),
       );
@@ -453,6 +534,8 @@ class _PremiumScreenState extends State<PremiumScreen> {
                 }),
                 const SizedBox(height: 12),
                 ..._buildPricingSection(context),
+                const SizedBox(height: 24),
+                ..._buildPointsSection(context),
                 const SizedBox(height: 12),
               ]),
             ),
@@ -577,6 +660,117 @@ class _PremiumScreenState extends State<PremiumScreen> {
         ),
       ),
     ];
+  }
+
+  /// Sekcja zakupu pakietów punktów premium — osobna od subskrypcji
+  /// (patrz komentarz w _verifyWithBackend): 2 punkty = jedno zapytanie
+  /// do AI, dla kont, które nie chcą pełnej subskrypcji, ale chcą
+  /// jednorazowo skorzystać z rozpoznawania przepisu przez AI.
+  List<Widget> _buildPointsSection(BuildContext context) {
+    final auth = Provider.of<AuthProvider>(context);
+    final currentBalance = auth.currentUser?.premiumPoints ?? 0;
+
+    return [
+      Row(
+        children: [
+          Icon(Icons.toll_outlined, color: AppTheme.accentColor, size: 20),
+          const SizedBox(width: 8),
+          Text(
+            'Punkty premium',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const Spacer(),
+          Text(
+            'Masz: $currentBalance',
+            style: TextStyle(color: AppTheme.accentColor, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+      const SizedBox(height: 4),
+      Text(
+        '2 punkty = jedno zapytanie do AI (przepis z tekstu, zdjęcia albo linku) — bez subskrypcji.',
+        style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+      ),
+      const SizedBox(height: 12),
+      if (_isLoadingPointsProducts)
+        const Center(child: CircularProgressIndicator())
+      else if (_pointsProducts.isEmpty)
+        Text(
+          'Nie udało się pobrać cen pakietów punktów.',
+          style: TextStyle(color: AppTheme.textSecondary),
+        )
+      else
+        Row(
+          children: [
+            if (_pointsProducts[kPoints10ProductId] != null)
+              Expanded(
+                child: _buildPointsCard(
+                  points: 10,
+                  price: _pointsProducts[kPoints10ProductId]!.price,
+                  onTap: _isProcessingPurchase
+                      ? null
+                      : () => _buyPoints(_pointsProducts[kPoints10ProductId]!),
+                ),
+              ),
+            if (_pointsProducts[kPoints20ProductId] != null) ...[
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildPointsCard(
+                  points: 20,
+                  price: _pointsProducts[kPoints20ProductId]!.price,
+                  onTap: _isProcessingPurchase
+                      ? null
+                      : () => _buyPoints(_pointsProducts[kPoints20ProductId]!),
+                ),
+              ),
+            ],
+            if (_pointsProducts[kPoints50ProductId] != null) ...[
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildPointsCard(
+                  points: 50,
+                  price: _pointsProducts[kPoints50ProductId]!.price,
+                  highlight: true,
+                  onTap: _isProcessingPurchase
+                      ? null
+                      : () => _buyPoints(_pointsProducts[kPoints50ProductId]!),
+                ),
+              ),
+            ],
+          ],
+        ),
+    ];
+  }
+
+  Widget _buildPointsCard({
+    required int points,
+    required String price,
+    required VoidCallback? onTap,
+    bool highlight = false,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+        decoration: BoxDecoration(
+          color: highlight ? AppTheme.accentColor.withOpacity(0.12) : AppTheme.surfaceColor,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: highlight ? AppTheme.accentColor : AppTheme.textSecondary.withOpacity(0.2),
+            width: highlight ? 1.5 : 1,
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(Icons.toll, color: AppTheme.accentColor, size: 22),
+            const SizedBox(height: 6),
+            Text('$points pkt', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+            const SizedBox(height: 2),
+            Text(price, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildPricingCard({

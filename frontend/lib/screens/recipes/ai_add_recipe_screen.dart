@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../models/recipe.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/recipe_service.dart';
+import '../../services/api_client.dart';
 import '../../theme/app_theme.dart';
 import 'recipe_detail_screen.dart';
 import '../profile/premium_screen.dart';
@@ -172,9 +173,42 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
 
   void _handleError(Object e) {
     if (!mounted) return;
+    // UWAGA (rozszerzenie — punkty premium): kod 402 oznacza konkretnie
+    // "brak Premium i za mało punktów" (patrz backend, ai_import_recipe)
+    // — zamiast zwykłego komunikatu błędu, pokazujemy dialog z
+    // bezpośrednim przejściem do zakupu punktów/Premium, żeby nie
+    // zostawiać użytkownika z samą informacją "nie udało się", bez
+    // wskazania, co dalej.
+    if (e is ApiException && e.statusCode == 402) {
+      _showPointsNeededDialog(e.message);
+      return;
+    }
     setState(() {
       _error = friendlyError(e);
     });
+  }
+
+  Future<void> _showPointsNeededDialog(String message) async {
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Potrzebujesz Premium albo punktów'),
+        content: Text(message),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Anuluj')),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const PremiumScreen()),
+              );
+            },
+            child: const Text('Kup punkty'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _onSuccess(Recipe recipe) async {

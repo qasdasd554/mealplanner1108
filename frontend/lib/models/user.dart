@@ -17,6 +17,9 @@ class User {
   final bool isPremium;
   final DateTime? premiumExpiresAt;
   final String? premiumProductId;
+  // Saldo punktów premium — wymienna waluta niezależna od subskrypcji,
+  // 2 punkty = jedno zapytanie do AI dla kont bez Premium.
+  final int premiumPoints;
   final DateTime createdAt;
 
   User({
@@ -38,6 +41,7 @@ class User {
     this.isPremium = false,
     this.premiumExpiresAt,
     this.premiumProductId,
+    this.premiumPoints = 0,
     required this.createdAt,
   });
 
@@ -84,6 +88,7 @@ class User {
           ? DateTime.tryParse(json['premium_expires_at'] as String)
           : null,
       premiumProductId: json['premium_product_id'] as String?,
+      premiumPoints: json['premium_points'] as int? ?? 0,
       createdAt: DateTime.parse(json['created_at'] as String),
     );
   }
@@ -105,6 +110,7 @@ class User {
     bool? isPremium,
     DateTime? premiumExpiresAt,
     String? premiumProductId,
+    int? premiumPoints,
     DateTime? createdAt,
   }) {
     return User(
@@ -124,6 +130,7 @@ class User {
       isPremium: isPremium ?? this.isPremium,
       premiumExpiresAt: premiumExpiresAt ?? this.premiumExpiresAt,
       premiumProductId: premiumProductId ?? this.premiumProductId,
+      premiumPoints: premiumPoints ?? this.premiumPoints,
       createdAt: createdAt ?? this.createdAt,
     );
   }
