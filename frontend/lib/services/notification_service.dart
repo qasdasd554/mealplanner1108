@@ -27,4 +27,14 @@ class NotificationService {
   Future<void> markAllAsRead() async {
     await _client.put('/notifications/read-all');
   }
+
+  /// Wysyła powiadomienie do WSZYSTKICH użytkowników — wymaga
+  /// uprawnień administratora (backend odrzuci zwykłe konto kodem 403).
+  Future<int> sendBroadcast(String message) async {
+    final response = await _client.post(
+      '/notifications/admin/broadcast',
+      body: {'message': message},
+    );
+    return (response as Map<String, dynamic>)['sent_to'] as int;
+  }
 }

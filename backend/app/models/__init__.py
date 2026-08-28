@@ -17,6 +17,7 @@ from app.models.shopping_list_share import ShoppingListShare
 from app.models.pantry import PantryItem
 from app.models.store import Store, StoreDepartment
 from app.models.user import User, UserAllergen
+from app.models.weekly_contest_payout import WeeklyContestPayout
 from app.models.food_log import FoodLogEntry
 from app.models.notification import Notification
 
@@ -40,6 +41,7 @@ __all__ = [
     "RecipeFavorite",
     # User
     "User",
+    "WeeklyContestPayout",
     "UserAllergen",
     # Meal Plan
     "MealPlan",

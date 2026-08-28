@@ -110,6 +110,15 @@ class Settings(BaseSettings):
     RATE_LIMIT_LOGIN_ATTEMPTS: int = 10
     # Maksymalna liczba zakładanych kont z jednego adresu IP w tym samym oknie.
     RATE_LIMIT_SIGNUP_ATTEMPTS: int = 3
+
+    # UWAGA (funkcja: powiadomienie o aktualizacji): numer wersji
+    # (versionCode/buildNumber z pubspec.yaml, część po "+") najnowszej
+    # opublikowanej aplikacji — AKTUALIZUJ RĘCZNIE przy każdym wydaniu
+    # nowego builda do Play Console/App Store. Aplikacja porównuje SWÓJ
+    # własny numer z tą wartością przy starcie i pokazuje delikatne
+    # przypomnienie, jeśli jest starsza — nie blokuje korzystania,
+    # tylko informuje.
+    LATEST_APP_VERSION_CODE: int = 64
     RATE_LIMIT_WINDOW_SECONDS: int = 600
 
     @property

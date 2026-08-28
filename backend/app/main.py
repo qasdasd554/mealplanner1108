@@ -242,6 +242,33 @@ async def _price_scraper_background_loop() -> None:
         await asyncio.sleep(12 * 60 * 60)  # 12 godzin
 
 
+async def _weekly_contest_background_loop() -> None:
+    """Sprawdza co godzinę, czy poprzedni tydzień konkursu przepisów
+    czeka na rozliczenie (patrz app/services/weekly_contest.py) — jeśli
+    tak, przyznaje punkty TOP 3 i wysyła powiadomienie do wszystkich.
+
+    Tak samo jak _price_scraper_background_loop: zwykła pętla w tym
+    samym procesie, nie prawdziwy cron. Odporne na usypianie usługi na
+    darmowym planie Render — funkcja process_weekly_contest_payout
+    sama sprawdza, CZY dany tydzień był już rozliczony, więc niezależnie
+    od tego, o której dokładnie godzinie serwer się obudzi, poprawnie
+    rozliczy zaległy tydzień przy najbliższej okazji.
+    """
+    await asyncio.sleep(30)
+    while True:
+        try:
+            from app.db.session import async_session_factory
+            from app.services.weekly_contest import process_weekly_contest_payout
+
+            async with async_session_factory() as db:
+                result = await process_weekly_contest_payout(db)
+                if result is not None:
+                    logger.info("Konkurs tygodniowy: rozliczono tydzień %s", result.week_start_date)
+        except Exception:
+            logger.exception("Błąd przy rozliczaniu konkursu tygodniowego")
+        await asyncio.sleep(60 * 60)  # 1 godzina
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Zarządza cyklem życia aplikacji — startup i shutdown."""
@@ -250,10 +277,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     await _seed_database_if_empty()
     await _backfill_missing_nutrition_totals()
     scraper_task = asyncio.create_task(_price_scraper_background_loop())
+    weekly_contest_task = asyncio.create_task(_weekly_contest_background_loop())
     logger.info("Aplikacja gotowa do obsługi żądań.")
     yield
     logger.info("Zamykanie Smart Meal Planner PL API...")
     scraper_task.cancel()
+    weekly_contest_task.cancel()
 
 
 app = FastAPI(
@@ -337,4 +366,20 @@ async def health_check() -> dict[str, str]:
         "service": "smart-meal-planner-pl",
         "database_provider": db_provider,
         "database_host": "ep-small-lab-b1y3gm3e.c-5.eu-central-1.aws.neon.tech" if "neon.tech" in settings.DATABASE_URL else "local",
+    }
+
+
+@app.get(
+    "/app/version-info",
+    tags=["Health"],
+    summary="Numer najnowszej opublikowanej wersji aplikacji",
+)
+async def app_version_info() -> dict:
+    """Publiczny (bez logowania) endpoint sprawdzany przez aplikację przy
+    starcie — jeśli zainstalowana wersja jest starsza niż
+    LATEST_APP_VERSION_CODE, aplikacja pokazuje delikatne przypomnienie
+    o dostępnej aktualizacji (nie blokuje działania)."""
+    return {
+        "latest_version_code": settings.LATEST_APP_VERSION_CODE,
+        "play_store_url": "https://play.google.com/store/apps/details?id=com.meal_planner_polska_v1",
     }

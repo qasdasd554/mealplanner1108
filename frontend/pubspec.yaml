@@ -1,7 +1,7 @@
 name: smart_meal_planner
 description: "A smart meal planner mobile application integrated with Polish grocery stores."
 publish_to: 'none'
-version: 1.0.0+62
+version: 1.0.0+64
 
 environment:
   sdk: '>=3.7.0 <4.0.0'
@@ -44,6 +44,7 @@ dependencies:
   # Utilities
   share_plus: ^10.1.2
   url_launcher: ^6.3.1
+  package_info_plus: ^8.1.2
   image_picker: ^1.1.2
   # UWAGA: obsługa udostępnień z TikToka (link -> rozpoznanie przepisu
   # przez AI) NIE korzysta z żadnego pakietu z pub.dev. Dwie kolejne

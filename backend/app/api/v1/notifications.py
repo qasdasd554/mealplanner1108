@@ -4,11 +4,12 @@ import uuid
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, Field
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.api.deps import get_current_user, get_db
+from app.api.deps import get_current_admin, get_current_user, get_db
 from app.models.notification import Notification
 from app.models.user import User
 from app.schemas.notification import NotificationResponse, UnreadCountResponse
@@ -91,3 +92,36 @@ async def mark_all_notifications_read(
         .values(is_read=True)
     )
     await db.commit()
+
+
+class BroadcastRequest(BaseModel):
+    message: str = Field(min_length=1, max_length=500)
+
+
+@router.post(
+    "/admin/broadcast",
+    status_code=status.HTTP_201_CREATED,
+    summary="Wyślij powiadomienie do WSZYSTKICH użytkowników (admin)",
+)
+async def send_broadcast_notification(
+    payload: BroadcastRequest,
+    current_user: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Tworzy JEDEN wiersz Notification dla KAŻDEGO konta w bazie —
+    zgodnie z istniejącym modelem (jeden wiersz per odbiorca, nie
+    współdzielony wpis), więc każdy użytkownik może niezależnie oznaczyć
+    to jako przeczytane, bez wpływu na innych."""
+    all_users = await db.execute(select(User.id))
+    user_ids = [row[0] for row in all_users.all()]
+
+    for user_id in user_ids:
+        db.add(
+            Notification(
+                user_id=user_id,
+                notification_type="broadcast",
+                message=payload.message,
+            )
+        )
+    await db.commit()
+    return {"sent_to": len(user_ids)}

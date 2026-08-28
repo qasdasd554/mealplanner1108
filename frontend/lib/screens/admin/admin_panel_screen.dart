@@ -3,6 +3,7 @@ import '../../models/promotion.dart';
 import '../../models/recipe.dart';
 import '../../services/promotion_service.dart';
 import '../../services/recipe_service.dart';
+import '../../services/notification_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
 
@@ -19,6 +20,9 @@ class AdminPanelScreen extends StatefulWidget {
 class _AdminPanelScreenState extends State<AdminPanelScreen> {
   final PromotionService _service = PromotionService();
   final RecipeService _recipeService = RecipeService();
+  final NotificationService _notificationService = NotificationService();
+  final TextEditingController _broadcastController = TextEditingController();
+  bool _isSendingBroadcast = false;
   final List<String> _stores = ['Biedronka', 'Lidl', 'Dino'];
 
   String? _scanningStore;
@@ -44,6 +48,73 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     super.initState();
     _loadPendingRecipes();
     _loadPending();
+  }
+
+  @override
+  void dispose() {
+    _broadcastController.dispose();
+    super.dispose();
+  }
+
+  /// Wysyła powiadomienie do WSZYSTKICH użytkowników aplikacji — to
+  /// powiadomienie WEWNĄTRZ aplikacji (dzwoneczek), nie prawdziwy push
+  /// (który wymagałby Firebase Cloud Messaging).
+  Future<void> _sendBroadcast() async {
+    final message = _broadcastController.text.trim();
+    if (message.isEmpty) return;
+
+    setState(() => _isSendingBroadcast = true);
+    try {
+      final sentTo = await _notificationService.sendBroadcast(message);
+      if (!mounted) return;
+      _broadcastController.clear();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Wysłano do $sentTo użytkowników.')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
+      );
+    } finally {
+      if (mounted) setState(() => _isSendingBroadcast = false);
+    }
+  }
+
+  Widget _buildBroadcastSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Wyślij powiadomienie do wszystkich', style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: 4),
+        Text(
+          'Trafi do dzwoneczka powiadomień KAŻDEGO użytkownika aplikacji — nieodwracalne, sprawdź treść przed wysłaniem.',
+          style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _broadcastController,
+          maxLines: 3,
+          maxLength: 500,
+          decoration: const InputDecoration(
+            hintText: 'Treść powiadomienia...',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.icon(
+            onPressed: _isSendingBroadcast ? null : _sendBroadcast,
+            icon: _isSendingBroadcast
+                ? const SizedBox(
+                    width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                  )
+                : const Icon(Icons.campaign_outlined),
+            label: const Text('Wyślij do wszystkich'),
+          ),
+        ),
+      ],
+    );
   }
 
   Future<void> _checkAiStatus() async {
@@ -516,6 +587,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                   ),
                 );
               }),
+            const SizedBox(height: 32),
+            _buildBroadcastSection(context),
           ],
         ),
       ),
