@@ -40,4 +40,15 @@ class PantryService {
   Future<void> deleteItem(String itemId) async {
     await _client.delete('${ApiConfig.pantry}$itemId');
   }
+
+  /// Ustawia/zmienia ilość produktu już zapisanego w spiżarni. `unit`
+  /// jest opcjonalne — jeśli pominięte, backend zostawia poprzednią
+  /// jednostkę bez zmian (przydatne przy samej korekcie liczby, np.
+  /// "zjadłem połowę", bez konieczności podawania jednostki na nowo).
+  Future<PantryItem> updateQuantity(String itemId, {double? quantity, String? unit}) async {
+    final body = <String, dynamic>{'quantity': quantity};
+    if (unit != null) body['unit'] = unit;
+    final response = await _client.patch('${ApiConfig.pantry}$itemId', body: body);
+    return PantryItem.fromJson(response as Map<String, dynamic>);
+  }
 }

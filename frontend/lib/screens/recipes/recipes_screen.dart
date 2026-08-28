@@ -93,15 +93,29 @@ class _RecipesScreenState extends State<RecipesScreen> {
       appBar: AppBar(
         title: const Text('Przepisy'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.emoji_events_outlined),
-            tooltip: 'Ranking autorów przepisów',
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const RecipeLeaderboardScreen()),
-              );
-            },
-          ),
+          // UWAGA (naprawa widoczności): zwykła, konturowa ikona ledwo
+          // było widać na pasku — teraz wypełniona, w złotym kolorze
+          // trofeum, na delikatnym tle, z subtelną animacją pulsowania,
+          // żeby wyraźnie zachęcała do sprawdzenia cotygodniowego
+          // konkursu, nie ginęła obok innych, zwykłych ikon.
+          Container(
+            margin: const EdgeInsets.only(right: 4),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFFE0A62E).withOpacity(0.15),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.emoji_events, color: Color(0xFFE0A62E)),
+              tooltip: 'Ranking autorów przepisów',
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const RecipeLeaderboardScreen()),
+                );
+              },
+            ),
+          )
+              .animate(onPlay: (controller) => controller.repeat(reverse: true))
+              .scale(duration: 1200.ms, begin: const Offset(1, 1), end: const Offset(1.08, 1.08)),
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),

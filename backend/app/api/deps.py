@@ -1,5 +1,6 @@
 """Zależności wstrzykiwane do endpointów API (dependency injection)."""
 
+from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
 from fastapi import Depends, HTTPException, status
@@ -13,6 +14,15 @@ from app.db.session import get_db
 from app.models import User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+
+# UWAGA (nowe — śledzenie aktywności): jak często NAJWYŻEJ zapisujemy
+# nową wartość last_active_at do bazy. Bez tego progu KAŻDE pojedyncze
+# zapytanie API (a jest ich dużo — każde odświeżenie ekranu, każdy
+# scroll listy) wywoływałoby dodatkowy zapis do bazy, co jest
+# niepotrzebnym obciążeniem — "aktywny w ostatnich 5 minutach" to
+# w zupełności wystarczająca precyzja do celu, jakim jest orientacyjne
+# monitorowanie zaangażowania użytkowników, nie rozliczanie co do sekundy.
+_ACTIVITY_UPDATE_THROTTLE = timedelta(minutes=5)
 
 
 async def get_current_user(
@@ -48,6 +58,16 @@ async def get_current_user(
 
     if user is None:
         raise credentials_exception
+
+    # Aktualizacja "ostatnio aktywny" — przepustowana (patrz komentarz
+    # przy _ACTIVITY_UPDATE_THROTTLE powyżej), żeby nie zapisywać do bazy
+    # przy każdym pojedynczym zapytaniu.
+    now = datetime.now(timezone.utc)
+    if user.last_active_at is None or (now - user.last_active_at) > _ACTIVITY_UPDATE_THROTTLE:
+        user.last_active_at = now
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
 
     return user
 

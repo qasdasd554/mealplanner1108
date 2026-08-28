@@ -8,11 +8,14 @@ import '../../providers/promotion_provider.dart';
 import '../../models/shopping_list.dart';
 import '../../services/api_client.dart';
 import '../../services/pantry_service.dart';
+import '../../services/shopping_list_service.dart';
+import '../../utils/error_utils.dart';
 import '../../config/api_config.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/decorative_circles.dart';
 import 'price_compare_screen.dart';
 import 'export_list_screen.dart';
+import 'pending_shares_screen.dart';
 
 class ShoppingListScreen extends StatefulWidget {
   final bool isTab;
@@ -54,6 +57,61 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     // aktywne promocje dla wybranego sklepu, żeby pokazać odznaki przy
     // pozycjach listy zakupów.
     promotionProvider.ensureLoadedForStore(storeProvider.selectedStore?.name);
+  }
+
+  /// Prosty dialog do udostępnienia listy zakupów innemu użytkownikowi
+  /// po adresie e-mail — druga strona musi to zaakceptować, zanim
+  /// dostanie faktyczny dostęp (patrz backend, ShoppingListShare).
+  Future<void> _showShareDialog(String listId) async {
+    final controller = TextEditingController();
+    final email = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Udostępnij listę zakupów'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Osoba musi mieć konto w Meal Planner Polska i zaakceptować zaproszenie, zanim zobaczy listę.',
+              style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              autofocus: true,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(
+                labelText: 'Adres e-mail',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Anuluj')),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+            child: const Text('Wyślij zaproszenie'),
+          ),
+        ],
+      ),
+    );
+
+    if (email == null || email.isEmpty || !mounted) return;
+
+    try {
+      await ShoppingListService().shareList(listId, email);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Wysłano zaproszenie do $email')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
+      );
+    }
   }
 
   // Ikony działów (wcześniej tu było mapowanie na emoji — usunięte razem
@@ -202,6 +260,21 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                 onPressed: () => Navigator.of(context).pop(),
               ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.mail_outline),
+            tooltip: 'Zaproszenia do list zakupów',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const PendingSharesScreen()),
+              );
+            },
+          ),
+          if (list != null)
+            IconButton(
+              icon: const Icon(Icons.person_add_alt_outlined),
+              tooltip: 'Udostępnij listę',
+              onPressed: () => _showShareDialog(list.id),
+            ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _loadData,

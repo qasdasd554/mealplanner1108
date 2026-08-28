@@ -1,11 +1,11 @@
 """Endpointy list zakupów — przeglądanie, oznaczanie, zamienniki."""
 
-from datetime import date
+from datetime import date, datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import func, select
+from sqlalchemy import exists, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -19,6 +19,7 @@ from app.models import (
     Recipe,
     ShoppingList,
     ShoppingListItem,
+    ShoppingListShare,
     StoreDepartment,
     StoreProduct,
     User,
@@ -254,11 +255,26 @@ async def _get_shopping_list_or_404(
     current_user: User,
     db: AsyncSession,
 ) -> ShoppingList:
-    """Pobiera listę zakupów z weryfikacją właściciela.
+    """Pobiera listę zakupów z weryfikacją dostępu.
+
+    UWAGA (rozszerzenie — udostępnianie): dostęp ma teraz WŁAŚCICIEL
+    planu (jak dotychczas) ORAZ każdy, komu ten plan zostało
+    UDOSTĘPNIONE i kto to udostępnienie ZAAKCEPTOWAŁ (status
+    "accepted" w ShoppingListShare) — to JEDNO miejsce, z którego
+    korzystają WSZYSTKIE inne endpointy w tym pliku (podgląd,
+    odhaczanie, zamienniki), więc ta jedna zmiana automatycznie
+    "odblokowuje" współdzieloną listę wszędzie, bez konieczności
+    zmieniać każdego endpointu z osobna.
 
     Raises:
-        NotFoundException: jeśli lista nie istnieje lub nie należy do użytkownika.
+        NotFoundException: jeśli lista nie istnieje lub użytkownik nie ma do niej dostępu.
     """
+    shared_access = exists().where(
+        ShoppingListShare.meal_plan_id == MealPlan.id,
+        ShoppingListShare.shared_with_user_id == current_user.id,
+        ShoppingListShare.status == "accepted",
+    )
+
     result = await db.execute(
         select(ShoppingList)
         .join(MealPlan, ShoppingList.meal_plan_id == MealPlan.id)
@@ -270,7 +286,7 @@ async def _get_shopping_list_or_404(
         )
         .where(
             ShoppingList.meal_plan_id == list_id,
-            MealPlan.user_id == current_user.id,
+            or_(MealPlan.user_id == current_user.id, shared_access),
         )
     )
     shopping_list = result.scalar_one_or_none()
@@ -467,4 +483,224 @@ async def delete_shopping_list(
         raise NotFoundException(detail="Nie znaleziono listy zakupów do usunięcia.")
 
     await db.delete(plan)
+    await db.commit()
+
+
+# ══════════════════════════════════════════════════════════════════
+# UDOSTĘPNIANIE LIST ZAKUPÓW — dwuetapowe (zaproszenie -> akceptacja),
+# żeby nikt nie mógł po cichu dodać kogoś do współdzielonej listy bez
+# jego wiedzy. Po zaakceptowaniu, _get_shopping_list_or_404 (patrz
+# wyżej) automatycznie daje odbiorcy dostęp do WSZYSTKICH istniejących
+# operacji na tej liście (podgląd, odhaczanie, zamienniki).
+# ══════════════════════════════════════════════════════════════════
+class ShareShoppingListRequest(BaseModel):
+    email: str
+
+
+class ShoppingListShareResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    meal_plan_id: UUID
+    status: str
+    created_at: datetime
+    # Nazwa drugiej strony — dla odbiorcy pokazujemy KTO udostępnił,
+    # dla właściciela pokazujemy KOMU (frontend sam decyduje, które
+    # pole akurat wyświetlić, w zależności od kontekstu ekranu).
+    shared_by_name: str | None = None
+    shared_with_name: str | None = None
+    shared_with_email: str | None = None
+
+
+@router.post(
+    "/{list_id}/share",
+    response_model=ShoppingListShareResponse,
+    status_code=201,
+    summary="Udostępnij listę zakupów innemu użytkownikowi (po e-mailu)",
+)
+async def share_shopping_list(
+    list_id: UUID,
+    payload: ShareShoppingListRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> ShoppingListShare:
+    """Tworzy ZAPROSZENIE (status "pending") dla użytkownika o podanym
+    e-mailu — dostęp do listy dostaje dopiero PO zaakceptowaniu, nie
+    natychmiast."""
+    # Weryfikacja: tylko WŁAŚCICIEL planu może go udostępniać (nie
+    # osoba, której ktoś inny już go udostępnił — bez tego można by
+    # było "podudostępniać dalej" bez wiedzy/zgody oryginalnego
+    # właściciela).
+    plan_result = await db.execute(
+        select(MealPlan).where(MealPlan.id == list_id, MealPlan.user_id == current_user.id)
+    )
+    plan = plan_result.scalar_one_or_none()
+    if plan is None:
+        raise NotFoundException(detail="Nie znaleziono Twojej listy zakupów do udostępnienia.")
+
+    target_result = await db.execute(select(User).where(User.email == payload.email.strip().lower()))
+    target_user = target_result.scalar_one_or_none()
+    if target_user is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Nie znaleziono użytkownika Meal Planner Polska o tym adresie e-mail.",
+        )
+    if target_user.id == current_user.id:
+        raise HTTPException(status_code=400, detail="Nie możesz udostępnić listy samemu sobie.")
+
+    # Jeśli zaproszenie już istnieje (pending lub accepted), nie
+    # duplikujemy — po prostu zwracamy istniejący wpis.
+    existing_result = await db.execute(
+        select(ShoppingListShare).where(
+            ShoppingListShare.meal_plan_id == list_id,
+            ShoppingListShare.shared_with_user_id == target_user.id,
+        )
+    )
+    existing = existing_result.scalar_one_or_none()
+    if existing is not None:
+        share = existing
+    else:
+        share = ShoppingListShare(
+            meal_plan_id=list_id,
+            shared_by_user_id=current_user.id,
+            shared_with_user_id=target_user.id,
+            status="pending",
+        )
+        db.add(share)
+        await db.commit()
+        await db.refresh(share)
+
+    return ShoppingListShareResponse(
+        id=share.id,
+        meal_plan_id=share.meal_plan_id,
+        status=share.status,
+        created_at=share.created_at,
+        shared_with_name=target_user.display_name,
+        shared_with_email=target_user.email,
+    )
+
+
+@router.get(
+    "/shares/pending",
+    response_model=list[ShoppingListShareResponse],
+    summary="Zaproszenia do współdzielonych list zakupów, oczekujące na Ciebie",
+)
+async def get_pending_shares(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> list[ShoppingListShareResponse]:
+    result = await db.execute(
+        select(ShoppingListShare)
+        .options(selectinload(ShoppingListShare.shared_by))
+        .where(
+            ShoppingListShare.shared_with_user_id == current_user.id,
+            ShoppingListShare.status == "pending",
+        )
+        .order_by(ShoppingListShare.created_at.desc())
+    )
+    shares = result.scalars().all()
+    return [
+        ShoppingListShareResponse(
+            id=s.id,
+            meal_plan_id=s.meal_plan_id,
+            status=s.status,
+            created_at=s.created_at,
+            shared_by_name=s.shared_by.display_name,
+        )
+        for s in shares
+    ]
+
+
+@router.get(
+    "/shares/shared-with-me",
+    response_model=list[ShoppingListShareResponse],
+    summary="Listy zakupów, które ktoś Ci udostępnił i które zaakceptowałeś",
+)
+async def get_shared_with_me(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> list[ShoppingListShareResponse]:
+    result = await db.execute(
+        select(ShoppingListShare)
+        .options(selectinload(ShoppingListShare.shared_by))
+        .where(
+            ShoppingListShare.shared_with_user_id == current_user.id,
+            ShoppingListShare.status == "accepted",
+        )
+        .order_by(ShoppingListShare.created_at.desc())
+    )
+    shares = result.scalars().all()
+    return [
+        ShoppingListShareResponse(
+            id=s.id,
+            meal_plan_id=s.meal_plan_id,
+            status=s.status,
+            created_at=s.created_at,
+            shared_by_name=s.shared_by.display_name,
+        )
+        for s in shares
+    ]
+
+
+@router.post(
+    "/shares/{share_id}/accept",
+    response_model=ShoppingListShareResponse,
+    summary="Zaakceptuj zaproszenie do współdzielonej listy",
+)
+async def accept_share(
+    share_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> ShoppingListShareResponse:
+    result = await db.execute(
+        select(ShoppingListShare)
+        .options(selectinload(ShoppingListShare.shared_by))
+        .where(ShoppingListShare.id == share_id, ShoppingListShare.shared_with_user_id == current_user.id)
+    )
+    share = result.scalar_one_or_none()
+    if share is None:
+        raise NotFoundException(detail="Nie znaleziono tego zaproszenia.")
+
+    share.status = "accepted"
+    await db.commit()
+    await db.refresh(share)
+
+    return ShoppingListShareResponse(
+        id=share.id,
+        meal_plan_id=share.meal_plan_id,
+        status=share.status,
+        created_at=share.created_at,
+        shared_by_name=share.shared_by.display_name,
+    )
+
+
+@router.delete(
+    "/shares/{share_id}",
+    status_code=204,
+    summary="Odrzuć zaproszenie / usuń udostępnienie / opuść współdzieloną listę",
+)
+async def delete_share(
+    share_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    """Jeden endpoint na trzy sytuacje — bo to ta sama operacja z
+    punktu widzenia bazy (usunięcie wiersza), różniąca się tylko
+    KTO ją wywołuje: odbiorca odrzucający zaproszenie, odbiorca
+    opuszczający już zaakceptowaną listę, albo właściciel odbierający
+    komuś dostęp."""
+    result = await db.execute(
+        select(ShoppingListShare).where(
+            ShoppingListShare.id == share_id,
+            or_(
+                ShoppingListShare.shared_with_user_id == current_user.id,
+                ShoppingListShare.shared_by_user_id == current_user.id,
+            ),
+        )
+    )
+    share = result.scalar_one_or_none()
+    if share is None:
+        raise NotFoundException(detail="Nie znaleziono tego udostępnienia.")
+
+    await db.delete(share)
     await db.commit()

@@ -69,8 +69,10 @@ class ApiConfig {
   static const String usersAllergens = '/users/me/allergens';
   static const String usersCalorieCalculator = '/users/me/calorie-calculator';
   static const String usersRecipeLeaderboard = '/users/leaderboard/recipes';
+  static const String usersRecipeLeaderboardWeekly = '/users/leaderboard/recipes/weekly';
   static const String billingVerify = '/billing/verify-purchase';
   static const String billingRestore = '/billing/restore';
+  static const String billingVerifyPoints = '/billing/verify-points-purchase';
   static const String stores = '/stores/';
   static const String products = '/products/';
   static const String recipes = '/recipes/';

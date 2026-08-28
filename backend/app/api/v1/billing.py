@@ -78,3 +78,77 @@ async def restore_purchase(
     — identyczna logika co verify-purchase, osobny endpoint głównie dla
     czytelności po stronie aplikacji (przycisk "Przywróć zakupy")."""
     return await verify_purchase(payload, current_user, db)
+
+
+# ══════════════════════════════════════════════════════════════════
+# PUNKTY PREMIUM — zakup jednorazowy/KONSUMOWALNY (nie subskrypcja).
+# 2 punkty = jedno zapytanie do AI. Pakiety: 10 pkt/10zł, 20 pkt/17zł,
+# 50 pkt/40zł — ceny konfigurowane w Google Play Console przy tworzeniu
+# produktów, tutaj tylko mapujemy identyfikator produktu na liczbę
+# PRZYZNAWANYCH punktów (musi zgadzać się z tym, co faktycznie
+# skonfigurowano w konsoli).
+# ══════════════════════════════════════════════════════════════════
+_POINTS_PACKAGE_AMOUNTS = {
+    "points_10": 10,
+    "points_20": 20,
+    "points_50": 50,
+}
+
+
+class VerifyPointsPurchaseResponse(BaseModel):
+    premium_points: int
+
+
+@router.post("/verify-points-purchase", response_model=VerifyPointsPurchaseResponse)
+async def verify_points_purchase(
+    payload: VerifyPurchaseRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> User:
+    """Weryfikuje zakup pakietu punktów u Google i, jeśli prawdziwy i
+    jeszcze nieskonsumowany, dolicza punkty do konta oraz oznacza
+    zakup jako skonsumowany u Google (wymagane, inaczej Google Play
+    automatycznie zwróci pieniądze po ok. 3 dniach — standardowa
+    zasada dla niekonsumowanych zakupów jednorazowych)."""
+    if payload.product_id not in _POINTS_PACKAGE_AMOUNTS:
+        raise HTTPException(status_code=400, detail="Nieznany pakiet punktów.")
+
+    from app.services.google_play_billing import (
+        PurchaseVerificationError,
+        consume_purchase,
+        verify_consumable_purchase,
+    )
+
+    try:
+        result = await verify_consumable_purchase(payload.purchase_token, payload.product_id)
+    except PurchaseVerificationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+
+    if not result["is_purchased"]:
+        raise HTTPException(status_code=422, detail="Ten zakup nie został potwierdzony przez Google.")
+    if result["is_consumed"]:
+        # Ten SAM token już wcześniej doliczył punkty — nie przyznajemy
+        # ich drugi raz (np. gdyby aplikacja wywołała ten endpoint
+        # dwukrotnie dla tego samego zakupu).
+        raise HTTPException(status_code=422, detail="Ten zakup został już wcześniej rozliczony.")
+
+    points_to_add = _POINTS_PACKAGE_AMOUNTS[payload.product_id]
+    current_user.premium_points += points_to_add
+    await db.commit()
+
+    try:
+        await consume_purchase(payload.purchase_token, payload.product_id)
+    except PurchaseVerificationError:
+        # Punkty już przyznane (commit powyżej) — niepowodzenie samego
+        # potwierdzenia u Google nie powinno cofać punktów, które
+        # użytkownik już faktycznie kupił i opłacił. Zaloguj i idź dalej.
+        import logging
+
+        logging.getLogger(__name__).warning(
+            "Nie udało się skonsumować zakupu %s dla usera %s (punkty już przyznane)",
+            payload.purchase_token,
+            current_user.id,
+        )
+
+    await db.refresh(current_user)
+    return VerifyPointsPurchaseResponse(premium_points=current_user.premium_points)

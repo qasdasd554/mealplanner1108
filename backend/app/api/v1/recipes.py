@@ -568,11 +568,11 @@ async def remove_recipe_favorite(
     "/ai-import",
     response_model=RecipeResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Rozpoznaj i dodaj przepis przez AI (Premium)",
+    summary="Rozpoznaj i dodaj przepis przez AI (Premium albo 2 punkty)",
 )
 async def ai_import_recipe(
     payload: AIRecipeImportRequest,
-    current_user: User = Depends(get_current_premium),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> Recipe:
     """Rozpoznaje przepis z wklejonego tekstu, zdjęcia ALBO linku
@@ -580,8 +580,15 @@ async def ai_import_recipe(
     PRYWATNY przepis (widoczny tylko dla Ciebie — nie trafia
     automatycznie do wspólnego katalogu).
 
-    Funkcja Premium. Limit: 20 wywołań/dzień (niezależnie od statusu
-    premium) — każde wywołanie kosztuje realne pieniądze (API Gemini).
+    UWAGA (rozszerzenie): wcześniej WYŁĄCZNIE Premium (get_current_premium).
+    Teraz też dostępne dla kont bez Premium, w zamian za 2 punkty
+    premium (patrz app/api/v1/billing.py, zakup pakietów punktów) —
+    punkty pobierane DOPIERO po UDANYM rozpoznaniu (nie za samą próbę),
+    żeby nieudane/niejasne zdjęcie czy tekst nie kosztowało użytkownika
+    punktów bez żadnego rezultatu.
+
+    Limit: 20 wywołań/dzień (niezależnie od statusu premium) — każde
+    wywołanie kosztuje realne pieniądze (API Gemini).
     """
     from app.core.rate_limit import ai_recipe_import_limiter, enforce_user_rate_limit
     from app.services.ai_recipe_import import (
@@ -597,6 +604,22 @@ async def ai_import_recipe(
         raise HTTPException(
             status_code=400,
             detail="Podaj dokładnie jedno z: tekst przepisu, zdjęcie albo link.",
+        )
+
+    # Sprawdzenie uprawnienia PRZED kosztownym wywołaniem AI — niepremium
+    # bez wystarczających punktów nie powinien w ogóle zainicjować
+    # zapytania do Gemini (to kosztuje realne pieniądze niezależnie od
+    # tego, czy ostatecznie i tak zostałby odrzucony).
+    from app.core.premium import is_premium_active
+
+    user_is_premium = is_premium_active(current_user)
+    if not user_is_premium and current_user.premium_points < 2:
+        raise HTTPException(
+            status_code=402,
+            detail=(
+                f"Ta funkcja wymaga Premium albo 2 punktów (masz {current_user.premium_points}). "
+                "Kup punkty w zakładce Premium."
+            ),
         )
 
     enforce_user_rate_limit(ai_recipe_import_limiter, current_user.id, "rozpoznawanie przepisu przez AI")
@@ -627,9 +650,14 @@ async def ai_import_recipe(
             detail="AI nie rozpoznało żadnych składników pasujących do dostępnych produktów.",
         )
 
-    # Zgłoszenie do wspólnego katalogu — jak przy ręcznym dodawaniu. Ten
-    # endpoint już wymaga Premium (Depends(get_current_premium) powyżej),
-    # więc nie trzeba tu dodatkowo sprawdzać uprawnień.
+    # UWAGA: rozpoznanie się UDAŁO — dopiero TERAZ, nie wcześniej,
+    # pobieramy 2 punkty od kont bez Premium (jeśli user jest Premium,
+    # nic się nie odejmuje — korzysta z funkcji w ramach subskrypcji).
+    if not user_is_premium:
+        current_user.premium_points -= 2
+        db.add(current_user)
+
+    # Zgłoszenie do wspólnego katalogu — jak przy ręcznym dodawaniu.
     visibility = "pending" if payload.request_public else "private"
 
     # Dopasuj nazwy produktów zwrócone przez AI do prawdziwych wierszy

@@ -215,6 +215,11 @@ class AuthService {
     return (response as List).cast<Map<String, dynamic>>();
   }
 
+  Future<List<Map<String, dynamic>>> getWeeklyRecipeLeaderboard() async {
+    final response = await _client.get(ApiConfig.usersRecipeLeaderboardWeekly);
+    return (response as List).cast<Map<String, dynamic>>();
+  }
+
   Future<void> updateAllergens(List<String> allergenIds) async {
     await _client.put(ApiConfig.usersAllergens, body: {'allergen_ids': allergenIds});
   }

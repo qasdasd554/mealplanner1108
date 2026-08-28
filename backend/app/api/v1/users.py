@@ -1,5 +1,6 @@
 """Endpointy zarządzania profilem użytkownika."""
 
+from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -8,7 +9,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.api.deps import get_current_user
+from app.api.deps import get_current_admin, get_current_user
 from app.db.session import get_db
 from app.models import Allergen, Store, User, UserAllergen
 from app.schemas.user import UserResponse
@@ -311,4 +312,97 @@ async def get_recipe_leaderboard(
         RecipeLeaderboardEntry(display_name=name or "Użytkownik", recipe_count=count, avatar=avatar)
         for name, count, avatar in result.all()
     ]
+
+
+@router.get(
+    "/leaderboard/recipes/weekly",
+    response_model=list[RecipeLeaderboardEntry],
+    summary="Cotygodniowy konkurs — ranking wg przepisów dodanych w ostatnich 7 dniach",
+)
+async def get_weekly_recipe_leaderboard(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> list[RecipeLeaderboardEntry]:
+    """Ta sama logika co ranking ogólny, ale liczy TYLKO przepisy
+    dodane w ciągu ostatnich 7 dni — cotygodniowy konkurs, w którym
+    każdy zaczyna "od zera" co tydzień, zamiast rankingu zdominowanego
+    na stałe przez najwcześniejszych/najbardziej płodnych autorów."""
+    from app.models import Recipe
+    from sqlalchemy import func
+
+    week_ago = datetime.now(timezone.utc) - timedelta(days=7)
+
+    result = await db.execute(
+        select(
+            User.display_name,
+            func.count(Recipe.id).label("recipe_count"),
+            User.avatar,
+        )
+        .join(Recipe, Recipe.created_by_user_id == User.id)
+        .where(Recipe.visibility == "public", Recipe.created_at >= week_ago)
+        .group_by(User.id, User.display_name, User.avatar)
+        .order_by(func.count(Recipe.id).desc())
+        .limit(50)
+    )
+    return [
+        RecipeLeaderboardEntry(display_name=name or "Użytkownik", recipe_count=count, avatar=avatar)
+        for name, count, avatar in result.all()
+    ]
+
+
+# ══════════════════════════════════════════════════════════════════
+# ŚLEDZENIE AKTYWNOŚCI (admin) — patrz app/api/deps.py, get_current_user,
+# gdzie last_active_at jest aktualizowane przy uwierzytelnionych zapytaniach.
+# ══════════════════════════════════════════════════════════════════
+class UserActivityEntry(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    email: str
+    display_name: str | None
+    last_active_at: datetime | None
+    created_at: datetime
+    is_active_last_24h: bool
+    is_active_last_7d: bool
+
+
+@router.get(
+    "/admin/activity",
+    response_model=list[UserActivityEntry],
+    summary="Lista użytkowników wg ostatniej aktywności (admin)",
+)
+async def get_user_activity(
+    current_user: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
+) -> list[UserActivityEntry]:
+    """Zwraca WSZYSTKICH użytkowników posortowanych od najbardziej
+    aktywnych — do monitorowania zaangażowania (np. ilu użytkowników
+    faktycznie wraca do aplikacji, nie tylko ją zainstalowało)."""
+    result = await db.execute(
+        select(User).order_by(User.last_active_at.desc().nulls_last())
+    )
+    users = result.scalars().all()
+    now = datetime.now(timezone.utc)
+
+    entries = []
+    for u in users:
+        last_active_naive = u.last_active_at
+        is_24h = False
+        is_7d = False
+        if last_active_naive is not None:
+            delta = now - last_active_naive
+            is_24h = delta <= timedelta(hours=24)
+            is_7d = delta <= timedelta(days=7)
+        entries.append(
+            UserActivityEntry(
+                id=u.id,
+                email=u.email,
+                display_name=u.display_name,
+                last_active_at=u.last_active_at,
+                created_at=u.created_at,
+                is_active_last_24h=is_24h,
+                is_active_last_7d=is_7d,
+            )
+        )
+    return entries
 

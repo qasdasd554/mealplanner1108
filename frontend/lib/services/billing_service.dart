@@ -11,6 +11,13 @@ const String kWeeklyProductId = 'premium_weekly';
 const String kMonthlyProductId = 'premium_monthly';
 const String kYearlyProductId = 'premium_yearly';
 
+/// ID pakietów punktów premium — KONSUMOWALNE produkty (inne niż
+/// subskrypcje powyżej), 2 punkty = jedno zapytanie do AI. Ceny
+/// ustawione w Google Play Console: 10 pkt/10zł, 20 pkt/17zł, 50 pkt/40zł.
+const String kPoints10ProductId = 'points_10';
+const String kPoints20ProductId = 'points_20';
+const String kPoints50ProductId = 'points_50';
+
 /// Obsługuje cały przepływ zakupu subskrypcji: odpytanie sklepu o
 /// dostępne produkty (i ich prawdziwe, lokalne ceny), zainicjowanie
 /// zakupu, nasłuchiwanie na wynik, i weryfikację po stronie backendu —
@@ -87,5 +94,32 @@ class BillingService {
       body: {'purchase_token': purchaseToken, 'product_id': productId},
     );
     return response as Map<String, dynamic>;
+  }
+
+  /// Pobiera prawdziwe, lokalne ceny pakietów punktów premium.
+  Future<ProductDetailsResponse> queryPointsProducts() {
+    return _iap.queryProductDetails({kPoints10ProductId, kPoints20ProductId, kPoints50ProductId});
+  }
+
+  /// Rozpoczyna zakup pakietu punktów — KONSUMOWALNY zakup
+  /// (buyConsumable, nie buyNonConsumable jak subskrypcja), bo to
+  /// produkt jednorazowy, który można kupić WIELOKROTNIE (w
+  /// przeciwieństwie do subskrypcji, którą się "ma" albo "nie ma").
+  Future<void> buyPoints(ProductDetails product) {
+    final purchaseParam = PurchaseParam(productDetails: product);
+    return _iap.buyConsumable(purchaseParam: purchaseParam);
+  }
+
+  /// Wysyła token zakupu punktów do backendu, który weryfikuje go u
+  /// Google i dolicza punkty do konta. Zwraca nowe saldo.
+  Future<int> verifyPointsPurchase({
+    required String purchaseToken,
+    required String productId,
+  }) async {
+    final response = await _client.post(
+      ApiConfig.billingVerifyPoints,
+      body: {'purchase_token': purchaseToken, 'product_id': productId},
+    );
+    return (response as Map<String, dynamic>)['premium_points'] as int;
   }
 }

@@ -124,6 +124,22 @@ class ApiClient {
     }
   }
 
+  Future<dynamic> patch(String path, {dynamic body}) async {
+    final token = await getToken();
+    final url = Uri.parse('${ApiConfig.apiUrl}$path');
+
+    try {
+      final response = await http.patch(
+        url,
+        headers: _headers(token),
+        body: body != null ? jsonEncode(body) : null,
+      );
+      return _handleResponse(response);
+    } catch (e) {
+      _handleError(e);
+    }
+  }
+
   Future<dynamic> delete(String path) async {
     final token = await getToken();
     final url = Uri.parse('${ApiConfig.apiUrl}$path');

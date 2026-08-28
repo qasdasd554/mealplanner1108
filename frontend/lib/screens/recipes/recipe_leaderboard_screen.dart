@@ -6,9 +6,11 @@ import '../../utils/error_utils.dart';
 import '../../widgets/user_avatar.dart';
 
 /// Ranking użytkowników wg liczby dodanych, ZAAKCEPTOWANYCH przez
-/// administratora przepisów do wspólnego katalogu. Backend istniał od
-/// dawna (GET /users/leaderboard/recipes) — ten ekran to brakujący
-/// interfejs, który go wreszcie wykorzystuje.
+/// administratora przepisów do wspólnego katalogu — teraz w DWÓCH
+/// wariantach na osobnych zakładkach: "Ten tydzień" (cotygodniowy
+/// konkurs, liczący tylko przepisy z ostatnich 7 dni — każdy zaczyna
+/// "od zera" co tydzień) i "Cały czas" (oryginalny, ranking bez limitu
+/// czasowego).
 class RecipeLeaderboardScreen extends StatefulWidget {
   const RecipeLeaderboardScreen({super.key});
 
@@ -16,35 +18,70 @@ class RecipeLeaderboardScreen extends StatefulWidget {
   State<RecipeLeaderboardScreen> createState() => _RecipeLeaderboardScreenState();
 }
 
-class _RecipeLeaderboardScreenState extends State<RecipeLeaderboardScreen> {
+class _RecipeLeaderboardScreenState extends State<RecipeLeaderboardScreen>
+    with SingleTickerProviderStateMixin {
   final AuthService _authService = AuthService();
-  bool _isLoading = true;
-  String? _error;
-  List<Map<String, dynamic>> _entries = [];
+  late final TabController _tabController;
+
+  bool _isLoadingWeekly = true;
+  bool _isLoadingAllTime = true;
+  String? _errorWeekly;
+  String? _errorAllTime;
+  List<Map<String, dynamic>> _weeklyEntries = [];
+  List<Map<String, dynamic>> _allTimeEntries = [];
 
   @override
   void initState() {
     super.initState();
-    _load();
+    _tabController = TabController(length: 2, vsync: this);
+    _loadWeekly();
+    _loadAllTime();
   }
 
-  Future<void> _load() async {
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadWeekly() async {
     setState(() {
-      _isLoading = true;
-      _error = null;
+      _isLoadingWeekly = true;
+      _errorWeekly = null;
+    });
+    try {
+      final entries = await _authService.getWeeklyRecipeLeaderboard();
+      if (!mounted) return;
+      setState(() {
+        _weeklyEntries = entries;
+        _isLoadingWeekly = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorWeekly = friendlyError(e);
+        _isLoadingWeekly = false;
+      });
+    }
+  }
+
+  Future<void> _loadAllTime() async {
+    setState(() {
+      _isLoadingAllTime = true;
+      _errorAllTime = null;
     });
     try {
       final entries = await _authService.getRecipeLeaderboard();
       if (!mounted) return;
       setState(() {
-        _entries = entries;
-        _isLoading = false;
+        _allTimeEntries = entries;
+        _isLoadingAllTime = false;
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = friendlyError(e);
-        _isLoading = false;
+        _errorAllTime = friendlyError(e);
+        _isLoadingAllTime = false;
       });
     }
   }
@@ -54,31 +91,69 @@ class _RecipeLeaderboardScreenState extends State<RecipeLeaderboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Ranking autorów przepisów')),
-      body: RefreshIndicator(
-        onRefresh: _load,
-        child: _buildBody(),
+      appBar: AppBar(
+        title: const Text('Ranking autorów przepisów'),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: 'Ten tydzień'),
+            Tab(text: 'Cały czas'),
+          ],
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          RefreshIndicator(
+            onRefresh: _loadWeekly,
+            child: _buildBody(
+              isLoading: _isLoadingWeekly,
+              error: _errorWeekly,
+              entries: _weeklyEntries,
+              onRetry: _loadWeekly,
+              emptyMessage:
+                  'W tym tygodniu nikt jeszcze nie dodał\nzaakceptowanego przepisu. Bądź pierwszy!',
+            ),
+          ),
+          RefreshIndicator(
+            onRefresh: _loadAllTime,
+            child: _buildBody(
+              isLoading: _isLoadingAllTime,
+              error: _errorAllTime,
+              entries: _allTimeEntries,
+              onRetry: _loadAllTime,
+              emptyMessage:
+                  'Jeszcze nikt nie dodał zaakceptowanego przepisu\ndo wspólnego katalogu.',
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildBody() {
-    if (_isLoading) {
+  Widget _buildBody({
+    required bool isLoading,
+    required String? error,
+    required List<Map<String, dynamic>> entries,
+    required VoidCallback onRetry,
+    required String emptyMessage,
+  }) {
+    if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    if (_error != null) {
+    if (error != null) {
       return ListView(
         children: [
           const SizedBox(height: 80),
           Icon(Icons.error_outline, size: 48, color: AppTheme.errorColor),
           const SizedBox(height: 12),
-          Center(child: Text(_error!, textAlign: TextAlign.center)),
+          Center(child: Text(error, textAlign: TextAlign.center)),
           const SizedBox(height: 12),
-          Center(child: TextButton(onPressed: _load, child: const Text('Spróbuj ponownie'))),
+          Center(child: TextButton(onPressed: onRetry, child: const Text('Spróbuj ponownie'))),
         ],
       );
     }
-    if (_entries.isEmpty) {
+    if (entries.isEmpty) {
       return ListView(
         children: [
           const SizedBox(height: 100),
@@ -86,7 +161,7 @@ class _RecipeLeaderboardScreenState extends State<RecipeLeaderboardScreen> {
           const SizedBox(height: 12),
           Center(
             child: Text(
-              'Jeszcze nikt nie dodał zaakceptowanego przepisu\ndo wspólnego katalogu.',
+              emptyMessage,
               textAlign: TextAlign.center,
               style: TextStyle(color: AppTheme.textSecondary),
             ),
@@ -96,10 +171,10 @@ class _RecipeLeaderboardScreenState extends State<RecipeLeaderboardScreen> {
     }
     return ListView.separated(
       padding: const EdgeInsets.all(16),
-      itemCount: _entries.length,
+      itemCount: entries.length,
       separatorBuilder: (_, __) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
-        final entry = _entries[index];
+        final entry = entries[index];
         final name = entry['display_name'] as String;
         final count = entry['recipe_count'] as int;
         final avatar = entry['avatar'] as String?;

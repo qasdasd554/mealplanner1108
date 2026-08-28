@@ -105,6 +105,23 @@ class User(Base):
     # stanu subskrypcji (czy nadal aktywna, czy anulowana/zwrócona) bez
     # konieczności czekania na kolejne zdarzenie od użytkownika.
     premium_purchase_token: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Saldo punktów premium — WYMIENNA waluta w aplikacji, niezależna od
+    # samej subskrypcji Premium. 2 punkty = jedno zapytanie do AI
+    # (rozpoznanie przepisu z tekstu/zdjęcia/linku). Kupowane w pakietach
+    # (patrz app/api/v1/billing.py) — inny mechanizm zakupu niż
+    # subskrypcja: to zakup JEDNORAZOWY/"consumable" w sklepie, nie
+    # odnawialna subskrypcja.
+    premium_points: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    # UWAGA (nowe — śledzenie aktywności): aktualizowane przy KAŻDYM
+    # uwierzytelnionym zapytaniu (patrz app/api/deps.py, get_current_user)
+    # — to najbardziej naturalne miejsce, bo wywoływane niezależnie od
+    # tego, z którego dokładnie ekranu/funkcji użytkownik akurat korzysta.
+    # Celowo NIE aktualizowane synchronicznie za każdym razem (patrz
+    # implementacja w deps.py) — throttlowane do raz na kilka minut, żeby
+    # nie obciążać bazy danych zapisem przy dosłownie każdym zapytaniu.
+    last_active_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

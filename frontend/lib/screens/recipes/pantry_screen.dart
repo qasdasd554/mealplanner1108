@@ -4,6 +4,7 @@ import '../../services/pantry_service.dart';
 import '../../services/product_search_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
+import '../../utils/quantity_formatter.dart';
 
 /// Spiżarnia — trwała lista produktów, które użytkownik faktycznie ma w
 /// domu. Źródło dla "Co ugotować z tego, co mam" — zamiast wyszukiwać
@@ -59,6 +60,66 @@ class _PantryScreenState extends State<PantryScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _items.insert(removedIndex, item));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
+      );
+    }
+  }
+
+  /// Prosty dialog do wpisania/zmiany ilości produktu już zapisanego w
+  /// spiżarni — jednostka domyślnie wypełniona z produktu (np. "kg",
+  /// "szt"), użytkownik wpisuje samą liczbę.
+  Future<void> _editQuantity(PantryItem item) async {
+    final controller = TextEditingController(
+      text: item.quantity != null ? formatQuantity(item.quantity!, item.unit ?? item.product.unit) : '',
+    );
+    final unit = item.unit ?? item.product.unit;
+
+    final newQuantity = await showDialog<double>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(item.product.name),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: InputDecoration(
+            labelText: 'Ile masz? ($unit)',
+            border: const OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Anuluj'),
+          ),
+          FilledButton(
+            onPressed: () {
+              // UWAGA: polska klawiatura zwykle wpisuje przecinek jako
+              // separator dziesiętny — double.tryParse w Dart rozumie
+              // tylko kropkę, stąd zamiana przed parsowaniem (ten sam
+              // wzorzec, który już wcześniej naprawił podobny problem
+              // w formularzu ręcznego dodawania przepisu).
+              final value = double.tryParse(controller.text.trim().replaceAll(',', '.'));
+              Navigator.pop(ctx, value);
+            },
+            child: const Text('Zapisz'),
+          ),
+        ],
+      ),
+    );
+
+    if (newQuantity == null) return;
+
+    try {
+      final updated = await _pantryService.updateQuantity(item.id, quantity: newQuantity, unit: unit);
+      if (!mounted) return;
+      setState(() {
+        final index = _items.indexWhere((i) => i.id == item.id);
+        if (index != -1) _items[index] = updated;
+      });
+    } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
       );
@@ -140,6 +201,16 @@ class _PantryScreenState extends State<PantryScreen> {
                               child: ListTile(
                                 leading: Icon(Icons.check_circle, color: AppTheme.primaryColor),
                                 title: Text(item.product.name),
+                                subtitle: Text(
+                                  item.quantity != null
+                                      ? '${formatQuantity(item.quantity!, item.unit ?? item.product.unit)} ${item.unit ?? item.product.unit}'
+                                      : 'Dotknij, aby wpisać ilość',
+                                  style: TextStyle(
+                                    color: item.quantity != null ? AppTheme.textSecondary : AppTheme.primaryColor,
+                                    fontStyle: item.quantity != null ? FontStyle.normal : FontStyle.italic,
+                                  ),
+                                ),
+                                onTap: () => _editQuantity(item),
                                 trailing: IconButton(
                                   icon: const Icon(Icons.close),
                                   onPressed: () => _delete(item),
