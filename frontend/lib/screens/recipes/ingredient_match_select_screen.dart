@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../services/pantry_service.dart';
 import '../../services/recipe_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
 import 'ingredient_match_results_screen.dart';
 import 'pantry_screen.dart';
+import '../profile/premium_screen.dart';
 
 /// "Co ugotować z tego, co mam" (Premium) — źródłem składników jest
 /// teraz Spiżarnia (trwała lista tego, co użytkownik ma w domu), nie
@@ -107,6 +110,60 @@ class _IngredientMatchSelectScreenState extends State<IngredientMatchSelectScree
 
   @override
   Widget build(BuildContext context) {
+    // UWAGA (naprawa — "brak natychmiastowego komunikatu Premium"):
+    // backend już poprawnie wymagał Premium (Depends(get_current_premium)
+    // na /match-by-ingredients), ale ten ekran wcześniej NIE MIAŁ
+    // żadnej bramki na wejściu — użytkownik bez Premium mógł swobodnie
+    // przejść przez cały proces zaznaczania składników, dowiadując się
+    // o braku uprawnień dopiero PO próbie wysłania. Teraz pokazujemy
+    // to od razu, zanim w ogóle zobaczy formularz.
+    final hasPremiumAccess = Provider.of<AuthProvider>(context).currentUser?.hasPremiumAccess ?? false;
+    if (!hasPremiumAccess) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Co ugotować z tego, co mam')),
+        body: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 88,
+                height: 88,
+                decoration: BoxDecoration(
+                  color: AppTheme.secondaryColor.withOpacity(0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.workspace_premium_outlined, size: 40, color: AppTheme.secondaryColor),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Funkcja Premium',
+                style: Theme.of(context).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Dopasowywanie przepisów do tego, co masz w spiżarni, jest dostępne dla kont z aktywną subskrypcją Premium.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppTheme.textSecondary, fontSize: 15, height: 1.5),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const PremiumScreen()),
+                  ),
+                  icon: const Icon(Icons.workspace_premium),
+                  label: const Text('Zobacz Premium'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Co ugotować z tego, co mam'),

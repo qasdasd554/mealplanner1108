@@ -213,6 +213,15 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
 
   Future<void> _onSuccess(Recipe recipe) async {
     if (!mounted) return;
+    // UWAGA (naprawa — "punkty nie ubywają"): backend POPRAWNIE odejmuje
+    // punkty w bazie po udanym imporcie, ale to konto (AuthProvider)
+    // nigdy nie było odświeżane po tej operacji — więc wyświetlane
+    // saldo pozostawało STARE, sprzed wysłania zapytania, dopóki
+    // aplikacja nie została zrestartowana (co wymusza nowe pobranie
+    // profilu przy starcie). Odświeżamy tutaj, PRZED nawigacją dalej,
+    // żeby saldo widoczne gdziekolwiek w aplikacji było już aktualne.
+    await Provider.of<AuthProvider>(context, listen: false).loadProfile();
+    if (!mounted) return;
     // Przejdź od razu do widoku nowego przepisu — użytkownik widzi
     // natychmiast, co AI rozpoznało, zamiast dodatkowego ekranu
     // potwierdzenia.
