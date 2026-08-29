@@ -133,7 +133,7 @@ class Settings(BaseSettings):
     # własny numer z tą wartością przy starcie i pokazuje delikatne
     # przypomnienie, jeśli jest starsza — nie blokuje korzystania,
     # tylko informuje.
-    LATEST_APP_VERSION_CODE: int = 68
+    LATEST_APP_VERSION_CODE: int = 69
     RATE_LIMIT_WINDOW_SECONDS: int = 600
 
     @property
