@@ -169,7 +169,15 @@ class _PremiumScreenState extends State<PremiumScreen> {
   }
 
   Future<void> _verifyWithBackend(PurchaseDetails purchase) async {
-    final purchaseToken = purchase.verificationData.serverVerificationData;
+    // UWAGA (naprawa — poprawny identyfikator dla iOS): na Androidzie
+    // serverVerificationData to prawidłowy token Google. Na iOS to samo
+    // pole zawiera dane paragonu w starszym formacie — App Store Server
+    // API (patrz backend, apple_app_store.py) wymaga natomiast ID
+    // TRANSAKCJI, dostępnego jako purchase.purchaseID (odpowiednik
+    // SKPaymentTransaction.transactionIdentifier).
+    final purchaseToken = defaultTargetPlatform == TargetPlatform.iOS
+        ? (purchase.purchaseID ?? purchase.verificationData.serverVerificationData)
+        : purchase.verificationData.serverVerificationData;
 
     // UWAGA (rozszerzenie): pakiety punktów to INNY rodzaj produktu
     // (konsumowalny, nie subskrypcja) i mają OSOBNĄ ścieżkę weryfikacji

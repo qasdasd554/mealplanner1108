@@ -15,6 +15,7 @@ from app.models.recipe_favorite import RecipeFavorite
 from app.models.shopping_list import ShoppingList, ShoppingListItem
 from app.models.shopping_list_share import ShoppingListShare
 from app.models.pantry import PantryItem
+from app.models.processed_apple_purchase import ProcessedApplePurchase
 from app.models.store import Store, StoreDepartment
 from app.models.user import User, UserAllergen
 from app.models.weekly_contest_payout import WeeklyContestPayout
@@ -52,6 +53,7 @@ __all__ = [
     "ShoppingListItem",
     # Pantry
     "PantryItem",
+    "ProcessedApplePurchase",
     # Food Log
     "FoodLogEntry",
     "Notification",

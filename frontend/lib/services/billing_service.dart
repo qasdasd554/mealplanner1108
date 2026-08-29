@@ -1,7 +1,15 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import '../config/api_config.dart';
 import 'api_client.dart';
+
+/// Bezpieczne (też na web) wykrycie platformy — w przeciwieństwie do
+/// Platform.isIOS z dart:io, defaultTargetPlatform nie wywala kompilacji
+/// na web. Backend rozróżnia po tym polu, którego sklepu (Google/Apple)
+/// użyć do weryfikacji zakupu.
+String get _currentStorePlatform =>
+    defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android';
 
 /// ID produktów subskrypcyjnych — MUSZĄ dokładnie odpowiadać temu, co
 /// zostało utworzone w Google Play Console (patrz przewodnik konfiguracji
@@ -77,7 +85,7 @@ class BillingService {
   }) async {
     final response = await _client.post(
       ApiConfig.billingVerify,
-      body: {'purchase_token': purchaseToken, 'product_id': productId},
+      body: {'purchase_token': purchaseToken, 'product_id': productId, 'platform': _currentStorePlatform},
     );
     return response as Map<String, dynamic>;
   }
@@ -91,7 +99,7 @@ class BillingService {
   }) async {
     final response = await _client.post(
       ApiConfig.billingRestore,
-      body: {'purchase_token': purchaseToken, 'product_id': productId},
+      body: {'purchase_token': purchaseToken, 'product_id': productId, 'platform': _currentStorePlatform},
     );
     return response as Map<String, dynamic>;
   }
@@ -118,7 +126,7 @@ class BillingService {
   }) async {
     final response = await _client.post(
       ApiConfig.billingVerifyPoints,
-      body: {'purchase_token': purchaseToken, 'product_id': productId},
+      body: {'purchase_token': purchaseToken, 'product_id': productId, 'platform': _currentStorePlatform},
     );
     return (response as Map<String, dynamic>)['premium_points'] as int;
   }

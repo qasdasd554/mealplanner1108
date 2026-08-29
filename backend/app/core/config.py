@@ -77,6 +77,21 @@ class Settings(BaseSettings):
     # weryfikacji zakupu zwróci czytelny błąd zamiast się wywalić.
     GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: str = ""
 
+    # ── Apple App Store Server API (subskrypcje + punkty na iOS) ────
+    # Bundle Identifier aplikacji na iOS — np. "com.meal-planner-polska-v1".
+    APPLE_BUNDLE_ID: str = ""
+    # Issuer ID i Key ID z App Store Connect (Users and Access ->
+    # Integrations -> App Store Connect API) — WYMAGANE do podpisywania
+    # zapytań do Apple. Bez tego endpoint weryfikacji zakupu na iOS
+    # zwróci czytelny błąd zamiast się wywalić.
+    APPLE_ISSUER_ID: str = ""
+    APPLE_KEY_ID: str = ""
+    # Pełna zawartość pliku klucza prywatnego .p8 pobranego z App Store
+    # Connect przy tworzeniu klucza API — WAŻNE: ten plik da się pobrać
+    # TYLKO RAZ, od razu po utworzeniu klucza, więc zachowaj go
+    # bezpiecznie od razu przy generowaniu.
+    APPLE_PRIVATE_KEY: str = ""
+
     # ── Wysyłka e-maili (weryfikacja konta) ─────────────────────────
     # Klucz API z resend.com — WYMAGANY, żeby wysyłka kodu weryfikacyjnego
     # przy rejestracji w ogóle działała. Bez tego rejestracja i tak
@@ -118,7 +133,7 @@ class Settings(BaseSettings):
     # własny numer z tą wartością przy starcie i pokazuje delikatne
     # przypomnienie, jeśli jest starsza — nie blokuje korzystania,
     # tylko informuje.
-    LATEST_APP_VERSION_CODE: int = 67
+    LATEST_APP_VERSION_CODE: int = 68
     RATE_LIMIT_WINDOW_SECONDS: int = 600
 
     @property
