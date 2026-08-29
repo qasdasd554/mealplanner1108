@@ -308,6 +308,14 @@ class _PremiumScreenState extends State<PremiumScreen> {
     required String subtitle,
     required bool isPremium,
     required VoidCallback onTap,
+    // UWAGA (naprawa widoczności — punkty premium): dotąd zablokowana
+    // pozycja pokazywała TYLKO kłódkę, sugerującą "wymaga Premium", bez
+    // żadnej wzmianki, że dla TEJ konkretnej funkcji (AI) istnieje też
+    // alternatywna ścieżka za punkty. Stąd wrażenie, że możliwości
+    // wymiany punktów na zapytanie w ogóle nie ma — mimo że backend już
+    // ją obsługuje (patrz ai_import_recipe). Ten parametr, gdy podany,
+    // pokazuje monetę zamiast/obok kłódki i cenę punktową w podtytule.
+    int? pointsAlternativeCost,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -335,15 +343,48 @@ class _PremiumScreenState extends State<PremiumScreen> {
                 children: [
                   Row(
                     children: [
-                      Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                      if (!isPremium) ...[
+                      Flexible(
+                        child: Text(
+                          title,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (!isPremium && pointsAlternativeCost == null) ...[
                         const SizedBox(width: 6),
                         Icon(Icons.lock_outline, size: 13, color: AppTheme.textSecondary.withOpacity(0.6)),
+                      ],
+                      if (!isPremium && pointsAlternativeCost != null) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppTheme.accentColor.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.toll, size: 11, color: AppTheme.accentColor),
+                              const SizedBox(width: 2),
+                              Text(
+                                '$pointsAlternativeCost',
+                                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.accentColor),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ],
                   ),
                   const SizedBox(height: 2),
-                  Text(subtitle, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                  Text(
+                    !isPremium && pointsAlternativeCost != null
+                        ? '$subtitle — albo $pointsAlternativeCost pkt bez subskrypcji'
+                        : subtitle,
+                    style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                  ),
                 ],
               ),
             ),
@@ -444,6 +485,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   title: 'Dodaj przepis przez AI',
                   subtitle: 'Zdjęcie, tekst albo link — AI zrobi resztę',
                   isPremium: isPremium,
+                  pointsAlternativeCost: 2,
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const AiAddRecipeScreen()),
                   ),

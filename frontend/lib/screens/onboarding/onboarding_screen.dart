@@ -345,12 +345,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Row(
                       children: [
-                        Text(
-                          allergen['name']!,
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                fontSize: 16,
-                                color: isSelected ? AppTheme.primaryColor : AppTheme.textPrimary,
-                              ),
+                        Flexible(
+                          child: Text(
+                            allergen['name']!,
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontSize: 16,
+                                  color: isSelected ? AppTheme.primaryColor : AppTheme.textPrimary,
+                                ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                     ),
