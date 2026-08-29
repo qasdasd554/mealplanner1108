@@ -226,9 +226,21 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
 
   @override
   Widget build(BuildContext context) {
-    final hasPremiumAccess = Provider.of<AuthProvider>(context).currentUser?.hasPremiumAccess ?? false;
+    final currentUser = Provider.of<AuthProvider>(context).currentUser;
+    // UWAGA (naprawa — "wymiana punktów na AI jakby nie istniała"): ten
+    // ekran miał WŁASNĄ, starszą bramkę sprawdzającą TYLKO
+    // hasPremiumAccess (subskrypcja/admin) — kompletnie nieświadomą
+    // punktów. Skutek: użytkownik z punktami NIGDY nie docierał do
+    // formularza, więc backend (który POPRAWNIE obsługuje płatność
+    // punktami przy wysyłce) nigdy nie dostawał szansy zadziałać.
+    // Dodajemy TYLKO tutaj (nie zmieniając samego hasPremiumAccess,
+    // które słusznie oznacza gdzie indziej "ma AKTYWNĄ subskrypcję")
+    // dodatkowy warunek: wystarczające punkty też otwierają formularz —
+    // faktyczne pobranie 2 punktów i tak następuje dopiero po stronie
+    // backendu, po udanym rozpoznaniu (patrz ai_import_recipe).
+    final hasAccess = (currentUser?.hasPremiumAccess ?? false) || (currentUser?.premiumPoints ?? 0) >= 2;
 
-    if (!hasPremiumAccess) {
+    if (!hasAccess) {
       return _buildPaywall(context);
     }
 
@@ -488,13 +500,14 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
             const SizedBox(height: 12),
             Text(
               'Dodawanie własnych przepisów przez AI (z tekstu albo zdjęcia) '
-              'jest dostępne dla kont z aktywną subskrypcją Premium.',
+              'jest dostępne dla kont z aktywną subskrypcją Premium — albo za 2 punkty premium, '
+              'bez subskrypcji.',
               textAlign: TextAlign.center,
               style: TextStyle(color: AppTheme.textSecondary, fontSize: 15, height: 1.5),
             ),
             const SizedBox(height: 8),
             Text(
-              'Zobacz, co jeszcze zyskujesz z Premium.',
+              'Zobacz, co jeszcze zyskujesz z Premium, albo kup pakiet punktów.',
               textAlign: TextAlign.center,
               style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
             ),
