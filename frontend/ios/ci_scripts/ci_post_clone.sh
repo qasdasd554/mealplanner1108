@@ -2,21 +2,25 @@
 set -e
 
 echo "=== Instalacja Fluttera ==="
-git clone https://github.com/flutter/flutter.git --depth 1 -b stable $HOME/flutter
-export PATH="$PATH:$HOME/flutter/bin"
+git clone https://github.com/flutter/flutter.git --depth 1 -b stable "$HOME/flutter"
+export PATH="$HOME/flutter/bin:$PATH"
 
 echo "=== Pobieranie plikow iOS dla Fluttera ==="
 flutter precache --ios
 
-echo "=== Instalacja CocoaPods ==="
-HOMEBREW_NO_AUTO_UPDATE=1 brew install cocoapods
+cd "$CI_PRIMARY_REPOSITORY_PATH/frontend"
 
 echo "=== Pobieranie zaleznosci Fluttera ==="
-cd "$CI_PRIMARY_REPOSITORY_PATH/frontend"
 flutter pub get
+
+echo "=== Generowanie FlutterGeneratedPluginSwiftPackage ==="
+flutter build ios --config-only --release --no-codesign
 
 echo "=== Instalacja Podow ==="
 cd ios
-pod install
+if [ -f Podfile ]; then
+  pod install
+fi
 
 echo "=== Gotowe ==="
+exit 0
