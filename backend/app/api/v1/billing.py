@@ -19,7 +19,7 @@ router = APIRouter()
 # konfiguracji Google Play Billing / App Store Connect. Celowo trzymane
 # tu jako stała, żeby nie akceptować dowolnego stringa jako "product_id"
 # bez sensu.
-_VALID_PRODUCT_IDS = {"premium_weekly", "premium_monthly", "premium_yearly"}
+_VALID_PRODUCT_IDS = {"premium_weekly_v2", "premium_monthly", "premium_yearly"}
 
 
 class VerifyPurchaseRequest(BaseModel):

@@ -15,7 +15,7 @@ String get _currentStorePlatform =>
 /// zostało utworzone w Google Play Console (patrz przewodnik konfiguracji
 /// płatności). Zmiana tych stringów bez zmiany w Play Console spowoduje,
 /// że aplikacja nie znajdzie żadnych produktów do kupienia.
-const String kWeeklyProductId = 'premium_weekly';
+const String kWeeklyProductId = 'premium_weekly_v2';
 const String kMonthlyProductId = 'premium_monthly';
 const String kYearlyProductId = 'premium_yearly';
 
