@@ -4,6 +4,7 @@ import '../../models/recipe.dart';
 import '../../services/promotion_service.dart';
 import '../../services/recipe_service.dart';
 import '../../services/notification_service.dart';
+import '../../services/moderation_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
 
@@ -21,6 +22,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   final PromotionService _service = PromotionService();
   final RecipeService _recipeService = RecipeService();
   final NotificationService _notificationService = NotificationService();
+  final ModerationService _moderationService = ModerationService();
   final TextEditingController _broadcastController = TextEditingController();
   bool _isSendingBroadcast = false;
   final List<String> _stores = ['Biedronka', 'Lidl', 'Dino'];
@@ -43,11 +45,21 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   Map<String, dynamic>? _aiStatus;
   String? _aiStatusError;
 
+  // Zgłoszenia treści (Guideline 1.2 Apple) — dotąd backend istniał
+  // (GET/PATCH /users/admin/reports), ale nie było żadnego ekranu, więc
+  // zgłoszenia były niewidoczne dla administratora mimo że użytkownicy
+  // mogli je już wysyłać.
+  bool _isLoadingReports = true;
+  String? _reportsError;
+  List<Map<String, dynamic>> _reports = [];
+  final Set<String> _busyReportIds = {};
+
   @override
   void initState() {
     super.initState();
     _loadPendingRecipes();
     _loadPending();
+    _loadReports();
   }
 
   @override
@@ -79,6 +91,145 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     } finally {
       if (mounted) setState(() => _isSendingBroadcast = false);
     }
+  }
+
+  /// Etykiety powodów muszą odpowiadać kReportReasons w
+  /// widgets/report_block_menu.dart (i REPORT_REASONS w backendzie).
+  static const Map<String, String> _reasonLabels = {
+    'spam': 'Spam albo reklama',
+    'inappropriate_content': 'Treść nieodpowiednia',
+    'harassment': 'Nękanie albo mowa nienawiści',
+    'misinformation': 'Fałszywe informacje',
+    'other': 'Inny powód',
+  };
+
+  Widget _buildReportsSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Zgłoszenia treści', style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: 4),
+        Text(
+          'Przepisy i komentarze zgłoszone przez użytkowników jako spam, nękanie '
+          'albo inne naruszenie regulaminu.',
+          style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+        ),
+        const SizedBox(height: 12),
+        if (_isLoadingReports)
+          const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()))
+        else if (_reportsError != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(_reportsError!, style: TextStyle(color: AppTheme.errorColor)),
+                const SizedBox(height: 8),
+                TextButton(onPressed: _loadReports, child: const Text('Spróbuj ponownie')),
+              ],
+            ),
+          )
+        else if (_reports.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Text('Brak nierozpatrzonych zgłoszeń.', style: TextStyle(color: AppTheme.textSecondary)),
+          )
+        else
+          ..._reports.map((report) {
+            final id = report['id'] as String;
+            final isBusy = _busyReportIds.contains(id);
+            final contentType = report['content_type'] as String? ?? '?';
+            final reason = report['reason'] as String? ?? 'other';
+            final details = report['details'] as String?;
+            final preview = report['content_preview'] as String?;
+            final authorEmail = report['content_author_email'] as String?;
+            final reporterEmail = report['reporter_email'] as String?;
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceColor,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.errorColor.withOpacity(0.25)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        contentType == 'recipe' ? Icons.menu_book_outlined : Icons.chat_bubble_outline,
+                        size: 16,
+                        color: AppTheme.textSecondary,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        contentType == 'recipe' ? 'Przepis' : 'Komentarz',
+                        style: TextStyle(fontSize: 12, color: AppTheme.textSecondary, fontWeight: FontWeight.bold),
+                      ),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppTheme.errorColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          _reasonLabels[reason] ?? reason,
+                          style: TextStyle(fontSize: 11, color: AppTheme.errorColor, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  if (preview != null && preview.isNotEmpty)
+                    Text(
+                      '"$preview"',
+                      style: const TextStyle(fontStyle: FontStyle.italic, fontSize: 13),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  if (details != null && details.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text('Szczegóły od zgłaszającego: $details', style: const TextStyle(fontSize: 12)),
+                  ],
+                  const SizedBox(height: 6),
+                  Text(
+                    [
+                      if (authorEmail != null) 'Autor: $authorEmail',
+                      if (reporterEmail != null) 'Zgłosił: $reporterEmail',
+                    ].join('  ·  '),
+                    style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: isBusy ? null : () => _resolveReport(id, 'dismissed'),
+                        child: const Text('Odrzuć zgłoszenie'),
+                      ),
+                      const SizedBox(width: 8),
+                      FilledButton(
+                        style: FilledButton.styleFrom(backgroundColor: AppTheme.errorColor),
+                        onPressed: isBusy ? null : () => _resolveReport(id, 'resolved'),
+                        child: isBusy
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              )
+                            : const Text('Oznacz jako rozpatrzone'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          }),
+      ],
+    );
   }
 
   Widget _buildBroadcastSection(BuildContext context) {
@@ -233,6 +384,50 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     }
   }
 
+  Future<void> _loadReports() async {
+    setState(() {
+      _isLoadingReports = true;
+      _reportsError = null;
+    });
+    try {
+      final list = await _moderationService.getReports(status: 'pending');
+      if (!mounted) return;
+      setState(() {
+        _reports = list;
+        _isLoadingReports = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoadingReports = false;
+        _reportsError = 'Nie udało się wczytać zgłoszeń.';
+      });
+    }
+  }
+
+  Future<void> _resolveReport(String reportId, String status) async {
+    setState(() => _busyReportIds.add(reportId));
+    try {
+      await _moderationService.updateReportStatus(reportId, status);
+      if (!mounted) return;
+      setState(() {
+        _reports.removeWhere((r) => r['id'] == reportId);
+        _busyReportIds.remove(reportId);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(status == 'resolved' ? 'Zgłoszenie oznaczone jako rozpatrzone' : 'Zgłoszenie odrzucone'),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _busyReportIds.remove(reportId));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(friendlyError(e))),
+      );
+    }
+  }
+
   Future<void> _actOnRecipe(Recipe recipe, bool approve) async {
     setState(() => _busyRecipeIds.add(recipe.id));
     try {
@@ -264,7 +459,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       appBar: AppBar(title: const Text('Panel administratora')),
       body: RefreshIndicator(
         onRefresh: () async {
-          await Future.wait([_loadPending(), _loadPendingRecipes()]);
+          await Future.wait([_loadPending(), _loadPendingRecipes(), _loadReports()]);
         },
         color: AppTheme.primaryColor,
         child: ListView(
@@ -587,6 +782,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                   ),
                 );
               }),
+            const SizedBox(height: 32),
+            _buildReportsSection(context),
             const SizedBox(height: 32),
             _buildBroadcastSection(context),
           ],
