@@ -61,6 +61,7 @@ class ApiConfig {
   static const String authLogin = '/auth/login';
   static const String authRegister = '/auth/register';
   static const String authGoogle = '/auth/google';
+  static const String authApple = '/auth/apple';
   static const String authVerifyEmail = '/auth/verify-email';
   static const String authResendCode = '/auth/resend-code';
   static const String authForgotPassword = '/auth/forgot-password';
@@ -80,4 +81,9 @@ class ApiConfig {
   static const String recipesAvailable = '/recipes/available';
   static const String mealPlans = '/meal-plans/';
   static const String shoppingLists = '/shopping-lists/';
+  static const String usersBlocked = '/users/me/blocked';
+  static String userBlock(String userId) => '/users/$userId/block';
+  static String recipeReport(String recipeId) => '/recipes/$recipeId/report';
+  static String commentReport(String recipeId, String commentId) =>
+      '/recipes/$recipeId/comments/$commentId/report';
 }

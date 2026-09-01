@@ -4,7 +4,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import delete, or_, select, update
+from sqlalchemy import and_, delete, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -19,7 +19,9 @@ from app.models import (
     StoreProduct,
     User,
 )
+from app.schemas.moderation import ContentReportCreate, ContentReportResponse
 from app.schemas.recipe import AIRecipeImportRequest, RecipeCreate, RecipeResponse
+from app.services.moderation import get_blocked_user_ids
 from app.services.nutrition_calculator import compute_recipe_nutrition_total, is_ingredient_quantity_reasonable
 
 router = APIRouter()
@@ -35,17 +37,25 @@ async def _get_favorite_recipe_ids(db: AsyncSession, user_id: UUID) -> set[UUID]
     return set(result.scalars().all())
 
 
-def _visibility_filter(current_user_id: UUID):
+def _visibility_filter(current_user_id: UUID, blocked_user_ids: set[UUID] | None = None):
     """Warunek widoczności przepisu:
     - wspólny katalog (created_by_user_id puste — 81 oficjalnych) LUB
     - własny przepis (dowolny status — prywatny, oczekujący, odrzucony) LUB
     - cudzy przepis zaakceptowany do wspólnego katalogu (visibility="public")
+
+    `blocked_user_ids` (opcjonalne, dla list widocznych szerzej niż tylko
+    własne przepisy) dodatkowo wyklucza autorów, których bieżący
+    użytkownik zablokował — Apple Guideline 1.2: zablokowany użytkownik
+    nie może dalej pokazywać się zablokowanej osobie.
     """
-    return or_(
+    base = or_(
         Recipe.created_by_user_id.is_(None),
         Recipe.created_by_user_id == current_user_id,
         Recipe.visibility == "public",
     )
+    if blocked_user_ids:
+        return and_(base, Recipe.created_by_user_id.not_in(blocked_user_ids))
+    return base
 
 
 @router.get(
@@ -75,10 +85,11 @@ async def list_recipes(
     Obsługuje filtrowanie po typie posiłku, kuchni, trudności,
     tagach, maksymalnym czasie przygotowania oraz wyszukiwanie pełnotekstowe.
     """
+    blocked_ids = await get_blocked_user_ids(db, current_user.id)
     query = select(Recipe).options(
         selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product),
         selectinload(Recipe.tags),
-    ).where(_visibility_filter(current_user.id))
+    ).where(_visibility_filter(current_user.id, blocked_ids))
 
     if meal_type is not None:
         query = query.where(Recipe.meal_type == meal_type)
@@ -144,13 +155,14 @@ async def list_available_recipes(
     available_product_ids = set(available_result.scalars().all())
 
     # Pobierz wszystkie przepisy z ich składnikami
+    blocked_ids = await get_blocked_user_ids(db, current_user.id)
     recipes_result = await db.execute(
         select(Recipe)
         .options(
             selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product),
             selectinload(Recipe.tags),
         )
-        .where(_visibility_filter(current_user.id))
+        .where(_visibility_filter(current_user.id, blocked_ids))
         .order_by(Recipe.name)
     )
     all_recipes = recipes_result.unique().scalars().all()
@@ -887,6 +899,40 @@ class MatchByIngredientsRequest(BaseModel):
     funkcja Premium "Co ugotować z tego, co mam"."""
 
     product_ids: list[UUID]
+
+
+@router.post(
+    "/{recipe_id}/report",
+    response_model=ContentReportResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Zgłoś przepis do moderacji",
+)
+async def report_recipe(
+    recipe_id: UUID,
+    payload: ContentReportCreate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> ContentReportResponse:
+    """Zgłasza przepis administratorowi (Apple Guideline 1.2). Dotyczy
+    głównie przepisów dodanych przez społeczność, ale technicznie działa
+    dla dowolnego — admin i tak decyduje, czy zgłoszenie jest zasadne."""
+    from app.models import ContentReport
+
+    recipe = await db.get(Recipe, recipe_id)
+    if not recipe:
+        raise NotFoundException("Nie znaleziono przepisu")
+
+    report = ContentReport(
+        reporter_user_id=current_user.id,
+        content_type="recipe",
+        content_id=recipe_id,
+        reason=payload.reason,
+        details=payload.details,
+    )
+    db.add(report)
+    await db.commit()
+    await db.refresh(report)
+    return report
 
 
 class RecipeMatchResponse(BaseModel):

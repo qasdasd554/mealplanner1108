@@ -120,6 +120,29 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  /// Logowanie/rejestracja przez "Sign in with Apple" (iOS). Zwraca
+  /// `true` po sukcesie, `false` jeśli użytkownik anulował okno logowania.
+  Future<bool> loginWithApple() async {
+    _setLoading(true);
+    _clearError();
+    try {
+      final success = await _authService.loginWithApple();
+      if (!success) {
+        _setLoading(false);
+        return false;
+      }
+      _isAuthenticated = true;
+      notifyListeners();
+      await loadProfile();
+      _setLoading(false);
+      return true;
+    } catch (e) {
+      _setErrorMessage(friendlyError(e));
+      _setLoading(false);
+      return false;
+    }
+  }
+
   Future<bool> register(String email, String password, String displayName) async {
     _setLoading(true);
     _clearError();
@@ -294,6 +317,77 @@ class AuthProvider with ChangeNotifier {
     _currentUser = null;
     _isAuthenticated = false;
     notifyListeners();
+  }
+
+  /// Trwale usuwa konto. Po sukcesie czyści lokalną sesję dokładnie tak
+  /// jak logout(), więc ekran logowania pojawia się natychmiast — nie ma
+  /// już żadnego tokenu ani profilu, do których dałoby się wrócić.
+  Future<bool> deleteAccount() async {
+    _clearError();
+    try {
+      await _authService.deleteAccount();
+      await _authService.logout();
+      _currentUser = null;
+      _isAuthenticated = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _setErrorMessage(friendlyError(e));
+      return false;
+    }
+  }
+
+  Future<bool> blockUser(String userId) async {
+    _clearError();
+    try {
+      await _authService.blockUser(userId);
+      return true;
+    } catch (e) {
+      _setErrorMessage(friendlyError(e));
+      return false;
+    }
+  }
+
+  Future<bool> unblockUser(String userId) async {
+    _clearError();
+    try {
+      await _authService.unblockUser(userId);
+      return true;
+    } catch (e) {
+      _setErrorMessage(friendlyError(e));
+      return false;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getBlockedUsers() {
+    return _authService.getBlockedUsers();
+  }
+
+  Future<bool> reportRecipe(String recipeId, {required String reason, String? details}) async {
+    _clearError();
+    try {
+      await _authService.reportRecipe(recipeId, reason: reason, details: details);
+      return true;
+    } catch (e) {
+      _setErrorMessage(friendlyError(e));
+      return false;
+    }
+  }
+
+  Future<bool> reportComment(
+    String recipeId,
+    String commentId, {
+    required String reason,
+    String? details,
+  }) async {
+    _clearError();
+    try {
+      await _authService.reportComment(recipeId, commentId, reason: reason, details: details);
+      return true;
+    } catch (e) {
+      _setErrorMessage(friendlyError(e));
+      return false;
+    }
   }
 
   void _setLoading(bool value) {

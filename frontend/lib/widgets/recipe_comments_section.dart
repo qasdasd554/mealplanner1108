@@ -7,6 +7,7 @@ import '../models/recipe_comment.dart';
 import '../providers/auth_provider.dart';
 import '../services/recipe_comment_service.dart';
 import '../theme/app_theme.dart';
+import 'report_block_menu.dart';
 
 /// Sekcja komentarzy i zdjęć pod przepisem — samodzielny widget z własnym
 /// stanem (StatefulWidget), żeby nie trzeba było przerabiać całego ekranu
@@ -379,6 +380,21 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
                           ),
                           onPressed: () => _delete(comment),
                           tooltip: isMine ? 'Usuń komentarz' : 'Usuń komentarz (moderacja)',
+                        ),
+                      // Zgłoś / zablokuj — TYLKO na cudzych komentarzach.
+                      if (!isMine)
+                        ReportBlockMenu(
+                          authorId: comment.userId,
+                          authorName: comment.authorName,
+                          onReport: (reason, details) => Provider.of<AuthProvider>(
+                            context,
+                            listen: false,
+                          ).reportComment(
+                            widget.recipeId,
+                            comment.id,
+                            reason: reason,
+                            details: details,
+                          ),
                         ),
                     ],
                   ),

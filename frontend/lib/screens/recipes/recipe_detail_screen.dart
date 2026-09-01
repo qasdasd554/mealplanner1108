@@ -9,7 +9,10 @@ import '../../widgets/dish_shopping_list_button.dart';
 import '../../widgets/recipe_delete_button.dart';
 import '../../widgets/recipe_publish_button.dart';
 import '../../widgets/recipe_photo.dart';
+import '../../widgets/report_block_menu.dart';
 import '../../utils/quantity_formatter.dart';
+import '../../providers/auth_provider.dart';
+import 'package:provider/provider.dart';
 
 class RecipeDetailScreen extends StatelessWidget {
   const RecipeDetailScreen({super.key});
@@ -33,6 +36,22 @@ class RecipeDetailScreen extends StatelessWidget {
                 padding: const EdgeInsets.only(right: 8),
                 child: RecipeFavoriteButton(recipe: recipe, activeColor: Colors.redAccent),
               ),
+              // Zgłoś / Zablokuj — TYLKO dla przepisów dodanych przez
+              // innego użytkownika (Guideline 1.2 Apple). Oficjalne
+              // przepisy (createdByUserId == null) i WŁASNE przepisy
+              // (isOwnRecipe) nie potrzebują tej opcji.
+              if (recipe.createdByUserId != null && !recipe.isOwnRecipe)
+                Padding(
+                  padding: const EdgeInsets.only(right: 4),
+                  child: ReportBlockMenu(
+                    authorId: recipe.createdByUserId,
+                    authorName: 'autora przepisu',
+                    onReport: (reason, details) => Provider.of<AuthProvider>(
+                      context,
+                      listen: false,
+                    ).reportRecipe(recipe.id, reason: reason, details: details),
+                  ),
+                ),
             ],
             flexibleSpace: FlexibleSpaceBar(
               // UWAGA (naprawa — ten sam błąd co w karcie listy): sekcja

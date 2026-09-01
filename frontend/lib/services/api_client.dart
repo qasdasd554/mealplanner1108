@@ -73,6 +73,11 @@ class ApiClient {
     final headers = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
+      // Wysyłane przy KAŻDYM żądaniu — backend (app/api/deps.py) zapisuje
+      // to przepustowanie z last_active_at, bez dodatkowego zapisu do
+      // bazy poza istniejącym mechanizmem throttlingu. Wyłącznie nazwa
+      // systemu operacyjnego, NIE identyfikator urządzenia.
+      'X-Platform': Platform.isIOS ? 'ios' : 'android',
     };
     if (token != null) {
       headers['Authorization'] = 'Bearer $token';

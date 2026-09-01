@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import '../models/user.dart';
 import 'api_client.dart';
@@ -121,6 +122,52 @@ class AuthService {
     }
   }
 
+  /// Loguje przez natywne "Sign in with Apple" (dostępne wyłącznie na
+  /// iOS — patrz login_screen.dart, gdzie przycisk jest pokazywany tylko
+  /// na tej platformie). Apple przesyła imię/nazwisko TYLKO przy
+  /// PIERWSZEJ autoryzacji danej aplikacji, więc wysyłamy je do backendu
+  /// od razu, gdy je dostaniemy — kolejne logowania tego samego konta
+  /// ich już nie zawierają, ale backend ma je zapisane z pierwszego razu.
+  ///
+  /// Zwraca `true` po udanym zalogowaniu, `false` jeśli użytkownik
+  /// anulował okno logowania.
+  Future<bool> loginWithApple() async {
+    late final AuthorizationCredentialAppleID credential;
+    try {
+      credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+    } on SignInWithAppleAuthorizationException catch (e) {
+      if (e.code == AuthorizationErrorCode.canceled) {
+        return false;
+      }
+      throw ApiException(401, 'Nie udało się zalogować przez Apple. Spróbuj ponownie.');
+    }
+
+    final identityToken = credential.identityToken;
+    if (identityToken == null) {
+      throw ApiException(401, 'Nie udało się uzyskać tokenu tożsamości Apple.');
+    }
+
+    final fullName = [credential.givenName, credential.familyName]
+        .where((s) => s != null && s.isNotEmpty)
+        .join(' ');
+
+    final response = await _client.post(
+      ApiConfig.authApple,
+      body: {
+        'identity_token': identityToken,
+        if (fullName.isNotEmpty) 'full_name': fullName,
+      },
+    );
+    final token = AuthToken.fromJson(response as Map<String, dynamic>);
+    await _client.setToken(token.accessToken);
+    return true;
+  }
+
   Future<User> getProfile() async {
     final response = await _client.get(ApiConfig.usersMe);
     return User.fromJson(response as Map<String, dynamic>);
@@ -222,6 +269,46 @@ class AuthService {
 
   Future<void> updateAllergens(List<String> allergenIds) async {
     await _client.put(ApiConfig.usersAllergens, body: {'allergen_ids': allergenIds});
+  }
+
+  /// Trwale usuwa konto (Apple Guideline 5.1.1 v / wymóg Google Play).
+  /// Backend kaskadowo usuwa wszystkie powiązane dane. Token lokalny
+  /// jest czyszczony osobno przez AuthProvider.deleteAccount() zaraz po
+  /// udanym wywołaniu.
+  Future<void> deleteAccount() async {
+    await _client.delete(ApiConfig.usersMe);
+  }
+
+  Future<void> blockUser(String userId) async {
+    await _client.post(ApiConfig.userBlock(userId));
+  }
+
+  Future<void> unblockUser(String userId) async {
+    await _client.delete(ApiConfig.userBlock(userId));
+  }
+
+  Future<List<Map<String, dynamic>>> getBlockedUsers() async {
+    final response = await _client.get(ApiConfig.usersBlocked);
+    return (response as List).cast<Map<String, dynamic>>();
+  }
+
+  Future<void> reportRecipe(String recipeId, {required String reason, String? details}) async {
+    await _client.post(
+      ApiConfig.recipeReport(recipeId),
+      body: {'reason': reason, if (details != null) 'details': details},
+    );
+  }
+
+  Future<void> reportComment(
+    String recipeId,
+    String commentId, {
+    required String reason,
+    String? details,
+  }) async {
+    await _client.post(
+      ApiConfig.commentReport(recipeId, commentId),
+      body: {'reason': reason, if (details != null) 'details': details},
+    );
   }
 
   Future<void> logout() async {

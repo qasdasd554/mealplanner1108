@@ -129,6 +129,21 @@ async def _create_tables() -> None:
         await conn.execute(
             text("ALTER TABLE recipes ADD COLUMN IF NOT EXISTS photo_base64 TEXT")
         )
+        # Sign in with Apple — patrz app/models/user.py, app/services/apple_sign_in.py.
+        await conn.execute(
+            text("ALTER TABLE users ADD COLUMN IF NOT EXISTS apple_user_id VARCHAR(255)")
+        )
+        await conn.execute(
+            text(
+                "CREATE UNIQUE INDEX IF NOT EXISTS ix_users_apple_user_id "
+                "ON users (apple_user_id) WHERE apple_user_id IS NOT NULL"
+            )
+        )
+        # Platforma (ios/android) ostatniego żądania — patrz nagłówek
+        # X-Platform w app/api/deps.py.
+        await conn.execute(
+            text("ALTER TABLE users ADD COLUMN IF NOT EXISTS platform VARCHAR(10)")
+        )
     logger.info("Tabele bazy danych zostały utworzone/zweryfikowane.")
 
 

@@ -15,6 +15,7 @@ import '../../widgets/decorative_circles.dart';
 import '../../widgets/user_avatar.dart';
 import 'premium_screen.dart';
 import '../admin/admin_panel_screen.dart';
+import 'blocked_users_screen.dart';
 
 /// Odmiana słowa "dzień" — w polskim wystarczy rozróżnić TYLKO liczbę 1
 /// (dzień) od wszystkich pozostałych (dni), w przeciwieństwie do wielu
@@ -84,11 +85,22 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack),
                   const SizedBox(height: 16),
-                  Text(
-                    user?.displayName ?? 'Użytkownik',
-                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                          fontWeight: FontWeight.bold,
+                  InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () => _showEditNicknameDialog(context, authProvider),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          user?.displayName ?? 'Użytkownik',
+                          style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                         ),
+                        const SizedBox(width: 6),
+                        Icon(Icons.edit, size: 18, color: AppTheme.textSecondary),
+                      ],
+                    ),
                   ),
                   if (user?.hasPremiumAccess ?? false) ...[
                     const SizedBox(height: 8),
@@ -338,6 +350,32 @@ class ProfileScreen extends StatelessWidget {
               },
               child: const Text('Wyloguj się'),
             ),
+            const SizedBox(height: 12),
+
+            // Zablokowani użytkownicy
+            OutlinedButton.icon(
+              icon: const Icon(Icons.block, size: 18),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const BlockedUsersScreen()),
+                );
+              },
+              label: const Text('Zablokowani użytkownicy'),
+            ),
+            const SizedBox(height: 24),
+
+            // Usunięcie konta — celowo oddzielone od reszty (kolor,
+            // opis ostrzegawczy) i wymaga DWÓCH potwierdzeń, bo operacja
+            // jest natychmiastowa i nieodwracalna (Apple Guideline
+            // 5.1.1(v) / wymóg Google Play — usuwanie konta musi być
+            // możliwe WEWNĄTRZ aplikacji, nie tylko przez support).
+            TextButton(
+              onPressed: () => _showDeleteAccountDialog(context, authProvider),
+              child: Text(
+                'Usuń konto',
+                style: TextStyle(color: AppTheme.errorColor.withOpacity(0.7)),
+              ),
+            ),
             const SizedBox(height: 48),
 
             // Wersja aplikacji
@@ -559,6 +597,124 @@ void _showAvatarPicker(BuildContext context, AuthProvider authProvider) {
             ],
           ),
         ),
+      );
+    },
+  );
+}
+
+/// Edycja pseudonimu (display_name) — pole już istniało w profilu i w
+/// PUT /users/me, brakowało tylko interfejsu do jego zmiany po
+/// rejestracji (wcześniej ustawiało się tylko raz, przy zakładaniu konta).
+void _showEditNicknameDialog(BuildContext context, AuthProvider authProvider) {
+  final controller = TextEditingController(text: authProvider.currentUser?.displayName ?? '');
+  showDialog(
+    context: context,
+    builder: (dialogContext) {
+      return AlertDialog(
+        title: const Text('Zmień pseudonim'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLength: 200,
+          decoration: const InputDecoration(
+            labelText: 'Pseudonim',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Anuluj'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              final newName = controller.text.trim();
+              if (newName.isEmpty) return;
+              Navigator.of(dialogContext).pop();
+              final success = await authProvider.updateProfile(displayName: newName);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      success ? 'Pseudonim zaktualizowany.' : 'Nie udało się zmienić pseudonimu.',
+                    ),
+                  ),
+                );
+              }
+            },
+            child: const Text('Zapisz'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+/// Usunięcie konta — dwuetapowe potwierdzenie, bo operacja jest
+/// natychmiastowa i całkowicie nieodwracalna (backend kaskadowo usuwa
+/// WSZYSTKIE dane: plany, listy zakupów, przepisy, komentarze...).
+void _showDeleteAccountDialog(BuildContext context, AuthProvider authProvider) {
+  showDialog(
+    context: context,
+    builder: (dialogContext) {
+      return AlertDialog(
+        title: const Text('Usunąć konto na stałe?'),
+        content: const Text(
+          'Ta operacja jest NIEODWRACALNA. Stracisz wszystkie zapisane plany '
+          'posiłków, listy zakupów, spiżarnię, ulubione przepisy, komentarze '
+          'i punkty premium. Jeśli masz aktywną subskrypcję, pamiętaj, żeby '
+          'anulować ją osobno w ustawieniach App Store / Google Play — '
+          'usunięcie konta samo jej nie anuluje.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Anuluj'),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: AppTheme.errorColor),
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              _showFinalDeleteConfirmation(context, authProvider);
+            },
+            child: const Text('Dalej'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+void _showFinalDeleteConfirmation(BuildContext context, AuthProvider authProvider) {
+  showDialog(
+    context: context,
+    builder: (dialogContext) {
+      return AlertDialog(
+        title: const Text('Ostatnie potwierdzenie'),
+        content: const Text('Na pewno? Tej operacji nie da się cofnąć.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Anuluj'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: AppTheme.errorColor),
+            onPressed: () async {
+              Navigator.of(dialogContext).pop();
+              final success = await authProvider.deleteAccount();
+              if (context.mounted) {
+                if (success) {
+                  Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Nie udało się usunąć konta. Spróbuj ponownie.')),
+                  );
+                }
+              }
+            },
+            child: const Text('Usuń konto'),
+          ),
+        ],
       );
     },
   );

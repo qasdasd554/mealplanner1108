@@ -150,6 +150,12 @@ class RecipeResponse(RecipeBase):
     # "private" / "pending" / "public" / "rejected" — nieistotne dla 81
     # oficjalnych przepisów (zawsze widoczne, niezależnie od tej wartości).
     visibility: str = "private"
+    # ID autora (użytkownika, nie admina-moderatora) — None dla 81
+    # oficjalnych przepisów dostarczonych z aplikacją. Potrzebne we
+    # frontendzie wyłącznie do przycisku "Zablokuj autora" (patrz
+    # widgets/report_block_menu.dart) — samo pole nic nie odsłania,
+    # bo autor i tak jest widoczny publicznie jako twórca przepisu.
+    created_by_user_id: uuid.UUID | None = None
 
     @field_validator("tags", mode="before")
     @classmethod

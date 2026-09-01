@@ -3,7 +3,7 @@
 from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,8 +11,14 @@ from sqlalchemy.orm import selectinload
 
 from app.api.deps import get_current_admin, get_current_user
 from app.db.session import get_db
-from app.models import Allergen, Store, User, UserAllergen
+from app.models import Allergen, BlockedUser, Store, User, UserAllergen
 from app.schemas.user import UserResponse
+from app.schemas.moderation import (
+    BlockedUserResponse,
+    ContentReportAdminEntry,
+    ContentReportResponse,
+    ReportStatusUpdate,
+)
 
 router = APIRouter()
 
@@ -406,3 +412,230 @@ async def get_user_activity(
         )
     return entries
 
+
+# ══════════════════════════════════════════════════════════════════
+# USUWANIE KONTA (Apple Guideline 5.1.1(v) / Google Play — wymóg usuwania
+# konta WEWNĄTRZ aplikacji, nie tylko przez kontakt z supportem).
+# ══════════════════════════════════════════════════════════════════
+@router.delete(
+    "/me",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Trwale usuń konto bieżącego użytkownika",
+)
+async def delete_me(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    """Usuwa konto i WSZYSTKIE powiązane dane nieodwracalnie.
+
+    Nie ma osobnego kroku "dezaktywacji" — wszystkie klucze obce do
+    `users.id` w schemacie mają `ondelete="CASCADE"` (plany posiłków,
+    listy zakupów, spiżarnia, ulubione, komentarze, własne przepisy
+    społecznościowe, zgłoszenia i blokady), więc usunięcie wiersza
+    użytkownika kaskadowo usuwa resztę na poziomie samej bazy danych —
+    nie trzeba tego robić ręcznie, tabela po tabeli, w kodzie Pythona.
+
+    Token JWT używany przez klienta jest bezstanowy i nie da się go
+    unieważnić po stronie serwera przed wygaśnięciem — aplikacja musi
+    sama skasować lokalnie zapisany token natychmiast po otrzymaniu
+    odpowiedzi 204 (patrz AuthProvider.deleteAccount we Flutterze).
+    """
+    await db.delete(current_user)
+    await db.commit()
+
+
+# ══════════════════════════════════════════════════════════════════
+# BLOKOWANIE UŻYTKOWNIKÓW (Apple Guideline 1.2 — aplikacje z treścią
+# od użytkowników muszą pozwalać zablokować autora nękającej/niechcianej
+# treści). Filtrowanie zablokowanych autorów z list przepisów i
+# komentarzy jest w recipes.py i recipe_comments.py (_visibility_filter).
+# ══════════════════════════════════════════════════════════════════
+@router.post(
+    "/{user_id}/block",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Zablokuj innego użytkownika",
+)
+async def block_user(
+    user_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Nie można zablokować samego siebie")
+
+    target = await db.get(User, user_id)
+    if target is None:
+        raise HTTPException(status_code=404, detail="Użytkownik nie istnieje")
+
+    existing = await db.execute(
+        select(BlockedUser).where(
+            BlockedUser.user_id == current_user.id,
+            BlockedUser.blocked_user_id == user_id,
+        )
+    )
+    if existing.scalar_one_or_none() is not None:
+        return  # już zablokowany — idempotentnie, bez błędu
+
+    db.add(BlockedUser(user_id=current_user.id, blocked_user_id=user_id))
+    await db.commit()
+
+
+@router.delete(
+    "/{user_id}/block",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Odblokuj użytkownika",
+)
+async def unblock_user(
+    user_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    await db.execute(
+        delete(BlockedUser).where(
+            BlockedUser.user_id == current_user.id,
+            BlockedUser.blocked_user_id == user_id,
+        )
+    )
+    await db.commit()
+
+
+@router.get(
+    "/me/blocked",
+    response_model=list[BlockedUserResponse],
+    summary="Lista zablokowanych przeze mnie użytkowników",
+)
+async def list_blocked_users(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> list[BlockedUserResponse]:
+    result = await db.execute(
+        select(BlockedUser, User)
+        .join(User, User.id == BlockedUser.blocked_user_id)
+        .where(BlockedUser.user_id == current_user.id)
+        .order_by(BlockedUser.created_at.desc())
+    )
+    return [
+        BlockedUserResponse(
+            blocked_user_id=blocked.blocked_user_id,
+            blocked_display_name=u.display_name,
+            blocked_avatar=u.avatar,
+            created_at=blocked.created_at,
+        )
+        for blocked, u in result.all()
+    ]
+
+
+# ══════════════════════════════════════════════════════════════════
+# ZGŁOSZENIA TREŚCI (admin) — patrz app/models/moderation.py,
+# POST /recipes/{id}/report i POST /recipes/{id}/comments/{id}/report.
+# ══════════════════════════════════════════════════════════════════
+@router.get(
+    "/admin/reports",
+    response_model=list[ContentReportAdminEntry],
+    summary="Lista zgłoszeń treści do moderacji (admin)",
+)
+async def list_content_reports(
+    status_filter: str = Query(default="pending", alias="status"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_admin),
+) -> list[ContentReportAdminEntry]:
+    """Zwraca zgłoszenia (domyślnie tylko nierozpatrzone), najnowsze
+    pierwsze, z podglądem zgłoszonej treści — żeby admin mógł ocenić
+    zgłoszenie bez przeklikiwania się do osobnego ekranu."""
+    from app.models import ContentReport, Recipe
+    from app.models.recipe_comment import RecipeComment
+
+    query = select(ContentReport).order_by(ContentReport.created_at.desc())
+    if status_filter != "all":
+        query = query.where(ContentReport.status == status_filter)
+    result = await db.execute(query)
+    reports = result.scalars().all()
+    if not reports:
+        return []
+
+    reporter_ids = {r.reporter_user_id for r in reports}
+    reporters_result = await db.execute(select(User).where(User.id.in_(reporter_ids)))
+    reporters_by_id = {u.id: u for u in reporters_result.scalars().all()}
+
+    recipe_ids = {r.content_id for r in reports if r.content_type == "recipe"}
+    comment_ids = {r.content_id for r in reports if r.content_type == "comment"}
+
+    recipes_by_id: dict = {}
+    if recipe_ids:
+        recipes_result = await db.execute(select(Recipe).where(Recipe.id.in_(recipe_ids)))
+        recipes_by_id = {rec.id: rec for rec in recipes_result.scalars().all()}
+
+    comments_by_id: dict = {}
+    if comment_ids:
+        comments_result = await db.execute(
+            select(RecipeComment).where(RecipeComment.id.in_(comment_ids))
+        )
+        comments_by_id = {c.id: c for c in comments_result.scalars().all()}
+
+    author_ids = {rec.created_by_user_id for rec in recipes_by_id.values() if rec.created_by_user_id}
+    author_ids |= {c.user_id for c in comments_by_id.values()}
+    authors_by_id: dict = {}
+    if author_ids:
+        authors_result = await db.execute(select(User).where(User.id.in_(author_ids)))
+        authors_by_id = {u.id: u for u in authors_result.scalars().all()}
+
+    entries: list[ContentReportAdminEntry] = []
+    for r in reports:
+        preview = None
+        author_email = None
+        if r.content_type == "recipe":
+            recipe = recipes_by_id.get(r.content_id)
+            if recipe is not None:
+                preview = recipe.name
+                if recipe.created_by_user_id:
+                    author = authors_by_id.get(recipe.created_by_user_id)
+                    author_email = author.email if author else None
+        else:
+            comment = comments_by_id.get(r.content_id)
+            if comment is not None:
+                preview = comment.text or "(zdjęcie bez tekstu)"
+                author = authors_by_id.get(comment.user_id)
+                author_email = author.email if author else None
+
+        reporter = reporters_by_id.get(r.reporter_user_id)
+        entries.append(
+            ContentReportAdminEntry(
+                id=r.id,
+                reporter_user_id=r.reporter_user_id,
+                reporter_email=reporter.email if reporter else "?",
+                content_type=r.content_type,
+                content_id=r.content_id,
+                reason=r.reason,
+                details=r.details,
+                status=r.status,
+                created_at=r.created_at,
+                content_preview=preview,
+                content_author_email=author_email,
+            )
+        )
+    return entries
+
+
+@router.patch(
+    "/admin/reports/{report_id}",
+    response_model=ContentReportResponse,
+    summary="Oznacz zgłoszenie jako rozpatrzone (admin)",
+)
+async def update_report_status(
+    report_id: UUID,
+    payload: ReportStatusUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_admin),
+) -> ContentReportResponse:
+    from app.models import ContentReport
+
+    report = await db.get(ContentReport, report_id)
+    if report is None:
+        raise HTTPException(status_code=404, detail="Nie znaleziono zgłoszenia")
+
+    report.status = payload.status
+    report.resolved_at = datetime.now(timezone.utc)
+    db.add(report)
+    await db.commit()
+    await db.refresh(report)
+    return report

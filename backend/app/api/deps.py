@@ -5,6 +5,7 @@ from uuid import UUID
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+from fastapi import Request
 from jose import JWTError, jwt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -26,6 +27,7 @@ _ACTIVITY_UPDATE_THROTTLE = timedelta(minutes=5)
 
 
 async def get_current_user(
+    request: Request,
     token: str = Depends(oauth2_scheme),
     db: AsyncSession = Depends(get_db),
 ) -> User:
@@ -61,10 +63,25 @@ async def get_current_user(
 
     # Aktualizacja "ostatnio aktywny" — przepustowana (patrz komentarz
     # przy _ACTIVITY_UPDATE_THROTTLE powyżej), żeby nie zapisywać do bazy
-    # przy każdym pojedynczym zapytaniu.
+    # przy każdym pojedynczym zapytaniu. Platforma (X-Platform, wysyłana
+    # przez ApiClient we Flutterze na KAŻDYM żądaniu) aktualizowana przy
+    # okazji tego samego, przepustowanego zapisu — osobny zapis tylko dla
+    # jednego pola byłby marnotrawstwem tego samego zasobu, który ten
+    # throttling ma oszczędzać.
     now = datetime.now(timezone.utc)
-    if user.last_active_at is None or (now - user.last_active_at) > _ACTIVITY_UPDATE_THROTTLE:
+    incoming_platform = request.headers.get("x-platform")
+    if incoming_platform not in ("ios", "android"):
+        incoming_platform = None
+
+    should_update_activity = (
+        user.last_active_at is None or (now - user.last_active_at) > _ACTIVITY_UPDATE_THROTTLE
+    )
+    platform_changed = incoming_platform is not None and incoming_platform != user.platform
+
+    if should_update_activity or platform_changed:
         user.last_active_at = now
+        if incoming_platform is not None:
+            user.platform = incoming_platform
         db.add(user)
         await db.commit()
         await db.refresh(user)

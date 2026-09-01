@@ -19,6 +19,12 @@ dependencies:
   # Logowanie przez Google (natywny SDK — bez przeglądarki/redirect_uri)
   google_sign_in: ^7.2.0
 
+  # Sign in with Apple — wymagane przez Apple Guideline 4.8, ponieważ
+  # aplikacja oferuje logowanie przez inną zewnętrzną usługę (Google).
+  # Widoczne na ekranie logowania TYLKO na iOS (patrz login_screen.dart),
+  # na Androidzie ten pakiet w ogóle się nie wywołuje.
+  sign_in_with_apple: ^6.1.4
+
   # Płatności w aplikacji (subskrypcja Premium) — oficjalny pakiet
   # zespołu Fluttera, wspiera Google Play Billing Library 8+ (wymóg
   # Google od 31 sierpnia 2026).

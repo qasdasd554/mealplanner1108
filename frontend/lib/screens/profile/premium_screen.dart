@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'dart:io' show Platform;
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:async';
 import '../../theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
@@ -587,6 +589,8 @@ class _PremiumScreenState extends State<PremiumScreen> {
                 ..._buildPricingSection(context),
                 const SizedBox(height: 24),
                 ..._buildPointsSection(context),
+                const SizedBox(height: 20),
+                _buildLegalFooter(context),
                 const SizedBox(height: 12),
               ]),
             ),
@@ -594,6 +598,58 @@ class _PremiumScreenState extends State<PremiumScreen> {
         ],
       ),
     );
+  }
+
+  /// Wymagane przez Apple Guideline 3.1.2: przy subskrypcjach
+  /// auto-odnawialnych trzeba pokazać tytuł, długość i cenę każdej
+  /// (już widoczne w kartach wyżej), informację o automatycznym
+  /// odnawianiu oraz KLIKALNE linki do regulaminu (EULA) i polityki
+  /// prywatności — nie wystarczy sam link do polityki prywatności.
+  Widget _buildLegalFooter(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          'Subskrypcje odnawiają się automatycznie, chyba że zostaną '
+          'anulowane co najmniej 24 godziny przed końcem bieżącego okresu. '
+          'Płatność jest pobierana z konta ${Platform.isIOS ? "App Store" : "Google Play"} '
+          'po potwierdzeniu zakupu. Możesz zarządzać subskrypcją albo ją '
+          'anulować w ustawieniach swojego konta w sklepie.',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: AppTheme.textSecondary, fontSize: 11, height: 1.4),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          alignment: WrapAlignment.center,
+          children: [
+            TextButton(
+              onPressed: () => _openLegalUrl(
+                context,
+                'https://qasdasd554.github.io/mealplanner1108/terms-of-use.html',
+              ),
+              child: const Text('Regulamin (EULA)', style: TextStyle(fontSize: 12)),
+            ),
+            TextButton(
+              onPressed: () => _openLegalUrl(
+                context,
+                'https://qasdasd554.github.io/mealplanner1108/privacy-policy.html',
+              ),
+              child: const Text('Polityka prywatności', style: TextStyle(fontSize: 12)),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Future<void> _openLegalUrl(BuildContext context, String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Nie udało się otworzyć strony.')),
+      );
+    }
   }
 
   /// Buduje sekcję cennika: status "już masz Premium", stan ładowania,

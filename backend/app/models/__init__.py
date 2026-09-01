@@ -2,6 +2,7 @@
 
 from app.db.session import Base
 from app.models.meal_plan import MealPlan, MealPlanEntry
+from app.models.moderation import BlockedUser, ContentReport
 from app.models.product import (
     Allergen,
     Product,
@@ -57,4 +58,7 @@ __all__ = [
     # Food Log
     "FoodLogEntry",
     "Notification",
+    # Moderation
+    "ContentReport",
+    "BlockedUser",
 ]

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:io' show Platform;
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -60,6 +61,25 @@ class _LoginScreenState extends State<LoginScreen> {
     } else if (authProvider.errorMessage != null) {
       // `success == false` bez komunikatu błędu oznacza, że użytkownik po
       // prostu anulował okno logowania Google — wtedy nic nie pokazujemy.
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(authProvider.errorMessage!),
+          backgroundColor: AppTheme.errorColor,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  Future<void> _submitApple() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final success = await authProvider.loginWithApple();
+
+    if (!mounted) return;
+
+    if (success) {
+      Navigator.of(context).pushReplacementNamed('/home');
+    } else if (authProvider.errorMessage != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(authProvider.errorMessage!),
@@ -268,6 +288,18 @@ class _LoginScreenState extends State<LoginScreen> {
                         ],
                       ).animate().fadeIn(delay: 650.ms),
                       const SizedBox(height: 16),
+
+                      // Sign in with Apple — TYLKO iOS (Guideline 4.8:
+                      // musi być co najmniej tak samo widoczne jak
+                      // logowanie Google, dlatego jest WYŻEJ, nie niżej).
+                      if (Platform.isIOS) ...[
+                        OutlinedButton.icon(
+                          onPressed: authProvider.isLoading ? null : _submitApple,
+                          icon: const Icon(Icons.apple, size: 22),
+                          label: const Text('Kontynuuj z Apple'),
+                        ).animate().fadeIn(delay: 680.ms),
+                        const SizedBox(height: 12),
+                      ],
 
                       // Google Sign-In Button
                       OutlinedButton.icon(

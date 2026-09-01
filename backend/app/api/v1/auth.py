@@ -13,6 +13,7 @@ from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token as google_id_token
 
 from app.core.config import settings
+from app.services.apple_sign_in import AppleSignInError, verify_apple_identity_token
 from app.services.email_service import EmailSendError, send_password_reset_email, send_verification_email
 from app.core.rate_limit import (
     email_verification_resend_limiter,
@@ -396,6 +397,81 @@ async def google_login(request: Request, db: AsyncSession = Depends(get_db)):
         db.add(user)
         await db.commit()
         await db.refresh(user)
+
+    return {
+        "access_token": create_access_token(data={"sub": str(user.id)}),
+        "token_type": "bearer",
+    }
+
+
+@router.post("/apple")
+async def apple_login(request: Request, db: AsyncSession = Depends(get_db)):
+    """Loguje/rejestruje użytkownika na podstawie tokenu tożsamości
+    wystawionego przez "Sign in with Apple" (pakiet `sign_in_with_apple`
+    we Flutterze, natywny flow — patrz app/services/apple_sign_in.py).
+
+    Wymagane przez Apple Guideline 4.8: aplikacja oferująca logowanie
+    przez zewnętrzną usługę (tu: Google) musi też oferować Sign in with
+    Apple jako równorzędną opcję.
+    """
+    enforce_google_auth_rate_limit(request)  # ten sam limiter co Google — chroni oba endpointy logowania społecznościowego.
+
+    body = await get_parsed_body(request)
+    identity_token = body.get("identity_token")
+    if not identity_token:
+        raise HTTPException(status_code=400, detail="Wymagany jest identity_token z Apple")
+
+    # Apple przesyła imię i nazwisko TYLKO przy pierwszej autoryzacji
+    # (kolejne logowania tego samego użytkownika ich nie zawierają) —
+    # aplikacja musi je zapisać lokalnie po pierwszym logowaniu i wysłać
+    # tutaj, żeby konto miało jakąkolwiek nazwę wyświetlaną.
+    full_name = (body.get("full_name") or "").strip()
+
+    try:
+        claims = await verify_apple_identity_token(identity_token)
+    except AppleSignInError as exc:
+        raise HTTPException(status_code=401, detail=str(exc))
+
+    apple_user_id = claims.get("sub")
+    if not apple_user_id:
+        raise HTTPException(status_code=400, detail="Token Apple nie zawiera identyfikatora użytkownika")
+
+    email = claims.get("email")
+    if email:
+        email = email.strip().lower()
+
+    # 1. Dopasuj po apple_user_id — to jedyne pole gwarantowane przy
+    #    KAŻDYM logowaniu (patrz komentarz w modelu User).
+    result = await db.execute(select(User).where(User.apple_user_id == apple_user_id))
+    user = result.scalar_one_or_none()
+
+    if not user and email:
+        # 2. Konto mogło już istnieć (np. założone e-mailem/hasłem albo
+        #    przez Google) z tym samym adresem — połącz zamiast tworzyć
+        #    duplikat. Bezpieczne, bo Apple gwarantuje, że e-mail w
+        #    tokenie jest zweryfikowany.
+        result = await db.execute(select(User).where(func.lower(User.email) == email))
+        user = result.scalar_one_or_none()
+        if user is not None:
+            user.apple_user_id = apple_user_id
+
+    if not user:
+        # Apple czasem w ogóle nie udostępnia e-maila (rzadkie, ale
+        # dopuszczalne) — wtedy generujemy nieużywany, wewnętrzny adres
+        # zastępczy, żeby kolumna email (NOT NULL, UNIQUE) miała czym się
+        # wypełnić. Taki adres nigdy nie posłuży do logowania e-mail/hasło.
+        effective_email = email or f"apple_{apple_user_id}@privaterelay.local"
+        user = User(
+            email=effective_email,
+            password_hash=get_password_hash(uuid.uuid4().hex),
+            display_name=full_name or "Użytkownik Apple",
+            apple_user_id=apple_user_id,
+            is_email_verified=True,
+        )
+        db.add(user)
+
+    await db.commit()
+    await db.refresh(user)
 
     return {
         "access_token": create_access_token(data={"sub": str(user.id)}),

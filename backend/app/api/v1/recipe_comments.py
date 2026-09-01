@@ -20,7 +20,9 @@ from app.models.notification import Notification
 from app.models.recipe import Recipe
 from app.models.recipe_comment import RecipeComment, RecipeCommentLike
 from app.models.user import User
+from app.schemas.moderation import ContentReportCreate, ContentReportResponse
 from app.schemas.recipe_comment import RecipeCommentCreate, RecipeCommentResponse
+from app.services.moderation import get_blocked_user_ids
 
 router = APIRouter()
 
@@ -113,13 +115,19 @@ async def list_recipe_comments(
 ):
     """Zwraca komentarze pod przepisem, od najnowszych, wraz z liczbą
     polubień i informacją, czy zalogowany użytkownik już polubił dany
-    komentarz."""
-    result = await db.execute(
+    komentarz. Komentarze autorów zablokowanych przez bieżącego
+    użytkownika są pomijane (patrz Guideline 1.2 Apple — blokada musi
+    faktycznie ukrywać treść, nie tylko istnieć jako przycisk)."""
+    blocked_ids = await get_blocked_user_ids(db, current_user.id)
+    query = (
         select(RecipeComment)
         .where(RecipeComment.recipe_id == recipe_id)
         .options(selectinload(RecipeComment.user), selectinload(RecipeComment.likes))
         .order_by(RecipeComment.created_at.desc())
     )
+    if blocked_ids:
+        query = query.where(RecipeComment.user_id.not_in(blocked_ids))
+    result = await db.execute(query)
     comments = result.scalars().all()
     return [
         _to_response(
@@ -262,3 +270,37 @@ async def unlike_recipe_comment(
     if like is not None:
         await db.delete(like)
         await db.commit()
+
+
+@router.post(
+    "/{recipe_id}/comments/{comment_id}/report",
+    response_model=ContentReportResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def report_recipe_comment(
+    recipe_id: uuid.UUID,
+    comment_id: uuid.UUID,
+    payload: ContentReportCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Zgłasza komentarz do rozpatrzenia przez administratora
+    (Apple Guideline 1.2). Nie usuwa ani nie ukrywa komentarza
+    automatycznie — to robi admin po rozpatrzeniu zgłoszenia."""
+    from app.models import ContentReport
+
+    comment = await db.get(RecipeComment, comment_id)
+    if not comment or comment.recipe_id != recipe_id:
+        raise HTTPException(status_code=404, detail="Nie znaleziono komentarza")
+
+    report = ContentReport(
+        reporter_user_id=current_user.id,
+        content_type="comment",
+        content_id=comment_id,
+        reason=payload.reason,
+        details=payload.details,
+    )
+    db.add(report)
+    await db.commit()
+    await db.refresh(report)
+    return report

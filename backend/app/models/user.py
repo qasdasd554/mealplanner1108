@@ -81,6 +81,17 @@ class User(Base):
     password_reset_code_expires_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    # Identyfikator konta Apple ("sub" z tokenu tożsamości Sign in with
+    # Apple) — odpowiednik tego, czym dla logowania Google jest e-mail.
+    # NIE używamy e-maila jako klucza dopasowania dla Apple, bo Apple
+    # potrafi zwrócić prywatny, przekazywany adres (Hide My Email) albo
+    # w ogóle nie przesłać e-maila przy KOLEJNYCH logowaniach (Apple wysyła
+    # go tylko raz, przy pierwszej autoryzacji) — `sub` jest jedynym polem
+    # gwarantowanym za każdym razem i niezmiennym dla pary (aplikacja,
+    # użytkownik). Nullable + unique: NULL dla kont email/hasło i Google.
+    apple_user_id: Mapped[str | None] = mapped_column(
+        String(255), unique=True, nullable=True
+    )
     # Rola konta — "user" (domyślnie) albo "admin". Admin może usuwać
     # KAŻDY komentarz (nie tylko własny) i w miarę rozwoju aplikacji
     # będzie naturalnym miejscem na kolejne uprawnienia moderacyjne.
@@ -122,6 +133,15 @@ class User(Base):
     last_active_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    # Ostatnia platforma, z której użytkownik korzystał — "ios" | "android".
+    # WYŁĄCZNIE nazwa systemu wysyłana przez samą aplikację (nagłówek
+    # X-Platform, patrz app/api/deps.py), NIE żaden identyfikator
+    # urządzenia i NIE dane z jakiegokolwiek SDK trzeciej strony. Czysto
+    # operacyjne: ile kont realnie używa Androida a ile iOS, do
+    # planowania pracy (np. czy warto inwestować czas w konkretną
+    # platformę). Nullable — konta, które jeszcze nie wysłały żadnego
+    # zapytania po dodaniu tej kolumny, mają NULL.
+    platform: Mapped[str | None] = mapped_column(String(10), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
