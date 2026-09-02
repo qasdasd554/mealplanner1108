@@ -13,7 +13,15 @@ class AuthService {
 
   Future<void> _ensureGoogleInitialized() async {
     if (_googleInitialized) return;
-    await _googleSignIn.initialize(serverClientId: ApiConfig.googleWebClientId);
+    // `clientId` jest wymagany na iOS (tam nie ma odpowiednika podpisu
+    // SHA-1, którym Android identyfikuje aplikację). Na Androidzie
+    // przekazanie go jest zbędne, ale nieszkodliwe — pusta stała oznacza
+    // po prostu, że logowanie Google jest na iOS wyłączone i przycisk się
+    // nie pokazuje (patrz ApiConfig.googleIosClientId).
+    await _googleSignIn.initialize(
+      serverClientId: ApiConfig.googleWebClientId,
+      clientId: ApiConfig.googleIosClientId.isEmpty ? null : ApiConfig.googleIosClientId,
+    );
     _googleInitialized = true;
   }
 

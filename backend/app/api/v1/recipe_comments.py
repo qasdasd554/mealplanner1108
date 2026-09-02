@@ -66,6 +66,16 @@ async def _notify_thread_participants(
         )
     )
     recipient_ids = set(thread_result.scalars().all()) | set(favorite_result.scalars().all())
+
+    # AUTOR PRZEPISU — najważniejszy odbiorca, a wcześniej go tu NIE było.
+    # Ta funkcja powstała, gdy przepisy były wyłącznie wspólnym katalogiem
+    # bez autora (patrz docstring wyżej). Odkąd użytkownicy publikują
+    # własne przepisy (`created_by_user_id`), autor musi dostać
+    # powiadomienie o komentarzu pod SWOIM przepisem — nawet jeśli sam
+    # nic w wątku nie napisał i nie ma go w ulubionych.
+    if recipe.created_by_user_id and recipe.created_by_user_id != author.id:
+        recipient_ids.add(recipe.created_by_user_id)
+
     if not recipient_ids:
         return
 
@@ -287,7 +297,10 @@ async def report_recipe_comment(
     """Zgłasza komentarz do rozpatrzenia przez administratora
     (Apple Guideline 1.2). Nie usuwa ani nie ukrywa komentarza
     automatycznie — to robi admin po rozpatrzeniu zgłoszenia."""
+    from app.core.rate_limit import content_report_limiter, enforce_user_rate_limit
     from app.models import ContentReport
+
+    enforce_user_rate_limit(content_report_limiter, current_user.id, "zgłaszanie treści")
 
     comment = await db.get(RecipeComment, comment_id)
     if not comment or comment.recipe_id != recipe_id:

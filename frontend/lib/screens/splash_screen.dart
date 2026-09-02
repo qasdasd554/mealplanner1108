@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
+import '../services/update_service.dart';
 import 'recipes/ai_add_recipe_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -72,6 +73,38 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
 
     if (authProvider.isAuthenticated) {
+      // Sprawdzenie aktualizacji PRZED wpuszczeniem do aplikacji.
+      // Świadomie tylko dla zalogowanych i po opóźnieniu splash — nie
+      // opóźnia pierwszego uruchomienia, a przy braku sieci serwis
+      // zwraca "brak aktualizacji" i nic nie blokuje (patrz
+      // UpdateService.checkForUpdate).
+      final update = await UpdateService().checkForUpdate();
+      if (!mounted) return;
+      if (update.updateAvailable) {
+        await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => UpdateAvailableScreen(
+              storeUrl: update.storeUrl,
+              forceUpdate: update.forceUpdate,
+            ),
+          ),
+        );
+        if (!mounted) return;
+        // Przy wymuszonej aktualizacji ekranu nie da się zamknąć
+        // (PopScope), więc tutaj kod dojdzie WYŁĄCZNIE po "Później".
+      }
+
+      // NAPRAWA LUKI: wcześniej sprawdzano WYŁĄCZNIE, czy jest token —
+      // a /auth/register wydaje ważny token od razu, przed potwierdzeniem
+      // adresu. Wystarczyło więc zamknąć aplikację na ekranie weryfikacji
+      // i otworzyć ponownie, żeby wylądować na /home z niepotwierdzonym
+      // kontem i korzystać z niego bez ograniczeń. Backend też tego nie
+      // pilnował (patrz app/api/deps.py) — teraz pilnują oba miejsca.
+      if (authProvider.currentUser != null &&
+          !authProvider.currentUser!.isEmailVerified) {
+        Navigator.of(context).pushReplacementNamed('/verify-email');
+        return;
+      }
       if (sharedUrl != null) {
         // Zalogowany i przyszedł z udostępnienia linku — od razu na
         // ekran rozpoznawania przepisu przez AI, z wypełnionym linkiem.

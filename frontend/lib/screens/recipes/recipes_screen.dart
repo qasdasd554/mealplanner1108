@@ -29,6 +29,11 @@ class _RecipesScreenState extends State<RecipesScreen> {
   List<Recipe> _recipes = [];
   bool _isLoading = false;
   String _searchQuery = '';
+  // Sortowanie listy: 'name' | 'kcal_asc' | 'kcal_desc' | 'prep_time'.
+  // 'kcal_*' sortuje po kaloriach NA JEDNĄ PORCJĘ (czyli na osobę),
+  // nie po sumie dla całego przepisu — patrz _kcal_per_serving_expr
+  // w backend/app/api/v1/recipes.py.
+  String _sortBy = 'name';
   String? _selectedMealType;
   String? _selectedDifficulty;
   bool _favoritesOnly = false;
@@ -61,6 +66,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
               tag: _selectedDietTag != null ? kDietNameToTag[_selectedDietTag] : null,
               favoritesOnly: _favoritesOnly,
               communityOnly: _communityOnly,
+              sortBy: _sortBy,
             );
       if (!mounted) return;
       setState(() {
@@ -93,6 +99,27 @@ class _RecipesScreenState extends State<RecipesScreen> {
       appBar: AppBar(
         title: const Text('Przepisy'),
         actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.sort),
+            tooltip: 'Sortowanie',
+            initialValue: _sortBy,
+            onSelected: (value) {
+              setState(() => _sortBy = value);
+              _loadRecipes();
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem(value: 'name', child: Text('Alfabetycznie')),
+              PopupMenuItem(
+                value: 'kcal_asc',
+                child: Text('Kalorie: od najmniej (na osobę)'),
+              ),
+              PopupMenuItem(
+                value: 'kcal_desc',
+                child: Text('Kalorie: od najwięcej (na osobę)'),
+              ),
+              PopupMenuItem(value: 'prep_time', child: Text('Czas: najszybsze')),
+            ],
+          ),
           // UWAGA (naprawa widoczności): zwykła, konturowa ikona ledwo
           // było widać na pasku — teraz wypełniona, w złotym kolorze
           // trofeum, na delikatnym tle, z subtelną animacją pulsowania,

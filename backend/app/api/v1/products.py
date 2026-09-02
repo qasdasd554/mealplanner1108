@@ -7,15 +7,22 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.api.deps import get_current_user
 from app.core.exceptions import NotFoundException
 from app.db.session import get_db
 from app.models import Product, ProductSubstitute, StoreProduct
 from app.schemas.product import ProductResponse, StoreProductResponse, SubstituteResponse
 from app.services import ProductSubstitutionService
 
-router = APIRouter()
 
-
+# UWAGA (naprawa bezpieczeństwa): endpointy w tym pliku były CAŁKOWICIE
+# otwarte — bez tokenu każdy mógł pobrać pełny katalog produktów, sklepów
+# i cen (a więc też zeskrobać całą bazę jednym skryptem). To dane, na
+# których opiera się aplikacja, i nie ma powodu udostępniać ich anonimowo.
+# Router chroniony JEDNĄ zależnością na poziomie całego routera, zamiast
+# dopisywania Depends do każdej funkcji z osobna — trudniej o pominięcie
+# przy dodawaniu kolejnego endpointu w przyszłości.
+router = APIRouter(dependencies=[Depends(get_current_user)])
 @router.get(
     "/",
     response_model=list[ProductResponse],

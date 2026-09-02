@@ -5,6 +5,9 @@ import '../../services/promotion_service.dart';
 import '../../services/recipe_service.dart';
 import '../../services/notification_service.dart';
 import '../../services/moderation_service.dart';
+import 'admin_users_screen.dart';
+import 'admin_comments_screen.dart';
+import 'admin_photos_screen.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
 
@@ -203,14 +206,20 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                     style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
                   ),
                   const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                  // Wrap zamiast Row: dwa przyciski z długimi etykietami
+                  // ("Odrzuć zgłoszenie" + "Oznacz jako rozpatrzone") nie
+                  // mieszczą się obok siebie na wąskim ekranie telefonu
+                  // i powodowały overflow. Wrap przenosi drugi przycisk
+                  // do nowej linii zamiast się rozjeżdżać.
+                  Wrap(
+                    alignment: WrapAlignment.end,
+                    spacing: 8,
+                    runSpacing: 4,
                     children: [
                       TextButton(
                         onPressed: isBusy ? null : () => _resolveReport(id, 'dismissed'),
                         child: const Text('Odrzuć zgłoszenie'),
                       ),
-                      const SizedBox(width: 8),
                       FilledButton(
                         style: FilledButton.styleFrom(backgroundColor: AppTheme.errorColor),
                         onPressed: isBusy ? null : () => _resolveReport(id, 'resolved'),
@@ -650,7 +659,17 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Oczekujące na akceptację', style: Theme.of(context).textTheme.titleLarge),
+                // Expanded na tytule: "Oczekujące na akceptację" w stylu
+                // titleLarge nie mieści się obok licznika na wąskich
+                // ekranach (~360 dp) i powodowało przepełnienie — ta sama
+                // klasa błędu co przy przyciskach zgłoszeń.
+                Expanded(
+                  child: Text(
+                    'Oczekujące na akceptację',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
+                const SizedBox(width: 8),
                 Text('${_pending.length}', style: TextStyle(color: AppTheme.textSecondary)),
               ],
             ),
@@ -782,6 +801,39 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                   ),
                 );
               }),
+            const SizedBox(height: 32),
+            // Skróty do osobnych ekranów moderacji — celowo NIE wbudowane
+            // w ten ekran, bo panel jest już bardzo długi, a obie listy
+            // (konta, komentarze) mają własne wyszukiwarki i paginację.
+            // Wrap zamiast Row: trzy przyciski z etykietami nie mieszczą
+            // się w jednym wierszu na wąskich ekranach.
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.people_outline, size: 18),
+                  label: const Text('Użytkownicy'),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const AdminUsersScreen()),
+                  ),
+                ),
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.chat_bubble_outline, size: 18),
+                  label: const Text('Komentarze'),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const AdminCommentsScreen()),
+                  ),
+                ),
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.photo_library_outlined, size: 18),
+                  label: const Text('Zdjęcia'),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const AdminPhotosScreen()),
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 32),
             _buildReportsSection(context),
             const SizedBox(height: 32),

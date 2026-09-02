@@ -144,6 +144,23 @@ async def _create_tables() -> None:
         await conn.execute(
             text("ALTER TABLE users ADD COLUMN IF NOT EXISTS platform VARCHAR(10)")
         )
+        # Blokada konta przez administratora — patrz app/models/user.py.
+        await conn.execute(
+            text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_banned BOOLEAN NOT NULL DEFAULT FALSE")
+        )
+        await conn.execute(
+            text("ALTER TABLE users ADD COLUMN IF NOT EXISTS ban_reason VARCHAR(500)")
+        )
+        # Zdjęcia przepisów oczekujące na moderację — patrz app/models/recipe.py.
+        await conn.execute(
+            text("ALTER TABLE recipes ADD COLUMN IF NOT EXISTS pending_photo_base64 TEXT")
+        )
+        await conn.execute(
+            text("ALTER TABLE recipes ADD COLUMN IF NOT EXISTS pending_photo_user_id UUID")
+        )
+        await conn.execute(
+            text("ALTER TABLE recipes ADD COLUMN IF NOT EXISTS pending_photo_submitted_at TIMESTAMPTZ")
+        )
     logger.info("Tabele bazy danych zostały utworzone/zweryfikowane.")
 
 
@@ -389,12 +406,31 @@ async def health_check() -> dict[str, str]:
     tags=["Health"],
     summary="Numer najnowszej opublikowanej wersji aplikacji",
 )
-async def app_version_info() -> dict:
+async def app_version_info(platform: str | None = None) -> dict:
     """Publiczny (bez logowania) endpoint sprawdzany przez aplikację przy
-    starcie — jeśli zainstalowana wersja jest starsza niż
-    LATEST_APP_VERSION_CODE, aplikacja pokazuje delikatne przypomnienie
-    o dostępnej aktualizacji (nie blokuje działania)."""
+    starcie. Aplikacja przesyła swoją platformę (`?platform=ios` albo
+    `android`) i porównuje własny numer builda z odpowiednim progiem.
+
+    Zwraca też adres do sklepu WŁAŚCIWEGO dla platformy — wcześniej był
+    tu wyłącznie link do Google Play, więc użytkownik iOS dostałby link,
+    którego nie da się otworzyć na jego urządzeniu.
+    """
+    is_ios = (platform or "").lower() == "ios"
     return {
+        # Zachowane dla zgodności ze starszymi wersjami aplikacji, które
+        # jeszcze nie wysyłają parametru `platform` i czytają to pole.
         "latest_version_code": settings.LATEST_APP_VERSION_CODE,
         "play_store_url": "https://play.google.com/store/apps/details?id=com.meal_planner_polska_v1",
+        # Nowe, rozdzielone na platformy.
+        "latest_build_number": (
+            settings.LATEST_IOS_BUILD_NUMBER if is_ios else settings.LATEST_ANDROID_VERSION_CODE
+        ),
+        "force_update": (
+            settings.FORCE_UPDATE_IOS if is_ios else settings.FORCE_UPDATE_ANDROID
+        ),
+        "store_url": (
+            "https://apps.apple.com/app/id6806607230"
+            if is_ios
+            else "https://play.google.com/store/apps/details?id=com.meal_planner_polska_v1"
+        ),
     }

@@ -65,6 +65,23 @@ class ShoppingListService {
     await _client.put('${ApiConfig.shoppingLists}$listId/items/$itemId/check');
   }
 
+  /// Dopisuje pojedynczy produkt (spoza przepisu) do listy.
+  Future<void> addProduct(
+    String listId,
+    String productId, {
+    double quantity = 1.0,
+    String unit = 'szt',
+  }) async {
+    await _client.post(
+      '${ApiConfig.shoppingLists}$listId/items',
+      body: {'product_id': productId, 'quantity': quantity, 'unit': unit},
+    );
+  }
+
+  Future<void> deleteItem(String listId, String itemId) async {
+    await _client.delete('${ApiConfig.shoppingLists}$listId/items/$itemId');
+  }
+
   Future<void> substituteItem(String listId, String itemId, String substituteProductId) async {
     await _client.put(
       '${ApiConfig.shoppingLists}$listId/items/$itemId/substitute',

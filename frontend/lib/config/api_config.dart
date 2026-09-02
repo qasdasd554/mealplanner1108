@@ -57,6 +57,36 @@ class ApiConfig {
   static const String googleWebClientId =
       '780793039743-6ap1jq18i31hqt04pf7gj8i4jip67uts.apps.googleusercontent.com';
 
+  /// Client ID klienta OAuth typu **iOS** z Google Cloud Console.
+  ///
+  /// PUSTY = logowanie Google jest na iOS WYŁĄCZONE (przycisk się nie
+  /// pokazuje — patrz login_screen.dart). Tak jest teraz, bo bez tej
+  /// konfiguracji logowanie kończyło się błędem.
+  ///
+  /// Żeby włączyć Google także na iOS, trzeba zrobić WSZYSTKIE trzy rzeczy
+  /// — sama zmiana tej stałej nie wystarczy:
+  ///
+  /// 1. Google Cloud Console → Credentials → Create OAuth client ID →
+  ///    typ "iOS", Bundle ID: com.meal-planner-polska-v1. Skopiowany
+  ///    identyfikator wklej poniżej.
+  /// 2. ios/Runner/Info.plist: dodaj klucz `GIDClientID` z tą samą wartością.
+  /// 3. ios/Runner/Info.plist: dodaj schemat URL z ODWRÓCONYM client ID
+  ///    (czyli "com.googleusercontent.apps.780793039743-xxxx"), bo bez
+  ///    niego system nie ma jak wrócić do aplikacji po zalogowaniu:
+  ///
+  ///    <key>CFBundleURLTypes</key>
+  ///    <array>
+  ///      <dict>
+  ///        <key>CFBundleURLSchemes</key>
+  ///        <array>
+  ///          <string>com.googleusercontent.apps.780793039743-xxxx</string>
+  ///        </array>
+  ///      </dict>
+  ///    </array>
+  ///
+  /// Po uzupełnieniu przycisk pojawi się na iOS automatycznie.
+  static const String googleIosClientId = '';
+
   // Endpointy
   static const String authLogin = '/auth/login';
   static const String authRegister = '/auth/register';

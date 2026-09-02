@@ -49,7 +49,11 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
       // Pobierz listę zakupów powiązaną z aktywnym planem
       // Na backendzie relacja 1:1, więc id listy zakupów odpowiada id planu lub pobieramy przez api.
       // Domyślnie na serwerze możemy pobrać listę zakupów bezpośrednio, przekażemy id planu lub pobierzemy najnowszą
-      shoppingListProvider.loadShoppingList(activePlan.id);
+      // Ładujemy WSZYSTKIE listy użytkownika, a nie tylko tę powiązaną
+      // z aktywnym planem — inaczej użytkownik Premium z kilkoma listami
+      // nie miał jak przełączyć się na pozostałe (patrz komentarz przy
+      // loadAllLists w ShoppingListProvider).
+      shoppingListProvider.loadAllLists(preferredListId: activePlan.id);
     }
 
     // Wcześniej ta funkcja "czy jest promocja na produkt X w sklepie Y" nie
@@ -290,6 +294,11 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
               ? _buildEmptyState()
               : Column(
                   children: [
+                    // 0. Przełącznik listy — widoczny tylko gdy użytkownik
+                    // ma więcej niż jedną (Premium może mieć do 5).
+                    if (shoppingListProvider.allLists.length > 1)
+                      _buildListSelector(shoppingListProvider),
+
                     // 1. Panel podsumowania (Postęp i cena)
                     _buildSummaryCard(list),
 
@@ -379,6 +388,39 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                   ],
                 ),
         ],
+      ),
+    );
+  }
+
+  /// Poziomy pasek z zakładkami list — pozwala przełączyć widoczną listę
+  /// zakupów, gdy użytkownik ma ich kilka.
+  Widget _buildListSelector(ShoppingListProvider provider) {
+    return SizedBox(
+      height: 48,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        itemCount: provider.allLists.length,
+        itemBuilder: (context, index) {
+          final l = provider.allLists[index];
+          // UWAGA: backend indeksuje listy po ID PLANU POSIŁKÓW, nie po
+          // ShoppingList.id (patrz _get_shopping_list_or_404 w
+          // backend/app/api/v1/shopping_lists.py) — stąd mealPlanId.
+          final isSelected = l.mealPlanId == provider.selectedListId;
+          final allItems = l.itemsByDepartment.values.expand((x) => x).toList();
+          final checked = allItems.where((i) => i.isChecked).length;
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: ChoiceChip(
+              selected: isSelected,
+              onSelected: (_) => provider.selectList(l.mealPlanId),
+              label: Text(
+                '${l.storeName} · $checked/${allItems.length}',
+                style: const TextStyle(fontSize: 12),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

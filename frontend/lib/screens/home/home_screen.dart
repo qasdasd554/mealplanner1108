@@ -12,6 +12,7 @@ import '../../widgets/premium_badge.dart';
 import '../../widgets/user_avatar.dart';
 import '../../models/meal_plan.dart';
 import '../recipes/recipes_screen.dart';
+import '../recipes/recipe_leaderboard_screen.dart';
 import '../recipes/pantry_screen.dart';
 import '../../widgets/decorative_circles.dart';
 import '../shopping/shopping_list_screen.dart';
@@ -297,6 +298,14 @@ class HomeTab extends StatelessWidget {
                       ),
                 ),
                 const SizedBox(height: 12),
+                // Baner konkursu — szerokość DWÓCH zwykłych kafelków
+                // (czyli pełna szerokość siatki), dlatego jest POZA
+                // GridView: siatka ma sztywno crossAxisCount = 2, więc
+                // element rozciągnięty na dwie kolumny wymagałby zamiany
+                // na StaggeredGrid albo SliverGrid z osobnym delegatem —
+                // niepotrzebna komplikacja dla jednego elementu.
+                _buildContestBanner(context),
+                const SizedBox(height: 12),
                 GridView.count(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -579,6 +588,70 @@ class HomeTab extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Baner cotygodniowego konkursu na liczbę opublikowanych przepisów.
+  /// Nagrody (3/2/1 punkt premium za miejsca 1–3) odpowiadają
+  /// _PLACE_POINTS w backend/app/services/weekly_contest.py — jeśli tam
+  /// się zmienią, trzeba poprawić też ten tekst.
+  Widget _buildContestBanner(BuildContext context) {
+    const gold = Color(0xFFE0A62E);
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const RecipeLeaderboardScreen()),
+      ),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            colors: [gold.withOpacity(0.18), gold.withOpacity(0.06)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          border: Border.all(color: gold.withOpacity(0.4)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: gold.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.emoji_events, color: gold, size: 26),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Konkurs tygodnia',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    'Dodaj najwięcej przepisów w tym tygodniu i zgarnij '
+                    'punkty premium — 3 za 1. miejsce, 2 za 2., 1 za 3.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.textSecondary,
+                      height: 1.35,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(Icons.chevron_right, color: gold.withOpacity(0.8)),
+          ],
+        ),
+      ),
+    ).animate().fadeIn(delay: 80.ms);
   }
 
   Widget _buildQuickActionCard(

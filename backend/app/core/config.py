@@ -133,7 +133,22 @@ class Settings(BaseSettings):
     # własny numer z tą wartością przy starcie i pokazuje delikatne
     # przypomnienie, jeśli jest starsza — nie blokuje korzystania,
     # tylko informuje.
-    LATEST_APP_VERSION_CODE: int = 73
+    LATEST_APP_VERSION_CODE: int = 72
+    # Numery wersji są ROZDZIELONE na platformy, bo numeracja iOS
+    # i Androida całkowicie się rozjechała: Xcode Cloud nadaje numery
+    # buildów iOS własnym, niezależnym licznikiem (był 24), podczas gdy
+    # Android bierze numer po "+" z pubspec.yaml (był 73). Jeden wspólny
+    # próg powodowałby, że użytkownicy iOS dostawaliby komunikat
+    # o aktualizacji przy każdym uruchomieniu, mimo najnowszej wersji.
+    # AKTUALIZUJ RĘCZNIE przy każdym wydaniu na daną platformę.
+    LATEST_ANDROID_VERSION_CODE: int = 73
+    LATEST_IOS_BUILD_NUMBER: int = 24
+    # Ustaw na True, żeby aktualizacja była WYMAGANA (pełnoekranowy
+    # komunikat bez możliwości zamknięcia) — np. gdy stara wersja przestaje
+    # działać z powodu zmiany w API. Domyślnie False: komunikat da się
+    # odłożyć przyciskiem "Później".
+    FORCE_UPDATE_ANDROID: bool = False
+    FORCE_UPDATE_IOS: bool = False
     RATE_LIMIT_WINDOW_SECONDS: int = 600
 
     @property

@@ -133,6 +133,14 @@ class User(Base):
     last_active_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    # Blokada CAŁEGO konta nałożona przez administratora — inna rzecz niż
+    # BlockedUser (blokada między dwoma zwykłymi użytkownikami). Konto
+    # zbanowane nie może się zalogować ani korzystać z API. Świadomie
+    # ban zamiast usunięcia konta: usunięcie kasuje kaskadowo wszystkie
+    # dane i pozwala natychmiast założyć konto na ten sam e-mail, ban
+    # jest odwracalny i blokuje ponowną rejestrację tym adresem.
+    is_banned: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    ban_reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
     # Ostatnia platforma, z której użytkownik korzystał — "ios" | "android".
     # WYŁĄCZNIE nazwa systemu wysyłana przez samą aplikację (nagłówek
     # X-Platform, patrz app/api/deps.py), NIE żaden identyfikator

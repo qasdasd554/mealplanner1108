@@ -13,6 +13,8 @@ class RecipeService {
     String? search,
     bool favoritesOnly = false,
     bool communityOnly = false,
+    // 'name' | 'kcal_asc' | 'kcal_desc' | 'prep_time'
+    String? sortBy,
   }) async {
     var path = '${ApiConfig.recipes}?';
     final params = <String>[];
@@ -42,6 +44,9 @@ class RecipeService {
     }
     if (communityOnly) {
       params.add('community_only=true');
+    }
+    if (sortBy != null && sortBy.isNotEmpty && sortBy != 'name') {
+      params.add('sort_by=${Uri.encodeComponent(sortBy)}');
     }
     // Backend domyślnie zwraca tylko 50 przepisów (paginacja). Baza ma ich
     // teraz ~80, więc bez podania limitu część z nich byłaby niewidoczna
@@ -235,4 +240,14 @@ class RecipeMatch {
           .toList(),
     );
   }
+
+  /// Zgłasza zdjęcie do przepisu. Zdjęcie trafia do moderacji i pojawi
+  /// się dopiero po akceptacji administratora.
+  Future<void> submitPhoto(String recipeId, String photoBase64) async {
+    await _client.post(
+      '/recipes/$recipeId/photo',
+      body: {'photo_base64': photoBase64},
+    );
+  }
+
 }

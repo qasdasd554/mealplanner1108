@@ -5,7 +5,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -13,6 +13,7 @@ from app.api.deps import get_current_admin, get_current_user
 from app.db.session import get_db
 from app.models import Allergen, BlockedUser, Store, User, UserAllergen
 from app.schemas.user import UserResponse
+from app.services.display_name import validate_display_name
 from app.schemas.moderation import (
     BlockedUserResponse,
     ContentReportAdminEntry,
@@ -135,6 +136,15 @@ async def update_me(
         store = await db.get(Store, update_data["preferred_store_id"])
         if store is None:
             raise HTTPException(status_code=400, detail="Wskazany sklep nie istnieje")
+
+    # Nick musi zostać unikalny również przy EDYCJI (wcześniej dało się
+    # ustawić dowolny, w tym zajęty przez kogoś innego — a nick jest
+    # widoczny publicznie przy przepisach i komentarzach). Wykluczamy
+    # własne konto, żeby zapis bez faktycznej zmiany nie zwracał błędu.
+    if update_data.get("display_name") is not None:
+        update_data["display_name"] = await validate_display_name(
+            db, update_data["display_name"], exclude_user_id=current_user.id
+        )
 
     for field, value in update_data.items():
         setattr(current_user, field, value)
@@ -639,3 +649,167 @@ async def update_report_status(
     await db.commit()
     await db.refresh(report)
     return report
+
+
+# ══════════════════════════════════════════════════════════════════
+# BAN KONTA (admin) — blokada CAŁEGO konta, w odróżnieniu od
+# /users/{id}/block, które jest blokadą między dwoma zwykłymi
+# użytkownikami. Egzekwowane w app/api/deps.py (get_current_user) oraz
+# przy logowaniu w auth.py.
+# ══════════════════════════════════════════════════════════════════
+class BanUserRequest(BaseModel):
+    reason: str | None = Field(default=None, max_length=500)
+
+
+@router.post(
+    "/admin/{user_id}/ban",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Zablokuj konto użytkownika (admin)",
+)
+async def ban_user(
+    user_id: UUID,
+    payload: BanUserRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_admin),
+) -> None:
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Nie można zablokować własnego konta")
+
+    target = await db.get(User, user_id)
+    if target is None:
+        raise HTTPException(status_code=404, detail="Użytkownik nie istnieje")
+    if target.role == "admin":
+        raise HTTPException(status_code=400, detail="Nie można zablokować konta administratora")
+
+    target.is_banned = True
+    target.ban_reason = (payload.reason or "").strip() or None
+    db.add(target)
+    await db.commit()
+
+
+@router.post(
+    "/admin/{user_id}/unban",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Odblokuj konto użytkownika (admin)",
+)
+async def unban_user(
+    user_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_admin),
+) -> None:
+    target = await db.get(User, user_id)
+    if target is None:
+        raise HTTPException(status_code=404, detail="Użytkownik nie istnieje")
+
+    target.is_banned = False
+    target.ban_reason = None
+    db.add(target)
+    await db.commit()
+
+
+class AdminUserEntry(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    email: str
+    display_name: str | None
+    is_banned: bool
+    ban_reason: str | None
+    role: str
+    created_at: datetime
+
+
+@router.get(
+    "/admin/all",
+    response_model=list[AdminUserEntry],
+    summary="Lista wszystkich użytkowników z możliwością wyszukiwania (admin)",
+)
+async def list_all_users(
+    search: str | None = Query(default=None),
+    only_banned: bool = Query(default=False),
+    limit: int = Query(default=100, le=500),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_admin),
+) -> list[AdminUserEntry]:
+    query = select(User).order_by(User.created_at.desc()).limit(limit)
+    if only_banned:
+        query = query.where(User.is_banned == True)  # noqa: E712
+    if search:
+        pattern = f"%{search.strip().lower()}%"
+        query = query.where(
+            or_(
+                func.lower(User.email).like(pattern),
+                func.lower(User.display_name).like(pattern),
+            )
+        )
+    result = await db.execute(query)
+    return list(result.scalars().all())
+
+
+# ══════════════════════════════════════════════════════════════════
+# PRZEGLĄD KOMENTARZY (admin) — usuwanie pojedynczego komentarza jest
+# już możliwe przez DELETE /recipes/{id}/comments/{id} (admin ma tam
+# uprawnienie), ale nie było żadnego widoku listującego WSZYSTKIE
+# komentarze w jednym miejscu.
+# ══════════════════════════════════════════════════════════════════
+class AdminCommentEntry(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    recipe_id: UUID
+    recipe_name: str
+    user_id: UUID
+    author_name: str
+    author_email: str
+    text: str | None
+    has_photo: bool
+    created_at: datetime
+
+
+@router.get(
+    "/admin/comments",
+    response_model=list[AdminCommentEntry],
+    summary="Wszystkie komentarze w aplikacji (admin)",
+)
+async def list_all_comments(
+    search: str | None = Query(default=None),
+    limit: int = Query(default=100, le=500),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_admin),
+) -> list[AdminCommentEntry]:
+    from app.models.recipe import Recipe
+    from app.models.recipe_comment import RecipeComment
+
+    query = (
+        select(RecipeComment, Recipe, User)
+        .join(Recipe, Recipe.id == RecipeComment.recipe_id)
+        .join(User, User.id == RecipeComment.user_id)
+        .order_by(RecipeComment.created_at.desc())
+        .limit(limit)
+    )
+    if search:
+        pattern = f"%{search.strip().lower()}%"
+        query = query.where(
+            or_(
+                func.lower(RecipeComment.text).like(pattern),
+                func.lower(User.display_name).like(pattern),
+                func.lower(User.email).like(pattern),
+                func.lower(Recipe.name).like(pattern),
+            )
+        )
+
+    result = await db.execute(query)
+    return [
+        AdminCommentEntry(
+            id=comment.id,
+            recipe_id=recipe.id,
+            recipe_name=recipe.name,
+            user_id=user.id,
+            author_name=user.display_name or "Użytkownik",
+            author_email=user.email,
+            text=comment.text,
+            has_photo=comment.photo_base64 is not None,
+            created_at=comment.created_at,
+        )
+        for comment, recipe, user in result.all()
+    ]

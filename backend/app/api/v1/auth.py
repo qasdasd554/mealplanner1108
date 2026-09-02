@@ -14,6 +14,7 @@ from google.oauth2 import id_token as google_id_token
 
 from app.core.config import settings
 from app.services.apple_sign_in import AppleSignInError, verify_apple_identity_token
+from app.services.display_name import generate_unique_display_name, validate_display_name
 from app.services.email_service import EmailSendError, send_password_reset_email, send_verification_email
 from app.core.rate_limit import (
     email_verification_resend_limiter,
@@ -28,7 +29,7 @@ from app.core.security import create_access_token, get_password_hash, verify_pas
 from app.db.session import get_db
 from app.models import User
 from app.schemas.user import UserCreate, UserResponse
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, get_current_user_allow_unverified
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -90,6 +91,12 @@ async def register(request: Request, db: AsyncSession = Depends(get_db)):
     # dotarciem do bazy.
     if len(display_name) > 200:
         raise HTTPException(status_code=400, detail="Nazwa użytkownika jest za długa (maks. 200 znaków)")
+
+    # Nick musi być unikalny — jest widoczny publicznie przy przepisach,
+    # komentarzach i w tablicy wyników konkursu, więc dwa identyczne
+    # uniemożliwiałyby odróżnienie autorów.
+    if display_name:
+        display_name = await validate_display_name(db, display_name)
 
     # UWAGA (naprawa poważnego błędu): adresy e-mail były porównywane z
     # rozróżnianiem wielkości liter — "User@Example.com" i
@@ -161,13 +168,24 @@ async def login(request: Request, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Nieprawidłowy e-mail lub hasło")
 
     login_limiter.reset(rate_key)
+
+    # Sprawdzane PO weryfikacji hasła — inaczej ten endpoint zdradzałby,
+    # które adresy e-mail istnieją w bazie i są zbanowane, komukolwiek kto
+    # zgadnie adres (wyciek informacji). Komunikat jest jawny dopiero dla
+    # kogoś, kto udowodnił, że zna hasło do tego konta.
+    if user.is_banned:
+        raise HTTPException(
+            status_code=403,
+            detail=user.ban_reason or "To konto zostało zablokowane przez administratora.",
+        )
+
     return {
         "access_token": create_access_token(data={"sub": str(user.id)}),
         "token_type": "bearer",
     }
 
 @router.get("/me")
-async def get_me(current_user: User = Depends(get_current_user)):
+async def get_me(current_user: User = Depends(get_current_user_allow_unverified)):
     return {
         "id": str(current_user.id),
         "email": current_user.email,
@@ -179,7 +197,7 @@ async def get_me(current_user: User = Depends(get_current_user)):
 @router.post("/verify-email")
 async def verify_email(
     request: Request,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_allow_unverified),
     db: AsyncSession = Depends(get_db),
 ):
     """Potwierdza adres e-mail kodem wysłanym przy rejestracji.
@@ -217,7 +235,7 @@ async def verify_email(
 
 @router.post("/resend-code")
 async def resend_verification_code(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_allow_unverified),
     db: AsyncSession = Depends(get_db),
 ):
     """Generuje i wysyła NOWY kod weryfikacyjny — np. gdy poprzedni
@@ -383,6 +401,11 @@ async def google_login(request: Request, db: AsyncSession = Depends(get_db)):
         # którym nie warto bezkrytycznie ufać, że zawsze zmieszczą się
         # w ograniczeniu bazy (patrz ta sama naprawa przy /register).
         google_name = (idinfo.get("name") or email.split("@")[0])[:200]
+        # Nazwa z Google może kolidować z istniejącym kontem (np. dwie
+        # osoby o tym samym imieniu i nazwisku). Użytkownik nie ma jak jej
+        # w tym momencie poprawić, więc zamiast odrzucić logowanie
+        # dobieramy wolny wariant ("Anna" → "Anna2").
+        google_name = await generate_unique_display_name(db, google_name)
         user = User(
             email=email,
             # Hasło losowe i zahaszowane — konto założone przez Google nie
@@ -397,6 +420,17 @@ async def google_login(request: Request, db: AsyncSession = Depends(get_db)):
         db.add(user)
         await db.commit()
         await db.refresh(user)
+
+    # Ban sprawdzany również tutaj: get_current_user odetnie zbanowane
+    # konto od API i tak, ale bez tego /google nadal WYDAWAŁBY świeży
+    # token i użytkownik dostawałby mylące "zalogowano", po którym każde
+    # kolejne żądanie kończy się 403. Lepiej powiedzieć wprost przy
+    # logowaniu — i nie pozwolić obejść bana zmianą metody logowania.
+    if user.is_banned:
+        raise HTTPException(
+            status_code=403,
+            detail=user.ban_reason or "To konto zostało zablokowane przez administratora.",
+        )
 
     return {
         "access_token": create_access_token(data={"sub": str(user.id)}),
@@ -461,10 +495,13 @@ async def apple_login(request: Request, db: AsyncSession = Depends(get_db)):
         # zastępczy, żeby kolumna email (NOT NULL, UNIQUE) miała czym się
         # wypełnić. Taki adres nigdy nie posłuży do logowania e-mail/hasło.
         effective_email = email or f"apple_{apple_user_id}@privaterelay.local"
+        # Ta sama sytuacja co przy Google — nazwa przychodzi z zewnątrz,
+        # więc dobieramy wolny wariant zamiast odrzucać logowanie.
+        apple_name = await generate_unique_display_name(db, full_name or "Użytkownik Apple")
         user = User(
             email=effective_email,
             password_hash=get_password_hash(uuid.uuid4().hex),
-            display_name=full_name or "Użytkownik Apple",
+            display_name=apple_name,
             apple_user_id=apple_user_id,
             is_email_verified=True,
         )
@@ -472,6 +509,17 @@ async def apple_login(request: Request, db: AsyncSession = Depends(get_db)):
 
     await db.commit()
     await db.refresh(user)
+
+    # Ban sprawdzany również tutaj: get_current_user odetnie zbanowane
+    # konto od API i tak, ale bez tego /google i /apple nadal WYDAWAŁYBY
+    # świeży token i użytkownik dostawałby mylące "zalogowano", po którym
+    # każde kolejne żądanie kończy się 403. Lepiej powiedzieć wprost przy
+    # logowaniu.
+    if user.is_banned:
+        raise HTTPException(
+            status_code=403,
+            detail=user.ban_reason or "To konto zostało zablokowane przez administratora.",
+        )
 
     return {
         "access_token": create_access_token(data={"sub": str(user.id)}),

@@ -131,6 +131,17 @@ meal_plan_generation_daily_free_limiter = SlidingWindowRateLimiter(
 # które trafiają bezpośrednio do bazy danych).
 comment_creation_limiter = SlidingWindowRateLimiter(max_events=30, window_seconds=3600)
 
+# Zgłaszanie treści do moderacji — bez limitu jedna osoba mogłaby zasypać
+# panel administratora tysiącami zgłoszeń w kilka sekund (a każde tworzy
+# wiersz w bazie), skutecznie uniemożliwiając moderację. 20/godzinę
+# z zapasem wystarcza uczciwemu użytkownikowi.
+content_report_limiter = SlidingWindowRateLimiter(max_events=20, window_seconds=3600)
+
+# Zgłaszanie zdjęć do przepisów — każde zgłoszenie to do 3 MB w bazie,
+# więc limit jest ostrzejszy niż przy zwykłych zgłoszeniach tekstowych.
+recipe_photo_submission_limiter = SlidingWindowRateLimiter(max_events=10, window_seconds=3600)
+
+
 # Rozpoznawanie przepisu przez AI: każde wywołanie kosztuje realne pieniądze
 # (API Anthropic) — limit dzienny, niezależny od statusu premium (nawet
 # premium nie powinno móc wygenerować kosztów bez żadnego sufitu).

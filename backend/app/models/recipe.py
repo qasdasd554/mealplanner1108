@@ -62,6 +62,19 @@ class Recipe(Base):
     # TYLKO przepisów dodanych przez użytkowników — 81 oficjalnych
     # przepisów ma swoje zdjęcia jako zasoby aplikacji (recipe.realPhotoAsset).
     photo_base64: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # ── Zdjęcie zgłoszone przez użytkownika, CZEKAJĄCE na moderację ──
+    # Osobne pole od `photo_base64`, a nie nadpisanie go: zdjęcie staje
+    # się widoczne DOPIERO po akceptacji administratora, więc do tego
+    # czasu przepis musi dalej pokazywać dotychczasowe zdjęcie (albo brak).
+    # Nadpisywanie `photo_base64` od razu oznaczałoby, że każdy może
+    # podmienić zdjęcie w dowolnym przepisie bez żadnej kontroli.
+    pending_photo_base64: Mapped[str | None] = mapped_column(Text, nullable=True)
+    pending_photo_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    pending_photo_submitted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     # Instrukcje przygotowania krok po kroku (lista tekstów). Wcześniej ta
     # kolumna w ogóle nie istniała — aplikacja nie miała jak pokazać "jak to
     # ugotować", tylko listę składników i wartości odżywcze.

@@ -1,6 +1,7 @@
 """Endpointy list zakupów — przeglądanie, oznaczanie, zamienniki."""
 
 from datetime import date, datetime
+from decimal import Decimal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -16,6 +17,7 @@ from app.db.session import get_db
 from app.models import (
     MealPlan,
     MealPlanEntry,
+    Product,
     Recipe,
     ShoppingList,
     ShoppingListItem,
@@ -703,4 +705,107 @@ async def delete_share(
         raise NotFoundException(detail="Nie znaleziono tego udostępnienia.")
 
     await db.delete(share)
+    await db.commit()
+
+
+# ══════════════════════════════════════════════════════════════════
+# DOPISYWANIE POJEDYNCZEGO PRODUKTU
+# Dotąd pozycje na liście mogły powstać WYŁĄCZNIE ze składników
+# przepisów (/from-recipes). Nie dało się dorzucić zwykłego zakupu
+# ("papier toaletowy", "mleko"), który nie należy do żadnego przepisu.
+# ══════════════════════════════════════════════════════════════════
+class AddItemRequest(BaseModel):
+    product_id: UUID
+    quantity: float = 1.0
+    unit: str = "szt"
+
+
+@router.post(
+    "/{list_id}/items",
+    status_code=201,
+    summary="Dopisz pojedynczy produkt do listy zakupów",
+)
+async def add_item_to_shopping_list(
+    list_id: UUID,
+    payload: AddItemRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Dokłada produkt do istniejącej listy zakupów.
+
+    Pozycja listy wskazuje na StoreProduct (produkt W KONKRETNYM
+    SKLEPIE), nie na sam produkt — bo z tego biorą się cena i dział
+    alejki. Dlatego szukamy produktu w sklepie przypisanym do TEJ listy.
+
+    Jeśli produkt już na liście jest, sumujemy ilość zamiast tworzyć
+    duplikat — inaczej dwukrotne dodanie tego samego dałoby dwie osobne
+    pozycje do odhaczenia.
+    """
+    shopping_list = await _get_shopping_list_or_404(list_id, current_user, db)
+
+    product = await db.get(Product, payload.product_id)
+    if product is None:
+        raise NotFoundException(detail="Produkt nie istnieje")
+
+    if payload.quantity <= 0:
+        raise HTTPException(status_code=400, detail="Ilość musi być większa od zera")
+
+    store_product_result = await db.execute(
+        select(StoreProduct).where(
+            StoreProduct.store_id == shopping_list.store_id,
+            StoreProduct.product_id == payload.product_id,
+        )
+    )
+    store_product = store_product_result.scalar_one_or_none()
+    if store_product is None:
+        raise HTTPException(
+            status_code=400,
+            detail=f'Produkt "{product.name}" nie jest dostępny w wybranym sklepie',
+        )
+
+    existing = next(
+        (i for i in shopping_list.items if i.store_product_id == store_product.id),
+        None,
+    )
+    if existing is not None:
+        existing.required_quantity = existing.required_quantity + Decimal(str(payload.quantity))
+        db.add(existing)
+        await db.commit()
+        return {"detail": "Zaktualizowano ilość istniejącej pozycji", "item_id": str(existing.id)}
+
+    item = ShoppingListItem(
+        shopping_list_id=shopping_list.id,
+        store_product_id=store_product.id,
+        department_id=store_product.department_id,
+        required_quantity=Decimal(str(payload.quantity)),
+        unit=payload.unit,
+        estimated_price=store_product.price,
+    )
+    db.add(item)
+    await db.commit()
+    await db.refresh(item)
+    return {"detail": "Dodano produkt do listy", "item_id": str(item.id)}
+
+
+@router.delete(
+    "/{list_id}/items/{item_id}",
+    status_code=204,
+    summary="Usuń pozycję z listy zakupów",
+)
+async def delete_shopping_list_item(
+    list_id: UUID,
+    item_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    """Usuwa pojedynczą pozycję — potrzebne, żeby dało się skasować
+    ręcznie dopisany produkt (wcześniej pozycji nie dało się usunąć
+    wcale, można było je tylko odhaczać)."""
+    shopping_list = await _get_shopping_list_or_404(list_id, current_user, db)
+
+    item = next((i for i in shopping_list.items if i.id == item_id), None)
+    if item is None:
+        raise NotFoundException(detail="Pozycja nie istnieje na tej liście")
+
+    await db.delete(item)
     await db.commit()

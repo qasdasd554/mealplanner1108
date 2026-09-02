@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import 'forgot_password_screen.dart';
 import '../../theme/app_theme.dart';
+import '../../config/api_config.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -301,12 +302,30 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 12),
                       ],
 
-                      // Google Sign-In Button
-                      OutlinedButton.icon(
-                        onPressed: authProvider.isLoading ? null : _submitGoogle,
-                        icon: const Icon(Icons.g_mobiledata, size: 28),
-                        label: const Text('Kontynuuj z Google'),
-                      ).animate().fadeIn(delay: 700.ms),
+                      // Google Sign-In — WYŁĄCZNIE Android.
+                      //
+                      // Na iOS ten przycisk kończył się błędem, bo logowanie
+                      // Google nie jest tam skonfigurowane: Info.plist nie ma
+                      // klucza GIDClientID ani schematu URL z odwróconym
+                      // client ID (bez niego system nie ma jak wrócić do
+                      // aplikacji po zalogowaniu w przeglądarce), a
+                      // initialize() dostaje tylko serverClientId — na iOS
+                      // wtyczka wymaga dodatkowo clientId klienta iOS.
+                      // Na Androidzie działa, bo tam tożsamość aplikacji
+                      // bierze się z podpisu (SHA-1) zarejestrowanego
+                      // w Google Cloud, więc nic nie trzeba podawać w kodzie.
+                      //
+                      // Użytkownicy iOS mają Sign in with Apple powyżej, więc
+                      // nie tracą logowania jednym kliknięciem. Jak włączyć
+                      // Google także na iOS — patrz komentarz przy
+                      // googleIosClientId w lib/config/api_config.dart.
+                      // Po uzupełnieniu przycisk pojawi się na iOS sam.
+                      if (!Platform.isIOS || ApiConfig.googleIosClientId.isNotEmpty)
+                        OutlinedButton.icon(
+                          onPressed: authProvider.isLoading ? null : _submitGoogle,
+                          icon: const Icon(Icons.g_mobiledata, size: 28),
+                          label: const Text('Kontynuuj z Google'),
+                        ).animate().fadeIn(delay: 700.ms),
                       const SizedBox(height: 16),
                       
                       // Register Button

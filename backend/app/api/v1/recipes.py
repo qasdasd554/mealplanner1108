@@ -1,10 +1,11 @@
 """Endpointy przepisów kulinarnych."""
 
+from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from pydantic import BaseModel, ConfigDict
-from sqlalchemy import and_, delete, or_, select, update
+from pydantic import BaseModel, ConfigDict, field_validator
+from sqlalchemy import and_, delete, func, nullslast, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -35,6 +36,38 @@ async def _get_favorite_recipe_ids(db: AsyncSession, user_id: UUID) -> set[UUID]
         select(RecipeFavorite.recipe_id).where(RecipeFavorite.user_id == user_id)
     )
     return set(result.scalars().all())
+
+
+def _kcal_per_serving_expr():
+    """Wyrażenie SQL: kalorie przypadające na JEDNĄ porcję (czyli na
+    jedną osobę), a nie na cały przepis.
+
+    `nutrition_total` to suma dla całego dania, więc sortowanie po samej
+    tej wartości stawiałoby wysoko duże, wieloporcjowe przepisy — dzielimy
+    przez `servings`, żeby porównywać to, co użytkownik faktycznie zje.
+
+    NULLIF chroni przed dzieleniem przez zero, gdyby jakiś przepis miał
+    servings = 0 (nie powinien, kolumna ma default 2, ale dzielenie przez
+    zero wywaliłoby całe zapytanie, nie tylko ten jeden wiersz).
+    """
+    return Recipe.nutrition_total["kcal"].as_float() / func.nullif(Recipe.servings, 0)
+
+
+def _apply_recipe_sort(query, sort_by: str):
+    """Dokłada sortowanie do zapytania o przepisy.
+
+    Przepisy bez policzonych wartości odżywczych (`nutrition_total` puste
+    — dotyczy głównie starszych wpisów sprzed wprowadzenia automatycznego
+    liczenia) trafiają na KONIEC listy przy sortowaniu po kaloriach,
+    zamiast udawać "0 kcal" i fałszywie zajmować pierwsze miejsca.
+    """
+    if sort_by == "kcal_asc":
+        return query.order_by(nullslast(_kcal_per_serving_expr().asc()), Recipe.name)
+    if sort_by == "kcal_desc":
+        return query.order_by(nullslast(_kcal_per_serving_expr().desc()), Recipe.name)
+    if sort_by == "prep_time":
+        return query.order_by(nullslast(Recipe.prep_time_min.asc()), Recipe.name)
+    return query.order_by(Recipe.name)
 
 
 def _visibility_filter(current_user_id: UUID, blocked_user_ids: set[UUID] | None = None):
@@ -75,6 +108,14 @@ async def list_recipes(
     # oryginalnych 81 oficjalnych przepisów dostarczonych z aplikacją
     # (te mają created_by_user_id puste).
     community_only: bool = Query(False, description="Pokaż tylko przepisy dodane przez społeczność"),
+    sort_by: str = Query(
+        "name",
+        description=(
+            "Sortowanie: 'name' (domyślne, alfabetycznie), "
+            "'kcal_asc' / 'kcal_desc' (kalorie na jedną porcję, czyli na osobę), "
+            "'prep_time' (najszybsze najpierw)"
+        ),
+    ),
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
     current_user: User = Depends(get_current_user),
@@ -112,7 +153,7 @@ async def list_recipes(
     if tags:
         query = query.join(Recipe.tags).where(RecipeTag.tag.in_(tags))
 
-    query = query.order_by(Recipe.name).offset(skip).limit(limit)
+    query = _apply_recipe_sort(query, sort_by).offset(skip).limit(limit)
 
     result = await db.execute(query)
     recipes = list(result.unique().scalars().all())
@@ -916,7 +957,10 @@ async def report_recipe(
     """Zgłasza przepis administratorowi (Apple Guideline 1.2). Dotyczy
     głównie przepisów dodanych przez społeczność, ale technicznie działa
     dla dowolnego — admin i tak decyduje, czy zgłoszenie jest zasadne."""
+    from app.core.rate_limit import content_report_limiter, enforce_user_rate_limit
     from app.models import ContentReport
+
+    enforce_user_rate_limit(content_report_limiter, current_user.id, "zgłaszanie treści")
 
     recipe = await db.get(Recipe, recipe_id)
     if not recipe:
@@ -1011,3 +1055,175 @@ async def match_recipes_by_ingredients(
     matches.sort(key=lambda m: (-(m["matched_count"] / m["total_required"]), len(m["missing_ingredient_names"])))
 
     return matches[:30]
+
+
+# ══════════════════════════════════════════════════════════════════
+# ZDJĘCIA PRZEPISÓW ZGŁASZANE PRZEZ UŻYTKOWNIKÓW
+# Zdjęcie trafia najpierw do `pending_photo_base64` i staje się widoczne
+# dopiero po akceptacji administratora — inaczej każdy mógłby podmienić
+# zdjęcie w dowolnym przepisie (również w 81 oficjalnych) bez kontroli.
+# ══════════════════════════════════════════════════════════════════
+class RecipePhotoSubmission(BaseModel):
+    photo_base64: str
+
+    @field_validator("photo_base64")
+    @classmethod
+    def validate_photo(cls, v: str) -> str:
+        from app.core.photo_validation import validate_and_check_photo_base64
+
+        return validate_and_check_photo_base64(v, 3 * 1024 * 1024)
+
+
+@router.post(
+    "/{recipe_id}/photo",
+    status_code=201,
+    summary="Zgłoś zdjęcie do przepisu (czeka na akceptację administratora)",
+)
+async def submit_recipe_photo(
+    recipe_id: UUID,
+    payload: RecipePhotoSubmission,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    from app.core.rate_limit import enforce_user_rate_limit, recipe_photo_submission_limiter
+
+    enforce_user_rate_limit(
+        recipe_photo_submission_limiter, current_user.id, "zgłaszanie zdjęć do przepisów"
+    )
+
+    recipe = await db.get(Recipe, recipe_id)
+    if recipe is None:
+        raise NotFoundException("Nie znaleziono przepisu")
+
+    # Widoczność sprawdzana jawnie: bez tego dałoby się zgłosić zdjęcie do
+    # CUDZEGO prywatnego przepisu, którego zgłaszający nie ma prawa nawet
+    # zobaczyć — a treść zgłoszenia trafiłaby potem do panelu admina
+    # razem z nazwą tego przepisu.
+    is_visible = (
+        recipe.created_by_user_id is None
+        or recipe.created_by_user_id == current_user.id
+        or recipe.visibility == "public"
+    )
+    if not is_visible:
+        raise NotFoundException("Nie znaleziono przepisu")
+
+    if recipe.pending_photo_base64 is not None:
+        raise HTTPException(
+            status_code=409,
+            detail="Do tego przepisu zgłoszono już zdjęcie, które czeka na akceptację.",
+        )
+
+    recipe.pending_photo_base64 = payload.photo_base64
+    recipe.pending_photo_user_id = current_user.id
+    recipe.pending_photo_submitted_at = datetime.now(timezone.utc)
+    db.add(recipe)
+    await db.commit()
+    return {"detail": "Zdjęcie zgłoszone. Pojawi się po akceptacji przez administratora."}
+
+
+class PendingPhotoEntry(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    recipe_id: UUID
+    recipe_name: str
+    photo_base64: str
+    submitted_by: str | None
+    submitted_at: datetime | None
+    has_current_photo: bool
+
+
+@router.get(
+    "/admin/pending-photos",
+    response_model=list[PendingPhotoEntry],
+    summary="Zdjęcia oczekujące na akceptację (admin)",
+)
+async def list_pending_photos(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_admin),
+) -> list[PendingPhotoEntry]:
+    result = await db.execute(
+        select(Recipe, User)
+        .outerjoin(User, User.id == Recipe.pending_photo_user_id)
+        .where(Recipe.pending_photo_base64.is_not(None))
+        .order_by(Recipe.pending_photo_submitted_at.asc())
+    )
+    return [
+        PendingPhotoEntry(
+            recipe_id=recipe.id,
+            recipe_name=recipe.name,
+            photo_base64=recipe.pending_photo_base64,
+            submitted_by=(user.display_name or user.email) if user else None,
+            submitted_at=recipe.pending_photo_submitted_at,
+            has_current_photo=recipe.photo_base64 is not None,
+        )
+        for recipe, user in result.all()
+    ]
+
+
+@router.post(
+    "/{recipe_id}/photo/approve",
+    status_code=204,
+    summary="Zaakceptuj zgłoszone zdjęcie (admin)",
+)
+async def approve_recipe_photo(
+    recipe_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_admin),
+) -> None:
+    recipe = await db.get(Recipe, recipe_id)
+    if recipe is None or recipe.pending_photo_base64 is None:
+        raise NotFoundException("Brak zdjęcia oczekującego dla tego przepisu")
+
+    from app.models.notification import Notification
+
+    submitter_id = recipe.pending_photo_user_id
+    recipe.photo_base64 = recipe.pending_photo_base64
+    recipe.pending_photo_base64 = None
+    recipe.pending_photo_user_id = None
+    recipe.pending_photo_submitted_at = None
+    db.add(recipe)
+
+    if submitter_id is not None:
+        db.add(
+            Notification(
+                user_id=submitter_id,
+                notification_type="recipe_photo",
+                message=f'Twoje zdjęcie do przepisu "{recipe.name}" zostało zaakceptowane.',
+                recipe_id=recipe.id,
+            )
+        )
+    await db.commit()
+
+
+@router.post(
+    "/{recipe_id}/photo/reject",
+    status_code=204,
+    summary="Odrzuć zgłoszone zdjęcie (admin)",
+)
+async def reject_recipe_photo(
+    recipe_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_admin),
+) -> None:
+    recipe = await db.get(Recipe, recipe_id)
+    if recipe is None or recipe.pending_photo_base64 is None:
+        raise NotFoundException("Brak zdjęcia oczekującego dla tego przepisu")
+
+    from app.models.notification import Notification
+
+    submitter_id = recipe.pending_photo_user_id
+    recipe.pending_photo_base64 = None
+    recipe.pending_photo_user_id = None
+    recipe.pending_photo_submitted_at = None
+    db.add(recipe)
+
+    if submitter_id is not None:
+        db.add(
+            Notification(
+                user_id=submitter_id,
+                notification_type="recipe_photo",
+                message=f'Twoje zdjęcie do przepisu "{recipe.name}" nie zostało zaakceptowane.',
+                recipe_id=recipe.id,
+            )
+        )
+    await db.commit()

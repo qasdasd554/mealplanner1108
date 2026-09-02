@@ -10,6 +10,7 @@ import '../../widgets/recipe_delete_button.dart';
 import '../../widgets/recipe_publish_button.dart';
 import '../../widgets/recipe_photo.dart';
 import '../../widgets/report_block_menu.dart';
+import '../../widgets/submit_recipe_photo_button.dart';
 import '../../utils/quantity_formatter.dart';
 import '../../providers/auth_provider.dart';
 import 'package:provider/provider.dart';
@@ -213,6 +214,16 @@ class RecipeDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   _buildNutritionGrid(recipe),
+                  const SizedBox(height: 20),
+
+                  // Zaproponowanie zdjęcia — trafia do moderacji, nie
+                  // podmienia zdjęcia od razu (patrz komentarz w widgecie).
+                  Center(
+                    child: SubmitRecipePhotoButton(
+                      recipeId: recipe.id,
+                      recipeHasPhoto: recipe.photoBase64 != null || recipe.imageUrl != null,
+                    ),
+                  ),
                   const SizedBox(height: 28),
 
                   // Składniki

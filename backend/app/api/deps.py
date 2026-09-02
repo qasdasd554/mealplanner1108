@@ -26,15 +26,22 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 _ACTIVITY_UPDATE_THROTTLE = timedelta(minutes=5)
 
 
-async def get_current_user(
+async def get_current_user_allow_unverified(
     request: Request,
     token: str = Depends(oauth2_scheme),
     db: AsyncSession = Depends(get_db),
 ) -> User:
-    """Dekoduje token JWT i zwraca bieżącego użytkownika.
+    """Dekoduje token JWT i zwraca bieżącego użytkownika BEZ wymogu
+    potwierdzonego adresu e-mail.
+
+    Używać WYŁĄCZNIE tam, gdzie niezweryfikowane konto musi mieć dostęp
+    z samej natury operacji: potwierdzanie kodu, ponowne wysłanie kodu
+    i odczyt własnego profilu (aplikacja musi móc sprawdzić, czy e-mail
+    jest już potwierdzony). Wszystko inne używa `get_current_user`.
 
     Raises:
         HTTPException 401: jeśli token jest nieprawidłowy lub użytkownik nie istnieje.
+        HTTPException 403: jeśli konto jest zablokowane przez administratora.
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -60,6 +67,17 @@ async def get_current_user(
 
     if user is None:
         raise credentials_exception
+
+    # Blokada konta sprawdzana TUTAJ, a nie w poszczególnych endpointach —
+    # to wspólny punkt wejścia dla każdego zabezpieczonego endpointu, więc
+    # jedno sprawdzenie odcina zbanowane konto od CAŁEGO API naraz
+    # (również dla tokenów wydanych przed banem, które inaczej działałyby
+    # aż do wygaśnięcia).
+    if user.is_banned:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=user.ban_reason or "To konto zostało zablokowane przez administratora.",
+        )
 
     # Aktualizacja "ostatnio aktywny" — przepustowana (patrz komentarz
     # przy _ACTIVITY_UPDATE_THROTTLE powyżej), żeby nie zapisywać do bazy
@@ -87,6 +105,32 @@ async def get_current_user(
         await db.refresh(user)
 
     return user
+
+
+async def get_current_user(
+    current_user: User = Depends(get_current_user_allow_unverified),
+) -> User:
+    """Zwraca bieżącego użytkownika i WYMAGA potwierdzonego adresu e-mail.
+
+    NAPRAWA POWAŻNEJ LUKI: wcześniej `is_email_verified` było ustawiane
+    i zwracane, ale nigdzie NIE EGZEKWOWANE po stronie serwera —
+    jedynym zabezpieczeniem było przekierowanie w aplikacji po
+    rejestracji. Ponieważ /auth/register od razu wydaje ważny token,
+    wystarczyło zamknąć aplikację na ekranie weryfikacji i otworzyć
+    ponownie (splash kierował na /home, patrząc tylko na to, czy jest
+    token), żeby korzystać z konta bez potwierdzenia adresu — w
+    nieskończoność. Tym bardziej działało to przy odpytywaniu API
+    bezpośrednio, z pominięciem aplikacji.
+
+    Raises:
+        HTTPException 403: jeśli adres e-mail nie został potwierdzony.
+    """
+    if not current_user.is_email_verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Potwierdź swój adres e-mail, aby korzystać z aplikacji.",
+        )
+    return current_user
 
 
 async def get_current_admin(
