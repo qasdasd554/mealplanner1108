@@ -211,6 +211,15 @@ class RecipeService {
         .map((e) => RecipeMatch.fromJson(e as Map<String, dynamic>))
         .toList();
   }
+
+  /// Zgłasza zdjęcie do przepisu. Zdjęcie trafia do moderacji i pojawi
+  /// się dopiero po akceptacji administratora.
+  Future<void> submitPhoto(String recipeId, String photoBase64) async {
+    await _client.post(
+      '${ApiConfig.recipes}$recipeId/photo',
+      body: {'photo_base64': photoBase64},
+    );
+  }
 }
 
 /// Wynik dopasowania przepisu do posiadanych składników — patrz
@@ -240,14 +249,4 @@ class RecipeMatch {
           .toList(),
     );
   }
-
-  /// Zgłasza zdjęcie do przepisu. Zdjęcie trafia do moderacji i pojawi
-  /// się dopiero po akceptacji administratora.
-  Future<void> submitPhoto(String recipeId, String photoBase64) async {
-    await _client.post(
-      '/recipes/$recipeId/photo',
-      body: {'photo_base64': photoBase64},
-    );
-  }
-
 }
