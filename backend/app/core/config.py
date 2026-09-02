@@ -133,7 +133,10 @@ class Settings(BaseSettings):
     # własny numer z tą wartością przy starcie i pokazuje delikatne
     # przypomnienie, jeśli jest starsza — nie blokuje korzystania,
     # tylko informuje.
-    LATEST_APP_VERSION_CODE: int = 72
+    # Pole ZAPASOWE dla starszych wersji aplikacji, które nie wysyłają
+    # jeszcze parametru `platform` do /app/version-info i czytają tylko tę
+    # wartość. Dotyczy wyłącznie Androida (starych buildów), stąd 73.
+    LATEST_APP_VERSION_CODE: int = 73
     # Numery wersji są ROZDZIELONE na platformy, bo numeracja iOS
     # i Androida całkowicie się rozjechała: Xcode Cloud nadaje numery
     # buildów iOS własnym, niezależnym licznikiem (był 24), podczas gdy
