@@ -19,7 +19,15 @@ from datetime import date
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Product, Promotion, Store, StoreProduct
+from app.models import Product, Store, StoreProduct
+
+# Promotion importowany BEZPOŚREDNIO z modułu, a nie przez app.models —
+# ten pakiet go nie reeksportuje (patrz app/models/__init__.py), więc
+# import przez paczkę kończył się ImportError dopiero w RUNTIME, przy
+# pierwszym przebiegu zadania w tle. Sam start aplikacji tego nie
+# wychwytywał, bo import jest leniwy (wewnątrz pętli), żeby nie tworzyć
+# cyklu zależności przy starcie.
+from app.models.promotion import Promotion
 
 logger = logging.getLogger(__name__)
 
