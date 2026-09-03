@@ -633,7 +633,9 @@ void _showEditNicknameDialog(BuildContext context, AuthProvider authProvider) {
               Navigator.of(dialogContext).pop();
               final success = await authProvider.updateProfile(displayName: newName);
               if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
+                ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
                   SnackBar(
                     content: Text(
                       success ? 'Pseudonim zaktualizowany.' : 'Nie udało się zmienić pseudonimu.',
@@ -706,7 +708,9 @@ void _showFinalDeleteConfirmation(BuildContext context, AuthProvider authProvide
                 if (success) {
                   Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
                     const SnackBar(content: Text('Nie udało się usunąć konta. Spróbuj ponownie.')),
                   );
                 }

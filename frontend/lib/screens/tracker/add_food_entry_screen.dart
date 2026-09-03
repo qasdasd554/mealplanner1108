@@ -120,7 +120,9 @@ class _PlanTabState extends State<_PlanTab> {
       if (success) {
         Navigator.pop(context);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
           SnackBar(content: Text(provider.error ?? 'Nie udało się dodać posiłku')),
         );
       }
@@ -324,7 +326,9 @@ class _RecipesTabState extends State<_RecipesTab> {
     if (success) {
       Navigator.pop(context);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text(foodLogProvider.error ?? 'Nie udało się dodać posiłku')),
       );
     }
@@ -586,7 +590,9 @@ class _ManualEntryFormState extends State<ManualEntryForm> {
     if (success) {
       Navigator.pop(context);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text(provider.error ?? 'Nie udało się dodać wpisu')),
       );
     }

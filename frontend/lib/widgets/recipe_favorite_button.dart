@@ -71,7 +71,9 @@ class _RecipeFavoriteButtonState extends State<RecipeFavoriteButton> {
       if (!mounted) return;
       setState(() => _isFavorite = previous);
       widget.recipe.isFavorite = previous;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         const SnackBar(content: Text('Nie udało się zaktualizować ulubionych')),
       );
     } finally {

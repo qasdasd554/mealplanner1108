@@ -78,7 +78,9 @@ class _RecipesScreenState extends State<RecipesScreen> {
       });
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(
           content: Text('Błąd podczas pobierania przepisów: $e'),
           backgroundColor: AppTheme.errorColor,
@@ -192,123 +194,50 @@ class _RecipesScreenState extends State<RecipesScreen> {
               // bok — nie ma czego przewijać, cała szerokość jest już
               // wykorzystana. Reszta (typ posiłku, trudność, dieta)
               // przeniesiona do panelu "Więcej filtrów".
+              // PRZEBUDOWA: wszystkie filtry są teraz w JEDNYM panelu pod
+              // przyciskiem "Filtry". Wcześniej cztery z nich
+              // (Ulubione/Moje/Nowość/Społeczność) zajmowały na stałe
+              // osobny rząd nad listą, przez co na przepisy zostawało
+              // mniej miejsca, a filtry były w dwóch różnych miejscach.
               flexibleSpace: FlexibleSpaceBar(
                 background: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  child: Row(
-                    children: [
-                      _buildQuickToggle(
-                        icon: Icons.favorite_border,
-                        activeIcon: Icons.favorite,
-                        label: 'Ulubione',
-                        isActive: _favoritesOnly,
-                        activeColor: Colors.redAccent,
-                        onTap: () {
-                          setState(() => _favoritesOnly = !_favoritesOnly);
-                          _loadRecipes();
-                        },
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  child: SizedBox(
+                    height: 44,
+                    child: OutlinedButton.icon(
+                      onPressed: () => _showFilterSheet(context),
+                      icon: Icon(
+                        Icons.tune,
+                        size: 18,
+                        color: _moreFiltersActiveCount > 0
+                            ? AppTheme.primaryColor
+                            : AppTheme.textSecondary,
                       ),
-                      _buildQuickToggle(
-                        icon: Icons.person_outline,
-                        activeIcon: Icons.person,
-                        label: 'Moje',
-                        isActive: _myRecipesOnly,
-                        activeColor: AppTheme.primaryColor,
-                        onTap: () {
-                          setState(() => _myRecipesOnly = !_myRecipesOnly);
-                          _loadRecipes();
-                        },
-                      ),
-                      _buildQuickToggle(
-                        icon: Icons.fiber_new_outlined,
-                        activeIcon: Icons.fiber_new,
-                        label: 'Nowość',
-                        isActive: _newOnly,
-                        activeColor: AppTheme.accentColor,
-                        onTap: () {
-                          setState(() => _newOnly = !_newOnly);
-                          _loadRecipes();
-                        },
-                      ),
-                      _buildQuickToggle(
-                        icon: Icons.groups_outlined,
-                        activeIcon: Icons.groups,
-                        label: 'Społeczność',
-                        isActive: _communityOnly,
-                        activeColor: AppTheme.secondaryColor,
-                        onTap: () {
-                          setState(() => _communityOnly = !_communityOnly);
-                          _loadRecipes();
-                        },
-                      ),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => _showFilterSheet(context),
-                          child: Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 3),
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            decoration: BoxDecoration(
-                              color: _moreFiltersActiveCount > 0
-                                  ? AppTheme.primaryColor.withOpacity(0.12)
-                                  : AppTheme.surfaceColor,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: _moreFiltersActiveCount > 0
-                                    ? AppTheme.primaryColor
-                                    : AppTheme.textSecondary.withOpacity(0.2),
-                              ),
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Stack(
-                                  clipBehavior: Clip.none,
-                                  children: [
-                                    Icon(
-                                      Icons.tune,
-                                      size: 18,
-                                      color: _moreFiltersActiveCount > 0
-                                          ? AppTheme.primaryColor
-                                          : AppTheme.textSecondary,
-                                    ),
-                                    if (_moreFiltersActiveCount > 0)
-                                      Positioned(
-                                        right: -6,
-                                        top: -4,
-                                        child: Container(
-                                          padding: const EdgeInsets.all(2),
-                                          decoration: const BoxDecoration(
-                                            color: AppTheme.primaryColor,
-                                            shape: BoxShape.circle,
-                                          ),
-                                          constraints: const BoxConstraints(minWidth: 13, minHeight: 13),
-                                          child: Text(
-                                            '$_moreFiltersActiveCount',
-                                            textAlign: TextAlign.center,
-                                            style: const TextStyle(fontSize: 8, color: Colors.white),
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'Więcej',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 9,
-                                    color: _moreFiltersActiveCount > 0
-                                        ? AppTheme.primaryColor
-                                        : AppTheme.textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                      label: Text(
+                        _moreFiltersActiveCount > 0
+                            ? 'Filtry ($_moreFiltersActiveCount)'
+                            : 'Filtry',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: _moreFiltersActiveCount > 0
+                              ? AppTheme.primaryColor
+                              : AppTheme.textSecondary,
                         ),
                       ),
-                    ],
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: _moreFiltersActiveCount > 0
+                            ? AppTheme.primaryColor.withOpacity(0.10)
+                            : AppTheme.surfaceColor,
+                        side: BorderSide(
+                          color: _moreFiltersActiveCount > 0
+                              ? AppTheme.primaryColor
+                              : AppTheme.textSecondary.withOpacity(0.25),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -444,63 +373,23 @@ class _RecipesScreenState extends State<RecipesScreen> {
   /// Uwzględnia też Ulubione, mimo że ma osobny, zawsze widoczny chip —
   /// licznik ma pokazywać PRAWDZIWĄ liczbę aktywnych filtrów, niezależnie
   /// od tego, w którym miejscu UI dany filtr się przełącza.
-  /// Liczba aktywnych filtrów w panelu "Więcej filtrów" — CELOWO nie
-  /// uwzględnia Ulubione/Moje/Nowość/Społeczność, bo te są teraz zawsze
-  /// widoczne bezpośrednio w rzędzie (ich stan widać na pierwszy rzut
-  /// oka, więc dublowanie ich w liczniku panelu byłoby mylące).
+  /// Liczba WSZYSTKICH aktywnych filtrów.
+  ///
+  /// ZMIANA: wcześniej cztery filtry (Ulubione/Moje/Nowość/Społeczność)
+  /// zajmowały osobny rząd na stałe nad listą, a licznik ich nie liczył,
+  /// bo ich stan było widać. Teraz wszystkie filtry są w jednym panelu
+  /// pod przyciskiem "Filtry", więc licznik musi obejmować komplet —
+  /// inaczej użytkownik nie wiedziałby, że lista jest zawężona.
   int get _moreFiltersActiveCount {
     var count = 0;
     if (_selectedMealType != null) count++;
     if (_selectedDifficulty != null) count++;
     if (_selectedDietTag != null) count++;
+    if (_favoritesOnly) count++;
+    if (_myRecipesOnly) count++;
+    if (_newOnly) count++;
+    if (_communityOnly) count++;
     return count;
-  }
-
-  /// Kompaktowy, zawsze widoczny przełącznik filtra — szerokość
-  /// wymuszona przez Expanded w rodzicu (Row z 5 równymi segmentami),
-  /// więc GWARANTOWANE jest zmieszczenie się na każdym ekranie bez
-  /// przewijania w bok.
-  Widget _buildQuickToggle({
-    required IconData icon,
-    required IconData activeIcon,
-    required String label,
-    required bool isActive,
-    required Color activeColor,
-    required VoidCallback onTap,
-  }) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 3),
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            color: isActive ? activeColor.withOpacity(0.12) : AppTheme.surfaceColor,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isActive ? activeColor : AppTheme.textSecondary.withOpacity(0.2),
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(isActive ? activeIcon : icon, size: 18, color: isActive ? activeColor : AppTheme.textSecondary),
-              const SizedBox(height: 2),
-              Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 9,
-                  color: isActive ? activeColor : AppTheme.textSecondary,
-                  fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 
   /// Panel ze WSZYSTKIMI filtrami naraz, w układzie zawijanym (Wrap) —
@@ -546,6 +435,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
                                   _selectedMealType = null;
                                   _selectedDifficulty = null;
                                   _selectedDietTag = null;
+                                  _favoritesOnly = false;
+                                  _myRecipesOnly = false;
+                                  _newOnly = false;
+                                  _communityOnly = false;
                                 });
                               },
                               child: const Text('Wyczyść'),
@@ -553,6 +446,74 @@ class _RecipesScreenState extends State<RecipesScreen> {
                         ],
                       ),
                       const SizedBox(height: 16),
+                      Text(
+                        'Pokaż tylko',
+                        style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textSecondary, fontSize: 13),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          FilterChip(
+                            avatar: Icon(
+                              _favoritesOnly ? Icons.favorite : Icons.favorite_border,
+                              size: 16,
+                              color: _favoritesOnly ? Colors.white : Colors.redAccent,
+                            ),
+                            label: const Text('Ulubione'),
+                            selected: _favoritesOnly,
+                            selectedColor: Colors.redAccent,
+                            labelStyle: TextStyle(
+                              color: _favoritesOnly ? Colors.white : AppTheme.textPrimary,
+                            ),
+                            onSelected: (v) => setSheetState(() => _favoritesOnly = v),
+                          ),
+                          FilterChip(
+                            avatar: Icon(
+                              _myRecipesOnly ? Icons.person : Icons.person_outline,
+                              size: 16,
+                              color: _myRecipesOnly ? Colors.white : AppTheme.primaryColor,
+                            ),
+                            label: const Text('Moje'),
+                            selected: _myRecipesOnly,
+                            selectedColor: AppTheme.primaryColor,
+                            labelStyle: TextStyle(
+                              color: _myRecipesOnly ? Colors.white : AppTheme.textPrimary,
+                            ),
+                            onSelected: (v) => setSheetState(() => _myRecipesOnly = v),
+                          ),
+                          FilterChip(
+                            avatar: Icon(
+                              _newOnly ? Icons.fiber_new : Icons.fiber_new_outlined,
+                              size: 16,
+                              color: _newOnly ? Colors.white : AppTheme.accentColor,
+                            ),
+                            label: const Text('Nowość'),
+                            selected: _newOnly,
+                            selectedColor: AppTheme.accentColor,
+                            labelStyle: TextStyle(
+                              color: _newOnly ? Colors.white : AppTheme.textPrimary,
+                            ),
+                            onSelected: (v) => setSheetState(() => _newOnly = v),
+                          ),
+                          FilterChip(
+                            avatar: Icon(
+                              _communityOnly ? Icons.groups : Icons.groups_outlined,
+                              size: 16,
+                              color: _communityOnly ? Colors.white : AppTheme.secondaryColor,
+                            ),
+                            label: const Text('Społeczność'),
+                            selected: _communityOnly,
+                            selectedColor: AppTheme.secondaryColor,
+                            labelStyle: TextStyle(
+                              color: _communityOnly ? Colors.white : AppTheme.textPrimary,
+                            ),
+                            onSelected: (v) => setSheetState(() => _communityOnly = v),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
                       Text(
                         'Dieta',
                         style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textSecondary, fontSize: 13),

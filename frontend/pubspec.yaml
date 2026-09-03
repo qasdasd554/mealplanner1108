@@ -50,6 +50,11 @@ dependencies:
   # Utilities
   share_plus: ^10.1.2
   url_launcher: ^6.3.1
+
+  # Potrzebny WYŁĄCZNIE do bramki CAPTCHA (Cloudflare Turnstile) —
+  # Turnstile jest komponentem webowym i nie ma odpowiednika natywnego.
+  # Patrz lib/widgets/turnstile_widget.dart.
+  webview_flutter: ^4.10.0
   package_info_plus: ^8.1.2
   image_picker: ^1.1.2
   # UWAGA: obsługa udostępnień z TikToka (link -> rozpoznanie przepisu

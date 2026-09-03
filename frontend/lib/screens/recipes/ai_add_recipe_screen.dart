@@ -82,7 +82,9 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         const SnackBar(content: Text('Nie udało się pobrać zdjęcia')),
       );
     }

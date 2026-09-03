@@ -29,7 +29,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   Future<void> _verify() async {
     final code = _codeController.text.trim();
     if (code.length != 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         const SnackBar(content: Text('Kod musi mieć dokładnie 6 cyfr.')),
       );
       return;
@@ -44,7 +46,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     if (success) {
       Navigator.of(context).pushReplacementNamed('/onboarding');
     } else if (authProvider.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(
           content: Text(authProvider.errorMessage!),
           backgroundColor: AppTheme.errorColor,
@@ -60,7 +64,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     if (!mounted) return;
     setState(() => _isResending = false);
 
-    ScaffoldMessenger.of(context).showSnackBar(
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
       SnackBar(
         content: Text(
           success ? 'Nowy kod został wysłany.' : (authProvider.errorMessage ?? 'Nie udało się wysłać kodu.'),

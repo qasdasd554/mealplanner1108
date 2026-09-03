@@ -496,7 +496,21 @@ async def delete_shopping_list(
 # operacji na tej liście (podgląd, odhaczanie, zamienniki).
 # ══════════════════════════════════════════════════════════════════
 class ShareShoppingListRequest(BaseModel):
-    email: str
+    """Odbiorca wskazywany NAZWĄ UŻYTKOWNIKA, nie adresem e-mail.
+
+    Zmiana z e-maila: nazwa jest widoczna publicznie w aplikacji (autor
+    przepisu, komentarze, ranking konkursu), więc udostępnienie nie wymaga
+    już znajomości czyjegoś prywatnego adresu ani jego ujawniania.
+
+    Jednoznaczność jest zagwarantowana — nazwy są unikalne (bez
+    rozróżniania wielkości liter), pilnuje tego validate_display_name
+    w app/services/display_name.py, stosowane przy rejestracji, logowaniu
+    Google/Apple i zmianie nicku. `email` zostaje jako pole opcjonalne
+    wyłącznie dla starszych wersji aplikacji, które jeszcze go wysyłają.
+    """
+
+    display_name: str | None = None
+    email: str | None = None
 
 
 class ShoppingListShareResponse(BaseModel):
@@ -518,7 +532,7 @@ class ShoppingListShareResponse(BaseModel):
     "/{list_id}/share",
     response_model=ShoppingListShareResponse,
     status_code=201,
-    summary="Udostępnij listę zakupów innemu użytkownikowi (po e-mailu)",
+    summary="Udostępnij listę zakupów innemu użytkownikowi (po nazwie)",
 )
 async def share_shopping_list(
     list_id: UUID,
@@ -540,13 +554,28 @@ async def share_shopping_list(
     if plan is None:
         raise NotFoundException(detail="Nie znaleziono Twojej listy zakupów do udostępnienia.")
 
-    target_result = await db.execute(select(User).where(User.email == payload.email.strip().lower()))
-    target_user = target_result.scalar_one_or_none()
-    if target_user is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Nie znaleziono użytkownika Meal Planner Polska o tym adresie e-mail.",
+    if payload.display_name and payload.display_name.strip():
+        # Porównanie bez rozróżniania wielkości liter — tak samo jak przy
+        # sprawdzaniu zajętości nazwy, żeby "Kucharz" i "kucharz" trafiały
+        # w to samo konto.
+        needle = payload.display_name.strip().lower()
+        target_result = await db.execute(
+            select(User).where(func.lower(User.display_name) == needle)
         )
+        target_user = target_result.scalar_one_or_none()
+        not_found_detail = "Nie znaleziono użytkownika o takiej nazwie."
+    elif payload.email and payload.email.strip():
+        # Ścieżka zgodności ze starszymi wersjami aplikacji.
+        target_result = await db.execute(
+            select(User).where(User.email == payload.email.strip().lower())
+        )
+        target_user = target_result.scalar_one_or_none()
+        not_found_detail = "Nie znaleziono użytkownika o tym adresie e-mail."
+    else:
+        raise HTTPException(status_code=400, detail="Podaj nazwę użytkownika, któremu udostępniasz listę.")
+
+    if target_user is None:
+        raise HTTPException(status_code=404, detail=not_found_detail)
     if target_user.id == current_user.id:
         raise HTTPException(status_code=400, detail="Nie możesz udostępnić listy samemu sobie.")
 

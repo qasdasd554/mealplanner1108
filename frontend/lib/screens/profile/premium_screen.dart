@@ -54,7 +54,9 @@ class _PremiumScreenState extends State<PremiumScreen> {
       onError: (error) {
         if (!mounted) return;
         setState(() => _isProcessingPurchase = false);
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
           const SnackBar(content: Text('Wystąpił błąd podczas zakupu.')),
         );
       },
@@ -128,7 +130,9 @@ class _PremiumScreenState extends State<PremiumScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isProcessingPurchase = false);
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
       );
     }
@@ -147,7 +151,9 @@ class _PremiumScreenState extends State<PremiumScreen> {
             _isProcessingPurchase = false;
             _isRestoring = false;
           });
-          ScaffoldMessenger.of(context).showSnackBar(
+          ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
             SnackBar(content: Text('Zakup nie powiódł się: ${purchase.error?.message ?? "nieznany błąd"}')),
           );
         }
@@ -216,7 +222,9 @@ class _PremiumScreenState extends State<PremiumScreen> {
           _isProcessingPurchase = false;
           _isRestoring = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
           const SnackBar(content: Text('Premium aktywowane — dziękujemy!')),
         );
         Navigator.of(context).pop();
@@ -227,7 +235,9 @@ class _PremiumScreenState extends State<PremiumScreen> {
         _isProcessingPurchase = false;
         _isRestoring = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text('Nie udało się potwierdzić zakupu: ${friendlyError(e)}')),
       );
     }
@@ -253,13 +263,17 @@ class _PremiumScreenState extends State<PremiumScreen> {
       await Provider.of<AuthProvider>(context, listen: false).loadProfile();
       if (!mounted) return;
       setState(() => _isProcessingPurchase = false);
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text('Dodano punkty! Masz teraz $newBalance punktów.')),
       );
     } catch (e) {
       if (!mounted) return;
       setState(() => _isProcessingPurchase = false);
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text('Nie udało się potwierdzić zakupu: ${friendlyError(e)}')),
       );
     }
@@ -276,7 +290,9 @@ class _PremiumScreenState extends State<PremiumScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isProcessingPurchase = false);
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text('Nie udało się rozpocząć zakupu: ${friendlyError(e)}')),
       );
     }
@@ -293,14 +309,18 @@ class _PremiumScreenState extends State<PremiumScreen> {
       if (!mounted) return;
       if (_isRestoring) {
         setState(() => _isRestoring = false);
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
           const SnackBar(content: Text('Nie znaleziono żadnych wcześniejszych zakupów do przywrócenia.')),
         );
       }
     } catch (e) {
       if (!mounted) return;
       setState(() => _isRestoring = false);
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text(friendlyError(e))),
       );
     }
@@ -646,7 +666,9 @@ class _PremiumScreenState extends State<PremiumScreen> {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         const SnackBar(content: Text('Nie udało się otworzyć strony.')),
       );
     }

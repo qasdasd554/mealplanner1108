@@ -33,7 +33,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Future<void> _requestCode() async {
     final email = _emailController.text.trim();
     if (email.isEmpty || !email.contains('@')) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         const SnackBar(content: Text('Podaj prawidłowy adres e-mail.')),
       );
       return;
@@ -56,7 +58,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       // To by się zdarzyło tylko przy prawdziwym błędzie sieci/serwera,
       // nie przy "nie znaleziono takiego e-maila" (tego backend celowo
       // nigdy nie mówi wprost).
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text(authProvider.errorMessage!)),
       );
     }
@@ -67,13 +71,17 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     final newPassword = _newPasswordController.text;
 
     if (code.length != 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         const SnackBar(content: Text('Kod musi mieć dokładnie 6 cyfr.')),
       );
       return;
     }
     if (newPassword.length < 8) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         const SnackBar(content: Text('Nowe hasło musi mieć co najmniej 8 znaków.')),
       );
       return;
@@ -90,12 +98,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     setState(() => _isSubmitting = false);
 
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         const SnackBar(content: Text('Hasło zostało zmienione. Zaloguj się nowym hasłem.')),
       );
       Navigator.of(context).pop();
     } else if (authProvider.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(
           content: Text(authProvider.errorMessage!),
           backgroundColor: AppTheme.errorColor,

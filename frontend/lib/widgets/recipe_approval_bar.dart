@@ -33,12 +33,16 @@ class _RecipeApprovalBarState extends State<RecipeApprovalBar> {
       }
       if (!mounted) return;
       setState(() => _resolvedAs = approve ? 'public' : 'rejected');
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text(approve ? 'Przepis zaakceptowany' : 'Przepis odrzucony')),
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         const SnackBar(content: Text('Nie udało się wykonać akcji')),
       );
     } finally {

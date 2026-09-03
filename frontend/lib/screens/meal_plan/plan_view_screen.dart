@@ -29,7 +29,9 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
 
     if (mounted) {
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
           const SnackBar(
             content: Text('Plan został zatwierdzony! Lista zakupów wygenerowana.'),
             backgroundColor: AppTheme.primaryColor,
@@ -37,7 +39,9 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
         );
         Navigator.of(context).pushReplacementNamed('/home');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
           SnackBar(
             content: Text(mealPlanProvider.errorMessage ?? 'Wystąpił błąd'),
             backgroundColor: AppTheme.errorColor,
@@ -258,7 +262,9 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
                         if (success) {
                           Navigator.of(context).pop();
                         } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
+                          ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
                             SnackBar(
                               content: Text(
                                 mealPlanProvider.errorMessage ?? 'Nie udało się usunąć planu',

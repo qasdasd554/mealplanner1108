@@ -77,7 +77,9 @@ class _IngredientMatchSelectScreenState extends State<IngredientMatchSelectScree
 
   Future<void> _submit() async {
     if (_selectedIds.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         const SnackBar(content: Text('Zaznacz przynajmniej jeden składnik.')),
       );
       return;
@@ -100,7 +102,9 @@ class _IngredientMatchSelectScreenState extends State<IngredientMatchSelectScree
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
       );
     } finally {

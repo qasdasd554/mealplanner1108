@@ -97,6 +97,15 @@ class Promotion(Base):
     )
 
     # Audyt
+    # Czy zatwierdzenie tej promocji faktycznie NADPISAŁO cenę bazową
+    # produktu w katalogu (StoreProduct.price). Bez tego znacznika nie
+    # da się po wygaśnięciu ustalić, którym promocjom trzeba cenę cofnąć
+    # — a bez cofania obniżona cena zostawała w katalogu NA ZAWSZE
+    # (promocja znikała z zakładki Promocje, ale listy zakupów i budżety
+    # planów dalej liczyły po cenie promocyjnej).
+    price_applied: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False, server_default="false"
+    )
     is_active: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=True,
     )

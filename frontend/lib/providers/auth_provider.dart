@@ -67,11 +67,11 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> login(String email, String password) async {
+  Future<bool> login(String email, String password, {String? captchaToken}) async {
     _setLoading(true);
     _clearError();
     try {
-      await _authService.login(email, password);
+      await _authService.login(email, password, captchaToken: captchaToken);
       _isAuthenticated = true;
       notifyListeners();
       await loadProfile();
@@ -143,11 +143,11 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> register(String email, String password, String displayName) async {
+  Future<bool> register(String email, String password, String displayName, {String? captchaToken}) async {
     _setLoading(true);
     _clearError();
     try {
-      await _authService.register(email, password, displayName);
+      await _authService.register(email, password, displayName, captchaToken: captchaToken);
       // Auto login po rejestracji
       final success = await login(email, password);
       _setLoading(false);

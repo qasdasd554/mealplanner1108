@@ -33,6 +33,21 @@ class SmartMealPlannerApp extends StatelessWidget {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, _) {
         return MaterialApp(
+          // NAPRAWA MIGANIA BIAŁEGO TŁA PRZY ZMIANIE MOTYWU:
+          // AppTheme trzyma kolory w polu STATYCZNYM (`AppTheme._isDark`),
+          // a nie w drzewie widgetów — świadoma decyzja, żeby dało się
+          // pisać `AppTheme.surfaceColor` bez `Theme.of(context)`. Skutek
+          // uboczny: widgety zbudowane jako `const` NIE są przebudowywane
+          // przy zmianie motywu (Flutter uznaje je za identyczne), więc
+          // zostają z kolorami zapamiętanymi w poprzednim trybie —
+          // np. tabela porównania planów zostawała biała w trybie ciemnym,
+          // dopóki cokolwiek innego nie wymusiło jej odbudowy.
+          //
+          // Klucz zależny od motywu wymusza odtworzenie CAŁEGO drzewa przy
+          // przełączeniu, więc żaden `const` widget nie zostaje ze starymi
+          // kolorami. Dzieje się to tylko przy ręcznej zmianie motywu,
+          // więc koszt jest bez znaczenia.
+          key: ValueKey(themeProvider.isDark),
           navigatorKey: navigatorKey,
           title: 'Meal Planner Polska',
           theme: AppTheme.lightTheme,

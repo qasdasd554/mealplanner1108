@@ -12,6 +12,7 @@ import '../../services/shopping_list_service.dart';
 import '../../utils/error_utils.dart';
 import '../../config/api_config.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/add_product_sheet.dart';
 import '../../widgets/decorative_circles.dart';
 import 'price_compare_screen.dart';
 import 'export_list_screen.dart';
@@ -70,7 +71,12 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
   /// dostanie faktyczny dostęp (patrz backend, ShoppingListShare).
   Future<void> _showShareDialog(String listId) async {
     final controller = TextEditingController();
-    final email = await showDialog<String>(
+    // Udostępniamy po NAZWIE UŻYTKOWNIKA, nie po e-mailu — nazwa jest
+    // i tak widoczna publicznie w aplikacji, więc nie trzeba znać ani
+    // ujawniać czyjegoś prywatnego adresu. Nazwy są unikalne (pilnuje
+    // tego walidacja przy rejestracji i zmianie nicku), więc wskazanie
+    // jest jednoznaczne.
+    final nickname = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Udostępnij listę zakupów'),
@@ -79,16 +85,19 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Osoba musi mieć konto w Meal Planner Polska i zaakceptować zaproszenie, zanim zobaczy listę.',
+              'Podaj nazwę użytkownika osoby, której chcesz udostępnić listę. '
+              'Musi ona mieć konto w Meal Planner Polska i zaakceptować '
+              'zaproszenie, zanim zobaczy listę.',
               style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: controller,
               autofocus: true,
-              keyboardType: TextInputType.emailAddress,
+              textCapitalization: TextCapitalization.none,
               decoration: const InputDecoration(
-                labelText: 'Adres e-mail',
+                labelText: 'Nazwa użytkownika',
+                prefixIcon: Icon(Icons.person_outline),
                 border: OutlineInputBorder(),
               ),
             ),
@@ -104,17 +113,21 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
       ),
     );
 
-    if (email == null || email.isEmpty || !mounted) return;
+    if (nickname == null || nickname.isEmpty || !mounted) return;
 
     try {
-      await ShoppingListService().shareList(listId, email);
+      await ShoppingListService().shareList(listId, nickname);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Wysłano zaproszenie do $email')),
-      );
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text('Wysłano zaproszenie do $nickname')),
+        );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
       );
     }
@@ -277,9 +290,33 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
           ),
           if (list != null)
             IconButton(
+              icon: const Icon(Icons.add_shopping_cart),
+              tooltip: 'Dodaj produkt',
+              onPressed: () => showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: AppTheme.surfaceColor,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                builder: (_) => const AddProductSheet(),
+              ),
+            ),
+          if (list != null)
+            IconButton(
               icon: const Icon(Icons.person_add_alt_outlined),
               tooltip: 'Udostępnij listę',
               onPressed: () => _showShareDialog(list.id),
+            ),
+          if (list != null)
+            IconButton(
+              icon: const Icon(Icons.delete_outline),
+              tooltip: 'Usuń tę listę',
+              onPressed: () {
+                final idx = shoppingListProvider.allLists
+                    .indexWhere((l) => l.mealPlanId == shoppingListProvider.selectedListId);
+                _confirmDeleteList(shoppingListProvider, list, idx >= 0 ? idx + 1 : 1);
+              },
             ),
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -394,14 +431,16 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     );
   }
 
-  /// Poziomy pasek z zakładkami list — pozwala przełączyć widoczną listę
-  /// zakupów, gdy użytkownik ma ich kilka.
+  /// Poziomy pasek kart z listami — pozwala przełączyć widoczną listę,
+  /// gdy użytkownik ma ich kilka. Etykieta to "Lista N · nazwa sklepu",
+  /// bo sama nazwa sklepu nie wystarcza (można mieć dwie listy z tego
+  /// samego sklepu), a sam numer nic nie mówi.
   Widget _buildListSelector(ShoppingListProvider provider) {
     return SizedBox(
-      height: 48,
+      height: 64,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
         itemCount: provider.allLists.length,
         itemBuilder: (context, index) {
           final l = provider.allLists[index];
@@ -411,20 +450,127 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
           final isSelected = l.mealPlanId == provider.selectedListId;
           final allItems = l.itemsByDepartment.values.expand((x) => x).toList();
           final checked = allItems.where((i) => i.isChecked).length;
+          final total = allItems.length;
+          final done = total > 0 && checked == total;
+
           return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: ChoiceChip(
-              selected: isSelected,
-              onSelected: (_) => provider.selectList(l.mealPlanId),
-              label: Text(
-                '${l.storeName} · $checked/${allItems.length}',
-                style: const TextStyle(fontSize: 12),
+            padding: const EdgeInsets.only(right: 10),
+            child: Material(
+              color: isSelected ? AppTheme.primaryColor : AppTheme.surfaceColor,
+              borderRadius: BorderRadius.circular(14),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: () => provider.selectList(l.mealPlanId),
+                onLongPress: () => _confirmDeleteList(provider, l, index + 1),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: isSelected
+                          ? AppTheme.primaryColor
+                          : AppTheme.textSecondary.withOpacity(0.25),
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Lista ${index + 1}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: isSelected
+                              ? Colors.white.withOpacity(0.85)
+                              : AppTheme.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 1),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            l.storeName,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: isSelected ? Colors.white : AppTheme.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Icon(
+                            done ? Icons.check_circle : Icons.shopping_basket_outlined,
+                            size: 13,
+                            color: isSelected
+                                ? Colors.white.withOpacity(0.9)
+                                : AppTheme.textSecondary,
+                          ),
+                          const SizedBox(width: 2),
+                          Text(
+                            '$checked/$total',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: isSelected
+                                  ? Colors.white.withOpacity(0.9)
+                                  : AppTheme.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           );
         },
       ),
     );
+  }
+
+  /// Usunięcie listy zakupów. Wywoływane przytrzymaniem karty listy
+  /// oraz z menu w pasku górnym — usuwanie jest nieodwracalne, więc
+  /// wymaga potwierdzenia.
+  Future<void> _confirmDeleteList(
+    ShoppingListProvider provider,
+    ShoppingList list,
+    int number,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('Usunąć listę $number?'),
+        content: Text(
+          'Lista zakupów dla sklepu ${list.storeName} zostanie trwale '
+          'usunięta wraz ze wszystkimi pozycjami. Plan posiłków pozostaje '
+          'bez zmian — listę można wygenerować ponownie.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Anuluj'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: AppTheme.errorColor),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Usuń'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    final ok = await provider.deleteList(list.mealPlanId);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(ok ? 'Lista usunięta' : 'Nie udało się usunąć listy'),
+          backgroundColor: ok ? null : AppTheme.errorColor,
+        ),
+      );
   }
 
   Widget _buildSummaryCard(ShoppingList list) {

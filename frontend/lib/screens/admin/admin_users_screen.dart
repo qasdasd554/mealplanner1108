@@ -126,13 +126,17 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
         user['ban_reason'] = banned ? reason : null;
         _busyIds.remove(id);
       });
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text(banned ? 'Konto zablokowane' : 'Konto odblokowane')),
       );
     } catch (e) {
       if (!mounted) return;
       setState(() => _busyIds.remove(id));
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
       );
     }

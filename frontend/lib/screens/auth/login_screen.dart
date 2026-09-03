@@ -6,6 +6,7 @@ import '../../providers/auth_provider.dart';
 import 'forgot_password_screen.dart';
 import '../../theme/app_theme.dart';
 import '../../config/api_config.dart';
+import '../../widgets/turnstile_widget.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -27,20 +28,29 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  /// Token z bramki CAPTCHA. `null` = jeszcze nie zweryfikowano (albo
+  /// token wygasł). Gdy bramka jest wyłączona, widget od razu zgłasza
+  /// pusty ciąg, więc przycisk nie jest blokowany.
+  String? _captchaToken;
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_captchaToken == null) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final success = await authProvider.login(
       _emailController.text.trim(),
       _passwordController.text,
+      captchaToken: _captchaToken,
     );
 
     if (mounted) {
       if (success) {
         Navigator.of(context).pushReplacementNamed('/home');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
           SnackBar(
             content: Text(authProvider.errorMessage ?? 'Logowanie nie powiodło się'),
             backgroundColor: AppTheme.errorColor,
@@ -62,7 +72,9 @@ class _LoginScreenState extends State<LoginScreen> {
     } else if (authProvider.errorMessage != null) {
       // `success == false` bez komunikatu błędu oznacza, że użytkownik po
       // prostu anulował okno logowania Google — wtedy nic nie pokazujemy.
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(
           content: Text(authProvider.errorMessage!),
           backgroundColor: AppTheme.errorColor,
@@ -81,7 +93,9 @@ class _LoginScreenState extends State<LoginScreen> {
     if (success) {
       Navigator.of(context).pushReplacementNamed('/home');
     } else if (authProvider.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(
           content: Text(authProvider.errorMessage!),
           backgroundColor: AppTheme.errorColor,
@@ -248,8 +262,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 24),
                       
                       // Login Button
+                      // Bramka CAPTCHA — przycisk pozostaje nieaktywny, dopóki
+                      // weryfikacja się nie powiedzie (patrz _captchaToken).
+                      TurnstileWidget(onToken: (t) => setState(() => _captchaToken = t)),
+                      if (TurnstileWidget.isEnabled) const SizedBox(height: 8),
                       ElevatedButton(
-                        onPressed: authProvider.isLoading ? null : _submit,
+                        onPressed: (authProvider.isLoading || _captchaToken == null) ? null : _submit,
                         child: authProvider.isLoading
                             ? const SizedBox(
                                 width: 24,

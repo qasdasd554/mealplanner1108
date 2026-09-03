@@ -373,6 +373,10 @@ async def approve_promotion(
             if store_product:
                 store_product.price = promotion.promo_price
                 store_product.last_verified = date.today()
+                # Znacznik potrzebny, żeby po wygaśnięciu promocji dało się
+                # cofnąć cenę do regularnej — patrz
+                # app/services/promotion_expiry.py.
+                promotion.price_applied = True
 
     await db.commit()
     await db.refresh(promotion)

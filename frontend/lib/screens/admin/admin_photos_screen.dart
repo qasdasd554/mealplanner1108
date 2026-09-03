@@ -68,13 +68,17 @@ class _AdminPhotosScreenState extends State<AdminPhotosScreen> {
         _photos.removeWhere((p) => p['recipe_id'] == id);
         _busyIds.remove(id);
       });
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text(approve ? 'Zdjęcie zaakceptowane' : 'Zdjęcie odrzucone')),
       );
     } catch (e) {
       if (!mounted) return;
       setState(() => _busyIds.remove(id));
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
       );
     }

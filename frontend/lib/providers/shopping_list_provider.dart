@@ -88,8 +88,24 @@ class ShoppingListProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> removeItem(String itemId) async {
-    if (_selectedListId == null) return false;
+  /// Usuwa całą listę zakupów i odświeża pozostałe. Jeśli usunięta była
+  /// aktualnie oglądaną, `loadAllLists` sam przełączy się na pierwszą
+  /// dostępną (albo wyczyści widok, gdy nie ma już żadnej).
+  Future<bool> deleteList(String listId) async {
+    _errorMessage = null;
+    try {
+      await _shoppingListService.deleteList(listId);
+      final wasSelected = listId == _selectedListId;
+      await loadAllLists(preferredListId: wasSelected ? null : _selectedListId);
+      return true;
+    } catch (e) {
+      _errorMessage = friendlyError(e);
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> removeItem(String itemId) async {    if (_selectedListId == null) return false;
     _errorMessage = null;
     try {
       await _shoppingListService.deleteItem(_selectedListId!, itemId);

@@ -74,7 +74,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Future<void> _finishOnboarding() async {
     if (_selectedStore == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         const SnackBar(
           content: Text('Wybierz swój preferowany sklep!'),
           backgroundColor: AppTheme.errorColor,
@@ -95,7 +97,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       if (success) {
         Navigator.of(context).pushReplacementNamed('/home');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
           SnackBar(
             content: Text(authProvider.errorMessage ?? 'Nie udało się zapisać preferencji'),
             backgroundColor: AppTheme.errorColor,

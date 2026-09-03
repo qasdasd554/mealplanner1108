@@ -81,7 +81,9 @@ Future<void> showReportDialog(
   final success = await onSubmit(selectedReason, details.isEmpty ? null : details);
 
   if (context.mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
       SnackBar(
         content: Text(
           success
@@ -130,7 +132,9 @@ Future<void> showBlockUserDialog(
   final success = await authProvider.blockUser(userId);
 
   if (context.mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
       SnackBar(
         content: Text(
           success ? 'Użytkownik "$authorName" został zablokowany.' : 'Nie udało się zablokować użytkownika.',

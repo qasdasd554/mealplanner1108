@@ -63,7 +63,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       });
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         const SnackBar(content: Text('Nie udało się oznaczyć wszystkich jako przeczytane')),
       );
     }
@@ -101,7 +103,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       Navigator.of(context).pushNamed('/recipe/detail', arguments: recipe);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         const SnackBar(content: Text('Nie udało się otworzyć przepisu')),
       );
     }

@@ -106,7 +106,9 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
     final storeProvider = Provider.of<StoreProvider>(context, listen: false);
     final store = storeProvider.selectedStore ?? (storeProvider.stores.isNotEmpty ? storeProvider.stores.first : null);
     if (store == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         const SnackBar(content: Text('Wybierz najpierw sklep w swoim profilu')),
       );
       return;
@@ -129,7 +131,9 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
       // dajemy bezpośrednie przejście do Premium zamiast tylko komunikatu,
       // żeby nie trzeba było szukać, jak rozwiązać ten konkretny problem.
       final message = friendlyError(e);
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(
           content: Text(message),
           action: message.toLowerCase().contains('premium')

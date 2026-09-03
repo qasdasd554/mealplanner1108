@@ -89,13 +89,17 @@ class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
         _comments.removeWhere((c) => c['id'] == id);
         _busyIds.remove(id);
       });
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         const SnackBar(content: Text('Komentarz usunięty')),
       );
     } catch (e) {
       if (!mounted) return;
       setState(() => _busyIds.remove(id));
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
       );
     }

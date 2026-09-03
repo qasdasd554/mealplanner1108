@@ -83,12 +83,16 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       final sentTo = await _notificationService.sendBroadcast(message);
       if (!mounted) return;
       _broadcastController.clear();
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text('Wysłano do $sentTo użytkowników.')),
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
       );
     } finally {
@@ -329,7 +333,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     try {
       final result = await _service.triggerAiScan(storeName);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(
           content: Text(
             'Znaleziono ${result['found']}, zakolejkowano ${result['queued_for_review']} do akceptacji.',
@@ -339,7 +345,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       await _loadPending();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text(friendlyError(e))),
       );
     } finally {
@@ -359,12 +367,16 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       setState(() {
         _pending.removeWhere((p) => p.id == promotion.id);
       });
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text(approve ? 'Promocja zaakceptowana' : 'Promocja odrzucona')),
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         const SnackBar(content: Text('Nie udało się wykonać akcji')),
       );
     } finally {
@@ -423,7 +435,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         _reports.removeWhere((r) => r['id'] == reportId);
         _busyReportIds.remove(reportId);
       });
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(
           content: Text(status == 'resolved' ? 'Zgłoszenie oznaczone jako rozpatrzone' : 'Zgłoszenie odrzucone'),
         ),
@@ -431,7 +445,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _busyReportIds.remove(reportId));
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text(friendlyError(e))),
       );
     }
@@ -449,12 +465,16 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       setState(() {
         _pendingRecipes.removeWhere((r) => r.id == recipe.id);
       });
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text(approve ? 'Przepis zaakceptowany' : 'Przepis odrzucony')),
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text(friendlyError(e))),
       );
     } finally {
@@ -838,6 +858,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             _buildReportsSection(context),
             const SizedBox(height: 32),
             _buildBroadcastSection(context),
+            // Odstęp na dole uwzględniający pasek nawigacji systemowej —
+            // bez tego ostatni przycisk (wysyłka powiadomienia) chował się
+            // pod gestowym paskiem systemu i nie dało się go dotknąć.
+            SizedBox(height: MediaQuery.of(context).padding.bottom + 32),
           ],
         ),
       ),

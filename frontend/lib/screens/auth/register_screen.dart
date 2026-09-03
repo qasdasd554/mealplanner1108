@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/turnstile_widget.dart';
 import '../../theme/app_theme.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -28,14 +29,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
+  /// Patrz komentarz przy tym samym polu w login_screen.dart.
+  String? _captchaToken;
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_captchaToken == null) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final success = await authProvider.register(
       _emailController.text.trim(),
       _passwordController.text,
       _nameController.text.trim(),
+      captchaToken: _captchaToken,
     );
 
     if (mounted) {
@@ -46,7 +52,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         // automatycznie po stronie backendu).
         Navigator.of(context).pushReplacementNamed('/verify-email');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
           SnackBar(
             content: Text(authProvider.errorMessage ?? 'Rejestracja nie powiodła się'),
             backgroundColor: AppTheme.errorColor,
@@ -184,10 +192,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         },
                       ).animate().fadeIn(delay: 500.ms),
                       const SizedBox(height: 24),
-                      
+
+                      // Bramka CAPTCHA — przycisk pozostaje nieaktywny,
+                      // dopóki weryfikacja się nie powiedzie.
+                      TurnstileWidget(onToken: (t) => setState(() => _captchaToken = t)),
+                      if (TurnstileWidget.isEnabled) const SizedBox(height: 8),
+
                       // Register Button
                       ElevatedButton(
-                        onPressed: authProvider.isLoading ? null : _submit,
+                        onPressed: (authProvider.isLoading || _captchaToken == null)
+                            ? null
+                            : _submit,
                         child: authProvider.isLoading
                             ? const SizedBox(
                                 width: 24,

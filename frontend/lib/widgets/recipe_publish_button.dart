@@ -54,14 +54,18 @@ class _RecipePublishButtonState extends State<RecipePublishButton> {
       // lokalnie odświeżyć odznaki widoczności. Wracamy do listy —
       // ta i tak odświeża się przy powrocie i pokaże already-aktualny
       // stan (podobnie jak przy usuwaniu przepisu).
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         const SnackBar(content: Text('Przepis zgłoszony — czeka na akceptację administratora.')),
       );
       Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;
       setState(() => _isPublishing = false);
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         const SnackBar(content: Text('Nie udało się opublikować przepisu.')),
       );
     }

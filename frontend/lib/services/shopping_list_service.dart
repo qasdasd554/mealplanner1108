@@ -115,10 +115,12 @@ class ShoppingListService {
   /// Udostępnia listę zakupów innemu użytkownikowi po adresie e-mail —
   /// tworzy ZAPROSZENIE (status "pending"), druga strona musi je
   /// zaakceptować, zanim dostanie faktyczny dostęp do listy.
-  Future<ShoppingListShare> shareList(String listId, String email) async {
+  /// Udostępnia listę po NAZWIE UŻYTKOWNIKA (nie po e-mailu) — nazwy są
+  /// unikalne, więc wskazanie jest jednoznaczne.
+  Future<ShoppingListShare> shareList(String listId, String displayName) async {
     final response = await _client.post(
       '${ApiConfig.shoppingLists}$listId/share',
-      body: {'email': email},
+      body: {'display_name': displayName},
     );
     return ShoppingListShare.fromJson(response as Map<String, dynamic>);
   }

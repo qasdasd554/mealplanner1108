@@ -123,13 +123,17 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
         dailyKcalGoal: _selectedGoal!.round(),
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text('Cel zapisany: ${_selectedGoal!.round()} kcal/dzień')),
       );
       Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text(friendlyError(e))),
       );
     } finally {

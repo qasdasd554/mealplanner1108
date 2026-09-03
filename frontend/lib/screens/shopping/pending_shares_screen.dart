@@ -51,12 +51,16 @@ class _PendingSharesScreenState extends State<PendingSharesScreen> {
       await _service.acceptShare(share.id);
       if (!mounted) return;
       setState(() => _pending.remove(share));
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         const SnackBar(content: Text('Zaakceptowano — lista pojawi się jako udostępniona.')),
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
       );
     }
@@ -69,7 +73,9 @@ class _PendingSharesScreenState extends State<PendingSharesScreen> {
       setState(() => _pending.remove(share));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
       );
     }

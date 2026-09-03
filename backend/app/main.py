@@ -161,6 +161,14 @@ async def _create_tables() -> None:
         await conn.execute(
             text("ALTER TABLE recipes ADD COLUMN IF NOT EXISTS pending_photo_submitted_at TIMESTAMPTZ")
         )
+        # Znacznik "ta promocja nadpisała cenę katalogową" — patrz
+        # app/services/promotion_expiry.py.
+        await conn.execute(
+            text(
+                "ALTER TABLE promotions ADD COLUMN IF NOT EXISTS "
+                "price_applied BOOLEAN NOT NULL DEFAULT FALSE"
+            )
+        )
     logger.info("Tabele bazy danych zostały utworzone/zweryfikowane.")
 
 
@@ -231,12 +239,34 @@ async def _backfill_missing_nutrition_totals() -> None:
             )
             all_recipes = list(result.scalars().all())
             recipes = [r for r in all_recipes if not r.nutrition_total]
+
+            # PRZELICZENIE po zmianie sposobu liczenia tłuszczu do
+            # smażenia (patrz _edible_grams w nutrition_calculator.py).
+            # Przepisy, które mają już zapisane `nutrition_total`, nie
+            # zostałyby ruszone przez powyższy warunek, więc smażone dania
+            # zostałyby ze starą, mocno zawyżoną kalorycznością. Bierzemy
+            # tylko te, w których faktycznie występuje tłuszcz smażalniczy
+            # — nie ma powodu przeliczać całego katalogu.
+            from app.services.nutrition_calculator import FRYING_FATS
+
+            already_selected = {r.id for r in recipes}
+            for r in all_recipes:
+                if r.id in already_selected:
+                    continue
+                has_frying_fat = any(
+                    (ing.product.name or "").strip().lower() in FRYING_FATS
+                    for ing in r.ingredients
+                    if ing.product is not None
+                )
+                if has_frying_fat:
+                    recipes.append(r)
+
             if not recipes:
                 return
             for recipe in recipes:
                 recipe.nutrition_total = compute_recipe_nutrition_total(recipe.ingredients)
             await db.commit()
-            logger.info("Uzupełniono nutrition_total dla %d istniejących przepisów.", len(recipes))
+            logger.info("Przeliczono nutrition_total dla %d przepisów.", len(recipes))
     except Exception:
         logger.exception("Błąd podczas uzupełniania nutrition_total.")
 
@@ -301,6 +331,29 @@ async def _weekly_contest_background_loop() -> None:
         await asyncio.sleep(60 * 60)  # 1 godzina
 
 
+async def _promotion_expiry_background_loop() -> None:
+    """Cofa ceny promocyjne po wygaśnięciu promocji (patrz
+    app/services/promotion_expiry.py). Ten sam wzorzec co pozostałe
+    zadania w tle — zwykła pętla w procesie aplikacji, bez osobnego
+    workera, bo darmowy plan Render go nie przewiduje. Operacja jest
+    idempotentna (znacznik `price_applied` zdejmowany po przetworzeniu),
+    więc wielokrotne uruchomienie niczego nie psuje.
+    """
+    await asyncio.sleep(45)
+    while True:
+        try:
+            from app.db.session import async_session_factory
+            from app.services.promotion_expiry import restore_expired_promotion_prices
+
+            async with async_session_factory() as db:
+                restored = await restore_expired_promotion_prices(db)
+                if restored:
+                    logger.info("Przywrócono ceny regularne dla %d produktów.", restored)
+        except Exception:
+            logger.exception("Błąd przy przywracaniu cen po wygasłych promocjach")
+        await asyncio.sleep(60 * 60)  # 1 godzina
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Zarządza cyklem życia aplikacji — startup i shutdown."""
@@ -310,11 +363,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     await _backfill_missing_nutrition_totals()
     scraper_task = asyncio.create_task(_price_scraper_background_loop())
     weekly_contest_task = asyncio.create_task(_weekly_contest_background_loop())
+    promotion_expiry_task = asyncio.create_task(_promotion_expiry_background_loop())
     logger.info("Aplikacja gotowa do obsługi żądań.")
     yield
     logger.info("Zamykanie Smart Meal Planner PL API...")
     scraper_task.cancel()
     weekly_contest_task.cancel()
+    promotion_expiry_task.cancel()
 
 
 app = FastAPI(

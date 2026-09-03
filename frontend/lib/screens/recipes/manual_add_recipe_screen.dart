@@ -119,14 +119,18 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (_ingredients.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         const SnackBar(content: Text('Dodaj przynajmniej jeden składnik')),
       );
       return;
     }
     final steps = _stepControllers.map((c) => c.text.trim()).where((s) => s.isNotEmpty).toList();
     if (steps.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         const SnackBar(content: Text('Dodaj przynajmniej jeden krok przygotowania')),
       );
       return;
@@ -157,7 +161,9 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text(friendlyError(e))),
       );
     } finally {

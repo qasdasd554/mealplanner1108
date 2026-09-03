@@ -14,6 +14,18 @@ from google.oauth2 import id_token as google_id_token
 
 from app.core.config import settings
 from app.services.apple_sign_in import AppleSignInError, verify_apple_identity_token
+from app.services.turnstile import verify_turnstile_token
+
+
+def _client_ip(request: Request) -> str | None:
+    """Adres IP klienta — przekazywany Cloudflare przy weryfikacji tokenu
+    jako dodatkowy sygnał. Za pośrednikiem (Render) prawdziwy adres jest
+    w nagłówku X-Forwarded-For, a request.client.host wskazywałby tylko
+    na sam pośrednik."""
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else None
 from app.services.display_name import generate_unique_display_name, validate_display_name
 from app.services.email_service import EmailSendError, send_password_reset_email, send_verification_email
 from app.core.rate_limit import (
@@ -77,6 +89,11 @@ async def register(request: Request, db: AsyncSession = Depends(get_db)):
     enforce_signup_rate_limit(request)
 
     body = await get_parsed_body(request)
+    # CAPTCHA sprawdzana PRZED czymkolwiek innym — zakładanie konta jest
+    # najczęstszym celem botów (spam w komentarzach, wyczerpywanie limitów
+    # wysyłki maili weryfikacyjnych).
+    await verify_turnstile_token(body.get("turnstile_token"), _client_ip(request))
+
     email = body.get("email")
     password = body.get("password")
     display_name = (body.get("display_name") or "").strip()
@@ -145,6 +162,11 @@ async def login(request: Request, db: AsyncSession = Depends(get_db)):
     rate_key = enforce_login_rate_limit(request)
 
     body = await get_parsed_body(request)
+    # CAPTCHA przed sprawdzeniem hasła — inaczej bot i tak mógłby
+    # wykorzystać ten endpoint do zgadywania haseł, a limity liczby prób
+    # tylko by go spowolniły, nie zatrzymały.
+    await verify_turnstile_token(body.get("turnstile_token"), _client_ip(request))
+
     email = body.get("email")
     password = body.get("password")
 

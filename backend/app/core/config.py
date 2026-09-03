@@ -136,6 +136,13 @@ class Settings(BaseSettings):
     # Pole ZAPASOWE dla starszych wersji aplikacji, które nie wysyłają
     # jeszcze parametru `platform` do /app/version-info i czytają tylko tę
     # wartość. Dotyczy wyłącznie Androida (starych buildów), stąd 73.
+    # ── Cloudflare Turnstile (CAPTCHA przed logowaniem/rejestracją) ──
+    # PUSTE = bramka WYŁĄCZONA. Ustaw w zmiennych środowiskowych Render
+    # (Environment → TURNSTILE_SECRET_KEY) DOPIERO wtedy, gdy nowa wersja
+    # aplikacji z obsługą CAPTCHA jest już w sklepach — starsze wersje nie
+    # wysyłają tokenu i zostałyby odcięte od logowania.
+    TURNSTILE_SECRET_KEY: str = ""
+
     LATEST_APP_VERSION_CODE: int = 73
     # Numery wersji są ROZDZIELONE na platformy, bo numeracja iOS
     # i Androida całkowicie się rozjechała: Xcode Cloud nadaje numery

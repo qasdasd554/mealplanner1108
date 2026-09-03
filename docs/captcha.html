@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Weryfikacja</title>
+<!--
+  Strona ładowana w WebView aplikacji Meal Planner Polska, żeby pokazać
+  widget Cloudflare Turnstile.
+
+  DLACZEGO PRZEZ STRONĘ, A NIE BEZPOŚREDNIO W APLIKACJI:
+  Turnstile sprawdza, z jakiej DOMENY został uruchomiony, i porównuje ją
+  z listą domen skonfigurowanych przy kluczu. WebView ładujący kod HTML
+  z pamięci (data: albo about:blank) nie ma sensownej domeny i Turnstile
+  taki widget odrzuca. Hostowanie na GitHub Pages daje prawdziwą domenę
+  (qasdasd554.github.io), którą wystarczy dodać w panelu Cloudflare.
+
+  KLUCZ PUBLICZNY (site key) NIE JEST TAJNY — jest widoczny w każdej
+  stronie używającej Turnstile. Tajny jest wyłącznie secret key, który
+  siedzi w zmiennych środowiskowych backendu i nigdy nie opuszcza serwera.
+-->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad" async defer></script>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: transparent;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  #wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+  }
+  #msg {
+    color: #6B7280;
+    font-size: 13px;
+    text-align: center;
+    padding: 0 16px;
+  }
+</style>
+</head>
+<body>
+
+<div id="wrap">
+  <div id="turnstile-container"></div>
+  <div id="msg" style="display:none"></div>
+</div>
+
+<script>
+  // Aplikacja podaje klucz publiczny w adresie (?sitekey=...), żeby nie
+  // trzeba było wgrywać nowej wersji tej strony przy zmianie klucza.
+  var params = new URLSearchParams(window.location.search);
+  var siteKey = params.get('sitekey') || '';
+  var theme = params.get('theme') === 'dark' ? 'dark' : 'light';
+
+  function sendToApp(message) {
+    // Kanał JS udostępniony przez WebView aplikacji
+    // (patrz lib/widgets/turnstile_widget.dart).
+    if (window.TurnstileChannel && window.TurnstileChannel.postMessage) {
+      window.TurnstileChannel.postMessage(JSON.stringify(message));
+    }
+  }
+
+  function showMessage(text) {
+    document.getElementById('turnstile-container').style.display = 'none';
+    var el = document.getElementById('msg');
+    el.style.display = 'block';
+    el.textContent = text;
+  }
+
+  function onTurnstileLoad() {
+    if (!siteKey) {
+      showMessage('Brak konfiguracji weryfikacji.');
+      sendToApp({ type: 'error', reason: 'missing_sitekey' });
+      return;
+    }
+    turnstile.render('#turnstile-container', {
+      sitekey: siteKey,
+      theme: theme,
+      callback: function (token) {
+        sendToApp({ type: 'token', token: token });
+      },
+      'error-callback': function () {
+        sendToApp({ type: 'error', reason: 'challenge_error' });
+      },
+      'expired-callback': function () {
+        // Token Turnstile jest ważny ok. 5 minut. Po wygaśnięciu widget
+        // resetuje się sam, a aplikacja musi wiedzieć, że poprzedni
+        // token przestał być ważny.
+        sendToApp({ type: 'expired' });
+      },
+    });
+  }
+</script>
+
+</body>
+</html>

@@ -87,6 +87,32 @@ class ApiConfig {
   /// Po uzupełnieniu przycisk pojawi się na iOS automatycznie.
   static const String googleIosClientId = '';
 
+  /// Klucz PUBLICZNY (site key) Cloudflare Turnstile — bramki CAPTCHA
+  /// przed logowaniem i rejestracją.
+  ///
+  /// PUSTY = bramka WYŁĄCZONA (widget się nie pokazuje, aplikacja działa
+  /// jak dotąd). To celowe: pozwala wydać aplikację i backend zanim
+  /// klucze zostaną skonfigurowane.
+  ///
+  /// Jak włączyć:
+  /// 1. dash.cloudflare.com → Turnstile → Add widget
+  ///    - Domain: qasdasd554.github.io
+  ///    - Widget mode: Managed (zalecane — najczęściej niewidoczne)
+  /// 2. Skopiuj SITE KEY tutaj (nie jest tajny — widać go w każdej
+  ///    stronie używającej Turnstile).
+  /// 3. SECRET KEY wklej w Render → Environment → TURNSTILE_SECRET_KEY.
+  ///    Ten jest tajny i nigdy nie może trafić do kodu aplikacji.
+  ///
+  /// WAŻNA KOLEJNOŚĆ: klucz tajny na Render ustaw DOPIERO wtedy, gdy nowa
+  /// wersja aplikacji jest już w sklepach — starsze wersje nie wysyłają
+  /// tokenu i zostałyby odcięte od logowania.
+  static const String turnstileSiteKey = '';
+
+  /// Strona hostująca widget (patrz docs/captcha.html). Musi leżeć na
+  /// domenie dodanej w konfiguracji widgetu w Cloudflare.
+  static const String turnstilePageUrl =
+      'https://qasdasd554.github.io/mealplanner1108/captcha.html';
+
   // Endpointy
   static const String authLogin = '/auth/login';
   static const String authRegister = '/auth/register';

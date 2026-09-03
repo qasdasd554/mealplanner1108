@@ -40,7 +40,9 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen> {
       setState(() {
         _blocked?.removeWhere((b) => b['blocked_user_id'] == userId);
       });
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text('Odblokowano "$name". Znów zobaczysz jej/jego treści.')),
       );
     }

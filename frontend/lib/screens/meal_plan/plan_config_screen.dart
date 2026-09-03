@@ -72,7 +72,9 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
 
   Future<void> _generate() async {
     if (_selectedStore == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         const SnackBar(
           content: Text('Wybierz sklep przed wygenerowaniem planu!'),
           backgroundColor: AppTheme.errorColor,
@@ -117,28 +119,50 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
         await _showBudgetConfirmation(mealPlanProvider.currentPlan);
       } else {
         final errorMsg = mealPlanProvider.errorMessage ?? 'Nie udało się wygenerować planu';
-        // Błąd limitu darmowego konta wspomina Premium w treści (patrz
-        // backend) — dokładamy wtedy przycisk prowadzący wprost do
-        // ekranu zakupu, zamiast zostawiać to tylko jako tekst.
+        // Błąd limitu darmowego konta wspomina Premium w treści (patrz backend).
         final isLimitError = errorMsg.contains('Premium');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMsg),
-            backgroundColor: AppTheme.errorColor,
-            duration: const Duration(seconds: 6),
-            action: isLimitError
-                ? SnackBarAction(
-                    label: 'PREMIUM',
-                    textColor: Colors.white,
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const PremiumScreen()),
-                      );
-                    },
-                  )
-                : null,
-          ),
-        );
+
+        if (isLimitError) {
+          // ŚWIADOMA ZMIANA z paska komunikatu na okno dialogowe.
+          // Pasek jest przypięty do CAŁEJ aplikacji, nie do ekranu, więc
+          // po dotknięciu "PREMIUM" wędrował razem z użytkownikiem na
+          // ekran zakupu i tam wisiał. Do tego znikał po 6 sekundach —
+          // w środku czytania — a przy kilku próbach pod rząd komunikaty
+          // ustawiały się w kolejce i wyglądały jak jeden, który się nie
+          // chowa. Okno czeka na decyzję i zamyka się dopiero po niej.
+          await showDialog<void>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: const Text('Limit darmowego konta'),
+              content: Text(errorMsg),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: const Text('Rozumiem'),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const PremiumScreen()),
+                    );
+                  },
+                  child: const Text('Zobacz Premium'),
+                ),
+              ],
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                content: Text(errorMsg),
+                backgroundColor: AppTheme.errorColor,
+              ),
+            );
+        }
       }
     }
   }

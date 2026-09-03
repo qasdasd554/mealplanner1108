@@ -52,7 +52,9 @@ class _SubmitRecipePhotoButtonState extends State<SubmitRecipePhotoButton> {
 
       if (!mounted) return;
       setState(() => _isSending = false);
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         const SnackBar(
           content: Text('Dziękujemy! Zdjęcie pojawi się po akceptacji przez administratora.'),
         ),
@@ -60,7 +62,9 @@ class _SubmitRecipePhotoButtonState extends State<SubmitRecipePhotoButton> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isSending = false);
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
       );
     }

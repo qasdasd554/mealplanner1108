@@ -80,7 +80,9 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         const SnackBar(content: Text('Nie udało się pobrać zdjęcia')),
       );
     }
@@ -136,7 +138,9 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
       await _load();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
       );
     } finally {
@@ -166,7 +170,9 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
       setState(() => _comments.removeWhere((c) => c.id == comment.id));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         const SnackBar(content: Text('Nie udało się usunąć komentarza')),
       );
     }
@@ -199,7 +205,9 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
         final currentIndex = _comments.indexWhere((c) => c.id == comment.id);
         if (currentIndex != -1) _comments[currentIndex] = comment;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         const SnackBar(content: Text('Nie udało się zapisać polubienia')),
       );
     }

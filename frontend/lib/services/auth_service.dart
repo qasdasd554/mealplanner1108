@@ -25,7 +25,7 @@ class AuthService {
     _googleInitialized = true;
   }
 
-  Future<AuthToken> login(String email, String password) async {
+  Future<AuthToken> login(String email, String password, {String? captchaToken}) async {
     final response = await _client.post(
       ApiConfig.authLogin,
       // WAŻNE: backend (app/api/v1/auth.py) parsuje ciało żądania jako JSON
@@ -34,6 +34,10 @@ class AuthService {
       body: {
         'email': email,
         'password': password,
+        // Token bramki CAPTCHA — pomijany, gdy bramka jest wyłączona
+        // (pusty klucz w ApiConfig.turnstileSiteKey).
+        if (captchaToken != null && captchaToken.isNotEmpty)
+          'turnstile_token': captchaToken,
       },
     );
     final token = AuthToken.fromJson(response as Map<String, dynamic>);
@@ -41,7 +45,12 @@ class AuthService {
     return token;
   }
 
-  Future<void> register(String email, String password, String displayName) async {
+  Future<void> register(
+    String email,
+    String password,
+    String displayName, {
+    String? captchaToken,
+  }) async {
     // Odpowiedź /auth/register zawiera tylko access_token — pełny profil
     // użytkownika (wymagany przez User.fromJson, m.in. created_at) pobiera
     // się osobno przez /users/me po zalogowaniu (patrz AuthProvider.register).
@@ -51,6 +60,8 @@ class AuthService {
         'email': email,
         'password': password,
         'display_name': displayName,
+        if (captchaToken != null && captchaToken.isNotEmpty)
+          'turnstile_token': captchaToken,
       },
     );
   }
