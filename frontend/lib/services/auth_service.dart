@@ -73,7 +73,7 @@ class AuthService {
   ///
   /// Zwraca `true` po udanym zalogowaniu, `false` jeśli użytkownik po prostu
   /// anulował okno logowania (nie jest to błąd).
-  Future<bool> loginWithGoogle() async {
+  Future<bool> loginWithGoogle({String? captchaToken}) async {
     await _ensureGoogleInitialized();
 
     late final GoogleSignInAccount googleUser;
@@ -108,7 +108,11 @@ class AuthService {
 
     final response = await _client.post(
       ApiConfig.authGoogle,
-      body: {'id_token': idToken},
+      body: {
+        'id_token': idToken,
+        if (captchaToken != null && captchaToken.isNotEmpty)
+          'turnstile_token': captchaToken,
+      },
     );
     final token = AuthToken.fromJson(response as Map<String, dynamic>);
     await _client.setToken(token.accessToken);
@@ -150,7 +154,7 @@ class AuthService {
   ///
   /// Zwraca `true` po udanym zalogowaniu, `false` jeśli użytkownik
   /// anulował okno logowania.
-  Future<bool> loginWithApple() async {
+  Future<bool> loginWithApple({String? captchaToken}) async {
     late final AuthorizationCredentialAppleID credential;
     try {
       credential = await SignInWithApple.getAppleIDCredential(
@@ -180,6 +184,8 @@ class AuthService {
       body: {
         'identity_token': identityToken,
         if (fullName.isNotEmpty) 'full_name': fullName,
+        if (captchaToken != null && captchaToken.isNotEmpty)
+          'turnstile_token': captchaToken,
       },
     );
     final token = AuthToken.fromJson(response as Map<String, dynamic>);

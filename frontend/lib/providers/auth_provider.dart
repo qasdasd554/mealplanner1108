@@ -99,11 +99,11 @@ class AuthProvider with ChangeNotifier {
 
   /// Logowanie/rejestracja przez Google. Zwraca `true` po sukcesie, `false`
   /// jeśli użytkownik anulował okno logowania (bez pokazywania błędu).
-  Future<bool> loginWithGoogle() async {
+  Future<bool> loginWithGoogle({String? captchaToken}) async {
     _setLoading(true);
     _clearError();
     try {
-      final success = await _authService.loginWithGoogle();
+      final success = await _authService.loginWithGoogle(captchaToken: captchaToken);
       if (!success) {
         _setLoading(false);
         return false;
@@ -122,11 +122,11 @@ class AuthProvider with ChangeNotifier {
 
   /// Logowanie/rejestracja przez "Sign in with Apple" (iOS). Zwraca
   /// `true` po sukcesie, `false` jeśli użytkownik anulował okno logowania.
-  Future<bool> loginWithApple() async {
+  Future<bool> loginWithApple({String? captchaToken}) async {
     _setLoading(true);
     _clearError();
     try {
-      final success = await _authService.loginWithApple();
+      final success = await _authService.loginWithApple(captchaToken: captchaToken);
       if (!success) {
         _setLoading(false);
         return false;

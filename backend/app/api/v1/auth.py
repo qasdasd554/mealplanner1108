@@ -380,6 +380,12 @@ async def google_login(request: Request, db: AsyncSession = Depends(get_db)):
     enforce_google_auth_rate_limit(request)
 
     body = await get_parsed_body(request)
+    # CAPTCHA również przy logowaniu społecznościowym. Token tożsamości
+    # od Google/Apple sam w sobie jest mocnym dowodem (bot go nie
+    # podrobi), ale bramka dokłada spójność i utrudnia zakładanie kont
+    # hurtowo kupionymi kontami u dostawcy.
+    await verify_turnstile_token(body.get("turnstile_token"), _client_ip(request))
+
     token = body.get("id_token")
 
     if not token:
@@ -473,6 +479,12 @@ async def apple_login(request: Request, db: AsyncSession = Depends(get_db)):
     enforce_google_auth_rate_limit(request)  # ten sam limiter co Google — chroni oba endpointy logowania społecznościowego.
 
     body = await get_parsed_body(request)
+    # CAPTCHA również przy logowaniu społecznościowym. Token tożsamości
+    # od Google/Apple sam w sobie jest mocnym dowodem (bot go nie
+    # podrobi), ale bramka dokłada spójność i utrudnia zakładanie kont
+    # hurtowo kupionymi kontami u dostawcy.
+    await verify_turnstile_token(body.get("turnstile_token"), _client_ip(request))
+
     identity_token = body.get("identity_token")
     if not identity_token:
         raise HTTPException(status_code=400, detail="Wymagany jest identity_token z Apple")

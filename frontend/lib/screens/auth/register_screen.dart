@@ -32,6 +32,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   /// Patrz komentarz przy tym samym polu w login_screen.dart.
   String? _captchaToken;
 
+  /// Patrz komentarz przy _captchaAttempt w login_screen.dart — token
+  /// Turnstile jest jednorazowy, więc po nieudanej próbie trzeba pobrać
+  /// nowy.
+  int _captchaAttempt = 0;
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (_captchaToken == null) return;
@@ -195,7 +200,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                       // Bramka CAPTCHA — przycisk pozostaje nieaktywny,
                       // dopóki weryfikacja się nie powiedzie.
-                      TurnstileWidget(onToken: (t) => setState(() => _captchaToken = t)),
+                      TurnstileWidget(
+                        key: ValueKey(_captchaAttempt),
+                        onToken: (t) => setState(() => _captchaToken = t),
+                      ),
                       if (TurnstileWidget.isEnabled) const SizedBox(height: 8),
 
                       // Register Button
