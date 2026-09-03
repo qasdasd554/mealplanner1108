@@ -662,15 +662,28 @@ class _PremiumScreenState extends State<PremiumScreen> {
   }
 
   Future<void> _openLegalUrl(BuildContext context, String url) async {
+    // NIE sprawdzamy najpierw canLaunchUrl. Ta metoda potrafi zwrócić
+    // false mimo w pełni sprawnej przeglądarki — na Androidzie zależy od
+    // deklaracji <queries> w manifeście, a na iOS bywa zawodna przy
+    // niektórych konfiguracjach. Wcześniej blokowała otwarcie regulaminu
+    // i polityki prywatności, pokazując błąd zamiast strony.
+    // Po prostu próbujemy otworzyć i reagujemy dopiero na faktyczny błąd.
     final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else if (context.mounted) {
-      ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(content: Text('Nie udało się otworzyć strony.')),
-      );
+    try {
+      final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!opened && context.mounted) {
+        // Zapas: część urządzeń nie potrafi otworzyć w przeglądarce
+        // zewnętrznej, ale poradzi sobie z widokiem wbudowanym.
+        await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
+      }
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(content: Text('Nie udało się otworzyć strony: $url')),
+          );
+      }
     }
   }
 

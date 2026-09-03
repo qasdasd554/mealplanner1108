@@ -106,7 +106,7 @@ class ApiConfig {
   /// WAŻNA KOLEJNOŚĆ: klucz tajny na Render ustaw DOPIERO wtedy, gdy nowa
   /// wersja aplikacji jest już w sklepach — starsze wersje nie wysyłają
   /// tokenu i zostałyby odcięte od logowania.
-  static const String turnstileSiteKey = '';
+  static const String turnstileSiteKey = '0x4AAAAAAEltOE-JNKKzjcNc';
 
   /// Strona hostująca widget (patrz docs/captcha.html). Musi leżeć na
   /// domenie dodanej w konfiguracji widgetu w Cloudflare.

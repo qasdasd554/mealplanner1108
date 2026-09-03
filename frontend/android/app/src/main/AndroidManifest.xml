@@ -73,5 +73,25 @@
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
+        <!-- WYMAGANE OD ANDROIDA 11: bez zadeklarowania, że aplikacja
+             zamierza otwierać adresy http(s), system UKRYWA przed nią
+             wszystkie przeglądarki. Skutek: canLaunchUrl() zawsze zwracał
+             false i linki do regulaminu oraz polityki prywatności na
+             ekranie Premium kończyły się komunikatem o błędzie, mimo że
+             adresy były poprawne. Dotyczy każdego użycia url_launcher
+             z adresem internetowym. -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="https"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="http"/>
+        </intent>
+        <!-- Otwieranie klienta poczty (kontakt/wsparcie). -->
+        <intent>
+            <action android:name="android.intent.action.SENDTO"/>
+            <data android:scheme="mailto"/>
+        </intent>
     </queries>
 </manifest>
