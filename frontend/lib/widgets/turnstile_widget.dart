@@ -87,7 +87,15 @@ class _TurnstileWidgetState extends State<TurnstileWidget> {
           onPageFinished: (_) {
             if (mounted) setState(() => _isLoading = false);
           },
-          onWebResourceError: (_) {
+          onWebResourceError: (error) {
+            // WAŻNE: onWebResourceError zgłasza KAŻDY nieudany zasób, nie
+            // tylko samą stronę — a GitHub Pages zwraca 404 dla
+            // /favicon.ico, o który przeglądarka pyta automatycznie. Bez
+            // sprawdzenia isForMainFrame wystarczało to, żeby pokazać
+            // "Nie udało się wczytać weryfikacji", mimo że strona i widget
+            // działały poprawnie. Interesuje nas wyłącznie błąd głównego
+            // dokumentu.
+            if (error.isForMainFrame != true) return;
             if (mounted) {
               setState(() {
                 _isLoading = false;
@@ -105,6 +113,11 @@ class _TurnstileWidgetState extends State<TurnstileWidget> {
     if (!TurnstileWidget.isEnabled) return const SizedBox.shrink();
 
     if (_failed) {
+      // Gdy weryfikacji naprawdę nie da się wczytać, NIE blokujemy
+      // logowania na stałe — użytkownik dostaje przycisk ponowienia,
+      // a backend i tak sprawdza token po swojej stronie, więc pominięcie
+      // widgetu niczego nie osłabia: żądanie bez ważnego tokenu zostanie
+      // odrzucone przez serwer.
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
