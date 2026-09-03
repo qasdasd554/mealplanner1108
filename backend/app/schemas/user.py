@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, model_validator
 
 
 class UserCreate(BaseModel):
@@ -47,6 +47,32 @@ class UserResponse(BaseModel):
     # ile mu zostało (2 punkty = jedno zapytanie do AI).
     premium_points: int = 0
     created_at: datetime
+
+    # ── JEDNO ŹRÓDŁO PRAWDY O DOSTĘPIE PREMIUM ──
+    # Liczone tą SAMĄ funkcją, którą backend blokuje endpointy premium
+    # (is_premium_active), więc UI nie może się z nią rozjechać.
+    #
+    # NAPRAWA BŁĘDU: wcześniej API zwracało tylko surową flagę
+    # `is_premium`, a aplikacja liczyła dostęp sama jako
+    # `isPremium || isAdmin`, CAŁKOWICIE POMIJAJĄC datę wygaśnięcia.
+    # Efekt: po wygaśnięciu subskrypcji flaga w bazie nadal była `true`
+    # (nic jej automatycznie nie gasi), więc profil dalej pokazywał
+    # "Premium" i odblokowane funkcje, ale każde żądanie do endpointu
+    # premium wracało z 403 — użytkownik widział aktywne premium, którego
+    # nie dało się użyć.
+    has_premium_access: bool = False
+
+    @model_validator(mode="after")
+    def compute_premium_access(self):
+        # Import lokalny, żeby uniknąć cyklicznego importu:
+        # core.premium -> models.user -> (pośrednio) schemas.
+        from app.core.premium import is_premium_active
+
+        # is_premium_active oczekuje obiektu z polami role/is_premium/
+        # premium_expires_at — ten schemat ma dokładnie te pola, więc
+        # przekazujemy go bezpośrednio zamiast duplikować logikę.
+        self.has_premium_access = is_premium_active(self)
+        return self
 
 
 class UserLogin(BaseModel):

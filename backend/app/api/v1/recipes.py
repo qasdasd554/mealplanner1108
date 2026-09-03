@@ -233,21 +233,42 @@ async def list_available_recipes(
     summary="Moje przepisy dodane przez AI",
 )
 async def list_my_recipes(
+    sort_by: str = Query(
+        "newest",
+        description=(
+            "Sortowanie: 'newest' (domyślne, najnowsze najpierw), 'name', "
+            "'kcal_asc' / 'kcal_desc' (kalorie na porcję), 'prep_time'"
+        ),
+    ),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> list[Recipe]:
     """Zwraca WYŁĄCZNIE przepisy dodane przez zalogowanego użytkownika
     (przez AI) — nie miesza ich ze wspólnym katalogiem 81 oficjalnych
-    przepisów."""
-    result = await db.execute(
+    przepisów.
+
+    Obsługuje to samo sortowanie co główna lista: wcześniej ten endpoint
+    ZAWSZE sortował po dacie dodania, przez co wybór "Kalorie: od
+    najmniej" w interfejsie nie robił nic, gdy użytkownik miał włączony
+    przełącznik "Moje" — wyglądało to jak zepsute sortowanie.
+    """
+    query = (
         select(Recipe)
         .options(
             selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product),
             selectinload(Recipe.tags),
         )
         .where(Recipe.created_by_user_id == current_user.id)
-        .order_by(Recipe.created_at.desc())
     )
+    # Domyślne "newest" jest specyficzne dla tego widoku (własne przepisy
+    # najwygodniej oglądać od ostatnio dodanych), pozostałe tryby są
+    # wspólne z główną listą.
+    if sort_by == "newest":
+        query = query.order_by(Recipe.created_at.desc())
+    else:
+        query = _apply_recipe_sort(query, sort_by)
+
+    result = await db.execute(query)
     recipes = list(result.unique().scalars().all())
     favorite_ids = await _get_favorite_recipe_ids(db, current_user.id)
     for recipe in recipes:

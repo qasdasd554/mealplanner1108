@@ -15,6 +15,10 @@ class User {
   final bool isEmailVerified;
   final String role;
   final bool isPremium;
+  /// Gotowy wynik z serwera (`has_premium_access`) — uwzględnia datę
+  /// wygaśnięcia i rolę admina. `null` oznacza starszy backend, który
+  /// tego pola jeszcze nie zwraca (patrz getter hasPremiumAccess).
+  final bool? hasPremiumAccessFromServer;
   final DateTime? premiumExpiresAt;
   final String? premiumProductId;
   // Saldo punktów premium — wymienna waluta niezależna od subskrypcji,
@@ -39,6 +43,7 @@ class User {
     this.isEmailVerified = false,
     this.role = 'user',
     this.isPremium = false,
+    this.hasPremiumAccessFromServer,
     this.premiumExpiresAt,
     this.premiumProductId,
     this.premiumPoints = 0,
@@ -50,11 +55,32 @@ class User {
   /// w miejscach użycia.
   bool get isAdmin => role == 'admin';
 
-  /// Czy konto ma dostęp do funkcji premium — admini mają go zawsze
-  /// (zgodnie z zasadą "admin ma pełne uprawnienia do wszystkiego"),
-  /// niezależnie od flagi isPremium. Używaj TEGO gettera przy sprawdzaniu
-  /// dostępu do funkcji premium w UI, nie samego isPremium.
-  bool get hasPremiumAccess => isPremium || isAdmin;
+  /// Czy konto ma dostęp do funkcji premium — używaj TEGO gettera przy
+  /// sprawdzaniu dostępu w UI, nie samego isPremium.
+  ///
+  /// NAPRAWA BŁĘDU: wcześniej było `isPremium || isAdmin`, co POMIJAŁO
+  /// datę wygaśnięcia. Po wygaśnięciu subskrypcji flaga is_premium w bazie
+  /// zostaje `true` (nic jej automatycznie nie gasi), więc aplikacja dalej
+  /// pokazywała "Premium" i odblokowane funkcje, a serwer odrzucał każde
+  /// żądanie z 403 — użytkownik widział premium, którego nie dało się użyć.
+  ///
+  /// Teraz wartość przychodzi z serwera (`has_premium_access`), policzona
+  /// tą samą funkcją, którą backend blokuje endpointy — nie ma jak się
+  /// z nią rozjechać. Zapasowe liczenie lokalne (`_localPremiumAccess`)
+  /// działa tylko wtedy, gdy pole nie przyszło, np. gdy aplikacja rozmawia
+  /// ze starszą wersją backendu.
+  bool get hasPremiumAccess => hasPremiumAccessFromServer ?? _localPremiumAccess;
+
+  /// Ta sama logika co `is_premium_active` na serwerze — używana wyłącznie
+  /// jako zapas, gdy serwer nie przysłał gotowej wartości.
+  bool get _localPremiumAccess {
+    if (isAdmin) return true;
+    if (!isPremium) return false;
+    if (premiumExpiresAt != null && premiumExpiresAt!.isBefore(DateTime.now())) {
+      return false;
+    }
+    return true;
+  }
 
   /// Liczba dni pozostałych do wygaśnięcia subskrypcji Premium — null,
   /// jeśli konto nie ma ustawionej daty wygaśnięcia (np. konto
@@ -84,6 +110,7 @@ class User {
       isEmailVerified: json['is_email_verified'] as bool? ?? false,
       role: json['role'] as String? ?? 'user',
       isPremium: json['is_premium'] as bool? ?? false,
+      hasPremiumAccessFromServer: json['has_premium_access'] as bool?,
       premiumExpiresAt: json['premium_expires_at'] != null
           ? DateTime.tryParse(json['premium_expires_at'] as String)
           : null,
@@ -108,6 +135,7 @@ class User {
     int? dailyKcalGoal,
     String? role,
     bool? isPremium,
+    bool? hasPremiumAccessFromServer,
     DateTime? premiumExpiresAt,
     String? premiumProductId,
     int? premiumPoints,
@@ -128,6 +156,8 @@ class User {
       dailyKcalGoal: dailyKcalGoal ?? this.dailyKcalGoal,
       role: role ?? this.role,
       isPremium: isPremium ?? this.isPremium,
+      hasPremiumAccessFromServer:
+          hasPremiumAccessFromServer ?? this.hasPremiumAccessFromServer,
       premiumExpiresAt: premiumExpiresAt ?? this.premiumExpiresAt,
       premiumProductId: premiumProductId ?? this.premiumProductId,
       premiumPoints: premiumPoints ?? this.premiumPoints,

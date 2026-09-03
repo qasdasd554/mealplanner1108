@@ -58,7 +58,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
       // backendzie i w serwisie, tylko nigdy nie był podłączony pod
       // żaden przełącznik w interfejsie.
       final list = _myRecipesOnly
-          ? await _recipeService.getMyRecipes()
+          ? await _recipeService.getMyRecipes(sortBy: _sortBy)
           : await _recipeService.getRecipes(
               search: _searchQuery,
               mealType: _selectedMealType,

@@ -83,8 +83,15 @@ class RecipeService {
   }
 
   /// Zwraca WYŁĄCZNIE przepisy dodane przez zalogowanego użytkownika (AI).
-  Future<List<Recipe>> getMyRecipes() async {
-    final response = await _client.get('${ApiConfig.recipes}mine');
+  /// [sortBy]: 'newest' (domyślne), 'name', 'kcal_asc', 'kcal_desc',
+  /// 'prep_time' — te same tryby co w [getRecipes], żeby przełącznik
+  /// "Moje" nie gubił wybranego sortowania.
+  Future<List<Recipe>> getMyRecipes({String? sortBy}) async {
+    var path = '${ApiConfig.recipes}mine';
+    if (sortBy != null && sortBy.isNotEmpty && sortBy != 'name') {
+      path += '?sort_by=${Uri.encodeComponent(sortBy)}';
+    }
+    final response = await _client.get(path);
     if (response is List) {
       return response.map((e) => Recipe.fromJson(e as Map<String, dynamic>)).toList();
     }

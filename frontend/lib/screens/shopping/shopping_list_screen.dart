@@ -45,16 +45,18 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     final promotionProvider = Provider.of<PromotionProvider>(context, listen: false);
 
     final activePlan = mealPlanProvider.activePlan;
-    if (activePlan != null) {
-      // Pobierz listę zakupów powiązaną z aktywnym planem
-      // Na backendzie relacja 1:1, więc id listy zakupów odpowiada id planu lub pobieramy przez api.
-      // Domyślnie na serwerze możemy pobrać listę zakupów bezpośrednio, przekażemy id planu lub pobierzemy najnowszą
-      // Ładujemy WSZYSTKIE listy użytkownika, a nie tylko tę powiązaną
-      // z aktywnym planem — inaczej użytkownik Premium z kilkoma listami
-      // nie miał jak przełączyć się na pozostałe (patrz komentarz przy
-      // loadAllLists w ShoppingListProvider).
-      shoppingListProvider.loadAllLists(preferredListId: activePlan.id);
-    }
+    // NAPRAWA: wcześniej całe ładowanie list było owinięte w
+    // `if (activePlan != null)`. Miało to sens, gdy pobieraliśmy JEDNĄ
+    // listę powiązaną z aktywnym planem — bez planu nie było czego
+    // pobierać. Ale odkąd ładujemy WSZYSTKIE listy użytkownika, ten
+    // warunek stał się błędem: użytkownik bez aktywnego planu (albo taki,
+    // któremu plan wygasł) nie dostawał ŻADNEJ listy, mimo że miał ich
+    // kilka w bazie — a pasek przełączania nie miał się z czego pokazać.
+    //
+    // Teraz plan jest tylko PODPOWIEDZIĄ, którą listę wybrać na start
+    // (loadAllLists sam spada na pierwszą dostępną, jeśli podpowiedź nie
+    // pasuje do żadnej listy albo jest pusta).
+    shoppingListProvider.loadAllLists(preferredListId: activePlan?.id);
 
     // Wcześniej ta funkcja "czy jest promocja na produkt X w sklepie Y" nie
     // istniała wcale (patrz naprawa modułu promocji) — teraz ładujemy
