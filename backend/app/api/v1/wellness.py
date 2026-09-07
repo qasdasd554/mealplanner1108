@@ -143,7 +143,24 @@ async def add_activity(
     return ActivityResponse.model_validate(entry)
 
 
-@router.delete("/activities/{activity_id}", status_code=status.HTTP_204_NO_CONTENT)
+# `response_model=None` jest tu KONIECZNE, mimo że funkcja ma już `-> None`.
+#
+# Ten plik zaczyna się od `from __future__ import annotations`, przez co
+# WSZYSTKIE adnotacje stają się tekstem. FastAPI rozwiązuje wtedy "None"
+# do TYPU `NoneType`, a nie do samej wartości `None` — a typ jest
+# obiektem prawdziwym logicznie, więc warunek `if self.response_model:`
+# przechodzi i odpala się asercja "Status code 204 must not have
+# a response body". Bez tego wyjątek leciał przy IMPORCIE modułu, więc
+# CAŁA aplikacja nie wstawała: Render zostawiał starą wersję, a wszystkie
+# nowe endpointy (nie tylko ten) zwracały 404.
+#
+# Endpointy 204 w innych plikach działają, bo tamte nie mają
+# `from __future__ import annotations`.
+@router.delete(
+    "/activities/{activity_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_model=None,
+)
 async def delete_activity(
     activity_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
