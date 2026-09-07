@@ -47,6 +47,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Future<void> _markAllRead() async {
     try {
       await _service.markAllAsRead();
+      if (!mounted) return;
       setState(() {
         _notifications = _notifications
             .map((n) => AppNotification(
@@ -75,6 +76,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     if (!notification.isRead) {
       try {
         await _service.markAsRead(notification.id);
+        if (!mounted) return;
         setState(() {
           final index = _notifications.indexWhere((n) => n.id == notification.id);
           if (index != -1) {

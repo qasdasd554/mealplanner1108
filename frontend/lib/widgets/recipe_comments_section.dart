@@ -167,6 +167,7 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
 
     try {
       await _service.deleteComment(widget.recipeId, comment.id);
+      if (!mounted) return;
       setState(() => _comments.removeWhere((c) => c.id == comment.id));
     } catch (e) {
       if (!mounted) return;

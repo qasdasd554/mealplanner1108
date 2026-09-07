@@ -299,6 +299,11 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  /// Liczba punktów przyznanych przy ostatnim ukończeniu onboardingu.
+  /// 0 oznacza, że konto już wcześniej odebrało bonus.
+  int _lastBonusPoints = 0;
+  int get lastBonusPoints => _lastBonusPoints;
+
   Future<bool> saveOnboardingPreferences({
     required String storeId,
     required List<String> allergenIds,
@@ -315,6 +320,18 @@ class AuthProvider with ChangeNotifier {
       );
       // 2. Zapisz alergeny
       await _authService.updateAllergens(allergenIds);
+
+      // Punkty powitalne. Wywołujemy bezwarunkowo — serwer sam pilnuje,
+      // żeby przyznać je tylko raz, więc powtórne przejście onboardingu
+      // niczego nie dosypie (patrz claim_onboarding_bonus w backendzie).
+      try {
+        _lastBonusPoints = await _authService.claimOnboardingBonus();
+      } catch (_) {
+        // Bonus to dodatek — jego niepowodzenie NIE może przerwać
+        // onboardingu ani zablokować wejścia do aplikacji.
+        _lastBonusPoints = 0;
+      }
+
       await loadProfile();
       _setLoading(false);
       return true;

@@ -6,6 +6,7 @@ import '../../providers/store_provider.dart';
 import '../../models/store.dart';
 import '../../config/constants.dart';
 import '../../theme/app_theme.dart';
+import 'welcome_bonus_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -95,7 +96,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
     if (mounted) {
       if (success) {
-        Navigator.of(context).pushReplacementNamed('/home');
+        // Ekran z punktami powitalnymi pokazujemy TYLKO gdy faktycznie
+        // zostały przyznane — przy powtórnym przejściu onboardingu
+        // (bonus już odebrany) gratulacje byłyby mylące.
+        final bonus = authProvider.lastBonusPoints;
+        if (bonus > 0) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => WelcomeBonusScreen(points: bonus)),
+          );
+        } else {
+          Navigator.of(context).pushReplacementNamed('/home');
+        }
       } else {
         ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()

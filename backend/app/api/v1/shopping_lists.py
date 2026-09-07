@@ -90,11 +90,17 @@ async def get_my_shopping_lists(
         )
         .where(
             or_(MealPlan.user_id == current_user.id, shared_access),
-            MealPlan.status == "archived",
-            # NAPRAWA: bez tego warunku lista zakończona (przeniesiona do
-            # spiżarni albo domknięta) nadal wisiała w wykazie. Zakupy są
-            # zrobione, więc lista nie ma już czego pokazywać — a jej
-            # obecność sugerowała, że przycisk "Zakończ" nic nie zrobił.
+            # NAPRAWA: był tu warunek `MealPlan.status == "archived"`, który
+            # przepuszczał WYŁĄCZNIE sztuczne plany tworzone pod listy
+            # z pojedynczych dań (/from-recipes). Listy wygenerowane
+            # z PRAWDZIWEGO planu posiłków mają status "draft"/"active",
+            # więc nie pojawiały się w zakładce Zakupy wcale — użytkownik
+            # tworzył plan, generował listę i nigdzie jej nie widział.
+            #
+            # Lista zakończona (przeniesiona do spiżarni albo domknięta)
+            # nadal jest wykluczana — zakupy są zrobione, więc nie ma czego
+            # pokazywać, a jej obecność sugerowałaby, że "Zakończ" nie
+            # zadziałało.
             ShoppingList.status != "completed",
         )
         .order_by(ShoppingList.created_at.desc())
@@ -500,14 +506,30 @@ async def delete_shopping_list(
     """
     result = await db.execute(
         select(MealPlan).where(
-            MealPlan.id == list_id, MealPlan.user_id == current_user.id, MealPlan.status == "archived"
+            MealPlan.id == list_id, MealPlan.user_id == current_user.id
         )
     )
     plan = result.scalar_one_or_none()
     if plan is None:
         raise NotFoundException(detail="Nie znaleziono listy zakupów do usunięcia.")
 
-    await db.delete(plan)
+    if plan.status == "archived":
+        # Sztuczny plan utworzony WYŁĄCZNIE pod listę z pojedynczych dań
+        # (/from-recipes) — nie ma innej treści, więc znika razem z listą.
+        await db.delete(plan)
+    else:
+        # PRAWDZIWY plan posiłków. Usuwamy TYLKO listę zakupów, plan
+        # zostaje. Skasowanie planu przy okazji "usuwania listy" byłoby
+        # zniszczeniem tygodnia pracy użytkownika przez czynność, która
+        # w interfejsie wygląda na dotyczącą wyłącznie zakupów.
+        list_result = await db.execute(
+            select(ShoppingList).where(ShoppingList.meal_plan_id == plan.id)
+        )
+        shopping_list = list_result.scalar_one_or_none()
+        if shopping_list is None:
+            raise NotFoundException(detail="Ten plan nie ma listy zakupów.")
+        await db.delete(shopping_list)
+
     await db.commit()
 
 
@@ -718,6 +740,31 @@ async def accept_share(
     share.status = "accepted"
     await db.commit()
     await db.refresh(share)
+
+    # Powiadomienie dla odbiorcy. Bez niego zaproszenie było całkowicie
+    # niewidoczne: nic nie sygnalizowało, że ktoś udostępnił listę, więc
+    # trafiało się na nie tylko przypadkiem, wchodząc w zaproszenia.
+    from app.models.notification import Notification
+
+    notification = Notification(
+        user_id=target_user.id,
+        notification_type="shopping_list_share",
+        message=(
+            f"{current_user.display_name or 'Ktoś'} udostępnił(a) Ci listę zakupów. "
+            "Otwórz Zakupy → Zaproszenia, żeby ją przyjąć."
+        ),
+    )
+    db.add(notification)
+    await db.commit()
+
+    try:
+        from app.services.push import is_push_enabled, push_for_notification
+
+        if is_push_enabled():
+            await push_for_notification(db, notification)
+    except Exception:
+        # Push to dodatek — jego awaria nie może wywrócić udostępnienia.
+        pass
 
     return ShoppingListShareResponse(
         id=share.id,

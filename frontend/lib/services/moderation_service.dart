@@ -15,6 +15,13 @@ class ModerationService {
     await _client.patch('/users/admin/reports/$reportId', body: {'status': status});
   }
 
+  /// Usuwa treść, której dotyczy zgłoszenie, i zamyka zgłoszenie.
+  /// Backend sam odnajduje przepis albo komentarz po typie i ID —
+  /// panel nie musi znać powiązań (patrz delete_reported_content).
+  Future<void> deleteReportedContent(String reportId) async {
+    await _client.post('/users/admin/reports/$reportId/delete-content');
+  }
+
   /// Lista wszystkich komentarzy w aplikacji (z wyszukiwarką).
   Future<List<Map<String, dynamic>>> getAllComments({String? search}) async {
     var path = '/users/admin/comments?limit=200';

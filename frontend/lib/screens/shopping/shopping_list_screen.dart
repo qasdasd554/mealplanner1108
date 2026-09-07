@@ -955,6 +955,19 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
               textAlign: TextAlign.center,
               style: TextStyle(color: AppTheme.textSecondary),
             ),
+            const SizedBox(height: 24),
+            // NAPRAWA: przycisk zaproszeń był WYŁĄCZNIE w widoku z listą,
+            // więc użytkownik bez własnej listy nie miał jak przyjąć
+            // zaproszenia — dostawał je, ale nie mógł się do niego dostać.
+            // A to najczęstsza sytuacja: ktoś udostępnia listę komuś, kto
+            // sam żadnej jeszcze nie stworzył.
+            OutlinedButton.icon(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const PendingSharesScreen()),
+              ),
+              icon: const Icon(Icons.mail_outline, size: 18),
+              label: const Text('Zaproszenia do list'),
+            ),
           ],
         ),
       ),

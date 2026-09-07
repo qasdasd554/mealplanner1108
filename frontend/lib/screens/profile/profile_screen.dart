@@ -138,11 +138,8 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 24),
 
             // Kalkulator zapotrzebowania kalorycznego (waga, wzrost, BMI,
-            // cel dzienny). PRZENIESIONY z zakładki Śledzenie, gdzie był
-            // wyłącznie ikoną kalkulatora w pasku i praktycznie nie do
-            // znalezienia. To ustawienie konta, a nie codzienna czynność,
-            // więc jego miejsce jest w profilu — i to na górze, bo od
-            // niego zależy cały licznik kalorii.
+            // cel dzienny). Przeniesiony tu z zakładki Śledzenie, gdzie był
+            // tylko ikoną w pasku i praktycznie nie do znalezienia.
             _buildCalorieCalculatorTile(context),
             const SizedBox(height: 16),
 
@@ -515,9 +512,10 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+
   /// Kafelek prowadzący do kalkulatora zapotrzebowania kalorycznego.
-  /// Pokazuje od razu aktualną wagę i BMI, żeby najczęściej sprawdzane
-  /// wartości były widoczne bez wchodzenia w ekran.
+  /// Pokazuje od razu wagę i BMI, żeby najczęściej sprawdzane wartości
+  /// były widoczne bez wchodzenia w ekran.
   Widget _buildCalorieCalculatorTile(BuildContext context) {
     final user = Provider.of<AuthProvider>(context).currentUser;
     final weight = user?.weightKg;
@@ -535,7 +533,7 @@ class ProfileScreen extends StatelessWidget {
         MaterialPageRoute(builder: (_) => const CalorieCalculatorScreen()),
       ),
       child: Container(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
           color: AppTheme.surfaceColor,
@@ -544,36 +542,30 @@ class ProfileScreen extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: AppTheme.primaryColor.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(Icons.monitor_weight_outlined,
-                  color: AppTheme.primaryColor, size: 26),
+                  color: AppTheme.primaryColor, size: 22),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    'Waga, wzrost i cel kaloryczny',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                  ),
+                  const Text('Waga, wzrost i cel kaloryczny',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                   const SizedBox(height: 3),
                   Text(
                     bmi == null
-                        ? 'Uzupełnij dane, aby obliczyć BMI i dzienne '
-                            'zapotrzebowanie kaloryczne'
-                        : '${weight!.toStringAsFixed(1)} kg · '
-                            'BMI ${bmi.toStringAsFixed(1)} — ${_bmiLabel(bmi)}',
+                        ? 'Uzupełnij dane, aby obliczyć BMI i zapotrzebowanie'
+                        : '${weight!.toStringAsFixed(1)} kg · BMI '
+                            '${bmi.toStringAsFixed(1)} — ${_bmiLabel(bmi)}',
                     style: TextStyle(
-                      fontSize: 12,
-                      color: AppTheme.textSecondary,
-                      height: 1.35,
-                    ),
+                        fontSize: 11, color: AppTheme.textSecondary, height: 1.3),
                   ),
                 ],
               ),
@@ -586,9 +578,8 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  /// Opis zakresu BMI wg klasyfikacji WHO. Świadomie sama nazwa
-  /// przedziału, bez oceniania — BMI nie uwzględnia budowy ciała ani
-  /// masy mięśniowej, więc etykieta ma być informacją, nie werdyktem.
+  /// Nazwa przedziału BMI wg WHO — bez oceniania, bo BMI nie uwzględnia
+  /// budowy ciała ani masy mięśniowej.
   String _bmiLabel(double bmi) {
     if (bmi < 18.5) return 'niedowaga';
     if (bmi < 25) return 'waga prawidłowa';

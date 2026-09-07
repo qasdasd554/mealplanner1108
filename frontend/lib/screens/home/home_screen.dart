@@ -303,8 +303,6 @@ class HomeTab extends StatelessWidget {
                       ),
                 ),
                 const SizedBox(height: 12),
-                _buildWaterStrip(context),
-                const SizedBox(height: 12),
                 // Baner konkursu — szerokość DWÓCH zwykłych kafelków
                 // (czyli pełna szerokość siatki), dlatego jest POZA
                 // GridView: siatka ma sztywno crossAxisCount = 2, więc
@@ -505,7 +503,69 @@ class HomeTab extends StatelessWidget {
               Expanded(child: _buildMacroBar(context, 'Węgl.', consumedCarbs, targetCarbs, const Color(0xFF3B82F6))),
             ],
           ),
+          const SizedBox(height: 14),
+          // Nawodnienie w sekcji "Dziś zjedzono", pod makroskładnikami —
+          // to element tego samego podsumowania dnia co kalorie i makro,
+          // więc jego miejsce jest tutaj, a nie osobno wyżej na ekranie.
+          _buildWaterStrip(context),
         ],
+      ),
+    );
+  }
+
+  /// Wspólny wygląd kafelka-odnośnika: ikona w kolorowym kwadracie,
+  /// tytuł, podpis i strzałka. Jeden widget dla nawodnienia i kalkulatora,
+  /// żeby oba wyglądały identycznie — wcześniej każdy miał własny układ.
+  Widget _buildTileLink(
+    BuildContext context, {
+    required IconData icon,
+    required Color color,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    Widget? trailing,
+  }) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          color: AppTheme.surfaceColor,
+          border: Border.all(color: color.withOpacity(0.3)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: color, size: 22),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(title,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  const SizedBox(height: 3),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                        fontSize: 11, color: AppTheme.textSecondary, height: 1.3),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            trailing ?? Icon(Icons.chevron_right, color: AppTheme.textSecondary),
+          ],
+        ),
       ),
     );
   }
@@ -605,6 +665,10 @@ class HomeTab extends StatelessWidget {
   /// bez przycisków dolewania. Dodawanie zostaje w zakładce Śledzenie,
   /// żeby nie dublować tej samej funkcji w dwóch miejscach; tutaj chodzi
   /// wyłącznie o to, żeby stan dnia był widoczny od razu po otwarciu.
+  /// Nawodnienie — ten SAM wygląd co kafelek kalkulatora (wspólny
+  /// _buildTileLink), żeby oba elementy na ekranie startowym wyglądały
+  /// jednolicie. Zamiast strzałki po prawej pokazujemy postęp w kółku,
+  /// bo to najważniejsza informacja tego kafelka.
   Widget _buildWaterStrip(BuildContext context) {
     final wellness = Provider.of<WellnessProvider>(context);
     final ml = wellness.data.waterMl;
@@ -612,47 +676,34 @@ class HomeTab extends StatelessWidget {
     final progress = goal > 0 ? (ml / goal).clamp(0.0, 1.0) : 0.0;
     const waterBlue = Color(0xFF3B9AE1);
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: waterBlue.withOpacity(0.25)),
+    return _buildTileLink(
+      context,
+      icon: Icons.water_drop,
+      color: waterBlue,
+      title: 'Nawodnienie',
+      subtitle: '$ml z $goal ml · ${(progress * 100).round()}% celu',
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const CalorieTrackerScreen()),
       ),
-      child: Row(
-        children: [
-          const Icon(Icons.water_drop, size: 18, color: waterBlue),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    const Text('Nawodnienie',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                    const Spacer(),
-                    Text(
-                      '$ml / $goal ml',
-                      style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 5),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    minHeight: 5,
-                    backgroundColor: AppTheme.textSecondary.withOpacity(0.15),
-                    color: waterBlue,
-                  ),
-                ),
-              ],
+      trailing: SizedBox(
+        width: 34,
+        height: 34,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            CircularProgressIndicator(
+              value: progress,
+              strokeWidth: 3,
+              backgroundColor: waterBlue.withOpacity(0.15),
+              color: waterBlue,
             ),
-          ),
-        ],
+            Text(
+              '${(progress * 100).round()}',
+              style: const TextStyle(
+                  fontSize: 9, fontWeight: FontWeight.bold, color: waterBlue),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -300,6 +300,16 @@ class AuthService {
   /// Backend kaskadowo usuwa wszystkie powiązane dane. Token lokalny
   /// jest czyszczony osobno przez AuthProvider.deleteAccount() zaraz po
   /// udanym wywołaniu.
+  /// Odbiera jednorazowe punkty powitalne. Zwraca liczbę przyznanych
+  /// punktów (0, jeśli konto już je odebrało — to NIE jest błąd).
+  Future<int> claimOnboardingBonus() async {
+    final response = await _client.post('/users/me/onboarding-bonus');
+    if (response is Map<String, dynamic>) {
+      return (response['points'] as int?) ?? 0;
+    }
+    return 0;
+  }
+
   Future<void> deleteAccount() async {
     await _client.delete(ApiConfig.usersMe);
   }

@@ -143,6 +143,11 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
         ..showSnackBar(
           SnackBar(
             content: Text('Dodano "${widget.recipe.name}" do listy zakupów'),
+            // Jawny czas wyświetlania. Bez niego komunikat z przyciskiem
+            // akcji potrafi zostać na ekranie znacznie dłużej, bo Flutter
+            // daje użytkownikowi czas na kliknięcie — a przy przejściu
+            // między ekranami wyglądało to, jakby w ogóle nie znikał.
+            duration: const Duration(seconds: 3),
             action: SnackBarAction(
               label: 'ZOBACZ',
               onPressed: () => Navigator.of(context).push(

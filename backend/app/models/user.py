@@ -123,6 +123,13 @@ class User(Base):
     # subskrypcja: to zakup JEDNORAZOWY/"consumable" w sklepie, nie
     # odnawialna subskrypcja.
     premium_points: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    # Czy konto odebrało już punkty powitalne za ukończenie onboardingu.
+    # Znacznik jest KONIECZNY: bez niego wystarczyłoby przejść onboarding
+    # ponownie (albo wywołać endpoint bezpośrednio), żeby dosypywać sobie
+    # punkty w nieskończoność.
+    onboarding_bonus_claimed: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False, server_default="false"
+    )
     # UWAGA (nowe — śledzenie aktywności): aktualizowane przy KAŻDYM
     # uwierzytelnionym zapytaniu (patrz app/api/deps.py, get_current_user)
     # — to najbardziej naturalne miejsce, bo wywoływane niezależnie od

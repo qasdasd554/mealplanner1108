@@ -224,6 +224,15 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                         onPressed: isBusy ? null : () => _resolveReport(id, 'dismissed'),
                         child: const Text('Odrzuć zgłoszenie'),
                       ),
+                      // Usunięcie SAMEJ TREŚCI. Wcześniej panel pozwalał
+                      // wyłącznie zamknąć zgłoszenie, a obraźliwy komentarz
+                      // zostawał w aplikacji — moderacja kończyła się na
+                      // odhaczeniu, bez żadnego skutku dla użytkowników.
+                      TextButton(
+                        style: TextButton.styleFrom(foregroundColor: AppTheme.errorColor),
+                        onPressed: isBusy ? null : () => _deleteReportedContent(id),
+                        child: const Text('Usuń treść'),
+                      ),
                       FilledButton(
                         style: FilledButton.styleFrom(backgroundColor: AppTheme.errorColor),
                         onPressed: isBusy ? null : () => _resolveReport(id, 'resolved'),
@@ -423,6 +432,50 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         _isLoadingReports = false;
         _reportsError = 'Nie udało się wczytać zgłoszeń.';
       });
+    }
+  }
+
+  Future<void> _deleteReportedContent(String reportId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Usunąć zgłoszoną treść?'),
+        content: const Text(
+          'Komentarz albo przepis zostanie trwale usunięty, a zgłoszenie '
+          'zamknięte. Tej operacji nie da się cofnąć.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Anuluj'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: AppTheme.errorColor),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Usuń'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    setState(() => _busyReportIds.add(reportId));
+    try {
+      await _moderationService.deleteReportedContent(reportId);
+      if (!mounted) return;
+      setState(() {
+        _reports.removeWhere((r) => r['id'] == reportId);
+        _busyReportIds.remove(reportId);
+      });
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(content: Text('Treść usunięta, zgłoszenie zamknięte')));
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _busyReportIds.remove(reportId));
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor));
     }
   }
 

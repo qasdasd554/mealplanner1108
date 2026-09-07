@@ -813,3 +813,96 @@ async def list_all_comments(
         )
         for comment, recipe, user in result.all()
     ]
+
+
+@router.post(
+    "/admin/reports/{report_id}/delete-content",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Usuń zgłoszoną treść i zamknij zgłoszenie (admin)",
+)
+async def delete_reported_content(
+    report_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_admin),
+) -> None:
+    """Usuwa treść, której dotyczy zgłoszenie, i oznacza je jako rozpatrzone.
+
+    Osobny endpoint, a nie użycie istniejącego usuwania komentarza: to
+    tamto wymaga ZNAJOMOŚCI ID PRZEPISU, którego wpis zgłoszenia nie
+    zawiera (ma tylko `content_type` i `content_id`). Administrator nie
+    miał więc jak usunąć zgłoszonego komentarza z panelu — mógł tylko
+    zamknąć zgłoszenie, zostawiając samą treść nietkniętą.
+
+    Tutaj backend sam odnajduje obiekt po typie i identyfikatorze, więc
+    panel nie musi znać struktury powiązań.
+    """
+    from app.models import ContentReport, Recipe
+    from app.models.recipe_comment import RecipeComment
+
+    report = await db.get(ContentReport, report_id)
+    if report is None:
+        raise HTTPException(status_code=404, detail="Nie znaleziono zgłoszenia")
+
+    if report.content_type == "comment":
+        target = await db.get(RecipeComment, report.content_id)
+    elif report.content_type == "recipe":
+        target = await db.get(Recipe, report.content_id)
+    else:
+        raise HTTPException(status_code=400, detail="Nieznany typ zgłoszonej treści")
+
+    if target is not None:
+        await db.delete(target)
+
+    # Zgłoszenie zamykamy ZAWSZE — również gdy treść już nie istnieje
+    # (np. autor usunął ją sam w międzyczasie). Inaczej zostałoby
+    # w panelu na stałe, bez możliwości domknięcia.
+    report.status = "resolved"
+    report.resolved_at = datetime.now(timezone.utc)
+    db.add(report)
+    await db.commit()
+
+
+# Punkty powitalne za ukończenie onboardingu. 2 punkty = jedno zapytanie
+# do AI (przelicznik: 2 punkty na zapytanie), więc nowy użytkownik może od
+# razu wypróbować najciekawszą funkcję aplikacji bez płacenia.
+ONBOARDING_BONUS_POINTS = 2
+
+
+class OnboardingBonusResponse(BaseModel):
+    granted: bool
+    points: int
+    total_points: int
+
+
+@router.post(
+    "/me/onboarding-bonus",
+    response_model=OnboardingBonusResponse,
+    summary="Przyznaj punkty powitalne po ukończeniu onboardingu",
+)
+async def claim_onboarding_bonus(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> OnboardingBonusResponse:
+    """Jednorazowo dodaje punkty powitalne.
+
+    `granted=False` oznacza, że konto już je odebrało — NIE jest to błąd
+    i nie zwracamy 4xx: aplikacja może bezpiecznie wywołać ten endpoint
+    przy każdym ukończeniu onboardingu, a serwer sam pilnuje, żeby bonus
+    poszedł tylko raz.
+    """
+    if current_user.onboarding_bonus_claimed:
+        return OnboardingBonusResponse(
+            granted=False, points=0, total_points=current_user.premium_points
+        )
+
+    current_user.premium_points += ONBOARDING_BONUS_POINTS
+    current_user.onboarding_bonus_claimed = True
+    db.add(current_user)
+    await db.commit()
+    await db.refresh(current_user)
+
+    return OnboardingBonusResponse(
+        granted=True,
+        points=ONBOARDING_BONUS_POINTS,
+        total_points=current_user.premium_points,
+    )

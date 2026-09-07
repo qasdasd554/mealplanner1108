@@ -16,7 +16,7 @@ from collections import defaultdict
 from typing import Any, Sequence
 from uuid import UUID
 
-from sqlalchemy import and_, select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
@@ -164,6 +164,7 @@ class MealPlanGenerator:
             allergen_ids=allergen_ids,
             store_id=store_id,
             diet=preferences.get("diet"),
+            user_id=user_id,
         )
 
         # Krok 3 — zachłanna selekcja
@@ -275,10 +276,12 @@ class MealPlanGenerator:
         allergen_ids: set[UUID],
         store_id: UUID,
         diet: str | None = None,
+        user_id: UUID | None = None,
     ) -> list[Recipe]:
         """Zwraca przepisy kwalifikujące się do planu.
 
         Kryteria:
+        - przepis jest WIDOCZNY dla tego użytkownika,
         - przepis nie zawiera alergenów użytkownika,
         - wszystkie nieopcjonalne składniki są dostępne w sklepie,
         - opcjonalnie filtr po tagu dietetycznym.
@@ -291,6 +294,24 @@ class MealPlanGenerator:
                 selectinload(Recipe.tags),
             )
         )
+
+        # NAPRAWA NIESPÓJNOŚCI WIDOCZNOŚCI: katalog przepisów stosuje filtr
+        # "oficjalny LUB własny LUB publiczny" (_visibility_filter
+        # w app/api/v1/recipes.py), ale to zapytanie nie miało go wcale.
+        # Generator mógł więc wstawić do planu CUDZY PRYWATNY przepis —
+        # taki, którego użytkownik nie ma prawa nawet zobaczyć w katalogu,
+        # a który przez alergeny i dostępność składników przechodził
+        # pozostałe kryteria. Efekt: w planie pojawiała się pozycja
+        # nieodnajdywalna w aplikacji, razem z jej składnikami na liście
+        # zakupów.
+        if user_id is not None:
+            stmt = stmt.where(
+                or_(
+                    Recipe.created_by_user_id.is_(None),      # 81 oficjalnych
+                    Recipe.created_by_user_id == user_id,     # własne
+                    Recipe.visibility == "public",            # zatwierdzone przez admina
+                )
+            )
 
         # Filtr po tagu dietetycznym — mapujemy nazwę z interfejsu na
         # rzeczywisty tag w bazie (patrz komentarz przy _DIET_NAME_TO_TAG

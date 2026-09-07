@@ -72,7 +72,7 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
     if (selected == null || !mounted) return;
 
     final quantity = await _askQuantity(selected);
-    if (quantity == null) return;
+    if (quantity == null || !mounted) return;
 
     setState(() {
       _ingredients.add(_IngredientRow(product: selected, quantity: quantity, unit: selected.unit));

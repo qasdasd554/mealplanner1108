@@ -171,6 +171,12 @@ async def _create_tables() -> None:
                 "ON device_tokens (token)"
             )
         )
+        await conn.execute(
+            text(
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS "
+                "onboarding_bonus_claimed BOOLEAN NOT NULL DEFAULT FALSE"
+            )
+        )
         # Nawodnienie: jeden wpis na użytkownika i dzień — patrz
         # app/models/wellness.py.
         await conn.execute(
