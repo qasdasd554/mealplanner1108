@@ -91,6 +91,11 @@ async def get_my_shopping_lists(
         .where(
             or_(MealPlan.user_id == current_user.id, shared_access),
             MealPlan.status == "archived",
+            # NAPRAWA: bez tego warunku lista zakończona (przeniesiona do
+            # spiżarni albo domknięta) nadal wisiała w wykazie. Zakupy są
+            # zrobione, więc lista nie ma już czego pokazywać — a jej
+            # obecność sugerowała, że przycisk "Zakończ" nic nie zrobił.
+            ShoppingList.status != "completed",
         )
         .order_by(ShoppingList.created_at.desc())
     )

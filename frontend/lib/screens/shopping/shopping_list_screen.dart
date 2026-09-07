@@ -282,34 +282,74 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                 onPressed: () => Navigator.of(context).pop(),
               ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.mail_outline),
-            tooltip: 'Zaproszenia do list zakupów',
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const PendingSharesScreen()),
-              );
+          // JEDNO menu z PODPISAMI zamiast czterech nieopisanych ikon.
+          // Same ikony (koperta, osoba z plusem, kosz, strzałka) nie
+          // mówiły, co robią — trzeba było zgadywać albo je wyklikać.
+          // Podpisy rozwiązują to bez zabierania miejsca w pasku.
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, size: 26),
+            tooltip: 'Opcje listy zakupów',
+            onSelected: (value) {
+              switch (value) {
+                case 'invites':
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const PendingSharesScreen()),
+                  );
+                  break;
+                case 'share':
+                  if (list != null) _showShareDialog(list.id);
+                  break;
+                case 'delete':
+                  if (list != null) {
+                    final idx = shoppingListProvider.allLists.indexWhere(
+                        (l) => l.mealPlanId == shoppingListProvider.selectedListId);
+                    _confirmDeleteList(
+                        shoppingListProvider, list, idx >= 0 ? idx + 1 : 1);
+                  }
+                  break;
+                case 'refresh':
+                  _loadData();
+                  break;
+              }
             },
-          ),
-          if (list != null)
-            IconButton(
-              icon: const Icon(Icons.person_add_alt_outlined),
-              tooltip: 'Udostępnij listę',
-              onPressed: () => _showShareDialog(list.id),
-            ),
-          if (list != null)
-            IconButton(
-              icon: const Icon(Icons.delete_outline),
-              tooltip: 'Usuń tę listę',
-              onPressed: () {
-                final idx = shoppingListProvider.allLists
-                    .indexWhere((l) => l.mealPlanId == shoppingListProvider.selectedListId);
-                _confirmDeleteList(shoppingListProvider, list, idx >= 0 ? idx + 1 : 1);
-              },
-            ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadData,
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'invites',
+                child: ListTile(
+                  leading: Icon(Icons.mail_outline),
+                  title: Text('Zaproszenia do list'),
+                  subtitle: Text('Listy udostępnione Tobie'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              if (list != null)
+                const PopupMenuItem(
+                  value: 'share',
+                  child: ListTile(
+                    leading: Icon(Icons.person_add_alt_outlined),
+                    title: Text('Udostępnij listę'),
+                    subtitle: Text('Wyślij komuś zaproszenie'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              const PopupMenuItem(
+                value: 'refresh',
+                child: ListTile(
+                  leading: Icon(Icons.refresh),
+                  title: Text('Odśwież'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              if (list != null)
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: ListTile(
+                    leading: Icon(Icons.delete_outline, color: Colors.red),
+                    title: Text('Usuń tę listę', style: TextStyle(color: Colors.red)),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+            ],
           ),
         ],
       ),
@@ -626,27 +666,31 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
             style: TextStyle(fontSize: 12, color: AppTheme.textSecondary, height: 1.35),
           ),
           const SizedBox(height: 12),
-          Wrap(
-            alignment: WrapAlignment.end,
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              TextButton(
-                onPressed: _isCompleting ? null : () => _completeList(provider, false),
-                child: const Text('Tylko zakończ'),
-              ),
-              FilledButton.icon(
-                onPressed: _isCompleting ? null : () => _completeList(provider, true),
-                icon: _isCompleting
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                      )
-                    : const Icon(Icons.kitchen, size: 18),
-                label: const Text('Przenieś do spiżarni'),
-              ),
-            ],
+          // Przyciski JEDEN POD DRUGIM na pełną szerokość, nie obok
+          // siebie: "Przenieś do spiżarni" i "Tylko zakończ" to długie
+          // etykiety, które na wąskim ekranie rozjeżdżały się i nachodziły
+          // na siebie. Układ pionowy jest odporny na każdą szerokość.
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: _isCompleting ? null : () => _completeList(provider, true),
+              icon: _isCompleting
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    )
+                  : const Icon(Icons.kitchen, size: 18),
+              label: const Text('Przenieś do spiżarni'),
+            ),
+          ),
+          const SizedBox(height: 6),
+          SizedBox(
+            width: double.infinity,
+            child: TextButton(
+              onPressed: _isCompleting ? null : () => _completeList(provider, false),
+              child: const Text('Zakończ bez przenoszenia'),
+            ),
           ),
         ],
       ),

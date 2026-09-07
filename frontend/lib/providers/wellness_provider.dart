@@ -43,6 +43,14 @@ class WellnessProvider with ChangeNotifier {
     }
   }
 
+  /// Zdejmuje ostatni błąd (po pokazaniu go użytkownikowi), żeby ten sam
+  /// komunikat nie wyskakiwał przy każdym kolejnym przerysowaniu ekranu.
+  String? consumeError() {
+    final e = _errorMessage;
+    _errorMessage = null;
+    return e;
+  }
+
   Future<void> addWater(int amountMl) async {
     // Aktualizacja optymistyczna: pasek nawodnienia reaguje od razu,
     // bez czekania na serwer. Przy błędzie i tak przeładujemy dzień,

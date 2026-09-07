@@ -358,7 +358,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                 IconButton(
                   icon: Icon(Icons.close, size: 16, color: AppTheme.textSecondary),
                   visualDensity: VisualDensity.compact,
-                  onPressed: () => wellness.deleteActivity(a.id),
+                  onPressed: () => _runWellness(wellness, () => wellness.deleteActivity(a.id)),
                 ),
               ],
             ),
@@ -451,10 +451,13 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
       return;
     }
 
-    await wellness.addActivity(
-      name: name,
-      kcalBurned: kcal,
-      durationMin: int.tryParse(minutesController.text.trim()),
+    await _runWellness(
+      wellness,
+      () => wellness.addActivity(
+        name: name,
+        kcalBurned: kcal,
+        durationMin: int.tryParse(minutesController.text.trim()),
+      ),
     );
   }
 
@@ -511,7 +514,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                 IconButton(
                   icon: Icon(Icons.undo, size: 18, color: AppTheme.textSecondary),
                   tooltip: 'Cofnij ostatnią szklankę',
-                  onPressed: () => wellness.addWater(-250),
+                  onPressed: () => _runWellness(wellness, () => wellness.addWater(-250)),
                 ),
             ],
           ),
@@ -520,9 +523,27 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
     );
   }
 
+  /// Wykonuje akcję i POKAZUJE ewentualny błąd. Wcześniej provider
+  /// zapisywał błąd, ale nic go nie wyświetlało — dotknięcie przycisku
+  /// nawodnienia wyglądało więc tak, jakby aplikacja go zignorowała,
+  /// bez żadnej informacji, co poszło nie tak.
+  Future<void> _runWellness(
+      WellnessProvider wellness, Future<dynamic> Function() action) async {
+    await action();
+    if (!mounted) return;
+    final error = wellness.consumeError();
+    if (error != null) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(error), backgroundColor: AppTheme.errorColor),
+        );
+    }
+  }
+
   Widget _waterButton(WellnessProvider wellness, int ml, String label) {
     return OutlinedButton(
-      onPressed: () => wellness.addWater(ml),
+      onPressed: () => _runWellness(wellness, () => wellness.addWater(ml)),
       style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         visualDensity: VisualDensity.compact,
