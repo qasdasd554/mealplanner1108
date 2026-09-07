@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/food_log_provider.dart';
+import '../../providers/wellness_provider.dart';
 import '../../providers/meal_plan_provider.dart';
 import '../../providers/store_provider.dart';
 import '../../theme/app_theme.dart';
@@ -45,6 +46,10 @@ class _HomeScreenState extends State<HomeScreen> {
       // FoodLogProvider.summary zostawałby null, dopóki użytkownik nie
       // odwiedziłby osobno ekranu Śledzenia.
       Provider.of<FoodLogProvider>(context, listen: false).fetchLogsForDate(DateTime.now());
+      // Nawodnienie na pasku ekranu startowego — z tego samego powodu co
+      // wyżej: bez tego pasek pokazywałby 0 ml, dopóki użytkownik nie
+      // wszedłby osobno w zakładkę Śledzenie.
+      Provider.of<WellnessProvider>(context, listen: false).loadForDate(DateTime.now());
     });
   }
 
@@ -297,6 +302,8 @@ class HomeTab extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                 ),
+                const SizedBox(height: 12),
+                _buildWaterStrip(context),
                 const SizedBox(height: 12),
                 // Baner konkursu — szerokość DWÓCH zwykłych kafelków
                 // (czyli pełna szerokość siatki), dlatego jest POZA
@@ -594,6 +601,62 @@ class HomeTab extends StatelessWidget {
   /// Nagrody (3/2/1 punkt premium za miejsca 1–3) odpowiadają
   /// _PLACE_POINTS w backend/app/services/weekly_contest.py — jeśli tam
   /// się zmienią, trzeba poprawić też ten tekst.
+  /// Wąski pasek nawodnienia na ekranie startowym — sam podgląd postępu,
+  /// bez przycisków dolewania. Dodawanie zostaje w zakładce Śledzenie,
+  /// żeby nie dublować tej samej funkcji w dwóch miejscach; tutaj chodzi
+  /// wyłącznie o to, żeby stan dnia był widoczny od razu po otwarciu.
+  Widget _buildWaterStrip(BuildContext context) {
+    final wellness = Provider.of<WellnessProvider>(context);
+    final ml = wellness.data.waterMl;
+    final goal = wellness.data.waterGoalMl;
+    final progress = goal > 0 ? (ml / goal).clamp(0.0, 1.0) : 0.0;
+    const waterBlue = Color(0xFF3B9AE1);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: waterBlue.withOpacity(0.25)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.water_drop, size: 18, color: waterBlue),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    const Text('Nawodnienie',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                    const Spacer(),
+                    Text(
+                      '$ml / $goal ml',
+                      style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 5),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    minHeight: 5,
+                    backgroundColor: AppTheme.textSecondary.withOpacity(0.15),
+                    color: waterBlue,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildContestBanner(BuildContext context) {
     const gold = Color(0xFFE0A62E);
     return InkWell(

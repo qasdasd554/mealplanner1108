@@ -468,22 +468,25 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
     final goal = wellness.data.waterGoalMl;
     final progress = goal > 0 ? (ml / goal).clamp(0.0, 1.0) : 0.0;
 
+    // Kompaktowy układ: nagłówek, pasek i przyciski w JEDNYM rzędzie
+    // zamiast trzech osobnych sekcji. Wcześniej kafelek zajmował sporo
+    // ekranu jak na jedną liczbę, którą pokazuje.
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.water_drop_outlined, size: 20, color: Color(0xFF3B9AE1)),
-              const SizedBox(width: 8),
+              const Icon(Icons.water_drop_outlined, size: 17, color: Color(0xFF3B9AE1)),
+              const SizedBox(width: 6),
               const Expanded(
                 child: Text('Nawodnienie',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
               ),
               // Licznik jest KLIKALNY — otwiera wpisanie dowolnej ilości.
               // Same przyciski "szklanka/butelka" nie wystarczają, gdy
@@ -509,17 +512,17 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 7),
           ClipRRect(
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(5),
             child: LinearProgressIndicator(
               value: progress,
-              minHeight: 8,
+              minHeight: 6,
               backgroundColor: AppTheme.textSecondary.withOpacity(0.15),
               color: const Color(0xFF3B9AE1),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 7),
           Row(
             children: [
               // Typowe porcje zamiast dowolnej liczby — szybciej dotknąć

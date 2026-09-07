@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show ScrollDirection;
 import 'package:provider/provider.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import '../../providers/shopping_list_provider.dart';
@@ -30,6 +31,29 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
   /// Blokuje przyciski domykania listy na czas żądania.
   bool _isCompleting = false;
 
+  /// Kafelki akcji chowają się przy przewijaniu W DÓŁ i wracają przy
+  /// przewijaniu w górę. Sekcje na górze ekranu są POZA obszarem
+  /// przewijania (osobne widgety w Column), więc same z siebie nie
+  /// znikają — bez tego zabierałyby miejsce listy produktów przez cały
+  /// czas zakupów, kiedy nie są już potrzebne.
+  final ScrollController _scrollController = ScrollController();
+  bool _showActions = true;
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    final direction = _scrollController.position.userScrollDirection;
+    if (direction == ScrollDirection.reverse && _showActions) {
+      setState(() => _showActions = false);
+    } else if (direction == ScrollDirection.forward && !_showActions) {
+      setState(() => _showActions = true);
+    }
+  }
+
   final ApiClient _apiClient = ApiClient();
   List<dynamic> _substitutes = [];
   bool _isLoadingSubstitutes = false;
@@ -37,6 +61,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
     });
@@ -315,7 +340,12 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                     // szybkie filtry w zakładce Przepisy (ikona + podpis
                     // w ramce). Wcześniej były to nieopisane ikony w pasku,
                     // po których nie dało się poznać, co robią.
-                    Padding(
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeOut,
+                      child: !_showActions
+                          ? const SizedBox(width: double.infinity, height: 0)
+                          : Padding(
                       padding: const EdgeInsets.fromLTRB(13, 12, 13, 0),
                       child: Row(
                         children: [
@@ -351,6 +381,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                           ),
                         ],
                       ),
+                    ),
                     ),
 
                     // 0. Przełącznik listy — widoczny tylko gdy użytkownik
@@ -416,6 +447,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                     // 2. Grupy produktów wg działów
                     Expanded(
                       child: ListView.builder(
+                        controller: _scrollController,
                         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                         itemCount: list.itemsByDepartment.length,
                         itemBuilder: (context, index) {
