@@ -93,6 +93,27 @@ class ShoppingList {
     return itemsByDepartment.values.fold(0, (sum, list) => sum + list.length);
   }
 
+  /// Kwota za produkty JESZCZE NIEKUPIONE — czyli ile realnie zostało
+  /// do zapłaty przy kasie.
+  ///
+  /// `totalEstimatedPrice` przychodzi z serwera jako suma CAŁEJ listy
+  /// i nie zmienia się przy odhaczaniu, więc licznik stał w miejscu
+  /// mimo wrzucania kolejnych rzeczy do koszyka. Tę wartość liczymy
+  /// lokalnie z pozycji, dzięki czemu maleje natychmiast po odhaczeniu,
+  /// bez czekania na odpowiedź serwera.
+  double get remainingPrice {
+    var sum = 0.0;
+    for (final items in itemsByDepartment.values) {
+      for (final item in items) {
+        if (!item.isChecked) sum += item.estimatedPrice ?? 0;
+      }
+    }
+    return sum;
+  }
+
+  /// Czy wszystko na liście jest już odhaczone (i lista nie jest pusta).
+  bool get isFullyChecked => totalItems > 0 && checkedItems == totalItems;
+
   int get checkedItems {
     return itemsByDepartment.values.fold(
       0,

@@ -4,7 +4,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import exists, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -838,3 +838,71 @@ async def delete_shopping_list_item(
 
     await db.delete(item)
     await db.commit()
+
+
+@router.post(
+    "/{list_id}/complete",
+    summary="Zakończ listę zakupów, opcjonalnie przenosząc kupione do spiżarni",
+)
+async def complete_shopping_list(
+    list_id: UUID,
+    move_to_pantry: bool = Query(
+        default=True,
+        description="Czy odhaczone produkty mają trafić do spiżarni",
+    ),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Domyka zakupy: oznacza listę jako zakończoną i (domyślnie)
+    przenosi ODHACZONE produkty do spiżarni użytkownika.
+
+    Przenosimy wyłącznie pozycje odhaczone — nieodhaczone to rzeczy,
+    których użytkownik nie kupił, więc wrzucenie ich do spiżarni
+    zafałszowałoby dopasowywanie przepisów ("co ugotować z tego, co mam").
+
+    Produkt już obecny w spiżarni jest AKTUALIZOWANY (sumujemy ilość),
+    a nie duplikowany — na tabeli jest ograniczenie unikalności pary
+    (użytkownik, produkt), więc próba wstawienia duplikatu skończyłaby
+    się błędem bazy.
+    """
+    from app.models.pantry import PantryItem
+
+    shopping_list = await _get_shopping_list_or_404(list_id, current_user, db)
+
+    moved = 0
+    if move_to_pantry:
+        for item in shopping_list.items:
+            if not item.is_checked:
+                continue
+            store_product = item.store_product
+            if store_product is None:
+                continue
+            product_id = store_product.product_id
+
+            existing_result = await db.execute(
+                select(PantryItem).where(
+                    PantryItem.user_id == current_user.id,
+                    PantryItem.product_id == product_id,
+                )
+            )
+            existing = existing_result.scalar_one_or_none()
+            if existing is not None:
+                existing.quantity = (existing.quantity or Decimal(0)) + item.required_quantity
+                existing.unit = existing.unit or item.unit
+                db.add(existing)
+            else:
+                db.add(
+                    PantryItem(
+                        user_id=current_user.id,
+                        product_id=product_id,
+                        quantity=item.required_quantity,
+                        unit=item.unit,
+                    )
+                )
+            moved += 1
+
+    shopping_list.status = "completed"
+    db.add(shopping_list)
+    await db.commit()
+
+    return {"detail": "Lista zakończona", "moved_to_pantry": moved}

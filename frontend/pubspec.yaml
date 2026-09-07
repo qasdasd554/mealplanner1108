@@ -1,7 +1,7 @@
 name: smart_meal_planner
 description: "A smart meal planner mobile application integrated with Polish grocery stores."
 publish_to: 'none'
-version: 1.0.0+150
+version: 1.0.0+152
 
 environment:
   sdk: '>=3.7.0 <4.0.0'
@@ -55,6 +55,16 @@ dependencies:
   # Turnstile jest komponentem webowym i nie ma odpowiednika natywnego.
   # Patrz lib/widgets/turnstile_widget.dart.
   webview_flutter: ^4.10.0
+
+  # ── Powiadomienia push (Firebase Cloud Messaging) ──
+  # Działają dopiero po wgraniu plików konfiguracyjnych Firebase
+  # (google-services.json / GoogleService-Info.plist). Bez nich
+  # PushService po cichu nic nie robi — patrz lib/services/push_service.dart.
+  firebase_core: ^3.8.0
+  firebase_messaging: ^15.1.5
+  # Wyświetla dymek, gdy powiadomienie przyjdzie przy OTWARTEJ aplikacji —
+  # systemy Android i iOS domyślnie go wtedy nie pokazują.
+  flutter_local_notifications: ^18.0.1
   package_info_plus: ^8.1.2
   image_picker: ^1.1.2
   # UWAGA: obsługa udostępnień z TikToka (link -> rozpoznanie przepisu

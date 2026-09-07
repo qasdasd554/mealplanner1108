@@ -5,7 +5,7 @@ import '../../providers/food_log_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/decorative_circles.dart';
 import '../../models/food_log.dart';
-import 'calorie_calculator_screen.dart';
+import '../../providers/wellness_provider.dart';
 
 class CalorieTrackerScreen extends StatefulWidget {
   const CalorieTrackerScreen({super.key});
@@ -25,6 +25,9 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<FoodLogProvider>(context, listen: false).fetchLogsForDate(DateTime.now());
+      // Nawodnienie i aktywności ładujemy dla tego samego dnia — osobny
+      // provider, bo to dane uzupełniające (patrz WellnessProvider).
+      Provider.of<WellnessProvider>(context, listen: false).loadForDate(DateTime.now());
     });
   }
 
@@ -54,17 +57,31 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
     );
     if (picked != null && picked != provider.currentDate) {
       provider.setDate(picked);
+      // Nawodnienie i aktywności muszą podążać za wybraną datą —
+      // inaczej pokazywałyby dane innego dnia niż reszta ekranu.
+      if (mounted) {
+        Provider.of<WellnessProvider>(context, listen: false).loadForDate(picked);
+      }
     }
   }
 
   void _goToPreviousDay() {
     final provider = Provider.of<FoodLogProvider>(context, listen: false);
-    provider.setDate(provider.currentDate.subtract(const Duration(days: 1)));
+    _changeDate(provider, provider.currentDate.subtract(const Duration(days: 1)));
   }
 
   void _goToNextDay() {
     final provider = Provider.of<FoodLogProvider>(context, listen: false);
-    provider.setDate(provider.currentDate.add(const Duration(days: 1)));
+    _changeDate(provider, provider.currentDate.add(const Duration(days: 1)));
+  }
+
+  /// Zmienia dzień w OBU providerach naraz. Osobna metoda, bo data jest
+  /// przełączana z czterech miejsc (strzałki, kalendarz, "dziś") i przy
+  /// każdym z nich łatwo byłoby zapomnieć o nawodnieniu — wtedy ekran
+  /// pokazywałby posiłki z jednego dnia, a wodę z innego.
+  void _changeDate(FoodLogProvider provider, DateTime date) {
+    provider.setDate(date);
+    Provider.of<WellnessProvider>(context, listen: false).loadForDate(date);
   }
 
   bool _isToday(DateTime date) {
@@ -80,21 +97,10 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
       appBar: AppBar(
         title: const Text('Śledzenie kalorii'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.calculate_outlined),
-            tooltip: 'Kalkulator zapotrzebowania kalorycznego',
-            onPressed: () async {
-              final saved = await Navigator.of(context).push<bool>(
-                MaterialPageRoute(builder: (_) => const CalorieCalculatorScreen()),
-              );
-              // Jeśli użytkownik zapisał nowy cel, podsumowanie dnia
-              // trzeba odświeżyć, żeby koło postępu pokazało nową wartość.
-              if (saved == true && mounted) {
-                Provider.of<FoodLogProvider>(context, listen: false)
-                    .fetchLogsForDate(provider.currentDate);
-              }
-            },
-          ),
+          // Kalkulator zapotrzebowania (waga, wzrost, BMI, cel kaloryczny)
+          // PRZENIESIONY do zakładki Profil — jako ikona w pasku był
+          // praktycznie nie do znalezienia, a to ustawienie konta,
+          // nie codzienna czynność. Patrz profile_screen.dart.
           IconButton(
             icon: const Icon(Icons.calendar_today),
             onPressed: () => _selectDate(context),
@@ -109,7 +115,11 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
           : provider.error != null
               ? _buildErrorState(context, provider)
               : RefreshIndicator(
-                  onRefresh: () => provider.fetchLogsForDate(provider.currentDate),
+                  onRefresh: () async {
+                    await provider.fetchLogsForDate(provider.currentDate);
+                    await Provider.of<WellnessProvider>(context, listen: false)
+                        .loadForDate(provider.currentDate);
+                  },
                   color: AppTheme.primaryColor,
                   child: ListView(
                     padding: const EdgeInsets.all(24.0),
@@ -117,6 +127,13 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                       _buildDateNavigation(provider.currentDate),
                       const SizedBox(height: 24),
                       _buildProgressSection(provider.summary),
+                      const SizedBox(height: 16),
+                      // Przycisk aktywności TUŻ pod licznikiem — spalone
+                      // kalorie powiększają dzienny limit, więc naturalne
+                      // miejsce jest przy liczbie, na którą wpływają.
+                      _buildActivitySection(context),
+                      const SizedBox(height: 24),
+                      _buildWaterSection(context),
                       const SizedBox(height: 32),
                       _buildMacrosSection(provider.summary),
                       const SizedBox(height: 32),
@@ -187,6 +204,8 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                     onPressed: () {
                       Provider.of<FoodLogProvider>(context, listen: false)
                           .setDate(DateTime.now());
+                      Provider.of<WellnessProvider>(context, listen: false)
+                          .loadForDate(DateTime.now());
                     },
                     style: TextButton.styleFrom(
                       padding: EdgeInsets.zero,
@@ -240,7 +259,16 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
 
   Widget _buildProgressSection(DailySummary? summary) {
     double consumed = summary?.totalCalories ?? 0.0;
-    double target = summary?.targetCalories ?? 2000.0;
+    final baseTarget = summary?.targetCalories ?? 2000.0;
+
+    // Kalorie spalone aktywnością POWIĘKSZAJĄ dzienny limit — to, co
+    // użytkownik wypracował bieganiem czy rowerem, może zjeść dodatkowo.
+    // Dlatego dodajemy je do celu, zamiast odejmować od spożytych: dzięki
+    // temu widać osobno "ile zjadłem" i "ile wypracowałem", a nie jedną
+    // zafałszowaną liczbę.
+    final burned = Provider.of<WellnessProvider>(context).kcalBurned.toDouble();
+    final double target = baseTarget + burned;
+
     double remaining = target - consumed;
     if (remaining < 0) remaining = 0;
     double progress = target > 0 ? (consumed / target).clamp(0.0, 1.0) : 0.0;
@@ -276,10 +304,230 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                   color: AppTheme.textSecondary,
                 ),
               ),
+              if (burned > 0) ...[
+                const SizedBox(height: 2),
+                Text(
+                  '+${burned.toInt()} z aktywności',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppTheme.primaryColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ],
           ),
         ],
       ),
+    );
+  }
+
+  /// Aktywność fizyczna — lista wpisów z dnia i przycisk dodawania.
+  Widget _buildActivitySection(BuildContext context) {
+    final wellness = Provider.of<WellnessProvider>(context);
+    final activities = wellness.data.activities;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ...activities.map(
+          (a) => Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Row(
+              children: [
+                Icon(Icons.local_fire_department_outlined,
+                    size: 18, color: AppTheme.primaryColor),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    a.durationMin != null && a.durationMin! > 0
+                        ? '${a.name} · ${a.durationMin} min'
+                        : a.name,
+                    style: const TextStyle(fontSize: 13),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Text(
+                  '+${a.kcalBurned} kcal',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.primaryColor,
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.close, size: 16, color: AppTheme.textSecondary),
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () => wellness.deleteActivity(a.id),
+                ),
+              ],
+            ),
+          ),
+        ),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () => _showAddActivityDialog(context, wellness),
+            icon: const Icon(Icons.directions_run, size: 18),
+            label: const Text('Dodaj aktywność'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _showAddActivityDialog(
+      BuildContext context, WellnessProvider wellness) async {
+    final nameController = TextEditingController();
+    final kcalController = TextEditingController();
+    final minutesController = TextEditingController();
+
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Dodaj aktywność'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                autofocus: true,
+                maxLength: 100,
+                decoration: const InputDecoration(
+                  labelText: 'Co robiłeś/aś?',
+                  hintText: 'np. bieganie, rower, siłownia',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: kcalController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Spalone kalorie',
+                  suffixText: 'kcal',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: minutesController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Czas (opcjonalnie)',
+                  suffixText: 'min',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Anuluj'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Dodaj'),
+          ),
+        ],
+      ),
+    );
+
+    if (saved != true) return;
+
+    final name = nameController.text.trim();
+    final kcal = int.tryParse(kcalController.text.trim());
+    if (name.isEmpty || kcal == null || kcal <= 0) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(content: Text('Podaj nazwę i liczbę spalonych kalorii.')),
+          );
+      }
+      return;
+    }
+
+    await wellness.addActivity(
+      name: name,
+      kcalBurned: kcal,
+      durationMin: int.tryParse(minutesController.text.trim()),
+    );
+  }
+
+  /// Nawodnienie — pasek postępu i szybkie przyciski dolewania.
+  Widget _buildWaterSection(BuildContext context) {
+    final wellness = Provider.of<WellnessProvider>(context);
+    final ml = wellness.data.waterMl;
+    final goal = wellness.data.waterGoalMl;
+    final progress = goal > 0 ? (ml / goal).clamp(0.0, 1.0) : 0.0;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.water_drop_outlined, size: 20, color: Color(0xFF3B9AE1)),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text('Nawodnienie',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+              ),
+              Text(
+                '$ml / $goal ml',
+                style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 8,
+              backgroundColor: AppTheme.textSecondary.withOpacity(0.15),
+              color: const Color(0xFF3B9AE1),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              // Typowe porcje zamiast dowolnej liczby — szybciej dotknąć
+              // "szklanka" niż wpisywać mililitry przy każdym łyku.
+              _waterButton(wellness, 250, 'Szklanka'),
+              const SizedBox(width: 8),
+              _waterButton(wellness, 500, 'Butelka'),
+              const Spacer(),
+              if (ml > 0)
+                IconButton(
+                  icon: Icon(Icons.undo, size: 18, color: AppTheme.textSecondary),
+                  tooltip: 'Cofnij ostatnią szklankę',
+                  onPressed: () => wellness.addWater(-250),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _waterButton(WellnessProvider wellness, int ml, String label) {
+    return OutlinedButton(
+      onPressed: () => wellness.addWater(ml),
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        visualDensity: VisualDensity.compact,
+      ),
+      child: Text('+$label', style: const TextStyle(fontSize: 12)),
     );
   }
 

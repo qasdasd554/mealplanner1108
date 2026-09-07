@@ -105,6 +105,25 @@ class ShoppingListProvider with ChangeNotifier {
     }
   }
 
+  /// Kończy bieżącą listę. Zwraca liczbę produktów przeniesionych do
+  /// spiżarni, albo `null` przy błędzie.
+  Future<int?> completeList({bool moveToPantry = true}) async {
+    if (_selectedListId == null) return null;
+    _errorMessage = null;
+    try {
+      final moved = await _shoppingListService.completeList(
+        _selectedListId!,
+        moveToPantry: moveToPantry,
+      );
+      await loadAllLists(preferredListId: _selectedListId);
+      return moved;
+    } catch (e) {
+      _errorMessage = friendlyError(e);
+      notifyListeners();
+      return null;
+    }
+  }
+
   Future<bool> removeItem(String itemId) async {    if (_selectedListId == null) return false;
     _errorMessage = null;
     try {

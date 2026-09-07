@@ -5,6 +5,10 @@ plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+    // Wymagana, żeby google-services.json trafił do aplikacji.
+    // Zależności Firebase (BoM, analytics) z instrukcji Firebase są
+    // ZBĘDNE — dokładają je pakiety firebase_core i firebase_messaging.
+    id("com.google.gms.google-services")
 }
 
 // Wczytaj key.properties (dane keystore'a) — plik NIE jest w repozytorium
@@ -25,6 +29,13 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        // WYMAGANE przez flutter_local_notifications (powiadomienia push
+        // wyświetlane przy otwartej aplikacji). Biblioteka używa
+        // nowoczesnego API dat i czasu z Javy 8+, którego starsze wersje
+        // Androida nie mają. Desugaring "tłumaczy" te wywołania wstecz
+        // przy kompilacji, dzięki czemu aplikacja działa też na starszych
+        // urządzeniach. Bez tego build pada na checkReleaseAarMetadata.
+        isCoreLibraryDesugaringEnabled = true
     }
 
     defaultConfig {
@@ -64,6 +75,12 @@ android {
                 signingConfigs.getByName("debug")
             }
             ndk {
+                // "symbol_table", NIE "none". Przy "none" Gradle w ogóle
+                // nie generuje plików .sym/.dbg, a wewnętrzna kontrola
+                // narzędzia flutter i tak sprawdza, czy istnieją — build
+                // kończy się wtedy błędem "failed to strip debug symbols"
+                // (flutter/flutter#169252). "symbol_table" wymusza format,
+                // którego ta kontrola szuka.
                 debugSymbolLevel = "symbol_table"
             }
         }
@@ -85,6 +102,10 @@ kotlin {
 // MainActivity.kt (ta metoda istnieje w androidx.core od bardzo dawna).
 dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
+    // Biblioteka realizująca desugaring włączony w compileOptions powyżej.
+    // Wersja 2.1.4+ jest wymagana przez flutter_local_notifications 18.x —
+    // starsze wydania nie zawierają wszystkich potrzebnych klas.
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
 
 flutter {

@@ -61,7 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (mounted) {
       if (success) {
-        Navigator.of(context).pushReplacementNamed('/home');
+        Navigator.of(context).pushReplacementNamed(authProvider.postLoginRoute);
       } else {
         ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -83,7 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     if (success) {
-      Navigator.of(context).pushReplacementNamed('/home');
+      Navigator.of(context).pushReplacementNamed(authProvider.postLoginRoute);
     } else if (authProvider.errorMessage != null) {
       _resetCaptcha();
       // `success == false` bez komunikatu błędu oznacza, że użytkownik po
@@ -107,7 +107,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     if (success) {
-      Navigator.of(context).pushReplacementNamed('/home');
+      Navigator.of(context).pushReplacementNamed(authProvider.postLoginRoute);
     } else {
       // Token został zużyty przy tej próbie — niezależnie od tego, czy
       // logowanie nie powiodło się, czy użytkownik anulował okno.

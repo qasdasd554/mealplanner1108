@@ -10,6 +10,7 @@ import '../../providers/shopping_list_provider.dart';
 import '../../providers/promotion_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/premium_badge.dart';
+import '../tracker/calorie_calculator_screen.dart';
 import '../../widgets/premium_comparison_table.dart';
 import '../../widgets/decorative_circles.dart';
 import '../../widgets/user_avatar.dart';
@@ -106,11 +107,17 @@ class ProfileScreen extends StatelessWidget {
                     const SizedBox(height: 8),
                     const PremiumBadge(),
                   ],
-                  // Dni pozostałe do wygaśnięcia subskrypcji — widoczne
-                  // tylko dla kont Premium z ustawioną datą wygaśnięcia
-                  // (konta administratora mają dostęp premium bez
-                  // subskrypcji, więc premiumDaysRemaining jest tam null).
-                  if (user?.premiumDaysRemaining != null) ...[
+                  // Dni pozostałe do wygaśnięcia subskrypcji.
+                  //
+                  // NAPRAWA: warunek sprawdzał tylko `!= null`, a getter
+                  // premiumDaysRemaining zwraca 0 (nie null), gdy data
+                  // wygaśnięcia już minęła. Po wygaśnięciu subskrypcji
+                  // napis "Subskrypcja wygasa dziś" wisiał więc
+                  // w nieskończoność, mimo że konto dawno straciło
+                  // Premium. Dokładamy warunek hasPremiumAccess, który
+                  // uwzględnia datę (patrz models/user.dart).
+                  if ((user?.hasPremiumAccess ?? false) &&
+                      user?.premiumDaysRemaining != null) ...[
                     const SizedBox(height: 4),
                     Text(
                       user!.premiumDaysRemaining == 0
@@ -129,6 +136,15 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
+
+            // Kalkulator zapotrzebowania kalorycznego (waga, wzrost, BMI,
+            // cel dzienny). PRZENIESIONY z zakładki Śledzenie, gdzie był
+            // wyłącznie ikoną kalkulatora w pasku i praktycznie nie do
+            // znalezienia. To ustawienie konta, a nie codzienna czynność,
+            // więc jego miejsce jest w profilu — i to na górze, bo od
+            // niego zależy cały licznik kalorii.
+            _buildCalorieCalculatorTile(context),
+            const SizedBox(height: 16),
 
             // Baner "Zostań Premium" — widoczny TYLKO dla kont bez
             // dostępu premium (admini i już-premium go nie widzą, bo im
@@ -497,6 +513,87 @@ class ProfileScreen extends StatelessWidget {
         );
       },
     );
+  }
+
+  /// Kafelek prowadzący do kalkulatora zapotrzebowania kalorycznego.
+  /// Pokazuje od razu aktualną wagę i BMI, żeby najczęściej sprawdzane
+  /// wartości były widoczne bez wchodzenia w ekran.
+  Widget _buildCalorieCalculatorTile(BuildContext context) {
+    final user = Provider.of<AuthProvider>(context).currentUser;
+    final weight = user?.weightKg;
+    final height = user?.heightCm;
+
+    double? bmi;
+    if (weight != null && height != null && height > 0) {
+      final m = height / 100;
+      bmi = weight / (m * m);
+    }
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const CalorieCalculatorScreen()),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          color: AppTheme.surfaceColor,
+          border: Border.all(color: AppTheme.primaryColor.withOpacity(0.3)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(Icons.monitor_weight_outlined,
+                  color: AppTheme.primaryColor, size: 26),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Waga, wzrost i cel kaloryczny',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    bmi == null
+                        ? 'Uzupełnij dane, aby obliczyć BMI i dzienne '
+                            'zapotrzebowanie kaloryczne'
+                        : '${weight!.toStringAsFixed(1)} kg · '
+                            'BMI ${bmi.toStringAsFixed(1)} — ${_bmiLabel(bmi)}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.textSecondary,
+                      height: 1.35,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(Icons.chevron_right, color: AppTheme.textSecondary),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Opis zakresu BMI wg klasyfikacji WHO. Świadomie sama nazwa
+  /// przedziału, bez oceniania — BMI nie uwzględnia budowy ciała ani
+  /// masy mięśniowej, więc etykieta ma być informacją, nie werdyktem.
+  String _bmiLabel(double bmi) {
+    if (bmi < 18.5) return 'niedowaga';
+    if (bmi < 25) return 'waga prawidłowa';
+    if (bmi < 30) return 'nadwaga';
+    return 'otyłość';
   }
 
   Widget _buildProfileSettingTile(

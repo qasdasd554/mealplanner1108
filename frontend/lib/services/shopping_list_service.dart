@@ -78,6 +78,17 @@ class ShoppingListService {
     );
   }
 
+  /// Kończy listę; `moveToPantry` przenosi odhaczone produkty do spiżarni.
+  Future<int> completeList(String listId, {bool moveToPantry = true}) async {
+    final response = await _client.post(
+      '${ApiConfig.shoppingLists}$listId/complete?move_to_pantry=$moveToPantry',
+    );
+    if (response is Map<String, dynamic>) {
+      return (response['moved_to_pantry'] as int?) ?? 0;
+    }
+    return 0;
+  }
+
   Future<void> deleteItem(String listId, String itemId) async {
     await _client.delete('${ApiConfig.shoppingLists}$listId/items/$itemId');
   }

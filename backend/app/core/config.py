@@ -143,6 +143,16 @@ class Settings(BaseSettings):
     # wysyłają tokenu i zostałyby odcięte od logowania.
     TURNSTILE_SECRET_KEY: str = ""
 
+    # ── Powiadomienia push (Firebase Cloud Messaging) ──
+    # Wklej TU CAŁĄ ZAWARTOŚĆ pliku JSON konta serwisowego z Firebase
+    # (Ustawienia projektu → Konta usługi → Wygeneruj nowy klucz
+    # prywatny). PUSTE = push WYŁĄCZONY, aplikacja działa jak dotąd
+    # (powiadomienia tylko w dzwoneczku).
+    #
+    # To jest TAJNY klucz — ustawiaj wyłącznie w zmiennych środowiskowych
+    # Render, nigdy w repozytorium.
+    FCM_SERVICE_ACCOUNT_JSON: str = ""
+
     LATEST_APP_VERSION_CODE: int = 73
     # Numery wersji są ROZDZIELONE na platformy, bo numeracja iOS
     # i Androida całkowicie się rozjechała: Xcode Cloud nadaje numery

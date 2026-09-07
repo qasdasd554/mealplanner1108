@@ -14,6 +14,8 @@ import 'providers/food_log_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/promotion_provider.dart';
 import 'services/share_intent_handler.dart';
+import 'services/push_service.dart';
+import 'providers/wellness_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,6 +27,14 @@ void main() async {
   // biało. Musi się zakończyć PRZED runApp(), inaczej pierwsza klatka
   // mogłaby wyrenderować się zanim dane będą gotowe.
   await initializeDateFormatting('pl_PL', null);
+
+  // Powiadomienia push. Inicjalizacja jest ODPORNA na brak konfiguracji:
+  // jeśli pliki Firebase nie zostały jeszcze wgrane, PushService sam to
+  // wykrywa i wyłącza się po cichu, nie blokując startu aplikacji.
+  // Świadomie NIE prosimy tu o zgodę na powiadomienia — to dzieje się
+  // dopiero po zalogowaniu (AuthProvider), żeby pierwszym, co widzi nowy
+  // użytkownik, nie było systemowe okno z prośbą o pozwolenie.
+  await PushService().init();
 
   // UWAGA (NAPRAWA AWARYJNA — TYMCZASOWE WYŁĄCZENIE): po skoku wersji
   // google_mobile_ads (5→9) aplikacja zaczęła crashować NATYCHMIAST po
@@ -57,6 +67,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => MealPlanProvider()),
         ChangeNotifierProvider(create: (_) => ShoppingListProvider()),
         ChangeNotifierProvider(create: (_) => FoodLogProvider()),
+        ChangeNotifierProvider(create: (_) => WellnessProvider()),
         ChangeNotifierProvider(create: (_) => PromotionProvider()),
       ],
       child: const SmartMealPlannerApp(),

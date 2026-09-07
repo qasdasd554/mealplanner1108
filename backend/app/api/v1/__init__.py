@@ -11,6 +11,7 @@ from app.api.v1.recipe_comments import router as recipe_comments_router
 from app.api.v1.notifications import router as notifications_router
 from app.api.v1.shopping_lists import router as shopping_lists_router
 from app.api.v1.stores import router as stores_router
+from app.api.v1.wellness import router as wellness_router
 from app.api.v1.users import router as users_router
 from app.api.v1.food_log import router as food_log_router
 from app.api.v1.price_compare import router as price_compare_router
@@ -22,6 +23,7 @@ router = APIRouter()
 router.include_router(auth_router, prefix="/auth", tags=["Auth"])
 router.include_router(users_router, prefix="/users", tags=["Users"])
 router.include_router(stores_router, prefix="/stores", tags=["Stores"])
+router.include_router(wellness_router, prefix="/wellness", tags=["wellness"])
 router.include_router(products_router, prefix="/products", tags=["Products"])
 router.include_router(recipes_router, prefix="/recipes", tags=["Recipes"])
 router.include_router(recipe_comments_router, prefix="/recipes", tags=["Recipe Comments"])

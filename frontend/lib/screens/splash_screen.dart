@@ -100,9 +100,11 @@ class _SplashScreenState extends State<SplashScreen> {
       // i otworzyć ponownie, żeby wylądować na /home z niepotwierdzonym
       // kontem i korzystać z niego bez ograniczeń. Backend też tego nie
       // pilnował (patrz app/api/deps.py) — teraz pilnują oba miejsca.
-      if (authProvider.currentUser != null &&
-          !authProvider.currentUser!.isEmailVerified) {
-        Navigator.of(context).pushReplacementNamed('/verify-email');
+      // Wspólna logika celu (weryfikacja e-maila → onboarding → home),
+      // ta sama co po zalogowaniu — patrz AuthProvider.postLoginRoute.
+      final route = authProvider.postLoginRoute;
+      if (route != '/home') {
+        Navigator.of(context).pushReplacementNamed(route);
         return;
       }
       if (sharedUrl != null) {

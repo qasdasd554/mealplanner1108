@@ -161,6 +161,24 @@ async def _create_tables() -> None:
         await conn.execute(
             text("ALTER TABLE recipes ADD COLUMN IF NOT EXISTS pending_photo_submitted_at TIMESTAMPTZ")
         )
+        # Tokeny urządzeń do powiadomień push — patrz
+        # app/models/device_token.py. Tabela powstaje przez create_all,
+        # ale UNIQUE na tokenie dokładamy jawnie, bo create_all nie
+        # dodaje ograniczeń do TABEL, KTÓRE JUŻ ISTNIEJĄ.
+        await conn.execute(
+            text(
+                "CREATE UNIQUE INDEX IF NOT EXISTS uq_device_tokens_token "
+                "ON device_tokens (token)"
+            )
+        )
+        # Nawodnienie: jeden wpis na użytkownika i dzień — patrz
+        # app/models/wellness.py.
+        await conn.execute(
+            text(
+                "CREATE UNIQUE INDEX IF NOT EXISTS uq_water_logs_user_date "
+                "ON water_logs (user_id, date)"
+            )
+        )
         # Znacznik "ta promocja nadpisała cenę katalogową" — patrz
         # app/services/promotion_expiry.py.
         await conn.execute(

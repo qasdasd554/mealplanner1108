@@ -2,6 +2,8 @@
 
 from app.db.session import Base
 from app.models.meal_plan import MealPlan, MealPlanEntry
+from app.models.device_token import DeviceToken
+from app.models.wellness import ActivityLog, WaterLog
 from app.models.moderation import BlockedUser, ContentReport
 from app.models.product import (
     Allergen,
@@ -61,4 +63,7 @@ __all__ = [
     # Moderation
     "ContentReport",
     "BlockedUser",
+    "DeviceToken",
+    "WaterLog",
+    "ActivityLog",
 ]

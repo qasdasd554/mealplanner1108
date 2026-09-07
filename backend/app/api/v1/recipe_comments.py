@@ -88,17 +88,21 @@ async def _notify_thread_participants(
     author_name = author.display_name or "Ktoś"
     message = f'{author_name} skomentował(a) "{recipe.name}": {preview}'
 
+    created = []
     for user_id in recipient_ids:
-        db.add(
-            Notification(
-                user_id=user_id,
-                notification_type="recipe_comment",
-                message=message,
-                recipe_id=recipe.id,
-                comment_id=new_comment.id,
-            )
+        n = Notification(
+            user_id=user_id,
+            notification_type="recipe_comment",
+            message=message,
+            recipe_id=recipe.id,
+            comment_id=new_comment.id,
         )
+        created.append(n)
+        db.add(n)
     await db.commit()
+
+    # Push wysyłany PO zapisie — patrz komentarz przy push_for_notification.
+    await _send_pushes(db, created)
 
 
 def _to_response(
@@ -317,3 +321,13 @@ async def report_recipe_comment(
     await db.commit()
     await db.refresh(report)
     return report
+
+async def _send_pushes(db, notifications) -> None:
+    """Wysyła push dla listy powiadomień — PO ich zapisaniu w bazie.
+    Cicho pomijane, gdy push jest wyłączony (brak klucza FCM)."""
+    from app.services.push import is_push_enabled, push_for_notification
+
+    if not is_push_enabled():
+        return
+    for n in notifications:
+        await push_for_notification(db, n)

@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/user.dart';
 import '../services/auth_service.dart';
 import '../services/api_client.dart';
 import '../utils/error_utils.dart';
+import '../services/push_service.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
@@ -163,6 +165,17 @@ class AuthProvider with ChangeNotifier {
     try {
       _currentUser = await _authService.getProfile();
       notifyListeners();
+
+      // Rejestracja urządzenia do powiadomień push. Robimy to TUTAJ, bo
+      // loadProfile() jest wspólnym punktem dla wszystkich ścieżek
+      // wejścia: logowania e-mailem, Google, Apple oraz wznowienia sesji
+      // przy starcie aplikacji. Dopisywanie tego osobno w każdej z nich
+      // byłoby czterokrotnym powtórzeniem i łatwo byłoby o którejś
+      // zapomnieć. Nie czekamy na wynik — prośba o zgodę i zapis tokenu
+      // nie mogą opóźniać wejścia do aplikacji.
+      if (_currentUser != null && _currentUser!.isEmailVerified) {
+        unawaited(PushService().registerForUser());
+      }
     } catch (e) {
       if (e is ApiException && e.statusCode == 401) {
         // UWAGA (naprawa — zgłoszone jednorazowe, niewyjaśnione
@@ -312,7 +325,28 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  /// Dokąd skierować użytkownika po udanym zalogowaniu.
+  ///
+  /// NAPRAWA: ekran onboardingu był osiągalny WYŁĄCZNIE z ekranu
+  /// weryfikacji e-maila. Logowanie przez Google i Apple ustawia adres
+  /// jako zweryfikowany i szło prosto na /home, więc te konta NIGDY nie
+  /// przechodziły przez wybór sklepu, diety i alergenów — aplikacja
+  /// startowała bez podstawowych ustawień.
+  ///
+  /// Za wyznacznik ukończenia onboardingu bierzemy wybrany sklep: to
+  /// pierwsze i obowiązkowe pytanie w tym procesie, więc jego brak
+  /// jednoznacznie oznacza, że użytkownik go nie przeszedł.
+  String get postLoginRoute {
+    if (_currentUser == null) return '/login';
+    if (!_currentUser!.isEmailVerified) return '/verify-email';
+    if (_currentUser!.preferredStoreId == null) return '/onboarding';
+    return '/home';
+  }
+
   Future<void> logout() async {
+    // Wyrejestruj urządzenie ZANIM stracimy token sesji — po wylogowaniu
+    // żądanie do backendu nie przeszłoby autoryzacji.
+    await PushService().unregister();
     await _authService.logout();
     _currentUser = null;
     _isAuthenticated = false;
@@ -325,6 +359,7 @@ class AuthProvider with ChangeNotifier {
   Future<bool> deleteAccount() async {
     _clearError();
     try {
+      await PushService().unregister();
       await _authService.deleteAccount();
       await _authService.logout();
       _currentUser = null;

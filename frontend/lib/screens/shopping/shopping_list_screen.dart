@@ -27,6 +27,9 @@ class ShoppingListScreen extends StatefulWidget {
 }
 
 class _ShoppingListScreenState extends State<ShoppingListScreen> {
+  /// Blokuje przyciski domykania listy na czas żądania.
+  bool _isCompleting = false;
+
   final ApiClient _apiClient = ApiClient();
   List<dynamic> _substitutes = [];
   bool _isLoadingSubstitutes = false;
@@ -338,6 +341,13 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                     if (shoppingListProvider.allLists.length > 1)
                       _buildListSelector(shoppingListProvider),
 
+                    // Panel domknięcia zakupów — pokazuje się DOPIERO
+                    // po odhaczeniu wszystkiego, więc nie zabiera miejsca
+                    // w trakcie zakupów, a pojawia się dokładnie w
+                    // momencie, gdy jest potrzebny.
+                    if (list.isFullyChecked)
+                      _buildCompletionPanel(shoppingListProvider, list),
+
                     // 1. Panel podsumowania (Postęp i cena)
                     _buildSummaryCard(list),
 
@@ -573,6 +583,92 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
       );
   }
 
+  /// Panel z akcjami domykającymi zakupy, widoczny po odhaczeniu
+  /// wszystkich pozycji.
+  Widget _buildCompletionPanel(ShoppingListProvider provider, ShoppingList list) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.primaryColor.withOpacity(0.10),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.check_circle, color: AppTheme.primaryColor, size: 22),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Masz wszystko z listy',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Przenieś kupione produkty do spiżarni, żeby aplikacja mogła '
+            'podpowiadać przepisy z tego, co masz w domu.',
+            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary, height: 1.35),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            alignment: WrapAlignment.end,
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              TextButton(
+                onPressed: _isCompleting ? null : () => _completeList(provider, false),
+                child: const Text('Tylko zakończ'),
+              ),
+              FilledButton.icon(
+                onPressed: _isCompleting ? null : () => _completeList(provider, true),
+                icon: _isCompleting
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Icon(Icons.kitchen, size: 18),
+                label: const Text('Przenieś do spiżarni'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _completeList(ShoppingListProvider provider, bool moveToPantry) async {
+    setState(() => _isCompleting = true);
+    final moved = await provider.completeList(moveToPantry: moveToPantry);
+    if (!mounted) return;
+    setState(() => _isCompleting = false);
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            moved == null
+                ? (provider.errorMessage ?? 'Nie udało się zakończyć listy')
+                : moveToPantry
+                    ? 'Zakupy zakończone. Do spiżarni trafiło $moved produktów.'
+                    : 'Zakupy zakończone.',
+          ),
+          backgroundColor: moved == null ? AppTheme.errorColor : null,
+        ),
+      );
+  }
+
   Widget _buildSummaryCard(ShoppingList list) {
     return Container(
       margin: const EdgeInsets.all(24),
@@ -613,13 +709,27 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                   style: TextStyle(color: AppTheme.textSecondary),
                 ),
                 const SizedBox(height: 8),
+                // Kwota POZOSTAŁA do zapłaty, nie suma całej listy.
+                // Wcześniej pokazywana była suma z serwera, która nie
+                // zmieniała się przy odhaczaniu — licznik stał w miejscu
+                // mimo wrzucania rzeczy do koszyka.
                 Text(
-                  'Suma: ~${list.totalEstimatedPrice.toStringAsFixed(2)} zł',
+                  list.isFullyChecked
+                      ? 'Wszystko kupione'
+                      : 'Do zapłaty: ~${list.remainingPrice.toStringAsFixed(2)} zł',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         color: AppTheme.primaryColor,
                         fontWeight: FontWeight.bold,
                       ),
                 ),
+                if (!list.isFullyChecked && list.checkedItems > 0) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    'w koszyku: ${(list.totalEstimatedPrice - list.remainingPrice).toStringAsFixed(2)} zł '
+                    'z ~${list.totalEstimatedPrice.toStringAsFixed(2)} zł',
+                    style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                  ),
+                ],
               ],
             ),
           ),

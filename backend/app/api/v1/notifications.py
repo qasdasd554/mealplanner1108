@@ -1,11 +1,12 @@
 """Endpointy powiadomień w aplikacji (dzwoneczek)."""
 
 import uuid
+from datetime import datetime, timezone
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
-from sqlalchemy import func, select, update
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -115,13 +116,96 @@ async def send_broadcast_notification(
     all_users = await db.execute(select(User.id))
     user_ids = [row[0] for row in all_users.all()]
 
+    created = []
     for user_id in user_ids:
+        n = Notification(
+            user_id=user_id,
+            notification_type="broadcast",
+            message=payload.message,
+        )
+        created.append(n)
+        db.add(n)
+    await db.commit()
+
+    await _send_pushes(db, created)
+    return {"sent_to": len(user_ids)}
+
+
+# ══════════════════════════════════════════════════════════════════
+# TOKENY URZĄDZEŃ (powiadomienia push)
+# ══════════════════════════════════════════════════════════════════
+class DeviceTokenRequest(BaseModel):
+    token: str
+    platform: str | None = None
+
+
+@router.post("/device-token", status_code=status.HTTP_204_NO_CONTENT)
+async def register_device_token(
+    payload: DeviceTokenRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> None:
+    """Zapisuje token urządzenia, żeby móc wysyłać na nie powiadomienia
+    systemowe. Aplikacja woła to po zalogowaniu i przy każdej zmianie
+    tokenu (FCM potrafi go odświeżyć samodzielnie).
+
+    Jeśli token już istnieje, ale należał do INNEGO konta, przepisujemy go
+    na bieżące. Token jest własnością urządzenia — gdyby zostawić stare
+    przypisanie, poprzedni użytkownik dostawałby cudze powiadomienia na
+    telefon, z którego się już wylogował.
+    """
+    from app.models import DeviceToken
+
+    token = payload.token.strip()
+    if not token:
+        raise HTTPException(status_code=400, detail="Pusty token urządzenia")
+
+    result = await db.execute(select(DeviceToken).where(DeviceToken.token == token))
+    existing = result.scalar_one_or_none()
+
+    if existing is not None:
+        existing.user_id = current_user.id
+        existing.platform = payload.platform
+        existing.last_seen_at = datetime.now(timezone.utc)
+        db.add(existing)
+    else:
         db.add(
-            Notification(
-                user_id=user_id,
-                notification_type="broadcast",
-                message=payload.message,
+            DeviceToken(
+                user_id=current_user.id,
+                token=token,
+                platform=payload.platform,
             )
         )
     await db.commit()
-    return {"sent_to": len(user_ids)}
+
+
+# POST, nie DELETE: klient wysyła token w ciele żądania, a wspólna metoda
+# ApiClient.delete we Flutterze ciała nie obsługuje. Zmiana tamtej metody
+# dla jednego przypadku psułaby wszystkie pozostałe wywołania DELETE.
+@router.post("/device-token/remove", status_code=status.HTTP_204_NO_CONTENT)
+async def unregister_device_token(
+    payload: DeviceTokenRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> None:
+    """Usuwa token przy wylogowaniu — inaczej po wylogowaniu telefon dalej
+    dostawałby powiadomienia konta, z którego użytkownik właśnie wyszedł."""
+    from app.models import DeviceToken
+
+    await db.execute(
+        delete(DeviceToken).where(
+            DeviceToken.token == payload.token.strip(),
+            DeviceToken.user_id == current_user.id,
+        )
+    )
+    await db.commit()
+
+async def _send_pushes(db, notifications) -> None:
+    """Wysyła push dla listy powiadomień — PO ich zapisaniu w bazie.
+    Cicho pomijane, gdy push jest wyłączony (brak klucza FCM)."""
+    from app.services.push import is_push_enabled, push_for_notification
+
+    if not is_push_enabled():
+        return
+    for n in notifications:
+        await push_for_notification(db, n)

@@ -1248,3 +1248,13 @@ async def reject_recipe_photo(
             )
         )
     await db.commit()
+
+async def _send_pushes(db, notifications) -> None:
+    """Wysyła push dla listy powiadomień — PO ich zapisaniu w bazie.
+    Cicho pomijane, gdy push jest wyłączony (brak klucza FCM)."""
+    from app.services.push import is_push_enabled, push_for_notification
+
+    if not is_push_enabled():
+        return
+    for n in notifications:
+        await push_for_notification(db, n)
