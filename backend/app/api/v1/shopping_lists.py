@@ -63,7 +63,22 @@ async def get_my_shopping_lists(
     """Zwraca listy zakupów utworzone przez /from-recipes — te, do
     których można dopisywać kolejne przepisy, albo które liczą się do
     limitu (1 dla standardu, 5 dla Premium). NIE zwraca zwykłych list
-    powiązanych z prawdziwymi, wielodniowymi planami posiłków."""
+    powiązanych z prawdziwymi, wielodniowymi planami posiłków.
+
+    NAPRAWA: warunek sprawdzał WYŁĄCZNIE `MealPlan.user_id ==
+    current_user.id`, więc listy UDOSTĘPNIONE przez innego użytkownika
+    nie pojawiały się tutaj wcale. Zaproszenie dawało się przyjąć,
+    dostęp po ID działał, ale lista nigdy nie trafiała do wykazu
+    w aplikacji — z perspektywy użytkownika akceptacja nie robiła nic.
+    Teraz dokładamy ten sam warunek udostępnienia, którego używa
+    _get_shopping_list_or_404, żeby oba miejsca widziały to samo.
+    """
+    shared_access = exists().where(
+        ShoppingListShare.meal_plan_id == MealPlan.id,
+        ShoppingListShare.shared_with_user_id == current_user.id,
+        ShoppingListShare.status == "accepted",
+    )
+
     result = await db.execute(
         select(ShoppingList)
         .join(MealPlan, MealPlan.id == ShoppingList.meal_plan_id)
@@ -73,7 +88,10 @@ async def get_my_shopping_lists(
             selectinload(ShoppingList.items).selectinload(ShoppingListItem.substituted_for_product),
             selectinload(ShoppingList.store),
         )
-        .where(MealPlan.user_id == current_user.id, MealPlan.status == "archived")
+        .where(
+            or_(MealPlan.user_id == current_user.id, shared_access),
+            MealPlan.status == "archived",
+        )
         .order_by(ShoppingList.created_at.desc())
     )
     return list(result.scalars().all())

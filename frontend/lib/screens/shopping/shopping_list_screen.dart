@@ -293,20 +293,6 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
           ),
           if (list != null)
             IconButton(
-              icon: const Icon(Icons.add_shopping_cart),
-              tooltip: 'Dodaj produkt',
-              onPressed: () => showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: AppTheme.surfaceColor,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                ),
-                builder: (_) => const AddProductSheet(),
-              ),
-            ),
-          if (list != null)
-            IconButton(
               icon: const Icon(Icons.person_add_alt_outlined),
               tooltip: 'Udostępnij listę',
               onPressed: () => _showShareDialog(list.id),
@@ -327,6 +313,26 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
           ),
         ],
       ),
+      // Dodawanie produktu jako PŁYWAJĄCY przycisk, a nie ikona w pasku —
+      // w pasku ginęła między pozostałymi ikonami i była trudna do
+      // zauważenia. Ten sam wzorzec co w zakładce Śledzenie, więc
+      // zachowanie jest spójne w całej aplikacji.
+      floatingActionButton: list == null
+          ? null
+          : FloatingActionButton(
+              onPressed: () => showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: AppTheme.surfaceColor,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                builder: (_) => const AddProductSheet(),
+              ),
+              backgroundColor: AppTheme.primaryColor,
+              tooltip: 'Dodaj produkt do listy',
+              child: const Icon(Icons.add, color: Colors.white),
+            ),
       body: Stack(
         children: [
           const DecorativeCircles(),
