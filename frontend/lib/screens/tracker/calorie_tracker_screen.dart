@@ -485,9 +485,27 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                 child: Text('Nawodnienie',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
               ),
-              Text(
-                '$ml / $goal ml',
-                style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+              // Licznik jest KLIKALNY — otwiera wpisanie dowolnej ilości.
+              // Same przyciski "szklanka/butelka" nie wystarczają, gdy
+              // ktoś wypił np. 300 ml albo chce wpisać całodzienną sumę
+              // jednym wpisem.
+              InkWell(
+                onTap: () => _showCustomWaterDialog(context, wellness),
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '$ml / $goal ml',
+                        style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(Icons.edit, size: 13, color: AppTheme.textSecondary),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),
@@ -538,6 +556,59 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
         ..showSnackBar(
           SnackBar(content: Text(error), backgroundColor: AppTheme.errorColor),
         );
+    }
+  }
+
+  /// Wpisanie dowolnej liczby mililitrów.
+  Future<void> _showCustomWaterDialog(
+      BuildContext context, WellnessProvider wellness) async {
+    final controller = TextEditingController();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Ile wypiłeś/aś?'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'Ilość',
+            suffixText: 'ml',
+            hintText: 'np. 300',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Anuluj'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Dodaj'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+
+    final value = int.tryParse(controller.text.trim());
+    if (value == null || value <= 0) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(const SnackBar(content: Text('Podaj liczbę mililitrów.')));
+      }
+      return;
+    }
+    // Backend przyjmuje maksymalnie 2000 ml na jedno żądanie, więc
+    // większą ilość dzielimy na kilka — inaczej wpis zostałby odrzucony
+    // jako niepoprawny, bez zrozumiałego dla użytkownika powodu.
+    var left = value;
+    while (left > 0) {
+      final chunk = left > 2000 ? 2000 : left;
+      await _runWellness(wellness, () => wellness.addWater(chunk));
+      left -= chunk;
     }
   }
 

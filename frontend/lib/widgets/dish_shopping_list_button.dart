@@ -4,7 +4,8 @@ import '../models/recipe.dart';
 import '../models/shopping_list.dart';
 import '../providers/store_provider.dart';
 import '../services/shopping_list_service.dart';
-import '../screens/shopping/dish_shopping_list_screen.dart';
+import '../providers/shopping_list_provider.dart';
+import '../screens/shopping/shopping_list_screen.dart';
 import '../screens/profile/premium_screen.dart';
 import '../theme/app_theme.dart';
 import '../utils/error_utils.dart';
@@ -122,9 +123,36 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
         existingListId: existingListId,
       );
       if (!mounted) return;
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => DishShoppingListScreen(shoppingList: list)),
-      );
+
+      // ZMIANA: wcześniej otwierał się OSOBNY ekran z listą tego jednego
+      // dania. Powstawał przez to drugi, równoległy widok listy zakupów,
+      // niepowiązany z zakładką Zakupy — użytkownik dodawał danie i lądował
+      // gdzie indziej niż tam, gdzie potem tej listy szukał.
+      //
+      // Teraz odświeżamy provider (żeby nowa lista pojawiła się i została
+      // od razu wybrana) i wracamy do zakładki Zakupy. Jedna lista, jedno
+      // miejsce.
+      final shoppingProvider =
+          Provider.of<ShoppingListProvider>(context, listen: false);
+      await shoppingProvider.loadAllLists(preferredListId: list.mealPlanId);
+      if (!mounted) return;
+
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text('Dodano "${widget.recipe.name}" do listy zakupów'),
+            action: SnackBarAction(
+              label: 'ZOBACZ',
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const ShoppingListScreen(),
+                ),
+              ),
+            ),
+          ),
+        );
     } catch (e) {
       if (!mounted) return;
       // UWAGA: limit list (403) to najbardziej prawdopodobny błąd tutaj —

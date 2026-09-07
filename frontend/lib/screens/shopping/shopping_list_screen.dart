@@ -281,77 +281,6 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                 icon: const Icon(Icons.arrow_back),
                 onPressed: () => Navigator.of(context).pop(),
               ),
-        actions: [
-          // JEDNO menu z PODPISAMI zamiast czterech nieopisanych ikon.
-          // Same ikony (koperta, osoba z plusem, kosz, strzałka) nie
-          // mówiły, co robią — trzeba było zgadywać albo je wyklikać.
-          // Podpisy rozwiązują to bez zabierania miejsca w pasku.
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, size: 26),
-            tooltip: 'Opcje listy zakupów',
-            onSelected: (value) {
-              switch (value) {
-                case 'invites':
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const PendingSharesScreen()),
-                  );
-                  break;
-                case 'share':
-                  if (list != null) _showShareDialog(list.id);
-                  break;
-                case 'delete':
-                  if (list != null) {
-                    final idx = shoppingListProvider.allLists.indexWhere(
-                        (l) => l.mealPlanId == shoppingListProvider.selectedListId);
-                    _confirmDeleteList(
-                        shoppingListProvider, list, idx >= 0 ? idx + 1 : 1);
-                  }
-                  break;
-                case 'refresh':
-                  _loadData();
-                  break;
-              }
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'invites',
-                child: ListTile(
-                  leading: Icon(Icons.mail_outline),
-                  title: Text('Zaproszenia do list'),
-                  subtitle: Text('Listy udostępnione Tobie'),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-              if (list != null)
-                const PopupMenuItem(
-                  value: 'share',
-                  child: ListTile(
-                    leading: Icon(Icons.person_add_alt_outlined),
-                    title: Text('Udostępnij listę'),
-                    subtitle: Text('Wyślij komuś zaproszenie'),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-              const PopupMenuItem(
-                value: 'refresh',
-                child: ListTile(
-                  leading: Icon(Icons.refresh),
-                  title: Text('Odśwież'),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-              if (list != null)
-                const PopupMenuItem(
-                  value: 'delete',
-                  child: ListTile(
-                    leading: Icon(Icons.delete_outline, color: Colors.red),
-                    title: Text('Usuń tę listę', style: TextStyle(color: Colors.red)),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-            ],
-          ),
-        ],
       ),
       // Dodawanie produktu jako PŁYWAJĄCY przycisk, a nie ikona w pasku —
       // w pasku ginęła między pozostałymi ikonami i była trudna do
@@ -382,6 +311,48 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
               ? _buildEmptyState()
               : Column(
                   children: [
+                    // Rząd kafelków akcji — ten sam wzorzec wizualny co
+                    // szybkie filtry w zakładce Przepisy (ikona + podpis
+                    // w ramce). Wcześniej były to nieopisane ikony w pasku,
+                    // po których nie dało się poznać, co robią.
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(13, 12, 13, 0),
+                      child: Row(
+                        children: [
+                          _buildActionTile(
+                            icon: Icons.mail_outline,
+                            label: 'Zaproszenia',
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => const PendingSharesScreen()),
+                            ),
+                          ),
+                          _buildActionTile(
+                            icon: Icons.person_add_alt_outlined,
+                            label: 'Udostępnij',
+                            onTap: list == null ? null : () => _showShareDialog(list.id),
+                          ),
+                          _buildActionTile(
+                            icon: Icons.refresh,
+                            label: 'Odśwież',
+                            onTap: _loadData,
+                          ),
+                          _buildActionTile(
+                            icon: Icons.delete_outline,
+                            label: 'Usuń listę',
+                            color: AppTheme.errorColor,
+                            onTap: list == null
+                                ? null
+                                : () {
+                                    final idx = shoppingListProvider.allLists.indexWhere(
+                                        (l) => l.mealPlanId == shoppingListProvider.selectedListId);
+                                    _confirmDeleteList(shoppingListProvider, list,
+                                        idx >= 0 ? idx + 1 : 1);
+                                  },
+                          ),
+                        ],
+                      ),
+                    ),
+
                     // 0. Przełącznik listy — widoczny tylko gdy użytkownik
                     // ma więcej niż jedną (Premium może mieć do 5).
                     if (shoppingListProvider.allLists.length > 1)
@@ -491,6 +462,44 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
   /// gdy użytkownik ma ich kilka. Etykieta to "Lista N · nazwa sklepu",
   /// bo sama nazwa sklepu nie wystarcza (można mieć dwie listy z tego
   /// samego sklepu), a sam numer nic nie mówi.
+  /// Kafelek akcji w stylu szybkich filtrów z zakładki Przepisy.
+  Widget _buildActionTile({
+    required IconData icon,
+    required String label,
+    required VoidCallback? onTap,
+    Color? color,
+  }) {
+    final active = onTap != null;
+    final tint = color ?? AppTheme.textSecondary;
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 3),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: AppTheme.surfaceColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: tint.withOpacity(active ? 0.35 : 0.12)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 18, color: tint.withOpacity(active ? 1 : 0.4)),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 9, color: tint.withOpacity(active ? 1 : 0.4)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildListSelector(ShoppingListProvider provider) {
     return SizedBox(
       height: 64,
