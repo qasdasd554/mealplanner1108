@@ -8,8 +8,9 @@ import '../../widgets/user_avatar.dart';
 /// Ranking użytkowników wg liczby dodanych, ZAAKCEPTOWANYCH przez
 /// administratora przepisów do wspólnego katalogu — teraz w DWÓCH
 /// wariantach na osobnych zakładkach: "Ten tydzień" (cotygodniowy
-/// konkurs, liczący tylko przepisy z ostatnich 7 dni — każdy zaczyna
-/// "od zera" co tydzień) i "Cały czas" (oryginalny, ranking bez limitu
+/// konkurs, liczący przepisy dodane od PONIEDZIAŁKU bieżącego tygodnia —
+/// licznik zeruje się co poniedziałek, a okres jest DOKŁADNIE ten sam,
+/// na podstawie którego przyznawane są punkty za miejsca 1-3) i "Cały czas" (oryginalny, ranking bez limitu
 /// czasowego).
 class RecipeLeaderboardScreen extends StatefulWidget {
   const RecipeLeaderboardScreen({super.key});

@@ -41,6 +41,48 @@ class _LoginScreenState extends State<LoginScreen> {
   /// informacji o błędnym haśle.
   int _captchaAttempt = 0;
 
+  /// Klucz widgetu CAPTCHA — pozwala przewinąć do niego ekran, gdy
+  /// użytkownik spróbuje się zalogować bez ukończonej weryfikacji.
+  final GlobalKey _captchaKey = GlobalKey();
+
+  /// Chwilowe podświetlenie ramki CAPTCHA na czerwono po nieudanej próbie.
+  bool _captchaHighlighted = false;
+
+  /// Wywoływane, gdy użytkownik dotknie przycisku logowania bez tokenu.
+  ///
+  /// ŚWIADOMA DECYZJA: przyciski NIE są wyszarzone. Nieaktywny przycisk,
+  /// który po dotknięciu nic nie robi, to najgorszy możliwy komunikat —
+  /// użytkownik nie wie, czy aplikacja zamarła, czy zrobił coś źle.
+  /// Zamiast tego przycisk reaguje: przewijamy ekran do weryfikacji,
+  /// podświetlamy ją i mówimy wprost, czego brakuje.
+  bool _requireCaptcha() {
+    if (_captchaToken != null) return true;
+
+    final ctx = _captchaKey.currentContext;
+    if (ctx != null) {
+      Scrollable.ensureVisible(
+        ctx,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOut,
+        alignment: 0.3,
+      );
+    }
+    setState(() => _captchaHighlighted = true);
+    Future.delayed(const Duration(milliseconds: 1800), () {
+      if (mounted) setState(() => _captchaHighlighted = false);
+    });
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(
+          content: Text('Najpierw potwierdź, że nie jesteś robotem.'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    return false;
+  }
+
   void _resetCaptcha() {
     setState(() {
       _captchaToken = null;
@@ -50,7 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_captchaToken == null) return;
+    if (!_requireCaptcha()) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final success = await authProvider.login(
@@ -77,6 +119,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _submitGoogle() async {
+    if (!_requireCaptcha()) return;
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final success = await authProvider.loginWithGoogle(captchaToken: _captchaToken);
 
@@ -101,6 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _submitApple() async {
+    if (!_requireCaptcha()) return;
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final success = await authProvider.loginWithApple(captchaToken: _captchaToken);
 
@@ -285,13 +329,27 @@ class _LoginScreenState extends State<LoginScreen> {
                       // Login Button
                       // Bramka CAPTCHA — przycisk pozostaje nieaktywny, dopóki
                       // weryfikacja się nie powiedzie (patrz _captchaToken).
-                      TurnstileWidget(
-                        key: ValueKey(_captchaAttempt),
-                        onToken: (t) => setState(() => _captchaToken = t),
+                      AnimatedContainer(
+                        key: _captchaKey,
+                        duration: const Duration(milliseconds: 250),
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: _captchaHighlighted
+                                ? AppTheme.errorColor
+                                : Colors.transparent,
+                            width: 2,
+                          ),
+                        ),
+                        child: TurnstileWidget(
+                          key: ValueKey(_captchaAttempt),
+                          onToken: (t) => setState(() => _captchaToken = t),
+                        ),
                       ),
                       if (TurnstileWidget.isEnabled) const SizedBox(height: 8),
                       ElevatedButton(
-                        onPressed: (authProvider.isLoading || _captchaToken == null) ? null : _submit,
+                        onPressed: authProvider.isLoading ? null : _submit,
                         child: authProvider.isLoading
                             ? const SizedBox(
                                 width: 24,
@@ -337,7 +395,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       // logowanie Google, dlatego jest WYŻEJ, nie niżej).
                       if (Platform.isIOS) ...[
                         OutlinedButton.icon(
-                          onPressed: (authProvider.isLoading || _captchaToken == null) ? null : _submitApple,
+                          onPressed: authProvider.isLoading ? null : _submitApple,
                           icon: const Icon(Icons.apple, size: 22),
                           label: const Text('Kontynuuj z Apple'),
                         ).animate().fadeIn(delay: 680.ms),
@@ -364,7 +422,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       // Po uzupełnieniu przycisk pojawi się na iOS sam.
                       if (!Platform.isIOS || ApiConfig.googleIosClientId.isNotEmpty)
                         OutlinedButton.icon(
-                          onPressed: (authProvider.isLoading || _captchaToken == null) ? null : _submitGoogle,
+                          onPressed: authProvider.isLoading ? null : _submitGoogle,
                           icon: const Icon(Icons.g_mobiledata, size: 28),
                           label: const Text('Kontynuuj z Google'),
                         ).animate().fadeIn(delay: 700.ms),

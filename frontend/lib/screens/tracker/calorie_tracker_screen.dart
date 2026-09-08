@@ -462,104 +462,113 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
   }
 
   /// Nawodnienie — pasek postępu i szybkie przyciski dolewania.
+  /// Nawodnienie — układ SPÓJNY z kafelkami na ekranie startowym
+  /// i w profilu: ikona w kolorowym kwadracie po lewej, treść w środku,
+  /// wskaźnik po prawej. Wcześniej ten kafelek miał własny układ
+  /// (nagłówek, pasek pod spodem, przyciski w trzecim rzędzie), przez co
+  /// odstawał wyglądem od reszty aplikacji i zajmował więcej miejsca,
+  /// niż wymaga jedna liczba.
   Widget _buildWaterSection(BuildContext context) {
     final wellness = Provider.of<WellnessProvider>(context);
     final ml = wellness.data.waterMl;
     final goal = wellness.data.waterGoalMl;
     final progress = goal > 0 ? (ml / goal).clamp(0.0, 1.0) : 0.0;
+    const waterBlue = Color(0xFF3B9AE1);
 
-    // Kompaktowy układ: nagłówek, pasek i przyciski w JEDNYM rzędzie
-    // zamiast trzech osobnych sekcji. Wcześniej kafelek zajmował sporo
-    // ekranu jak na jedną liczbę, którą pokazuje.
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: waterBlue.withOpacity(0.3)),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.water_drop_outlined, size: 17, color: Color(0xFF3B9AE1)),
-              const SizedBox(width: 6),
-              const Expanded(
-                child: Text('Nawodnienie',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: waterBlue.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.water_drop, color: waterBlue, size: 22),
               ),
-              // Licznik jest KLIKALNY — otwiera wpisanie dowolnej ilości.
-              // Same przyciski "szklanka/butelka" nie wystarczają, gdy
-              // ktoś wypił np. 300 ml albo chce wpisać całodzienną sumę
-              // jednym wpisem.
-              InkWell(
-                onTap: () => _showCustomWaterDialog(context, wellness),
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '$ml / $goal ml',
-                        style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
-                      ),
-                      const SizedBox(width: 4),
-                      Icon(Icons.edit, size: 13, color: AppTheme.textSecondary),
-                    ],
-                  ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Nawodnienie',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                    const SizedBox(height: 3),
+                    Text(
+                      '$ml z $goal ml',
+                      style: TextStyle(
+                          fontSize: 11, color: AppTheme.textSecondary, height: 1.3),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Kółko postępu zamiast paska pod spodem — mieści się
+              // w wierszu, więc kafelek jest niższy, a procent czytelny
+              // od razu.
+              SizedBox(
+                width: 38,
+                height: 38,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    CircularProgressIndicator(
+                      value: progress,
+                      strokeWidth: 3.5,
+                      backgroundColor: waterBlue.withOpacity(0.15),
+                      color: waterBlue,
+                    ),
+                    Text(
+                      '${(progress * 100).round()}',
+                      style: const TextStyle(
+                          fontSize: 10, fontWeight: FontWeight.bold, color: waterBlue),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 7),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(5),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 6,
-              backgroundColor: AppTheme.textSecondary.withOpacity(0.15),
-              color: const Color(0xFF3B9AE1),
-            ),
-          ),
-          const SizedBox(height: 7),
+          const SizedBox(height: 10),
           Row(
             children: [
-              // Typowe porcje zamiast dowolnej liczby — szybciej dotknąć
-              // "szklanka" niż wpisywać mililitry przy każdym łyku.
               _waterButton(wellness, 250, 'Szklanka'),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               _waterButton(wellness, 500, 'Butelka'),
-              const Spacer(),
+              const SizedBox(width: 6),
+              // Wpisanie dowolnej ilości — potrzebne, gdy ktoś wypił
+              // np. 300 ml albo chce wpisać całodzienną sumę naraz.
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => _showCustomWaterDialog(context, wellness),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  child: const Text('Inna ilość', style: TextStyle(fontSize: 12)),
+                ),
+              ),
               if (ml > 0)
                 IconButton(
-                  icon: Icon(Icons.undo, size: 18, color: AppTheme.textSecondary),
-                  tooltip: 'Cofnij ostatnią szklankę',
-                  onPressed: () => _runWellness(wellness, () => wellness.addWater(-250)),
+                  icon: Icon(Icons.undo, size: 17, color: AppTheme.textSecondary),
+                  visualDensity: VisualDensity.compact,
+                  tooltip: 'Cofnij szklankę',
+                  onPressed: () =>
+                      _runWellness(wellness, () => wellness.addWater(-250)),
                 ),
             ],
           ),
         ],
       ),
     );
-  }
-
-  /// Wykonuje akcję i POKAZUJE ewentualny błąd. Wcześniej provider
-  /// zapisywał błąd, ale nic go nie wyświetlało — dotknięcie przycisku
-  /// nawodnienia wyglądało więc tak, jakby aplikacja go zignorowała,
-  /// bez żadnej informacji, co poszło nie tak.
-  Future<void> _runWellness(
-      WellnessProvider wellness, Future<dynamic> Function() action) async {
-    await action();
-    if (!mounted) return;
-    final error = wellness.consumeError();
-    if (error != null) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(content: Text(error), backgroundColor: AppTheme.errorColor),
-        );
-    }
   }
 
   /// Wpisanie dowolnej liczby mililitrów.
@@ -615,14 +624,20 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
     }
   }
 
+  /// Przycisk szybkiego dolania. Owinięty w Expanded, żeby trzy przyciski
+  /// dzieliły szerokość równo — bez tego długie etykiety rozpychały wiersz
+  /// i wychodziły poza ekran na wąskich telefonach.
   Widget _waterButton(WellnessProvider wellness, int ml, String label) {
-    return OutlinedButton(
-      onPressed: () => _runWellness(wellness, () => wellness.addWater(ml)),
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        visualDensity: VisualDensity.compact,
+    return Expanded(
+      child: OutlinedButton(
+        onPressed: () => _runWellness(wellness, () => wellness.addWater(ml)),
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          visualDensity: VisualDensity.compact,
+        ),
+        child: Text('+$label',
+            style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis),
       ),
-      child: Text('+$label', style: const TextStyle(fontSize: 12)),
     );
   }
 

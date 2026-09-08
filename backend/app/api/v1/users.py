@@ -339,14 +339,24 @@ async def get_weekly_recipe_leaderboard(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> list[RecipeLeaderboardEntry]:
-    """Ta sama logika co ranking ogólny, ale liczy TYLKO przepisy
-    dodane w ciągu ostatnich 7 dni — cotygodniowy konkurs, w którym
-    każdy zaczyna "od zera" co tydzień, zamiast rankingu zdominowanego
-    na stałe przez najwcześniejszych/najbardziej płodnych autorów."""
+    """Ranking TRWAJĄCEGO tygodnia kalendarzowego — od poniedziałku do
+    teraz. Co poniedziałek zaczyna się od zera.
+
+    NAPRAWA: liczone tu było "ostatnie 7 dni wstecz od teraz", czyli okno
+    przesuwające się z każdą godziną — ranking nigdy się nie resetował
+    w poniedziałek, a przepisy po cichu z niego wypadały po 7 dniach.
+    Co gorsza, wypłata nagród liczy tydzień KALENDARZOWY (patrz
+    _previous_week_range w app/services/weekly_contest.py), więc ranking
+    pokazywany użytkownikom obejmował INNY okres niż ten, na podstawie
+    którego przyznawano punkty. Można było prowadzić na ekranie i nie
+    dostać nagrody. Teraz oba miejsca używają tego samego wyliczenia.
+    """
     from app.models import Recipe
+    from app.services.weekly_contest import current_week_start
     from sqlalchemy import func
 
-    week_ago = datetime.now(timezone.utc) - timedelta(days=7)
+    week_start = current_week_start(datetime.now(timezone.utc).date())
+    week_ago = datetime.combine(week_start, datetime.min.time(), tzinfo=timezone.utc)
 
     result = await db.execute(
         select(

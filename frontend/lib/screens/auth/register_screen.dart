@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -32,14 +33,79 @@ class _RegisterScreenState extends State<RegisterScreen> {
   /// Patrz komentarz przy tym samym polu w login_screen.dart.
   String? _captchaToken;
 
+  /// Akceptacja regulaminu. Wymagana przy zakładaniu konta — Apple
+  /// (Guideline 1.2) wymaga jawnej zgody na zasady dotyczące treści
+  /// publikowanych przez użytkowników, a nasz regulamin zawiera klauzulę
+  /// zerowej tolerancji dla treści obraźliwych.
+  bool _termsAccepted = false;
+
   /// Patrz komentarz przy _captchaAttempt w login_screen.dart — token
   /// Turnstile jest jednorazowy, więc po nieudanej próbie trzeba pobrać
   /// nowy.
   int _captchaAttempt = 0;
 
+  /// Patrz komentarz przy _requireCaptcha w login_screen.dart — ta sama
+  /// zasada: przycisk reaguje zamiast być wyszarzony.
+  final GlobalKey _captchaKey = GlobalKey();
+  final GlobalKey _termsKey = GlobalKey();
+  bool _captchaHighlighted = false;
+  bool _termsHighlighted = false;
+
+  /// Przewija do wskazanego elementu i podświetla go na chwilę.
+  void _pointAt(GlobalKey key, VoidCallback highlight, VoidCallback unhighlight,
+      String message) {
+    final ctx = key.currentContext;
+    if (ctx != null) {
+      Scrollable.ensureVisible(ctx,
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeOut,
+          alignment: 0.3);
+    }
+    setState(highlight);
+    Future.delayed(const Duration(milliseconds: 1800), () {
+      if (mounted) setState(unhighlight);
+    });
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 3),
+      ));
+  }
+
+  /// Otwiera dokument prawny. Bez sprawdzania canLaunchUrl — ta metoda
+  /// bywa zawodna i wcześniej blokowała otwieranie linków (patrz
+  /// premium_screen.dart).
+  Future<void> _openLegal(String url) async {
+    try {
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text('Nie udało się otworzyć: $url')));
+      }
+    }
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_captchaToken == null) return;
+
+    // Kolejność sprawdzeń idzie ZGODNIE Z UKŁADEM EKRANU (najpierw
+    // regulamin, potem weryfikacja) — inaczej użytkownik byłby odesłany
+    // najpierw w dół, a potem z powrotem w górę.
+    if (!_termsAccepted) {
+      _pointAt(_termsKey, () => _termsHighlighted = true,
+          () => _termsHighlighted = false,
+          'Zaakceptuj regulamin, aby założyć konto.');
+      return;
+    }
+    if (_captchaToken == null) {
+      _pointAt(_captchaKey, () => _captchaHighlighted = true,
+          () => _captchaHighlighted = false,
+          'Najpierw potwierdź, że nie jesteś robotem.');
+      return;
+    }
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final success = await authProvider.register(
@@ -196,21 +262,107 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           return null;
                         },
                       ).animate().fadeIn(delay: 500.ms),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
+
+                      // Akceptacja regulaminu i polityki prywatności.
+                      // Odnośniki są KLIKALNE i otwierają dokumenty —
+                      // zgoda na coś, czego nie da się przeczytać, byłaby
+                      // pozorna (i kwestionowana przy weryfikacji w App Store).
+                      AnimatedContainer(
+                        key: _termsKey,
+                        duration: const Duration(milliseconds: 250),
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: _termsHighlighted
+                                ? AppTheme.errorColor
+                                : Colors.transparent,
+                            width: 2,
+                          ),
+                        ),
+                        child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: Checkbox(
+                              value: _termsAccepted,
+                              onChanged: (v) => setState(() => _termsAccepted = v ?? false),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 2),
+                              child: Wrap(
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                  Text('Akceptuję ',
+                                      style: TextStyle(
+                                          fontSize: 12, color: AppTheme.textSecondary)),
+                                  GestureDetector(
+                                    onTap: () => _openLegal(
+                                        'https://qasdasd554.github.io/mealplanner1108/terms-of-use.html'),
+                                    child: Text('regulamin',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: AppTheme.primaryColor,
+                                          fontWeight: FontWeight.w600,
+                                          decoration: TextDecoration.underline,
+                                        )),
+                                  ),
+                                  Text(' oraz ',
+                                      style: TextStyle(
+                                          fontSize: 12, color: AppTheme.textSecondary)),
+                                  GestureDetector(
+                                    onTap: () => _openLegal(
+                                        'https://qasdasd554.github.io/mealplanner1108/privacy-policy.html'),
+                                    child: Text('politykę prywatności',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: AppTheme.primaryColor,
+                                          fontWeight: FontWeight.w600,
+                                          decoration: TextDecoration.underline,
+                                        )),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      ).animate().fadeIn(delay: 550.ms),
+                      const SizedBox(height: 16),
 
                       // Bramka CAPTCHA — przycisk pozostaje nieaktywny,
                       // dopóki weryfikacja się nie powiedzie.
-                      TurnstileWidget(
-                        key: ValueKey(_captchaAttempt),
-                        onToken: (t) => setState(() => _captchaToken = t),
+                      AnimatedContainer(
+                        key: _captchaKey,
+                        duration: const Duration(milliseconds: 250),
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: _captchaHighlighted
+                                ? AppTheme.errorColor
+                                : Colors.transparent,
+                            width: 2,
+                          ),
+                        ),
+                        child: TurnstileWidget(
+                          key: ValueKey(_captchaAttempt),
+                          onToken: (t) => setState(() => _captchaToken = t),
+                        ),
                       ),
                       if (TurnstileWidget.isEnabled) const SizedBox(height: 8),
 
                       // Register Button
                       ElevatedButton(
-                        onPressed: (authProvider.isLoading || _captchaToken == null)
-                            ? null
-                            : _submit,
+                        // Przycisk AKTYWNY — brakujące zgody sygnalizuje
+                        // _submit, przewijając do nich i podświetlając.
+                        onPressed: authProvider.isLoading ? null : _submit,
                         child: authProvider.isLoading
                             ? const SizedBox(
                                 width: 24,

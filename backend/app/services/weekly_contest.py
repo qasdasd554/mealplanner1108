@@ -21,6 +21,21 @@ logger = logging.getLogger(__name__)
 _PLACE_POINTS = [3, 2, 1]
 
 
+def current_week_start(today: date) -> date:
+    """Poniedziałek TRWAJĄCEGO tygodnia — początek okresu, który liczy się
+    do bieżącego konkursu.
+
+    Wystawione publicznie, bo z tego samego wyliczenia korzysta ranking
+    pokazywany użytkownikom (app/api/v1/users.py). Wcześniej ranking
+    używał WŁASNEJ definicji "tygodnia" (ostatnie 7 dni licząc wstecz od
+    teraz), a wypłaty — tygodnia kalendarzowego. Były to dwa różne okresy,
+    więc ranking widoczny w aplikacji NIE odpowiadał temu, na podstawie
+    czego przyznawano nagrody: można było prowadzić na ekranie i nie
+    dostać punktów.
+    """
+    return today - timedelta(days=today.weekday())
+
+
 def _previous_week_range(today: date) -> tuple[date, date]:
     """Zwraca (poniedziałek, poniedziałek+7dni) POPRZEDNIEGO tygodnia
     względem podanej daty — czyli tygodnia, który właśnie się skończył
