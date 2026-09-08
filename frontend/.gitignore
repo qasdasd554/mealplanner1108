@@ -53,3 +53,14 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Package.resolved (Swift Package Manager) NIE jest wersjonowany.
+#
+# Xcode Cloud buduje z wylaczonym automatycznym rozwiazywaniem zaleznosci
+# i odrzuca build, gdy zapisany plik nie odpowiada liscie pakietow
+# w projekcie. Kazde dodanie wtyczki z zaleznoscia natywna (np. Firebase)
+# powodowalo wiec zatrzymanie builda, dopoki ktos recznie nie odswiezyl
+# tego pliku na Macu. Skrypt ci_post_clone.sh generuje go od nowa przy
+# kazdym buildzie, wiec trzymanie go w repozytorium tylko szkodzi.
+ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+ios/Runner.xcworkspace/xcshareddata/swiftpm/Package.resolved
