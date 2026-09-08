@@ -18,6 +18,7 @@ flutter build ios --config-only --release --no-codesign
 
 echo "=== Rozwiazywanie zaleznosci Swift Package Manager ==="
 cd ios
+
 xcodebuild -resolvePackageDependencies -project Runner.xcodeproj
 
 echo "=== Instalacja Podow ==="
