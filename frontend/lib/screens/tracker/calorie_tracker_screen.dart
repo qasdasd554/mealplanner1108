@@ -462,6 +462,24 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
   }
 
   /// Nawodnienie — pasek postępu i szybkie przyciski dolewania.
+  /// Wykonuje akcję nawodnienia/aktywności i POKAZUJE ewentualny błąd.
+  ///
+  /// Bez tego provider zapisywał błąd, ale nic go nie wyświetlało —
+  /// dotknięcie przycisku wyglądało, jakby aplikacja je zignorowała.
+  Future<void> _runWellness(
+      WellnessProvider wellness, Future<dynamic> Function() action) async {
+    await action();
+    if (!mounted) return;
+    final error = wellness.consumeError();
+    if (error != null) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(error), backgroundColor: AppTheme.errorColor),
+        );
+    }
+  }
+
   /// Nawodnienie — układ SPÓJNY z kafelkami na ekranie startowym
   /// i w profilu: ikona w kolorowym kwadracie po lewej, treść w środku,
   /// wskaźnik po prawej. Wcześniej ten kafelek miał własny układ
