@@ -85,6 +85,12 @@ async def verify_purchase(
 
     await db.commit()
     await db.refresh(current_user)
+
+    await _notify(
+        db,
+        current_user.id,
+        "Premium aktywne! Masz teraz dostęp do wszystkich funkcji aplikacji.",
+    )
     return current_user
 
 
@@ -186,6 +192,13 @@ async def verify_points_purchase(
     current_user.premium_points += points_to_add
     await db.commit()
 
+    await _notify(
+        db,
+        current_user.id,
+        f"Doładowano {points_to_add} punktów premium. "
+        f"Masz ich teraz {current_user.premium_points}.",
+    )
+
     try:
         await consume_purchase(payload.purchase_token, payload.product_id)
     except PurchaseVerificationError:
@@ -202,3 +215,27 @@ async def verify_points_purchase(
 
     await db.refresh(current_user)
     return VerifyPointsPurchaseResponse(premium_points=current_user.premium_points)
+
+async def _notify(db, user_id, message: str, ntype: str = "billing") -> None:
+    """Tworzy powiadomienie i (jeśli włączony) wysyła push.
+
+    Wydzielone, bo billing przyznaje premium i punkty w kilku miejscach,
+    a powtarzanie tego bloku prosiłoby się o pominięcie w którymś z nich.
+    Każdy błąd jest połykany: powiadomienie to dodatek, nie może cofnąć
+    ani zablokować zakupu, za który użytkownik już zapłacił.
+    """
+    try:
+        from app.models.notification import Notification
+
+        n = Notification(user_id=user_id, notification_type=ntype, message=message)
+        db.add(n)
+        await db.commit()
+
+        from app.services.push import is_push_enabled, push_for_notification
+
+        if is_push_enabled():
+            await push_for_notification(db, n)
+    except Exception:
+        import logging
+
+        logging.getLogger(__name__).warning("Nie udało się wysłać powiadomienia o zakupie.")

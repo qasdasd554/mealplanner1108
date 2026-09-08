@@ -161,7 +161,10 @@ async def send_push_to_user(
 # w bazie i trafia do dymka jako tekst.
 _TITLES: dict[str, str] = {
     "recipe_comment": "Nowy komentarz",
+    "comment_like": "Ktoś polubił Twój komentarz",
+    "billing": "Meal Planner Polska",
     "shopping_list_share": "Udostępniono Ci listę zakupów",
+    "shopping_list_accepted": "Zaproszenie przyjęte",
     "weekly_contest": "Konkurs tygodnia",
     "recipe_photo": "Zdjęcie przepisu",
     "recipe_approved": "Przepis zaakceptowany",

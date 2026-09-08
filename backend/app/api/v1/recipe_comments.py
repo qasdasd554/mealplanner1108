@@ -259,6 +259,24 @@ async def like_recipe_comment(
         # ograniczenie unikalności w bazie i tak to obsłuży poprawnie,
         # więc po prostu wycofujemy i traktujemy jako sukces (idempotentnie).
         await db.rollback()
+        return
+
+    # Powiadomienie dla autora komentarza. Świadomie NIE powiadamiamy
+    # o polubieniu WŁASNEGO komentarza — to jedyny przypadek, w którym
+    # użytkownik dostawałby wiadomość o czymś, co sam przed chwilą zrobił.
+    if comment.user_id != current_user.id:
+        n = Notification(
+            user_id=comment.user_id,
+            notification_type="comment_like",
+            message=(
+                f"{current_user.display_name or 'Ktoś'} polubił(a) Twój komentarz."
+            ),
+            recipe_id=recipe_id,
+            comment_id=comment_id,
+        )
+        db.add(n)
+        await db.commit()
+        await _send_pushes(db, [n])
 
 
 @router.delete("/{recipe_id}/comments/{comment_id}/like", status_code=status.HTTP_204_NO_CONTENT)

@@ -646,6 +646,31 @@ async def share_shopping_list(
         await db.commit()
         await db.refresh(share)
 
+    # Powiadomienie dla odbiorcy. Bez niego zaproszenie było całkowicie
+    # niewidoczne: nic nie sygnalizowało, że ktoś udostępnił listę, więc
+    # trafiało się na nie tylko przypadkiem, wchodząc w zaproszenia.
+    from app.models.notification import Notification
+
+    notification = Notification(
+        user_id=target_user.id,
+        notification_type="shopping_list_share",
+        message=(
+            f"{current_user.display_name or 'Ktoś'} udostępnił(a) Ci listę zakupów. "
+            "Otwórz Zakupy → Zaproszenia, żeby ją przyjąć."
+        ),
+    )
+    db.add(notification)
+    await db.commit()
+
+    try:
+        from app.services.push import is_push_enabled, push_for_notification
+
+        if is_push_enabled():
+            await push_for_notification(db, notification)
+    except Exception:
+        # Push to dodatek — jego awaria nie może wywrócić udostępnienia.
+        pass
+
     return ShoppingListShareResponse(
         id=share.id,
         meal_plan_id=share.meal_plan_id,
@@ -741,29 +766,31 @@ async def accept_share(
     await db.commit()
     await db.refresh(share)
 
-    # Powiadomienie dla odbiorcy. Bez niego zaproszenie było całkowicie
-    # niewidoczne: nic nie sygnalizowało, że ktoś udostępnił listę, więc
-    # trafiało się na nie tylko przypadkiem, wchodząc w zaproszenia.
+    # Powiadomienie dla NADAWCY — dotąd udostępniał listę i nigdy nie
+    # dowiadywał się, czy druga osoba w ogóle przyjęła zaproszenie.
     from app.models.notification import Notification
 
-    notification = Notification(
-        user_id=target_user.id,
-        notification_type="shopping_list_share",
+    accept_notification = Notification(
+        user_id=share.shared_by_user_id,
+        # OSOBNY typ, nie "shopping_list_share": tamten ma tytuł
+        # "Udostępniono Ci listę zakupów", co przy powiadomieniu
+        # o PRZYJĘCIU zaproszenia brzmiałoby myląco — nikt wtedy
+        # niczego nie udostępnia.
+        notification_type="shopping_list_accepted",
         message=(
-            f"{current_user.display_name or 'Ktoś'} udostępnił(a) Ci listę zakupów. "
-            "Otwórz Zakupy → Zaproszenia, żeby ją przyjąć."
+            f"{current_user.display_name or 'Ktoś'} przyjął(-ęła) Twoje "
+            "zaproszenie do listy zakupów."
         ),
     )
-    db.add(notification)
+    db.add(accept_notification)
     await db.commit()
 
     try:
         from app.services.push import is_push_enabled, push_for_notification
 
         if is_push_enabled():
-            await push_for_notification(db, notification)
+            await push_for_notification(db, accept_notification)
     except Exception:
-        # Push to dodatek — jego awaria nie może wywrócić udostępnienia.
         pass
 
     return ShoppingListShareResponse(
