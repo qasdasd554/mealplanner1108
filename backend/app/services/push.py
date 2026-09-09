@@ -170,6 +170,8 @@ _TITLES: dict[str, str] = {
     "recipe_approved": "Przepis zaakceptowany",
     "recipe_rejected": "Przepis odrzucony",
     "promotion_pending_approval": "Promocja do sprawdzenia",
+    "recipe_pending_approval": "Przepis do sprawdzenia",
+    "product_reviewed": "Zgłoszony produkt",
     "broadcast": "Meal Planner Polska",
     "admin_broadcast": "Meal Planner Polska",
 }

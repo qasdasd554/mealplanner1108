@@ -79,6 +79,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         const SnackBar(
+            duration: Duration(seconds: 3),
           content: Text('Wybierz swój preferowany sklep!'),
           backgroundColor: AppTheme.errorColor,
         ),
@@ -112,6 +113,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
           SnackBar(
+            duration: const Duration(seconds: 3),
             content: Text(authProvider.errorMessage ?? 'Nie udało się zapisać preferencji'),
             backgroundColor: AppTheme.errorColor,
           ),

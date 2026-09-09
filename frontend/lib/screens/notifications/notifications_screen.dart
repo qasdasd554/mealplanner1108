@@ -67,7 +67,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(content: Text('Nie udało się oznaczyć wszystkich jako przeczytane')),
+        const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Nie udało się oznaczyć wszystkich jako przeczytane')),
       );
     }
   }
@@ -108,7 +109,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(content: Text('Nie udało się otworzyć przepisu')),
+        const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Nie udało się otworzyć przepisu')),
       );
     }
   }

@@ -102,6 +102,33 @@ class FoodLogService {
     throw Exception(_extractError(response) ?? 'Nie udało się dodać posiłku z planu');
   }
 
+  /// Nadpisuje wartości odżywcze istniejącego wpisu — używane po edycji
+  /// składników. Zmienia TYLKO ten jeden wpis użytkownika; przepis
+  /// pozostaje nietknięty.
+  Future<void> updateFoodLogNutrition(
+    String logId,
+    String token, {
+    required double calories,
+    required double protein,
+    required double fat,
+    required double carbs,
+  }) async {
+    final response = await _client.patch(
+      Uri.parse('$baseUrl/food-log/$logId'),
+      headers: _headers(token),
+      body: jsonEncode({
+        'calories': calories,
+        'protein': protein,
+        'fat': fat,
+        'carbs': carbs,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(_extractError(response) ?? 'Nie udało się zaktualizować wpisu');
+    }
+  }
+
   Future<void> deleteFoodLog(String logId, String token) async {
     // Backend: DELETE /food-log/{entry_id}
     final response = await _client.delete(

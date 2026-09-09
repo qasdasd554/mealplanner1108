@@ -9,7 +9,11 @@ from sqlalchemy import delete, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.api.deps import get_current_admin, get_current_user
+from app.api.deps import (
+    get_current_admin,
+    get_current_user,
+    get_current_user_allow_unverified,
+)
 from app.db.session import get_db
 from app.models import Allergen, BlockedUser, Store, User, UserAllergen
 from app.schemas.user import UserResponse
@@ -105,7 +109,12 @@ class AllergenIdsUpdate(BaseModel):
     summary="Pobierz profil bieżącego użytkownika",
 )
 async def get_me(
-    current_user: User = Depends(get_current_user),
+    # ODCZYT profilu jest dozwolony PRZED potwierdzeniem adresu e-mail —
+    # inaczej aplikacja nie mogłaby nawet sprawdzić, czy konto wymaga
+    # weryfikacji, i po ponownym uruchomieniu odsyłałaby użytkownika na
+    # ekran logowania zamiast na wpisanie kodu z maila.
+    # Wszystkie pozostałe endpointy nadal wymagają zweryfikowanego konta.
+    current_user: User = Depends(get_current_user_allow_unverified),
 ) -> User:
     """Zwraca profil zalogowanego użytkownika."""
     return current_user

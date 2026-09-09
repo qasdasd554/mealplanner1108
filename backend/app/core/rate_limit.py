@@ -139,6 +139,10 @@ content_report_limiter = SlidingWindowRateLimiter(max_events=20, window_seconds=
 
 # Zgłaszanie zdjęć do przepisów — każde zgłoszenie to do 3 MB w bazie,
 # więc limit jest ostrzejszy niż przy zwykłych zgłoszeniach tekstowych.
+# Zgłaszanie własnych produktów: 15/h. Każde zgłoszenie trafia do kolejki
+# moderacji, więc bez limitu jedna osoba mogłaby ją zasypać.
+product_submission_limiter = SlidingWindowRateLimiter(max_events=15, window_seconds=3600)
+
 recipe_photo_submission_limiter = SlidingWindowRateLimiter(max_events=10, window_seconds=3600)
 
 

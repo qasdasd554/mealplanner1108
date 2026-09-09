@@ -83,7 +83,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text('Nie udało się otworzyć: $url')));
+          ..showSnackBar(SnackBar(
+            duration: const Duration(seconds: 3),content: Text('Nie udało się otworzyć: $url')));
       }
     }
   }
@@ -123,10 +124,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
         // automatycznie po stronie backendu).
         Navigator.of(context).pushReplacementNamed('/verify-email');
       } else {
+        // Token CAPTCHA jest JEDNORAZOWY i został właśnie zużyty przez
+        // nieudaną próbę. Bez odtworzenia widgetu kolejna próba (np. po
+        // poprawieniu zajętego adresu e-mail) odbiłaby się od bramki
+        // z mylącym "Weryfikacja nie powiodła się" zamiast właściwego
+        // komunikatu — a użytkownik nie miałby jak tego naprawić.
+        setState(() {
+          _captchaToken = null;
+          _captchaAttempt++;
+        });
+
         ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
           SnackBar(
+            duration: const Duration(seconds: 3),
             content: Text(authProvider.errorMessage ?? 'Rejestracja nie powiodła się'),
             backgroundColor: AppTheme.errorColor,
             behavior: SnackBarBehavior.floating,

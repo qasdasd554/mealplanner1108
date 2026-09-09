@@ -9,6 +9,11 @@ class RecipeIngredient {
   final String unit;
   final bool isOptional;
   final int? kcal;
+  // Wartości TEJ ilości składnika w przepisie (nie na 100 g) — backend
+  // liczy je tak samo jak `kcal`, patrz RecipeIngredientResponse.
+  final double? protein;
+  final double? fat;
+  final double? carbs;
   final Product? product;
 
   RecipeIngredient({
@@ -19,6 +24,9 @@ class RecipeIngredient {
     required this.unit,
     required this.isOptional,
     this.kcal,
+    this.protein,
+    this.fat,
+    this.carbs,
     this.product,
   });
 
@@ -31,6 +39,9 @@ class RecipeIngredient {
       unit: json['unit'] as String? ?? 'g',
       isOptional: json['is_optional'] as bool? ?? false,
       kcal: json['kcal'] as int?,
+      protein: (json['protein'] as num?)?.toDouble(),
+      fat: (json['fat'] as num?)?.toDouble(),
+      carbs: (json['carbs'] as num?)?.toDouble(),
       product: json['product'] != null
           ? Product.fromJson(json['product'] as Map<String, dynamic>)
           : null,

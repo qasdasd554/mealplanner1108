@@ -111,6 +111,26 @@ class PushService {
         return;
       }
 
+      // NA iOS trzeba NAJPIERW poczekać na token APNs od systemu.
+      // getToken() z Firebase potrzebuje go, żeby wystawić własny token —
+      // wywołane za wcześnie zwraca null albo rzuca wyjątek. Ponieważ
+      // wyjątek jest tu połykany, urządzenie po prostu NIGDY się nie
+      // rejestrowało i push na iPhone'ach nie działał w ogóle.
+      // Android tego wymogu nie ma, dlatego tam działało od razu.
+      if (Platform.isIOS) {
+        var apnsToken = await messaging.getAPNSToken();
+        // System potrafi zwrócić token dopiero po chwili — próbujemy
+        // kilka razy zamiast poddawać się po pierwszym null.
+        for (var i = 0; i < 5 && apnsToken == null; i++) {
+          await Future.delayed(const Duration(seconds: 2));
+          apnsToken = await messaging.getAPNSToken();
+        }
+        if (apnsToken == null) {
+          debugPrint('Brak tokenu APNs — push na tym urządzeniu nie zadziała.');
+          return;
+        }
+      }
+
       final token = await messaging.getToken();
       if (token != null) {
         await _sendTokenToBackend(token);

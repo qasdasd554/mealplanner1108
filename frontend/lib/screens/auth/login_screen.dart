@@ -109,6 +109,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
           SnackBar(
+            duration: const Duration(seconds: 3),
             content: Text(authProvider.errorMessage ?? 'Logowanie nie powiodło się'),
             backgroundColor: AppTheme.errorColor,
             behavior: SnackBarBehavior.floating,
@@ -135,6 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
+            duration: const Duration(seconds: 3),
           content: Text(authProvider.errorMessage!),
           backgroundColor: AppTheme.errorColor,
           behavior: SnackBarBehavior.floating,
@@ -161,6 +163,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ..hideCurrentSnackBar()
           ..showSnackBar(
             SnackBar(
+            duration: const Duration(seconds: 3),
               content: Text(authProvider.errorMessage!),
               backgroundColor: AppTheme.errorColor,
               behavior: SnackBarBehavior.floating,

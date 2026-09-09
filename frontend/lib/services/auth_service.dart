@@ -51,10 +51,18 @@ class AuthService {
     String displayName, {
     String? captchaToken,
   }) async {
-    // Odpowiedź /auth/register zawiera tylko access_token — pełny profil
-    // użytkownika (wymagany przez User.fromJson, m.in. created_at) pobiera
-    // się osobno przez /users/me po zalogowaniu (patrz AuthProvider.register).
-    await _client.post(
+    // Odpowiedź /auth/register zawiera access_token — ZAPISUJEMY go od
+    // razu, zamiast logować się drugi raz.
+    //
+    // NAPRAWA POWAŻNEGO BŁĘDU: wcześniej token był ignorowany, a zaraz po
+    // rejestracji wykonywane było osobne logowanie. Przy włączonej bramce
+    // CAPTCHA to logowanie MUSIAŁO się nie powieść: token Turnstile jest
+    // JEDNORAZOWY i został już zużyty przez samą rejestrację, a drugie
+    // żądanie szło bez niego. Skutkowało to czerwonym komunikatem mimo
+    // poprawnie założonego konta ORAZ brakiem zapisanej sesji — przez co
+    // ekran wpisywania kodu z maila przepadał po wyjściu z aplikacji
+    // i nie dało się do niego wrócić.
+    final response = await _client.post(
       ApiConfig.authRegister,
       body: {
         'email': email,
@@ -64,6 +72,10 @@ class AuthService {
           'turnstile_token': captchaToken,
       },
     );
+
+    if (response is Map<String, dynamic> && response['access_token'] != null) {
+      await _client.setToken(response['access_token'] as String);
+    }
   }
 
   /// Loguje przez natywny Google Sign-In (Credential Manager na Androidzie).

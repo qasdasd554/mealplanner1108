@@ -96,7 +96,8 @@ class UpdateAvailableScreen extends StatelessWidget {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(content: Text('Nie udało się otworzyć sklepu.')),
+        const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Nie udało się otworzyć sklepu.')),
       );
     }
   }

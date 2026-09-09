@@ -6,6 +6,10 @@ import '../../theme/app_theme.dart';
 import '../../widgets/decorative_circles.dart';
 import '../../models/food_log.dart';
 import '../../providers/wellness_provider.dart';
+import '../../models/recipe.dart';
+import '../../services/recipe_service.dart';
+import '../../widgets/edit_ingredients_sheet.dart';
+import '../../utils/error_utils.dart';
 
 class CalorieTrackerScreen extends StatefulWidget {
   const CalorieTrackerScreen({super.key});
@@ -445,7 +449,8 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
-            const SnackBar(content: Text('Podaj nazwę i liczbę spalonych kalorii.')),
+            const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Podaj nazwę i liczbę spalonych kalorii.')),
           );
       }
       return;
@@ -475,7 +480,8 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          SnackBar(content: Text(error), backgroundColor: AppTheme.errorColor),
+          SnackBar(
+            duration: const Duration(seconds: 3),content: Text(error), backgroundColor: AppTheme.errorColor),
         );
     }
   }
@@ -486,6 +492,75 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
   /// (nagłówek, pasek pod spodem, przyciski w trzecim rzędzie), przez co
   /// odstawał wyglądem od reszty aplikacji i zajmował więcej miejsca,
   /// niż wymaga jedna liczba.
+  /// Otwiera edycję składników dla ISTNIEJĄCEGO wpisu w dzienniku.
+  ///
+  /// Zmiana dotyczy WYŁĄCZNIE tego wpisu, tego dnia i tego użytkownika —
+  /// przepis pozostaje nietknięty, a inne wpisy z tego samego przepisu
+  /// zachowują swoje wartości.
+  Future<void> _editEntryIngredients(dynamic item) async {
+    final messenger = ScaffoldMessenger.of(context);
+    Recipe recipe;
+    try {
+      recipe = await RecipeService().getRecipe(item.recipeId as String);
+    } catch (e) {
+      if (!mounted) return;
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(
+          duration: const Duration(seconds: 3),
+          content: Text(friendlyError(e)),
+        ));
+      return;
+    }
+    if (!mounted) return;
+
+    if (recipe.ingredients.isEmpty) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(
+          duration: Duration(seconds: 3),
+          content: Text('Ten przepis nie ma listy składników do edycji.'),
+        ));
+      return;
+    }
+
+    final edited = await showModalBottomSheet<EditedNutrition>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppTheme.surfaceColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => EditIngredientsSheet(
+        recipe: recipe,
+        // Wpis mógł zostać dodany z inną liczbą porcji niż cały przepis —
+        // przeliczamy proporcjonalnie, żeby liczby odpowiadały temu,
+        // co użytkownik faktycznie zapisał.
+        servingsFraction: (item.servings as double) /
+            (recipe.servings > 0 ? recipe.servings : 1),
+      ),
+    );
+    if (edited == null || !mounted || !edited.wasEdited) return;
+
+    final ok = await Provider.of<FoodLogProvider>(context, listen: false)
+        .updateEntryNutrition(
+      item.id as String,
+      calories: edited.kcal,
+      protein: edited.protein,
+      fat: edited.fat,
+      carbs: edited.carbs,
+    );
+    if (!mounted) return;
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        duration: const Duration(seconds: 3),
+        content: Text(ok
+            ? 'Zaktualizowano kaloryczność wpisu'
+            : 'Nie udało się zapisać zmian'),
+      ));
+  }
+
   Widget _buildWaterSection(BuildContext context) {
     final wellness = Provider.of<WellnessProvider>(context);
     final ml = wellness.data.waterMl;
@@ -627,7 +702,8 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
       if (context.mounted) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(const SnackBar(content: Text('Podaj liczbę mililitrów.')));
+          ..showSnackBar(const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Podaj liczbę mililitrów.')));
       }
       return;
     }
@@ -813,10 +889,25 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
       },
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
+        // DOTKNIĘCIE otwiera edycję składników (gdy wpis pochodzi
+        // z przepisu). Usuwanie przeniesione na PRZYTRZYMANIE i przesunięcie
+        // palcem — wcześniej dotknięcie od razu pokazywało potwierdzenie
+        // usunięcia, co blokowało jakąkolwiek inną akcję na wpisie.
         onTap: () {
-          setState(() {
-            _revealedDeleteItemId = isRevealed ? null : item.id;
-          });
+          if (isRevealed) {
+            setState(() => _revealedDeleteItemId = null);
+            return;
+          }
+          if (item.recipeId != null) {
+            _editEntryIngredients(item);
+          } else {
+            // Wpis własny (bez przepisu) nie ma składników do edycji —
+            // wtedy dotknięcie zachowuje się jak dotąd.
+            setState(() => _revealedDeleteItemId = item.id);
+          }
+        },
+        onLongPress: () {
+          setState(() => _revealedDeleteItemId = item.id);
         },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),

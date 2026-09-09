@@ -177,6 +177,21 @@ async def _create_tables() -> None:
                 "onboarding_bonus_claimed BOOLEAN NOT NULL DEFAULT FALSE"
             )
         )
+        # Produkty zgłaszane przez użytkowników — patrz app/models/product.py.
+        # Domyślne "approved" sprawia, że istniejące produkty katalogowe
+        # pozostają widoczne bez żadnej migracji danych.
+        await conn.execute(
+            text("ALTER TABLE products ADD COLUMN IF NOT EXISTS created_by_user_id UUID")
+        )
+        await conn.execute(
+            text(
+                "ALTER TABLE products ADD COLUMN IF NOT EXISTS "
+                "review_status VARCHAR(20) NOT NULL DEFAULT 'approved'"
+            )
+        )
+        await conn.execute(
+            text("ALTER TABLE products ADD COLUMN IF NOT EXISTS submitted_price NUMERIC(10,2)")
+        )
         # Nawodnienie: jeden wpis na użytkownika i dzień — patrz
         # app/models/wellness.py.
         await conn.execute(
@@ -464,8 +479,9 @@ app.include_router(v1_router, prefix=settings.API_V1_PREFIX)
 # ---------------------------------------------------------------------------
 
 
-@app.get(
+@app.api_route(
     "/health",
+    methods=["GET", "HEAD"],
     tags=["Health"],
     summary="Sprawdzenie stanu aplikacji i połączenia z bazą danych",
 )

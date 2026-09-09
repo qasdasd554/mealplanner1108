@@ -100,6 +100,18 @@ class _SplashScreenState extends State<SplashScreen> {
       // i otworzyć ponownie, żeby wylądować na /home z niepotwierdzonym
       // kontem i korzystać z niego bez ograniczeń. Backend też tego nie
       // pilnował (patrz app/api/deps.py) — teraz pilnują oba miejsca.
+      // Profil MUSI być wczytany, zanim zdecydujemy dokąd iść.
+      // _checkTokenOnInit() startuje w konstruktorze providera i przy
+      // "zimnym starcie" darmowego backendu Render potrafi nie zdążyć
+      // w 800 ms. Bez tego oczekiwania postLoginRoute widziałby pusty
+      // profil i odsyłał na /login — mimo ważnej sesji. Najbardziej
+      // bolało to konta z niepotwierdzonym adresem: zamiast wrócić na
+      // ekran wpisywania kodu, użytkownik lądował na logowaniu.
+      if (authProvider.currentUser == null) {
+        await authProvider.loadProfile();
+        if (!mounted) return;
+      }
+
       // Wspólna logika celu (weryfikacja e-maila → onboarding → home),
       // ta sama co po zalogowaniu — patrz AuthProvider.postLoginRoute.
       final route = authProvider.postLoginRoute;

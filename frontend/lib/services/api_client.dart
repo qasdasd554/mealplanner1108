@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
@@ -16,6 +17,18 @@ class ApiException implements Exception {
 }
 
 class ApiClient {
+  /// Maksymalny czas oczekiwania na odpowiedź serwera.
+  ///
+  /// NAPRAWA REALNEGO BŁĘDU: żądania nie miały ŻADNEGO limitu czasu.
+  /// Gdy backend na darmowym planie Render budzi się z uśpienia albo
+  /// połączenie zawiesi się bez zerwania, żądanie wisiało w
+  /// nieskończoność — razem z nim kręcił się przycisk, którego nie dało
+  /// się już nacisnąć ponownie. Użytkownik musiał ubić aplikację.
+  ///
+  /// 45 sekund, a nie mniej, bo zimny start Rendera potrafi zająć ~30 s
+  /// i krótszy limit przerywałby poprawne żądania.
+  static const Duration _timeout = Duration(seconds: 45);
+
   static final ApiClient _instance = ApiClient._internal();
   factory ApiClient() => _instance;
   ApiClient._internal();
@@ -90,7 +103,7 @@ class ApiClient {
     final url = Uri.parse('${ApiConfig.apiUrl}$path');
     
     try {
-      final response = await http.get(url, headers: _headers(token));
+      final response = await http.get(url, headers: _headers(token)).timeout(_timeout);
       return _handleResponse(response);
     } catch (e) {
       _handleError(e);
@@ -106,7 +119,7 @@ class ApiClient {
         url,
         headers: _headers(token),
         body: body != null ? jsonEncode(body) : null,
-      );
+      ).timeout(_timeout);
       return _handleResponse(response);
     } catch (e) {
       _handleError(e);
@@ -122,7 +135,7 @@ class ApiClient {
         url,
         headers: _headers(token),
         body: body != null ? jsonEncode(body) : null,
-      );
+      ).timeout(_timeout);
       return _handleResponse(response);
     } catch (e) {
       _handleError(e);
@@ -138,7 +151,7 @@ class ApiClient {
         url,
         headers: _headers(token),
         body: body != null ? jsonEncode(body) : null,
-      );
+      ).timeout(_timeout);
       return _handleResponse(response);
     } catch (e) {
       _handleError(e);
@@ -150,7 +163,7 @@ class ApiClient {
     final url = Uri.parse('${ApiConfig.apiUrl}$path');
     
     try {
-      final response = await http.delete(url, headers: _headers(token));
+      final response = await http.delete(url, headers: _headers(token)).timeout(_timeout);
       return _handleResponse(response);
     } catch (e) {
       _handleError(e);
@@ -186,6 +199,14 @@ class ApiClient {
   void _handleError(dynamic error) {
     if (error is ApiException) {
       throw error;
+    } else if (error is TimeoutException) {
+      // Osobny komunikat dla przekroczenia czasu — "brak połączenia"
+      // byłoby mylące, gdy sieć działa, a to serwer się nie wyrabia
+      // (typowo: budzenie uśpionej instancji na darmowym planie Render).
+      throw ApiException(
+        504,
+        'Serwer nie odpowiedział na czas. Spróbuj ponownie za chwilę.',
+      );
     } else if (error is SocketException) {
       throw ApiException(503, 'Brak połączenia z serwerem. Sprawdź swoje połączenie internetowe.');
     } else {

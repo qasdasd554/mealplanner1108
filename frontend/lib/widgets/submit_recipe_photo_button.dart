@@ -56,6 +56,7 @@ class _SubmitRecipePhotoButtonState extends State<SubmitRecipePhotoButton> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         const SnackBar(
+            duration: Duration(seconds: 3),
           content: Text('Dziękujemy! Zdjęcie pojawi się po akceptacji przez administratora.'),
         ),
       );
@@ -65,7 +66,8 @@ class _SubmitRecipePhotoButtonState extends State<SubmitRecipePhotoButton> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
       );
     }
   }

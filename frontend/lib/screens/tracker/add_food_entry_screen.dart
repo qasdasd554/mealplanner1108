@@ -7,6 +7,9 @@ import '../../models/meal_plan.dart';
 import '../../services/recipe_service.dart';
 import '../../models/recipe.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/edit_ingredients_sheet.dart';
+import '../../widgets/submit_product_sheet.dart';
+
 
 class AddFoodEntryScreen extends StatefulWidget {
   const AddFoodEntryScreen({super.key});
@@ -123,7 +126,8 @@ class _PlanTabState extends State<_PlanTab> {
         ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-          SnackBar(content: Text(provider.error ?? 'Nie udało się dodać posiłku')),
+          SnackBar(
+            duration: const Duration(seconds: 3),content: Text(provider.error ?? 'Nie udało się dodać posiłku')),
         );
       }
     }
@@ -316,11 +320,76 @@ class _RecipesTabState extends State<_RecipesTab> {
     );
     if (result == null || !mounted) return;
 
+    final servings = result['servings'] as double;
+    final mealType = result['mealType'] as String;
     final foodLogProvider = Provider.of<FoodLogProvider>(context, listen: false);
+
+    // Użytkownik wybrał "Dopasuj składniki" — otwieramy edycję i zapisujemy
+    // WYLICZONE wartości zamiast tych z przepisu. Zmiana dotyczy tylko tego
+    // wpisu w dzienniku; sam przepis zostaje nietknięty.
+    if (result['editIngredients'] == true) {
+      // Przepis z listy bywa uproszczony (bez składników), więc pobieramy
+      // pełną wersję — bez niej nie ma czego edytować.
+      Recipe full = recipe;
+      if (recipe.ingredients.isEmpty) {
+        try {
+          full = await RecipeService().getRecipe(recipe.id);
+        } catch (_) {
+          // Nie udało się pobrać — zapisujemy normalnie, bez edycji.
+        }
+      }
+      if (!mounted) return;
+
+      if (full.ingredients.isNotEmpty) {
+        final edited = await showModalBottomSheet<EditedNutrition>(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: AppTheme.surfaceColor,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          builder: (_) => EditIngredientsSheet(
+            recipe: full,
+            servingsFraction: servings / (full.servings > 0 ? full.servings : 1),
+          ),
+        );
+        if (edited == null || !mounted) return;
+
+        if (edited.wasEdited) {
+          // Zapis jako wpis WŁASNY, nie powiązany z przepisem — bo
+          // wartości odżywcze zostały skorygowane i nie odpowiadają już
+          // temu, co jest w przepisie. Nazwa zostaje ta sama, więc
+          // w dzienniku widać, co to było.
+          final ok = await foodLogProvider.addManualEntry(
+            mealType: mealType,
+            foodName: full.name,
+            calories: edited.kcal,
+            protein: edited.protein,
+            fat: edited.fat,
+            carbs: edited.carbs,
+          );
+          if (!mounted) return;
+          if (ok) {
+            Navigator.pop(context);
+          } else {
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(SnackBar(
+                duration: const Duration(seconds: 3),
+                content: Text(foodLogProvider.error ?? 'Nie udało się dodać posiłku'),
+              ));
+          }
+          return;
+        }
+        // Nic nie zmieniono — zapisujemy zwykłą ścieżką, żeby wpis
+        // zachował powiązanie z przepisem.
+      }
+    }
+
     final success = await foodLogProvider.addRecipeEntry(
       recipeId: recipe.id,
-      mealType: result['mealType'] as String,
-      servings: result['servings'] as double,
+      mealType: mealType,
+      servings: servings,
     );
     if (!mounted) return;
     if (success) {
@@ -329,7 +398,8 @@ class _RecipesTabState extends State<_RecipesTab> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(foodLogProvider.error ?? 'Nie udało się dodać posiłku')),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(foodLogProvider.error ?? 'Nie udało się dodać posiłku')),
       );
     }
   }
@@ -489,6 +559,23 @@ class _LogRecipeSheetState extends State<_LogRecipeSheet> {
               onPressed: () => Navigator.pop(context, {'mealType': _mealType, 'servings': _servings}),
               child: const Text('Dodaj do dziennika'),
             ),
+            const SizedBox(height: 6),
+            // Druga, opcjonalna ścieżka: skorygować składniki przed
+            // zapisem. Celowo jako mniej wyeksponowany przycisk tekstowy —
+            // to przypadek rzadszy niż zwykłe dodanie, a nie chcemy
+            // komplikować typowej czynności.
+            SizedBox(
+              width: double.infinity,
+              child: TextButton.icon(
+                onPressed: () => Navigator.pop(context, {
+                  'mealType': _mealType,
+                  'servings': _servings,
+                  'editIngredients': true,
+                }),
+                icon: const Icon(Icons.tune, size: 18),
+                label: const Text('Dopasuj składniki'),
+              ),
+            ),
           ],
         ),
       ),
@@ -525,9 +612,51 @@ class _ManualTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SingleChildScrollView(
-      padding: EdgeInsets.all(24.0),
-      child: ManualEntryForm(),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        children: [
+          const ManualEntryForm(),
+          const SizedBox(height: 20),
+          const Divider(),
+          const SizedBox(height: 12),
+          // Zgłoszenie własnego produktu do katalogu — inna rzecz niż
+          // ręczny wpis powyżej. Ręczny wpis dotyczy JEDNEGO posiłku
+          // i znika po dniu; zgłoszony produkt zostaje w katalogu i można
+          // go używać wielokrotnie, także na liście zakupów.
+          Text(
+            'Jesz coś, czego nie ma w katalogu?',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Dodaj produkt raz, a potem wybieraj go z listy.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: AppTheme.surfaceColor,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                builder: (_) => const SubmitProductSheet(),
+              ),
+              icon: const Icon(Icons.add_box_outlined, size: 18),
+              label: const Text('Dodaj własny produkt'),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -593,7 +722,8 @@ class _ManualEntryFormState extends State<ManualEntryForm> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(provider.error ?? 'Nie udało się dodać wpisu')),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(provider.error ?? 'Nie udało się dodać wpisu')),
       );
     }
   }

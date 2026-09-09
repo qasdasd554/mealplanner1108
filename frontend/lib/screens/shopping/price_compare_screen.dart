@@ -29,14 +29,16 @@ class _PriceCompareScreenState extends State<PriceCompareScreen> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text('Plan przełączony na ${result.storeName}')),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text('Plan przełączony na ${result.storeName}')),
       );
       Navigator.of(context).pop();
     } else {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(provider.errorMessage ?? 'Nie udało się przełączyć sklepu')),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(provider.errorMessage ?? 'Nie udało się przełączyć sklepu')),
       );
     }
   }

@@ -122,7 +122,8 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(content: Text('Dodaj przynajmniej jeden składnik')),
+        const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Dodaj przynajmniej jeden składnik')),
       );
       return;
     }
@@ -131,7 +132,8 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(content: Text('Dodaj przynajmniej jeden krok przygotowania')),
+        const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Dodaj przynajmniej jeden krok przygotowania')),
       );
       return;
     }
@@ -164,7 +166,8 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(friendlyError(e))),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(friendlyError(e))),
       );
     } finally {
       if (mounted) setState(() => _isSubmitting = false);

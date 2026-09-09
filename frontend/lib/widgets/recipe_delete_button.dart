@@ -55,7 +55,8 @@ class _RecipeDeleteButtonState extends State<RecipeDeleteButton> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(content: Text('Nie udało się usunąć przepisu')),
+        const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Nie udało się usunąć przepisu')),
       );
     }
   }

@@ -31,14 +31,20 @@ class TurnstileWidget extends StatefulWidget {
   State<TurnstileWidget> createState() => _TurnstileWidgetState();
 }
 
-class _TurnstileWidgetState extends State<TurnstileWidget> {
+class _TurnstileWidgetState extends State<TurnstileWidget> with WidgetsBindingObserver {
   WebViewController? _controller;
   bool _isLoading = true;
   bool _failed = false;
 
+  /// Znacznik jednorazowego wygaszenia licznika czasu — bez niego,
+  /// gdyby _loadTimeout odpalił się PO tym, jak strona już się wczytała,
+  /// mógłby błędnie oznaczyć sprawny widget jako zepsuty.
+  int _loadGeneration = 0;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     if (!TurnstileWidget.isEnabled) {
       // Bramka wyłączona — zgłaszamy "gotowe" po pierwszej klatce, żeby
       // ekran logowania nie czekał w nieskończoność na token.
@@ -48,6 +54,54 @@ class _TurnstileWidgetState extends State<TurnstileWidget> {
       return;
     }
     _initWebView();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // NAPRAWA: po wyjściu z aplikacji i powrocie do niej widget CAPTCHA
+    // potrafił zostać "martwy" — WebView na Androidzie wstrzymuje
+    // wykonywanie JS w tle, więc odliczanie ważności tokenu Turnstile
+    // (ok. 5 minut) i wewnętrzne odświeżanie wyzwania nie działały,
+    // jak powinny. Po powrocie z tła użytkownik miał widget, który
+    // wyglądał na sprawny, ale token nigdy nie przychodził — a próba
+    // logowania kończyła się w kółko tym samym błędem, bez wyjaśnienia.
+    // Przeładowanie strony po wznowieniu daje ZAWSZE świeże wyzwanie.
+    if (state == AppLifecycleState.resumed &&
+        TurnstileWidget.isEnabled &&
+        _controller != null) {
+      widget.onToken(null);
+      setState(() {
+        _isLoading = true;
+        _failed = false;
+      });
+      _controller!.reload();
+      _armLoadTimeout();
+    }
+  }
+
+  /// Gdy strona nie zgłosi się w rozsądnym czasie — ani `onPageFinished`,
+  /// ani `onWebResourceError` — pokazujemy stan "nie udało się" zamiast
+  /// zostawiać użytkownika przed kręcącym się w nieskończoność kółkiem
+  /// bez żadnej możliwości działania. Typowy powód: sieć, która po cichu
+  /// blokuje connectivity do Cloudflare (np. część sieci firmowych/szkolnych)
+  /// bez zwracania jawnego błędu.
+  void _armLoadTimeout() {
+    final generation = ++_loadGeneration;
+    Future.delayed(const Duration(seconds: 12), () {
+      if (!mounted || generation != _loadGeneration) return;
+      if (_isLoading) {
+        setState(() {
+          _isLoading = false;
+          _failed = true;
+        });
+      }
+    });
   }
 
   void _initWebView() {
@@ -106,6 +160,7 @@ class _TurnstileWidgetState extends State<TurnstileWidget> {
         ),
       )
       ..loadRequest(uri);
+    _armLoadTimeout();
   }
 
   @override
@@ -113,32 +168,51 @@ class _TurnstileWidgetState extends State<TurnstileWidget> {
     if (!TurnstileWidget.isEnabled) return const SizedBox.shrink();
 
     if (_failed) {
-      // Gdy weryfikacji naprawdę nie da się wczytać, NIE blokujemy
-      // logowania na stałe — użytkownik dostaje przycisk ponowienia,
-      // a backend i tak sprawdza token po swojej stronie, więc pominięcie
-      // widgetu niczego nie osłabia: żądanie bez ważnego tokenu zostanie
-      // odrzucone przez serwer.
+      // Gdy weryfikacji naprawdę nie da się wczytać (np. sieć blokuje
+      // Cloudflare), NIE blokujemy logowania na stałe. To spójne
+      // z tym, jak backend traktuje WŁASNĄ awarię połączenia z Cloudflare
+      // (patrz verify_turnstile_token — też przepuszcza żądanie zamiast
+      // blokować cały serwis z powodu zewnętrznej usługi). Skoro obecnie
+      // backend i tak nie wymaga jeszcze tokenu (bramka wyłączona do
+      // czasu publikacji), pominięcie tutaj niczego nie osłabia; gdy
+      // bramka zostanie włączona, serwer i tak odrzuci puste żądanie —
+      // to on jest ostatecznym strażnikiem, nie ten ekran.
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.wifi_off, size: 16, color: AppTheme.textSecondary),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Nie udało się wczytać weryfikacji. Sprawdź połączenie.',
-                style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-              ),
+            Row(
+              children: [
+                Icon(Icons.wifi_off, size: 16, color: AppTheme.textSecondary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Nie udało się wczytać weryfikacji. Sprawdź połączenie.',
+                    style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _failed = false;
+                      _isLoading = true;
+                    });
+                    _initWebView();
+                  },
+                  child: const Text('Ponów'),
+                ),
+              ],
             ),
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  _failed = false;
-                  _isLoading = true;
-                });
-                _initWebView();
-              },
-              child: const Text('Ponów'),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () => widget.onToken(''),
+                child: Text(
+                  'Kontynuuj mimo to',
+                  style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                ),
+              ),
             ),
           ],
         ),
@@ -159,6 +233,29 @@ class _TurnstileWidgetState extends State<TurnstileWidget> {
               height: 20,
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
+          // Ręczne odświeżenie dostępne ZAWSZE, nie tylko po twardym
+          // błędzie — gdyby widget "zawiesił się" bez wywołania żadnego
+          // z callbacków (np. zablokowany JS bez zgłoszenia błędu),
+          // użytkownik ma jak sam wymusić nową próbę, zamiast czekać
+          // 12 sekund na automatyczny timeout albo zamykać aplikację.
+          Positioned(
+            right: 0,
+            top: 4,
+            child: IconButton(
+              icon: Icon(Icons.refresh, size: 16, color: AppTheme.textSecondary),
+              tooltip: 'Odśwież weryfikację',
+              visualDensity: VisualDensity.compact,
+              onPressed: () {
+                widget.onToken(null);
+                setState(() {
+                  _isLoading = true;
+                  _failed = false;
+                });
+                _controller?.reload();
+                _armLoadTimeout();
+              },
+            ),
+          ),
         ],
       ),
     );

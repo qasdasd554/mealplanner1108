@@ -63,7 +63,8 @@ class _PantryScreenState extends State<PantryScreen> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
       );
     }
   }
@@ -125,7 +126,8 @@ class _PantryScreenState extends State<PantryScreen> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
       );
     }
   }
@@ -265,7 +267,8 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
       );
     } finally {
       if (mounted) setState(() => _isSearching = false);
@@ -280,7 +283,8 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text('Dodano "${product.name}" do spiżarni.')),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text('Dodano "${product.name}" do spiżarni.')),
       );
       Navigator.of(context).pop(true);
     } catch (e) {
@@ -289,7 +293,8 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
       );
     }
   }

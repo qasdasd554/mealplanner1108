@@ -149,14 +149,16 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          SnackBar(content: Text('Wysłano zaproszenie do $nickname')),
+          SnackBar(
+            duration: const Duration(seconds: 3),content: Text('Wysłano zaproszenie do $nickname')),
         );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
       );
     }
   }
@@ -273,6 +275,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                               Navigator.of(this.context).pop();
                               ScaffoldMessenger.of(this.context).showSnackBar(
                                 SnackBar(
+            duration: const Duration(seconds: 3),
                                   content: Text('Zamieniono na: ${sub['name']}'),
                                   backgroundColor: AppTheme.primaryColor,
                                 ),
@@ -396,8 +399,18 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                     if (list.isFullyChecked)
                       _buildCompletionPanel(shoppingListProvider, list),
 
-                    // 1. Panel podsumowania (Postęp i cena)
-                    _buildSummaryCard(list),
+                    // 1. Panel podsumowania (Postęp i cena) — chowa się
+                    // do minimalnego paska przy przewijaniu w dół, tak
+                    // samo jak rząd kafelków akcji wyżej. Wcześniej
+                    // zostawał w pełnym rozmiarze na stałe i przy dłuższej
+                    // liście zajmował sporo ekranu, mimo że po przewinięciu
+                    // najważniejsza jest już tylko sama lista produktów.
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 220),
+                      child: _showActions
+                          ? _buildSummaryCard(list)
+                          : _buildCompactSummaryBar(list),
+                    ),
 
                     // 1b. Akcje: Porównaj ceny i Eksportuj
                     Padding(
@@ -664,6 +677,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
+            duration: const Duration(seconds: 3),
           content: Text(ok ? 'Lista usunięta' : 'Nie udało się usunąć listy'),
           backgroundColor: ok ? null : AppTheme.errorColor,
         ),
@@ -748,6 +762,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
+            duration: const Duration(seconds: 3),
           content: Text(
             moved == null
                 ? (provider.errorMessage ?? 'Nie udało się zakończyć listy')
@@ -760,8 +775,59 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
       );
   }
 
+  /// Minimalna, jednowierszowa wersja podsumowania — pokazywana zamiast
+  /// pełnej karty przy przewijaniu listy produktów w dół.
+  Widget _buildCompactSummaryBar(ShoppingList list) {
+    return Container(
+      key: const ValueKey('compact-summary'),
+      margin: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 28,
+            height: 28,
+            child: CircularProgressIndicator(
+              value: list.progress,
+              strokeWidth: 3,
+              backgroundColor: AppTheme.backgroundColor,
+              color: AppTheme.primaryColor,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              list.isFullyChecked
+                  ? 'Wszystko kupione'
+                  : 'Do zapłaty: ~${list.remainingPrice.toStringAsFixed(2)} zł',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+                color: AppTheme.primaryColor,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          Text(
+            '${(list.progress * 100).toInt()}%',
+            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSummaryCard(ShoppingList list) {
     return Container(
+      // Klucz wymagany przez AnimatedSwitcher, żeby odróżnić tę kartę
+      // od _buildCompactSummaryBar — bez tego przełączanie nie animuje
+      // się poprawnie (oba to Container, więc bez klucza wyglądają
+      // dla frameworka "tak samo").
+      key: const ValueKey('full-summary'),
       margin: const EdgeInsets.all(24),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(

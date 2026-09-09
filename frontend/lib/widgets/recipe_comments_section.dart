@@ -83,7 +83,8 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(content: Text('Nie udało się pobrać zdjęcia')),
+        const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Nie udało się pobrać zdjęcia')),
       );
     }
   }
@@ -141,7 +142,8 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(e.toString().replaceAll('Exception: ', ''))),
       );
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
@@ -174,7 +176,8 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(content: Text('Nie udało się usunąć komentarza')),
+        const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Nie udało się usunąć komentarza')),
       );
     }
   }
@@ -209,7 +212,8 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(content: Text('Nie udało się zapisać polubienia')),
+        const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Nie udało się zapisać polubienia')),
       );
     }
   }

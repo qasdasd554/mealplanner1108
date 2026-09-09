@@ -13,6 +13,7 @@ from datetime import date, timedelta
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -197,6 +198,55 @@ async def get_daily_summary(
         summary.total_carbs += entry.carbs
 
     return summary
+
+
+class FoodLogNutritionUpdate(BaseModel):
+    """Skorygowane wartości odżywcze POJEDYNCZEGO wpisu w dzienniku.
+
+    Powstało dla edycji składników w śledzeniu: użytkownik, który zjadł
+    danie bez jednego ze składników albo z podwójną porcją, koryguje
+    SWÓJ wpis z danego dnia. Sam przepis pozostaje nietknięty — zmiana
+    dotyczy wyłącznie tego jednego wiersza dziennika i tylko tego
+    użytkownika.
+
+    Ograniczenia takie same jak przy tworzeniu wpisu (patrz
+    FoodLogEntryCreate) — hojne, mające odciąć wyłącznie oczywiście
+    błędne dane.
+    """
+
+    calories: float = Field(..., ge=0, le=10_000)
+    protein: float = Field(0.0, ge=0, le=2_000)
+    fat: float = Field(0.0, ge=0, le=2_000)
+    carbs: float = Field(0.0, ge=0, le=2_000)
+
+
+@router.patch("/{entry_id}", response_model=FoodLogEntryResponse)
+async def update_food_log_entry_nutrition(
+    entry_id: uuid.UUID,
+    payload: FoodLogNutritionUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Nadpisuje wartości odżywcze wpisu po edycji składników.
+
+    Nie ruszamy `recipe_id` — wpis nadal wskazuje, z jakiego przepisu
+    powstał, więc w dzienniku widać właściwą nazwę i można do przepisu
+    wrócić. Zmieniają się TYLKO liczby.
+    """
+    entry = await db.get(FoodLogEntry, entry_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Nie znaleziono wpisu w dzienniku")
+    if entry.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Brak uprawnień do edycji tego wpisu")
+
+    entry.calories = payload.calories
+    entry.protein = payload.protein
+    entry.fat = payload.fat
+    entry.carbs = payload.carbs
+    db.add(entry)
+    await db.commit()
+    await db.refresh(entry)
+    return entry
 
 
 @router.delete("/{entry_id}", status_code=status.HTTP_204_NO_CONTENT)

@@ -57,7 +57,8 @@ class _RecipePublishButtonState extends State<RecipePublishButton> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(content: Text('Przepis zgłoszony — czeka na akceptację administratora.')),
+        const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Przepis zgłoszony — czeka na akceptację administratora.')),
       );
       Navigator.of(context).pop(true);
     } catch (e) {
@@ -66,7 +67,8 @@ class _RecipePublishButtonState extends State<RecipePublishButton> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(content: Text('Nie udało się opublikować przepisu.')),
+        const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Nie udało się opublikować przepisu.')),
       );
     }
   }

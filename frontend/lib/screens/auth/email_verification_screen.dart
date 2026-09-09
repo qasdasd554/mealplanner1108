@@ -32,7 +32,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(content: Text('Kod musi mieć dokładnie 6 cyfr.')),
+        const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Kod musi mieć dokładnie 6 cyfr.')),
       );
       return;
     }
@@ -50,6 +51,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
+            duration: const Duration(seconds: 3),
           content: Text(authProvider.errorMessage!),
           backgroundColor: AppTheme.errorColor,
         ),
@@ -68,6 +70,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
       SnackBar(
+            duration: const Duration(seconds: 3),
         content: Text(
           success ? 'Nowy kod został wysłany.' : (authProvider.errorMessage ?? 'Nie udało się wysłać kodu.'),
         ),

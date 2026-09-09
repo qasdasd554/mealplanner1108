@@ -33,6 +33,7 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
           const SnackBar(
+            duration: Duration(seconds: 3),
             content: Text('Plan został zatwierdzony! Lista zakupów wygenerowana.'),
             backgroundColor: AppTheme.primaryColor,
           ),
@@ -43,6 +44,7 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
           SnackBar(
+            duration: const Duration(seconds: 3),
             content: Text(mealPlanProvider.errorMessage ?? 'Wystąpił błąd'),
             backgroundColor: AppTheme.errorColor,
           ),
@@ -157,6 +159,7 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
                                     if (success && this.mounted) {
                                       ScaffoldMessenger.of(this.context).showSnackBar(
                                         const SnackBar(
+            duration: Duration(seconds: 3),
                                           content: Text('Przepis został zamieniony!'),
                                           backgroundColor: AppTheme.primaryColor,
                                         ),
@@ -266,6 +269,7 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
                             SnackBar(
+            duration: const Duration(seconds: 3),
                               content: Text(
                                 mealPlanProvider.errorMessage ?? 'Nie udało się usunąć planu',
                               ),

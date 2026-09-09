@@ -129,7 +129,8 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(banned ? 'Konto zablokowane' : 'Konto odblokowane')),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(banned ? 'Konto zablokowane' : 'Konto odblokowane')),
       );
     } catch (e) {
       if (!mounted) return;
@@ -137,7 +138,8 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
       );
     }
   }

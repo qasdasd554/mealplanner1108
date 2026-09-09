@@ -36,14 +36,16 @@ class _RecipeApprovalBarState extends State<RecipeApprovalBar> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(approve ? 'Przepis zaakceptowany' : 'Przepis odrzucony')),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(approve ? 'Przepis zaakceptowany' : 'Przepis odrzucony')),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(content: Text('Nie udało się wykonać akcji')),
+        const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Nie udało się wykonać akcji')),
       );
     } finally {
       if (mounted) setState(() => _isBusy = false);

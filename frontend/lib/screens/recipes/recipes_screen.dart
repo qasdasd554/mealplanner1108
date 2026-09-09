@@ -80,6 +80,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
+            duration: const Duration(seconds: 3),
           content: Text('Błąd podczas pobierania przepisów: $e'),
           backgroundColor: AppTheme.errorColor,
         ),

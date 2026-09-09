@@ -602,11 +602,18 @@ class HomeTab extends StatelessWidget {
   Widget _buildTipOfTheDayCard(BuildContext context) {
     final now = DateTime.now();
     final dayOfYear = now.difference(DateTime(now.year, 1, 1)).inDays;
-    final tip = kCookingTips[dayOfYear % kCookingTips.length];
+    final tipIndex = dayOfYear % kCookingTips.length;
+    final tip = kCookingTips[tipIndex];
 
     return GestureDetector(
+      // Przekazujemy indeks porady dnia, żeby lista otworzyła się na NIEJ,
+      // a nie na początku. Dotąd użytkownik czytał poradę na ekranie
+      // głównym, dotykał jej i lądował na górze listy kilkudziesięciu
+      // pozycji, gdzie musiał jej szukać.
       onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const CookingTipsScreen()),
+        MaterialPageRoute(
+          builder: (_) => CookingTipsScreen(highlightIndex: tipIndex),
+        ),
       ),
       child: Container(
         padding: const EdgeInsets.all(16),

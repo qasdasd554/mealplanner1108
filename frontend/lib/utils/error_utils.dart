@@ -27,6 +27,12 @@ String friendlyError(Object error) {
         return 'Zbyt wiele prób w krótkim czasie — spróbuj ponownie za chwilę.';
       case 503:
         return 'Usługa jest chwilowo niedostępna. Spróbuj ponownie za chwilę.';
+      case 504:
+        // Przekroczony czas oczekiwania. Osobny przypadek, bo ogólny
+        // komunikat dla 5xx ("coś poszło nie tak po naszej stronie")
+        // sugeruje awarię, a tu zwykle wystarczy powtórzyć — serwer
+        // właśnie się wybudza.
+        return 'Serwer nie odpowiedział na czas. Spróbuj ponownie za chwilę.';
       default:
         if (error.statusCode >= 500) {
           return 'Coś poszło nie tak po naszej stronie. Spróbuj ponownie za chwilę.';

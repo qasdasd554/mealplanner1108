@@ -33,7 +33,8 @@ class ExportListDialog extends StatelessWidget {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-      const SnackBar(content: Text('Skopiowano do schowka!')),
+      const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Skopiowano do schowka!')),
     );
     Navigator.of(context).pop();
   }
@@ -52,14 +53,16 @@ class ExportListDialog extends StatelessWidget {
         ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-          const SnackBar(content: Text('Aplikacja nie jest zainstalowana.')),
+          const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Aplikacja nie jest zainstalowana.')),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(content: Text('Nie udało się otworzyć aplikacji.')),
+        const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Nie udało się otworzyć aplikacji.')),
       );
     }
   }

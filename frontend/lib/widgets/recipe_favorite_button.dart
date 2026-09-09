@@ -74,7 +74,8 @@ class _RecipeFavoriteButtonState extends State<RecipeFavoriteButton> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(content: Text('Nie udało się zaktualizować ulubionych')),
+        const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Nie udało się zaktualizować ulubionych')),
       );
     } finally {
       if (mounted) setState(() => _isBusy = false);

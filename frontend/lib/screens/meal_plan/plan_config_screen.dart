@@ -76,6 +76,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         const SnackBar(
+            duration: Duration(seconds: 3),
           content: Text('Wybierz sklep przed wygenerowaniem planu!'),
           backgroundColor: AppTheme.errorColor,
         ),
@@ -158,6 +159,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
             ..hideCurrentSnackBar()
             ..showSnackBar(
               SnackBar(
+            duration: const Duration(seconds: 3),
                 content: Text(errorMsg),
                 backgroundColor: AppTheme.errorColor,
               ),

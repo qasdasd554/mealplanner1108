@@ -54,14 +54,16 @@ class _PendingSharesScreenState extends State<PendingSharesScreen> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(content: Text('Zaakceptowano — lista pojawi się jako udostępniona.')),
+        const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Zaakceptowano — lista pojawi się jako udostępniona.')),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
       );
     }
   }
@@ -76,7 +78,8 @@ class _PendingSharesScreenState extends State<PendingSharesScreen> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
       );
     }
   }

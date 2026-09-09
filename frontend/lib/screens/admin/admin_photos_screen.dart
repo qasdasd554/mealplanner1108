@@ -71,7 +71,8 @@ class _AdminPhotosScreenState extends State<AdminPhotosScreen> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(approve ? 'Zdjęcie zaakceptowane' : 'Zdjęcie odrzucone')),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(approve ? 'Zdjęcie zaakceptowane' : 'Zdjęcie odrzucone')),
       );
     } catch (e) {
       if (!mounted) return;
@@ -79,7 +80,8 @@ class _AdminPhotosScreenState extends State<AdminPhotosScreen> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
       );
     }
   }

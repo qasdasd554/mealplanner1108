@@ -725,6 +725,7 @@ void _showEditNicknameDialog(BuildContext context, AuthProvider authProvider) {
       ..hideCurrentSnackBar()
       ..showSnackBar(
                   SnackBar(
+            duration: const Duration(seconds: 3),
                     content: Text(
                       success ? 'Pseudonim zaktualizowany.' : 'Nie udało się zmienić pseudonimu.',
                     ),
@@ -799,7 +800,8 @@ void _showFinalDeleteConfirmation(BuildContext context, AuthProvider authProvide
                   ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-                    const SnackBar(content: Text('Nie udało się usunąć konta. Spróbuj ponownie.')),
+                    const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Nie udało się usunąć konta. Spróbuj ponownie.')),
                   );
                 }
               }

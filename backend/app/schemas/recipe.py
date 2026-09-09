@@ -51,21 +51,42 @@ class RecipeIngredientResponse(BaseModel):
     unit: str
     is_optional: bool
     kcal: int | None = None
+    # Białko/tłuszcze/węglowodany dla TEJ ilości składnika w przepisie
+    # (nie na 100 g — już przeliczone tak samo jak `kcal`).
+    #
+    # NAPRAWA REALNEGO BŁĘDU: odpowiedź API nigdy nie zawierała pełnego
+    # obiektu `product` (patrz brak takiego pola w tym schemacie) —
+    # tylko `product_id`/`product_name`. Frontend (okno edycji
+    # składników w Śledzeniu) zakładał, że dostanie
+    # `ingredient.product.nutritionPer100` i na tej podstawie policzy
+    # B/T/W. Ponieważ to pole było zawsze puste, podsumowanie
+    # makroskładników przy edycji zawsze pokazywało zera — działało
+    # tylko kcal, bo to jedyna wartość liczona już tutaj, po stronie
+    # backendu. Te trzy pola domykają lukę tym samym mechanizmem.
+    protein: float | None = None
+    fat: float | None = None
+    carbs: float | None = None
 
     @model_validator(mode="before")
     @classmethod
     def get_product_name(cls, data):
         if hasattr(data, "product") and data.product is not None:
-            kcal = None
-            if data.product.nutrition_per_100 and "kcal" in data.product.nutrition_per_100:
-                try:
-                    kcal_per_100 = float(data.product.nutrition_per_100["kcal"])
-                    weight = quantity_to_grams(
-                        data.product.name, float(data.quantity), data.unit
-                    )
-                    kcal = int(round(kcal_per_100 * (weight / 100.0)))
-                except:
-                    pass
+            from app.services.nutrition_calculator import compute_recipe_nutrition_total
+
+            kcal: int | None = None
+            protein = fat = carbs = None
+            try:
+                # Ta sama funkcja, której backend używa do liczenia
+                # `nutrition_total` całego przepisu — wywołana na LIŚCIE
+                # JEDNOELEMENTOWEJ zwraca sumę dla tego jednego składnika,
+                # z uwzględnieniem korekty tłuszczu do smażenia.
+                totals = compute_recipe_nutrition_total([data])
+                kcal = int(round(totals.get("kcal", 0) or 0))
+                protein = round(totals.get("protein", 0) or 0, 1)
+                fat = round(totals.get("fat", 0) or 0, 1)
+                carbs = round(totals.get("carbs", 0) or 0, 1)
+            except Exception:
+                pass
 
             return {
                 "id": data.id,
@@ -75,6 +96,9 @@ class RecipeIngredientResponse(BaseModel):
                 "unit": data.unit,
                 "is_optional": data.is_optional,
                 "kcal": kcal,
+                "protein": protein,
+                "fat": fat,
+                "carbs": carbs,
             }
         return data
 

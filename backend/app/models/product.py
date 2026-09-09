@@ -49,6 +49,29 @@ class Product(Base):
         comment="Wartości odżywcze na 100 g/ml: kcal, protein, fat, carbs, fiber",
     )
     image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+
+    # ── PRODUKTY ZGŁASZANE PRZEZ UŻYTKOWNIKÓW ──
+    # Kto zgłosił produkt. NULL = produkt z oficjalnego katalogu.
+    created_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    # "approved" | "pending" | "rejected".
+    #
+    # Oficjalne produkty mają "approved" (domyślne), więc istniejące
+    # wiersze nie wymagają migracji danych. Zgłoszenia użytkowników
+    # startują jako "pending" i do czasu akceptacji są widoczne WYŁĄCZNIE
+    # dla zgłaszającego — dzięki temu może od razu wpisać produkt do
+    # dziennika, nie czekając na administratora.
+    review_status: Mapped[str] = mapped_column(
+        String(20), default="approved", nullable=False, server_default="approved"
+    )
+    # Cena podana przez zgłaszającego. Trzymana TUTAJ, a nie w
+    # StoreProduct, bo zgłoszenie nie jest przypisane do żadnego sklepu —
+    # użytkownik podaje po prostu, ile produkt kosztuje. Po akceptacji
+    # administrator może utworzyć właściwy wpis sklepowy.
+    submitted_price: Mapped[Decimal | None] = mapped_column(
+        Numeric(10, 2), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

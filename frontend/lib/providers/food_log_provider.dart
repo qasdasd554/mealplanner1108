@@ -162,6 +162,37 @@ class FoodLogProvider with ChangeNotifier {
     }
   }
 
+  /// Zapisuje skorygowane wartości odżywcze wpisu po edycji składników.
+  Future<bool> updateEntryNutrition(
+    String logId, {
+    required double calories,
+    required double protein,
+    required double fat,
+    required double carbs,
+  }) async {
+    final token = await _resolveToken();
+    if (token == null) return false;
+
+    try {
+      await _service.updateFoodLogNutrition(
+        logId,
+        token,
+        calories: calories,
+        protein: protein,
+        fat: fat,
+        carbs: carbs,
+      );
+      // Przeładowanie dnia, żeby odświeżyło się też podsumowanie kalorii
+      // i makroskładników u góry ekranu — sama lista by nie wystarczyła.
+      await fetchLogsForDate(_currentDate);
+      return true;
+    } catch (e) {
+      _error = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
+  }
+
   Future<void> deleteEntry(String logId) async {
     final token = await _resolveToken();
     if (token == null) return;

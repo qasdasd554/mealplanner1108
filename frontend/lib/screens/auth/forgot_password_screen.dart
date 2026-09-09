@@ -36,7 +36,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(content: Text('Podaj prawidłowy adres e-mail.')),
+        const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Podaj prawidłowy adres e-mail.')),
       );
       return;
     }
@@ -61,7 +62,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(authProvider.errorMessage!)),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(authProvider.errorMessage!)),
       );
     }
   }
@@ -74,7 +76,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(content: Text('Kod musi mieć dokładnie 6 cyfr.')),
+        const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Kod musi mieć dokładnie 6 cyfr.')),
       );
       return;
     }
@@ -82,7 +85,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(content: Text('Nowe hasło musi mieć co najmniej 8 znaków.')),
+        const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Nowe hasło musi mieć co najmniej 8 znaków.')),
       );
       return;
     }
@@ -101,7 +105,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(content: Text('Hasło zostało zmienione. Zaloguj się nowym hasłem.')),
+        const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Hasło zostało zmienione. Zaloguj się nowym hasłem.')),
       );
       Navigator.of(context).pop();
     } else if (authProvider.errorMessage != null) {
@@ -109,6 +114,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
+            duration: const Duration(seconds: 3),
           content: Text(authProvider.errorMessage!),
           backgroundColor: AppTheme.errorColor,
         ),

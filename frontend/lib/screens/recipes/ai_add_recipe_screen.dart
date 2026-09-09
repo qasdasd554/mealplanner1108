@@ -85,7 +85,8 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(content: Text('Nie udało się pobrać zdjęcia')),
+        const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Nie udało się pobrać zdjęcia')),
       );
     }
   }

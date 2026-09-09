@@ -4,8 +4,59 @@ import '../../theme/app_theme.dart';
 
 /// Pełna, przewijana lista wszystkich porad kulinarnych — otwierana po
 /// dotknięciu karty "Porada dnia" na ekranie głównym.
-class CookingTipsScreen extends StatelessWidget {
-  const CookingTipsScreen({super.key});
+class CookingTipsScreen extends StatefulWidget {
+  /// Indeks porady, do której ekran ma się przewinąć zaraz po otwarciu
+  /// i którą podświetli. Ustawiany, gdy użytkownik dotknie karty
+  /// "Porada dnia" — wcześniej trafiał na początek listy i musiał sam
+  /// szukać tej, którą przed chwilą przeczytał na ekranie głównym.
+  final int? highlightIndex;
+
+  const CookingTipsScreen({super.key, this.highlightIndex});
+
+  @override
+  State<CookingTipsScreen> createState() => _CookingTipsScreenState();
+}
+
+class _CookingTipsScreenState extends State<CookingTipsScreen> {
+  final ScrollController _scrollController = ScrollController();
+
+  /// Podświetlenie gaśnie samo po chwili — ma zwrócić uwagę na właściwą
+  /// pozycję, a nie zostać na stałe.
+  bool _highlightVisible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final index = widget.highlightIndex;
+    if (index == null || index < 0 || index >= kCookingTips.length) return;
+
+    _highlightVisible = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) return;
+      // Wysokość karty jest zmienna (różna długość tekstu), więc
+      // przewijamy do PRZYBLIŻONEJ pozycji zamiast liczyć dokładnie —
+      // przy podświetleniu i tak od razu widać, o którą chodzi.
+      final offset = (index * 108.0).clamp(
+        0.0,
+        _scrollController.position.maxScrollExtent,
+      );
+      _scrollController.animateTo(
+        offset,
+        duration: const Duration(milliseconds: 450),
+        curve: Curves.easeOut,
+      );
+    });
+
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) setState(() => _highlightVisible = false);
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   IconData _iconFor(IconIndex icon) {
     switch (icon) {
@@ -30,16 +81,27 @@ class CookingTipsScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Porady kulinarne')),
       body: SafeArea(
         child: ListView.builder(
+          controller: _scrollController,
           padding: const EdgeInsets.all(16),
           itemCount: kCookingTips.length,
           itemBuilder: (context, index) {
             final tip = kCookingTips[index];
-            return Container(
+            final isHighlighted = _highlightVisible && index == widget.highlightIndex;
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 400),
               margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppTheme.surfaceColor,
+                color: isHighlighted
+                    ? AppTheme.secondaryColor.withOpacity(0.12)
+                    : AppTheme.surfaceColor,
                 borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: isHighlighted
+                      ? AppTheme.secondaryColor
+                      : Colors.transparent,
+                  width: 2,
+                ),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,

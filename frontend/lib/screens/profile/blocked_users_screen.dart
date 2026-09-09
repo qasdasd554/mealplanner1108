@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/user_avatar.dart';
+import '../../utils/error_utils.dart';
 
 class BlockedUsersScreen extends StatefulWidget {
   const BlockedUsersScreen({super.key});
@@ -24,12 +25,29 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen> {
   Future<void> _load() async {
     setState(() => _isLoading = true);
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final blocked = await authProvider.getBlockedUsers();
-    if (!mounted) return;
-    setState(() {
-      _blocked = blocked;
-      _isLoading = false;
-    });
+    try {
+      final blocked = await authProvider.getBlockedUsers();
+      if (!mounted) return;
+      setState(() => _blocked = blocked);
+    } catch (e) {
+      // Bez tego wyjątek (np. przekroczony czas oczekiwania) zostawiał
+      // _isLoading na true NA ZAWSZE — ekran wisiał na kółku, bez
+      // żadnej informacji i bez możliwości ponowienia.
+      if (!mounted) return;
+      setState(() => _blocked = []);
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(friendlyError(e)),
+          ),
+        );
+    } finally {
+      // finally, nie tylko gałąź sukcesu — kółko MUSI zniknąć niezależnie
+      // od tego, czym skończyło się żądanie.
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _unblock(String userId, String name) async {
@@ -43,7 +61,8 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text('Odblokowano "$name". Znów zobaczysz jej/jego treści.')),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text('Odblokowano "$name". Znów zobaczysz jej/jego treści.')),
       );
     }
   }

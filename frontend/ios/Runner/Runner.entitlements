@@ -2,13 +2,22 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>aps-environment</key>
-	<string>development</string>
 	<key>com.apple.developer.applesignin</key>
 	<array>
 		<string>Default</string>
 	</array>
+	<!-- "production", nie "development".
+
+	     Ten sam plik uprawnień jest używany we WSZYSTKICH konfiguracjach
+	     (patrz CODE_SIGN_ENTITLEMENTS w project.pbxproj), a buildy
+	     trafiające do TestFlight i App Store muszą deklarować środowisko
+	     produkcyjne APNs. Przy "development" system wydaje token
+	     deweloperski, którego produkcyjny serwer Apple nie rozpoznaje —
+	     powiadomienia po prostu nie docierają, bez żadnego błędu.
+
+	     Klucz APNs (.p8) wgrany do Firebase obsługuje OBA środowiska,
+	     więc ta wartość niczego nie ogranicza przy testach lokalnych. -->
 	<key>aps-environment</key>
-	<string>development</string>
+	<string>production</string>
 </dict>
 </plist>

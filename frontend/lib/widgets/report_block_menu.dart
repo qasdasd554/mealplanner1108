@@ -85,6 +85,7 @@ Future<void> showReportDialog(
       ..hideCurrentSnackBar()
       ..showSnackBar(
       SnackBar(
+            duration: const Duration(seconds: 3),
         content: Text(
           success
               ? 'Dziękujemy za zgłoszenie. Nasz zespół je sprawdzi.'
@@ -136,6 +137,7 @@ Future<void> showBlockUserDialog(
       ..hideCurrentSnackBar()
       ..showSnackBar(
       SnackBar(
+            duration: const Duration(seconds: 3),
         content: Text(
           success ? 'Użytkownik "$authorName" został zablokowany.' : 'Nie udało się zablokować użytkownika.',
         ),

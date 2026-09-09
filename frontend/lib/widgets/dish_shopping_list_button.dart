@@ -110,7 +110,8 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(content: Text('Wybierz najpierw sklep w swoim profilu')),
+        const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Wybierz najpierw sklep w swoim profilu')),
       );
       return;
     }
@@ -168,6 +169,7 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
+            duration: const Duration(seconds: 3),
           content: Text(message),
           action: message.toLowerCase().contains('premium')
               ? SnackBarAction(

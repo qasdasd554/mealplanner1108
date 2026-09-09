@@ -126,7 +126,8 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text('Cel zapisany: ${_selectedGoal!.round()} kcal/dzień')),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text('Cel zapisany: ${_selectedGoal!.round()} kcal/dzień')),
       );
       Navigator.of(context).pop(true);
     } catch (e) {
@@ -134,7 +135,8 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(friendlyError(e))),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(friendlyError(e))),
       );
     } finally {
       if (mounted) setState(() => _isSaving = false);

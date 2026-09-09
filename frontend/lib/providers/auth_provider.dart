@@ -150,10 +150,15 @@ class AuthProvider with ChangeNotifier {
     _clearError();
     try {
       await _authService.register(email, password, displayName, captchaToken: captchaToken);
-      // Auto login po rejestracji
-      final success = await login(email, password);
+
+      // Sesja jest już zapisana przez register() na podstawie tokenu
+      // zwróconego przez serwer — NIE logujemy się drugi raz.
+      // Poprzednie automatyczne logowanie wysyłało żądanie bez tokenu
+      // CAPTCHA (jednorazowy, zużyty już przy rejestracji), więc przy
+      // włączonej bramce zawsze kończyło się błędem.
+      await loadProfile();
       _setLoading(false);
-      return success;
+      return currentUser != null;
     } catch (e) {
       _setErrorMessage(friendlyError(e));
       _setLoading(false);

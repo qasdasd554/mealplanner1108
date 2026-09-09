@@ -8,6 +8,7 @@ import '../../services/moderation_service.dart';
 import 'admin_users_screen.dart';
 import 'admin_comments_screen.dart';
 import 'admin_photos_screen.dart';
+import 'admin_products_screen.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
 
@@ -86,14 +87,16 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text('Wysłano do $sentTo użytkowników.')),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text('Wysłano do $sentTo użytkowników.')),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
       );
     } finally {
       if (mounted) setState(() => _isSendingBroadcast = false);
@@ -346,6 +349,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
+            duration: const Duration(seconds: 3),
           content: Text(
             'Znaleziono ${result['found']}, zakolejkowano ${result['queued_for_review']} do akceptacji.',
           ),
@@ -357,7 +361,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(friendlyError(e))),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(friendlyError(e))),
       );
     } finally {
       if (mounted) setState(() => _scanningStore = null);
@@ -379,14 +384,16 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(approve ? 'Promocja zaakceptowana' : 'Promocja odrzucona')),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(approve ? 'Promocja zaakceptowana' : 'Promocja odrzucona')),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(content: Text('Nie udało się wykonać akcji')),
+        const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Nie udało się wykonać akcji')),
       );
     } finally {
       if (mounted) setState(() => _busyPromotionIds.remove(promotion.id));
@@ -469,13 +476,15 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       });
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(content: Text('Treść usunięta, zgłoszenie zamknięte')));
+        ..showSnackBar(const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Treść usunięta, zgłoszenie zamknięte')));
     } catch (e) {
       if (!mounted) return;
       setState(() => _busyReportIds.remove(reportId));
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor));
+        ..showSnackBar(SnackBar(
+            duration: const Duration(seconds: 3),content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor));
     }
   }
 
@@ -492,6 +501,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
+            duration: const Duration(seconds: 3),
           content: Text(status == 'resolved' ? 'Zgłoszenie oznaczone jako rozpatrzone' : 'Zgłoszenie odrzucone'),
         ),
       );
@@ -501,7 +511,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(friendlyError(e))),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(friendlyError(e))),
       );
     }
   }
@@ -521,14 +532,16 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(approve ? 'Przepis zaakceptowany' : 'Przepis odrzucony')),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(approve ? 'Przepis zaakceptowany' : 'Przepis odrzucony')),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(friendlyError(e))),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(friendlyError(e))),
       );
     } finally {
       if (mounted) setState(() => _busyRecipeIds.remove(recipe.id));
@@ -903,6 +916,13 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                   label: const Text('Zdjęcia'),
                   onPressed: () => Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const AdminPhotosScreen()),
+                  ),
+                ),
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.inventory_2_outlined, size: 18),
+                  label: const Text('Produkty'),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const AdminProductsScreen()),
                   ),
                 ),
               ],

@@ -92,7 +92,8 @@ class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(content: Text('Komentarz usunięty')),
+        const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Komentarz usunięty')),
       );
     } catch (e) {
       if (!mounted) return;
@@ -100,7 +101,8 @@ class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
       );
     }
   }

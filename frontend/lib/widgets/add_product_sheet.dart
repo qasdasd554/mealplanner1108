@@ -83,12 +83,14 @@ class _AddProductSheetState extends State<AddProductSheet> {
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text('Dodano: ${product.name}')));
+        ..showSnackBar(SnackBar(
+            duration: const Duration(seconds: 3),content: Text('Dodano: ${product.name}')));
     } else {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
+            duration: const Duration(seconds: 3),
             content: Text(provider.errorMessage ?? 'Nie udało się dodać produktu'),
             backgroundColor: AppTheme.errorColor,
           ),
