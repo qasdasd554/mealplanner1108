@@ -4,6 +4,13 @@ import '../config/api_config.dart';
 import '../models/food_log.dart';
 
 class FoodLogService {
+  /// Ten sam limit co w ApiClient — patrz komentarz tam. Ten serwis
+  /// jest jedynym w aplikacji, który używa WŁASNEGO http.Client zamiast
+  /// wspólnego ApiClient, więc nie dziedziczył jego zabezpieczenia:
+  /// żądanie do usypiającej się instancji Render (darmowy plan) mogło
+  /// wisieć bez końca, bez żadnego komunikatu o błędzie.
+  static const Duration _timeout = Duration(seconds: 45);
+
   // Wcześniej było tu zahardkodowane 'http://localhost:8000/api' — adres
   // nieosiągalny z urządzenia mobilnego, w dodatku z innym prefiksem niż
   // reszta aplikacji. Teraz korzystamy ze wspólnej konfiguracji.
@@ -24,7 +31,12 @@ class FoodLogService {
     final response = await _client.get(
       Uri.parse('$baseUrl/food-log/?entry_date=${_formatDate(date)}'),
       headers: _headers(token),
-    );
+    ).timeout(
+        _timeout,
+        onTimeout: () => throw Exception(
+          'Serwer nie odpowiedział na czas. Spróbuj ponownie za chwilę.',
+        ),
+      );
 
     if (response.statusCode == 200) {
       final List data = json.decode(utf8.decode(response.bodyBytes));
@@ -38,7 +50,12 @@ class FoodLogService {
     final response = await _client.get(
       Uri.parse('$baseUrl/food-log/summary?entry_date=${_formatDate(date)}'),
       headers: _headers(token),
-    );
+    ).timeout(
+        _timeout,
+        onTimeout: () => throw Exception(
+          'Serwer nie odpowiedział na czas. Spróbuj ponownie za chwilę.',
+        ),
+      );
 
     if (response.statusCode == 200) {
       return DailySummary.fromJson(json.decode(utf8.decode(response.bodyBytes)));
@@ -58,7 +75,12 @@ class FoodLogService {
       Uri.parse('$baseUrl/food-log/'),
       headers: _headers(token),
       body: json.encode(entryData),
-    );
+    ).timeout(
+        _timeout,
+        onTimeout: () => throw Exception(
+          'Serwer nie odpowiedział na czas. Spróbuj ponownie za chwilę.',
+        ),
+      );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       return FoodLogEntry.fromJson(json.decode(utf8.decode(response.bodyBytes)));
@@ -95,7 +117,12 @@ class FoodLogService {
     final response = await _client.post(
       Uri.parse('$baseUrl/food-log/from-plan-entry/$mealPlanEntryId$query'),
       headers: _headers(token),
-    );
+    ).timeout(
+        _timeout,
+        onTimeout: () => throw Exception(
+          'Serwer nie odpowiedział na czas. Spróbuj ponownie za chwilę.',
+        ),
+      );
     if (response.statusCode == 200 || response.statusCode == 201) {
       return FoodLogEntry.fromJson(json.decode(utf8.decode(response.bodyBytes)));
     }
@@ -122,7 +149,12 @@ class FoodLogService {
         'fat': fat,
         'carbs': carbs,
       }),
-    );
+    ).timeout(
+        _timeout,
+        onTimeout: () => throw Exception(
+          'Serwer nie odpowiedział na czas. Spróbuj ponownie za chwilę.',
+        ),
+      );
 
     if (response.statusCode != 200) {
       throw Exception(_extractError(response) ?? 'Nie udało się zaktualizować wpisu');
@@ -134,7 +166,12 @@ class FoodLogService {
     final response = await _client.delete(
       Uri.parse('$baseUrl/food-log/$logId'),
       headers: _headers(token),
-    );
+    ).timeout(
+        _timeout,
+        onTimeout: () => throw Exception(
+          'Serwer nie odpowiedział na czas. Spróbuj ponownie za chwilę.',
+        ),
+      );
 
     if (response.statusCode != 200 && response.statusCode != 204) {
       throw Exception(_extractError(response) ?? 'Nie udało się usunąć wpisu z dziennika');

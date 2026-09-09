@@ -138,20 +138,25 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
       await shoppingProvider.loadAllLists(preferredListId: list.mealPlanId);
       if (!mounted) return;
 
-      Navigator.of(context).popUntil((route) => route.isFirst);
-      ScaffoldMessenger.of(context)
+      // NAPRAWA: ScaffoldMessenger.of(context) był wołany PO popUntil,
+      // na kontekście widgetu leżącego na właśnie zamykanym ekranie —
+      // element mógł być już unieważniony, przez co SnackBar potrafił
+      // przyczepić się do overlayu, który zaraz znika, i zostać na
+      // ekranie w nieokreślonym stanie. Przechwytujemy messenger PRZED
+      // zamknięciem ekranu, na kontekście, który jeszcze na pewno żyje.
+      final messenger = ScaffoldMessenger.of(context);
+      final rootNavigator = Navigator.of(context);
+      rootNavigator.popUntil((route) => route.isFirst);
+
+      messenger
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
             content: Text('Dodano "${widget.recipe.name}" do listy zakupów'),
-            // Jawny czas wyświetlania. Bez niego komunikat z przyciskiem
-            // akcji potrafi zostać na ekranie znacznie dłużej, bo Flutter
-            // daje użytkownikowi czas na kliknięcie — a przy przejściu
-            // między ekranami wyglądało to, jakby w ogóle nie znikał.
             duration: const Duration(seconds: 3),
             action: SnackBarAction(
               label: 'ZOBACZ',
-              onPressed: () => Navigator.of(context).push(
+              onPressed: () => rootNavigator.push(
                 MaterialPageRoute(
                   builder: (_) => const ShoppingListScreen(),
                 ),
@@ -159,13 +164,27 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
             ),
           ),
         );
+      // Wymuszone zamknięcie po 3 s, NIEZALEŻNE od wewnętrznego timera
+      // SnackBar. Flutter celowo WYŁĄCZA automatyczne znikanie komunikatów
+      // z przyciskiem akcji, gdy w systemie jest włączona jakakolwiek
+      // usługa ułatwień dostępu (czytnik ekranu) — zakłada, że taki
+      // komunikat trzeba zdążyć przeczytać i dotknąć, więc `duration`
+      // jest wtedy ignorowany. To wyjaśniało, dlaczego akurat te dwa
+      // komunikaty (jedyne w aplikacji z przyciskiem akcji) nie znikały
+      // same, podczas gdy reszta działała poprawnie. Wymuszamy zamknięcie
+      // ręcznie zamiast liczyć wyłącznie na wewnętrzny timer.
+      Future.delayed(const Duration(seconds: 3), () {
+        messenger.hideCurrentSnackBar();
+      });
     } catch (e) {
       if (!mounted) return;
       // UWAGA: limit list (403) to najbardziej prawdopodobny błąd tutaj —
       // dajemy bezpośrednie przejście do Premium zamiast tylko komunikatu,
       // żeby nie trzeba było szukać, jak rozwiązać ten konkretny problem.
       final message = friendlyError(e);
-      ScaffoldMessenger.of(context)
+      final messenger = ScaffoldMessenger.of(context);
+      final rootNavigator = Navigator.of(context);
+      messenger
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
@@ -174,13 +193,21 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
           action: message.toLowerCase().contains('premium')
               ? SnackBarAction(
                   label: 'Premium',
-                  onPressed: () => Navigator.of(context).push(
+                  onPressed: () => rootNavigator.push(
                     MaterialPageRoute(builder: (_) => const PremiumScreen()),
                   ),
                 )
               : null,
         ),
       );
+      // Patrz komentarz przy takim samym wywołaniu w ścieżce sukcesu
+      // wyżej — wymuszone zamknięcie, bo Flutter ignoruje `duration`
+      // dla komunikatów z akcją, gdy włączone są ułatwienia dostępu.
+      if (message.toLowerCase().contains('premium')) {
+        Future.delayed(const Duration(seconds: 3), () {
+          messenger.hideCurrentSnackBar();
+        });
+      }
     } finally {
       if (mounted) setState(() => _isBusy = false);
     }
