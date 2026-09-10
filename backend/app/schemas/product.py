@@ -55,6 +55,7 @@ class ProductResponse(ProductBase):
     # (StoreProductResponse.price) i tak już używa float — to pole było
     # jedynym wyjątkiem.
     submitted_price: float | None = None
+    requested_store_ids: list[str] | None = None
 
 
 class StoreProductResponse(BaseModel):

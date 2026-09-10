@@ -212,6 +212,11 @@ class ProductSubmission(BaseModel):
     protein_per_100: float | None = Field(None, ge=0, le=200)
     fat_per_100: float | None = Field(None, ge=0, le=200)
     carbs_per_100: float | None = Field(None, ge=0, le=200)
+    # OPCJONALNE — sklepy, w których zgłaszający chciałby widzieć ten
+    # produkt. Sama lista niczego jeszcze nie tworzy; dopiero akceptacja
+    # administratora zamienia każdy wskazany sklep na prawdziwy wiersz
+    # StoreProduct z podaną ceną (patrz review_product niżej).
+    store_ids: list[uuid.UUID] = []
 
 
 @router.post(
@@ -261,6 +266,7 @@ async def submit_product(
         created_by_user_id=current_user.id,
         review_status="pending",
         submitted_price=payload.price,
+        requested_store_ids=[str(sid) for sid in payload.store_ids] or None,
     )
     db.add(product)
     await db.commit()
@@ -309,6 +315,7 @@ async def update_own_product(
     product.unit = payload.unit.strip() or "szt"
     product.nutrition_per_100 = nutrition
     product.submitted_price = payload.price
+    product.requested_store_ids = [str(sid) for sid in payload.store_ids] or None
     # Patrz docstring — każda edycja wraca do kolejki moderacji.
     product.review_status = "pending"
 
@@ -378,6 +385,46 @@ async def review_product(
 
     product.review_status = "approved" if approve else "rejected"
     db.add(product)
+
+    # Przy akceptacji: każdy sklep zaproponowany przez zgłaszającego
+    # zamieniamy na prawdziwy wiersz StoreProduct z podaną ceną — dopiero
+    # to sprawia, że produkt faktycznie pojawia się w bazie danego sklepu
+    # (a nie tylko w ogólnym katalogu). Pomijamy sklepy, które już mają
+    # jakiś wpis dla tego produktu (ograniczenie unikalności store+product
+    # i tak by to odrzuciło, ale sprawdzamy jawnie, żeby dać się temu
+    # wykonać bezpiecznie również przy PONOWNEJ akceptacji po edycji).
+    created_links = 0
+    if approve and product.requested_store_ids:
+        from app.models.product import StoreProduct
+        from app.models.store import Store
+
+        for store_id_str in product.requested_store_ids:
+            try:
+                store_id = uuid.UUID(store_id_str)
+            except (ValueError, TypeError):
+                continue
+
+            store = await db.get(Store, store_id)
+            if store is None:
+                continue
+
+            existing = await db.execute(
+                select(StoreProduct).where(
+                    StoreProduct.store_id == store_id,
+                    StoreProduct.product_id == product.id,
+                )
+            )
+            if existing.scalar_one_or_none() is not None:
+                continue
+
+            db.add(
+                StoreProduct(
+                    store_id=store_id,
+                    product_id=product.id,
+                    price=product.submitted_price or 0,
+                )
+            )
+            created_links += 1
 
     # Powiadomienie dla zgłaszającego — bez niego nigdy by się nie
     # dowiedział, co się stało z jego zgłoszeniem.

@@ -196,6 +196,11 @@ async def _create_tables() -> None:
         await conn.execute(
             text("ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_photo_base64 TEXT")
         )
+        # Proponowane sklepy przy zgłoszeniu produktu — patrz
+        # app/models/product.py.
+        await conn.execute(
+            text("ALTER TABLE products ADD COLUMN IF NOT EXISTS requested_store_ids JSON")
+        )
         # Nawodnienie: jeden wpis na użytkownika i dzień — patrz
         # app/models/wellness.py.
         await conn.execute(

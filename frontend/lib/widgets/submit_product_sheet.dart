@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/product.dart';
-
+import '../providers/store_provider.dart';
 import '../services/api_client.dart';
 import '../theme/app_theme.dart';
 import '../utils/error_utils.dart';
@@ -47,6 +48,21 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
 
   bool get _isEditing => widget.editing != null;
 
+  /// Sklepy zaznaczone do zaproponowania — OPCJONALNE. Przy edycji
+  /// odczytujemy z requestedStoreIds, jeśli backend je zna; API zwraca
+  /// je jako listę identyfikatorów, nie obiektów Store, więc porównanie
+  /// idzie po samym ID.
+  final Set<String> _selectedStoreIds = {};
+  bool _storesInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.editing?.requestedStoreIds != null) {
+      _selectedStoreIds.addAll(widget.editing!.requestedStoreIds!);
+    }
+  }
+
   @override
   void dispose() {
     for (final c in [_name, _brand, _price, _kcal, _protein, _fat, _carbs]) {
@@ -74,6 +90,7 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
         if (_parse(_protein) != null) 'protein_per_100': _parse(_protein),
         if (_parse(_fat) != null) 'fat_per_100': _parse(_fat),
         if (_parse(_carbs) != null) 'carbs_per_100': _parse(_carbs),
+        'store_ids': _selectedStoreIds.toList(),
       };
       if (_isEditing) {
         await ApiClient().put('/products/${widget.editing!.id}', body: body);
@@ -256,6 +273,64 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                     ],
                   ),
                 ],
+                const SizedBox(height: 18),
+                // Wybór sklepów — OPCJONALNY. Sama lista niczego jeszcze
+                // nie tworzy; dopiero akceptacja administratora zamienia
+                // każdy zaznaczony sklep w prawdziwy wpis w bazie danego
+                // sklepu, z podaną tu ceną.
+                Consumer<StoreProvider>(
+                  builder: (context, storeProvider, _) {
+                    if (storeProvider.stores.isEmpty) {
+                      // Ładujemy leniwie, tylko gdy ktoś faktycznie
+                      // otworzy to okno — bez sensu ciągnąć listę
+                      // sklepów przy każdym uruchomieniu aplikacji.
+                      if (!_storesInitialized) {
+                        _storesInitialized = true;
+                        WidgetsBinding.instance.addPostFrameCallback(
+                          (_) => storeProvider.loadStores(),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    }
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'W jakich sklepach ma być dostępny? (opcjonalnie)',
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textSecondary),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Można zaznaczyć kilka. Widoczność w wybranych '
+                          'sklepach pojawi się dopiero po akceptacji.',
+                          style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
+                          children: storeProvider.stores.map((store) {
+                            final selected = _selectedStoreIds.contains(store.id);
+                            return FilterChip(
+                              label: Text(store.name),
+                              selected: selected,
+                              onSelected: (v) => setState(() {
+                                if (v) {
+                                  _selectedStoreIds.add(store.id);
+                                } else {
+                                  _selectedStoreIds.remove(store.id);
+                                }
+                              }),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    );
+                  },
+                ),
                 const SizedBox(height: 22),
                 SizedBox(
                   height: 48,

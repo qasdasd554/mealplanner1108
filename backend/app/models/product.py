@@ -72,6 +72,15 @@ class Product(Base):
     submitted_price: Mapped[Decimal | None] = mapped_column(
         Numeric(10, 2), nullable=True
     )
+    # Sklepy, w których zgłaszający chciałby widzieć ten produkt —
+    # OPCJONALNE, lista UUID sklepów jako tekst (JSON). Sama lista
+    # niczego jeszcze nie tworzy — dopiero akceptacja administratora
+    # (patrz review_product w products.py) zamienia każdy wskazany
+    # sklep na prawdziwy wiersz StoreProduct z podaną ceną. Trzymane
+    # jako JSON, nie osobna tabela łącząca, bo to tylko PROPOZYCJA
+    # użytkownika, nie ostateczne powiązanie — ten sam status co
+    # `submitted_price` przed akceptacją.
+    requested_store_ids: Mapped[list | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

@@ -45,6 +45,7 @@ class Product {
   // patrz app/models/product.py po stronie backendu.
   final String reviewStatus;
   final double? submittedPrice;
+  final List<String>? requestedStoreIds;
 
   Product({
     required this.id,
@@ -57,6 +58,7 @@ class Product {
     this.imageUrl,
     this.reviewStatus = 'approved',
     this.submittedPrice,
+    this.requestedStoreIds,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -73,6 +75,7 @@ class Product {
       imageUrl: json['image_url'] as String?,
       reviewStatus: json['review_status'] as String? ?? 'approved',
       submittedPrice: (json['submitted_price'] as num?)?.toDouble(),
+      requestedStoreIds: (json['requested_store_ids'] as List?)?.cast<String>(),
     );
   }
 }
