@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/product.dart';
 
 import '../services/api_client.dart';
 import '../theme/app_theme.dart';
@@ -11,7 +12,12 @@ import '../utils/error_utils.dart';
 /// przydaje się na liście zakupów. Bez wartości odżywczych wpis
 /// w dzienniku kalorii doda po prostu 0 kcal.
 class SubmitProductSheet extends StatefulWidget {
-  const SubmitProductSheet({super.key});
+  /// Gdy podane — okno działa w trybie EDYCJI istniejącego zgłoszenia
+  /// (pola wypełnione danymi z `Product`, zapis idzie przez PUT zamiast
+  /// POST). Gdy null — zwykłe zgłoszenie nowego produktu.
+  final Product? editing;
+
+  const SubmitProductSheet({super.key, this.editing});
 
   @override
   State<SubmitProductSheet> createState() => _SubmitProductSheetState();
@@ -19,17 +25,27 @@ class SubmitProductSheet extends StatefulWidget {
 
 class _SubmitProductSheetState extends State<SubmitProductSheet> {
   final _formKey = GlobalKey<FormState>();
-  final _name = TextEditingController();
-  final _brand = TextEditingController();
-  final _price = TextEditingController();
-  final _kcal = TextEditingController();
-  final _protein = TextEditingController();
-  final _fat = TextEditingController();
-  final _carbs = TextEditingController();
+  late final _name = TextEditingController(text: widget.editing?.name ?? '');
+  late final _brand = TextEditingController(text: widget.editing?.brand ?? '');
+  late final _price = TextEditingController(
+      text: widget.editing?.submittedPrice?.toStringAsFixed(2) ?? '');
+  late final _kcal = TextEditingController(text: _prefillNum(widget.editing?.nutritionPer100.kcal));
+  late final _protein = TextEditingController(text: _prefillNum(widget.editing?.nutritionPer100.protein, decimals: 1));
+  late final _fat = TextEditingController(text: _prefillNum(widget.editing?.nutritionPer100.fat, decimals: 1));
+  late final _carbs = TextEditingController(text: _prefillNum(widget.editing?.nutritionPer100.carbs, decimals: 1));
 
-  String _unit = 'szt';
-  bool _showNutrition = false;
+  /// Puste pole zamiast "0" — zero na starcie formularza wygląda jak
+  /// świadomie wpisana wartość, a najczęściej oznacza po prostu brak danych.
+  static String _prefillNum(double? value, {int decimals = 0}) {
+    if (value == null || value <= 0) return '';
+    return value.toStringAsFixed(decimals);
+  }
+
+  late String _unit = widget.editing?.unit ?? 'szt';
+  late bool _showNutrition = (widget.editing?.nutritionPer100.kcal ?? 0) > 0;
   bool _isSaving = false;
+
+  bool get _isEditing => widget.editing != null;
 
   @override
   void dispose() {
@@ -49,7 +65,7 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
 
     setState(() => _isSaving = true);
     try {
-      await ApiClient().post('/products/submit', body: {
+      final body = {
         'name': _name.text.trim(),
         'price': _parse(_price),
         'unit': _unit,
@@ -58,16 +74,23 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
         if (_parse(_protein) != null) 'protein_per_100': _parse(_protein),
         if (_parse(_fat) != null) 'fat_per_100': _parse(_fat),
         if (_parse(_carbs) != null) 'carbs_per_100': _parse(_carbs),
-      });
+      };
+      if (_isEditing) {
+        await ApiClient().put('/products/${widget.editing!.id}', body: body);
+      } else {
+        await ApiClient().post('/products/submit', body: body);
+      }
       if (!mounted) return;
       Navigator.of(context).pop(true);
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(
-          duration: Duration(seconds: 4),
+        ..showSnackBar(SnackBar(
+          duration: const Duration(seconds: 4),
           content: Text(
-            'Produkt dodany. Możesz go już używać — pozostali zobaczą go '
-            'po zatwierdzeniu przez administratora.',
+            _isEditing
+                ? 'Zapisano. Zmiany trafiają ponownie do sprawdzenia przez administratora.'
+                : 'Produkt dodany. Możesz go już używać — pozostali zobaczą go '
+                    'po zatwierdzeniu przez administratora.',
           ),
         ));
     } catch (e) {
@@ -110,7 +133,7 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                   ),
                 ),
                 const SizedBox(height: 18),
-                Text('Dodaj własny produkt',
+                Text(_isEditing ? 'Edytuj produkt' : 'Dodaj własny produkt',
                     style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 4),
                 Text(
@@ -245,7 +268,7 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                             child: CircularProgressIndicator(
                                 strokeWidth: 2, color: Colors.white),
                           )
-                        : const Text('Dodaj produkt'),
+                        : Text(_isEditing ? 'Zapisz zmiany' : 'Dodaj produkt'),
                   ),
                 ),
                 const SizedBox(height: 12),

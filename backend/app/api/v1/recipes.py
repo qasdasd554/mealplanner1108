@@ -575,6 +575,39 @@ async def list_pending_recipes(
     return recipes
 
 
+@router.get(
+    "/admin/all-user-recipes",
+    response_model=list[RecipeResponse],
+    summary="Wszystkie przepisy użytkowników, z autorem (admin)",
+)
+async def list_all_user_recipes(
+    current_user: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
+) -> list[Recipe]:
+    """Wszystkie przepisy dodane przez użytkowników — niezależnie od
+    statusu (private/pending/public/rejected) — z informacją o autorze,
+    żeby administrator widział, do kogo dany przepis należy, zanim
+    zdecyduje o usunięciu. Celowo POMIJA 81 oficjalnych przepisów
+    (created_by_user_id puste) — te nie mają autora do pokazania i nie
+    są tym, co administrator miałby tu moderować.
+    """
+    result = await db.execute(
+        select(Recipe)
+        .options(
+            selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product),
+            selectinload(Recipe.tags),
+            selectinload(Recipe.creator),
+        )
+        .where(Recipe.created_by_user_id.is_not(None))
+        .order_by(Recipe.created_at.desc())
+    )
+    recipes = list(result.unique().scalars().all())
+    for recipe in recipes:
+        recipe.is_favorite = False
+        recipe.is_own_recipe = False
+    return recipes
+
+
 @router.post(
     "/{recipe_id}/favorite",
     status_code=status.HTTP_204_NO_CONTENT,

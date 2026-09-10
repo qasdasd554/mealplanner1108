@@ -268,6 +268,81 @@ async def submit_product(
     return product
 
 
+@router.put(
+    "/{product_id}",
+    response_model=ProductResponse,
+    summary="Edytuj własny zgłoszony produkt",
+)
+async def update_own_product(
+    product_id: uuid.UUID,
+    payload: ProductSubmission,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> Product:
+    """Edytuje WŁASNE zgłoszenie — nie działa na produktach oficjalnych
+    (created_by_user_id puste) ani na cudzych zgłoszeniach.
+
+    Edycja cofa produkt do statusu "pending", nawet jeśli był już
+    zatwierdzony — inaczej użytkownik mógłby podmienić dane zatwierdzonego
+    produktu (np. na coś nieodpowiedniego) bez ponownej moderacji.
+    """
+    product = await db.get(Product, product_id)
+    if product is None:
+        raise HTTPException(status_code=404, detail="Nie znaleziono produktu")
+    if product.created_by_user_id != current_user.id:
+        raise HTTPException(
+            status_code=403, detail="Możesz edytować tylko własne zgłoszenia."
+        )
+
+    nutrition = None
+    if payload.kcal_per_100 is not None:
+        nutrition = {
+            "kcal": payload.kcal_per_100,
+            "protein": payload.protein_per_100 or 0,
+            "fat": payload.fat_per_100 or 0,
+            "carbs": payload.carbs_per_100 or 0,
+            "fiber": 0,
+        }
+
+    product.name = payload.name.strip()
+    product.brand = (payload.brand or "").strip() or None
+    product.unit = payload.unit.strip() or "szt"
+    product.nutrition_per_100 = nutrition
+    product.submitted_price = payload.price
+    # Patrz docstring — każda edycja wraca do kolejki moderacji.
+    product.review_status = "pending"
+
+    db.add(product)
+    await db.commit()
+    await db.refresh(product)
+    return product
+
+
+@router.delete(
+    "/{product_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_model=None,
+    summary="Usuń własny zgłoszony produkt",
+)
+async def delete_own_product(
+    product_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> None:
+    """Usuwa WŁASNE zgłoszenie. Nie działa na produktach oficjalnych ani
+    cudzych zgłoszeniach — te może usunąć wyłącznie administrator
+    (patrz osobny endpoint admina niżej, jeśli dodany)."""
+    product = await db.get(Product, product_id)
+    if product is None:
+        raise HTTPException(status_code=404, detail="Nie znaleziono produktu")
+    if product.created_by_user_id != current_user.id:
+        raise HTTPException(
+            status_code=403, detail="Możesz usunąć tylko własne zgłoszenia."
+        )
+    await db.delete(product)
+    await db.commit()
+
+
 @router.get(
     "/admin/pending",
     response_model=list[ProductResponse],

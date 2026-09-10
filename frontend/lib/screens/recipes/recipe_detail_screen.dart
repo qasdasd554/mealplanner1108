@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../models/recipe.dart';
+import '../../services/recipe_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/recipe_comments_section.dart';
 import '../../widgets/recipe_favorite_button.dart';
@@ -16,12 +17,61 @@ import '../../providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 import '../../widgets/user_avatar.dart';
 
-class RecipeDetailScreen extends StatelessWidget {
+class RecipeDetailScreen extends StatefulWidget {
   const RecipeDetailScreen({super.key});
 
   @override
+  State<RecipeDetailScreen> createState() => _RecipeDetailScreenState();
+}
+
+class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
+  /// Przepis PRZEKAZANY z ekranu listy/siatki — wyświetlany od razu, bez
+  /// czekania na sieć, żeby otwarcie szczegółów nie migało pustym ekranem.
+  Recipe? _initialRecipe;
+
+  /// Pełne, ŚWIEŻE dane pobrane bezpośrednio z GET /recipes/{id} — TA
+  /// odpowiedź, w przeciwieństwie do listy/siatki, dociąga autora
+  /// (created_by_name/avatar) i inne pola liczone tylko przy szczegółach.
+  ///
+  /// NAPRAWA: ekran był wcześniej bezstanowy i CAŁKOWICIE polegał na
+  /// obiekcie przekazanym z listy — a lista świadomie NIE dociąga
+  /// autora (koszt joina przy dziesiątkach przepisów na raz). Backendowa
+  /// poprawka "Dodane przez" była więc technicznie poprawna, ale
+  /// bezużyteczna: nic w aplikacji nigdy nie wywoływało endpointu,
+  /// który tę informację faktycznie zwraca. Ekran szczegółów MUSI
+  /// pobierać dane niezależnie, nie tylko wyświetlać to, co dostał.
+  Recipe? _freshRecipe;
+  bool _isRefreshing = true;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_initialRecipe == null) {
+      _initialRecipe = ModalRoute.of(context)!.settings.arguments as Recipe;
+      _refreshFromServer();
+    }
+  }
+
+  Future<void> _refreshFromServer() async {
+    try {
+      final fresh = await RecipeService().getRecipe(_initialRecipe!.id);
+      if (!mounted) return;
+      setState(() {
+        _freshRecipe = fresh;
+        _isRefreshing = false;
+      });
+    } catch (_) {
+      // Cicha awaria — użytkownik i tak widzi przekazany przepis
+      // (bez autora, ale w pełni funkcjonalny). Brak sensu przerywać
+      // przeglądania komunikatem o błędzie dla danych, które są
+      // dodatkiem, nie koniecznością.
+      if (mounted) setState(() => _isRefreshing = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final recipe = ModalRoute.of(context)!.settings.arguments as Recipe;
+    final recipe = _freshRecipe ?? _initialRecipe!;
 
     return Scaffold(
       body: CustomScrollView(

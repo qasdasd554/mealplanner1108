@@ -430,6 +430,51 @@ class _MyProductsTabState extends State<_MyProductsTab> {
     if (added == true) _load();
   }
 
+  Future<void> _editProduct(Product p) async {
+    final edited = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppTheme.surfaceColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => SubmitProductSheet(editing: p),
+    );
+    if (edited == true) _load();
+  }
+
+  Future<void> _deleteProduct(Product p) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Usunąć produkt?'),
+        content: Text('Usuniesz "${p.name}" ze swoich zgłoszeń. Tej operacji nie da się cofnąć.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Anuluj')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text('Usuń', style: TextStyle(color: AppTheme.errorColor)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await _client.delete('/products/${p.id}');
+      _load();
+    } catch (e) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(
+          duration: const Duration(seconds: 3),
+          content: Text(friendlyError(e)),
+          backgroundColor: AppTheme.errorColor,
+        ));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -550,6 +595,24 @@ class _MyProductsTabState extends State<_MyProductsTab> {
                 ),
               ],
             ),
+          ),
+          // Edycja i usuwanie — TYLKO tutaj (zakładka "Moje"), bo tu
+          // wypisane są WYŁĄCZNIE własne zgłoszenia użytkownika.
+          Column(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.edit_outlined, size: 20),
+                tooltip: 'Edytuj',
+                visualDensity: VisualDensity.compact,
+                onPressed: () => _editProduct(p),
+              ),
+              IconButton(
+                icon: Icon(Icons.delete_outline, size: 20, color: AppTheme.errorColor),
+                tooltip: 'Usuń',
+                visualDensity: VisualDensity.compact,
+                onPressed: () => _deleteProduct(p),
+              ),
+            ],
           ),
         ],
       ),

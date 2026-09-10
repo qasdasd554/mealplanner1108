@@ -9,6 +9,7 @@ import 'admin_users_screen.dart';
 import 'admin_comments_screen.dart';
 import 'admin_photos_screen.dart';
 import 'admin_products_screen.dart';
+import 'admin_all_recipes_screen.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
 
@@ -923,6 +924,13 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                   label: const Text('Produkty'),
                   onPressed: () => Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const AdminProductsScreen()),
+                  ),
+                ),
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.menu_book_outlined, size: 18),
+                  label: const Text('Przepisy użytkowników'),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const AdminAllRecipesScreen()),
                   ),
                 ),
               ],
