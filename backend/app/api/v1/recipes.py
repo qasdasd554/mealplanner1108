@@ -350,19 +350,18 @@ async def create_recipe(
     Domyślnie przepis jest PRYWATNY — widoczny tylko dla twórcy, tak jak
     przepisy dodawane przez AI. Jeśli `request_public=True`, przepis
     zostaje zgłoszony do wspólnego katalogu widocznego dla wszystkich —
-    ale wymaga to konta Premium ORAZ akceptacji administratora, zanim
-    faktycznie stanie się publiczny (patrz PUT /recipes/{id}/approve).
-    """
-    from app.core.premium import is_premium_active
+    wymaga to TYLKO akceptacji administratora, zanim faktycznie stanie
+    się publiczny (patrz PUT /recipes/{id}/approve).
 
-    visibility = "private"
-    if recipe_in.request_public:
-        if not is_premium_active(current_user):
-            raise HTTPException(
-                status_code=403,
-                detail="Zgłaszanie przepisów do wspólnego katalogu wymaga konta Premium.",
-            )
-        visibility = "pending"
+    NAPRAWA: wcześniej to zgłoszenie wymagało konta Premium. Zgłaszanie
+    do wspólnego katalogu — a tym samym udział w cotygodniowym konkursie
+    (ranking liczy WYŁĄCZNIE przepisy visibility="public") — ma być
+    dostępne dla każdego konta, nie tylko Premium. Moderacja
+    administratora pozostaje jedynym zabezpieczeniem przed spamem/
+    nieodpowiednimi zgłoszeniami — to ona, nie status konta, decyduje,
+    co trafia do wspólnego katalogu.
+    """
+    visibility = "pending" if recipe_in.request_public else "private"
 
     # UWAGA (naprawa): wcześniej brakujący/nieistniejący product_id w
     # składniku nie był w ogóle sprawdzany — dopiero baza danych odrzucała

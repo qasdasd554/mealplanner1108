@@ -250,7 +250,6 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isPremium = Provider.of<AuthProvider>(context).currentUser?.hasPremiumAccess ?? false;
 
     return Scaffold(
       appBar: AppBar(
@@ -419,11 +418,16 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
               ),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.public,
-                    color: isPremium ? AppTheme.secondaryColor : AppTheme.textSecondary,
+                    color: AppTheme.secondaryColor,
                   ),
                   const SizedBox(width: 12),
+                  // NAPRAWA błędu builda: AppTheme.textSecondary jest
+                  // getterem zależnym od trybu jasny/ciemny (nie
+                  // static const), więc ten poddrzewo NIE MOŻE być const
+                  // — inaczej kompilator odrzuca cały widget z błędem
+                  // "invocation is not allowed in a constant expression".
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -432,10 +436,13 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
                           'Zgłoś do wspólnego katalogu',
                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                         ),
+                        // NAPRAWA: wcześniej dostępne tylko dla kont
+                        // Premium — udział w cotygodniowym konkursie (ranking
+                        // liczy WYŁĄCZNIE publiczne przepisy) miał być
+                        // dostępny dla każdego, nie tylko Premium. Moderacja
+                        // administratora nadal chroni katalog przed spamem.
                         Text(
-                          isPremium
-                              ? 'Po akceptacji administratora będzie widoczny dla wszystkich.'
-                              : 'Dostępne dla kont Premium — standardowe konta mogą dodawać przepisy tylko dla siebie.',
+                          'Po akceptacji administratora będzie widoczny dla wszystkich i policzy się do cotygodniowego konkursu.',
                           style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                         ),
                       ],
@@ -443,7 +450,7 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
                   ),
                   Switch(
                     value: _requestPublic,
-                    onChanged: isPremium ? (v) => setState(() => _requestPublic = v) : null,
+                    onChanged: (v) => setState(() => _requestPublic = v),
                   ),
                 ],
               ),
