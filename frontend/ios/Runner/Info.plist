@@ -8,6 +8,17 @@
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
 	<string>Meal Planner Polska</string>
+	<!-- NAPRAWA AWARYJNA: brak tych dwóch kluczy powodował NATYCHMIASTOWY
+	     twardy crash aplikacji (do ekranu głównego iOS) przy KAŻDEJ próbie
+	     użycia aparatu lub galerii — skanowanie przepisu przez AI, zdjęcie
+	     do komentarza, zdjęcie awatara. iOS nie pyta wtedy o zgodę, tylko
+	     od razu ubija proces, bo aplikacja nie ma prawa nawet ZAPYTAĆ
+	     o dostęp bez wcześniej zadeklarowanego uzasadnienia. Tekst poniżej
+	     to dokładnie to, co użytkownik zobaczy w systemowym oknie zgody. -->
+	<key>NSCameraUsageDescription</key>
+	<string>Aplikacja używa aparatu, żeby zrobić zdjęcie przepisu do rozpoznania przez AI, zdjęcie do komentarza albo Twoje zdjęcie profilowe.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Aplikacja potrzebuje dostępu do zdjęć, żeby wybrać zdjęcie przepisu, komentarza albo zdjęcie profilowe z galerii.</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
