@@ -113,6 +113,8 @@ def _to_response(
         recipe_id=comment.recipe_id,
         user_id=comment.user_id,
         author_name=comment.user.display_name or "Użytkownik",
+        author_avatar=comment.user.avatar,
+        author_avatar_photo=comment.user.avatar_photo_base64,
         text=comment.text,
         photo_base64=comment.photo_base64,
         created_at=comment.created_at,

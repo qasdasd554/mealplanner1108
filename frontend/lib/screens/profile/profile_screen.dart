@@ -1,3 +1,7 @@
+import 'package:image_picker/image_picker.dart';
+import '../../utils/error_utils.dart';
+import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
@@ -68,7 +72,7 @@ class ProfileScreen extends StatelessWidget {
                     onTap: () => _showAvatarPicker(context, authProvider),
                     child: Stack(
                       children: [
-                        UserAvatar(avatar: user?.avatar, size: 100),
+                        UserAvatar(avatar: user?.avatar, avatarPhotoBase64: user?.avatarPhotoBase64, size: 100),
                         Positioned(
                           right: 0,
                           bottom: 0,
@@ -638,6 +642,51 @@ class ProfileScreen extends StatelessWidget {
 /// mężczyzna) plus możliwość usunięcia wyboru (powrót do neutralnej
 /// ikony). Zapisuje wybór od razu po dotknięciu, bez osobnego przycisku
 /// "Zapisz" — mniej tarcia dla tak prostej decyzji.
+/// Zdejmuje zdjęcie z aparatu albo galerii i zapisuje jako awatar.
+///
+/// Ograniczenia dobrane MNIEJSZE niż przy zdjęciach przepisów (1600 px,
+/// jakość 85, limit 3 MB) — awatar renderuje się jako małe kółko w
+/// dziesiątkach miejsc naraz (komentarze, ranking), więc nie ma sensu
+/// trzymać w bazie dużego pliku tylko po to, żeby go potem zmniejszać
+/// przy każdym wyświetleniu.
+Future<void> _pickAvatarPhoto(
+  BuildContext context,
+  AuthProvider authProvider,
+  ImageSource source,
+) async {
+  final messenger = ScaffoldMessenger.of(context);
+  try {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: source,
+      maxWidth: 500,
+      maxHeight: 500,
+      imageQuality: 80,
+    );
+    if (picked == null) return;
+
+    final bytes = await File(picked.path).readAsBytes();
+    final base64Photo = base64Encode(bytes);
+
+    final ok = await authProvider.updateProfile(avatarPhotoBase64: base64Photo);
+    if (!ok) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(
+          duration: const Duration(seconds: 3),
+          content: Text(authProvider.errorMessage ?? 'Nie udało się zapisać zdjęcia'),
+        ));
+    }
+  } catch (e) {
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        duration: const Duration(seconds: 3),
+        content: Text(friendlyError(e)),
+      ));
+  }
+}
+
 void _showAvatarPicker(BuildContext context, AuthProvider authProvider) {
   showModalBottomSheet(
     context: context,
@@ -646,15 +695,46 @@ void _showAvatarPicker(BuildContext context, AuthProvider authProvider) {
     ),
     builder: (sheetContext) {
       final current = authProvider.currentUser?.avatar;
+      final hasPhoto = (authProvider.currentUser?.avatarPhotoBase64 ?? '').isNotEmpty;
+
       Widget option(String value, String label) {
         return GestureDetector(
           onTap: () async {
             Navigator.of(sheetContext).pop();
-            await authProvider.updateProfile(avatar: value);
+            // Wybór GOTOWEJ ikony kasuje własne zdjęcie (pusty string,
+            // nie null — patrz walidacja w backendzie), żeby ikona
+            // faktycznie zastąpiła zdjęcie zamiast zostać przez nie
+            // przysłonięta (UserAvatar daje zdjęciu pierwszeństwo).
+            await authProvider.updateProfile(avatar: value, avatarPhotoBase64: '');
           },
           child: Column(
             children: [
-              UserAvatar(avatar: value, size: 72, selected: current == value),
+              UserAvatar(avatar: value, size: 72, selected: current == value && !hasPhoto),
+              const SizedBox(height: 8),
+              Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+            ],
+          ),
+        );
+      }
+
+      Widget photoOption(IconData icon, String label, ImageSource source) {
+        return GestureDetector(
+          onTap: () {
+            Navigator.of(sheetContext).pop();
+            _pickAvatarPhoto(context, authProvider, source);
+          },
+          child: Column(
+            children: [
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppTheme.primaryColor.withOpacity(0.12),
+                  border: Border.all(color: AppTheme.primaryColor.withOpacity(0.3)),
+                ),
+                child: Icon(icon, color: AppTheme.primaryColor, size: 30),
+              ),
               const SizedBox(height: 8),
               Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
             ],
@@ -674,6 +754,23 @@ void _showAvatarPicker(BuildContext context, AuthProvider authProvider) {
             children: [
               Text('Wybierz awatar', style: Theme.of(sheetContext).textTheme.titleLarge),
               const SizedBox(height: 24),
+              // Własne zdjęcie — NOWOŚĆ. Aparat i galeria w jednym rzędzie,
+              // nad gotowymi ikonami, bo to opcja, którą chcemy wyeksponować.
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  photoOption(Icons.camera_alt, 'Zrób zdjęcie', ImageSource.camera),
+                  photoOption(Icons.photo_library, 'Z galerii', ImageSource.gallery),
+                ],
+              ),
+              const SizedBox(height: 20),
+              const Divider(),
+              const SizedBox(height: 12),
+              Text(
+                'albo wybierz ikonę',
+                style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+              ),
+              const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [

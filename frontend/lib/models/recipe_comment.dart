@@ -3,6 +3,8 @@ class RecipeComment {
   final String recipeId;
   final String userId;
   final String authorName;
+  final String? authorAvatar;
+  final String? authorAvatarPhoto;
   final String? text;
   // Dane zdjęcia zakodowane w Base64 (bez prefiksu "data:image/..."),
   // dokładnie tak, jak zwraca je backend — zdjęcie jest przechowywane w
@@ -17,6 +19,8 @@ class RecipeComment {
     required this.recipeId,
     required this.userId,
     required this.authorName,
+    this.authorAvatar,
+    this.authorAvatarPhoto,
     this.text,
     this.photoBase64,
     required this.createdAt,
@@ -30,6 +34,8 @@ class RecipeComment {
       recipeId: json['recipe_id'] as String,
       userId: json['user_id'] as String,
       authorName: json['author_name'] as String? ?? 'Użytkownik',
+      authorAvatar: json['author_avatar'] as String?,
+      authorAvatarPhoto: json['author_avatar_photo'] as String?,
       text: json['text'] as String?,
       photoBase64: json['photo_base64'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
@@ -47,6 +53,8 @@ class RecipeComment {
       recipeId: recipeId,
       userId: userId,
       authorName: authorName,
+      authorAvatar: authorAvatar,
+      authorAvatarPhoto: authorAvatarPhoto,
       text: text,
       photoBase64: photoBase64,
       createdAt: createdAt,

@@ -41,6 +41,10 @@ class Product {
   final String? barcode;
   final NutritionInfo nutritionPer100;
   final String? imageUrl;
+  // "approved" (oficjalny/zatwierdzony) | "pending" | "rejected" —
+  // patrz app/models/product.py po stronie backendu.
+  final String reviewStatus;
+  final double? submittedPrice;
 
   Product({
     required this.id,
@@ -51,6 +55,8 @@ class Product {
     this.barcode,
     required this.nutritionPer100,
     this.imageUrl,
+    this.reviewStatus = 'approved',
+    this.submittedPrice,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -65,6 +71,8 @@ class Product {
         json['nutrition_per_100'] as Map<String, dynamic>? ?? {},
       ),
       imageUrl: json['image_url'] as String?,
+      reviewStatus: json['review_status'] as String? ?? 'approved',
+      submittedPrice: (json['submitted_price'] as num?)?.toDouble(),
     );
   }
 }

@@ -12,6 +12,8 @@ class User {
   final String? activityLevel;
   final int? dailyKcalGoal;
   final String? avatar;
+  // Ma pierwszeństwo przed ikoną z `avatar`, gdy oba są ustawione.
+  final String? avatarPhotoBase64;
   final bool isEmailVerified;
   final String role;
   final bool isPremium;
@@ -40,6 +42,7 @@ class User {
     this.activityLevel,
     this.dailyKcalGoal,
     this.avatar,
+    this.avatarPhotoBase64,
     this.isEmailVerified = false,
     this.role = 'user',
     this.isPremium = false,
@@ -107,6 +110,7 @@ class User {
       activityLevel: json['activity_level'] as String?,
       dailyKcalGoal: json['daily_kcal_goal'] as int?,
       avatar: json['avatar'] as String?,
+      avatarPhotoBase64: json['avatar_photo_base64'] as String?,
       isEmailVerified: json['is_email_verified'] as bool? ?? false,
       role: json['role'] as String? ?? 'user',
       isPremium: json['is_premium'] as bool? ?? false,

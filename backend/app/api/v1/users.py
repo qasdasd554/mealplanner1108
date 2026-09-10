@@ -54,6 +54,9 @@ class UserProfileUpdate(BaseModel):
     activity_level: str | None = Field(default=None, max_length=20)
     daily_kcal_goal: int | None = Field(default=None, ge=800, le=6000)
     avatar: str | None = None
+    # Własne zdjęcie profilowe, base64. Puste-ale-nie-None ("") kasuje
+    # zdjęcie i wraca do ikony z `avatar` — patrz update_me niżej.
+    avatar_photo_base64: str | None = None
 
     @field_validator("avatar")
     @classmethod
@@ -61,6 +64,17 @@ class UserProfileUpdate(BaseModel):
         allowed = {"male", "female"}
         if v is not None and v not in allowed:
             raise ValueError(f"Awatar musi być jednym z: {', '.join(allowed)}.")
+        return v
+
+    @field_validator("avatar_photo_base64")
+    @classmethod
+    def validate_avatar_photo(cls, v: str | None) -> str | None:
+        # Limit MNIEJSZY niż przy zdjęciach przepisów (3 MB) — awatar
+        # jest wyświetlany dziesiątki razy naraz (lista komentarzy,
+        # ranking), więc nie ma sensu pozwalać na duże pliki tam, gdzie
+        # docelowo i tak renderuje się go jako małe kółko.
+        if v and len(v) > 1_500_000:
+            raise ValueError("Zdjęcie jest za duże (maks. ok. 1 MB).")
         return v
 
     @field_validator("gender")
@@ -305,6 +319,7 @@ class RecipeLeaderboardEntry(BaseModel):
     display_name: str
     recipe_count: int
     avatar: str | None = None
+    avatar_photo_base64: str | None = None
 
 
 @router.get(
@@ -326,16 +341,22 @@ async def get_recipe_leaderboard(
             User.display_name,
             func.count(Recipe.id).label("recipe_count"),
             User.avatar,
+            User.avatar_photo_base64,
         )
         .join(Recipe, Recipe.created_by_user_id == User.id)
         .where(Recipe.visibility == "public")
-        .group_by(User.id, User.display_name, User.avatar)
+        .group_by(User.id, User.display_name, User.avatar, User.avatar_photo_base64)
         .order_by(func.count(Recipe.id).desc())
         .limit(50)
     )
     return [
-        RecipeLeaderboardEntry(display_name=name or "Użytkownik", recipe_count=count, avatar=avatar)
-        for name, count, avatar in result.all()
+        RecipeLeaderboardEntry(
+            display_name=name or "Użytkownik",
+            recipe_count=count,
+            avatar=avatar,
+            avatar_photo_base64=avatar_photo,
+        )
+        for name, count, avatar, avatar_photo in result.all()
     ]
 
 
@@ -372,16 +393,22 @@ async def get_weekly_recipe_leaderboard(
             User.display_name,
             func.count(Recipe.id).label("recipe_count"),
             User.avatar,
+            User.avatar_photo_base64,
         )
         .join(Recipe, Recipe.created_by_user_id == User.id)
         .where(Recipe.visibility == "public", Recipe.created_at >= week_ago)
-        .group_by(User.id, User.display_name, User.avatar)
+        .group_by(User.id, User.display_name, User.avatar, User.avatar_photo_base64)
         .order_by(func.count(Recipe.id).desc())
         .limit(50)
     )
     return [
-        RecipeLeaderboardEntry(display_name=name or "Użytkownik", recipe_count=count, avatar=avatar)
-        for name, count, avatar in result.all()
+        RecipeLeaderboardEntry(
+            display_name=name or "Użytkownik",
+            recipe_count=count,
+            avatar=avatar,
+            avatar_photo_base64=avatar_photo,
+        )
+        for name, count, avatar, avatar_photo in result.all()
     ]
 
 

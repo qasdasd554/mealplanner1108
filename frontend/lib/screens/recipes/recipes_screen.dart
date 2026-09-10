@@ -106,7 +106,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
           // żeby wyraźnie zachęcała do sprawdzenia cotygodniowego
           // konkursu, nie ginęła obok innych, zwykłych ikon.
           Container(
-            margin: const EdgeInsets.only(right: 4),
+            // Odstęp zwiększony z 4 na 14 px — jedyna ikona w tym pasku
+            // siedziała praktycznie przyklejona do prawej krawędzi
+            // ekranu, bez żadnego oddechu.
+            margin: const EdgeInsets.only(right: 14),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: const Color(0xFFE0A62E).withOpacity(0.15),

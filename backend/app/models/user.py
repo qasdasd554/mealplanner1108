@@ -65,6 +65,11 @@ class User(Base):
     # neutralną, domyślną ikonę). Celowo string, nie enum bazodanowy —
     # łatwiej dodać kolejne opcje w przyszłości bez migracji typu.
     avatar: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    # Własne zdjęcie profilowe użytkownika, jako base64 — ten sam wzorzec
+    # co `photo_base64` przy przepisach. Gdy ustawione, MA PIERWSZEŃSTWO
+    # przed gotową ikoną z `avatar` w każdym miejscu, gdzie użytkownik
+    # jest pokazywany (profil, komentarze, ranking, autorstwo przepisu).
+    avatar_photo_base64: Mapped[str | None] = mapped_column(Text, nullable=True)
     # Weryfikacja adresu e-mail kodem przy rejestracji — konta Google mają
     # to ustawione na True od razu (Google już zweryfikował adres, nie ma
     # sensu robić tego drugi raz). Konta email/hasło startują jako

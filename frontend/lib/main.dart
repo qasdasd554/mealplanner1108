@@ -18,7 +18,62 @@ import 'services/push_service.dart';
 import 'providers/wellness_provider.dart';
 
 void main() async {
+  // NAPRAWA BRAKU ZABEZPIECZENIA: w aplikacji nie było ŻADNEGO globalnego
+  // przechwytywania błędów. Nieobsłużony wyjątek w dowolnym miejscu —
+  // budowaniu widgetu, callbacku, funkcji async poza try/catch — kończył
+  // się domyślnym czerwonym ekranem błędu Fluttera (w trybie debug) albo,
+  // gorzej, awarią całego izolatu Darta w wersji produkcyjnej. Użytkownik
+  // trafiał w ścianę bez żadnej drogi wyjścia poza ubiciem aplikacji.
+  //
+  // Dwie niezależne warstwy:
+  // 1. ErrorWidget.builder — błąd przy BUDOWANIU pojedynczego widgetu
+  //    (np. null tam, gdzie dane z serwera nie doszły) pokazuje teraz
+  //    przyjazny komunikat z ikoną zamiast czerwonego ekranu ze stosem
+  //    wywołań, który wygląda jak zepsuta aplikacja.
+  // 2. runZonedGuarded + FlutterError.onError — błędy spoza drzewa
+  //    widgetów (np. w funkcji async wywołanej z timera) są przechwytywane
+  //    i logowane zamiast cicho ubijać aplikację.
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return Material(
+      color: const Color(0xFFF5F5F5),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.error_outline, size: 48, color: Colors.grey),
+              const SizedBox(height: 12),
+              const Text(
+                'Coś poszło nie tak przy wyświetlaniu tego ekranu.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  };
+
+  runZonedGuarded(() async {
+    await _bootstrap();
+  }, (error, stack) {
+    // Logujemy zamiast pozwolić błędowi cicho ubić izolat. Bez zdalnego
+    // narzędzia (Crashlytics/Sentry) nie zobaczymy tego na produkcji,
+    // ale samo przechwycenie już zapobiega awarii aplikacji z powodu
+    // pojedynczego nieobsłużonego wyjątku w kodzie asynchronicznym.
+    debugPrint('Nieobsłużony błąd: $error\n$stack');
+  });
+}
+
+Future<void> _bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    debugPrint('FlutterError: ${details.exceptionAsString()}');
+  };
 
   // WAŻNE: ekran "Śledzenie" używa DateFormat('dd MMMM yyyy', 'pl_PL')
   // (polskie nazwy miesięcy). Pakiet intl wymaga jawnej inicjalizacji

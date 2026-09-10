@@ -309,6 +309,9 @@ async def get_recipe(
         .options(
             selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product),
             selectinload(Recipe.tags),
+            # Do wyświetlenia "Dodane przez [nazwa]" na ekranie
+            # szczegółów — patrz attach_creator_info w schemas/recipe.py.
+            selectinload(Recipe.creator),
         )
         .where(Recipe.id == recipe_id)
     )

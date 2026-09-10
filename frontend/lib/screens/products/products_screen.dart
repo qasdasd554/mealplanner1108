@@ -5,11 +5,21 @@ import '../../models/product.dart';
 import '../../models/store.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/store_provider.dart';
+import '../../services/api_client.dart';
 import '../../services/store_service.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/error_utils.dart';
+import '../../widgets/submit_product_sheet.dart';
 
-/// Ekran przeglądania bazy produktów wybranego sklepu — nazwa, cena,
-/// kaloryczność na 100 g/ml. Dostępny z ekranu głównego („Baza produktów”).
+/// Ekran produktów w dwóch zakładkach: „Sklep” (katalog produktów
+/// wybranego sklepu, z cenami) i „Moje” (własne zgłoszenia użytkownika,
+/// niezależnie od statusu akceptacji).
+///
+/// NAPRAWA BRAKUJĄCEJ FUNKCJI: zgłoszony produkt zapisywał się w bazie,
+/// ale nigdzie w aplikacji nie było miejsca, które by go pokazało —
+/// zakładka „Sklep” celowo pokazuje wyłącznie produkty powiązane ze
+/// sklepem, a zgłoszenie takiego powiązania nie ma. Druga zakładka
+/// domyka tę lukę.
 class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key});
 
@@ -17,7 +27,55 @@ class ProductsScreen extends StatefulWidget {
   State<ProductsScreen> createState() => _ProductsScreenState();
 }
 
-class _ProductsScreenState extends State<ProductsScreen> {
+class _ProductsScreenState extends State<ProductsScreen>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Produkty'),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: 'Sklep'),
+            Tab(text: 'Moje'),
+          ],
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: const [
+          _StoreProductsTab(),
+          _MyProductsTab(),
+        ],
+      ),
+    );
+  }
+}
+
+/// Dawna zawartość ekranu — katalog produktów wybranego sklepu.
+class _StoreProductsTab extends StatefulWidget {
+  const _StoreProductsTab();
+
+  @override
+  State<_StoreProductsTab> createState() => _StoreProductsTabState();
+}
+
+class _StoreProductsTabState extends State<_StoreProductsTab> {
   final StoreService _storeService = StoreService();
 
   List<StoreProduct> _products = [];
@@ -93,66 +151,58 @@ class _ProductsScreenState extends State<ProductsScreen> {
   Widget build(BuildContext context) {
     final storeProvider = Provider.of<StoreProvider>(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Baza produktów'),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(60),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-            child: TextField(
-              onChanged: (value) {
-                _searchQuery = value;
-                _loadProducts();
-              },
-              decoration: InputDecoration(
-                hintText: 'Szukaj produktu...',
-                prefixIcon: const Icon(Icons.search),
-                contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                fillColor: AppTheme.surfaceColor.withOpacity(0.5),
-              ),
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+          child: TextField(
+            onChanged: (value) {
+              _searchQuery = value;
+              _loadProducts();
+            },
+            decoration: InputDecoration(
+              hintText: 'Szukaj produktu...',
+              prefixIcon: const Icon(Icons.search),
+              contentPadding: const EdgeInsets.symmetric(vertical: 12),
+              fillColor: AppTheme.surfaceColor.withOpacity(0.5),
             ),
           ),
         ),
-      ),
-      body: Column(
-        children: [
-          // Wybór sklepu
-          if (storeProvider.stores.length > 1)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              child: SizedBox(
-                width: double.infinity,
-                child: DropdownButtonFormField<String>(
-                  value: _selectedStoreId,
-                  decoration: const InputDecoration(
-                    labelText: 'Sklep',
-                    prefixIcon: Icon(Icons.storefront_outlined),
-                  ),
-                  dropdownColor: AppTheme.surfaceColor,
-                  items: storeProvider.stores
-                      .map(
-                        (Store s) => DropdownMenuItem(
-                          value: s.id,
-                          child: Text(s.name),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedStoreId = value;
-                    });
-                    _loadProducts();
-                  },
+        // Wybór sklepu
+        if (storeProvider.stores.length > 1)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            child: SizedBox(
+              width: double.infinity,
+              child: DropdownButtonFormField<String>(
+                value: _selectedStoreId,
+                decoration: const InputDecoration(
+                  labelText: 'Sklep',
+                  prefixIcon: Icon(Icons.storefront_outlined),
                 ),
+                dropdownColor: AppTheme.surfaceColor,
+                items: storeProvider.stores
+                    .map(
+                      (Store s) => DropdownMenuItem(
+                        value: s.id,
+                        child: Text(s.name),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedStoreId = value;
+                  });
+                  _loadProducts();
+                },
               ),
             ),
-
-          Expanded(
-            child: _buildBody(),
           ),
-        ],
-      ),
+
+        Expanded(
+          child: _buildBody(),
+        ),
+      ],
     );
   }
 
@@ -317,6 +367,191 @@ class _ProductsScreenState extends State<ProductsScreen> {
             ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Zakładka „Moje” — produkty zgłoszone przez zalogowanego użytkownika,
+/// niezależnie od tego, czy zostały już zatwierdzone.
+class _MyProductsTab extends StatefulWidget {
+  const _MyProductsTab();
+
+  @override
+  State<_MyProductsTab> createState() => _MyProductsTabState();
+}
+
+class _MyProductsTabState extends State<_MyProductsTab> {
+  final ApiClient _client = ApiClient();
+  List<Product> _products = [];
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final response = await _client.get('/products/mine');
+      if (!mounted) return;
+      setState(() {
+        _products = (response as List)
+            .map((e) => Product.fromJson(e as Map<String, dynamic>))
+            .toList();
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _error = friendlyError(e));
+    } finally {
+      // finally, żeby kółko zniknęło niezależnie od wyniku żądania —
+      // ten sam wzorzec, którego brakowało w panelu admina zanim go
+      // naprawiliśmy.
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _openSubmitSheet() async {
+    final added = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppTheme.surfaceColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => const SubmitProductSheet(),
+    );
+    if (added == true) _load();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _openSubmitSheet,
+        icon: const Icon(Icons.add),
+        label: const Text('Dodaj produkt'),
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.error_outline,
+                            size: 56, color: AppTheme.textSecondary),
+                        const SizedBox(height: 16),
+                        Text(_error!,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: AppTheme.textSecondary)),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                            onPressed: _load, child: const Text('Spróbuj ponownie')),
+                      ],
+                    ),
+                  ),
+                )
+              : _products.isEmpty
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(32),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.inventory_2_outlined,
+                                size: 56, color: AppTheme.textSecondary),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Nie zgłosiłeś/aś jeszcze żadnego produktu.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: AppTheme.textSecondary),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Dotknij „Dodaj produkt” poniżej, żeby zgłosić coś,\nczego nie ma w katalogu.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: AppTheme.textSecondary, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: _load,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
+                        itemCount: _products.length,
+                        itemBuilder: (context, index) =>
+                            _buildTile(_products[index]),
+                      ),
+                    ),
+    );
+  }
+
+  Widget _buildTile(Product p) {
+    final (label, color) = switch (p.reviewStatus) {
+      'approved' => ('W katalogu', AppTheme.primaryColor),
+      'rejected' => ('Odrzucony', AppTheme.errorColor),
+      _ => ('Oczekuje na akceptację', AppTheme.textSecondary),
+    };
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withOpacity(0.35)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  p.name,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  [
+                    if (p.brand != null && p.brand!.isNotEmpty) p.brand!,
+                    if (p.submittedPrice != null)
+                      '${p.submittedPrice!.toStringAsFixed(2)} zł',
+                  ].join(' · '),
+                  style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                        fontSize: 11, color: color, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

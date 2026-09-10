@@ -180,6 +180,13 @@ class RecipeResponse(RecipeBase):
     # widgets/report_block_menu.dart) — samo pole nic nie odsłania,
     # bo autor i tak jest widoczny publicznie jako twórca przepisu.
     created_by_user_id: uuid.UUID | None = None
+    # "Dodane przez [nazwa]" na ekranie szczegółów. Puste dla 81
+    # oficjalnych przepisów (created_by_user_id=None) i dla list/siatek,
+    # gdzie relacja `creator` NIE jest wczytywana celowo (koszt joina
+    # przy każdym z dziesiątek przepisów na liście na raz).
+    created_by_name: str | None = None
+    created_by_avatar: str | None = None
+    created_by_avatar_photo: str | None = None
 
     @field_validator("tags", mode="before")
     @classmethod
@@ -187,6 +194,35 @@ class RecipeResponse(RecipeBase):
         if isinstance(v, list):
             return [t.tag if hasattr(t, "tag") else t for t in v]
         return v
+
+    @model_validator(mode="before")
+    @classmethod
+    def attach_creator_info(cls, data):
+        # Bezpieczny odczyt relacji `creator` — sprawdzamy, czy w ogóle
+        # została WCZYTANA (przez selectinload na poziomie zapytania),
+        # zanim spróbujemy z niej skorzystać.
+        #
+        # UWAGA: model ma `lazy="raise"` na tej relacji, żeby przypadkowy
+        # dostęp bez eager-load rzucił czytelny błąd zamiast cichej,
+        # kosztownej zapytania N+1. Ale to oznacza, że NAWET `hasattr(data,
+        # "creator")` by tu wybuchło — hasattr w Pythonie 3 łapie
+        # wyłącznie AttributeError, a SQLAlchemy przy lazy="raise" rzuca
+        # InvalidRequestError, który przez hasattr przechodzi bez
+        # przechwycenia. Dlatego sprawdzamy przez `inspect(...).unloaded`
+        # PRZED jakąkolwiek próbą dostępu do samego atrybutu, a całość
+        # i tak owijamy w try/except — `data` bywa też zwykłym słownikiem
+        # (nie obiektem ORM), dla którego `inspect()` od razu zawiedzie.
+        try:
+            from sqlalchemy import inspect as sa_inspect
+
+            insp = sa_inspect(data)
+            if "creator" not in insp.unloaded and data.creator is not None:
+                data.created_by_name = data.creator.display_name
+                data.created_by_avatar = data.creator.avatar
+                data.created_by_avatar_photo = data.creator.avatar_photo_base64
+        except Exception:
+            pass
+        return data
 
     @model_validator(mode="before")
     @classmethod

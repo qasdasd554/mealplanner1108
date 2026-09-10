@@ -79,30 +79,104 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
     });
   }
 
+  /// Jednostki DOKŁADNIEJSZE niż podstawowa jednostka produktu z katalogu.
+  ///
+  /// NAPRAWA BRAKU PRECYZJI: produkt typu olej ma w katalogu jednostkę
+  /// "l", więc pole przyjmowało WYŁĄCZNIE litry — żeby wpisać 50 ml,
+  /// trzeba było policzyć w głowie i wpisać "0.05". Tu dajemy wybór
+  /// jednostki, a wpisaną wartość przeliczamy na jednostkę bazową dopiero
+  /// przy zapisie — backend (quantity_to_grams) i tak rozumie tylko
+  /// "g"/"kg"/"ml"/"l"/"szt", więc konwersja musi się odbyć po stronie
+  /// aplikacji.
+  static const Map<String, List<String>> _preciserUnits = {
+    'l': ['l', 'ml'],
+    'kg': ['kg', 'g'],
+  };
+
+  /// Mnożnik przeliczający wpisaną wartość na jednostkę BAZOWĄ produktu
+  /// (tę z katalogu, którą backend faktycznie rozpoznaje).
+  double _conversionFactor(String fromUnit, String baseUnit) {
+    if (fromUnit == baseUnit) return 1.0;
+    if (fromUnit == 'ml' && baseUnit == 'l') return 0.001;
+    if (fromUnit == 'g' && baseUnit == 'kg') return 0.001;
+    return 1.0;
+  }
+
   Future<double?> _askQuantity(Product product) async {
-    final controller = TextEditingController(text: formatQuantity(product.defaultQuantity, product.unit));
-    return showDialog<double>(
+    final baseUnit = product.unit;
+    final options = _preciserUnits[baseUnit] ?? [baseUnit];
+    String selectedUnit = baseUnit;
+
+    final controller =
+        TextEditingController(text: formatQuantity(product.defaultQuantity, baseUnit));
+
+    final result = await showDialog<double>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(product.name),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          autofocus: true,
-          decoration: InputDecoration(labelText: 'Ilość (${product.unit})'),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Anuluj')),
-          FilledButton(
-            onPressed: () {
-              final val = double.tryParse(controller.text.replaceAll(',', '.'));
-              Navigator.pop(ctx, val);
-            },
-            child: const Text('Dodaj'),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Text(product.name),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: TextField(
+                      controller: controller,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      autofocus: true,
+                      decoration: const InputDecoration(labelText: 'Ilość'),
+                    ),
+                  ),
+                  if (options.length > 1) ...[
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: selectedUnit,
+                        decoration: const InputDecoration(labelText: 'Jedn.'),
+                        items: options
+                            .map((u) =>
+                                DropdownMenuItem(value: u, child: Text(u)))
+                            .toList(),
+                        onChanged: (v) {
+                          if (v == null) return;
+                          setDialogState(() => selectedUnit = v);
+                        },
+                      ),
+                    ),
+                  ] else
+                    Padding(
+                      padding: const EdgeInsets.only(left: 10, top: 14),
+                      child: Text(baseUnit),
+                    ),
+                ],
+              ),
+            ],
           ),
-        ],
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Anuluj')),
+            FilledButton(
+              onPressed: () {
+                final raw = double.tryParse(controller.text.replaceAll(',', '.'));
+                if (raw == null) {
+                  Navigator.pop(ctx);
+                  return;
+                }
+                // Przeliczamy TERAZ, na jednostkę bazową — reszta
+                // ekranu (i backend) nic o wyborze jednostki w tym
+                // oknie nie wie, dostaje już gotową liczbę w "l"/"kg".
+                final converted = raw * _conversionFactor(selectedUnit, baseUnit);
+                Navigator.pop(ctx, converted);
+              },
+              child: const Text('Dodaj'),
+            ),
+          ],
+        ),
       ),
     );
+    return result;
   }
 
   void _addStep() {

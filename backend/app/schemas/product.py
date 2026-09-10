@@ -44,6 +44,11 @@ class ProductResponse(ProductBase):
     id: uuid.UUID
     image_url: str | None = None
     created_at: datetime
+    # Widoczne tylko wtedy, gdy produkt jest zgłoszeniem użytkownika —
+    # oficjalne produkty katalogowe mają review_status="approved" (patrz
+    # domyślna wartość w modelu) i submitted_price=None.
+    review_status: str = "approved"
+    submitted_price: Decimal | None = None
 
 
 class StoreProductResponse(BaseModel):

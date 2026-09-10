@@ -179,6 +179,7 @@ class _RecipeLeaderboardScreenState extends State<RecipeLeaderboardScreen>
         final name = entry['display_name'] as String;
         final count = entry['recipe_count'] as int;
         final avatar = entry['avatar'] as String?;
+        final avatarPhoto = entry['avatar_photo_base64'] as String?;
         final medal = index < 3 ? _medals[index] : null;
 
         return Container(
@@ -199,7 +200,7 @@ class _RecipeLeaderboardScreenState extends State<RecipeLeaderboardScreen>
                 ),
               ),
               const SizedBox(width: 8),
-              UserAvatar(avatar: avatar, size: 32),
+              UserAvatar(avatar: avatar, avatarPhotoBase64: avatarPhoto, size: 32),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),

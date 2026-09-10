@@ -38,6 +38,9 @@ class UserResponse(BaseModel):
     activity_level: str | None = None
     daily_kcal_goal: int | None = None
     avatar: str | None = None
+    # Zdjęcie ma pierwszeństwo przed ikoną z `avatar`, gdy oba są ustawione
+    # — patrz komentarz przy kolumnie w modelu.
+    avatar_photo_base64: str | None = None
     is_email_verified: bool = False
     role: str = "user"
     is_premium: bool = False

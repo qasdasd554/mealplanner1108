@@ -8,6 +8,7 @@ import '../providers/auth_provider.dart';
 import '../services/recipe_comment_service.dart';
 import '../theme/app_theme.dart';
 import 'report_block_menu.dart';
+import 'user_avatar.dart';
 
 /// Sekcja komentarzy i zdjęć pod przepisem — samodzielny widget z własnym
 /// stanem (StatefulWidget), żeby nie trzeba było przerabiać całego ekranu
@@ -359,13 +360,14 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
                 children: [
                   Row(
                     children: [
-                      CircleAvatar(
-                        radius: 14,
-                        backgroundColor: AppTheme.primaryColor.withOpacity(0.15),
-                        child: Text(
-                          comment.authorName.isNotEmpty ? comment.authorName[0].toUpperCase() : '?',
-                          style: const TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold, fontSize: 12),
-                        ),
+                      // NAPRAWA: wcześniej tu było zawsze kółko z pierwszą
+                      // literą imienia — użytkownik nigdzie nie widział
+                      // swojego (ani cudzego) prawdziwego zdjęcia profilowego
+                      // przy komentarzach, mimo że dodał je w profilu.
+                      UserAvatar(
+                        avatar: comment.authorAvatar,
+                        avatarPhotoBase64: comment.authorAvatarPhoto,
+                        size: 28,
                       ),
                       const SizedBox(width: 8),
                       Expanded(

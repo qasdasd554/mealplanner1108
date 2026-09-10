@@ -84,6 +84,9 @@ class Recipe {
   // ID autora — null dla oficjalnych przepisów. Wyłącznie do przycisku
   // "Zablokuj autora" (patrz widgets/report_block_menu.dart).
   final String? createdByUserId;
+  final String? createdByName;
+  final String? createdByAvatar;
+  final String? createdByAvatarPhoto;
 
   Recipe({
     required this.id,
@@ -108,6 +111,9 @@ class Recipe {
     this.visibility = 'private',
     this.createdAt,
     this.createdByUserId,
+    this.createdByName,
+    this.createdByAvatar,
+    this.createdByAvatarPhoto,
   });
 
   factory Recipe.fromJson(Map<String, dynamic> json) {
@@ -147,6 +153,9 @@ class Recipe {
           ? DateTime.tryParse(json['created_at'] as String)
           : null,
       createdByUserId: json['created_by_user_id'] as String?,
+      createdByName: json['created_by_name'] as String?,
+      createdByAvatar: json['created_by_avatar'] as String?,
+      createdByAvatarPhoto: json['created_by_avatar_photo'] as String?,
     );
   }
 

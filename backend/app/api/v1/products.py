@@ -181,6 +181,33 @@ class ProductSubmission(BaseModel):
     carbs_per_100: float | None = Field(None, ge=0, le=200)
 
 
+@router.get(
+    "/mine",
+    response_model=list[ProductResponse],
+    summary="Produkty zgłoszone przeze mnie — dowolny status",
+)
+async def list_my_products(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> list[Product]:
+    """Wszystkie WŁASNE zgłoszenia użytkownika, niezależnie od statusu.
+
+    NAPRAWA BRAKUJĄCEJ FUNKCJI: zgłoszony produkt zapisywał się
+    w bazie (endpoint /submit działał), ale nigdzie w aplikacji nie było
+    miejsca, które by go pokazało — ekran katalogu (`ProductsScreen`)
+    wyświetla wyłącznie produkty POWIĄZANE ZE SKLEPEM (StoreProduct),
+    a zgłoszenie świadomie nie tworzy takiego powiązania (patrz
+    komentarz w submit_product). Efekt: produkt istniał w bazie, ale dla
+    użytkownika wyglądało to tak, jakby zniknął bez śladu.
+    """
+    result = await db.execute(
+        select(Product)
+        .where(Product.created_by_user_id == current_user.id)
+        .order_by(Product.created_at.desc())
+    )
+    return list(result.scalars().all())
+
+
 @router.post(
     "/submit",
     response_model=ProductResponse,

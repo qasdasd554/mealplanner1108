@@ -253,6 +253,7 @@ class AuthService {
     String? activityLevel,
     int? dailyKcalGoal,
     String? avatar,
+    String? avatarPhotoBase64,
   }) async {
     final body = <String, dynamic>{};
     if (displayName != null) body['display_name'] = displayName;
@@ -266,6 +267,10 @@ class AuthService {
     if (activityLevel != null) body['activity_level'] = activityLevel;
     if (dailyKcalGoal != null) body['daily_kcal_goal'] = dailyKcalGoal;
     if (avatar != null) body['avatar'] = avatar;
+    // '' (pusty string) jest CELOWO wysyłane — to kasowanie zdjęcia
+    // przy wyborze gotowej ikony. Warunek musi więc sprawdzać `!= null`,
+    // nie samą "prawdziwość" wartości.
+    if (avatarPhotoBase64 != null) body['avatar_photo_base64'] = avatarPhotoBase64;
 
     final response = await _client.put(ApiConfig.usersMe, body: body);
     return User.fromJson(response as Map<String, dynamic>);

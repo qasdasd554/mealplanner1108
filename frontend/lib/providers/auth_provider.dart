@@ -279,6 +279,7 @@ class AuthProvider with ChangeNotifier {
     String? activityLevel,
     int? dailyKcalGoal,
     String? avatar,
+    String? avatarPhotoBase64,
   }) async {
     _clearError();
     try {
@@ -294,6 +295,7 @@ class AuthProvider with ChangeNotifier {
         activityLevel: activityLevel,
         dailyKcalGoal: dailyKcalGoal,
         avatar: avatar,
+        avatarPhotoBase64: avatarPhotoBase64,
       );
       _currentUser = updatedUser;
       notifyListeners();

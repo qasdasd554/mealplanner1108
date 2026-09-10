@@ -192,6 +192,10 @@ async def _create_tables() -> None:
         await conn.execute(
             text("ALTER TABLE products ADD COLUMN IF NOT EXISTS submitted_price NUMERIC(10,2)")
         )
+        # Zdjęcie profilowe użytkownika — patrz app/models/user.py.
+        await conn.execute(
+            text("ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_photo_base64 TEXT")
+        )
         # Nawodnienie: jeden wpis na użytkownika i dzień — patrz
         # app/models/wellness.py.
         await conn.execute(

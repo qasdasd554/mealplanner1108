@@ -1,12 +1,13 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
-/// Reużywalny awatar użytkownika — pokazuje jeden z dwóch gotowych
-/// placeholderów ("male"/"female") jako ikonę na delikatnym tle w
-/// kolorze marki, albo neutralną domyślną ikonę, gdy użytkownik nie
-/// wybrał jeszcze żadnego awatara. Używany zarówno w profilu (duży, do
-/// wyboru), jak i w rankingu autorów przepisów (mały, tylko do
-/// wyświetlenia).
+/// Reużywalny awatar użytkownika. Pokazuje WŁASNE ZDJĘCIE, jeśli
+/// użytkownik je ustawił, w przeciwnym razie jeden z dwóch gotowych
+/// placeholderów ("male"/"female"), albo neutralną domyślną ikonę.
+/// Używany wszędzie tam, gdzie pokazywany jest użytkownik: profil,
+/// ranking autorów przepisów, komentarze, autorstwo przepisu.
 ///
 /// UWAGA (naprawa — zła kolorystyka): wcześniejsza wersja używała
 /// jaskrawego różowego/niebieskiego gradientu, który wizualnie mocno
@@ -17,18 +18,58 @@ import '../theme/app_theme.dart';
 /// ikona w pełnym kolorze, zamiast krzykliwego, pełnego gradientu.
 class UserAvatar extends StatelessWidget {
   final String? avatar;
+
+  /// Własne zdjęcie profilowe, jako base64 — MA PIERWSZEŃSTWO przed
+  /// ikoną z `avatar`, gdy oba są ustawione.
+  final String? avatarPhotoBase64;
+
   final double size;
   final bool selected;
 
   const UserAvatar({
     super.key,
     required this.avatar,
+    this.avatarPhotoBase64,
     this.size = 40,
     this.selected = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    if (avatarPhotoBase64 != null && avatarPhotoBase64!.isNotEmpty) {
+      return _buildPhotoAvatar(avatarPhotoBase64!);
+    }
+    return _buildIconAvatar();
+  }
+
+  Widget _buildPhotoAvatar(String base64Photo) {
+    Uint8List? bytes;
+    try {
+      bytes = base64Decode(base64Photo);
+    } catch (_) {
+      // Uszkodzone dane — wracamy do ikony zamiast pokazać złamany
+      // obrazek albo wywalić cały ekran.
+      return _buildIconAvatar();
+    }
+
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: selected ? AppTheme.primaryColor : Colors.transparent,
+          width: selected ? 3 : 0,
+        ),
+        image: DecorationImage(
+          image: MemoryImage(bytes),
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIconAvatar() {
     final Color color;
     final IconData icon;
     switch (avatar) {

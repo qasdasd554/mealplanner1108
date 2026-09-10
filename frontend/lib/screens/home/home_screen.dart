@@ -276,7 +276,7 @@ class HomeTab extends StatelessWidget {
                     // Szybki skrót do profilu
                     GestureDetector(
                       onTap: () => Navigator.of(context).pushNamed('/profile'),
-                      child: UserAvatar(avatar: user?.avatar, size: 48),
+                      child: UserAvatar(avatar: user?.avatar, avatarPhotoBase64: user?.avatarPhotoBase64, size: 48),
                     ),
                   ],
                 ).animate().fadeIn().slideY(begin: -0.1, end: 0),

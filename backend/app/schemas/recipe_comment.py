@@ -64,6 +64,8 @@ class RecipeCommentResponse(BaseModel):
     # potrzebna do wyświetlenia "Kto napisał", żeby frontend nie musiał
     # robić osobnego zapytania o każdego użytkownika.
     author_name: str
+    author_avatar: str | None = None
+    author_avatar_photo: str | None = None
     text: str | None = None
     photo_base64: str | None = None
     created_at: datetime

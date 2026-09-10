@@ -14,6 +14,7 @@ import '../../widgets/submit_recipe_photo_button.dart';
 import '../../utils/quantity_formatter.dart';
 import '../../providers/auth_provider.dart';
 import 'package:provider/provider.dart';
+import '../../widgets/user_avatar.dart';
 
 class RecipeDetailScreen extends StatelessWidget {
   const RecipeDetailScreen({super.key});
@@ -170,6 +171,31 @@ class RecipeDetailScreen extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                   ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.1, end: 0),
+
+                  // "Dodane przez [nazwa]" wraz z awatarem — TYLKO dla
+                  // przepisów zgłoszonych przez użytkowników (createdByName
+                  // puste dla 81 oficjalnych przepisów dostarczonych
+                  // z aplikacją, więc dla nich sekcja się nie pokazuje).
+                  if (recipe.createdByName != null && recipe.createdByName!.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        UserAvatar(
+                          avatar: recipe.createdByAvatar,
+                          avatarPhotoBase64: recipe.createdByAvatarPhoto,
+                          size: 22,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Dodane przez ${recipe.createdByName}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ).animate().fadeIn(delay: 150.ms),
+                  ],
 
                   const SizedBox(height: 8),
                   // Opis

@@ -109,6 +109,16 @@ class Recipe(Base):
     )
 
     # ── Relacje ──────────────────────────────────────────────────
+    # Relacja do TWÓRCY przepisu (nie mylić z relacją do przepisu po
+    # stronie User, której nie ma) — potrzebna, żeby pokazać "Dodane
+    # przez [nazwa]" wraz z awatarem na ekranie szczegółów przepisu.
+    # foreign_keys jawnie podane, bo created_by_user_id nie jest jedynym
+    # kluczem obcym do users w tej tabeli (jest jeszcze np. moderator
+    # zdjęcia — bez tego SQLAlchemy nie wie, której kolumny użyć).
+    creator: Mapped["User | None"] = relationship(
+        "User", foreign_keys=[created_by_user_id], lazy="raise"
+    )
+
     tags: Mapped[list[RecipeTag]] = relationship(
         "RecipeTag", back_populates="recipe", cascade="all, delete-orphan"
     )
