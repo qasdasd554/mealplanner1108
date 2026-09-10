@@ -139,6 +139,36 @@ class RecipeDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // "Dodane przez [nazwa]" wraz z awatarem — PRZENIESIONE
+                  // na sam początek (przed tagi i nazwę), na wyraźną
+                  // prośbę: autorstwo ma być pierwszą informacją widoczną
+                  // na ekranie przepisu, nie dopiskiem pod nazwą.
+                  //
+                  // Puste dla 81 oficjalnych przepisów dostarczonych
+                  // z aplikacją (createdByName wtedy null) — dla nich ta
+                  // sekcja się nie pokazuje wcale.
+                  if (recipe.createdByName != null && recipe.createdByName!.isNotEmpty) ...[
+                    Row(
+                      children: [
+                        UserAvatar(
+                          avatar: recipe.createdByAvatar,
+                          avatarPhotoBase64: recipe.createdByAvatarPhoto,
+                          size: 24,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Dodane przez ${recipe.createdByName}',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ).animate().fadeIn(),
+                    const SizedBox(height: 14),
+                  ],
+
                   // Tagi
                   if (recipe.tags.isNotEmpty)
                     Wrap(
@@ -171,31 +201,6 @@ class RecipeDetailScreen extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                   ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.1, end: 0),
-
-                  // "Dodane przez [nazwa]" wraz z awatarem — TYLKO dla
-                  // przepisów zgłoszonych przez użytkowników (createdByName
-                  // puste dla 81 oficjalnych przepisów dostarczonych
-                  // z aplikacją, więc dla nich sekcja się nie pokazuje).
-                  if (recipe.createdByName != null && recipe.createdByName!.isNotEmpty) ...[
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        UserAvatar(
-                          avatar: recipe.createdByAvatar,
-                          avatarPhotoBase64: recipe.createdByAvatarPhoto,
-                          size: 22,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Dodane przez ${recipe.createdByName}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppTheme.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ).animate().fadeIn(delay: 150.ms),
-                  ],
 
                   const SizedBox(height: 8),
                   // Opis

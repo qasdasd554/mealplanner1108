@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart' show ScrollDirection;
 import 'package:provider/provider.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import '../../providers/shopping_list_provider.dart';
@@ -45,11 +44,28 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     super.dispose();
   }
 
+  /// NAPRAWA "skakania" ekranu przy przewijaniu: poprzednia wersja
+  /// zwijała/rozwijała nagłówek na podstawie KIERUNKU przewijania
+  /// (userScrollDirection), który potrafi migać w obie strony wielokrotnie
+  /// w trakcie JEDNEGO, ciągłego przesunięcia palca — każde mignięcie
+  /// uruchamiało nową animację zmiany rozmiaru, nakładającą się na
+  /// poprzednią jeszcze w locie. Efekt: nagłówek "szarpał" się w górę
+  /// i w dół podczas zwykłego przewijania.
+  ///
+  /// Teraz decyduje POZYCJA (offset), nie kierunek — dokładnie ten sam
+  /// wzorzec, którego używają natywne zwijane nagłówki (np. SliverAppBar).
+  /// Próg przełącza się JEDNORAZOWO przy przekroczeniu 24 px, więc drobne
+  /// drgania w trakcie gestu nic nie zmieniają — trzeba faktycznie
+  /// przewinąć kawałek, żeby nagłówek się schował, i wrócić prawie do
+  /// samej góry, żeby wrócił.
+  static const double _collapseThreshold = 24;
+
   void _onScroll() {
-    final direction = _scrollController.position.userScrollDirection;
-    if (direction == ScrollDirection.reverse && _showActions) {
+    if (!_scrollController.hasClients) return;
+    final offset = _scrollController.offset;
+    if (offset > _collapseThreshold && _showActions) {
       setState(() => _showActions = false);
-    } else if (direction == ScrollDirection.forward && !_showActions) {
+    } else if (offset <= _collapseThreshold && !_showActions) {
       setState(() => _showActions = true);
     }
   }
