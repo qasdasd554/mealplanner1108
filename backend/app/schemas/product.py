@@ -48,7 +48,13 @@ class ProductResponse(ProductBase):
     # oficjalne produkty katalogowe mają review_status="approved" (patrz
     # domyślna wartość w modelu) i submitted_price=None.
     review_status: str = "approved"
-    submitted_price: Decimal | None = None
+    # float, nie Decimal — Pydantic serializuje Decimal do JSON jako
+    # STRING (żeby zachować dokładność), np. "11.99" zamiast 11.99.
+    # Frontend parsował to jako liczbę ("as num?"), więc dostawał wyjątek
+    # "type String is not a subtype of type num". Reszta cen w tym pliku
+    # (StoreProductResponse.price) i tak już używa float — to pole było
+    # jedynym wyjątkiem.
+    submitted_price: float | None = None
 
 
 class StoreProductResponse(BaseModel):
