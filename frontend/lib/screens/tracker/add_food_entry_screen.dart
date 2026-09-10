@@ -9,6 +9,7 @@ import '../../models/recipe.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/edit_ingredients_sheet.dart';
 import '../../widgets/submit_product_sheet.dart';
+import '../../widgets/pick_product_from_catalog_sheet.dart';
 
 
 class AddFoodEntryScreen extends StatefulWidget {
@@ -746,6 +747,40 @@ class _ManualEntryFormState extends State<ManualEntryForm> {
             },
           ),
           const SizedBox(height: 16),
+          // NAPRAWA BRAKUJĄCEJ FUNKCJI: przycisk "Dodaj produkt" niżej na
+          // tym ekranie od dawna obiecywał "Dodaj produkt raz, a potem
+          // wybieraj go z listy" — ale nigdzie w aplikacji nie było
+          // żadnej wyszukiwarki, która by to umożliwiła. Ten przycisk
+          // domyka tę obietnicę: szuka po tym samym katalogu, do którego
+          // trafiają zatwierdzone zgłoszenia.
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () async {
+                final picked = await showModalBottomSheet<PickedCatalogProduct>(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: AppTheme.surfaceColor,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                  ),
+                  builder: (_) => const PickProductFromCatalogSheet(),
+                );
+                if (picked == null) return;
+                setState(() {
+                  _nameController.text = picked.name;
+                  _portionController.text = picked.grams.toStringAsFixed(0);
+                  _caloriesController.text = picked.kcal.round().toString();
+                  _proteinController.text = picked.protein.toStringAsFixed(1);
+                  _fatController.text = picked.fat.toStringAsFixed(1);
+                  _carbsController.text = picked.carbs.toStringAsFixed(1);
+                });
+              },
+              icon: const Icon(Icons.search, size: 18),
+              label: const Text('Wybierz z katalogu'),
+            ),
+          ),
+          const SizedBox(height: 12),
           TextFormField(
             controller: _nameController,
             decoration: const InputDecoration(labelText: 'Nazwa produktu / dania'),

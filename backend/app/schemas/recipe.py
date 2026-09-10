@@ -197,21 +197,17 @@ class RecipeResponse(RecipeBase):
 
     @model_validator(mode="before")
     @classmethod
-    def attach_creator_info(cls, data):
-        # Bezpieczny odczyt relacji `creator` — sprawdzamy, czy w ogóle
-        # została WCZYTANA (przez selectinload na poziomie zapytania),
-        # zanim spróbujemy z niej skorzystać.
-        #
-        # UWAGA: model ma `lazy="raise"` na tej relacji, żeby przypadkowy
-        # dostęp bez eager-load rzucił czytelny błąd zamiast cichej,
-        # kosztownej zapytania N+1. Ale to oznacza, że NAWET `hasattr(data,
-        # "creator")` by tu wybuchło — hasattr w Pythonie 3 łapie
-        # wyłącznie AttributeError, a SQLAlchemy przy lazy="raise" rzuca
-        # InvalidRequestError, który przez hasattr przechodzi bez
-        # przechwycenia. Dlatego sprawdzamy przez `inspect(...).unloaded`
-        # PRZED jakąkolwiek próbą dostępu do samego atrybutu, a całość
-        # i tak owijamy w try/except — `data` bywa też zwykłym słownikiem
-        # (nie obiektem ORM), dla którego `inspect()` od razu zawiedzie.
+    def ensure_nutrition(cls, data):
+        # NAPRAWA: to i dociąganie danych autora ("Dodane przez") były
+        # KIEDYŚ dwoma osobnymi walidatorami @model_validator(mode="before").
+        # Założenie, że Pydantic uruchomi je w kolejności deklaracji
+        # w kodzie, okazało się błędne — w praktyce ten walidator (drugi
+        # w pliku) wykonywał się PIERWSZY, zamieniając obiekt ORM na
+        # zwykły słownik (patrz niżej), zanim walidator autora zdążył
+        # skorzystać z relacji `creator`. Efekt: autor nigdy się nie
+        # pokazywał, mimo że dane w bazie i zapytanie były poprawne —
+        # potwierdzone testem end-to-end na żywych modelach. Połączenie
+        # w jedną funkcję eliminuje zależność od kolejności międzywalidatorowej.
         try:
             from sqlalchemy import inspect as sa_inspect
 
@@ -222,11 +218,7 @@ class RecipeResponse(RecipeBase):
                 data.created_by_avatar_photo = data.creator.avatar_photo_base64
         except Exception:
             pass
-        return data
 
-    @model_validator(mode="before")
-    @classmethod
-    def ensure_nutrition(cls, data):
         if not getattr(data, "nutrition_total", None) and hasattr(data, "ingredients"):
             total = {"kcal": 0, "protein": 0, "fat": 0, "carbs": 0, "fiber": 0}
             for ing in data.ingredients:
@@ -266,6 +258,19 @@ class RecipeResponse(RecipeBase):
             # niezależnie od faktycznej wartości.
             res["is_favorite"] = getattr(data, "is_favorite", False)
             res["is_own_recipe"] = getattr(data, "is_own_recipe", False)
+            # NAPRAWA: ten słownik budowany jest WYŁĄCZNIE z kolumn tabeli
+            # (__table__.columns.keys()) — pola dołożone przez
+            # attach_creator_info WYŻEJ (created_by_name i pozostałe) nie
+            # są kolumnami, więc były tu po cichu gubione przy KAŻDYM
+            # przeliczeniu wartości odżywczych (czyli praktycznie zawsze,
+            # bo nutrition_total nigdy nie jest wcześniej wyliczone na
+            # świeżo pobranym obiekcie). Efekt: "Dodane przez" nigdy się
+            # nie pokazywało, mimo że dane były poprawnie wczytane —
+            # potwierdzone testem na żywych modelach. Ten sam wzorzec co
+            # is_favorite/is_own_recipe wyżej: trzeba przepisać jawnie.
+            res["created_by_name"] = getattr(data, "created_by_name", None)
+            res["created_by_avatar"] = getattr(data, "created_by_avatar", None)
+            res["created_by_avatar_photo"] = getattr(data, "created_by_avatar_photo", None)
             return res
         return data
 
