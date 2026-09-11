@@ -1,65 +1,91 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_zxing/flutter_zxing.dart';
 
-import '../theme/app_theme.dart';
-
-/// Prosi o wpisanie kodu kreskowego RĘCZNIE i zwraca wpisaną wartość,
-/// albo `null`, jeśli użytkownik anulował.
+/// Skanuje kod kreskowy kamerą i zwraca zeskanowaną wartość, albo
+/// `null`, jeśli użytkownik anulował.
 ///
-/// ZAMIANA PODEJŚCIA (druga naprawa z rzędu): dwie kolejne biblioteki
-/// do skanowania kamerą zawiodły z dwóch różnych powodów —
-/// `mobile_scanner` (CameraX/ML Kit) powtarzalnym crashem na urządzeniu
-/// testowym, a `flutter_barcode_scanner` (ZXing) okazał się w ogóle
-/// niekompatybilny ze współczesnym Gradle (odwołuje się do JCenter,
-/// repozytorium wyłączonego przez Google lata temu — build padał,
-/// zanim aplikacja zdążyła się w ogóle uruchomić).
+/// TRZECIA PRÓBA (kamera): dwie poprzednie biblioteki zawiodły z dwóch
+/// różnych powodów — `mobile_scanner` (CameraX/ML Kit) powtarzalnym
+/// crashem na urządzeniu testowym, `flutter_barcode_scanner` (stare
+/// ZXing przez JCenter) w ogóle się nie kompilował ze współczesnym
+/// Gradle. `flutter_zxing` kompiluje silnik ZXing bezpośrednio jako
+/// kod natywny C++ — architektonicznie inne podejście niż obie
+/// poprzednie próby.
 ///
-/// Zamiast trzeciej niepewnej próby z biblioteką kamery, której nie da
-/// się zweryfikować bez żywego testu na urządzeniu, to jest
-/// GWARANTOWANIE działające rozwiązanie: pod każdym kodem kreskowym
-/// jest wydrukowany ten sam numer cyframi — użytkownik po prostu go
-/// przepisuje. Zero zależności od kamery, zero ryzyka awarii.
+/// ŚWIADOME ZABEZPIECZENIE: nie mając możliwości przetestowania tej
+/// biblioteki na żywym urządzeniu przed wysłaniem, ekran ma ZAWSZE
+/// widoczny przycisk "Wpisz ręcznie" — jednym dotknięciem, bez
+/// czekania na kolejną turę poprawek, gdyby kamera znów zawiodła na
+/// konkretnym telefonie.
 Future<String?> scanBarcode(BuildContext context) async {
-  final controller = TextEditingController();
+  return Navigator.of(context).push<String>(
+    MaterialPageRoute(builder: (_) => const _BarcodeScannerScreen()),
+  );
+}
 
-  return showDialog<String>(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      title: const Text('Wpisz kod kreskowy'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Pod kreskami na opakowaniu jest wydrukowany ten sam numer '
-            'cyframi — przepisz go tutaj.',
-            style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+class _BarcodeScannerScreen extends StatelessWidget {
+  const _BarcodeScannerScreen();
+
+  Future<void> _enterManually(BuildContext context) async {
+    final controller = TextEditingController();
+    final code = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Wpisz kod kreskowy'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          keyboardType: TextInputType.number,
+          maxLength: 20,
+          decoration: const InputDecoration(
+            hintText: 'np. 5900000000000',
+            counterText: '',
           ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: controller,
-            autofocus: true,
-            keyboardType: TextInputType.number,
-            maxLength: 20,
-            decoration: const InputDecoration(
-              hintText: 'np. 5900000000000',
-              counterText: '',
-            ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Anuluj')),
+          FilledButton(
+            onPressed: () {
+              final value = controller.text.trim();
+              Navigator.pop(ctx, value.isEmpty ? null : value);
+            },
+            child: const Text('OK'),
           ),
         ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(ctx),
-          child: const Text('Anuluj'),
-        ),
-        FilledButton(
-          onPressed: () {
-            final value = controller.text.trim();
-            Navigator.pop(ctx, value.isEmpty ? null : value);
-          },
-          child: const Text('Szukaj'),
-        ),
-      ],
-    ),
-  );
+    );
+    if (code != null && context.mounted) {
+      Navigator.of(context).pop(code);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        title: const Text('Skanuj kod kreskowy'),
+        actions: [
+          // ZAWSZE widoczne, niezależnie od tego, czy podgląd kamery
+          // poniżej działa poprawnie — patrz komentarz przy funkcji
+          // scanBarcode() wyżej.
+          TextButton(
+            onPressed: () => _enterManually(context),
+            child: const Text('Wpisz ręcznie', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+      body: ReaderWidget(
+        onScan: (Code result) {
+          final text = result.text;
+          if (text != null && text.isNotEmpty) {
+            Navigator.of(context).pop(text);
+          }
+        },
+        isMultiScan: false,
+      ),
+    );
+  }
 }

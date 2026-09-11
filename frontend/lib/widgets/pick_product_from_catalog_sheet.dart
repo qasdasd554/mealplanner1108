@@ -267,7 +267,7 @@ class _PickProductFromCatalogSheetState
                   // jest pod ręką.
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.barcode_reader),
-                    tooltip: 'Wpisz kod kreskowy',
+                    tooltip: 'Skanuj kod kreskowy',
                     onPressed: _scanBarcode,
                   ),
                 ),

@@ -261,8 +261,8 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                           )
                         : const Icon(Icons.barcode_reader, size: 18),
                     label: Text(_barcode == null
-                        ? 'Wpisz kod kreskowy'
-                        : 'Kod: $_barcode (zmień)'),
+                        ? 'Skanuj kod kreskowy'
+                        : 'Zeskanowano: $_barcode (zmień)'),
                   ),
                 ),
                 const SizedBox(height: 12),

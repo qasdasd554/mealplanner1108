@@ -1,7 +1,7 @@
 name: smart_meal_planner
 description: "A smart meal planner mobile application integrated with Polish grocery stores."
 publish_to: 'none'
-version: 1.0.4+191
+version: 1.0.4+192
 
 environment:
   sdk: '>=3.7.0 <4.0.0'
@@ -67,6 +67,7 @@ dependencies:
   flutter_local_notifications: ^18.0.1
   package_info_plus: ^8.1.2
   image_picker: ^1.1.2
+  flutter_zxing: ^2.0.1
   # UWAGA: obsługa udostępnień z TikToka (link -> rozpoznanie przepisu
   # przez AI) NIE korzysta z żadnego pakietu z pub.dev. Dwie kolejne
   # biblioteki do tego celu (receive_sharing_intent,
