@@ -26,7 +26,14 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   // przy inicjalizacji ML Kit na niektórych urządzeniach. Filtrowanie
   // po stronie `_onDetect` (jeśli będzie potrzebne) da ten sam efekt
   // bez ryzyka po stronie inicjalizacji kamery.
-  final MobileScannerController _controller = MobileScannerController();
+  // NAPRAWA PRÓBNA #2: jawnie wskazana tylna kamera. Zgłoszony błąd
+  // ("getClass() on a null object reference") to wewnętrzny wyjątek
+  // biblioteki przy automatycznym wyborze kamery na starcie — na
+  // części urządzeń (zwłaszcza Samsung) to wykrywanie samo w sobie
+  // bywa zawodne. Podanie z góry, której kamery użyć, omija ten krok.
+  final MobileScannerController _controller = MobileScannerController(
+    facing: CameraFacing.back,
+  );
 
   // Zabezpieczenie przed WIELOKROTNYM odpaleniem onDetect dla tego
   // samego kadru — kamera potrafi zgłosić kilka klatek z tym samym
