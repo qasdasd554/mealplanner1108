@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../theme/app_theme.dart';
 
@@ -63,7 +64,62 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
       body: Stack(
         alignment: Alignment.center,
         children: [
-          MobileScanner(controller: _controller, onDetect: _onDetect),
+          MobileScanner(
+            controller: _controller,
+            onDetect: _onDetect,
+            // NAPRAWA: bez tego biblioteka pokazuje WŁASNY, domyślny
+            // ekran błędu (sam wykrzyknik, bez treści) przy KAŻDYM
+            // problemie — najczęściej odmowie uprawnienia do aparatu,
+            // ale też np. braku fizycznej kamery. Użytkownik nie miał
+            // jak się dowiedzieć, co się stało, ani co z tym zrobić.
+            errorBuilder: (context, error, child) {
+              final isPermission =
+                  error.errorCode == MobileScannerErrorCode.permissionDenied;
+              return Container(
+                color: Colors.black,
+                padding: const EdgeInsets.all(24),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.no_photography_outlined,
+                          color: Colors.white54, size: 56),
+                      const SizedBox(height: 16),
+                      Text(
+                        isPermission
+                            ? 'Aplikacja nie ma zgody na dostęp do aparatu.'
+                            : 'Nie udało się uruchomić aparatu.',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.white, fontSize: 16),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        isPermission
+                            ? 'Włącz uprawnienie w ustawieniach telefonu: '
+                                'Ustawienia → Meal Planner Polska → Aparat.'
+                            : 'Kod błędu: ${error.errorCode.name}',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.white70, fontSize: 13),
+                      ),
+                      const SizedBox(height: 20),
+                      if (isPermission)
+                        FilledButton.icon(
+                          onPressed: () => openAppSettings(),
+                          icon: const Icon(Icons.settings),
+                          label: const Text('Otwórz ustawienia'),
+                        )
+                      else
+                        OutlinedButton.icon(
+                          onPressed: () => _controller.start(),
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Spróbuj ponownie'),
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
           // Ramka wizualna, żeby użytkownik wiedział, gdzie celować —
           // sam podgląd kamery na pełnym ekranie tego nie sugeruje.
           IgnorePointer(
