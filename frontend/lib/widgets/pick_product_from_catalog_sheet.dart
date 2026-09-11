@@ -99,9 +99,7 @@ class _PickProductFromCatalogSheetState
   }
 
   Future<void> _scanBarcode() async {
-    final code = await Navigator.of(context).push<String>(
-      MaterialPageRoute(builder: (_) => const BarcodeScannerScreen()),
-    );
+    final code = await scanBarcode(context);
     if (code == null || !mounted) return;
 
     setState(() => _isLoading = true);
@@ -269,7 +267,7 @@ class _PickProductFromCatalogSheetState
                   // jest pod ręką.
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.barcode_reader),
-                    tooltip: 'Skanuj kod kreskowy',
+                    tooltip: 'Wpisz kod kreskowy',
                     onPressed: _scanBarcode,
                   ),
                 ),

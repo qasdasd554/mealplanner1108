@@ -86,9 +86,7 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
   }
 
   Future<void> _scanBarcode() async {
-    final code = await Navigator.of(context).push<String>(
-      MaterialPageRoute(builder: (_) => const BarcodeScannerScreen()),
-    );
+    final code = await scanBarcode(context);
     if (code == null || !mounted) return;
 
     setState(() {
@@ -263,8 +261,8 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                           )
                         : const Icon(Icons.barcode_reader, size: 18),
                     label: Text(_barcode == null
-                        ? 'Skanuj kod kreskowy'
-                        : 'Zeskanowano: $_barcode (zmień)'),
+                        ? 'Wpisz kod kreskowy'
+                        : 'Kod: $_barcode (zmień)'),
                   ),
                 ),
                 const SizedBox(height: 12),

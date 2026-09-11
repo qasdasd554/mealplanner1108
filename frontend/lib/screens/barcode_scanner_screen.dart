@@ -1,166 +1,65 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import '../theme/app_theme.dart';
 
-/// Pełnoekranowy skaner kodów kreskowych. Zwraca zeskanowany kod
-/// (String) przez `Navigator.pop(context, code)`, albo `null`, jeśli
-/// użytkownik anulował.
+/// Prosi o wpisanie kodu kreskowego RĘCZNIE i zwraca wpisaną wartość,
+/// albo `null`, jeśli użytkownik anulował.
 ///
-/// Używa aparatu — wymaga uprawnienia NSCameraUsageDescription na iOS
-/// (już dodane wcześniej dla zdjęć AI/awatara) i android.permission.CAMERA
-/// na Androidzie (też już obecne).
-class BarcodeScannerScreen extends StatefulWidget {
-  const BarcodeScannerScreen({super.key});
+/// ZAMIANA PODEJŚCIA (druga naprawa z rzędu): dwie kolejne biblioteki
+/// do skanowania kamerą zawiodły z dwóch różnych powodów —
+/// `mobile_scanner` (CameraX/ML Kit) powtarzalnym crashem na urządzeniu
+/// testowym, a `flutter_barcode_scanner` (ZXing) okazał się w ogóle
+/// niekompatybilny ze współczesnym Gradle (odwołuje się do JCenter,
+/// repozytorium wyłączonego przez Google lata temu — build padał,
+/// zanim aplikacja zdążyła się w ogóle uruchomić).
+///
+/// Zamiast trzeciej niepewnej próby z biblioteką kamery, której nie da
+/// się zweryfikować bez żywego testu na urządzeniu, to jest
+/// GWARANTOWANIE działające rozwiązanie: pod każdym kodem kreskowym
+/// jest wydrukowany ten sam numer cyframi — użytkownik po prostu go
+/// przepisuje. Zero zależności od kamery, zero ryzyka awarii.
+Future<String?> scanBarcode(BuildContext context) async {
+  final controller = TextEditingController();
 
-  @override
-  State<BarcodeScannerScreen> createState() => _BarcodeScannerScreenState();
-}
-
-class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
-  // NAPRAWA PRÓBNA: usunięty parametr `formats` (wcześniej ograniczony do
-  // EAN-13/EAN-8/UPC-A). Domyślna konfiguracja (wszystkie formaty) to
-  // ścieżka, którą biblioteka testuje najszerzej — jawne ograniczenie
-  // formatów na Androidzie bywa zgłaszane jako źródło "generic error"
-  // przy inicjalizacji ML Kit na niektórych urządzeniach. Filtrowanie
-  // po stronie `_onDetect` (jeśli będzie potrzebne) da ten sam efekt
-  // bez ryzyka po stronie inicjalizacji kamery.
-  // NAPRAWA PRÓBNA #2: jawnie wskazana tylna kamera. Zgłoszony błąd
-  // ("getClass() on a null object reference") to wewnętrzny wyjątek
-  // biblioteki przy automatycznym wyborze kamery na starcie — na
-  // części urządzeń (zwłaszcza Samsung) to wykrywanie samo w sobie
-  // bywa zawodne. Podanie z góry, której kamery użyć, omija ten krok.
-  final MobileScannerController _controller = MobileScannerController(
-    facing: CameraFacing.back,
-  );
-
-  // Zabezpieczenie przed WIELOKROTNYM odpaleniem onDetect dla tego
-  // samego kadru — kamera potrafi zgłosić kilka klatek z tym samym
-  // kodem, zanim zdążymy zamknąć ekran po pierwszym trafieniu.
-  bool _handled = false;
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _onDetect(BarcodeCapture capture) {
-    if (_handled) return;
-    final code = capture.barcodes.firstOrNull?.rawValue;
-    if (code == null || code.isEmpty) return;
-    _handled = true;
-    Navigator.of(context).pop(code);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        title: const Text('Skanuj kod kreskowy'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.flash_on),
-            tooltip: 'Latarka',
-            onPressed: () => _controller.toggleTorch(),
-          ),
-        ],
-      ),
-      body: Stack(
-        alignment: Alignment.center,
+  return showDialog<String>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text('Wpisz kod kreskowy'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          MobileScanner(
-            controller: _controller,
-            onDetect: _onDetect,
-            // NAPRAWA: bez tego biblioteka pokazuje WŁASNY, domyślny
-            // ekran błędu (sam wykrzyknik, bez treści) przy KAŻDYM
-            // problemie — najczęściej odmowie uprawnienia do aparatu,
-            // ale też np. braku fizycznej kamery. Użytkownik nie miał
-            // jak się dowiedzieć, co się stało, ani co z tym zrobić.
-            errorBuilder: (context, error, child) {
-              final isPermission =
-                  error.errorCode == MobileScannerErrorCode.permissionDenied;
-              return Container(
-                color: Colors.black,
-                padding: const EdgeInsets.all(24),
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.no_photography_outlined,
-                          color: Colors.white54, size: 56),
-                      const SizedBox(height: 16),
-                      Text(
-                        isPermission
-                            ? 'Aplikacja nie ma zgody na dostęp do aparatu.'
-                            : 'Nie udało się uruchomić aparatu.',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(color: Colors.white, fontSize: 16),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        isPermission
-                            ? 'Włącz uprawnienie w ustawieniach telefonu: '
-                                'Ustawienia → Meal Planner Polska → Aparat.'
-                            : 'Kod: ${error.errorCode.name}\n${error.toString()}',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(color: Colors.white70, fontSize: 13),
-                      ),
-                      const SizedBox(height: 20),
-                      if (isPermission)
-                        FilledButton.icon(
-                          onPressed: () => openAppSettings(),
-                          icon: const Icon(Icons.settings),
-                          label: const Text('Otwórz ustawienia'),
-                        )
-                      else
-                        OutlinedButton.icon(
-                          onPressed: () => _controller.start(),
-                          icon: const Icon(Icons.refresh),
-                          label: const Text('Spróbuj ponownie'),
-                        ),
-                    ],
-                  ),
-                ),
-              );
-            },
+          Text(
+            'Pod kreskami na opakowaniu jest wydrukowany ten sam numer '
+            'cyframi — przepisz go tutaj.',
+            style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
           ),
-          // Ramka wizualna, żeby użytkownik wiedział, gdzie celować —
-          // sam podgląd kamery na pełnym ekranie tego nie sugeruje.
-          IgnorePointer(
-            child: Container(
-              width: 260,
-              height: 160,
-              decoration: BoxDecoration(
-                border: Border.all(color: AppTheme.primaryColor, width: 3),
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 40,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.black54,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Text(
-                'Wyceluj w kod kreskowy na opakowaniu',
-                style: TextStyle(color: Colors.white, fontSize: 13),
-              ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: controller,
+            autofocus: true,
+            keyboardType: TextInputType.number,
+            maxLength: 20,
+            decoration: const InputDecoration(
+              hintText: 'np. 5900000000000',
+              counterText: '',
             ),
           ),
         ],
       ),
-    );
-  }
-}
-
-extension _FirstOrNull<T> on List<T> {
-  T? get firstOrNull => isEmpty ? null : first;
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          child: const Text('Anuluj'),
+        ),
+        FilledButton(
+          onPressed: () {
+            final value = controller.text.trim();
+            Navigator.pop(ctx, value.isEmpty ? null : value);
+          },
+          child: const Text('Szukaj'),
+        ),
+      ],
+    ),
+  );
 }
