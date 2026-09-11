@@ -46,6 +46,13 @@ class BarcodeLookupResponse(BaseModel):
     fat_per_100: float | None = None
     carbs_per_100: float | None = None
     existing_product_id: uuid.UUID | None = None
+    # Cena — TYLKO gdy produkt znaleziono we WŁASNYM katalogu (cena,
+    # którą podał wcześniej zgłaszający). Open Food Facts to baza
+    # skupiona na wartościach odżywczych, nie na cenach — nie ma tam
+    # wiarygodnych, aktualnych cen detalicznych dla polskiego rynku,
+    # więc świadomie NIE zgadujemy ceny z tego źródła. Lepiej zostawić
+    # puste pole niż podpowiedzieć błędną liczbę.
+    suggested_price: float | None = None
 
 
 @router.get(
@@ -127,6 +134,7 @@ async def lookup_barcode(
             fat_per_100=(existing.nutrition_per_100 or {}).get("fat"),
             carbs_per_100=(existing.nutrition_per_100 or {}).get("carbs"),
             existing_product_id=existing.id,
+            suggested_price=float(existing.submitted_price) if existing.submitted_price else None,
         )
 
     # 2. Open Food Facts — zewnętrzne, może nie znać lokalnej marki.

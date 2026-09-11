@@ -120,6 +120,13 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
         if (_brand.text.trim().isEmpty && result.brand != null) {
           _brand.text = result.brand!;
         }
+        // Cena — TYLKO propozycja punktu wyjścia (cena, którą podał
+        // wcześniej ktoś inny przy tym samym produkcie). Nie nadpisuje
+        // tego, co użytkownik już wpisał, i zawsze można ją poprawić —
+        // ceny w różnych sklepach różnią się i to naturalne.
+        if (_price.text.trim().isEmpty && result.suggestedPrice != null) {
+          _price.text = result.suggestedPrice!.toStringAsFixed(2);
+        }
         if (result.kcalPer100 != null) {
           _showNutrition = true;
           if (_kcal.text.trim().isEmpty) _kcal.text = result.kcalPer100!.toStringAsFixed(0);
@@ -222,7 +229,20 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
             key: _formKey,
             child: ListView(
               controller: scrollController,
-              padding: const EdgeInsets.all(20),
+              // NAPRAWA: poprzedni padding (stałe 20 z każdej strony)
+              // nie uwzględniał dolnego paska systemowego (gesty
+              // nawigacji na Androidzie) — ostatni element listy, czyli
+              // przycisk "Dodaj produkt", kończył się dokładnie na
+              // granicy tego paska albo lekko za nim. Dodatkowe 20 px
+              // NA WIERZCHU bezpiecznego marginesu systemowego daje mu
+              // realny oddech, niezależnie od kształtu nawigacji
+              // systemowej na danym telefonie.
+              padding: EdgeInsets.fromLTRB(
+                20,
+                20,
+                20,
+                20 + MediaQuery.of(context).padding.bottom,
+              ),
               children: [
                 Center(
                   child: Container(

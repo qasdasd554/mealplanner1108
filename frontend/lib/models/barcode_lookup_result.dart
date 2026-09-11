@@ -11,6 +11,7 @@ class BarcodeLookupResult {
   final double? fatPer100;
   final double? carbsPer100;
   final String? existingProductId;
+  final double? suggestedPrice;
 
   const BarcodeLookupResult({
     required this.found,
@@ -23,6 +24,7 @@ class BarcodeLookupResult {
     this.fatPer100,
     this.carbsPer100,
     this.existingProductId,
+    this.suggestedPrice,
   });
 
   /// Czy dane pochodzą z Waszego własnego katalogu (a nie z zewnętrznej
@@ -42,6 +44,7 @@ class BarcodeLookupResult {
       fatPer100: (json['fat_per_100'] as num?)?.toDouble(),
       carbsPer100: (json['carbs_per_100'] as num?)?.toDouble(),
       existingProductId: json['existing_product_id'] as String?,
+      suggestedPrice: (json['suggested_price'] as num?)?.toDouble(),
     );
   }
 }

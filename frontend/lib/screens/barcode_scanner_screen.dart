@@ -1,91 +1,83 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_zxing/flutter_zxing.dart';
+import 'package:image_picker/image_picker.dart';
 
-/// Skanuje kod kreskowy kamerą i zwraca zeskanowaną wartość, albo
-/// `null`, jeśli użytkownik anulował.
+/// Robi JEDNO zdjęcie kodu kreskowego, analizuje je i usuwa plik —
+/// zamiast trzymać podgląd kamery na żywo i czekać, aż uda się złapać
+/// kod w kadrze (co przy niektórych telefonach/oświetleniu potrafiło
+/// trwać kilkanaście sekund i sprawiać wrażenie zawieszenia).
 ///
-/// TRZECIA PRÓBA (kamera): dwie poprzednie biblioteki zawiodły z dwóch
-/// różnych powodów — `mobile_scanner` (CameraX/ML Kit) powtarzalnym
-/// crashem na urządzeniu testowym, `flutter_barcode_scanner` (stare
-/// ZXing przez JCenter) w ogóle się nie kompilował ze współczesnym
-/// Gradle. `flutter_zxing` kompiluje silnik ZXing bezpośrednio jako
-/// kod natywny C++ — architektonicznie inne podejście niż obie
-/// poprzednie próby.
+/// Zwraca zeskanowaną wartość, albo `null`, jeśli użytkownik anulował
+/// zdjęcie albo nic nie udało się rozpoznać.
 ///
-/// ŚWIADOME ZABEZPIECZENIE: nie mając możliwości przetestowania tej
-/// biblioteki na żywym urządzeniu przed wysłaniem, ekran ma ZAWSZE
-/// widoczny przycisk "Wpisz ręcznie" — jednym dotknięciem, bez
-/// czekania na kolejną turę poprawek, gdyby kamera znów zawiodła na
-/// konkretnym telefonie.
+/// RYZYKO DO ŚWIADOMOŚCI: robienie zdjęcia przez `image_picker` to
+/// mechanizm już sprawdzony w tej aplikacji (zdjęcia do AI, awatar) —
+/// tu nie ma niepewności. Natomiast SAMO ROZPOZNANIE kodu ze
+/// STATYCZNEGO zdjęcia (`zx.readBarcodeImagePath`) to funkcja
+/// `flutter_zxing`, dopracowana przez kolejne błędy kompilacji zamiast
+/// dokumentacji (niedostępnej z tego środowiska):
+/// 1. Nazwa funkcji — potwierdzona poprawna.
+/// 2. Wymaga DRUGIEGO argumentu — `DecodeParams()` okazał się
+///    poprawną nazwą klasy (kompilator się o nią nie potknął).
+/// 3. Pierwszy argument to `XFile` (obiekt z image_picker), NIE
+///    tekstowa ścieżka — to ostatnia poprawiona pomyłka.
 Future<String?> scanBarcode(BuildContext context) async {
-  return Navigator.of(context).push<String>(
-    MaterialPageRoute(builder: (_) => const _BarcodeScannerScreen()),
+  final photo = await ImagePicker().pickImage(
+    source: ImageSource.camera,
+    maxWidth: 1600,
+    imageQuality: 85,
   );
-}
+  if (photo == null || !context.mounted) return null;
 
-class _BarcodeScannerScreen extends StatelessWidget {
-  const _BarcodeScannerScreen();
-
-  Future<void> _enterManually(BuildContext context) async {
-    final controller = TextEditingController();
-    final code = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Wpisz kod kreskowy'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          keyboardType: TextInputType.number,
-          maxLength: 20,
-          decoration: const InputDecoration(
-            hintText: 'np. 5900000000000',
-            counterText: '',
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Anuluj')),
-          FilledButton(
-            onPressed: () {
-              final value = controller.text.trim();
-              Navigator.pop(ctx, value.isEmpty ? null : value);
-            },
-            child: const Text('OK'),
-          ),
+  // Ekran ładowania — widoczny natychmiast po zrobieniu zdjęcia, żeby
+  // było jasne, że coś się dzieje, a nie że aplikacja zawiesiła się.
+  // (Celowo bez `await` — ma się pokazać RÓWNOLEGLE z analizą poniżej,
+  // nie przed nią.)
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => const AlertDialog(
+      content: Row(
+        children: [
+          CircularProgressIndicator(),
+          SizedBox(width: 20),
+          Expanded(child: Text('Skanowanie kodu kreskowego...')),
         ],
       ),
-    );
-    if (code != null && context.mounted) {
-      Navigator.of(context).pop(code);
+    ),
+  );
+
+  String? code;
+  try {
+    final result = await zx.readBarcodeImagePath(photo, DecodeParams());
+    code = result.isValid ? result.text : null;
+  } catch (_) {
+    code = null;
+  } finally {
+    // Zdjęcie posłużyło tylko do jednorazowej analizy — kasujemy je,
+    // zamiast zaśmiecać telefon użytkownika tymczasowymi plikami.
+    try {
+      await File(photo.path).delete();
+    } catch (_) {
+      // Nieudane skasowanie pliku tymczasowego nie jest błędem, na
+      // który warto przerywać cokolwiek użytkownikowi.
     }
+    if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        title: const Text('Skanuj kod kreskowy'),
-        actions: [
-          // ZAWSZE widoczne, niezależnie od tego, czy podgląd kamery
-          // poniżej działa poprawnie — patrz komentarz przy funkcji
-          // scanBarcode() wyżej.
-          TextButton(
-            onPressed: () => _enterManually(context),
-            child: const Text('Wpisz ręcznie', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-      body: ReaderWidget(
-        onScan: (Code result) {
-          final text = result.text;
-          if (text != null && text.isNotEmpty) {
-            Navigator.of(context).pop(text);
-          }
-        },
-        isMultiScan: false,
-      ),
-    );
+  if (code == null || code.isEmpty) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(
+          duration: Duration(seconds: 3),
+          content: Text('Nie udało się rozpoznać kodu — spróbuj ponownie albo wpisz ręcznie.'),
+        ));
+    }
+    return null;
   }
+
+  return code;
 }
