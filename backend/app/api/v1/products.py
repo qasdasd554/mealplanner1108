@@ -7,6 +7,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy import or_, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -27,6 +28,26 @@ from app.services import ProductSubstitutionService
 # dopisywania Depends do każdej funkcji z osobna — trudniej o pominięcie
 # przy dodawaniu kolejnego endpointu w przyszłości.
 router = APIRouter(dependencies=[Depends(get_current_user)])
+
+
+class BarcodeLookupResponse(BaseModel):
+    """Wynik wyszukiwania po kodzie kreskowym — gotowy do wypełnienia
+    formularza zgłoszenia, albo (gdy `existing_product_id` ustawione)
+    do bezpośredniego wybrania istniejącego produktu bez zgłaszania
+    niczego od nowa."""
+
+    found: bool
+    source: str | None = None  # "catalog" | "open_food_facts" | None
+    name: str | None = None
+    brand: str | None = None
+    unit: str = "g"
+    kcal_per_100: float | None = None
+    protein_per_100: float | None = None
+    fat_per_100: float | None = None
+    carbs_per_100: float | None = None
+    existing_product_id: uuid.UUID | None = None
+
+
 @router.get(
     "/",
     response_model=list[ProductResponse],
@@ -60,6 +81,73 @@ async def list_products(
 
     result = await db.execute(query)
     return list(result.scalars().all())
+
+
+@router.get(
+    "/barcode/{barcode}",
+    response_model=BarcodeLookupResponse,
+    summary="Wyszukaj produkt po kodzie kreskowym",
+)
+async def lookup_barcode(
+    barcode: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> BarcodeLookupResponse:
+    """Dwuetapowe wyszukiwanie: najpierw WŁASNY katalog (produkty
+    zeskanowane i zgłoszone wcześniej przez kogokolwiek — natychmiastowe,
+    zawiera cenę), potem Open Food Facts jako zewnętrzne źródło (bez ceny,
+    tylko nazwa i wartości odżywcze — cenę użytkownik wpisuje sam).
+
+    404, gdy nic nie znaleziono w ŻADNYM źródle — frontend pokazuje wtedy
+    pusty formularz zgłoszenia z już wpisanym kodem kreskowym, zamiast
+    blokować użytkownika.
+    """
+    # 1. Własny katalog — widoczne to, co widziałby zwykły GET /products
+    # (zaakceptowane PLUS własne zgłoszenia), żeby nie pokazywać komuś
+    # cudzego jeszcze niezatwierdzonego zgłoszenia jako "gotowy produkt".
+    result = await db.execute(
+        select(Product).where(
+            Product.barcode == barcode,
+            or_(
+                Product.review_status == "approved",
+                Product.created_by_user_id == current_user.id,
+            ),
+        )
+    )
+    existing = result.scalar_one_or_none()
+    if existing is not None:
+        return BarcodeLookupResponse(
+            found=True,
+            source="catalog",
+            name=existing.name,
+            brand=existing.brand,
+            unit=existing.unit,
+            kcal_per_100=(existing.nutrition_per_100 or {}).get("kcal"),
+            protein_per_100=(existing.nutrition_per_100 or {}).get("protein"),
+            fat_per_100=(existing.nutrition_per_100 or {}).get("fat"),
+            carbs_per_100=(existing.nutrition_per_100 or {}).get("carbs"),
+            existing_product_id=existing.id,
+        )
+
+    # 2. Open Food Facts — zewnętrzne, może nie znać lokalnej marki.
+    from app.services.barcode_lookup import lookup_barcode_external
+
+    off_result = await lookup_barcode_external(barcode)
+    if off_result is not None:
+        return BarcodeLookupResponse(
+            found=True,
+            source="open_food_facts",
+            name=off_result.name,
+            brand=off_result.brand,
+            unit="g",
+            kcal_per_100=off_result.kcal_per_100,
+            protein_per_100=off_result.protein_per_100,
+            fat_per_100=off_result.fat_per_100,
+            carbs_per_100=off_result.carbs_per_100,
+            existing_product_id=None,
+        )
+
+    return BarcodeLookupResponse(found=False, source=None, name=None)
 
 
 @router.get(
@@ -217,6 +305,11 @@ class ProductSubmission(BaseModel):
     # administratora zamienia każdy wskazany sklep na prawdziwy wiersz
     # StoreProduct z podaną ceną (patrz review_product niżej).
     store_ids: list[uuid.UUID] = []
+    # OPCJONALNE — jeśli produkt zgłoszono po zeskanowaniu kodu, zapisujemy
+    # go, żeby KOLEJNE skanowanie tego samego produktu (przez kogokolwiek)
+    # trafiało od razu w "własny katalog" (najszybsza, pierwsza gałąź
+    # w lookup_barcode), zamiast za każdym razem pytać Open Food Facts.
+    barcode: str | None = Field(None, max_length=50)
 
 
 @router.post(
@@ -267,9 +360,20 @@ async def submit_product(
         review_status="pending",
         submitted_price=payload.price,
         requested_store_ids=[str(sid) for sid in payload.store_ids] or None,
+        barcode=payload.barcode.strip() if payload.barcode else None,
     )
     db.add(product)
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError:
+        # Ktoś inny zdążył zgłosić produkt z tym samym kodem kreskowym
+        # (kolumna ma ograniczenie unikalności) — nie jest to prawdziwy
+        # błąd użytkownika, tylko wyścig dwóch zgłoszeń naraz.
+        await db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="Produkt z tym kodem kreskowym został już zgłoszony przez kogoś innego.",
+        )
     await db.refresh(product)
     return product
 
@@ -316,11 +420,23 @@ async def update_own_product(
     product.nutrition_per_100 = nutrition
     product.submitted_price = payload.price
     product.requested_store_ids = [str(sid) for sid in payload.store_ids] or None
+    # Tylko gdy jawnie podane — formularz edycji nie zawsze wysyła kod
+    # kreskowy (np. gdy edytujący nie skanował ponownie), więc pusta
+    # wartość NIE MA kasować już zapisanego kodu.
+    if payload.barcode:
+        product.barcode = payload.barcode.strip()
     # Patrz docstring — każda edycja wraca do kolejki moderacji.
     product.review_status = "pending"
 
     db.add(product)
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="Ten kod kreskowy jest już przypisany do innego produktu.",
+        )
     await db.refresh(product)
     return product
 

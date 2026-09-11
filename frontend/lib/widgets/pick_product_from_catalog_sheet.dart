@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
+import '../models/barcode_lookup_result.dart';
 import '../models/product.dart';
+import '../screens/barcode_scanner_screen.dart';
 import '../services/api_client.dart';
 import '../theme/app_theme.dart';
 import '../utils/error_utils.dart';
@@ -96,6 +98,87 @@ class _PickProductFromCatalogSheetState
     }
   }
 
+  Future<void> _scanBarcode() async {
+    final code = await Navigator.of(context).push<String>(
+      MaterialPageRoute(builder: (_) => const BarcodeScannerScreen()),
+    );
+    if (code == null || !mounted) return;
+
+    setState(() => _isLoading = true);
+    try {
+      final response = await _client.get('/products/barcode/$code');
+      final result = BarcodeLookupResult.fromJson(response as Map<String, dynamic>);
+      if (!mounted) return;
+
+      if (!result.found || result.name == null) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(const SnackBar(
+            duration: Duration(seconds: 4),
+            content: Text(
+              'Nie znaleziono tego produktu. Możesz dodać go ręcznie przez '
+              'Produkty → Moje → Dodaj produkt (ten sam kod da się tam zeskanować).',
+            ),
+          ));
+        return;
+      }
+
+      setState(() => _isLoading = false);
+
+      // Ilość — TA SAMA ścieżka co przy wyborze produktu z listy, żeby
+      // zachowanie było spójne niezależnie od tego, czy trafiono
+      // wyszukiwaniem tekstowym, czy skanowaniem.
+      final grams = await showDialog<double>(
+        context: context,
+        builder: (ctx) {
+          final controller = TextEditingController(text: '100');
+          return AlertDialog(
+            title: Text(result.name!),
+            content: TextField(
+              controller: controller,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              autofocus: true,
+              decoration: const InputDecoration(labelText: 'Ilość (g)'),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Anuluj')),
+              FilledButton(
+                onPressed: () {
+                  final val = double.tryParse(controller.text.replaceAll(',', '.'));
+                  Navigator.pop(ctx, val);
+                },
+                child: const Text('Dalej'),
+              ),
+            ],
+          );
+        },
+      );
+      if (grams == null || grams <= 0 || !mounted) return;
+
+      final factor = grams / 100.0;
+      Navigator.of(context).pop(
+        PickedCatalogProduct(
+          name: result.name!,
+          grams: grams,
+          kcal: (result.kcalPer100 ?? 0) * factor,
+          protein: (result.proteinPer100 ?? 0) * factor,
+          fat: (result.fatPer100 ?? 0) * factor,
+          carbs: (result.carbsPer100 ?? 0) * factor,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(
+          duration: const Duration(seconds: 3),
+          content: Text(friendlyError(e)),
+        ));
+    }
+  }
+
   Future<void> _pickProduct(Product product) async {
     final grams = await showDialog<double>(
       context: context,
@@ -178,9 +261,17 @@ class _PickProductFromCatalogSheetState
                 controller: _searchController,
                 autofocus: true,
                 onChanged: _onQueryChanged,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'Szukaj produktu...',
-                  prefixIcon: Icon(Icons.search),
+                  prefixIcon: const Icon(Icons.search),
+                  // Skanowanie tuż obok pola wyszukiwania — szybsza
+                  // alternatywa dla wpisywania nazwy, gdy opakowanie
+                  // jest pod ręką.
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.barcode_reader),
+                    tooltip: 'Skanuj kod kreskowy',
+                    onPressed: _scanBarcode,
+                  ),
                 ),
               ),
             ),

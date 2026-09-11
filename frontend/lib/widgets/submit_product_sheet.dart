@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../models/barcode_lookup_result.dart';
 import '../models/product.dart';
 import '../providers/store_provider.dart';
+import '../screens/barcode_scanner_screen.dart';
 import '../services/api_client.dart';
 import '../theme/app_theme.dart';
 import '../utils/error_utils.dart';
@@ -55,12 +57,19 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
   final Set<String> _selectedStoreIds = {};
   bool _storesInitialized = false;
 
+  /// Kod kreskowy — ze skanowania ALBO już istniejący przy edycji.
+  /// Osobne pole od formularza (nie TextEditingController), bo nie
+  /// jest edytowalne ręcznie — tylko przez ponowne zeskanowanie.
+  String? _barcode;
+  bool _isScanning = false;
+
   @override
   void initState() {
     super.initState();
     if (widget.editing?.requestedStoreIds != null) {
       _selectedStoreIds.addAll(widget.editing!.requestedStoreIds!);
     }
+    _barcode = widget.editing?.barcode;
   }
 
   @override
@@ -74,6 +83,83 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
   double? _parse(TextEditingController c) {
     final t = c.text.trim().replaceAll(',', '.');
     return t.isEmpty ? null : double.tryParse(t);
+  }
+
+  Future<void> _scanBarcode() async {
+    final code = await Navigator.of(context).push<String>(
+      MaterialPageRoute(builder: (_) => const BarcodeScannerScreen()),
+    );
+    if (code == null || !mounted) return;
+
+    setState(() {
+      _barcode = code;
+      _isScanning = true;
+    });
+
+    try {
+      final response = await ApiClient().get('/products/barcode/$code');
+      final result = BarcodeLookupResult.fromJson(response as Map<String, dynamic>);
+      if (!mounted) return;
+
+      if (!result.found) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(const SnackBar(
+            duration: Duration(seconds: 3),
+            content: Text(
+              'Nie znaleziono tego kodu — uzupełnij dane ręcznie, kod zapisze się przy produkcie.',
+            ),
+          ));
+        return;
+      }
+
+      // Wypełniamy TYLKO puste pola — nie nadpisujemy tego, co
+      // użytkownik już zdążył wpisać ręcznie przed skanowaniem.
+      setState(() {
+        if (_name.text.trim().isEmpty && result.name != null) {
+          _name.text = result.name!;
+        }
+        if (_brand.text.trim().isEmpty && result.brand != null) {
+          _brand.text = result.brand!;
+        }
+        if (result.kcalPer100 != null) {
+          _showNutrition = true;
+          if (_kcal.text.trim().isEmpty) _kcal.text = result.kcalPer100!.toStringAsFixed(0);
+          if (_protein.text.trim().isEmpty && result.proteinPer100 != null) {
+            _protein.text = result.proteinPer100!.toStringAsFixed(1);
+          }
+          if (_fat.text.trim().isEmpty && result.fatPer100 != null) {
+            _fat.text = result.fatPer100!.toStringAsFixed(1);
+          }
+          if (_carbs.text.trim().isEmpty && result.carbsPer100 != null) {
+            _carbs.text = result.carbsPer100!.toStringAsFixed(1);
+          }
+        }
+      });
+
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(
+          duration: const Duration(seconds: 3),
+          content: Text(
+            result.isFromOwnCatalog
+                ? 'Znaleziono w katalogu — dane wypełnione automatycznie.'
+                : 'Znaleziono w Open Food Facts — sprawdź dane przed zapisaniem.',
+          ),
+        ));
+    } catch (e) {
+      if (!mounted) return;
+      // Nieudane wyszukiwanie NIE blokuje ręcznego wypełnienia — kod
+      // został już zapisany w _barcode, więc i tak trafi do zgłoszenia.
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(
+          duration: const Duration(seconds: 3),
+          content: Text(friendlyError(e)),
+        ));
+    } finally {
+      if (mounted) setState(() => _isScanning = false);
+    }
   }
 
   Future<void> _submit() async {
@@ -91,6 +177,7 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
         if (_parse(_fat) != null) 'fat_per_100': _parse(_fat),
         if (_parse(_carbs) != null) 'carbs_per_100': _parse(_carbs),
         'store_ids': _selectedStoreIds.toList(),
+        if (_barcode != null) 'barcode': _barcode,
       };
       if (_isEditing) {
         await ApiClient().put('/products/${widget.editing!.id}', body: body);
@@ -160,6 +247,27 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                       fontSize: 12, color: AppTheme.textSecondary, height: 1.35),
                 ),
                 const SizedBox(height: 20),
+                // Skanowanie kodu kreskowego — OPCJONALNE, ale znacznie
+                // przyspiesza wypełnienie: jeśli produkt jest w Waszym
+                // katalogu albo w Open Food Facts, nazwa i wartości
+                // odżywcze wypełniają się same.
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: _isScanning ? null : _scanBarcode,
+                    icon: _isScanning
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.barcode_reader, size: 18),
+                    label: Text(_barcode == null
+                        ? 'Skanuj kod kreskowy'
+                        : 'Zeskanowano: $_barcode (zmień)'),
+                  ),
+                ),
+                const SizedBox(height: 12),
                 TextFormField(
                   controller: _name,
                   maxLength: 300,
