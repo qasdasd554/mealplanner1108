@@ -19,12 +19,14 @@ class BarcodeScannerScreen extends StatefulWidget {
 }
 
 class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
-  final MobileScannerController _controller = MobileScannerController(
-    // Ograniczone do formatów kodów kreskowych PRODUKTÓW (EAN-13/EAN-8/
-    // UPC-A) — bez QR i innych, żeby skaner nie łapał przypadkiem
-    // niezwiązanego kodu QR w kadrze.
-    formats: const [BarcodeFormat.ean13, BarcodeFormat.ean8, BarcodeFormat.upcA],
-  );
+  // NAPRAWA PRÓBNA: usunięty parametr `formats` (wcześniej ograniczony do
+  // EAN-13/EAN-8/UPC-A). Domyślna konfiguracja (wszystkie formaty) to
+  // ścieżka, którą biblioteka testuje najszerzej — jawne ograniczenie
+  // formatów na Androidzie bywa zgłaszane jako źródło "generic error"
+  // przy inicjalizacji ML Kit na niektórych urządzeniach. Filtrowanie
+  // po stronie `_onDetect` (jeśli będzie potrzebne) da ten sam efekt
+  // bez ryzyka po stronie inicjalizacji kamery.
+  final MobileScannerController _controller = MobileScannerController();
 
   // Zabezpieczenie przed WIELOKROTNYM odpaleniem onDetect dla tego
   // samego kadru — kamera potrafi zgłosić kilka klatek z tym samym
@@ -97,7 +99,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                         isPermission
                             ? 'Włącz uprawnienie w ustawieniach telefonu: '
                                 'Ustawienia → Meal Planner Polska → Aparat.'
-                            : 'Kod błędu: ${error.errorCode.name}',
+                            : 'Kod: ${error.errorCode.name}\n${error.toString()}',
                         textAlign: TextAlign.center,
                         style: const TextStyle(color: Colors.white70, fontSize: 13),
                       ),
