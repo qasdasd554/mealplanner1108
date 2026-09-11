@@ -26,8 +26,15 @@ import 'package:image_picker/image_picker.dart';
 Future<String?> scanBarcode(BuildContext context) async {
   final photo = await ImagePicker().pickImage(
     source: ImageSource.camera,
-    maxWidth: 1600,
-    imageQuality: 85,
+    // NAPRAWA PRÓBNA: poprzednie ustawienia (1600 px / jakość 85) były
+    // dobrane pod zwykłe zdjęcia (awatar, przepis), gdzie umiarkowana
+    // kompresja nie szkodzi. Kod kreskowy to drobne, gęste prążki —
+    // nawet niewielka kompresja JPEG potrafi je rozmazać na tyle, że
+    // silnik dekodujący nic nie znajdzie (dokładnie objaw, który
+    // zgłosiłeś: isValid=false bez żadnego błędu). Bez limitu
+    // szerokości i przy niemal maksymalnej jakości.
+    maxWidth: 3000,
+    imageQuality: 100,
   );
   if (photo == null || !context.mounted) return null;
 
