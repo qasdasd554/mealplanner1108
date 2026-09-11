@@ -50,11 +50,19 @@ Future<String?> scanBarcode(BuildContext context) async {
   );
 
   String? code;
+  String? debugInfo;
   try {
     final result = await zx.readBarcodeImagePath(photo, DecodeParams());
+    // DIAGNOSTYKA: isValid/text są już potwierdzone jako poprawne (ta
+    // wersja się kompiluje i uruchamia) — pokazujemy je wprost, żeby
+    // zobaczyć, czy rozpoznanie faktycznie się nie udaje (isValid:
+    // false), czy problem jest gdzie indziej.
+    debugInfo = 'isValid=${result.isValid}, text=${result.text}';
     code = result.isValid ? result.text : null;
-  } catch (_) {
+  } catch (e, st) {
     code = null;
+    debugInfo = 'WYJĄTEK: $e';
+    debugPrint('Barcode decode error: $e\n$st');
   } finally {
     // Zdjęcie posłużyło tylko do jednorazowej analizy — kasujemy je,
     // zamiast zaśmiecać telefon użytkownika tymczasowymi plikami.
@@ -68,13 +76,20 @@ Future<String?> scanBarcode(BuildContext context) async {
   }
 
   if (code == null || code.isEmpty) {
+    // TYMCZASOWE (diagnostyczne): pokazujemy surowy stan wyniku wprost
+    // w komunikacie, żeby dowiedzieć się, co faktycznie dzieje się
+    // "w środku" biblioteki, bez dostępu do logów konsoli na telefonie.
     if (context.mounted) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(
-          duration: Duration(seconds: 3),
-          content: Text('Nie udało się rozpoznać kodu — spróbuj ponownie albo wpisz ręcznie.'),
-        ));
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Diagnostyka skanowania'),
+          content: Text(debugInfo ?? 'brak danych'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
+          ],
+        ),
+      );
     }
     return null;
   }
