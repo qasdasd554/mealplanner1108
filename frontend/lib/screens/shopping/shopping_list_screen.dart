@@ -84,10 +84,19 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
   }
 
   void _loadData() {
-    final mealPlanProvider = Provider.of<MealPlanProvider>(context, listen: false);
-    final shoppingListProvider = Provider.of<ShoppingListProvider>(context, listen: false);
+    final mealPlanProvider = Provider.of<MealPlanProvider>(
+      context,
+      listen: false,
+    );
+    final shoppingListProvider = Provider.of<ShoppingListProvider>(
+      context,
+      listen: false,
+    );
     final storeProvider = Provider.of<StoreProvider>(context, listen: false);
-    final promotionProvider = Provider.of<PromotionProvider>(context, listen: false);
+    final promotionProvider = Provider.of<PromotionProvider>(
+      context,
+      listen: false,
+    );
 
     final activePlan = mealPlanProvider.activePlan;
     // NAPRAWA: wcześniej całe ładowanie list było owinięte w
@@ -122,39 +131,43 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     // jest jednoznaczne.
     final nickname = await showDialog<String>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Udostępnij listę zakupów'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Podaj nazwę użytkownika osoby, której chcesz udostępnić listę. '
-              'Musi ona mieć konto w Meal Planner Polska i zaakceptować '
-              'zaproszenie, zanim zobaczy listę.',
-              style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+      builder:
+          (ctx) => AlertDialog(
+            title: const Text('Udostępnij listę zakupów'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Podaj nazwę użytkownika osoby, której chcesz udostępnić listę. '
+                  'Musi ona mieć konto w Meal Planner Polska i zaakceptować '
+                  'zaproszenie, zanim zobaczy listę.',
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: controller,
+                  autofocus: true,
+                  textCapitalization: TextCapitalization.none,
+                  decoration: const InputDecoration(
+                    labelText: 'Nazwa użytkownika',
+                    prefixIcon: Icon(Icons.person_outline),
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: controller,
-              autofocus: true,
-              textCapitalization: TextCapitalization.none,
-              decoration: const InputDecoration(
-                labelText: 'Nazwa użytkownika',
-                prefixIcon: Icon(Icons.person_outline),
-                border: OutlineInputBorder(),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Anuluj'),
               ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Anuluj')),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-            child: const Text('Wyślij zaproszenie'),
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+                child: const Text('Wyślij zaproszenie'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
 
     if (nickname == null || nickname.isEmpty || !mounted) return;
@@ -166,16 +179,21 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
-            duration: const Duration(seconds: 3),content: Text('Wysłano zaproszenie do $nickname')),
+            duration: const Duration(seconds: 3),
+            content: Text('Wysłano zaproszenie do $nickname'),
+          ),
         );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-            duration: const Duration(seconds: 3),content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(friendlyError(e)),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
     }
   }
 
@@ -226,7 +244,8 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                 Future.microtask(() async {
                   try {
                     final response = await _apiClient.get(
-                        '${ApiConfig.products}${item.productId}/substitutes?store_id=$storeId');
+                      '${ApiConfig.products}${item.productId}/substitutes?store_id=$storeId',
+                    );
                     if (mounted) {
                       setModalState(() {
                         _substitutes = response as List<dynamic>;
@@ -246,9 +265,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
 
               return const SizedBox(
                 height: 250,
-                child: Center(
-                  child: CircularProgressIndicator(),
-                ),
+                child: Center(child: CircularProgressIndicator()),
               );
             }
 
@@ -260,8 +277,8 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                   Text(
                     'Wybierz zamiennik',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -276,7 +293,9 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                         final sub = _substitutes[index];
                         return ListTile(
                           title: Text(sub['name'] as String),
-                          subtitle: Text('${sub['brand'] as String? ??''}${sub['kcal'] != null ?' (${sub['kcal']} kcal)':''}'),
+                          subtitle: Text(
+                            '${sub['brand'] as String? ?? ''}${sub['kcal'] != null ? ' (${sub['kcal']} kcal)' : ''}',
+                          ),
                           trailing: Text(
                             '${((sub['price'] as num?)?.toDouble() ?? 0.0).toStringAsFixed(2)} zł',
                             style: const TextStyle(
@@ -285,14 +304,22 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                             ),
                           ),
                           onTap: () async {
-                            final provider = Provider.of<ShoppingListProvider>(this.context, listen: false);
-                            await provider.substituteItem(item.id, sub['id'] as String);
+                            final provider = Provider.of<ShoppingListProvider>(
+                              this.context,
+                              listen: false,
+                            );
+                            await provider.substituteItem(
+                              item.id,
+                              sub['id'] as String,
+                            );
                             if (mounted) {
                               Navigator.of(this.context).pop();
                               ScaffoldMessenger.of(this.context).showSnackBar(
                                 SnackBar(
-            duration: const Duration(seconds: 3),
-                                  content: Text('Zamieniono na: ${sub['name']}'),
+                                  duration: const Duration(seconds: 3),
+                                  content: Text(
+                                    'Zamieniono na: ${sub['name']}',
+                                  ),
                                   backgroundColor: AppTheme.primaryColor,
                                 ),
                               );
@@ -319,201 +346,258 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Lista zakupów'),
-        leading: widget.isTab
-            ? null
-            : IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
+        leading:
+            widget.isTab
+                ? null
+                : IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
       ),
       // Dodawanie produktu jako PŁYWAJĄCY przycisk, a nie ikona w pasku —
       // w pasku ginęła między pozostałymi ikonami i była trudna do
       // zauważenia. Ten sam wzorzec co w zakładce Śledzenie, więc
       // zachowanie jest spójne w całej aplikacji.
-      floatingActionButton: list == null
-          ? null
-          : FloatingActionButton(
-              onPressed: () => showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: AppTheme.surfaceColor,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                ),
-                builder: (_) => const AddProductSheet(),
+      floatingActionButton:
+          list == null
+              ? null
+              : FloatingActionButton(
+                onPressed:
+                    () => showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: AppTheme.surfaceColor,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(20),
+                        ),
+                      ),
+                      builder: (_) => const AddProductSheet(),
+                    ),
+                backgroundColor: AppTheme.primaryColor,
+                tooltip: 'Dodaj produkt do listy',
+                child: const Icon(Icons.add, color: Colors.white),
               ),
-              backgroundColor: AppTheme.primaryColor,
-              tooltip: 'Dodaj produkt do listy',
-              child: const Icon(Icons.add, color: Colors.white),
-            ),
       body: Stack(
         children: [
           const DecorativeCircles(),
           shoppingListProvider.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : list == null
+              ? const Center(child: CircularProgressIndicator())
+              : list == null
               ? _buildEmptyState()
               : Column(
-                  children: [
-                    // Rząd kafelków akcji — ten sam wzorzec wizualny co
-                    // szybkie filtry w zakładce Przepisy (ikona + podpis
-                    // w ramce). Wcześniej były to nieopisane ikony w pasku,
-                    // po których nie dało się poznać, co robią.
-                    AnimatedSize(
-                      duration: const Duration(milliseconds: 200),
-                      curve: Curves.easeOut,
-                      child: !_showActions
-                          ? const SizedBox(width: double.infinity, height: 0)
-                          : Padding(
-                      padding: const EdgeInsets.fromLTRB(13, 12, 13, 0),
-                      child: Row(
-                        children: [
-                          _buildActionTile(
-                            icon: Icons.mail_outline,
-                            label: 'Zaproszenia',
-                            onTap: () => Navigator.of(context).push(
-                              MaterialPageRoute(builder: (_) => const PendingSharesScreen()),
-                            ),
-                          ),
-                          _buildActionTile(
-                            icon: Icons.person_add_alt_outlined,
-                            label: 'Udostępnij',
-                            onTap: list == null ? null : () => _showShareDialog(list.id),
-                          ),
-                          _buildActionTile(
-                            icon: Icons.refresh,
-                            label: 'Odśwież',
-                            onTap: _loadData,
-                          ),
-                          _buildActionTile(
-                            icon: Icons.delete_outline,
-                            label: 'Usuń listę',
-                            color: AppTheme.errorColor,
-                            onTap: list == null
-                                ? null
-                                : () {
-                                    final idx = shoppingListProvider.allLists.indexWhere(
-                                        (l) => l.mealPlanId == shoppingListProvider.selectedListId);
-                                    _confirmDeleteList(shoppingListProvider, list,
-                                        idx >= 0 ? idx + 1 : 1);
-                                  },
-                          ),
-                        ],
-                      ),
-                    ),
-                    ),
-
-                    // 0. Przełącznik listy — widoczny tylko gdy użytkownik
-                    // ma więcej niż jedną (Premium może mieć do 5).
-                    if (shoppingListProvider.allLists.length > 1)
-                      _buildListSelector(shoppingListProvider),
-
-                    // Panel domknięcia zakupów — pokazuje się DOPIERO
-                    // po odhaczeniu wszystkiego, więc nie zabiera miejsca
-                    // w trakcie zakupów, a pojawia się dokładnie w
-                    // momencie, gdy jest potrzebny.
-                    if (list.isFullyChecked)
-                      _buildCompletionPanel(shoppingListProvider, list),
-
-                    // 1. Panel podsumowania (Postęp i cena) — chowa się
-                    // do minimalnego paska przy przewijaniu w dół, tak
-                    // samo jak rząd kafelków akcji wyżej. Wcześniej
-                    // zostawał w pełnym rozmiarze na stałe i przy dłuższej
-                    // liście zajmował sporo ekranu, mimo że po przewinięciu
-                    // najważniejsza jest już tylko sama lista produktów.
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 220),
-                      child: _showActions
-                          ? _buildSummaryCard(list)
-                          : _buildCompactSummaryBar(list),
-                    ),
-
-                    // 1b. Akcje: Porównaj ceny i Eksportuj
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              icon: const Icon(Icons.store, size: 18),
-                              label: const Text('Porównaj', style: TextStyle(fontSize: 13)),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
-                                foregroundColor: AppTheme.primaryColor,
-                                elevation: 0,
-                              ),
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => PriceCompareScreen(mealPlanId: list.mealPlanId),
+                children: [
+                  // Rząd kafelków akcji — ten sam wzorzec wizualny co
+                  // szybkie filtry w zakładce Przepisy (ikona + podpis
+                  // w ramce). Wcześniej były to nieopisane ikony w pasku,
+                  // po których nie dało się poznać, co robią.
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOut,
+                    child:
+                        !_showActions
+                            ? const SizedBox(width: double.infinity, height: 0)
+                            : Padding(
+                              padding: const EdgeInsets.fromLTRB(13, 12, 13, 0),
+                              child: Row(
+                                children: [
+                                  _buildActionTile(
+                                    icon: Icons.mail_outline,
+                                    label: 'Zaproszenia',
+                                    onTap:
+                                        () => Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder:
+                                                (_) =>
+                                                    const PendingSharesScreen(),
+                                          ),
+                                        ),
                                   ),
-                                );
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              icon: const Icon(Icons.ios_share, size: 18),
-                              label: const Text('Eksportuj', style: TextStyle(fontSize: 13)),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppTheme.accentColor.withOpacity(0.1),
-                                foregroundColor: AppTheme.accentColor,
-                                elevation: 0,
+                                  _buildActionTile(
+                                    icon: Icons.person_add_alt_outlined,
+                                    label: 'Udostępnij',
+                                    onTap:
+                                        list == null
+                                            ? null
+                                            : () => _showShareDialog(list.id),
+                                  ),
+                                  _buildActionTile(
+                                    icon: Icons.refresh,
+                                    label: 'Odśwież',
+                                    onTap: _loadData,
+                                  ),
+                                  _buildActionTile(
+                                    icon: Icons.delete_outline,
+                                    label: 'Usuń listę',
+                                    color: AppTheme.errorColor,
+                                    onTap:
+                                        list == null
+                                            ? null
+                                            : () {
+                                              final idx = shoppingListProvider
+                                                  .allLists
+                                                  .indexWhere(
+                                                    (l) =>
+                                                        l.mealPlanId ==
+                                                        shoppingListProvider
+                                                            .selectedListId,
+                                                  );
+                                              _confirmDeleteList(
+                                                shoppingListProvider,
+                                                list,
+                                                idx >= 0 ? idx + 1 : 1,
+                                              );
+                                            },
+                                  ),
+                                ],
                               ),
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => ExportListDialog(shoppingList: list),
-                                );
-                              },
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  ),
 
-                    // 2. Grupy produktów wg działów
-                    Expanded(
-                      child: ListView.builder(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                        itemCount: list.itemsByDepartment.length,
-                        itemBuilder: (context, index) {
-                          final deptName = list.itemsByDepartment.keys.elementAt(index);
-                          final items = list.itemsByDepartment[deptName]!;
-                          final deptIcon = _getDeptIcon(deptName);
+                  // 0. Przełącznik listy — widoczny tylko gdy użytkownik
+                  // ma więcej niż jedną (Premium może mieć do 5).
+                  if (shoppingListProvider.allLists.length > 1)
+                    _buildListSelector(shoppingListProvider),
 
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 20),
-                            decoration: BoxDecoration(
-                              color: AppTheme.surfaceColor,
-                              borderRadius: BorderRadius.all(Radius.circular(20)),
-                            ),
-                            child: ExpansionTile(
-                              initiallyExpanded: true,
-                              shape: const Border(),
-                              leading: Icon(deptIcon, color: AppTheme.primaryColor),
-                              title: Text(
-                                deptName,
-                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              ),
-                              subtitle: Text(
-                                '${items.where((i) => i.isChecked).length} z ${items.length} kupione',
-                                style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-                              ),
-                              children: items.map((item) {
-                                return _buildShoppingItemTile(item, shoppingListProvider, list.storeId);
-                              }).toList(),
-                            ),
-                          );
-                        },
-                      ),
+                  // Panel domknięcia zakupów — pokazuje się DOPIERO
+                  // po odhaczeniu wszystkiego, więc nie zabiera miejsca
+                  // w trakcie zakupów, a pojawia się dokładnie w
+                  // momencie, gdy jest potrzebny.
+                  if (list.isFullyChecked)
+                    _buildCompletionPanel(shoppingListProvider, list),
+
+                  // 1. Panel podsumowania (Postęp i cena) — chowa się
+                  // do minimalnego paska przy przewijaniu w dół, tak
+                  // samo jak rząd kafelków akcji wyżej. Wcześniej
+                  // zostawał w pełnym rozmiarze na stałe i przy dłuższej
+                  // liście zajmował sporo ekranu, mimo że po przewinięciu
+                  // najważniejsza jest już tylko sama lista produktów.
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 220),
+                    child:
+                        _showActions
+                            ? _buildSummaryCard(list)
+                            : _buildCompactSummaryBar(list),
+                  ),
+
+                  // 1b. Akcje: Porównaj ceny i Eksportuj
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 8.0,
                     ),
-                  ],
-                ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            icon: const Icon(Icons.store, size: 18),
+                            label: const Text(
+                              'Porównaj',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primaryColor
+                                  .withOpacity(0.1),
+                              foregroundColor: AppTheme.primaryColor,
+                              elevation: 0,
+                            ),
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) => PriceCompareScreen(
+                                        mealPlanId: list.mealPlanId,
+                                      ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            icon: const Icon(Icons.ios_share, size: 18),
+                            label: const Text(
+                              'Eksportuj',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.accentColor.withOpacity(
+                                0.1,
+                              ),
+                              foregroundColor: AppTheme.accentColor,
+                              elevation: 0,
+                            ),
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder:
+                                    (context) =>
+                                        ExportListDialog(shoppingList: list),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // 2. Grupy produktów wg działów
+                  Expanded(
+                    child: ListView.builder(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 8,
+                      ),
+                      itemCount: list.itemsByDepartment.length,
+                      itemBuilder: (context, index) {
+                        final deptName = list.itemsByDepartment.keys.elementAt(
+                          index,
+                        );
+                        final items = list.itemsByDepartment[deptName]!;
+                        final deptIcon = _getDeptIcon(deptName);
+
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 20),
+                          decoration: BoxDecoration(
+                            color: AppTheme.surfaceColor,
+                            borderRadius: BorderRadius.all(Radius.circular(20)),
+                          ),
+                          child: ExpansionTile(
+                            initiallyExpanded: true,
+                            shape: const Border(),
+                            leading: Icon(
+                              deptIcon,
+                              color: AppTheme.primaryColor,
+                            ),
+                            title: Text(
+                              deptName,
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                            subtitle: Text(
+                              '${items.where((i) => i.isChecked).length} z ${items.length} kupione',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.textSecondary,
+                              ),
+                            ),
+                            children:
+                                items.map((item) {
+                                  return _buildShoppingItemTile(
+                                    item,
+                                    shoppingListProvider,
+                                    list.storeId,
+                                  );
+                                }).toList(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
         ],
       ),
     );
@@ -552,7 +636,10 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 9, color: tint.withOpacity(active ? 1 : 0.4)),
+                style: TextStyle(
+                  fontSize: 9,
+                  color: tint.withOpacity(active ? 1 : 0.4),
+                ),
               ),
             ],
           ),
@@ -563,7 +650,10 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
 
   Widget _buildListSelector(ShoppingListProvider provider) {
     return SizedBox(
-      height: 64,
+      // Dwie linie opisu listy oraz ikona potrzebują nieco więcej miejsca
+      // niż poprzednie 64 px. Na iPhone'ach z większą skalą tekstu dolny
+      // wiersz wystawał o 6 px i Flutter rysował czerwony pasek overflow.
+      height: 76,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
@@ -589,13 +679,17 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                 onTap: () => provider.selectList(l.mealPlanId),
                 onLongPress: () => _confirmDeleteList(provider, l, index + 1),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: isSelected
-                          ? AppTheme.primaryColor
-                          : AppTheme.textSecondary.withOpacity(0.25),
+                      color:
+                          isSelected
+                              ? AppTheme.primaryColor
+                              : AppTheme.textSecondary.withOpacity(0.25),
                     ),
                   ),
                   child: Column(
@@ -607,9 +701,10 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: isSelected
-                              ? Colors.white.withOpacity(0.85)
-                              : AppTheme.textSecondary,
+                          color:
+                              isSelected
+                                  ? Colors.white.withOpacity(0.85)
+                                  : AppTheme.textSecondary,
                         ),
                       ),
                       const SizedBox(height: 1),
@@ -621,25 +716,32 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
-                              color: isSelected ? Colors.white : AppTheme.textPrimary,
+                              color:
+                                  isSelected
+                                      ? Colors.white
+                                      : AppTheme.textPrimary,
                             ),
                           ),
                           const SizedBox(width: 6),
                           Icon(
-                            done ? Icons.check_circle : Icons.shopping_basket_outlined,
+                            done
+                                ? Icons.check_circle
+                                : Icons.shopping_basket_outlined,
                             size: 13,
-                            color: isSelected
-                                ? Colors.white.withOpacity(0.9)
-                                : AppTheme.textSecondary,
+                            color:
+                                isSelected
+                                    ? Colors.white.withOpacity(0.9)
+                                    : AppTheme.textSecondary,
                           ),
                           const SizedBox(width: 2),
                           Text(
                             '$checked/$total',
                             style: TextStyle(
                               fontSize: 11,
-                              color: isSelected
-                                  ? Colors.white.withOpacity(0.9)
-                                  : AppTheme.textSecondary,
+                              color:
+                                  isSelected
+                                      ? Colors.white.withOpacity(0.9)
+                                      : AppTheme.textSecondary,
                             ),
                           ),
                         ],
@@ -665,25 +767,28 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
   ) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text('Usunąć listę $number?'),
-        content: Text(
-          'Lista zakupów dla sklepu ${list.storeName} zostanie trwale '
-          'usunięta wraz ze wszystkimi pozycjami. Plan posiłków pozostaje '
-          'bez zmian — listę można wygenerować ponownie.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Anuluj'),
+      builder:
+          (dialogContext) => AlertDialog(
+            title: Text('Usunąć listę $number?'),
+            content: Text(
+              'Lista zakupów dla sklepu ${list.storeName} zostanie trwale '
+              'usunięta wraz ze wszystkimi pozycjami. Plan posiłków pozostaje '
+              'bez zmian — listę można wygenerować ponownie.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('Anuluj'),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppTheme.errorColor,
+                ),
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: const Text('Usuń'),
+              ),
+            ],
           ),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppTheme.errorColor),
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Usuń'),
-          ),
-        ],
-      ),
     );
     if (confirmed != true) return;
 
@@ -693,7 +798,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-            duration: const Duration(seconds: 3),
+          duration: const Duration(seconds: 3),
           content: Text(ok ? 'Lista usunięta' : 'Nie udało się usunąć listy'),
           backgroundColor: ok ? null : AppTheme.errorColor,
         ),
@@ -702,7 +807,10 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
 
   /// Panel z akcjami domykającymi zakupy, widoczny po odhaczeniu
   /// wszystkich pozycji.
-  Widget _buildCompletionPanel(ShoppingListProvider provider, ShoppingList list) {
+  Widget _buildCompletionPanel(
+    ShoppingListProvider provider,
+    ShoppingList list,
+  ) {
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       padding: const EdgeInsets.all(16),
@@ -734,7 +842,11 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
           Text(
             'Przenieś kupione produkty do spiżarni, żeby aplikacja mogła '
             'podpowiadać przepisy z tego, co masz w domu.',
-            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary, height: 1.35),
+            style: TextStyle(
+              fontSize: 12,
+              color: AppTheme.textSecondary,
+              height: 1.35,
+            ),
           ),
           const SizedBox(height: 12),
           // Przyciski JEDEN POD DRUGIM na pełną szerokość, nie obok
@@ -744,14 +856,19 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
           SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
-              onPressed: _isCompleting ? null : () => _completeList(provider, true),
-              icon: _isCompleting
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                    )
-                  : const Icon(Icons.kitchen, size: 18),
+              onPressed:
+                  _isCompleting ? null : () => _completeList(provider, true),
+              icon:
+                  _isCompleting
+                      ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                      : const Icon(Icons.kitchen, size: 18),
               label: const Text('Przenieś do spiżarni'),
             ),
           ),
@@ -759,7 +876,8 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
           SizedBox(
             width: double.infinity,
             child: TextButton(
-              onPressed: _isCompleting ? null : () => _completeList(provider, false),
+              onPressed:
+                  _isCompleting ? null : () => _completeList(provider, false),
               child: const Text('Zakończ bez przenoszenia'),
             ),
           ),
@@ -768,7 +886,10 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     );
   }
 
-  Future<void> _completeList(ShoppingListProvider provider, bool moveToPantry) async {
+  Future<void> _completeList(
+    ShoppingListProvider provider,
+    bool moveToPantry,
+  ) async {
     setState(() => _isCompleting = true);
     final moved = await provider.completeList(moveToPantry: moveToPantry);
     if (!mounted) return;
@@ -778,13 +899,13 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-            duration: const Duration(seconds: 3),
+          duration: const Duration(seconds: 3),
           content: Text(
             moved == null
                 ? (provider.errorMessage ?? 'Nie udało się zakończyć listy')
                 : moveToPantry
-                    ? 'Zakupy zakończone. Do spiżarni trafiło $moved produktów.'
-                    : 'Zakupy zakończone.',
+                ? 'Zakupy zakończone. Do spiżarni trafiło $moved produktów.'
+                : 'Zakupy zakończone.',
           ),
           backgroundColor: moved == null ? AppTheme.errorColor : null,
         ),
@@ -872,9 +993,9 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
               children: [
                 Text(
                   list.storeName,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -891,16 +1012,19 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                       ? 'Wszystko kupione'
                       : 'Do zapłaty: ~${list.remainingPrice.toStringAsFixed(2)} zł',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: AppTheme.primaryColor,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    color: AppTheme.primaryColor,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 if (!list.isFullyChecked && list.checkedItems > 0) ...[
                   const SizedBox(height: 2),
                   Text(
                     'w koszyku: ${(list.totalEstimatedPrice - list.remainingPrice).toStringAsFixed(2)} zł '
                     'z ~${list.totalEstimatedPrice.toStringAsFixed(2)} zł',
-                    style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppTheme.textSecondary,
+                    ),
                   ),
                 ],
               ],
@@ -918,7 +1042,9 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
   ) {
     // Odznaka promocji — sprawdzana z już wczytanej listy promocji
     // (patrz _loadData), bez dodatkowego zapytania sieciowego na każdą pozycję.
-    final promotion = Provider.of<PromotionProvider>(context).findForProduct(item.productName);
+    final promotion = Provider.of<PromotionProvider>(
+      context,
+    ).findForProduct(item.productName);
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
@@ -968,7 +1094,10 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
         children: [
           Text('${item.requiredQuantity} ${item.unit}'),
           if (item.brand != null)
-            Text('• ${item.brand}', style: TextStyle(color: AppTheme.textSecondary)),
+            Text(
+              '• ${item.brand}',
+              style: TextStyle(color: AppTheme.textSecondary),
+            ),
           if (item.substitutedForName != null)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -978,12 +1107,17 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
               ),
               child: const Text(
                 'ZAMIENNIK',
-                style: TextStyle(color: AppTheme.accentColor, fontSize: 8, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: AppTheme.accentColor,
+                  fontSize: 8,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           if (promotion != null)
             Tooltip(
-              message: promotion.promoDescription ??
+              message:
+                  promotion.promoDescription ??
                   '${promotion.regularPrice.toStringAsFixed(2)} zł → '
                       '${promotion.promoPrice.toStringAsFixed(2)} zł',
               child: Container(
@@ -994,7 +1128,11 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                 ),
                 child: Text(
                   'PROMOCJA -${promotion.savingsPercent}%',
-                  style: const TextStyle(color: Colors.red, fontSize: 8, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    color: Colors.red,
+                    fontSize: 8,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
@@ -1010,7 +1148,11 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
             ),
           const SizedBox(width: 8),
           IconButton(
-            icon: Icon(Icons.swap_horiz, size: 20, color: AppTheme.textSecondary),
+            icon: Icon(
+              Icons.swap_horiz,
+              size: 20,
+              color: AppTheme.textSecondary,
+            ),
             onPressed: () => _openSubstitutePicker(item, storeId),
           ),
         ],
@@ -1025,11 +1167,17 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.shopping_cart_outlined, size: 64, color: AppTheme.textSecondary),
+            Icon(
+              Icons.shopping_cart_outlined,
+              size: 64,
+              color: AppTheme.textSecondary,
+            ),
             const SizedBox(height: 24),
             Text(
               'Brak aktywnej listy zakupów',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
@@ -1044,9 +1192,12 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
             // A to najczęstsza sytuacja: ktoś udostępnia listę komuś, kto
             // sam żadnej jeszcze nie stworzył.
             OutlinedButton.icon(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const PendingSharesScreen()),
-              ),
+              onPressed:
+                  () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const PendingSharesScreen(),
+                    ),
+                  ),
               icon: const Icon(Icons.mail_outline, size: 18),
               label: const Text('Zaproszenia do list'),
             ),

@@ -32,6 +32,12 @@ class BarcodeLookupResult {
   /// zweryfikował wcześniej.
   bool get isFromOwnCatalog => source == 'catalog';
 
+  static double? _asDouble(dynamic value) {
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value.replaceAll(',', '.'));
+    return null;
+  }
+
   factory BarcodeLookupResult.fromJson(Map<String, dynamic> json) {
     return BarcodeLookupResult(
       found: json['found'] as bool? ?? false,
@@ -39,12 +45,12 @@ class BarcodeLookupResult {
       name: json['name'] as String?,
       brand: json['brand'] as String?,
       unit: json['unit'] as String? ?? 'g',
-      kcalPer100: (json['kcal_per_100'] as num?)?.toDouble(),
-      proteinPer100: (json['protein_per_100'] as num?)?.toDouble(),
-      fatPer100: (json['fat_per_100'] as num?)?.toDouble(),
-      carbsPer100: (json['carbs_per_100'] as num?)?.toDouble(),
+      kcalPer100: _asDouble(json['kcal_per_100']),
+      proteinPer100: _asDouble(json['protein_per_100']),
+      fatPer100: _asDouble(json['fat_per_100']),
+      carbsPer100: _asDouble(json['carbs_per_100']),
       existingProductId: json['existing_product_id'] as String?,
-      suggestedPrice: (json['suggested_price'] as num?)?.toDouble(),
+      suggestedPrice: _asDouble(json['suggested_price']),
     );
   }
 }

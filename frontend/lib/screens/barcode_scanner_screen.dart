@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_zxing/flutter_zxing.dart';
+import '../utils/barcode_utils.dart';
 
 /// Otwiera skaner działający na strumieniu obrazu z aparatu.
 ///
@@ -27,15 +28,9 @@ class BarcodeScannerScreen extends StatefulWidget {
 class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   bool _resultHandled = false;
 
-  String? _normalize(String? value) {
-    if (value == null) return null;
-    final digits = value.replaceAll(RegExp(r'[^0-9]'), '');
-    return digits.length >= 8 && digits.length <= 14 ? digits : null;
-  }
-
   void _onScan(Code result) {
     if (_resultHandled || !result.isValid) return;
-    final barcode = _normalize(result.text);
+    final barcode = normalizeScannedBarcode(result.text);
     if (barcode == null) return;
 
     _resultHandled = true;
@@ -73,7 +68,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     controller.dispose();
     if (!mounted || value == null) return;
 
-    final barcode = _normalize(value);
+    final barcode = normalizeScannedBarcode(value);
     if (barcode == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Kod musi zawierać od 8 do 14 cyfr.')),
