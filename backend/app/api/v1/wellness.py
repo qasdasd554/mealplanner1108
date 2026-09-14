@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, get_db
 from app.models.user import User
-from app.models.wellness import ActivityLog, WaterLog
+from app.models.wellness import ActivityLog, WaterLog, WeightLog
 
 router = APIRouter()
 
@@ -59,6 +59,79 @@ class DailyWellnessResponse(BaseModel):
     water: WaterResponse
     activities: list[ActivityResponse]
     total_kcal_burned: int
+
+
+class WeightLogUpsert(BaseModel):
+    weight_kg: float = Field(..., gt=0, le=400)
+
+
+class WeightLogResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    date: date_type
+    weight_kg: float
+
+
+# Stała ścieżka musi znaleźć się przed GET /{log_date}, ponieważ inaczej
+# FastAPI próbowałoby zinterpretować słowo "weight" jako datę i zwracało 422.
+@router.get("/weight", response_model=list[WeightLogResponse])
+async def list_weight_logs(
+    limit: int = Query(default=30, ge=1, le=365),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> list[WeightLog]:
+    result = await db.execute(
+        select(WeightLog)
+        .where(WeightLog.user_id == current_user.id)
+        .order_by(WeightLog.date.desc())
+        .limit(limit)
+    )
+    return list(result.scalars().all())
+
+
+@router.put("/weight/{log_date}", response_model=WeightLogResponse)
+async def save_weight_log(
+    log_date: date_type,
+    payload: WeightLogUpsert,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> WeightLog:
+    """Dodaje pomiar albo poprawia istniejący wpis z tego samego dnia.
+
+    Pole `users.weight_kg` jest synchronizowane z najnowszym pomiarem,
+    dzięki czemu BMI i kalkulator kalorii korzystają z aktualnej wagi.
+    """
+    result = await db.execute(
+        select(WeightLog).where(
+            WeightLog.user_id == current_user.id,
+            WeightLog.date == log_date,
+        )
+    )
+    entry = result.scalar_one_or_none()
+    if entry is None:
+        entry = WeightLog(
+            user_id=current_user.id,
+            date=log_date,
+            weight_kg=payload.weight_kg,
+        )
+        db.add(entry)
+    else:
+        entry.weight_kg = payload.weight_kg
+
+    await db.flush()
+    latest = await db.scalar(
+        select(WeightLog)
+        .where(WeightLog.user_id == current_user.id)
+        .order_by(WeightLog.date.desc(), WeightLog.updated_at.desc())
+        .limit(1)
+    )
+    if latest is not None:
+        current_user.weight_kg = latest.weight_kg
+
+    await db.commit()
+    await db.refresh(entry)
+    return entry
 
 
 @router.get("/{log_date}", response_model=DailyWellnessResponse)

@@ -36,7 +36,9 @@ class PickedCatalogProduct {
 /// korzysta ekran "Baza produktów", więc własne zatwierdzone zgłoszenia
 /// pojawiają się tu na równi z produktami oficjalnymi.
 class PickProductFromCatalogSheet extends StatefulWidget {
-  const PickProductFromCatalogSheet({super.key});
+  final bool scanOnOpen;
+
+  const PickProductFromCatalogSheet({super.key, this.scanOnOpen = false});
 
   @override
   State<PickProductFromCatalogSheet> createState() =>
@@ -58,6 +60,11 @@ class _PickProductFromCatalogSheetState
   void initState() {
     super.initState();
     _search('');
+    if (widget.scanOnOpen) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _scanBarcode();
+      });
+    }
   }
 
   @override
@@ -289,7 +296,7 @@ class _PickProductFromCatalogSheetState
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
               child: TextField(
                 controller: _searchController,
-                autofocus: true,
+                autofocus: !widget.scanOnOpen,
                 onChanged: _onQueryChanged,
                 decoration: InputDecoration(
                   hintText: 'Szukaj produktu...',

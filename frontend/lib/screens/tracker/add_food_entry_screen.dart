@@ -72,6 +72,14 @@ class _PlanTab extends StatefulWidget {
 }
 
 class _PlanTabState extends State<_PlanTab> {
+  final List<String> _mealTypes = const [
+    'Śniadanie',
+    'Obiad',
+    'Kolacja',
+    'Przekąska',
+    'Deser',
+  ];
+
   /// Pokazuje krótki dialog wyboru liczby porcji przed zalogowaniem
   /// posiłku z planu — wcześniej "+" logował ZAWSZE dokładnie tyle porcji,
   /// ile było zapisane w planie, bez możliwości powiedzenia "zjadłem
@@ -167,6 +175,125 @@ class _PlanTabState extends State<_PlanTab> {
     }
   }
 
+  Future<void> _scanBarcodeAndLog(
+    BuildContext context,
+    FoodLogProvider provider,
+  ) async {
+    final picked = await showModalBottomSheet<PickedCatalogProduct>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppTheme.surfaceColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => const PickProductFromCatalogSheet(scanOnOpen: true),
+    );
+    if (picked == null || !mounted) return;
+
+    var mealType = 'Przekąska';
+    final selectedType = await showDialog<String>(
+      context: context,
+      builder:
+          (dialogContext) => StatefulBuilder(
+            builder:
+                (dialogContext, setDialogState) => AlertDialog(
+                  title: Text(picked.name),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${picked.grams.toStringAsFixed(0)} g · '
+                        '${picked.kcal.round()} kcal',
+                        style: TextStyle(color: AppTheme.textSecondary),
+                      ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        value: mealType,
+                        decoration: const InputDecoration(
+                          labelText: 'Rodzaj posiłku',
+                        ),
+                        items:
+                            _mealTypes
+                                .map(
+                                  (type) => DropdownMenuItem(
+                                    value: type,
+                                    child: Text(type),
+                                  ),
+                                )
+                                .toList(),
+                        onChanged: (value) {
+                          if (value != null) {
+                            setDialogState(() => mealType = value);
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(dialogContext),
+                      child: const Text('Anuluj'),
+                    ),
+                    FilledButton(
+                      onPressed: () => Navigator.pop(dialogContext, mealType),
+                      child: const Text('Dodaj do dziennika'),
+                    ),
+                  ],
+                ),
+          ),
+    );
+    if (selectedType == null || !mounted) return;
+
+    final success = await provider.addManualEntry(
+      mealType: selectedType,
+      foodName: '${picked.name} (${picked.grams.toStringAsFixed(0)} g)',
+      calories: picked.kcal,
+      protein: picked.protein,
+      carbs: picked.carbs,
+      fat: picked.fat,
+    );
+    if (!mounted) return;
+    if (success) {
+      Navigator.pop(context);
+    } else {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(provider.error ?? 'Nie udało się dodać produktu'),
+          ),
+        );
+    }
+  }
+
+  Widget _withBarcodeButton(
+    BuildContext context,
+    FoodLogProvider provider,
+    Widget content,
+  ) {
+    return Column(
+      children: [
+        Expanded(child: content),
+        SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+            child: SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => _scanBarcodeAndLog(context, provider),
+                icon: const Icon(Icons.barcode_reader, size: 20),
+                label: const Text('Skanuj kod kreskowy'),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -220,17 +347,25 @@ class _PlanTabState extends State<_PlanTab> {
     final targetDate = foodLogProvider.currentDate;
 
     if (mealPlanProvider.isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppTheme.primaryColor),
+      return _withBarcodeButton(
+        context,
+        foodLogProvider,
+        const Center(
+          child: CircularProgressIndicator(color: AppTheme.primaryColor),
+        ),
       );
     }
 
     final plan = mealPlanProvider.activePlan;
     if (plan == null) {
-      return const _EmptyHint(
-        icon: Icons.calendar_today_outlined,
-        text:
-            'Nie masz jeszcze aktywnego planu posiłków.\nUtwórz plan w zakładce "Start", żeby móc\nlogować z niego posiłki jednym dotknięciem.',
+      return _withBarcodeButton(
+        context,
+        foodLogProvider,
+        const _EmptyHint(
+          icon: Icons.calendar_today_outlined,
+          text:
+              'Nie masz jeszcze aktywnego planu posiłków.\nUtwórz plan w zakładce "Start", żeby móc\nlogować z niego posiłki jednym dotknięciem.',
+        ),
       );
     }
 
@@ -240,86 +375,98 @@ class _PlanTabState extends State<_PlanTab> {
       plan.durationDays,
     );
     if (dayNumber == null) {
-      return _EmptyHint(
-        icon: Icons.event_busy_outlined,
-        text:
-            'Twój aktywny plan nie obejmuje wybranej daty '
-            '(${targetDate.day.toString().padLeft(2, '0')}.${targetDate.month.toString().padLeft(2, '0')}).',
+      return _withBarcodeButton(
+        context,
+        foodLogProvider,
+        _EmptyHint(
+          icon: Icons.event_busy_outlined,
+          text:
+              'Twój aktywny plan nie obejmuje wybranej daty '
+              '(${targetDate.day.toString().padLeft(2, '0')}.${targetDate.month.toString().padLeft(2, '0')}).',
+        ),
       );
     }
 
     final entries = plan.entriesForDay(dayNumber);
     if (entries.isEmpty) {
-      return const _EmptyHint(
-        icon: Icons.no_meals_outlined,
-        text: 'Brak zaplanowanych posiłków na wybrany dzień.',
+      return _withBarcodeButton(
+        context,
+        foodLogProvider,
+        const _EmptyHint(
+          icon: Icons.no_meals_outlined,
+          text: 'Brak zaplanowanych posiłków na wybrany dzień.',
+        ),
       );
     }
 
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: entries.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
-      itemBuilder: (context, index) {
-        final entry = entries[index];
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppTheme.surfaceColor,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      entry.mealSlot[0].toUpperCase() +
-                          entry.mealSlot.substring(1),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppTheme.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      entry.recipe.name,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              foodLogProvider.isLoading
-                  ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppTheme.primaryColor,
-                    ),
-                  )
-                  : IconButton(
-                    icon: const Icon(
-                      Icons.add_circle,
-                      color: AppTheme.primaryColor,
-                      size: 28,
-                    ),
-                    tooltip: 'Dodaj do dziennika',
-                    onPressed:
-                        () => _pickServingsAndLog(
-                          context,
-                          foodLogProvider,
-                          entry,
+    return _withBarcodeButton(
+      context,
+      foodLogProvider,
+      ListView.separated(
+        padding: const EdgeInsets.all(16),
+        itemCount: entries.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 8),
+        itemBuilder: (context, index) {
+          final entry = entries[index];
+          return Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceColor,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        entry.mealSlot[0].toUpperCase() +
+                            entry.mealSlot.substring(1),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.textSecondary,
                         ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        entry.recipe.name,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
-            ],
-          ),
-        );
-      },
+                ),
+                foodLogProvider.isLoading
+                    ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppTheme.primaryColor,
+                      ),
+                    )
+                    : IconButton(
+                      icon: const Icon(
+                        Icons.add_circle,
+                        color: AppTheme.primaryColor,
+                        size: 28,
+                      ),
+                      tooltip: 'Dodaj do dziennika',
+                      onPressed:
+                          () => _pickServingsAndLog(
+                            context,
+                            foodLogProvider,
+                            entry,
+                          ),
+                    ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }
