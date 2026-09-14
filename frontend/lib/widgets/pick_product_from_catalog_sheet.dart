@@ -80,15 +80,17 @@ class _PickProductFromCatalogSheetState
       _error = null;
     });
     try {
-      final path = query.trim().isEmpty
-          ? '/products?limit=30'
-          : '/products?search=${Uri.encodeQueryComponent(query.trim())}&limit=30';
+      final path =
+          query.trim().isEmpty
+              ? '/products?limit=30'
+              : '/products?search=${Uri.encodeQueryComponent(query.trim())}&limit=30';
       final response = await _client.get(path);
       if (!mounted) return;
       setState(() {
-        _results = (response as List)
-            .map((e) => Product.fromJson(e as Map<String, dynamic>))
-            .toList();
+        _results =
+            (response as List)
+                .map((e) => Product.fromJson(e as Map<String, dynamic>))
+                .toList();
       });
     } catch (e) {
       if (!mounted) return;
@@ -105,20 +107,24 @@ class _PickProductFromCatalogSheetState
     setState(() => _isLoading = true);
     try {
       final response = await _client.get('/products/barcode/$code');
-      final result = BarcodeLookupResult.fromJson(response as Map<String, dynamic>);
+      final result = BarcodeLookupResult.fromJson(
+        response as Map<String, dynamic>,
+      );
       if (!mounted) return;
 
       if (!result.found || result.name == null) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(const SnackBar(
-            duration: Duration(seconds: 4),
-            content: Text(
-              'Nie znaleziono tego produktu. Możesz dodać go ręcznie przez '
-              'Produkty → Moje → Dodaj produkt (ten sam kod da się tam zeskanować).',
+          ..showSnackBar(
+            const SnackBar(
+              duration: Duration(seconds: 4),
+              content: Text(
+                'Nie znaleziono tego produktu. Możesz dodać go ręcznie przez '
+                'Produkty → Moje → Dodaj produkt (ten sam kod da się tam zeskanować).',
+              ),
             ),
-          ));
+          );
         return;
       }
 
@@ -148,18 +154,24 @@ class _PickProductFromCatalogSheetState
                   ),
                 TextField(
                   controller: controller,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   autofocus: true,
                   decoration: const InputDecoration(labelText: 'Ilość (g)'),
                 ),
               ],
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Anuluj')),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Anuluj'),
+              ),
               FilledButton(
                 onPressed: () {
-                  final val = double.tryParse(controller.text.replaceAll(',', '.'));
+                  final val = double.tryParse(
+                    controller.text.replaceAll(',', '.'),
+                  );
                   Navigator.pop(ctx, val);
                 },
                 child: const Text('Dalej'),
@@ -186,10 +198,12 @@ class _PickProductFromCatalogSheetState
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(
-          duration: const Duration(seconds: 3),
-          content: Text(friendlyError(e)),
-        ));
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(friendlyError(e)),
+          ),
+        );
     }
   }
 
@@ -198,9 +212,10 @@ class _PickProductFromCatalogSheetState
       context: context,
       builder: (ctx) {
         final controller = TextEditingController(
-          text: product.defaultQuantity > 0
-              ? product.defaultQuantity.toStringAsFixed(0)
-              : '100',
+          text:
+              product.defaultQuantity > 0
+                  ? product.defaultQuantity.toStringAsFixed(0)
+                  : '100',
         );
         return AlertDialog(
           title: Text(product.name),
@@ -220,7 +235,9 @@ class _PickProductFromCatalogSheetState
             ),
             FilledButton(
               onPressed: () {
-                final val = double.tryParse(controller.text.replaceAll(',', '.'));
+                final val = double.tryParse(
+                  controller.text.replaceAll(',', '.'),
+                );
                 Navigator.pop(ctx, val);
               },
               child: const Text('Dalej'),
@@ -290,36 +307,39 @@ class _PickProductFromCatalogSheetState
               ),
             ),
             Expanded(
-              child: _isLoading && _results.isEmpty
-                  ? const Center(child: CircularProgressIndicator())
-                  : _error != null
+              child:
+                  _isLoading && _results.isEmpty
+                      ? const Center(child: CircularProgressIndicator())
+                      : _error != null
                       ? Center(
-                          child: Text(_error!,
-                              style: TextStyle(color: AppTheme.textSecondary)),
-                        )
+                        child: Text(
+                          _error!,
+                          style: TextStyle(color: AppTheme.textSecondary),
+                        ),
+                      )
                       : _results.isEmpty
-                          ? Center(
-                              child: Text(
-                                'Brak produktów pasujących do wyszukiwania.',
-                                style: TextStyle(color: AppTheme.textSecondary),
-                              ),
-                            )
-                          : ListView.builder(
-                              controller: scrollController,
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                              itemCount: _results.length,
-                              itemBuilder: (context, index) {
-                                final p = _results[index];
-                                return ListTile(
-                                  title: Text(p.name),
-                                  subtitle: Text(
-                                    '${p.nutritionPer100.kcal.round()} kcal / 100${p.unit == 'ml' || p.unit == 'l' ? 'ml' : 'g'}'
-                                    '${p.brand != null && p.brand!.isNotEmpty ? ' · ${p.brand}' : ''}',
-                                  ),
-                                  onTap: () => _pickProduct(p),
-                                );
-                              },
+                      ? Center(
+                        child: Text(
+                          'Brak produktów pasujących do wyszukiwania.',
+                          style: TextStyle(color: AppTheme.textSecondary),
+                        ),
+                      )
+                      : ListView.builder(
+                        controller: scrollController,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: _results.length,
+                        itemBuilder: (context, index) {
+                          final p = _results[index];
+                          return ListTile(
+                            title: Text(p.name),
+                            subtitle: Text(
+                              '${p.nutritionPer100.kcal.round()} kcal / 100${p.unit == 'ml' || p.unit == 'l' ? 'ml' : 'g'}'
+                              '${p.brand != null && p.brand!.isNotEmpty ? ' · ${p.brand}' : ''}',
                             ),
+                            onTap: () => _pickProduct(p),
+                          );
+                        },
+                      ),
             ),
           ],
         );

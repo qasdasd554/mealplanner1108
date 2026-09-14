@@ -1,6 +1,7 @@
 """Endpointy przepisów kulinarnych."""
 
 from datetime import datetime, timezone
+import re
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -21,7 +22,12 @@ from app.models import (
     User,
 )
 from app.schemas.moderation import ContentReportCreate, ContentReportResponse
-from app.schemas.recipe import AIRecipeImportRequest, RecipeCreate, RecipeResponse
+from app.schemas.recipe import (
+    AIRecipeImportRequest,
+    RecipeCreate,
+    RecipeResponse,
+    RecipeVariantCreate,
+)
 from app.services.moderation import get_blocked_user_ids
 from app.services.nutrition_calculator import compute_recipe_nutrition_total, is_ingredient_quantity_reasonable
 
@@ -446,6 +452,116 @@ async def create_recipe(
     final_recipe.is_favorite = False
     final_recipe.is_own_recipe = True
     return final_recipe
+
+
+@router.post(
+    "/{recipe_id}/variants",
+    response_model=RecipeResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Zapisz zmieniony wariant przepisu w Moje",
+)
+async def save_recipe_variant(
+    recipe_id: UUID,
+    variant_in: RecipeVariantCreate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Recipe:
+    """Zapisuje prywatną kopię dopiero po świadomym wyborze użytkownika.
+
+    Zmiany wykonywane na ekranie przepisu pozostają po stronie telefonu.
+    Ten endpoint jest wywoływany wyłącznie po wybraniu „Zapisz w Moje”,
+    więc oryginał nie jest modyfikowany.
+    """
+    source_result = await db.execute(
+        select(Recipe)
+        .options(selectinload(Recipe.tags))
+        .where(Recipe.id == recipe_id)
+    )
+    source = source_result.scalar_one_or_none()
+    if source is None:
+        raise NotFoundException(detail=f"Przepis o ID {recipe_id} nie został znaleziony")
+
+    is_own = source.created_by_user_id == current_user.id
+    is_public = source.created_by_user_id is None or source.visibility == "public"
+    if not is_own and not is_public:
+        raise NotFoundException(detail=f"Przepis o ID {recipe_id} nie został znaleziony")
+
+    requested_ids = {ingredient.product_id for ingredient in variant_in.ingredients}
+    product_result = await db.execute(select(Product.id).where(Product.id.in_(requested_ids)))
+    existing_ids = set(product_result.scalars().all())
+    missing_ids = requested_ids - existing_ids
+    if missing_ids:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Nie znaleziono produktu/produktów: {', '.join(str(i) for i in missing_ids)}",
+        )
+
+    base_name = re.sub(r" - edytowane \d+$", "", source.name, flags=re.IGNORECASE)
+    prefix = f"{base_name} - edytowane "
+    names_result = await db.execute(
+        select(Recipe.name).where(
+            Recipe.created_by_user_id == current_user.id,
+            Recipe.name.startswith(prefix),
+        )
+    )
+    numbers: list[int] = []
+    pattern = re.compile(rf"^{re.escape(prefix)}(\d+)$", re.IGNORECASE)
+    for name in names_result.scalars().all():
+        match = pattern.match(name)
+        if match:
+            numbers.append(int(match.group(1)))
+    variant_number = max(numbers, default=0) + 1
+    suffix = f" - edytowane {variant_number}"
+    variant_name = f"{base_name[:300 - len(suffix)].rstrip()}{suffix}"
+
+    variant = Recipe(
+        name=variant_name,
+        description=source.description,
+        cuisine=source.cuisine,
+        meal_type=source.meal_type,
+        prep_time_min=source.prep_time_min,
+        cook_time_min=source.cook_time_min,
+        servings=source.servings,
+        difficulty=source.difficulty,
+        instructions=list(source.instructions or []),
+        suggested_seasonings=list(source.suggested_seasonings or []),
+        image_url=source.image_url,
+        photo_base64=source.photo_base64,
+        created_by_user_id=current_user.id,
+        visibility="private",
+    )
+    db.add(variant)
+    await db.flush()
+
+    for ingredient in variant_in.ingredients:
+        db.add(
+            RecipeIngredient(
+                recipe_id=variant.id,
+                product_id=ingredient.product_id,
+                quantity=ingredient.quantity,
+                unit=ingredient.unit,
+                is_optional=ingredient.is_optional,
+            )
+        )
+    for tag in source.tags:
+        db.add(RecipeTag(recipe_id=variant.id, tag=tag.tag))
+    await db.commit()
+
+    result = await db.execute(
+        select(Recipe)
+        .options(
+            selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product),
+            selectinload(Recipe.tags),
+            selectinload(Recipe.creator),
+        )
+        .where(Recipe.id == variant.id)
+    )
+    saved = result.scalar_one()
+    saved.nutrition_total = compute_recipe_nutrition_total(saved.ingredients)
+    await db.commit()
+    saved.is_favorite = False
+    saved.is_own_recipe = True
+    return saved
 
 
 async def _notify_admins_pending_recipe(db: AsyncSession, recipe: Recipe, author: User) -> None:

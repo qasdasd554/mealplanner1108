@@ -24,12 +24,12 @@ class NutritionInfo {
   }
 
   Map<String, dynamic> toJson() => {
-        'kcal': kcal,
-        'protein': protein,
-        'fat': fat,
-        'carbs': carbs,
-        'fiber': fiber,
-      };
+    'kcal': kcal,
+    'protein': protein,
+    'fat': fat,
+    'carbs': carbs,
+    'fiber': fiber,
+  };
 }
 
 class Product {
@@ -91,6 +91,7 @@ class StoreProduct {
   // je zwracał — więc ekran produktów nigdy nie mógł go pokazać.
   final String? storeBrandName;
   final bool isAvailable;
+  final DateTime? lastVerified;
   final Product? product;
 
   StoreProduct({
@@ -101,6 +102,7 @@ class StoreProduct {
     required this.price,
     this.storeBrandName,
     required this.isAvailable,
+    this.lastVerified,
     this.product,
   });
 
@@ -113,9 +115,14 @@ class StoreProduct {
       price: (json['price'] as num? ?? 0.0).toDouble(),
       storeBrandName: json['store_brand_name'] as String?,
       isAvailable: json['is_available'] as bool? ?? true,
-      product: json['product'] != null
-          ? Product.fromJson(json['product'] as Map<String, dynamic>)
-          : null,
+      lastVerified:
+          json['last_verified'] == null
+              ? null
+              : DateTime.tryParse(json['last_verified'] as String),
+      product:
+          json['product'] != null
+              ? Product.fromJson(json['product'] as Map<String, dynamic>)
+              : null,
     );
   }
 }

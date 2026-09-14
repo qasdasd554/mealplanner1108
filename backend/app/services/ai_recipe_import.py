@@ -47,7 +47,7 @@ GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model
 from app.services.gemini_models import GEMINI_MODELS
 
 ALLOWED_UNITS = {"g", "kg", "ml", "l", "szt"}
-ALLOWED_MEAL_TYPES = {"śniadanie", "obiad", "kolacja", "przekąska"}
+ALLOWED_MEAL_TYPES = {"śniadanie", "obiad", "kolacja", "przekąska", "deser"}
 ALLOWED_DIFFICULTIES = {"łatwy", "średni", "trudny"}
 
 
@@ -105,7 +105,7 @@ WAŻNE ZASADY:
    naprawdę żaden produkt z listy nie pasuje do składnika, pomiń ten
    składnik całkowicie (nie wymyślaj nowych nazw produktów).
 3. Pole "unit" MUSI być jednym z: g, kg, ml, l, szt.
-4. Pole "meal_type" MUSI być jednym z: śniadanie, obiad, kolacja, przekąska.
+4. Pole "meal_type" MUSI być jednym z: śniadanie, obiad, kolacja, przekąska, deser.
 5. Pole "difficulty" MUSI być jednym z: łatwy, średni, trudny.
 6. "instructions" to lista kroków po polsku, każdy z dokładnymi ilościami
    (np. "Podsmaż cebulę (100 g) na oleju"), tak jak w profesjonalnym

@@ -13,7 +13,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from app.services.meal_plan_generator import MealPlanGenerator
+from app.services.meal_plan_generator import MealPlanGenerator, _recipe_family_key
 
 
 # ---------------------------------------------------------------------------
@@ -420,6 +420,31 @@ class TestNoDuplicateRecipesWithinDay:
         assert len(selected) == 2
         assert selected[0][2].id != selected[1][2].id
 
+    def test_two_tuna_salads_belong_to_the_same_family(self) -> None:
+        first = FakeRecipe(name="Sałatka z tuńczykiem i jajkiem", meal_type="kolacja")
+        second = FakeRecipe(name="Sałatka z tuńczyka i ogórkiem", meal_type="przekąska")
+
+        assert _recipe_family_key(first) == "salatka:tunczyk"
+        assert _recipe_family_key(second) == "salatka:tunczyk"
+
+    def test_second_tuna_salad_is_not_selected_in_the_same_day(self) -> None:
+        first = FakeRecipe(name="Sałatka z tuńczykiem i jajkiem", meal_type="przekąska")
+        second = FakeRecipe(name="Sałatka z tuńczyka i ogórkiem", meal_type="przekąska")
+        alternative = FakeRecipe(name="Jajka na twardo", meal_type="przekąska")
+        generator = MealPlanGenerator(MagicMock())
+        generator._score_candidate = MagicMock(return_value=1.0)
+
+        selected = generator._greedy_select(
+            eligible_recipes=[first, second, alternative],
+            slot_distribution=[(1, "przekąska"), (1, "przekąska")],
+            max_budget=None,
+            store_id=uuid.uuid4(),
+        )
+
+        families = [_recipe_family_key(recipe) for _day, _slot, recipe in selected]
+        assert len(families) == len(set(families))
+        assert sum(family == "salatka:tunczyk" for family in families) == 1
+
     def test_calorie_top_up_also_keeps_daily_recipes_unique(self) -> None:
         snack_a = FakeRecipe(name="Przekąska A", meal_type="przekąska")
         snack_b = FakeRecipe(name="Przekąska B", meal_type="przekąska")
@@ -449,6 +474,50 @@ class TestNoDuplicateRecipesWithinDay:
             MealPlanGenerator._assert_unique_recipes_per_day(
                 [(1, "obiad", recipe), (1, "kolacja", recipe)]
             )
+
+    def test_final_guard_rejects_two_variants_of_the_same_dish(self) -> None:
+        first = FakeRecipe(name="Sałatka z tuńczykiem i jajkiem", meal_type="kolacja")
+        second = FakeRecipe(name="Sałatka z tuńczyka i ogórkiem", meal_type="przekąska")
+
+        with pytest.raises(RuntimeError, match="rodziny dań"):
+            MealPlanGenerator._assert_unique_recipes_per_day(
+                [(1, "kolacja", first), (1, "przekąska", second)]
+            )
+
+    def test_top_up_does_not_add_an_unselected_meal_type(self) -> None:
+        breakfast = FakeRecipe(name="Owsianka z jabłkiem", meal_type="śniadanie")
+        dinner = FakeRecipe(name="Kurczak z ryżem", meal_type="obiad")
+        snack = FakeRecipe(name="Jogurt z owocami", meal_type="przekąska")
+        generator = MealPlanGenerator(MagicMock())
+        generator._score_candidate = MagicMock(return_value=1.0)
+        generator._sum_per_person_nutrition = MagicMock(
+            side_effect=lambda recipes: {"kcal": len(recipes) * 100.0}
+        )
+
+        selected = generator._top_up_low_calorie_days(
+            selected=[(1, "śniadanie", breakfast)],
+            pools={"śniadanie": [breakfast], "obiad": [dinner], "przekąska": [snack]},
+            used_ingredient_ids=set(),
+            recipe_usage_count=defaultdict(int, {breakfast.id: 1}),
+            target_kcal=250.0,
+            allowed_meal_types={"śniadanie", "obiad"},
+        )
+
+        assert all(slot in {"śniadanie", "obiad"} for _day, slot, _recipe in selected)
+        assert all(recipe.id != snack.id for _day, _slot, recipe in selected)
+
+
+class TestMealSlotDistribution:
+    def test_selected_dessert_is_used_as_a_meal_slot(self) -> None:
+        generator = MealPlanGenerator(MagicMock())
+
+        slots = generator._build_slot_distribution(
+            duration_days=2,
+            meals_per_day=2,
+            selected_meal_types=["obiad", "deser"],
+        )
+
+        assert slots == [(1, "obiad"), (1, "deser"), (2, "obiad"), (2, "deser")]
 
 class TestGeneratePlanRespectsMealTypes:
     """Test: plan posiłków respektuje przypisanie typów posiłków."""

@@ -538,14 +538,28 @@ STORE_BRANDS: dict[tuple[str, str], str] = {
     ("Lidl", "Migdały płatki"): "Alesto",
     # ── Mąka / pieczenie ──
     ("Dino", "Mąka pszenna"): "Hania",
+    ("Dino", "Bułka tarta"): "Kuchnia Smaku",
+    ("Dino", "Kasza bulgur"): "Kuchnia Smaku",
+    ("Dino", "Kasza gryczana"): "Kuchnia Smaku",
     ("Dino", "Kasza jęczmienna"): "Kuchnia Smaku",
+    ("Dino", "Kasza pęczak"): "Kuchnia Smaku",
+    ("Dino", "Makaron penne"): "Kuchnia Smaku",
+    ("Dino", "Makaron spaghetti"): "Kuchnia Smaku",
+    ("Dino", "Makaron fusilli"): "Kuchnia Smaku",
+    # ── Produkty suche Biedronki ──
+    ("Biedronka", "Makaron fusilli"): "Pastani",
+    ("Biedronka", "Makaron spaghetti"): "Pastani",
+    ("Biedronka", "Ryż biały"): "Plony Natury",
+    ("Biedronka", "Ryż basmati"): "Plony Natury",
     # ── Carrefour: pozycje potwierdzone w bieżącym katalogu online ──
-    ("Carrefour", "Mleko 2%"): "Carrefour Classic",
     ("Carrefour", "Ryż biały"): "Carrefour Classic",
     ("Carrefour", "Ryż basmati"): "Carrefour",
     ("Carrefour", "Ryż jaśminowy"): "Carrefour Extra",
     ("Carrefour", "Ryż arborio"): "Carrefour Extra",
     ("Carrefour", "Kasza jaglana"): "Carrefour Classic",
+    ("Carrefour", "Kasza gryczana"): "Carrefour Classic",
+    ("Carrefour", "Kasza jęczmienna"): "Carrefour Classic",
+    ("Carrefour", "Kuskus"): "Carrefour Classic",
     ("Carrefour", "Kasza manna"): "Simpl",
     ("Carrefour", "Makaron penne"): "Carrefour Classic",
     ("Carrefour", "Makaron fusilli"): "Carrefour Classic",
@@ -555,6 +569,7 @@ STORE_BRANDS: dict[tuple[str, str], str] = {
     ("Carrefour", "Tortilla pszenna"): "Carrefour Classic",
     ("Carrefour", "Musztarda"): "Carrefour Classic",
     ("Carrefour", "Oliwki czarne"): "Carrefour Classic",
+    ("Carrefour", "Ogórki konserwowe"): "Carrefour Classic",
 }
 
 # Nie wolno przypisywać marki całemu działowi (np. wszystkich produktów
@@ -567,12 +582,18 @@ STORE_DEPARTMENT_BRANDS: dict[tuple[str, str], str] = {
 }
 
 
-def _store_brand_for(store_name: str, product_name: str, department_name: str) -> str:
-    """Zwraca markę faktycznie właściwą dla wybranego sklepu."""
+def _store_brand_for(
+    store_name: str, product_name: str, department_name: str
+) -> str | None:
+    """Zwraca wyłącznie potwierdzoną markę właściwą dla danego sklepu.
+
+    Ogólna marka producenta pozostaje w ``Product.brand``. Wpisywanie jej
+    również tutaj sprawiało, że ta sama marka wyglądała jak marka własna
+    Biedronki, Lidla, Dino i Carrefour jednocześnie.
+    """
     return (
         STORE_BRANDS.get((store_name, product_name))
         or STORE_DEPARTMENT_BRANDS.get((store_name, department_name))
-        or PRODUCT_BRANDS[product_name]
     )
 
 
@@ -581,10 +602,17 @@ def _store_brand_for(store_name: str, product_name: str, department_name: str) -
 # liczona z ceny bazowej i mnożnika sieci.
 STORE_PRICE_OVERRIDES: dict[tuple[str, str], Decimal] = {
     ("Biedronka", "Makaron fusilli"): Decimal("3.39"),
-    ("Biedronka", "Makaron spaghetti"): Decimal("3.49"),
-    ("Biedronka", "Ryż biały"): Decimal("10.99"),
-    ("Biedronka", "Ryż basmati"): Decimal("6.29"),
+    ("Biedronka", "Makaron spaghetti"): Decimal("2.99"),
+    ("Biedronka", "Ryż biały"): Decimal("10.98"),
+    # Cena przeliczona na katalogową porcję 500 g (oferta: 4,99 zł / 400 g).
+    ("Biedronka", "Ryż basmati"): Decimal("6.24"),
     ("Carrefour", "Ryż biały"): Decimal("7.23"),
+    ("Carrefour", "Mąka pszenna"): Decimal("2.05"),
+    ("Carrefour", "Tortilla pszenna"): Decimal("0.91"),
+    ("Carrefour", "Kasza gryczana"): Decimal("2.99"),
+    ("Carrefour", "Kasza jęczmienna"): Decimal("2.15"),
+    # Cena przeliczona z opakowania 250 g na katalogową porcję 400 g.
+    ("Carrefour", "Kuskus"): Decimal("4.30"),
     ("Carrefour", "Makaron fusilli"): Decimal("4.49"),
     ("Carrefour", "Makaron tagliatelle"): Decimal("5.79"),
     ("Carrefour", "Makaron lasagne"): Decimal("5.29"),
@@ -3959,6 +3987,33 @@ RECIPES_DATA = [
 ]
 
 
+# Dania, które wcześniej wpadały do śniadań albo przekąsek mimo że są
+# podawane na słodko jako deser. Nadpisanie przed seedowaniem aktualizuje
+# również istniejące rekordy, bo poniżej używamy deterministycznych UUID.
+DESSERT_RECIPE_NAMES = {
+    'Placki z twarogiem na słodko',
+    'Omlet bananowy na słodko',
+    'Jabłko z masłem orzechowym',
+    'Jogurt naturalny z malinami',
+    'Naleśniki z serem',
+    'Placki jaglane na słodko',
+    'Naleśniki jaglane z owocami',
+    'Kulki mocy owsiano-orzechowe',
+    'Smoothie mango-bananowe',
+    'Jogurt z granolą i miodem',
+    'Sałatka owocowa',
+    'Musli batoniki owsiane',
+    'Twaróg z miodem',
+}
+for _recipe_data in RECIPES_DATA:
+    if _recipe_data['name'] in DESSERT_RECIPE_NAMES:
+        _recipe_data['meal_type'] = 'deser'
+    # Opisy są krótkie i rzeczowe. Usuwamy powtarzalny schemat dwóch
+    # zdań łączonych półpauzą, który wyglądał szablonowo na kartach dań.
+    if _recipe_data.get('description'):
+        _recipe_data['description'] = _recipe_data['description'].replace(' — ', '. ')
+
+
 
 # ══════════════════════════════════════════════════════════════════
 # FUNKCJA SEED
@@ -4057,7 +4112,13 @@ async def seed_database(session: AsyncSession) -> None:
                 price=price,
                 store_brand_name=_store_brand_for(store_name, prod_name, dept_name),
                 is_available=True,
-                last_verified=date.today(),
+                # Data oznacza rzeczywistą weryfikację w publicznym
+                # katalogu. Ceny obliczone z mnożnika są tylko szacunkiem.
+                last_verified=(
+                    date.today()
+                    if (store_name, prod_name) in STORE_PRICE_OVERRIDES
+                    else None
+                ),
                 withdrawn_at=None,
             )
             await session.merge(sp)

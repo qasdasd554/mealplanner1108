@@ -35,10 +35,6 @@ class RecipeIngredientCreate(BaseModel):
             )
         return self
 
-
-from pydantic import BaseModel, ConfigDict, field_validator, model_validator
-
-
 class RecipeIngredientResponse(BaseModel):
     """Odpowiedź API — składnik przepisu."""
 
@@ -146,6 +142,12 @@ class RecipeCreate(RecipeBase):
 
         # 3 MB po dekompresji — ten sam limit co przy zdjęciach komentarzy.
         return validate_and_check_photo_base64(v, 3 * 1024 * 1024)
+
+
+class RecipeVariantCreate(BaseModel):
+    """Składniki tymczasowo zmienionego przepisu zapisywanego w „Moje”."""
+
+    ingredients: list[RecipeIngredientCreate] = Field(min_length=1)
 
 
 class RecipeResponse(RecipeBase):

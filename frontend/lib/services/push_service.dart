@@ -26,6 +26,7 @@ class PushService {
 
   bool _available = false;
   String? _currentToken;
+  bool _tokenRefreshListenerAttached = false;
 
   /// Czy Firebase wystartował poprawnie (są pliki konfiguracyjne).
   bool get isAvailable => _available;
@@ -67,7 +68,9 @@ class PushService {
     );
 
     await _localNotifications
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.createNotificationChannel(androidChannel);
 
     // Gdy aplikacja jest OTWARTA, system nie pokazuje dymka sam —
@@ -104,6 +107,15 @@ class PushService {
     try {
       final messaging = FirebaseMessaging.instance;
 
+      // Nasłuch uruchamiamy przed pobraniem pierwszego tokenu. Jeżeli APNs
+      // przekaże token z opóźnieniem, Firebase zapisze go na backendzie,
+      // zamiast czekać do kolejnego uruchomienia aplikacji.
+      if (!_tokenRefreshListenerAttached) {
+        messaging.onTokenRefresh.listen(_sendTokenToBackend);
+        _tokenRefreshListenerAttached = true;
+      }
+      await messaging.setAutoInitEnabled(true);
+
       final settings = await messaging.requestPermission();
       if (settings.authorizationStatus == AuthorizationStatus.denied) {
         // Użytkownik odmówił — uszanuj to i nie próbuj ponownie przy
@@ -135,11 +147,6 @@ class PushService {
       if (token != null) {
         await _sendTokenToBackend(token);
       }
-
-      // FCM potrafi odświeżyć token samodzielnie (np. po reinstalacji);
-      // bez nasłuchu backend zostałby ze starym i push przestałby
-      // docierać, bez żadnego widocznego błędu.
-      messaging.onTokenRefresh.listen(_sendTokenToBackend);
     } catch (e) {
       debugPrint('Nie udało się zarejestrować powiadomień push: $e');
     }

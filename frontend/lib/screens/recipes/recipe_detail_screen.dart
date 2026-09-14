@@ -12,7 +12,9 @@ import '../../widgets/recipe_publish_button.dart';
 import '../../widgets/recipe_photo.dart';
 import '../../widgets/report_block_menu.dart';
 import '../../widgets/submit_recipe_photo_button.dart';
+import '../../widgets/recipe_variant_editor_sheet.dart';
 import '../../utils/quantity_formatter.dart';
+import '../../utils/error_utils.dart';
 import '../../providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 import '../../widgets/user_avatar.dart';
@@ -42,6 +44,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   /// pobierać dane niezależnie, nie tylko wyświetlać to, co dostał.
   Recipe? _freshRecipe;
   bool _isRefreshing = true;
+  List<RecipeIngredient>? _temporaryIngredients;
+  bool _isSavingVariant = false;
 
   @override
   void didChangeDependencies() {
@@ -53,9 +57,13 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   }
 
   Future<void> _refreshFromServer() async {
+    final requestedRecipeId = _initialRecipe!.id;
     try {
-      final fresh = await RecipeService().getRecipe(_initialRecipe!.id);
+      final fresh = await RecipeService().getRecipe(requestedRecipeId);
       if (!mounted) return;
+      // Użytkownik mógł w międzyczasie zapisać wariant i przejść na jego
+      // dane. Spóźniona odpowiedź dla oryginału nie może ich nadpisać.
+      if (_initialRecipe?.id != requestedRecipeId) return;
       setState(() {
         _freshRecipe = fresh;
         _isRefreshing = false;
@@ -69,9 +77,57 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     }
   }
 
+  Future<void> _editIngredients(Recipe recipe) async {
+    final changed = await showModalBottomSheet<List<RecipeIngredient>>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder:
+          (_) => RecipeVariantEditorSheet(
+            ingredients: _temporaryIngredients ?? recipe.ingredients,
+          ),
+    );
+    if (changed == null || !mounted) return;
+    setState(() => _temporaryIngredients = changed);
+  }
+
+  Future<void> _saveVariant(Recipe source) async {
+    final ingredients = _temporaryIngredients;
+    if (ingredients == null || ingredients.isEmpty || _isSavingVariant) return;
+
+    setState(() => _isSavingVariant = true);
+    try {
+      final saved = await RecipeService().saveVariant(source.id, ingredients);
+      if (!mounted) return;
+      setState(() {
+        _initialRecipe = saved;
+        _freshRecipe = saved;
+        _temporaryIngredients = null;
+      });
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text('Zapisano w Moje jako „${saved.name}”.')),
+        );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(friendlyError(error)),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+    } finally {
+      if (mounted) setState(() => _isSavingVariant = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final recipe = _freshRecipe ?? _initialRecipe!;
+    final displayedIngredients = _temporaryIngredients ?? recipe.ingredients;
 
     return Scaffold(
       body: CustomScrollView(
@@ -86,7 +142,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             actions: [
               Padding(
                 padding: const EdgeInsets.only(right: 8),
-                child: RecipeFavoriteButton(recipe: recipe, activeColor: Colors.redAccent),
+                child: RecipeFavoriteButton(
+                  recipe: recipe,
+                  activeColor: Colors.redAccent,
+                ),
               ),
               // Zgłoś / Zablokuj — TYLKO dla przepisów dodanych przez
               // innego użytkownika (Guideline 1.2 Apple). Oficjalne
@@ -98,10 +157,15 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                   child: ReportBlockMenu(
                     authorId: recipe.createdByUserId,
                     authorName: 'autora przepisu',
-                    onReport: (reason, details) => Provider.of<AuthProvider>(
-                      context,
-                      listen: false,
-                    ).reportRecipe(recipe.id, reason: reason, details: details),
+                    onReport:
+                        (reason, details) => Provider.of<AuthProvider>(
+                          context,
+                          listen: false,
+                        ).reportRecipe(
+                          recipe.id,
+                          reason: reason,
+                          details: details,
+                        ),
                   ),
                 ),
             ],
@@ -123,7 +187,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                   DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [Colors.transparent, Colors.black.withOpacity(0.25)],
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withOpacity(0.25),
+                        ],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         stops: const [0.6, 1.0],
@@ -137,14 +204,21 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       top: 50,
                       left: 12,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: AppTheme.secondaryColor,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Text(
                           'Nowość',
-                          style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
@@ -157,9 +231,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
           // TYLKO gdy przepis czeka na akceptację (visibility="pending").
           // Sam widget zwraca pusty SizedBox we wszystkich innych
           // przypadkach, więc bezpiecznie wstawiamy go bezwarunkowo.
-          SliverToBoxAdapter(
-            child: RecipeApprovalBar(recipe: recipe),
-          ),
+          SliverToBoxAdapter(child: RecipeApprovalBar(recipe: recipe)),
 
           // 1c. Przycisk "Lista zakupów na to danie" — funkcja Premium.
           // Sam widget zwraca pusty SizedBox dla kont bez dostępu premium.
@@ -172,15 +244,11 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
           // "Opublikuj przepis" — widoczny TYLKO dla właściciela
           // prywatnego przepisu. Zaraz nad "Usuń", żeby były razem.
-          SliverToBoxAdapter(
-            child: RecipePublishButton(recipe: recipe),
-          ),
+          SliverToBoxAdapter(child: RecipePublishButton(recipe: recipe)),
 
           // "Usuń przepis" — widoczny TYLKO dla właściciela. Sam widget
           // zwraca pusty SizedBox dla cudzych/oficjalnych przepisów.
-          SliverToBoxAdapter(
-            child: RecipeDeleteButton(recipe: recipe),
-          ),
+          SliverToBoxAdapter(child: RecipeDeleteButton(recipe: recipe)),
 
           // 2. Karta z detalami przepisu
           SliverToBoxAdapter(
@@ -197,7 +265,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                   // Puste dla 81 oficjalnych przepisów dostarczonych
                   // z aplikacją (createdByName wtedy null) — dla nich ta
                   // sekcja się nie pokazuje wcale.
-                  if (recipe.createdByName != null && recipe.createdByName!.isNotEmpty) ...[
+                  if (recipe.createdByName != null &&
+                      recipe.createdByName!.isNotEmpty) ...[
                     Row(
                       children: [
                         UserAvatar(
@@ -224,23 +293,29 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: recipe.tags.map((tag) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryColor.withOpacity(0.1),
-                            borderRadius: const BorderRadius.all(Radius.circular(12)),
-                          ),
-                          child: Text(
-                            tag,
-                            style: const TextStyle(
-                              color: AppTheme.primaryColor,
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        );
-                      }).toList(),
+                      children:
+                          recipe.tags.map((tag) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryColor.withOpacity(0.1),
+                                borderRadius: const BorderRadius.all(
+                                  Radius.circular(12),
+                                ),
+                              ),
+                              child: Text(
+                                tag,
+                                style: const TextStyle(
+                                  color: AppTheme.primaryColor,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            );
+                          }).toList(),
                     ).animate().fadeIn(),
 
                   const SizedBox(height: 12),
@@ -248,13 +323,14 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                   Text(
                     recipe.name,
                     style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.1, end: 0),
 
                   const SizedBox(height: 8),
                   // Opis
-                  if (recipe.description != null && recipe.description!.isNotEmpty) ...[
+                  if (recipe.description != null &&
+                      recipe.description!.isNotEmpty) ...[
                     Text(
                       recipe.description!,
                       style: Theme.of(context).textTheme.bodyMedium,
@@ -272,11 +348,24 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        _buildInfoColumn(context, '⏱ Czas', '${recipe.totalTimeMin} min'),
+                        _buildInfoColumn(
+                          context,
+                          'Czas',
+                          '${recipe.totalTimeMin} min',
+                          icon: Icons.schedule,
+                        ),
                         _buildDivider(),
-                        _buildInfoColumn(context, 'Porcje', '${recipe.servings} porcje'),
+                        _buildInfoColumn(
+                          context,
+                          'Porcje',
+                          '${recipe.servings} porcje',
+                        ),
                         _buildDivider(),
-                        _buildInfoColumn(context, 'Trudność', recipe.difficulty),
+                        _buildInfoColumn(
+                          context,
+                          'Trudność',
+                          recipe.difficulty,
+                        ),
                       ],
                     ),
                   ).animate().fadeIn(delay: 300.ms),
@@ -286,12 +375,15 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                   Text(
                     'Wartości odżywcze',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   Text(
                     'na 1 porcję',
-                    style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                    style: TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 12,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   _buildNutritionGrid(recipe),
@@ -302,26 +394,102 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                   Center(
                     child: SubmitRecipePhotoButton(
                       recipeId: recipe.id,
-                      recipeHasPhoto: recipe.photoBase64 != null || recipe.imageUrl != null,
+                      recipeHasPhoto:
+                          recipe.photoBase64 != null || recipe.imageUrl != null,
                     ),
                   ),
                   const SizedBox(height: 28),
 
                   // Składniki
-                  Text(
-                    'Składniki',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Składniki',
+                        style: Theme.of(context).textTheme.headlineMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      TextButton.icon(
+                        onPressed: () => _editIngredients(recipe),
+                        icon: const Icon(Icons.edit_outlined, size: 18),
+                        label: const Text('Zmień'),
+                      ),
+                    ],
                   ),
+                  if (_temporaryIngredients != null) ...[
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppTheme.primaryColor.withOpacity(0.2),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Wariant tymczasowy',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Oryginalny przepis nie został zmieniony. Po zapisie '
+                            'wartości odżywcze zostaną przeliczone dla nowego składu.',
+                            style: TextStyle(
+                              color: AppTheme.textSecondary,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Wrap(
+                            spacing: 8,
+                            children: [
+                              FilledButton.icon(
+                                onPressed:
+                                    _isSavingVariant
+                                        ? null
+                                        : () => _saveVariant(recipe),
+                                icon:
+                                    _isSavingVariant
+                                        ? const SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                        : const Icon(
+                                          Icons.bookmark_add_outlined,
+                                        ),
+                                label: const Text('Zapisz wariant w Moje'),
+                              ),
+                              TextButton(
+                                onPressed:
+                                    () => setState(
+                                      () => _temporaryIngredients = null,
+                                    ),
+                                child: const Text('Cofnij zmiany'),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
                   const SizedBox(height: 12),
-                  ...recipe.ingredients.map((ing) {
+                  ...displayedIngredients.map((ing) {
                     return Container(
                       margin: const EdgeInsets.only(bottom: 8),
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: AppTheme.surfaceColor,
-                        borderRadius: const BorderRadius.all(Radius.circular(12)),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(12),
+                        ),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -329,7 +497,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                           Expanded(
                             child: Text(
                               ing.productName ?? 'Składnik',
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                           Text(
@@ -354,12 +524,18 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       decoration: BoxDecoration(
                         color: AppTheme.primaryColor.withOpacity(0.08),
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.2)),
+                        border: Border.all(
+                          color: AppTheme.primaryColor.withOpacity(0.2),
+                        ),
                       ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.lightbulb_outline, color: AppTheme.primaryColor, size: 22),
+                          const Icon(
+                            Icons.lightbulb_outline,
+                            color: AppTheme.primaryColor,
+                            size: 22,
+                          ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Column(
@@ -367,14 +543,21 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                               children: [
                                 const Text(
                                   'Lifehack: porcja makaronu bez wagi',
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   'Chwyć suchy makaron w dwa palce, formując kółko — jeśli '
                                   'jego średnica odpowiada mniej więcej monecie 5 zł, to '
                                   'jedna porcja (ok. 80-100 g) na osobę.',
-                                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, height: 1.4),
+                                  style: TextStyle(
+                                    color: AppTheme.textSecondary,
+                                    fontSize: 12,
+                                    height: 1.4,
+                                  ),
                                 ),
                               ],
                             ),
@@ -391,9 +574,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                   if (recipe.instructions.isNotEmpty) ...[
                     Text(
                       'Sposób przygotowania',
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 12),
                     ...recipe.instructions.asMap().entries.map((entry) {
@@ -442,31 +624,40 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                   if (recipe.suggestedSeasonings.isNotEmpty) ...[
                     Text(
                       'Możesz też dodać',
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     Text(
                       'opcjonalne przyprawy, żeby wzbogacić smak',
-                      style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                      style: TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 12,
+                      ),
                     ),
                     const SizedBox(height: 10),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: recipe.suggestedSeasonings.map((s) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: AppTheme.accentColor.withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            s,
-                            style: const TextStyle(color: AppTheme.accentColor, fontSize: 13),
-                          ),
-                        );
-                      }).toList(),
+                      children:
+                          recipe.suggestedSeasonings.map((s) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppTheme.accentColor.withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                s,
+                                style: const TextStyle(
+                                  color: AppTheme.accentColor,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            );
+                          }).toList(),
                     ),
                     const SizedBox(height: 28),
                   ],
@@ -483,10 +674,27 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     );
   }
 
-  Widget _buildInfoColumn(BuildContext context, String label, String value) {
+  Widget _buildInfoColumn(
+    BuildContext context,
+    String label,
+    String value, {
+    IconData? icon,
+  }) {
     return Column(
       children: [
-        Text(label, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: 14, color: AppTheme.textSecondary),
+              const SizedBox(width: 3),
+            ],
+            Text(
+              label,
+              style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+            ),
+          ],
+        ),
         const SizedBox(height: 4),
         Text(
           value,
@@ -497,7 +705,11 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   }
 
   Widget _buildDivider() {
-    return Container(height: 30, width: 1, color: AppTheme.textSecondary.withOpacity(0.2));
+    return Container(
+      height: 30,
+      width: 1,
+      color: AppTheme.textSecondary.withOpacity(0.2),
+    );
   }
 
   Widget _buildNutritionGrid(Recipe recipe) {
@@ -519,11 +731,31 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     // wartość na porcję, a nie na cały garnek).
     final servings = recipe.servings > 0 ? recipe.servings : 1;
     final list = [
-      {'label': 'Kalorie', 'val': '${(nut.kcal / servings).round()} kcal', 'color': AppTheme.accentColor},
-      {'label': 'Białko', 'val': '${(nut.protein / servings).round()} g', 'color': Colors.blue},
-      {'label': 'Tłuszcze', 'val': '${(nut.fat / servings).round()} g', 'color': Colors.orange},
-      {'label': 'Węgle', 'val': '${(nut.carbs / servings).round()} g', 'color': AppTheme.primaryColor},
-      {'label': 'Błonnik', 'val': '${(nut.fiber / servings).round()} g', 'color': Colors.green},
+      {
+        'label': 'Kalorie',
+        'val': '${(nut.kcal / servings).round()} kcal',
+        'color': AppTheme.accentColor,
+      },
+      {
+        'label': 'Białko',
+        'val': '${(nut.protein / servings).round()} g',
+        'color': Colors.blue,
+      },
+      {
+        'label': 'Tłuszcze',
+        'val': '${(nut.fat / servings).round()} g',
+        'color': Colors.orange,
+      },
+      {
+        'label': 'Węgle',
+        'val': '${(nut.carbs / servings).round()} g',
+        'color': AppTheme.primaryColor,
+      },
+      {
+        'label': 'Błonnik',
+        'val': '${(nut.fiber / servings).round()} g',
+        'color': Colors.green,
+      },
     ];
 
     return GridView.builder(
@@ -559,10 +791,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
               Text(
                 item['val'] as String,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: color,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+                  color: color,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
               ),
             ],
           ),

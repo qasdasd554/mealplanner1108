@@ -31,11 +31,20 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
   late final _name = TextEditingController(text: widget.editing?.name ?? '');
   late final _brand = TextEditingController(text: widget.editing?.brand ?? '');
   late final _price = TextEditingController(
-      text: widget.editing?.submittedPrice?.toStringAsFixed(2) ?? '');
-  late final _kcal = TextEditingController(text: _prefillNum(widget.editing?.nutritionPer100.kcal));
-  late final _protein = TextEditingController(text: _prefillNum(widget.editing?.nutritionPer100.protein, decimals: 1));
-  late final _fat = TextEditingController(text: _prefillNum(widget.editing?.nutritionPer100.fat, decimals: 1));
-  late final _carbs = TextEditingController(text: _prefillNum(widget.editing?.nutritionPer100.carbs, decimals: 1));
+    text: widget.editing?.submittedPrice?.toStringAsFixed(2) ?? '',
+  );
+  late final _kcal = TextEditingController(
+    text: _prefillNum(widget.editing?.nutritionPer100.kcal),
+  );
+  late final _protein = TextEditingController(
+    text: _prefillNum(widget.editing?.nutritionPer100.protein, decimals: 1),
+  );
+  late final _fat = TextEditingController(
+    text: _prefillNum(widget.editing?.nutritionPer100.fat, decimals: 1),
+  );
+  late final _carbs = TextEditingController(
+    text: _prefillNum(widget.editing?.nutritionPer100.carbs, decimals: 1),
+  );
 
   /// Puste pole zamiast "0" — zero na starcie formularza wygląda jak
   /// świadomie wpisana wartość, a najczęściej oznacza po prostu brak danych.
@@ -96,18 +105,22 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
 
     try {
       final response = await ApiClient().get('/products/barcode/$code');
-      final result = BarcodeLookupResult.fromJson(response as Map<String, dynamic>);
+      final result = BarcodeLookupResult.fromJson(
+        response as Map<String, dynamic>,
+      );
       if (!mounted) return;
 
       if (!result.found) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(const SnackBar(
-            duration: Duration(seconds: 3),
-            content: Text(
-              'Nie znaleziono tego kodu — uzupełnij dane ręcznie, kod zapisze się przy produkcie.',
+          ..showSnackBar(
+            const SnackBar(
+              duration: Duration(seconds: 3),
+              content: Text(
+                'Nie znaleziono tego kodu — uzupełnij dane ręcznie, kod zapisze się przy produkcie.',
+              ),
             ),
-          ));
+          );
         return;
       }
 
@@ -126,7 +139,8 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
         if (_price.text.trim().isEmpty && result.suggestedPrice != null) {
           _price.text = result.suggestedPrice!.toStringAsFixed(2);
         }
-        final hasNutrition = result.kcalPer100 != null ||
+        final hasNutrition =
+            result.kcalPer100 != null ||
             result.proteinPer100 != null ||
             result.fatPer100 != null ||
             result.carbsPer100 != null;
@@ -149,24 +163,28 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
 
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(
-          duration: const Duration(seconds: 3),
-          content: Text(
-            result.isFromOwnCatalog
-                ? 'Znaleziono w katalogu — dane wypełnione automatycznie.'
-                : 'Znaleziono produkt — nazwa, marka, makro i cena zostały uzupełnione. Cena jest orientacyjna.',
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(
+              result.isFromOwnCatalog
+                  ? 'Znaleziono w katalogu — dane wypełnione automatycznie.'
+                  : 'Znaleziono produkt — nazwa, marka, makro i cena zostały uzupełnione. Cena jest orientacyjna.',
+            ),
           ),
-        ));
+        );
     } catch (e) {
       if (!mounted) return;
       // Nieudane wyszukiwanie NIE blokuje ręcznego wypełnienia — kod
       // został już zapisany w _barcode, więc i tak trafi do zgłoszenia.
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(
-          duration: const Duration(seconds: 3),
-          content: Text(friendlyError(e)),
-        ));
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(friendlyError(e)),
+          ),
+        );
     } finally {
       if (mounted) setState(() => _isScanning = false);
     }
@@ -198,32 +216,38 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
       Navigator.of(context).pop(true);
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(
-          duration: const Duration(seconds: 4),
-          content: Text(
-            _isEditing
-                ? 'Zapisano. Zmiany trafiają ponownie do sprawdzenia przez administratora.'
-                : 'Produkt dodany. Możesz go już używać — pozostali zobaczą go '
-                    'po zatwierdzeniu przez administratora.',
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 4),
+            content: Text(
+              _isEditing
+                  ? 'Zapisano. Zmiany trafiają ponownie do sprawdzenia przez administratora.'
+                  : 'Produkt dodany. Możesz go już używać — pozostali zobaczą go '
+                      'po zatwierdzeniu przez administratora.',
+            ),
           ),
-        ));
+        );
     } catch (e) {
       if (!mounted) return;
       setState(() => _isSaving = false);
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(
-          duration: const Duration(seconds: 3),
-          content: Text(friendlyError(e)),
-          backgroundColor: AppTheme.errorColor,
-        ));
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(friendlyError(e)),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
       child: DraggableScrollableSheet(
         initialChildSize: 0.8,
         minChildSize: 0.5,
@@ -260,14 +284,19 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                   ),
                 ),
                 const SizedBox(height: 18),
-                Text(_isEditing ? 'Edytuj produkt' : 'Dodaj własny produkt',
-                    style: Theme.of(context).textTheme.titleLarge),
+                Text(
+                  _isEditing ? 'Edytuj produkt' : 'Dodaj własny produkt',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
                 const SizedBox(height: 4),
                 Text(
                   'Produkt będzie od razu dostępny dla Ciebie. Pozostali '
                   'użytkownicy zobaczą go po zatwierdzeniu przez administratora.',
                   style: TextStyle(
-                      fontSize: 12, color: AppTheme.textSecondary, height: 1.35),
+                    fontSize: 12,
+                    color: AppTheme.textSecondary,
+                    height: 1.35,
+                  ),
                 ),
                 const SizedBox(height: 20),
                 // Skanowanie kodu kreskowego — OPCJONALNE, ale znacznie
@@ -278,16 +307,19 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                   width: double.infinity,
                   child: OutlinedButton.icon(
                     onPressed: _isScanning ? null : _scanBarcode,
-                    icon: _isScanning
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.barcode_reader, size: 18),
-                    label: Text(_barcode == null
-                        ? 'Skanuj kod kreskowy'
-                        : 'Zeskanowano: $_barcode (zmień)'),
+                    icon:
+                        _isScanning
+                            ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                            : const Icon(Icons.barcode_reader, size: 18),
+                    label: Text(
+                      _barcode == null
+                          ? 'Skanuj kod kreskowy'
+                          : 'Zeskanowano: $_barcode (zmień)',
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -299,9 +331,11 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                     hintText: 'np. Jogurt naturalny 400 g',
                     border: OutlineInputBorder(),
                   ),
-                  validator: (v) => (v == null || v.trim().length < 2)
-                      ? 'Podaj nazwę produktu'
-                      : null,
+                  validator:
+                      (v) =>
+                          (v == null || v.trim().length < 2)
+                              ? 'Podaj nazwę produktu'
+                              : null,
                 ),
                 TextFormField(
                   controller: _brand,
@@ -319,8 +353,9 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                       flex: 2,
                       child: TextFormField(
                         controller: _price,
-                        keyboardType:
-                            const TextInputType.numberWithOptions(decimal: true),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
                         decoration: const InputDecoration(
                           labelText: 'Cena *',
                           suffixText: 'zł',
@@ -341,10 +376,15 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                           labelText: 'Jedn.',
                           border: OutlineInputBorder(),
                         ),
-                        items: const ['szt', 'g', 'kg', 'ml', 'l', 'opak']
-                            .map((u) =>
-                                DropdownMenuItem(value: u, child: Text(u)))
-                            .toList(),
+                        items:
+                            const ['szt', 'g', 'kg', 'ml', 'l', 'opak']
+                                .map(
+                                  (u) => DropdownMenuItem(
+                                    value: u,
+                                    child: Text(u),
+                                  ),
+                                )
+                                .toList(),
                         onChanged: (v) => setState(() => _unit = v ?? 'szt'),
                       ),
                     ),
@@ -384,8 +424,10 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                   Text(
                     'Bez tych danych produkt doda 0 kcal do dziennika — '
                     'nadal jednak przyda się na liście zakupów.',
-                    style:
-                        TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppTheme.textSecondary,
+                    ),
                   ),
                   const SizedBox(height: 10),
                   Row(
@@ -429,34 +471,42 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                         Text(
                           'W jakich sklepach ma być dostępny? (opcjonalnie)',
                           style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.textSecondary),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.textSecondary,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           'Można zaznaczyć kilka. Widoczność w wybranych '
                           'sklepach pojawi się dopiero po akceptacji.',
-                          style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppTheme.textSecondary,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Wrap(
                           spacing: 8,
                           runSpacing: 4,
-                          children: storeProvider.stores.map((store) {
-                            final selected = _selectedStoreIds.contains(store.id);
-                            return FilterChip(
-                              label: Text(store.name),
-                              selected: selected,
-                              onSelected: (v) => setState(() {
-                                if (v) {
-                                  _selectedStoreIds.add(store.id);
-                                } else {
-                                  _selectedStoreIds.remove(store.id);
-                                }
-                              }),
-                            );
-                          }).toList(),
+                          children:
+                              storeProvider.stores.map((store) {
+                                final selected = _selectedStoreIds.contains(
+                                  store.id,
+                                );
+                                return FilterChip(
+                                  label: Text(store.name),
+                                  selected: selected,
+                                  onSelected:
+                                      (v) => setState(() {
+                                        if (v) {
+                                          _selectedStoreIds.add(store.id);
+                                        } else {
+                                          _selectedStoreIds.remove(store.id);
+                                        }
+                                      }),
+                                );
+                              }).toList(),
                         ),
                       ],
                     );
@@ -467,14 +517,19 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                   height: 48,
                   child: FilledButton(
                     onPressed: _isSaving ? null : _submit,
-                    child: _isSaving
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                                strokeWidth: 2, color: Colors.white),
-                          )
-                        : Text(_isEditing ? 'Zapisz zmiany' : 'Dodaj produkt'),
+                    child:
+                        _isSaving
+                            ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                            : Text(
+                              _isEditing ? 'Zapisz zmiany' : 'Dodaj produkt',
+                            ),
                   ),
                 ),
                 const SizedBox(height: 12),

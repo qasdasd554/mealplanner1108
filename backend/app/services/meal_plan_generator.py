@@ -13,6 +13,8 @@ ponowne użycie składników, uwzględniając przy tym:
 from __future__ import annotations
 
 import logging
+import re
+import unicodedata
 from collections import defaultdict
 from typing import Any, Sequence
 from uuid import UUID
@@ -65,7 +67,7 @@ from app.services.shopping_list_builder import ShoppingListBuilder
 logger = logging.getLogger(__name__)
 
 # ── Typy posiłków i domyślna dystrybucja ────────────────────────────
-MEAL_TYPES: list[str] = ["śniadanie", "obiad", "kolacja", "przekąska"]
+MEAL_TYPES: list[str] = ["śniadanie", "obiad", "kolacja", "przekąska", "deser"]
 
 # Dystrybucja posiłków wg ilości posiłków dziennie
 MEAL_DISTRIBUTION: dict[int, list[str]] = {
@@ -73,8 +75,93 @@ MEAL_DISTRIBUTION: dict[int, list[str]] = {
     2: ["śniadanie", "obiad"],
     3: ["śniadanie", "obiad", "kolacja"],
     4: ["śniadanie", "obiad", "kolacja", "przekąska"],
-    5: ["śniadanie", "obiad", "kolacja", "przekąska", "przekąska"],
+    5: ["śniadanie", "obiad", "kolacja", "przekąska", "deser"],
 }
+
+
+def _normalise_recipe_text(value: str) -> str:
+    """Upraszcza polski tekst tak, aby odmiana wyrazu nie rozbijała rodzin dań."""
+    # Litera „ł” nie rozkłada się w NFKD, więc trzeba obsłużyć ją jawnie.
+    lowered = value.lower().replace("ł", "l")
+    ascii_text = unicodedata.normalize("NFKD", lowered).encode("ascii", "ignore").decode()
+    return re.sub(r"[^a-z0-9]+", " ", ascii_text).strip()
+
+
+def _recipe_family_key(recipe: Recipe) -> str:
+    """Zwraca rodzinę dania, np. obie sałatki z tuńczykiem mają ten sam klucz.
+
+    Samo ID chroni tylko przed ponownym użyciem dokładnie tego samego rekordu.
+    Tutaj łączymy rodzaj dania z głównym składnikiem, dzięki czemu drobna
+    zmiana nazwy lub dodatku nie omija zasady różnorodności w ciągu dnia.
+    """
+    name = _normalise_recipe_text(getattr(recipe, "name", "") or "")
+
+    dish_kinds = (
+        ("salat", "salatka"),
+        ("zup", "zupa"),
+        ("makaron", "makaron"),
+        ("spaghetti", "makaron"),
+        ("penne", "makaron"),
+        ("lasagn", "makaron"),
+        ("owsiank", "owsianka"),
+        ("omlet", "omlet"),
+        ("jajeczn", "jajecznica"),
+        ("nales", "nalesniki"),
+        ("plac", "placki"),
+        ("koktaj", "koktajl"),
+        ("smooth", "koktajl"),
+        ("kanap", "kanapka"),
+        ("wrap", "wrap"),
+        ("tortill", "wrap"),
+        ("curry", "curry"),
+        ("gulasz", "gulasz"),
+        ("burger", "burger"),
+        ("risotto", "risotto"),
+        ("pudding", "pudding"),
+        ("ciast", "ciasto"),
+    )
+    kind = next((label for stem, label in dish_kinds if stem in name), "")
+
+    ingredient_texts: list[str] = []
+    for ingredient in getattr(recipe, "ingredients", []) or []:
+        product = getattr(ingredient, "product", None)
+        product_name = getattr(product, "name", None) or getattr(ingredient, "product_name", None)
+        if product_name:
+            ingredient_texts.append(_normalise_recipe_text(str(product_name)))
+    searchable = f"{name} {' '.join(ingredient_texts)}"
+
+    main_ingredients = (
+        ("tuncz", "tunczyk"),
+        ("kurcz", "kurczak"),
+        ("indyk", "indyk"),
+        ("losos", "losos"),
+        ("dorsz", "dorsz"),
+        ("krewet", "krewetki"),
+        ("wolow", "wolowina"),
+        ("wieprz", "wieprzowina"),
+        ("tofu", "tofu"),
+        ("ciecierzyc", "ciecierzyca"),
+        ("soczew", "soczewica"),
+        ("fasol", "fasola"),
+        ("jaj", "jajko"),
+        ("twarog", "twarog"),
+        ("banan", "banan"),
+        ("jabl", "jablko"),
+    )
+    main = next((label for stem, label in main_ingredients if stem in searchable), "")
+
+    if kind and main:
+        return f"{kind}:{main}"
+    if kind:
+        significant = [
+            token
+            for token in name.split()
+            if len(token) >= 4 and token not in {"oraz", "pestkami", "warzywami", "szybka"}
+        ]
+        return f"{kind}:{':'.join(significant[:2])}"
+    if main:
+        return f"danie:{main}"
+    return f"nazwa:{name}"
 
 # Wagi algorytmu scoringowego
 # UWAGA (druga tura naprawy): nawet po podniesieniu NUTRITION do 0.45,
@@ -169,7 +256,11 @@ class MealPlanGenerator:
         )
 
         # Krok 3 — zachłanna selekcja
-        slot_distribution = self._build_slot_distribution(duration_days, meals_per_day)
+        slot_distribution = self._build_slot_distribution(
+            duration_days,
+            meals_per_day,
+            selected_meal_types=preferences.get("meal_types"),
+        )
         selected = self._greedy_select(
             eligible_recipes=eligible_recipes,
             slot_distribution=slot_distribution,
@@ -420,13 +511,28 @@ class MealPlanGenerator:
         self,
         duration_days: int,
         meals_per_day: int,
+        selected_meal_types: list[str] | None = None,
     ) -> list[tuple[int, str]]:
         """Tworzy listę slotów (dzień, typ_posiłku) do wypełnienia.
 
         Returns:
             Lista krotek ``(day_number, meal_type)``.
         """
-        daily_meals = MEAL_DISTRIBUTION.get(meals_per_day, MEAL_DISTRIBUTION[3])
+        requested: list[str] = []
+        for meal_type in selected_meal_types or []:
+            if meal_type in MEAL_TYPES and meal_type not in requested:
+                requested.append(meal_type)
+
+        if requested:
+            daily_meals = requested[:meals_per_day]
+            if len(daily_meals) < meals_per_day:
+                for meal_type in MEAL_DISTRIBUTION.get(meals_per_day, MEAL_DISTRIBUTION[3]):
+                    if meal_type not in daily_meals:
+                        daily_meals.append(meal_type)
+                    if len(daily_meals) == meals_per_day:
+                        break
+        else:
+            daily_meals = MEAL_DISTRIBUTION.get(meals_per_day, MEAL_DISTRIBUTION[3])
         slots: list[tuple[int, str]] = []
         for day in range(1, duration_days + 1):
             for meal_type in daily_meals:
@@ -495,6 +601,7 @@ class MealPlanGenerator:
             # Najpierw zachowujemy właściwy typ posiłku. Dopiero gdy jego
             # pula nie ma już unikalnego kandydata, szukamy w całym katalogu.
             daily_recipe_ids = {recipe.id for recipe in daily_recipes}
+            daily_recipe_families = {_recipe_family_key(recipe) for recipe in daily_recipes}
             search_pools = [pool]
             if pool is not eligible_recipes:
                 search_pools.append(eligible_recipes)
@@ -509,6 +616,8 @@ class MealPlanGenerator:
                     candidate_for_strategy: Recipe | None = None
                     for candidate in candidate_pool:
                         if candidate.id in daily_recipe_ids:
+                            continue
+                        if _recipe_family_key(candidate) in daily_recipe_families:
                             continue
                         if (
                             not ignore_repeat_limit
@@ -561,6 +670,7 @@ class MealPlanGenerator:
                 used_ingredient_ids=used_ingredient_ids,
                 recipe_usage_count=recipe_usage_count,
                 target_kcal=target_kcal,
+                allowed_meal_types={meal_type for _day, meal_type in slot_distribution},
             )
 
         self._assert_unique_recipes_per_day(selected)
@@ -579,6 +689,7 @@ class MealPlanGenerator:
         used_ingredient_ids: set[UUID],
         recipe_usage_count: dict[UUID, int],
         target_kcal: float,
+        allowed_meal_types: set[str] | None = None,
     ) -> list[tuple[int, str, Recipe]]:
         """Dokłada dodatkowe dania do dni, w których suma kalorii NA OSOBĘ
         wypada wyraźnie poniżej celu (target_kcal).
@@ -596,17 +707,29 @@ class MealPlanGenerator:
         for day, _meal_type, recipe in selected:
             by_day[day].append(recipe)
 
-        # Pula kandydatów do dopełniania — najpierw przekąski (naturalny
-        # wybór do "dobicia" kaloryczności bez robienia z tego kolejnego
-        # pełnego dania), a jeśli ich brak, cokolwiek dostępne.
-        top_up_pool = pools.get("przekąska") or [r for pool in pools.values() for r in pool]
+        # Dopełnienie nie może po cichu dodawać kategorii, których użytkownik
+        # nie wybrał. Najpierw preferujemy przekąskę, potem deser, a następnie
+        # pozostałe dozwolone typy.
+        allowed = allowed_meal_types or set(pools)
+        all_recipes_pool = [
+            recipe
+            for meal_type, pool in pools.items()
+            if meal_type in allowed
+            for recipe in pool
+        ]
+        preferred_type = next(
+            (meal_type for meal_type in ("przekąska", "deser") if meal_type in allowed),
+            None,
+        )
+        top_up_pool = (
+            pools.get(preferred_type, []) if preferred_type is not None else all_recipes_pool
+        ) or all_recipes_pool
         # UWAGA (naprawa): pula ZAPASOWA, używana TYLKO gdy sama pula
         # przekąsek wprawdzie istnieje, ale WSZYSTKIE jej pozycje trafiły
         # już w limit powtórzeń — wcześniej w takiej sytuacji dopełnianie
         # po prostu się poddawało (best_candidate=None), zostawiając dzień
         # wyraźnie poniżej celu, mimo że INNE kategorie dań wciąż miały
         # dostępne, nieużyte opcje.
-        all_recipes_pool = [r for pool in pools.values() for r in pool]
         if not top_up_pool:
             return selected
 
@@ -622,8 +745,11 @@ class MealPlanGenerator:
                 best_candidate: Recipe | None = None
                 best_score = -1.0
                 daily_recipe_ids = {recipe.id for recipe in day_recipes}
+                daily_recipe_families = {_recipe_family_key(recipe) for recipe in day_recipes}
                 for candidate in top_up_pool:
                     if candidate.id in daily_recipe_ids:
+                        continue
+                    if _recipe_family_key(candidate) in daily_recipe_families:
                         continue
                     if recipe_usage_count[candidate.id] >= MAX_RECIPE_REPEATS:
                         continue
@@ -644,6 +770,8 @@ class MealPlanGenerator:
                     # zamiast od razu się poddawać.
                     for candidate in all_recipes_pool:
                         if candidate.id in daily_recipe_ids:
+                            continue
+                        if _recipe_family_key(candidate) in daily_recipe_families:
                             continue
                         if recipe_usage_count[candidate.id] >= MAX_RECIPE_REPEATS:
                             continue
@@ -685,12 +813,20 @@ class MealPlanGenerator:
     ) -> None:
         """Nie pozwala zapisać planu z tym samym przepisem dwa razy dziennie."""
         recipe_ids_by_day: dict[int, set[UUID]] = defaultdict(set)
+        recipe_families_by_day: dict[int, set[str]] = defaultdict(set)
         for day, _meal_type, recipe in selected:
             if recipe.id in recipe_ids_by_day[day]:
                 raise RuntimeError(
                     f"Generator wybrał przepis {recipe.id} więcej niż raz w dniu {day}"
                 )
+            family = _recipe_family_key(recipe)
+            if family in recipe_families_by_day[day]:
+                raise RuntimeError(
+                    f"Generator wybrał dwa warianty tej samej rodziny dań "
+                    f"({family}) w dniu {day}"
+                )
             recipe_ids_by_day[day].add(recipe.id)
+            recipe_families_by_day[day].add(family)
 
     def _per_person_nutrition(self, recipe: Recipe) -> dict[str, float]:
         """Wartości odżywcze CAŁEGO przepisu podzielone przez liczbę porcji
@@ -733,6 +869,9 @@ class MealPlanGenerator:
         # `ignore_repeat_limit` może poluzować różnorodność między dniami,
         # ale nigdy nie może dopuścić duplikatu w obrębie jednego dnia.
         if any(recipe.id == candidate.id for recipe in daily_recipes):
+            return -1.0
+        candidate_family = _recipe_family_key(candidate)
+        if any(_recipe_family_key(recipe) == candidate_family for recipe in daily_recipes):
             return -1.0
 
         if not ignore_repeat_limit and recipe_usage_count[candidate.id] >= MAX_RECIPE_REPEATS:

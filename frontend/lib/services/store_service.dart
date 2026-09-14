@@ -9,7 +9,9 @@ class StoreService {
   Future<List<Store>> getStores() async {
     final response = await _client.get(ApiConfig.stores);
     if (response is List) {
-      return response.map((e) => Store.fromJson(e as Map<String, dynamic>)).toList();
+      return response
+          .map((e) => Store.fromJson(e as Map<String, dynamic>))
+          .toList();
     }
     return [];
   }
@@ -20,7 +22,9 @@ class StoreService {
   }
 
   Future<List<StoreDepartment>> getStoreDepartments(String storeId) async {
-    final response = await _client.get('${ApiConfig.stores}$storeId/departments');
+    final response = await _client.get(
+      '${ApiConfig.stores}$storeId/departments',
+    );
     if (response is List) {
       return response
           .map((e) => StoreDepartment.fromJson(e as Map<String, dynamic>))
@@ -51,5 +55,30 @@ class StoreService {
           .toList();
     }
     return [];
+  }
+
+  /// Pobiera cały katalog sklepu strona po stronie. Endpoint ogranicza
+  /// pojedynczą odpowiedź do 200 pozycji, a katalog zawiera ich więcej.
+  Future<List<StoreProduct>> getAllStoreProducts(
+    String storeId, {
+    String? search,
+    String? departmentId,
+  }) async {
+    const pageSize = 200;
+    final products = <StoreProduct>[];
+
+    while (true) {
+      final page = await getStoreProducts(
+        storeId,
+        skip: products.length,
+        limit: pageSize,
+        search: search,
+        departmentId: departmentId,
+      );
+      products.addAll(page);
+      if (page.length < pageSize) break;
+    }
+
+    return products;
   }
 }

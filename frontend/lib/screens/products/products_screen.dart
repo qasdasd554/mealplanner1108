@@ -10,6 +10,7 @@ import '../../services/store_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
 import '../../widgets/submit_product_sheet.dart';
+import '../../widgets/price_source_info.dart';
 
 /// Ekran produktów w dwóch zakładkach: „Sklep” (katalog produktów
 /// wybranego sklepu, z cenami) i „Moje” (własne zgłoszenia użytkownika,
@@ -48,20 +49,21 @@ class _ProductsScreenState extends State<ProductsScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Produkty'),
+        actions: [
+          IconButton(
+            tooltip: 'Źródła cen i marek',
+            onPressed: () => showPriceSourceInfo(context),
+            icon: const Icon(Icons.info_outline),
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
-            Tab(text: 'Sklep'),
-            Tab(text: 'Moje'),
-          ],
+          tabs: const [Tab(text: 'Sklep'), Tab(text: 'Moje')],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
-        children: const [
-          _StoreProductsTab(),
-          _MyProductsTab(),
-        ],
+        children: const [_StoreProductsTab(), _MyProductsTab()],
       ),
     );
   }
@@ -124,9 +126,8 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
     });
 
     try {
-      final list = await _storeService.getStoreProducts(
+      final list = await _storeService.getAllStoreProducts(
         _selectedStoreId!,
-        limit: 100,
         search: _searchQuery,
       );
       if (!mounted) return;
@@ -181,14 +182,15 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
                   prefixIcon: Icon(Icons.storefront_outlined),
                 ),
                 dropdownColor: AppTheme.surfaceColor,
-                items: storeProvider.stores
-                    .map(
-                      (Store s) => DropdownMenuItem(
-                        value: s.id,
-                        child: Text(s.name),
-                      ),
-                    )
-                    .toList(),
+                items:
+                    storeProvider.stores
+                        .map(
+                          (Store s) => DropdownMenuItem(
+                            value: s.id,
+                            child: Text(s.name),
+                          ),
+                        )
+                        .toList(),
                 onChanged: (value) {
                   setState(() {
                     _selectedStoreId = value;
@@ -199,9 +201,7 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
             ),
           ),
 
-        Expanded(
-          child: _buildBody(),
-        ),
+        Expanded(child: _buildBody()),
       ],
     );
   }
@@ -261,9 +261,10 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
         color: AppTheme.surfaceColor,
         borderRadius: const BorderRadius.all(Radius.circular(14)),
         border: Border.all(
-          color: sp.isAvailable
-              ? Colors.transparent
-              : AppTheme.errorColor.withOpacity(0.4),
+          color:
+              sp.isAvailable
+                  ? Colors.transparent
+                  : AppTheme.errorColor.withOpacity(0.4),
         ),
       ),
       child: Row(
@@ -275,8 +276,10 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
               color: AppTheme.primaryColor.withOpacity(0.1),
               borderRadius: const BorderRadius.all(Radius.circular(12)),
             ),
-            child: const Icon(Icons.shopping_basket_outlined,
-                color: AppTheme.primaryColor),
+            child: const Icon(
+              Icons.shopping_basket_outlined,
+              color: AppTheme.primaryColor,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -285,27 +288,25 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
               children: [
                 Text(
                   product?.name ?? 'Nieznany produkt',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontSize: 15,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontSize: 15),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
                 Text(
                   [
-                    // Marka WŁASNA sklepu (np. "Mleczna Dolina") ma
-                    // pierwszeństwo przed ogólną marką produktu — to ona
-                    // realnie odpowiada temu, co kupisz w TYM sklepie.
-                    if (sp.storeBrandName != null) sp.storeBrandName!
-                    else if (product?.brand != null) product!.brand!,
-                    if (kcal != null) '${kcal.toInt()} kcal / 100${product?.unit =='ml'|| product?.unit =='l'?'ml':'g'}',
+                    if (sp.storeBrandName != null)
+                      'Marka w sklepie: ${sp.storeBrandName}'
+                    else if (product?.brand != null)
+                      'Marka produktu: ${product!.brand}',
+                    if (kcal != null)
+                      '${kcal.toInt()} kcal / 100${product?.unit == 'ml' || product?.unit == 'l' ? 'ml' : 'g'}',
+                    if (sp.lastVerified != null) 'cena sprawdzona',
                     if (!sp.isAvailable) 'niedostępny',
-                  ].join('•'),
-                  style: TextStyle(
-                    color: AppTheme.textSecondary,
-                    fontSize: 12,
-                  ),
+                  ].join(' • '),
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                 ),
               ],
             ),
@@ -323,11 +324,8 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
                 ),
               ),
               Text(
-                '/ ${product?.defaultQuantity ?? 1} ${product?.unit ??''}',
-                style: TextStyle(
-                  color: AppTheme.textSecondary,
-                  fontSize: 10,
-                ),
+                '/ ${product?.defaultQuantity ?? 1} ${product?.unit ?? ''}',
+                style: TextStyle(color: AppTheme.textSecondary, fontSize: 10),
               ),
             ],
           ),
@@ -361,10 +359,7 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
               style: TextStyle(color: AppTheme.textSecondary),
               textAlign: TextAlign.center,
             ),
-            if (action != null) ...[
-              const SizedBox(height: 20),
-              action,
-            ],
+            if (action != null) ...[const SizedBox(height: 20), action],
           ],
         ),
       ),
@@ -402,9 +397,10 @@ class _MyProductsTabState extends State<_MyProductsTab> {
       final response = await _client.get('/products/mine');
       if (!mounted) return;
       setState(() {
-        _products = (response as List)
-            .map((e) => Product.fromJson(e as Map<String, dynamic>))
-            .toList();
+        _products =
+            (response as List)
+                .map((e) => Product.fromJson(e as Map<String, dynamic>))
+                .toList();
       });
     } catch (e) {
       if (!mounted) return;
@@ -446,17 +442,26 @@ class _MyProductsTabState extends State<_MyProductsTab> {
   Future<void> _deleteProduct(Product p) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Usunąć produkt?'),
-        content: Text('Usuniesz "${p.name}" ze swoich zgłoszeń. Tej operacji nie da się cofnąć.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Anuluj')),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text('Usuń', style: TextStyle(color: AppTheme.errorColor)),
+      builder:
+          (ctx) => AlertDialog(
+            title: const Text('Usunąć produkt?'),
+            content: Text(
+              'Usuniesz "${p.name}" ze swoich zgłoszeń. Tej operacji nie da się cofnąć.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Anuluj'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(
+                  'Usuń',
+                  style: TextStyle(color: AppTheme.errorColor),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
     );
     if (confirmed != true || !mounted) return;
 
@@ -467,11 +472,13 @@ class _MyProductsTabState extends State<_MyProductsTab> {
     } catch (e) {
       messenger
         ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(
-          duration: const Duration(seconds: 3),
-          content: Text(friendlyError(e)),
-          backgroundColor: AppTheme.errorColor,
-        ));
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(friendlyError(e)),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
     }
   }
 
@@ -484,63 +491,75 @@ class _MyProductsTabState extends State<_MyProductsTab> {
         icon: const Icon(Icons.add),
         label: const Text('Dodaj produkt'),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _error != null
               ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.error_outline,
-                            size: 56, color: AppTheme.textSecondary),
-                        const SizedBox(height: 16),
-                        Text(_error!,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: AppTheme.textSecondary)),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                            onPressed: _load, child: const Text('Spróbuj ponownie')),
-                      ],
-                    ),
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 56,
+                        color: AppTheme.textSecondary,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        _error!,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: AppTheme.textSecondary),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _load,
+                        child: const Text('Spróbuj ponownie'),
+                      ),
+                    ],
                   ),
-                )
+                ),
+              )
               : _products.isEmpty
-                  ? Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(32),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.inventory_2_outlined,
-                                size: 56, color: AppTheme.textSecondary),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Nie zgłosiłeś/aś jeszcze żadnego produktu.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(color: AppTheme.textSecondary),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Dotknij „Dodaj produkt” poniżej, żeby zgłosić coś,\nczego nie ma w katalogu.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                  color: AppTheme.textSecondary, fontSize: 12),
-                            ),
-                          ],
+              ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.inventory_2_outlined,
+                        size: 56,
+                        color: AppTheme.textSecondary,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Nie zgłosiłeś/aś jeszcze żadnego produktu.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: AppTheme.textSecondary),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Dotknij „Dodaj produkt” poniżej, żeby zgłosić coś,\nczego nie ma w katalogu.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: AppTheme.textSecondary,
+                          fontSize: 12,
                         ),
                       ),
-                    )
-                  : RefreshIndicator(
-                      onRefresh: _load,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
-                        itemCount: _products.length,
-                        itemBuilder: (context, index) =>
-                            _buildTile(_products[index]),
-                      ),
-                    ),
+                    ],
+                  ),
+                ),
+              )
+              : RefreshIndicator(
+                onRefresh: _load,
+                child: ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
+                  itemCount: _products.length,
+                  itemBuilder: (context, index) => _buildTile(_products[index]),
+                ),
+              ),
     );
   }
 
@@ -567,7 +586,10 @@ class _MyProductsTabState extends State<_MyProductsTab> {
               children: [
                 Text(
                   p.name,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -582,7 +604,10 @@ class _MyProductsTabState extends State<_MyProductsTab> {
                 ),
                 const SizedBox(height: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: color.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(20),
@@ -590,7 +615,10 @@ class _MyProductsTabState extends State<_MyProductsTab> {
                   child: Text(
                     label,
                     style: TextStyle(
-                        fontSize: 11, color: color, fontWeight: FontWeight.w600),
+                      fontSize: 11,
+                      color: color,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
@@ -607,7 +635,11 @@ class _MyProductsTabState extends State<_MyProductsTab> {
                 onPressed: () => _editProduct(p),
               ),
               IconButton(
-                icon: Icon(Icons.delete_outline, size: 20, color: AppTheme.errorColor),
+                icon: Icon(
+                  Icons.delete_outline,
+                  size: 20,
+                  color: AppTheme.errorColor,
+                ),
                 tooltip: 'Usuń',
                 visualDensity: VisualDensity.compact,
                 onPressed: () => _deleteProduct(p),

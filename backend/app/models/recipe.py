@@ -42,7 +42,7 @@ class Recipe(Base):
     meal_type: Mapped[str] = mapped_column(
         String(50),
         nullable=False,
-        comment="śniadanie | obiad | kolacja | przekąska",
+        comment="śniadanie | obiad | kolacja | przekąska | deser",
     )
     prep_time_min: Mapped[int | None] = mapped_column(Integer, nullable=True)
     cook_time_min: Mapped[int | None] = mapped_column(Integer, nullable=True)
