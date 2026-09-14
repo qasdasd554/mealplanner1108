@@ -23,6 +23,7 @@ import base64
 import logging
 import re
 from datetime import date
+from urllib.parse import urljoin
 
 import httpx
 from bs4 import BeautifulSoup
@@ -39,6 +40,7 @@ _AGGREGATOR_SLUGS: dict[str, str] = {
     "Biedronka": "biedronka",
     "Lidl": "lidl",
     "Dino": "dino",
+    "Carrefour": "carrefour",
 }
 
 # Bezpiecznik: gazetki bywają duże (kilkadziesiąt stron) — ale Gemini
@@ -81,7 +83,7 @@ async def _find_flyer_pdf_url(store_name: str) -> str:
     for link in soup.find_all("a", href=True):
         href = link["href"]
         if href.lower().endswith(".pdf"):
-            return href
+            return urljoin(url, href)
 
     raise PromoAIScanError(f"Nie znaleziono linku do PDF-a z gazetką dla {store_name}")
 

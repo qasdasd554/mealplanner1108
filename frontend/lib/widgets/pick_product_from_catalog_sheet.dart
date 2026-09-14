@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
-import '../models/barcode_lookup_result.dart';
 import '../models/product.dart';
 import '../screens/barcode_scanner_screen.dart';
 import '../services/api_client.dart';
+import '../services/barcode_lookup_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/error_utils.dart';
 
@@ -46,6 +46,7 @@ class PickProductFromCatalogSheet extends StatefulWidget {
 class _PickProductFromCatalogSheetState
     extends State<PickProductFromCatalogSheet> {
   final ApiClient _client = ApiClient();
+  final BarcodeLookupService _barcodeLookupService = BarcodeLookupService();
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounce;
 
@@ -62,6 +63,7 @@ class _PickProductFromCatalogSheetState
   @override
   void dispose() {
     _debounce?.cancel();
+    _barcodeLookupService.close();
     _searchController.dispose();
     super.dispose();
   }
@@ -106,10 +108,7 @@ class _PickProductFromCatalogSheetState
 
     setState(() => _isLoading = true);
     try {
-      final response = await _client.get('/products/barcode/$code');
-      final result = BarcodeLookupResult.fromJson(
-        response as Map<String, dynamic>,
-      );
+      final result = await _barcodeLookupService.lookup(code);
       if (!mounted) return;
 
       if (!result.found || result.name == null) {

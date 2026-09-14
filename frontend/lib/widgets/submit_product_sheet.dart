@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/barcode_lookup_result.dart';
+import '../services/barcode_lookup_service.dart';
 import '../models/product.dart';
 import '../providers/store_provider.dart';
 import '../screens/barcode_scanner_screen.dart';
@@ -27,6 +27,7 @@ class SubmitProductSheet extends StatefulWidget {
 }
 
 class _SubmitProductSheetState extends State<SubmitProductSheet> {
+  final BarcodeLookupService _barcodeLookupService = BarcodeLookupService();
   final _formKey = GlobalKey<FormState>();
   late final _name = TextEditingController(text: widget.editing?.name ?? '');
   late final _brand = TextEditingController(text: widget.editing?.brand ?? '');
@@ -83,6 +84,7 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
 
   @override
   void dispose() {
+    _barcodeLookupService.close();
     for (final c in [_name, _brand, _price, _kcal, _protein, _fat, _carbs]) {
       c.dispose();
     }
@@ -104,10 +106,7 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
     });
 
     try {
-      final response = await ApiClient().get('/products/barcode/$code');
-      final result = BarcodeLookupResult.fromJson(
-        response as Map<String, dynamic>,
-      );
+      final result = await _barcodeLookupService.lookup(code);
       if (!mounted) return;
 
       if (!result.found) {

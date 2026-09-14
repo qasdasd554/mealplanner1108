@@ -133,7 +133,10 @@ async def trigger_scraper_run(
     summary="Skanuj internet w poszukiwaniu promocji przez AI (admin)",
 )
 async def trigger_ai_scan(
-    store_name: str = Query(..., description="Nazwa sklepu: Biedronka, Lidl albo Dino"),
+    store_name: str = Query(
+        ...,
+        description="Nazwa sklepu: Biedronka, Lidl, Dino albo Carrefour",
+    ),
     current_user: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ):
