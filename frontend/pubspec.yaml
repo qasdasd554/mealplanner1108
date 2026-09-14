@@ -1,7 +1,9 @@
 name: smart_meal_planner
 description: "A smart meal planner mobile application integrated with Polish grocery stores."
 publish_to: 'none'
-version: 1.0.4+201
+# Przy każdym kolejnym buildzie sklepowym zwiększ oba numery:
+# wersję iOS przed znakiem `+` oraz kod wersji Androida po `+`.
+version: 1.0.5+202
 
 environment:
   sdk: '>=3.7.0 <4.0.0'
