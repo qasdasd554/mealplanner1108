@@ -19,6 +19,8 @@ class CalorieCalculatorScreen extends StatefulWidget {
 
 class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
   final AuthService _authService = AuthService();
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _resultSectionKey = GlobalKey();
   final _weightController = TextEditingController();
   final _heightController = TextEditingController();
   final _ageController = TextEditingController();
@@ -57,6 +59,7 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _weightController.dispose();
     _heightController.dispose();
     _ageController.dispose();
@@ -93,6 +96,19 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
         // punkt startowy, użytkownik i tak może zmienić.
         _selectedGoal = result['maintenance']!.toDouble();
         _isCalculating = false;
+      });
+      // Wynik jest dodawany dopiero po zakończeniu zapytania. Poczekaj na
+      // jego wyrenderowanie i przewiń do początku nowej sekcji, aby użytkownik
+      // od razu zobaczył, że kalkulator zwrócił rezultat.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final resultContext = _resultSectionKey.currentContext;
+        if (!mounted || resultContext == null) return;
+        Scrollable.ensureVisible(
+          resultContext,
+          duration: const Duration(milliseconds: 550),
+          curve: Curves.easeOutCubic,
+          alignment: 0.08,
+        );
       });
     } catch (e) {
       if (!mounted) return;
@@ -154,10 +170,11 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
         // marginesem — w trybie edge-to-edge to za mało na niektórych
         // telefonach, przycisk częściowo chowa się pod paskiem nawigacji.
         child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          controller: _scrollController,
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             Text(
               'Podaj swoje dane, żeby obliczyć dzienne zapotrzebowanie kaloryczne '
               '(wzór Mifflin-St Jeor — ten sam standard, na którym opiera się '
@@ -269,8 +286,8 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
             ),
 
             if (_result != null) ..._buildResultSection(),
-          ],
-        ),
+            ],
+          ),
         ),
       ),
     );
@@ -282,7 +299,7 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
     final gain = _result!['weight_gain']!;
 
     return [
-      const SizedBox(height: 28),
+      SizedBox(key: _resultSectionKey, height: 28),
       Text('Wybierz swój cel', style: Theme.of(context).textTheme.titleMedium),
       const SizedBox(height: 4),
       Text(
