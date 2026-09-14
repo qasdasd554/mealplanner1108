@@ -120,16 +120,21 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
         if (_brand.text.trim().isEmpty && result.brand != null) {
           _brand.text = result.brand!;
         }
-        // Cena — TYLKO propozycja punktu wyjścia (cena, którą podał
-        // wcześniej ktoś inny przy tym samym produkcie). Nie nadpisuje
-        // tego, co użytkownik już wpisał, i zawsze można ją poprawić —
-        // ceny w różnych sklepach różnią się i to naturalne.
+        // Cena jest propozycją: pochodzi z polskiego zgłoszenia cenowego,
+        // z własnego katalogu albo (gdy tych danych brakuje) z ostrożnego
+        // oszacowania na podstawie rodzaju i wielkości opakowania.
         if (_price.text.trim().isEmpty && result.suggestedPrice != null) {
           _price.text = result.suggestedPrice!.toStringAsFixed(2);
         }
-        if (result.kcalPer100 != null) {
+        final hasNutrition = result.kcalPer100 != null ||
+            result.proteinPer100 != null ||
+            result.fatPer100 != null ||
+            result.carbsPer100 != null;
+        if (hasNutrition) {
           _showNutrition = true;
-          if (_kcal.text.trim().isEmpty) _kcal.text = result.kcalPer100!.toStringAsFixed(0);
+          if (_kcal.text.trim().isEmpty && result.kcalPer100 != null) {
+            _kcal.text = result.kcalPer100!.toStringAsFixed(0);
+          }
           if (_protein.text.trim().isEmpty && result.proteinPer100 != null) {
             _protein.text = result.proteinPer100!.toStringAsFixed(1);
           }
@@ -149,7 +154,7 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
           content: Text(
             result.isFromOwnCatalog
                 ? 'Znaleziono w katalogu — dane wypełnione automatycznie.'
-                : 'Znaleziono w Open Food Facts — sprawdź dane przed zapisaniem.',
+                : 'Znaleziono produkt — nazwa, marka, makro i cena zostały uzupełnione. Cena jest orientacyjna.',
           ),
         ));
     } catch (e) {

@@ -6,7 +6,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -46,12 +46,8 @@ class BarcodeLookupResponse(BaseModel):
     fat_per_100: float | None = None
     carbs_per_100: float | None = None
     existing_product_id: uuid.UUID | None = None
-    # Cena — TYLKO gdy produkt znaleziono we WŁASNYM katalogu (cena,
-    # którą podał wcześniej zgłaszający). Open Food Facts to baza
-    # skupiona na wartościach odżywczych, nie na cenach — nie ma tam
-    # wiarygodnych, aktualnych cen detalicznych dla polskiego rynku,
-    # więc świadomie NIE zgadujemy ceny z tego źródła. Lepiej zostawić
-    # puste pole niż podpowiedzieć błędną liczbę.
+    # Cena katalogowa, obserwacja z Open Prices albo jawny szacunek dla
+    # typowego opakowania. Użytkownik może ją poprawić przed zapisaniem.
     suggested_price: float | None = None
 
 
@@ -102,19 +98,26 @@ async def lookup_barcode(
 ) -> BarcodeLookupResponse:
     """Dwuetapowe wyszukiwanie: najpierw WŁASNY katalog (produkty
     zeskanowane i zgłoszone wcześniej przez kogokolwiek — natychmiastowe,
-    zawiera cenę), potem Open Food Facts jako zewnętrzne źródło (bez ceny,
-    tylko nazwa i wartości odżywcze — cenę użytkownik wpisuje sam).
+    zawiera cenę), potem Open Food Facts i Open Prices jako źródła nazwy,
+    marki, wartości odżywczych i polskiej ceny. Gdy nie ma zgłoszonej ceny,
+    usługa zwraca jej orientacyjny szacunek według kategorii i gramatury.
 
-    404, gdy nic nie znaleziono w ŻADNYM źródle — frontend pokazuje wtedy
+    Gdy nic nie znaleziono w żadnym źródle, frontend pokazuje wtedy
     pusty formularz zgłoszenia z już wpisanym kodem kreskowym, zamiast
     blokować użytkownika.
     """
+    from app.services.barcode_lookup import normalize_barcode
+
+    normalized_barcode = normalize_barcode(barcode)
+    if normalized_barcode is None:
+        raise HTTPException(status_code=400, detail="Nieprawidłowy kod EAN/UPC")
+
     # 1. Własny katalog — widoczne to, co widziałby zwykły GET /products
     # (zaakceptowane PLUS własne zgłoszenia), żeby nie pokazywać komuś
     # cudzego jeszcze niezatwierdzonego zgłoszenia jako "gotowy produkt".
     result = await db.execute(
         select(Product).where(
-            Product.barcode == barcode,
+            Product.barcode == normalized_barcode,
             or_(
                 Product.review_status == "approved",
                 Product.created_by_user_id == current_user.id,
@@ -123,6 +126,14 @@ async def lookup_barcode(
     )
     existing = result.scalar_one_or_none()
     if existing is not None:
+        catalog_price = existing.submitted_price
+        if catalog_price is None:
+            catalog_price = await db.scalar(
+                select(func.min(StoreProduct.price)).where(
+                    StoreProduct.product_id == existing.id,
+                    StoreProduct.is_available.is_(True),
+                )
+            )
         return BarcodeLookupResponse(
             found=True,
             source="catalog",
@@ -134,25 +145,26 @@ async def lookup_barcode(
             fat_per_100=(existing.nutrition_per_100 or {}).get("fat"),
             carbs_per_100=(existing.nutrition_per_100 or {}).get("carbs"),
             existing_product_id=existing.id,
-            suggested_price=float(existing.submitted_price) if existing.submitted_price else None,
+            suggested_price=float(catalog_price) if catalog_price is not None else None,
         )
 
     # 2. Open Food Facts — zewnętrzne, może nie znać lokalnej marki.
     from app.services.barcode_lookup import lookup_barcode_external
 
-    off_result = await lookup_barcode_external(barcode)
+    off_result = await lookup_barcode_external(normalized_barcode)
     if off_result is not None:
         return BarcodeLookupResponse(
             found=True,
             source="open_food_facts",
             name=off_result.name,
             brand=off_result.brand,
-            unit="g",
+            unit=off_result.unit,
             kcal_per_100=off_result.kcal_per_100,
             protein_per_100=off_result.protein_per_100,
             fat_per_100=off_result.fat_per_100,
             carbs_per_100=off_result.carbs_per_100,
             existing_product_id=None,
+            suggested_price=off_result.suggested_price,
         )
 
     return BarcodeLookupResponse(found=False, source=None, name=None)
@@ -348,10 +360,26 @@ async def submit_product(
         product_submission_limiter, current_user.id, "zgłaszanie produktów"
     )
 
+    normalized_barcode = None
+    if payload.barcode:
+        from app.services.barcode_lookup import normalize_barcode
+
+        normalized_barcode = normalize_barcode(payload.barcode)
+        if normalized_barcode is None:
+            raise HTTPException(status_code=400, detail="Nieprawidłowy kod EAN/UPC")
+
     nutrition = None
-    if payload.kcal_per_100 is not None:
+    if any(
+        value is not None
+        for value in (
+            payload.kcal_per_100,
+            payload.protein_per_100,
+            payload.fat_per_100,
+            payload.carbs_per_100,
+        )
+    ):
         nutrition = {
-            "kcal": payload.kcal_per_100,
+            "kcal": payload.kcal_per_100 or 0,
             "protein": payload.protein_per_100 or 0,
             "fat": payload.fat_per_100 or 0,
             "carbs": payload.carbs_per_100 or 0,
@@ -368,7 +396,7 @@ async def submit_product(
         review_status="pending",
         submitted_price=payload.price,
         requested_store_ids=[str(sid) for sid in payload.store_ids] or None,
-        barcode=payload.barcode.strip() if payload.barcode else None,
+        barcode=normalized_barcode,
     )
     db.add(product)
     try:

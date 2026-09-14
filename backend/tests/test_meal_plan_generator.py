@@ -6,11 +6,14 @@ Wszystkie testy używają mocków — nie wymagają rzeczywistej bazy danych.
 from __future__ import annotations
 
 import uuid
+from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+
+from app.services.meal_plan_generator import MealPlanGenerator
 
 
 # ---------------------------------------------------------------------------
@@ -397,6 +400,55 @@ class TestGeneratePlanCorrectSlotCount:
 
         assert len(entries) == expected_slots
 
+
+class TestNoDuplicateRecipesWithinDay:
+    """Ten sam przepis nie może zajmować dwóch slotów jednego dnia."""
+
+    def test_second_same_type_slot_uses_a_different_recipe(self) -> None:
+        snack = FakeRecipe(name="Przekąska A", meal_type="przekąska")
+        fallback = FakeRecipe(name="Danie B", meal_type="obiad")
+        generator = MealPlanGenerator(MagicMock())
+        generator._score_candidate = MagicMock(return_value=1.0)
+
+        selected = generator._greedy_select(
+            eligible_recipes=[snack, fallback],
+            slot_distribution=[(1, "przekąska"), (1, "przekąska")],
+            max_budget=None,
+            store_id=uuid.uuid4(),
+        )
+
+        assert len(selected) == 2
+        assert selected[0][2].id != selected[1][2].id
+
+    def test_calorie_top_up_also_keeps_daily_recipes_unique(self) -> None:
+        snack_a = FakeRecipe(name="Przekąska A", meal_type="przekąska")
+        snack_b = FakeRecipe(name="Przekąska B", meal_type="przekąska")
+        fallback = FakeRecipe(name="Danie C", meal_type="obiad")
+        generator = MealPlanGenerator(MagicMock())
+        generator._score_candidate = MagicMock(return_value=1.0)
+        generator._sum_per_person_nutrition = MagicMock(
+            side_effect=lambda recipes: {"kcal": len(recipes) * 100.0}
+        )
+
+        selected = generator._top_up_low_calorie_days(
+            selected=[(1, "przekąska", snack_a)],
+            pools={"przekąska": [snack_a, snack_b], "obiad": [fallback]},
+            used_ingredient_ids=set(),
+            recipe_usage_count=defaultdict(int, {snack_a.id: 1}),
+            target_kcal=300.0,
+        )
+
+        recipe_ids = [recipe.id for day, _slot, recipe in selected if day == 1]
+        assert len(recipe_ids) == 3
+        assert len(recipe_ids) == len(set(recipe_ids))
+
+    def test_final_guard_rejects_a_duplicate(self) -> None:
+        recipe = FakeRecipe(name="Duplikat", meal_type="obiad")
+
+        with pytest.raises(RuntimeError, match="więcej niż raz"):
+            MealPlanGenerator._assert_unique_recipes_per_day(
+                [(1, "obiad", recipe), (1, "kolacja", recipe)]
+            )
 
 class TestGeneratePlanRespectsMealTypes:
     """Test: plan posiłków respektuje przypisanie typów posiłków."""

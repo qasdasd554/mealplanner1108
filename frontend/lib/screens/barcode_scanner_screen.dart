@@ -1,105 +1,139 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_zxing/flutter_zxing.dart';
-import 'package:image_picker/image_picker.dart';
 
-/// Robi JEDNO zdjęcie kodu kreskowego, analizuje je i usuwa plik —
-/// zamiast trzymać podgląd kamery na żywo i czekać, aż uda się złapać
-/// kod w kadrze (co przy niektórych telefonach/oświetleniu potrafiło
-/// trwać kilkanaście sekund i sprawiać wrażenie zawieszenia).
+/// Otwiera skaner działający na strumieniu obrazu z aparatu.
 ///
-/// Zwraca zeskanowaną wartość, albo `null`, jeśli użytkownik anulował
-/// zdjęcie albo nic nie udało się rozpoznać.
-///
-/// RYZYKO DO ŚWIADOMOŚCI: robienie zdjęcia przez `image_picker` to
-/// mechanizm już sprawdzony w tej aplikacji (zdjęcia do AI, awatar) —
-/// tu nie ma niepewności. Natomiast SAMO ROZPOZNANIE kodu ze
-/// STATYCZNEGO zdjęcia (`zx.readBarcodeImagePath`) to funkcja
-/// `flutter_zxing`, dopracowana przez kolejne błędy kompilacji zamiast
-/// dokumentacji (niedostępnej z tego środowiska):
-/// 1. Nazwa funkcji — potwierdzona poprawna.
-/// 2. Wymaga DRUGIEGO argumentu — `DecodeParams()` okazał się
-///    poprawną nazwą klasy (kompilator się o nią nie potknął).
-/// 3. Pierwszy argument to `XFile` (obiekt z image_picker), NIE
-///    tekstowa ścieżka — to ostatnia poprawiona pomyłka.
-Future<String?> scanBarcode(BuildContext context) async {
-  final photo = await ImagePicker().pickImage(
-    source: ImageSource.camera,
-    // NAPRAWA PRÓBNA: poprzednie ustawienia (1600 px / jakość 85) były
-    // dobrane pod zwykłe zdjęcia (awatar, przepis), gdzie umiarkowana
-    // kompresja nie szkodzi. Kod kreskowy to drobne, gęste prążki —
-    // nawet niewielka kompresja JPEG potrafi je rozmazać na tyle, że
-    // silnik dekodujący nic nie znajdzie (dokładnie objaw, który
-    // zgłosiłeś: isValid=false bez żadnego błędu). Bez limitu
-    // szerokości i przy niemal maksymalnej jakości.
-    maxWidth: 3000,
-    imageQuality: 100,
-  );
-  if (photo == null || !context.mounted) return null;
-
-  // Ekran ładowania — widoczny natychmiast po zrobieniu zdjęcia, żeby
-  // było jasne, że coś się dzieje, a nie że aplikacja zawiesiła się.
-  // (Celowo bez `await` — ma się pokazać RÓWNOLEGLE z analizą poniżej,
-  // nie przed nią.)
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (_) => const AlertDialog(
-      content: Row(
-        children: [
-          CircularProgressIndicator(),
-          SizedBox(width: 20),
-          Expanded(child: Text('Skanowanie kodu kreskowego...')),
-        ],
-      ),
+/// Poprzednia wersja robiła pojedyncze zdjęcie i próbowała odczytać kod z
+/// mocno zależnego od ostrości pliku JPEG. Na wielu telefonach poprawny kod
+/// nie był wykrywany. ReaderWidget analizuje kolejne klatki, obsługuje obrót,
+/// odwrócone kolory i trudniejsze kody, dlatego daje użytkownikowi czas na
+/// ustawienie ostrości i odległości.
+Future<String?> scanBarcode(BuildContext context) {
+  return Navigator.of(context).push<String>(
+    MaterialPageRoute(
+      fullscreenDialog: true,
+      builder: (_) => const BarcodeScannerScreen(),
     ),
   );
+}
 
-  String? code;
-  String? debugInfo;
-  try {
-    final result = await zx.readBarcodeImagePath(photo, DecodeParams());
-    // DIAGNOSTYKA: isValid/text są już potwierdzone jako poprawne (ta
-    // wersja się kompiluje i uruchamia) — pokazujemy je wprost, żeby
-    // zobaczyć, czy rozpoznanie faktycznie się nie udaje (isValid:
-    // false), czy problem jest gdzie indziej.
-    debugInfo = 'isValid=${result.isValid}, text=${result.text}';
-    code = result.isValid ? result.text : null;
-  } catch (e, st) {
-    code = null;
-    debugInfo = 'WYJĄTEK: $e';
-    debugPrint('Barcode decode error: $e\n$st');
-  } finally {
-    // Zdjęcie posłużyło tylko do jednorazowej analizy — kasujemy je,
-    // zamiast zaśmiecać telefon użytkownika tymczasowymi plikami.
-    try {
-      await File(photo.path).delete();
-    } catch (_) {
-      // Nieudane skasowanie pliku tymczasowego nie jest błędem, na
-      // który warto przerywać cokolwiek użytkownikowi.
-    }
-    if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
+class BarcodeScannerScreen extends StatefulWidget {
+  const BarcodeScannerScreen({super.key});
+
+  @override
+  State<BarcodeScannerScreen> createState() => _BarcodeScannerScreenState();
+}
+
+class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
+  bool _resultHandled = false;
+
+  String? _normalize(String? value) {
+    if (value == null) return null;
+    final digits = value.replaceAll(RegExp(r'[^0-9]'), '');
+    return digits.length >= 8 && digits.length <= 14 ? digits : null;
   }
 
-  if (code == null || code.isEmpty) {
-    // TYMCZASOWE (diagnostyczne): pokazujemy surowy stan wyniku wprost
-    // w komunikacie, żeby dowiedzieć się, co faktycznie dzieje się
-    // "w środku" biblioteki, bez dostępu do logów konsoli na telefonie.
-    if (context.mounted) {
-      showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: const Text('Diagnostyka skanowania'),
-          content: Text(debugInfo ?? 'brak danych'),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
-          ],
+  void _onScan(Code result) {
+    if (_resultHandled || !result.isValid) return;
+    final barcode = _normalize(result.text);
+    if (barcode == null) return;
+
+    _resultHandled = true;
+    Navigator.of(context).pop(barcode);
+  }
+
+  Future<void> _enterManually() async {
+    final controller = TextEditingController();
+    final value = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Wpisz kod kreskowy'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'EAN/UPC',
+            hintText: '8–14 cyfr',
+          ),
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Anuluj'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, controller.text),
+            child: const Text('Wyszukaj'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (!mounted || value == null) return;
+
+    final barcode = _normalize(value);
+    if (barcode == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Kod musi zawierać od 8 do 14 cyfr.')),
       );
+      return;
     }
-    return null;
+    _resultHandled = true;
+    Navigator.of(context).pop(barcode);
   }
 
-  return code;
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Skanuj kod kreskowy')),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          ReaderWidget(
+            onScan: _onScan,
+            codeFormat: Format.any,
+            tryHarder: true,
+            tryInverted: true,
+            tryRotate: true,
+            showScannerOverlay: true,
+          ),
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 24 + MediaQuery.of(context).padding.bottom,
+            child: SafeArea(
+              top: false,
+              child: Card(
+                color: Colors.black.withOpacity(0.78),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'Umieść cały kod w ramce i trzymaj telefon nieruchomo. '
+                        'Skanowanie nastąpi automatycznie.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      const SizedBox(height: 10),
+                      TextButton.icon(
+                        onPressed: _enterManually,
+                        icon: const Icon(Icons.keyboard, color: Colors.white),
+                        label: const Text(
+                          'Wpisz kod ręcznie',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

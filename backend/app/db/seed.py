@@ -33,7 +33,7 @@ def _uid(name: str) -> uuid.UUID:
 # ══════════════════════════════════════════════════════════════════
 # SKLEPY
 # ══════════════════════════════════════════════════════════════════
-STORE_NAMES = ["Biedronka", "Lidl", "Dino"]
+STORE_NAMES = ["Biedronka", "Lidl", "Dino", "Carrefour"]
 
 DEPARTMENT_NAMES = [
     "Warzywa i owoce",
@@ -249,6 +249,57 @@ PRODUCTS_DATA: list[tuple[str, str, Decimal, str, Decimal, list[str]]] = [
     ("Udka z kurczaka", "kg", Decimal("1"), "Mięso i wędliny", Decimal("13.99"), []),
     ("Łosoś filet", "g", Decimal("400"), "Ryby", Decimal("29.99"), ["ryby"]),
     ("Ser cheddar", "g", Decimal("200"), "Nabiał", Decimal("9.99"), ["laktoza"]),
+    # ── Kolejne składniki przydatne w przepisach (+50) ───────────
+    ("Szalotka", "g", Decimal("250"), "Warzywa i owoce", Decimal("4.99"), []),
+    ("Szczypiorek", "szt", Decimal("1"), "Warzywa i owoce", Decimal("2.99"), []),
+    ("Pietruszka korzeń", "kg", Decimal("1"), "Warzywa i owoce", Decimal("6.99"), []),
+    ("Dynia hokkaido", "kg", Decimal("1"), "Warzywa i owoce", Decimal("7.99"), []),
+    ("Bataty", "kg", Decimal("1"), "Warzywa i owoce", Decimal("9.99"), []),
+    ("Fasolka szparagowa mrożona", "g", Decimal("450"), "Mrożonki", Decimal("6.99"), []),
+    ("Szparagi", "g", Decimal("500"), "Warzywa i owoce", Decimal("14.99"), []),
+    ("Jarmuż", "g", Decimal("200"), "Warzywa i owoce", Decimal("4.99"), []),
+    ("Szpinak świeży", "g", Decimal("200"), "Warzywa i owoce", Decimal("5.99"), []),
+    ("Rukola", "g", Decimal("100"), "Warzywa i owoce", Decimal("4.49"), []),
+    ("Jogurt grecki", "g", Decimal("400"), "Nabiał", Decimal("5.49"), ["laktoza"]),
+    ("Kefir", "g", Decimal("400"), "Nabiał", Decimal("3.49"), ["laktoza"]),
+    ("Serek śmietankowy", "g", Decimal("200"), "Nabiał", Decimal("5.49"), ["laktoza"]),
+    ("Ricotta", "g", Decimal("250"), "Nabiał", Decimal("8.99"), ["laktoza"]),
+    ("Mascarpone", "g", Decimal("250"), "Nabiał", Decimal("9.99"), ["laktoza"]),
+    ("Ser kozi", "g", Decimal("150"), "Nabiał", Decimal("11.99"), ["laktoza"]),
+    ("Ser pleśniowy", "g", Decimal("100"), "Nabiał", Decimal("6.99"), ["laktoza"]),
+    ("Skrzydełka z kurczaka", "kg", Decimal("1"), "Mięso i wędliny", Decimal("12.99"), []),
+    ("Karkówka wieprzowa", "kg", Decimal("1"), "Mięso i wędliny", Decimal("22.99"), []),
+    ("Polędwiczka wieprzowa", "kg", Decimal("1"), "Mięso i wędliny", Decimal("34.99"), []),
+    ("Stek wołowy", "g", Decimal("300"), "Mięso i wędliny", Decimal("24.99"), []),
+    ("Chorizo", "g", Decimal("200"), "Mięso i wędliny", Decimal("12.99"), []),
+    ("Makrela wędzona", "g", Decimal("250"), "Ryby", Decimal("10.99"), ["ryby"]),
+    ("Sardynki w oliwie", "g", Decimal("120"), "Konserwy", Decimal("7.99"), ["ryby"]),
+    ("Anchois w oliwie", "g", Decimal("50"), "Konserwy", Decimal("9.99"), ["ryby"]),
+    ("Ryż arborio", "g", Decimal("500"), "Produkty suche", Decimal("9.99"), []),
+    ("Makaron ryżowy", "g", Decimal("200"), "Produkty suche", Decimal("6.29"), []),
+    ("Makaron udon", "g", Decimal("300"), "Produkty suche", Decimal("7.99"), ["gluten"]),
+    ("Polenta", "g", Decimal("500"), "Produkty suche", Decimal("6.99"), []),
+    ("Kasza jęczmienna", "g", Decimal("400"), "Produkty suche", Decimal("3.99"), ["gluten"]),
+    ("Płatki drożdżowe nieaktywne", "g", Decimal("100"), "Produkty suche", Decimal("13.99"), []),
+    ("Mąka pszenna pełnoziarnista", "kg", Decimal("1"), "Produkty suche", Decimal("5.49"), ["gluten"]),
+    ("Mąka orkiszowa", "kg", Decimal("1"), "Produkty suche", Decimal("7.99"), ["gluten"]),
+    ("Drożdże instant", "g", Decimal("7"), "Produkty suche", Decimal("1.49"), []),
+    ("Ekstrakt waniliowy", "ml", Decimal("35"), "Produkty suche", Decimal("9.99"), []),
+    ("Syrop klonowy", "ml", Decimal("250"), "Produkty suche", Decimal("19.99"), []),
+    ("Cukier trzcinowy", "g", Decimal("500"), "Produkty suche", Decimal("6.99"), []),
+    ("Cukier puder", "g", Decimal("400"), "Produkty suche", Decimal("3.49"), []),
+    ("Śmietanka kokosowa", "ml", Decimal("400"), "Produkty suche", Decimal("8.99"), []),
+    ("Karczochy konserwowe", "g", Decimal("280"), "Konserwy", Decimal("10.99"), []),
+    ("Papryka pieczona konserwowa", "g", Decimal("500"), "Konserwy", Decimal("9.99"), []),
+    ("Suszone pomidory", "g", Decimal("280"), "Konserwy", Decimal("10.99"), []),
+    ("Sos ostrygowy", "ml", Decimal("150"), "Przyprawy i sosy", Decimal("9.99"), ["skorupiaki"]),
+    ("Sos sriracha", "ml", Decimal("200"), "Przyprawy i sosy", Decimal("10.99"), []),
+    ("Sos hoisin", "ml", Decimal("200"), "Przyprawy i sosy", Decimal("9.99"), ["gluten", "soja"]),
+    ("Bulion drobiowy", "szt", Decimal("6"), "Przyprawy i sosy", Decimal("4.49"), []),
+    ("Bulion wołowy", "szt", Decimal("6"), "Przyprawy i sosy", Decimal("4.49"), []),
+    ("Orzechy nerkowca", "g", Decimal("200"), "Produkty suche", Decimal("12.99"), ["orzechy"]),
+    ("Orzeszki ziemne", "g", Decimal("200"), "Produkty suche", Decimal("6.99"), ["orzechy"]),
+    ("Orzeszki piniowe", "g", Decimal("50"), "Produkty suche", Decimal("13.99"), ["orzechy"]),
 ]
 
 # Marka jest częścią oficjalnego katalogu tak samo jak nazwa i wartości
@@ -346,6 +397,82 @@ PRODUCT_BRANDS: dict[str, str] = {
     for product_name in product_names
 }
 
+# Marka produktu jest wspólna dla katalogu i nie może należeć wyłącznie do
+# jednej sieci handlowej. Marki własne są przypisywane niżej do StoreProduct.
+# Dla niepakowanych warzyw i owoców używamy faktycznego dostawcy hurtowego,
+# a nie szyldu działu sklepu (np. „Ryneczek Lidla”).
+PRODUCT_BRANDS.update({
+    **{name: "Mlekovita" for name in (
+        "Mleko 2%", "Masło extra", "Ser żółty gouda", "Jogurt naturalny",
+        "Śmietana 18%", "Twaróg półtłusty", "Śmietana 30%", "Ser feta",
+    )},
+    **{name: "Sokołów" for name in (
+        "Pierś z kurczaka", "Mielone wieprzowo-wołowe", "Szynka konserwowa",
+        "Wołowina mielona", "Schab wieprzowy", "Filet z indyka",
+        "Kiełbasa śląska", "Boczek wędzony", "Udka z kurczaka",
+    )},
+    **{name: "Graal" for name in (
+        "Łosoś wędzony", "Krewetki mrożone", "Dorsz filet",
+        "Tuńczyk w sosie własnym", "Łosoś filet",
+    )},
+    **{name: "Greenyard Fresh" for name in (
+        "Pomidory", "Ogórek", "Cebula", "Ziemniaki", "Kapusta biała",
+        "Seler naciowy", "Marchew", "Papryka czerwona", "Sałata lodowa",
+        "Koperek świeży", "Natka pietruszki", "Buraki", "Kapusta czerwona",
+        "Cebula czerwona", "Czosnek", "Awokado", "Pieczarki", "Jabłka",
+        "Banan", "Maliny", "Cytryna", "Limonka", "Imbir świeży", "Brokuł",
+        "Cukinia", "Bakłażan", "Kapusta pekińska", "Kalafior", "Por", "Mango",
+        "Truskawki", "Borówki", "Szalotka", "Szczypiorek", "Pietruszka korzeń",
+        "Dynia hokkaido", "Bataty", "Szparagi", "Jarmuż", "Szpinak świeży", "Rukola",
+    )},
+    "Jajka": "Fermy Drobiu Woźniak",
+    "Hummus": "Perla",
+    "Tofu naturalne": "Polsoja",
+    "Mozzarella": "Galbani",
+    "Parmezan": "Zanetti",
+    "Fasolka szparagowa mrożona": "Hortex",
+    "Jogurt grecki": "Mlekovita",
+    "Kefir": "Robico",
+    "Serek śmietankowy": "Łaciaty",
+    "Ricotta": "Galbani",
+    "Mascarpone": "Piątnica",
+    "Ser kozi": "Soignon",
+    "Ser pleśniowy": "Lazur",
+    "Skrzydełka z kurczaka": "Sokołów",
+    "Karkówka wieprzowa": "Sokołów",
+    "Polędwiczka wieprzowa": "Sokołów",
+    "Stek wołowy": "Sokołów",
+    "Chorizo": "Espuña",
+    "Makrela wędzona": "Graal",
+    "Sardynki w oliwie": "King Oscar",
+    "Anchois w oliwie": "Ortiz",
+    "Ryż arborio": "Riso Gallo",
+    "Makaron ryżowy": "House of Asia",
+    "Makaron udon": "House of Asia",
+    "Polenta": "Melvit",
+    "Kasza jęczmienna": "Kupiec",
+    "Płatki drożdżowe nieaktywne": "Helsey",
+    "Mąka pszenna pełnoziarnista": "Lubella",
+    "Mąka orkiszowa": "Melvit",
+    "Drożdże instant": "Dr. Oetker",
+    "Ekstrakt waniliowy": "Dr. Oetker",
+    "Syrop klonowy": "Maple Joe",
+    "Cukier trzcinowy": "Diamant",
+    "Cukier puder": "Diamant",
+    "Śmietanka kokosowa": "House of Asia",
+    "Karczochy konserwowe": "Rolnik",
+    "Papryka pieczona konserwowa": "Rolnik",
+    "Suszone pomidory": "Ole!",
+    "Sos ostrygowy": "House of Asia",
+    "Sos sriracha": "Flying Goose",
+    "Sos hoisin": "Blue Dragon",
+    "Bulion drobiowy": "Winiary",
+    "Bulion wołowy": "Winiary",
+    "Orzechy nerkowca": "Helio",
+    "Orzeszki ziemne": "Felix",
+    "Orzeszki piniowe": "Kresto",
+})
+
 _catalog_product_names = [row[0] for row in PRODUCTS_DATA]
 if len(PRODUCT_BRANDS) != len(_catalog_product_names) or set(PRODUCT_BRANDS) != set(_catalog_product_names):
     missing = sorted(set(_catalog_product_names) - set(PRODUCT_BRANDS))
@@ -357,6 +484,7 @@ PRICE_MULTIPLIERS = {
     "Biedronka": Decimal("1.00"),
     "Lidl": Decimal("1.05"),
     "Dino": Decimal("1.12"),
+    "Carrefour": Decimal("1.15"),
 }
 
 # ── Marki własne sklepów ──────────────────────────────────────────
@@ -410,6 +538,62 @@ STORE_BRANDS: dict[tuple[str, str], str] = {
     ("Lidl", "Migdały płatki"): "Alesto",
     # ── Mąka / pieczenie ──
     ("Dino", "Mąka pszenna"): "Hania",
+    ("Dino", "Kasza jęczmienna"): "Kuchnia Smaku",
+    # ── Carrefour: pozycje potwierdzone w bieżącym katalogu online ──
+    ("Carrefour", "Mleko 2%"): "Carrefour Classic",
+    ("Carrefour", "Ryż biały"): "Carrefour Classic",
+    ("Carrefour", "Ryż basmati"): "Carrefour",
+    ("Carrefour", "Ryż jaśminowy"): "Carrefour Extra",
+    ("Carrefour", "Ryż arborio"): "Carrefour Extra",
+    ("Carrefour", "Kasza jaglana"): "Carrefour Classic",
+    ("Carrefour", "Kasza manna"): "Simpl",
+    ("Carrefour", "Makaron penne"): "Carrefour Classic",
+    ("Carrefour", "Makaron fusilli"): "Carrefour Classic",
+    ("Carrefour", "Makaron tagliatelle"): "Carrefour Classic",
+    ("Carrefour", "Makaron lasagne"): "Carrefour Classic",
+    ("Carrefour", "Mąka pszenna"): "Carrefour Classic",
+    ("Carrefour", "Tortilla pszenna"): "Carrefour Classic",
+    ("Carrefour", "Musztarda"): "Carrefour Classic",
+    ("Carrefour", "Oliwki czarne"): "Carrefour Classic",
+}
+
+# Nie wolno przypisywać marki całemu działowi (np. wszystkich produktów
+# suchych do Combino), bo jedna sieć ma w nim wiele niezależnych marek.
+# Jedynym bezpiecznym wyjątkiem jest oficjalna linia świeżych warzyw i owoców
+# Ryneczek Lidla. Pozostałe pozycje korzystają z dokładnego mapowania wyżej
+# albo z rzeczywistej marki producenta w PRODUCT_BRANDS.
+STORE_DEPARTMENT_BRANDS: dict[tuple[str, str], str] = {
+    ("Lidl", "Warzywa i owoce"): "Ryneczek Lidla",
+}
+
+
+def _store_brand_for(store_name: str, product_name: str, department_name: str) -> str:
+    """Zwraca markę faktycznie właściwą dla wybranego sklepu."""
+    return (
+        STORE_BRANDS.get((store_name, product_name))
+        or STORE_DEPARTMENT_BRANDS.get((store_name, department_name))
+        or PRODUCT_BRANDS[product_name]
+    )
+
+
+# Ceny regularne są orientacyjne i zależą od lokalizacji sklepu. Poniższe
+# wyjątki odwzorowują publiczne ceny katalogowe z września 2026; reszta jest
+# liczona z ceny bazowej i mnożnika sieci.
+STORE_PRICE_OVERRIDES: dict[tuple[str, str], Decimal] = {
+    ("Biedronka", "Makaron fusilli"): Decimal("3.39"),
+    ("Biedronka", "Makaron spaghetti"): Decimal("3.49"),
+    ("Biedronka", "Ryż biały"): Decimal("10.99"),
+    ("Biedronka", "Ryż basmati"): Decimal("6.29"),
+    ("Carrefour", "Ryż biały"): Decimal("7.23"),
+    ("Carrefour", "Makaron fusilli"): Decimal("4.49"),
+    ("Carrefour", "Makaron tagliatelle"): Decimal("5.79"),
+    ("Carrefour", "Makaron lasagne"): Decimal("5.29"),
+    ("Carrefour", "Ryż arborio"): Decimal("8.39"),
+    ("Carrefour", "Kasza jaglana"): Decimal("2.75"),
+    ("Carrefour", "Kasza manna"): Decimal("2.25"),
+    ("Carrefour", "Makaron ryżowy"): Decimal("7.05"),
+    ("Carrefour", "Pesto zielone"): Decimal("16.39"),
+    ("Carrefour", "Mleko kokosowe"): Decimal("8.79"),
 }
 
 # Wartości odżywcze na 100g/ml (lub 1 sztukę, jeśli produkt liczony w sztukach i nie ma sprecyzowanej wagi)
@@ -581,6 +765,57 @@ NUTRITION_DATA = {
     "Udka z kurczaka": {"kcal": 177, "protein": 18.2, "fat": 11.2, "carbs": 0.0, "fiber": 0.0},
     "Łosoś filet": {"kcal": 208, "protein": 20.4, "fat": 13.4, "carbs": 0.0, "fiber": 0.0},
     "Ser cheddar": {"kcal": 403, "protein": 24.9, "fat": 33.1, "carbs": 1.3, "fiber": 0.0},
+    # ── Kolejne składniki przydatne w przepisach (+50) ───────────
+    "Szalotka": {"kcal": 72, "protein": 2.5, "fat": 0.1, "carbs": 16.8, "fiber": 3.2},
+    "Szczypiorek": {"kcal": 30, "protein": 3.3, "fat": 0.7, "carbs": 4.4, "fiber": 2.5},
+    "Pietruszka korzeń": {"kcal": 55, "protein": 2.3, "fat": 0.6, "carbs": 12.3, "fiber": 4.3},
+    "Dynia hokkaido": {"kcal": 63, "protein": 1.7, "fat": 0.6, "carbs": 13.6, "fiber": 2.8},
+    "Bataty": {"kcal": 86, "protein": 1.6, "fat": 0.1, "carbs": 20.1, "fiber": 3.0},
+    "Fasolka szparagowa mrożona": {"kcal": 31, "protein": 1.8, "fat": 0.2, "carbs": 7.0, "fiber": 2.7},
+    "Szparagi": {"kcal": 20, "protein": 2.2, "fat": 0.1, "carbs": 3.9, "fiber": 2.1},
+    "Jarmuż": {"kcal": 49, "protein": 4.3, "fat": 0.9, "carbs": 8.8, "fiber": 3.6},
+    "Szpinak świeży": {"kcal": 23, "protein": 2.9, "fat": 0.4, "carbs": 3.6, "fiber": 2.2},
+    "Rukola": {"kcal": 25, "protein": 2.6, "fat": 0.7, "carbs": 3.7, "fiber": 1.6},
+    "Jogurt grecki": {"kcal": 97, "protein": 9.0, "fat": 5.0, "carbs": 3.9, "fiber": 0.0},
+    "Kefir": {"kcal": 51, "protein": 3.4, "fat": 2.0, "carbs": 4.7, "fiber": 0.0},
+    "Serek śmietankowy": {"kcal": 225, "protein": 5.5, "fat": 21.0, "carbs": 4.0, "fiber": 0.0},
+    "Ricotta": {"kcal": 174, "protein": 11.3, "fat": 13.0, "carbs": 3.0, "fiber": 0.0},
+    "Mascarpone": {"kcal": 429, "protein": 4.8, "fat": 44.0, "carbs": 4.0, "fiber": 0.0},
+    "Ser kozi": {"kcal": 364, "protein": 21.6, "fat": 29.8, "carbs": 0.1, "fiber": 0.0},
+    "Ser pleśniowy": {"kcal": 353, "protein": 21.4, "fat": 28.7, "carbs": 2.3, "fiber": 0.0},
+    "Skrzydełka z kurczaka": {"kcal": 203, "protein": 18.3, "fat": 13.8, "carbs": 0.0, "fiber": 0.0},
+    "Karkówka wieprzowa": {"kcal": 267, "protein": 17.0, "fat": 22.0, "carbs": 0.0, "fiber": 0.0},
+    "Polędwiczka wieprzowa": {"kcal": 143, "protein": 21.0, "fat": 5.8, "carbs": 0.0, "fiber": 0.0},
+    "Stek wołowy": {"kcal": 250, "protein": 26.0, "fat": 15.0, "carbs": 0.0, "fiber": 0.0},
+    "Chorizo": {"kcal": 455, "protein": 24.1, "fat": 38.3, "carbs": 1.9, "fiber": 0.0},
+    "Makrela wędzona": {"kcal": 221, "protein": 20.7, "fat": 15.5, "carbs": 0.0, "fiber": 0.0},
+    "Sardynki w oliwie": {"kcal": 208, "protein": 24.6, "fat": 11.5, "carbs": 0.0, "fiber": 0.0},
+    "Anchois w oliwie": {"kcal": 210, "protein": 28.9, "fat": 9.7, "carbs": 0.0, "fiber": 0.0},
+    "Ryż arborio": {"kcal": 356, "protein": 7.0, "fat": 0.7, "carbs": 79.0, "fiber": 1.0},
+    "Makaron ryżowy": {"kcal": 364, "protein": 5.9, "fat": 0.6, "carbs": 80.2, "fiber": 1.6},
+    "Makaron udon": {"kcal": 337, "protein": 10.4, "fat": 1.1, "carbs": 70.0, "fiber": 2.5},
+    "Polenta": {"kcal": 362, "protein": 8.1, "fat": 3.6, "carbs": 76.9, "fiber": 7.3},
+    "Kasza jęczmienna": {"kcal": 354, "protein": 12.5, "fat": 2.3, "carbs": 73.5, "fiber": 17.3},
+    "Płatki drożdżowe nieaktywne": {"kcal": 350, "protein": 45.0, "fat": 5.0, "carbs": 35.0, "fiber": 20.0},
+    "Mąka pszenna pełnoziarnista": {"kcal": 340, "protein": 13.2, "fat": 2.5, "carbs": 72.0, "fiber": 10.7},
+    "Mąka orkiszowa": {"kcal": 338, "protein": 14.6, "fat": 2.4, "carbs": 70.2, "fiber": 10.7},
+    "Drożdże instant": {"kcal": 325, "protein": 40.4, "fat": 7.6, "carbs": 41.2, "fiber": 26.9},
+    "Ekstrakt waniliowy": {"kcal": 288, "protein": 0.1, "fat": 0.1, "carbs": 12.7, "fiber": 0.0},
+    "Syrop klonowy": {"kcal": 260, "protein": 0.0, "fat": 0.1, "carbs": 67.0, "fiber": 0.0},
+    "Cukier trzcinowy": {"kcal": 380, "protein": 0.0, "fat": 0.0, "carbs": 98.0, "fiber": 0.0},
+    "Cukier puder": {"kcal": 389, "protein": 0.0, "fat": 0.0, "carbs": 99.8, "fiber": 0.0},
+    "Śmietanka kokosowa": {"kcal": 330, "protein": 3.6, "fat": 34.7, "carbs": 6.7, "fiber": 2.2},
+    "Karczochy konserwowe": {"kcal": 47, "protein": 3.3, "fat": 0.2, "carbs": 10.5, "fiber": 5.4},
+    "Papryka pieczona konserwowa": {"kcal": 35, "protein": 1.0, "fat": 0.3, "carbs": 7.0, "fiber": 2.0},
+    "Suszone pomidory": {"kcal": 213, "protein": 5.1, "fat": 14.1, "carbs": 17.5, "fiber": 4.9},
+    "Sos ostrygowy": {"kcal": 107, "protein": 1.4, "fat": 0.3, "carbs": 25.0, "fiber": 0.3},
+    "Sos sriracha": {"kcal": 93, "protein": 1.3, "fat": 0.9, "carbs": 19.4, "fiber": 1.9},
+    "Sos hoisin": {"kcal": 220, "protein": 3.3, "fat": 3.4, "carbs": 44.1, "fiber": 1.8},
+    "Bulion drobiowy": {"kcal": 180, "protein": 7.0, "fat": 12.0, "carbs": 11.0, "fiber": 0.0},
+    "Bulion wołowy": {"kcal": 170, "protein": 7.0, "fat": 11.0, "carbs": 11.0, "fiber": 0.0},
+    "Orzechy nerkowca": {"kcal": 553, "protein": 18.2, "fat": 43.9, "carbs": 30.2, "fiber": 3.3},
+    "Orzeszki ziemne": {"kcal": 567, "protein": 25.8, "fat": 49.2, "carbs": 16.1, "fiber": 8.5},
+    "Orzeszki piniowe": {"kcal": 673, "protein": 13.7, "fat": 68.4, "carbs": 13.1, "fiber": 3.7},
 }
 
 WEIGHT_PER_SZT = {
@@ -3808,7 +4043,10 @@ async def seed_database(session: AsyncSession) -> None:
         # Powiązanie z każdym sklepem
         for store_name, store in stores.items():
             multiplier = PRICE_MULTIPLIERS[store_name]
-            price = (base_price * multiplier).quantize(Decimal("0.01"))
+            price = STORE_PRICE_OVERRIDES.get(
+                (store_name, prod_name),
+                (base_price * multiplier).quantize(Decimal("0.01")),
+            )
             dept = departments[(store_name, dept_name)]
 
             sp = StoreProduct(
@@ -3817,7 +4055,7 @@ async def seed_database(session: AsyncSession) -> None:
                 product_id=product.id,
                 department_id=dept.id,
                 price=price,
-                store_brand_name=STORE_BRANDS.get((store_name, prod_name)),
+                store_brand_name=_store_brand_for(store_name, prod_name, dept_name),
                 is_available=True,
                 last_verified=date.today(),
                 withdrawn_at=None,

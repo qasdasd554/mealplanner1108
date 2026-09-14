@@ -6,7 +6,8 @@ ponowne użycie składników, uwzględniając przy tym:
 - preferencje dietetyczne,
 - dostępność produktów w wybranym sklepie,
 - zbilansowanie makroskładników,
-- różnorodność posiłków.
+- różnorodność posiłków,
+- bezwzględny brak powtórzenia tego samego przepisu w jednym dniu.
 """
 
 from __future__ import annotations
@@ -489,47 +490,61 @@ class MealPlanGenerator:
                     available=0,
                 )
 
+            # Twarda reguła dzienna: tego samego przepisu nie wolno wybrać
+            # drugi raz w jednym dniu, również dla dwóch slotów „przekąska”.
+            # Najpierw zachowujemy właściwy typ posiłku. Dopiero gdy jego
+            # pula nie ma już unikalnego kandydata, szukamy w całym katalogu.
+            daily_recipe_ids = {recipe.id for recipe in daily_recipes}
+            search_pools = [pool]
+            if pool is not eligible_recipes:
+                search_pools.append(eligible_recipes)
+
             best_recipe: Recipe | None = None
-            best_score: float = -1.0
+            for candidate_pool in search_pools:
+                # Limit tygodniowych powtórzeń jest regułą miękką: można go
+                # przekroczyć przy bardzo małej puli. Unikalność w danym dniu
+                # pozostaje twarda i nie jest wyłączana w żadnej strategii.
+                for ignore_repeat_limit in (False, True):
+                    best_score = -1.0
+                    candidate_for_strategy: Recipe | None = None
+                    for candidate in candidate_pool:
+                        if candidate.id in daily_recipe_ids:
+                            continue
+                        if (
+                            not ignore_repeat_limit
+                            and recipe_usage_count[candidate.id] >= MAX_RECIPE_REPEATS
+                        ):
+                            continue
 
-            for candidate in pool:
-                # Limit powtórzeń
-                if recipe_usage_count[candidate.id] >= MAX_RECIPE_REPEATS:
-                    continue
+                        score = self._score_candidate(
+                            candidate=candidate,
+                            used_ingredient_ids=used_ingredient_ids,
+                            recipe_usage_count=recipe_usage_count,
+                            daily_recipes=daily_recipes,
+                            ignore_repeat_limit=ignore_repeat_limit,
+                            target_kcal=target_kcal,
+                            meals_today=slots_per_day.get(day, 1),
+                        )
+                        if score > best_score:
+                            best_score = score
+                            candidate_for_strategy = candidate
 
-                score = self._score_candidate(
-                    candidate=candidate,
-                    used_ingredient_ids=used_ingredient_ids,
-                    recipe_usage_count=recipe_usage_count,
-                    daily_recipes=daily_recipes,
-                    target_kcal=target_kcal,
-                    meals_today=slots_per_day.get(day, 1),
+                    if candidate_for_strategy is not None:
+                        best_recipe = candidate_for_strategy
+                        break
+                if best_recipe is not None:
+                    break
+
+            if best_recipe is None:
+                # Liczba unikalnych przepisów jest mniejsza niż liczba
+                # posiłków wymagana tego dnia. Nie zapisujemy wadliwego planu.
+                available_unique = len(
+                    {recipe.id for recipe in eligible_recipes} - daily_recipe_ids
                 )
-                if score > best_score:
-                    best_score = score
-                    best_recipe = candidate
-
-            if best_recipe is None:
-                # Spróbuj z dopuszczeniem powtórzeń
-                for candidate in pool:
-                    score = self._score_candidate(
-                        candidate=candidate,
-                        used_ingredient_ids=used_ingredient_ids,
-                        recipe_usage_count=recipe_usage_count,
-                        daily_recipes=daily_recipes,
-                        ignore_repeat_limit=True,
-                        target_kcal=target_kcal,
-                        meals_today=slots_per_day.get(day, 1),
-                    )
-                    if score > best_score:
-                        best_score = score
-                        best_recipe = candidate
-
-            if best_recipe is None:
                 raise InsufficientRecipesError(
                     meal_type=meal_type,
                     required=1,
-                    available=0,
+                    available=available_unique,
                 )
 
             # Zapamiętaj wybór
@@ -547,6 +562,8 @@ class MealPlanGenerator:
                 recipe_usage_count=recipe_usage_count,
                 target_kcal=target_kcal,
             )
+
+        self._assert_unique_recipes_per_day(selected)
 
         logger.info(
             "Wybrano %d przepisów, unikalne składniki: %d",
@@ -604,7 +621,10 @@ class MealPlanGenerator:
 
                 best_candidate: Recipe | None = None
                 best_score = -1.0
+                daily_recipe_ids = {recipe.id for recipe in day_recipes}
                 for candidate in top_up_pool:
+                    if candidate.id in daily_recipe_ids:
+                        continue
                     if recipe_usage_count[candidate.id] >= MAX_RECIPE_REPEATS:
                         continue
                     score = self._score_candidate(
@@ -623,6 +643,8 @@ class MealPlanGenerator:
                     # dopełnić DOWOLNYM dostępnym daniem z innej kategorii,
                     # zamiast od razu się poddawać.
                     for candidate in all_recipes_pool:
+                        if candidate.id in daily_recipe_ids:
+                            continue
                         if recipe_usage_count[candidate.id] >= MAX_RECIPE_REPEATS:
                             continue
                         score = self._score_candidate(
@@ -656,6 +678,19 @@ class MealPlanGenerator:
         if extra_entries:
             logger.info("Dopełniono %d dni dodatkowymi daniami (łącznie +%d)", len(by_day), len(extra_entries))
         return selected + extra_entries
+
+    @staticmethod
+    def _assert_unique_recipes_per_day(
+        selected: list[tuple[int, str, Recipe]],
+    ) -> None:
+        """Nie pozwala zapisać planu z tym samym przepisem dwa razy dziennie."""
+        recipe_ids_by_day: dict[int, set[UUID]] = defaultdict(set)
+        for day, _meal_type, recipe in selected:
+            if recipe.id in recipe_ids_by_day[day]:
+                raise RuntimeError(
+                    f"Generator wybrał przepis {recipe.id} więcej niż raz w dniu {day}"
+                )
+            recipe_ids_by_day[day].add(recipe.id)
 
     def _per_person_nutrition(self, recipe: Recipe) -> dict[str, float]:
         """Wartości odżywcze CAŁEGO przepisu podzielone przez liczbę porcji
@@ -694,6 +729,12 @@ class MealPlanGenerator:
         - variety_score (0.0–1.0): kara za powtórzenia przepisu.
         - nutrition_score (0.0–1.0): zbilansowanie z dotychczasowymi posiłkami.
         """
+        # To ograniczenie jest niezależne od globalnego limitu powtórzeń.
+        # `ignore_repeat_limit` może poluzować różnorodność między dniami,
+        # ale nigdy nie może dopuścić duplikatu w obrębie jednego dnia.
+        if any(recipe.id == candidate.id for recipe in daily_recipes):
+            return -1.0
+
         if not ignore_repeat_limit and recipe_usage_count[candidate.id] >= MAX_RECIPE_REPEATS:
             return -1.0
 

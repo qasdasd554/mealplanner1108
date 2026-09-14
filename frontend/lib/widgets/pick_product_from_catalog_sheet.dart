@@ -133,11 +133,27 @@ class _PickProductFromCatalogSheetState
           final controller = TextEditingController(text: '100');
           return AlertDialog(
             title: Text(result.name!),
-            content: TextField(
-              controller: controller,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              autofocus: true,
-              decoration: const InputDecoration(labelText: 'Ilość (g)'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (result.brand?.trim().isNotEmpty == true)
+                  Text('Marka: ${result.brand}'),
+                if (result.suggestedPrice != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4, bottom: 12),
+                    child: Text(
+                      'Cena orientacyjna: ${result.suggestedPrice!.toStringAsFixed(2)} zł',
+                    ),
+                  ),
+                TextField(
+                  controller: controller,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  autofocus: true,
+                  decoration: const InputDecoration(labelText: 'Ilość (g)'),
+                ),
+              ],
             ),
             actions: [
               TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Anuluj')),

@@ -16,7 +16,7 @@
 	     o dostęp bez wcześniej zadeklarowanego uzasadnienia. Tekst poniżej
 	     to dokładnie to, co użytkownik zobaczy w systemowym oknie zgody. -->
 	<key>NSCameraUsageDescription</key>
-	<string>Aplikacja używa aparatu, żeby zrobić zdjęcie przepisu do rozpoznania przez AI, zdjęcie do komentarza albo Twoje zdjęcie profilowe.</string>
+	<string>Aplikacja używa aparatu do skanowania kodów kreskowych oraz robienia zdjęć przepisów, komentarzy i zdjęcia profilowego.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Aplikacja potrzebuje dostępu do zdjęć, żeby wybrać zdjęcie przepisu, komentarza albo zdjęcie profilowe z galerii.</string>
 	<key>CFBundleExecutable</key>
