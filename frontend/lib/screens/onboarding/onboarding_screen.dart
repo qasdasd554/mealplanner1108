@@ -7,6 +7,7 @@ import '../../models/store.dart';
 import '../../config/constants.dart';
 import '../../theme/app_theme.dart';
 import 'welcome_bonus_screen.dart';
+import '../recipes/pantry_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -54,7 +55,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _nextPage() {
-    if (_currentPage < 3) {
+    if (_currentPage < 4) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
@@ -76,14 +77,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Future<void> _finishOnboarding() async {
     if (_selectedStore == null) {
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
             duration: Duration(seconds: 3),
-          content: Text('Wybierz swój preferowany sklep!'),
-          backgroundColor: AppTheme.errorColor,
-        ),
-      );
+            content: Text('Wybierz swój preferowany sklep!'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
       return;
     }
 
@@ -103,21 +104,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         final bonus = authProvider.lastBonusPoints;
         if (bonus > 0) {
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => WelcomeBonusScreen(points: bonus)),
+            MaterialPageRoute(
+              builder: (_) => WelcomeBonusScreen(points: bonus),
+            ),
           );
         } else {
           Navigator.of(context).pushReplacementNamed('/home');
         }
       } else {
         ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-          SnackBar(
-            duration: const Duration(seconds: 3),
-            content: Text(authProvider.errorMessage ?? 'Nie udało się zapisać preferencji'),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              duration: const Duration(seconds: 3),
+              content: Text(
+                authProvider.errorMessage ??
+                    'Nie udało się zapisać preferencji',
+              ),
+              backgroundColor: AppTheme.errorColor,
+            ),
+          );
       }
     }
   }
@@ -133,10 +139,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               padding: const EdgeInsets.all(24.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(4, (index) => _buildDot(index)),
+                children: List.generate(5, (index) => _buildDot(index)),
               ),
             ),
-            
+
             // Zawartość stron
             Expanded(
               child: PageView(
@@ -152,6 +158,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   _buildAllergensStep(),
                   _buildDietStep(),
                   _buildHouseholdStep(),
+                  _buildPantryStep(),
                 ],
               ),
             ),
@@ -166,7 +173,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   if (_currentPage > 0)
                     TextButton(
                       onPressed: _previousPage,
-                      child: Text('Wstecz', style: TextStyle(color: AppTheme.textSecondary)),
+                      child: Text(
+                        'Wstecz',
+                        style: TextStyle(color: AppTheme.textSecondary),
+                      ),
                     )
                   else
                     const SizedBox.shrink(),
@@ -177,7 +187,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(120, 48),
                     ),
-                    child: Text(_currentPage == 3 ? 'Gotowe!' : 'Dalej'),
+                    child: Text(_currentPage == 4 ? 'Gotowe!' : 'Dalej'),
                   ),
                 ],
               ),
@@ -224,9 +234,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
           const SizedBox(height: 32),
           if (storeProvider.isLoading)
-            const Expanded(
-              child: Center(child: CircularProgressIndicator()),
-            )
+            const Expanded(child: Center(child: CircularProgressIndicator()))
           else if (storeProvider.errorMessage != null)
             Expanded(
               child: Center(
@@ -256,9 +264,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       padding: const EdgeInsets.all(18),
                       decoration: BoxDecoration(
                         color: AppTheme.surfaceColor,
-                        borderRadius: const BorderRadius.all(Radius.circular(16)),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(16),
+                        ),
                         border: Border.all(
-                          color: isSelected ? AppTheme.primaryColor : Colors.transparent,
+                          color:
+                              isSelected
+                                  ? AppTheme.primaryColor
+                                  : Colors.transparent,
                           width: 2,
                         ),
                       ),
@@ -269,10 +282,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             width: 48,
                             height: 48,
                             decoration: BoxDecoration(
-                              color: isSelected
-                                  ? AppTheme.primaryColor.withOpacity(0.1)
-                                  : AppTheme.backgroundColor,
-                              borderRadius: const BorderRadius.all(Radius.circular(12)),
+                              color:
+                                  isSelected
+                                      ? AppTheme.primaryColor.withOpacity(0.1)
+                                      : AppTheme.backgroundColor,
+                              borderRadius: const BorderRadius.all(
+                                Radius.circular(12),
+                              ),
                             ),
                             child: Center(
                               child: Text(
@@ -292,7 +308,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                           const Spacer(),
                           if (isSelected)
-                            const Icon(Icons.check_circle, color: AppTheme.primaryColor),
+                            const Icon(
+                              Icons.check_circle,
+                              color: AppTheme.primaryColor,
+                            ),
                         ],
                       ),
                     ).animate().fadeIn(delay: (index * 100).ms),
@@ -350,12 +369,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppTheme.primaryColor.withOpacity(0.1)
-                          : AppTheme.surfaceColor,
+                      color:
+                          isSelected
+                              ? AppTheme.primaryColor.withOpacity(0.1)
+                              : AppTheme.surfaceColor,
                       borderRadius: const BorderRadius.all(Radius.circular(16)),
                       border: Border.all(
-                        color: isSelected ? AppTheme.primaryColor : Colors.transparent,
+                        color:
+                            isSelected
+                                ? AppTheme.primaryColor
+                                : Colors.transparent,
                         width: 1.5,
                       ),
                     ),
@@ -365,10 +388,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         Flexible(
                           child: Text(
                             allergen['name']!,
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  fontSize: 16,
-                                  color: isSelected ? AppTheme.primaryColor : AppTheme.textPrimary,
-                                ),
+                            style: Theme.of(
+                              context,
+                            ).textTheme.titleLarge?.copyWith(
+                              fontSize: 16,
+                              color:
+                                  isSelected
+                                      ? AppTheme.primaryColor
+                                      : AppTheme.textPrimary,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -424,7 +452,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       color: AppTheme.surfaceColor,
                       borderRadius: const BorderRadius.all(Radius.circular(16)),
                       border: Border.all(
-                        color: isSelected ? AppTheme.primaryColor : Colors.transparent,
+                        color:
+                            isSelected
+                                ? AppTheme.primaryColor
+                                : Colors.transparent,
                         width: 1.5,
                       ),
                     ),
@@ -447,7 +478,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                         ),
                         if (isSelected)
-                          const Icon(Icons.check_circle, color: AppTheme.primaryColor),
+                          const Icon(
+                            Icons.check_circle,
+                            color: AppTheme.primaryColor,
+                          ),
                       ],
                     ),
                   ),
@@ -480,7 +514,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 48),
-          
+
           // Licznik
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -533,7 +567,66 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _buildCounterButton({required IconData icon, required VoidCallback onPressed}) {
+  // --- KROK 5: Spiżarnia ---
+  Widget _buildPantryStep() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Align(
+            child: Container(
+              width: 88,
+              height: 88,
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withOpacity(0.12),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.inventory_2_outlined,
+                size: 42,
+                color: AppTheme.primaryColor,
+              ),
+            ),
+          ),
+          const SizedBox(height: 28),
+          Text(
+            'Co masz w spiżarni?',
+            style: Theme.of(context).textTheme.displaySmall,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Dodaj produkty, które masz już w domu. Dzięki temu łatwiej znajdziesz przepisy bez dodatkowych zakupów.',
+            style: Theme.of(context).textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 32),
+          FilledButton.icon(
+            onPressed: () {
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const PantryScreen()));
+            },
+            icon: const Icon(Icons.add),
+            label: const Text('Dodaj produkty do spiżarni'),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Ten krok możesz pominąć.',
+            style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCounterButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) {
     return Container(
       width: 60,
       height: 60,

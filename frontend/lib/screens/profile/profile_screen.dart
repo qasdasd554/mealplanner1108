@@ -12,6 +12,7 @@ import '../../providers/meal_plan_provider.dart';
 import '../../providers/food_log_provider.dart';
 import '../../providers/shopping_list_provider.dart';
 import '../../providers/promotion_provider.dart';
+import '../../providers/wellness_provider.dart';
 import '../../models/weight_log.dart';
 import '../../services/weight_log_service.dart';
 import '../../theme/app_theme.dart';
@@ -23,6 +24,7 @@ import '../../widgets/user_avatar.dart';
 import 'premium_screen.dart';
 import '../admin/admin_panel_screen.dart';
 import 'blocked_users_screen.dart';
+import 'statistics_screen.dart';
 
 /// Odmiana słowa "dzień" — w polskim wystarczy rozróżnić TYLKO liczbę 1
 /// (dzień) od wszystkich pozostałych (dni), w przeciwieństwie do wielu
@@ -164,328 +166,295 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
-                // Kalkulator zapotrzebowania kalorycznego (waga, wzrost, BMI,
-                // cel dzienny). Przeniesiony tu z zakładki Śledzenie, gdzie był
-                // tylko ikoną w pasku i praktycznie nie do znalezienia.
-                _buildCalorieCalculatorTile(context),
-                const SizedBox(height: 16),
-                const _WeightTrackerCard(),
-                const SizedBox(height: 16),
-
-                // Baner "Zostań Premium" — widoczny TYLKO dla kont bez
-                // dostępu premium (admini i już-premium go nie widzą, bo im
-                // niepotrzebny).
-                if (!(user?.hasPremiumAccess ?? false))
-                  InkWell(
-                    borderRadius: BorderRadius.circular(18),
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const PremiumScreen(),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(18),
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF6D28D9), Color(0xFFE0A62E)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.workspace_premium,
-                              color: Colors.white,
-                              size: 22,
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Zostań Premium',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'Plany bez limitu, przepisy AI i więcej',
-                                  style: TextStyle(
-                                    color: Colors.white.withOpacity(0.85),
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Icon(
-                            Icons.arrow_forward_ios,
-                            color: Colors.white,
-                            size: 16,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ).animate().fadeIn().shimmer(
-                    delay: 600.ms,
-                    duration: 1200.ms,
-                  ),
-
-                const SizedBox(height: 24),
-
-                // Tabela porównawcza Premium vs Standard — widoczna dla
-                // wszystkich: dla kont bez Premium to zachęta do zakupu, dla
-                // kont Premium potwierdzenie, co dokładnie zyskują.
-                Text(
-                  'Porównanie planów',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                _ProfileSection(
+                  title: 'Zdrowie i cele',
+                  icon: Icons.monitor_heart_outlined,
+                  children: [
+                    _buildCalorieCalculatorTile(context),
+                    const SizedBox(height: 16),
+                    const _WeightTrackerCard(),
+                  ],
                 ),
-                const SizedBox(height: 10),
-                const PremiumComparisonTable(),
+                const SizedBox(height: 12),
 
-                const SizedBox(height: 24),
-
-                // Wejście do panelu administratora — widoczne TYLKO dla
-                // kont z rolą "admin".
-                if (user?.isAdmin ?? false)
-                  InkWell(
-                    borderRadius: BorderRadius.circular(18),
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const AdminPanelScreen(),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
+                _ProfileSection(
+                  title: 'Subskrypcja',
+                  icon: Icons.workspace_premium_outlined,
+                  children: [
+                    // Baner "Zostań Premium" — widoczny TYLKO dla kont bez
+                    // dostępu premium (admini i już-premium go nie widzą, bo im
+                    // niepotrzebny).
+                    if (!(user?.hasPremiumAccess ?? false))
+                      InkWell(
                         borderRadius: BorderRadius.circular(18),
-                        color: AppTheme.surfaceColor,
-                        border: Border.all(
-                          color: AppTheme.textSecondary.withOpacity(0.2),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: AppTheme.secondaryColor.withOpacity(0.12),
-                              shape: BoxShape.circle,
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const PremiumScreen(),
                             ),
-                            child: const Icon(
-                              Icons.admin_panel_settings_outlined,
-                              color: AppTheme.secondaryColor,
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(18),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(18),
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF6D28D9), Color(0xFFE0A62E)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
                           ),
-                          const SizedBox(width: 14),
-                          const Expanded(
-                            child: Text(
-                              'Panel administratora',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.workspace_premium,
+                                  color: Colors.white,
+                                  size: 22,
+                                ),
                               ),
-                            ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Zostań Premium',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Plany bez limitu, przepisy AI i więcej',
+                                      style: TextStyle(
+                                        color: Colors.white.withOpacity(0.85),
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(
+                                Icons.arrow_forward_ios,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                            ],
                           ),
-                          Icon(
-                            Icons.arrow_forward_ios,
-                            color: AppTheme.textSecondary,
-                            size: 16,
-                          ),
-                        ],
+                        ),
+                      ).animate().fadeIn().shimmer(
+                        delay: 600.ms,
+                        duration: 1200.ms,
+                      ),
+
+                    const SizedBox(height: 24),
+
+                    // Tabela porównawcza Premium vs Standard — widoczna dla
+                    // wszystkich: dla kont bez Premium to zachęta do zakupu, dla
+                    // kont Premium potwierdzenie, co dokładnie zyskują.
+                    Text(
+                      'Porównanie planów',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-
-                if (user?.isAdmin ?? false) const SizedBox(height: 24),
-
-                // 2. Sekcja preferencji i ustawień
-                Text(
-                  'Twoje ustawienia',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Karta Sklepu
-                _buildProfileSettingTile(
-                  context,
-                  icon: Icons.storefront_outlined,
-                  title: 'Preferowany sklep',
-                  value: storeName,
-                  onTap: () {
-                    _showStorePicker(context, authProvider, storeProvider);
-                  },
+                    const SizedBox(height: 10),
+                    const PremiumComparisonTable(),
+                  ],
                 ),
                 const SizedBox(height: 12),
 
-                // Karta Diety
-                _buildProfileSettingTile(
-                  context,
-                  icon: Icons.restaurant_outlined,
-                  title: 'Rodzaj diety',
-                  value: diet,
-                  onTap: () {
-                    _showDietPicker(context, authProvider, diet);
-                  },
+                _ProfileSection(
+                  title: 'Preferencje',
+                  icon: Icons.tune,
+                  children: [
+                    // Karta Sklepu
+                    _buildProfileSettingTile(
+                      context,
+                      icon: Icons.storefront_outlined,
+                      title: 'Preferowany sklep',
+                      value: storeName,
+                      onTap: () {
+                        _showStorePicker(context, authProvider, storeProvider);
+                      },
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Karta Diety
+                    _buildProfileSettingTile(
+                      context,
+                      icon: Icons.restaurant_outlined,
+                      title: 'Rodzaj diety',
+                      value: diet,
+                      onTap: () {
+                        _showDietPicker(context, authProvider, diet);
+                      },
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Karta wielkości gospodarstwa
+                    _buildProfileSettingTile(
+                      context,
+                      icon: Icons.people_outline,
+                      title: 'Liczba osób w gospodarstwie',
+                      value: '${user?.householdSize ?? 1} os.',
+                      onTap: () {
+                        _showHouseholdSizePicker(
+                          context,
+                          authProvider,
+                          user?.householdSize ?? 1,
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Przełącznik trybu ciemnego
+                    Material(
+                      color: AppTheme.surfaceColor,
+                      borderRadius: const BorderRadius.all(Radius.circular(16)),
+                      child: InkWell(
+                        onTap: () => themeProvider.toggle(),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(16),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              Icon(
+                                themeProvider.isDark
+                                    ? Icons.dark_mode_outlined
+                                    : Icons.light_mode_outlined,
+                                color: AppTheme.primaryColor,
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Text(
+                                  'Tryb ciemny',
+                                  style: Theme.of(context).textTheme.titleLarge
+                                      ?.copyWith(fontSize: 15),
+                                ),
+                              ),
+                              Switch(
+                                value: themeProvider.isDark,
+                                activeColor: AppTheme.primaryColor,
+                                onChanged:
+                                    (value) => themeProvider.setDark(value),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 12),
 
-                // Karta wielkości gospodarstwa
-                _buildProfileSettingTile(
-                  context,
-                  icon: Icons.people_outline,
-                  title: 'Liczba osób w gospodarstwie',
-                  value: '${user?.householdSize ?? 1} os.',
-                  onTap: () {
-                    _showHouseholdSizePicker(
-                      context,
-                      authProvider,
-                      user?.householdSize ?? 1,
-                    );
-                  },
-                ),
-                const SizedBox(height: 32),
+                _ProfileSection(
+                  title: 'Konto i prywatność',
+                  icon: Icons.manage_accounts_outlined,
+                  children: [
+                    if (user?.isAdmin ?? false) ...[
+                      _buildAdminTile(context),
+                      const SizedBox(height: 16),
+                    ],
+                    OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppTheme.errorColor,
+                        side: const BorderSide(
+                          color: AppTheme.errorColor,
+                          width: 1.5,
+                        ),
+                      ),
+                      onPressed: () async {
+                        // UWAGA (naprawa poważnego błędu): wcześniej wylogowanie
+                        // czyściło TYLKO stan AuthProvider — żaden z pozostałych
+                        // providerów (plany posiłków, dziennik kalorii, lista
+                        // zakupów, promocje, sklepy) nie był resetowany. Niektóre
+                        // ekrany (np. zakładka "Plan" w Śledzeniu kalorii) ładują
+                        // dane TYLKO gdy lokalna lista jest pusta — efekt: po
+                        // zalogowaniu się jako inny użytkownik, wciąż widoczne
+                        // były dane POPRZEDNIEGO użytkownika, dopóki coś jawnie
+                        // nie wymusiło ponownego pobrania. To realny wyciek
+                        // danych między kontami na tym samym urządzeniu.
+                        Provider.of<MealPlanProvider>(
+                          context,
+                          listen: false,
+                        ).clear();
+                        Provider.of<FoodLogProvider>(
+                          context,
+                          listen: false,
+                        ).clear();
+                        Provider.of<WellnessProvider>(
+                          context,
+                          listen: false,
+                        ).clear();
+                        Provider.of<ShoppingListProvider>(
+                          context,
+                          listen: false,
+                        ).clear();
+                        Provider.of<PromotionProvider>(
+                          context,
+                          listen: false,
+                        ).clear();
+                        Provider.of<StoreProvider>(
+                          context,
+                          listen: false,
+                        ).clear();
+                        await authProvider.logout();
+                        if (context.mounted) {
+                          Navigator.of(context).pushReplacementNamed('/login');
+                        }
+                      },
+                      child: const Text('Wyloguj się'),
+                    ),
+                    const SizedBox(height: 12),
 
-                // Przełącznik trybu ciemnego
-                Material(
-                  color: AppTheme.surfaceColor,
-                  borderRadius: const BorderRadius.all(Radius.circular(16)),
-                  child: InkWell(
-                    onTap: () => themeProvider.toggle(),
-                    borderRadius: const BorderRadius.all(Radius.circular(16)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          Icon(
-                            themeProvider.isDark
-                                ? Icons.dark_mode_outlined
-                                : Icons.light_mode_outlined,
-                            color: AppTheme.primaryColor,
+                    // Zablokowani użytkownicy
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.block, size: 18),
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const BlockedUsersScreen(),
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Text(
-                              'Tryb ciemny',
-                              style: Theme.of(
-                                context,
-                              ).textTheme.titleLarge?.copyWith(fontSize: 15),
-                            ),
-                          ),
-                          Switch(
-                            value: themeProvider.isDark,
-                            activeColor: AppTheme.primaryColor,
-                            onChanged: (value) => themeProvider.setDark(value),
-                          ),
-                        ],
+                        );
+                      },
+                      label: const Text('Zablokowani użytkownicy'),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Usunięcie konta — celowo oddzielone od reszty (kolor,
+                    // opis ostrzegawczy) i wymaga DWÓCH potwierdzeń, bo operacja
+                    // jest natychmiastowa i nieodwracalna (Apple Guideline
+                    // 5.1.1(v) / wymóg Google Play — usuwanie konta musi być
+                    // możliwe WEWNĄTRZ aplikacji, nie tylko przez support).
+                    TextButton(
+                      onPressed:
+                          () => _showDeleteAccountDialog(context, authProvider),
+                      child: Text(
+                        'Usuń konto',
+                        style: TextStyle(
+                          color: AppTheme.errorColor.withOpacity(0.7),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-
-                // 3. Wylogowanie
-                OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppTheme.errorColor,
-                    side: const BorderSide(
-                      color: AppTheme.errorColor,
-                      width: 1.5,
-                    ),
-                  ),
-                  onPressed: () async {
-                    // UWAGA (naprawa poważnego błędu): wcześniej wylogowanie
-                    // czyściło TYLKO stan AuthProvider — żaden z pozostałych
-                    // providerów (plany posiłków, dziennik kalorii, lista
-                    // zakupów, promocje, sklepy) nie był resetowany. Niektóre
-                    // ekrany (np. zakładka "Plan" w Śledzeniu kalorii) ładują
-                    // dane TYLKO gdy lokalna lista jest pusta — efekt: po
-                    // zalogowaniu się jako inny użytkownik, wciąż widoczne
-                    // były dane POPRZEDNIEGO użytkownika, dopóki coś jawnie
-                    // nie wymusiło ponownego pobrania. To realny wyciek
-                    // danych między kontami na tym samym urządzeniu.
-                    Provider.of<MealPlanProvider>(
-                      context,
-                      listen: false,
-                    ).clear();
-                    Provider.of<FoodLogProvider>(
-                      context,
-                      listen: false,
-                    ).clear();
-                    Provider.of<ShoppingListProvider>(
-                      context,
-                      listen: false,
-                    ).clear();
-                    Provider.of<PromotionProvider>(
-                      context,
-                      listen: false,
-                    ).clear();
-                    Provider.of<StoreProvider>(context, listen: false).clear();
-                    await authProvider.logout();
-                    if (context.mounted) {
-                      Navigator.of(context).pushReplacementNamed('/login');
-                    }
-                  },
-                  child: const Text('Wyloguj się'),
-                ),
-                const SizedBox(height: 12),
-
-                // Zablokowani użytkownicy
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.block, size: 18),
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const BlockedUsersScreen(),
-                      ),
-                    );
-                  },
-                  label: const Text('Zablokowani użytkownicy'),
+                  ],
                 ),
                 const SizedBox(height: 24),
-
-                // Usunięcie konta — celowo oddzielone od reszty (kolor,
-                // opis ostrzegawczy) i wymaga DWÓCH potwierdzeń, bo operacja
-                // jest natychmiastowa i nieodwracalna (Apple Guideline
-                // 5.1.1(v) / wymóg Google Play — usuwanie konta musi być
-                // możliwe WEWNĄTRZ aplikacji, nie tylko przez support).
-                TextButton(
-                  onPressed:
-                      () => _showDeleteAccountDialog(context, authProvider),
-                  child: Text(
-                    'Usuń konto',
-                    style: TextStyle(
-                      color: AppTheme.errorColor.withOpacity(0.7),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 48),
 
                 // Wersja aplikacji
                 Center(
                   child: Text(
-                    'v1.0.0 (Meal Planner)',
+                    'v1.0.14 (Meal Planner)',
                     style: TextStyle(
                       color: AppTheme.textSecondary,
                       fontSize: 12,
@@ -496,6 +465,52 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAdminTile(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: () {
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const AdminPanelScreen()));
+      },
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          color: AppTheme.surfaceColor,
+          border: Border.all(color: AppTheme.textSecondary.withOpacity(0.2)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppTheme.secondaryColor.withOpacity(0.12),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.admin_panel_settings_outlined,
+                color: AppTheme.secondaryColor,
+              ),
+            ),
+            const SizedBox(width: 14),
+            const Expanded(
+              child: Text(
+                'Panel administratora',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              color: AppTheme.textSecondary,
+              size: 16,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -782,6 +797,40 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
+class _ProfileSection extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final List<Widget> children;
+
+  const _ProfileSection({
+    required this.title,
+    required this.icon,
+    required this.children,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppTheme.surfaceColor,
+      borderRadius: BorderRadius.circular(18),
+      clipBehavior: Clip.antiAlias,
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          leading: Icon(icon, color: AppTheme.primaryColor),
+          title: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          tilePadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
+          childrenPadding: const EdgeInsets.fromLTRB(16, 4, 16, 18),
+          children: children,
+        ),
+      ),
+    );
+  }
+}
+
 class _WeightTrackerCard extends StatefulWidget {
   const _WeightTrackerCard();
 
@@ -919,7 +968,7 @@ class _WeightTrackerCardState extends State<_WeightTrackerCard> {
               SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Śledzenie wagi (opcjonalne)',
+                  'Śledzenie wagi',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                 ),
               ),
@@ -931,30 +980,26 @@ class _WeightTrackerCardState extends State<_WeightTrackerCard> {
             style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
           ),
           const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _saving ? null : _pickDate,
-                  icon: const Icon(Icons.calendar_today_outlined, size: 17),
-                  label: Text(_dateLabel(_selectedDate)),
-                ),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _saving ? null : _pickDate,
+              icon: const Icon(Icons.calendar_today_outlined, size: 17),
+              label: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text('Data: ${_dateLabel(_selectedDate)}'),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: TextField(
-                  controller: _controller,
-                  enabled: !_saving,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  decoration: const InputDecoration(
-                    labelText: 'Waga',
-                    suffixText: 'kg',
-                  ),
-                ),
-              ),
-            ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _controller,
+            enabled: !_saving,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(
+              labelText: 'Waga (opcjonalnie)',
+              suffixText: 'kg',
+            ),
           ),
           const SizedBox(height: 10),
           FilledButton.icon(
@@ -972,36 +1017,18 @@ class _WeightTrackerCardState extends State<_WeightTrackerCard> {
                     : const Icon(Icons.add_chart, size: 18),
             label: const Text('Zapisz pomiar'),
           ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed:
+                () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const StatisticsScreen()),
+                ),
+            icon: const Icon(Icons.insights_outlined, size: 18),
+            label: const Text('Statystyki'),
+          ),
           if (_loading) ...[
             const SizedBox(height: 14),
             const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-          ] else if (_logs.isNotEmpty) ...[
-            const SizedBox(height: 14),
-            const Divider(height: 1),
-            const SizedBox(height: 8),
-            ..._logs
-                .take(5)
-                .map(
-                  (entry) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      children: [
-                        Text(
-                          _dateLabel(entry.date),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppTheme.textSecondary,
-                          ),
-                        ),
-                        const Spacer(),
-                        Text(
-                          '${entry.weightKg.toStringAsFixed(1)} kg',
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
           ] else if (_error != null) ...[
             const SizedBox(height: 10),
             Text(

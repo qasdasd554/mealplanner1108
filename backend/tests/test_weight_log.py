@@ -23,4 +23,4 @@ def test_fixed_weight_route_precedes_dynamic_date_route() -> None:
         if "GET" in getattr(route, "methods", set())
     ]
     assert get_paths.index("/weight") < get_paths.index("/{log_date}")
-
+    assert get_paths.index("/stats/overview") < get_paths.index("/{log_date}")

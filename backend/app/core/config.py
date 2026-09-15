@@ -39,6 +39,10 @@ class Settings(BaseSettings):
     # ── Redis / Celery ───────────────────────────────────────────
     REDIS_URL: str = "redis://localhost:6379/0"
 
+    # FoodData Central uzupełnia Open Food Facts o produkty markowe i makro.
+    # DEMO_KEY działa od razu, ale na produkcji ustaw własny bezpłatny klucz.
+    USDA_FDC_API_KEY: str = "DEMO_KEY"
+
     # ── Środowisko ───────────────────────────────────────────────
     # "production" (domyślnie) wymusza ustawienie prawdziwych sekretów.
     # Do pracy lokalnej ustaw ENVIRONMENT=development.
@@ -133,9 +137,9 @@ class Settings(BaseSettings):
     # własny numer z tą wartością przy starcie i pokazuje delikatne
     # przypomnienie, jeśli jest starsza — nie blokuje korzystania,
     # tylko informuje.
-    # Pole ZAPASOWE dla starszych wersji aplikacji, które nie wysyłają
+    # Pole zapasowe dla starszych wersji aplikacji, które nie wysyłają
     # jeszcze parametru `platform` do /app/version-info i czytają tylko tę
-    # wartość. Dotyczy wyłącznie Androida (starych buildów), stąd 73.
+    # wartość.
     # ── Cloudflare Turnstile (CAPTCHA przed logowaniem/rejestracją) ──
     # PUSTE = bramka WYŁĄCZONA. Ustaw w zmiennych środowiskowych Render
     # (Environment → TURNSTILE_SECRET_KEY) DOPIERO wtedy, gdy nowa wersja
@@ -153,16 +157,13 @@ class Settings(BaseSettings):
     # Render, nigdy w repozytorium.
     FCM_SERVICE_ACCOUNT_JSON: str = ""
 
-    LATEST_APP_VERSION_CODE: int = 73
-    # Numery wersji są ROZDZIELONE na platformy, bo numeracja iOS
-    # i Androida całkowicie się rozjechała: Xcode Cloud nadaje numery
-    # buildów iOS własnym, niezależnym licznikiem (był 24), podczas gdy
-    # Android bierze numer po "+" z pubspec.yaml (był 73). Jeden wspólny
-    # próg powodowałby, że użytkownicy iOS dostawaliby komunikat
-    # o aktualizacji przy każdym uruchomieniu, mimo najnowszej wersji.
-    # AKTUALIZUJ RĘCZNIE przy każdym wydaniu na daną platformę.
-    LATEST_ANDROID_VERSION_CODE: int = 73
-    LATEST_IOS_BUILD_NUMBER: int = 24
+    LATEST_APP_VERSION_CODE: int = 211
+    # Flutter przekazuje numer po "+" jako versionCode Androida i
+    # CFBundleVersion iOS. Obie wartości zwiększamy przy każdym buildzie.
+    # Można je rozdzielić zmiennymi środowiskowymi, jeśli wydania sklepowe
+    # zostaną opublikowane w różnym czasie.
+    LATEST_ANDROID_VERSION_CODE: int = 211
+    LATEST_IOS_BUILD_NUMBER: int = 211
     # Ustaw na True, żeby aktualizacja była WYMAGANA (pełnoekranowy
     # komunikat bez możliwości zamknięcia) — np. gdy stara wersja przestaje
     # działać z powodu zmiany w API. Domyślnie False: komunikat da się

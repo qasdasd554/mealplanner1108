@@ -15,10 +15,12 @@ class WellnessProvider with ChangeNotifier {
   DailyWellness _data = DailyWellness.empty();
   DateTime _currentDate = DateTime.now();
   bool _isLoading = false;
+  bool _hasLoaded = false;
   String? _errorMessage;
 
   DailyWellness get data => _data;
   bool get isLoading => _isLoading;
+  bool get hasLoaded => _hasLoaded;
   String? get errorMessage => _errorMessage;
 
   /// Kalorie spalone aktywnością — POWIĘKSZAJĄ dzienny limit, bo to,
@@ -39,6 +41,7 @@ class WellnessProvider with ChangeNotifier {
       _data = DailyWellness.empty();
     } finally {
       _isLoading = false;
+      _hasLoaded = true;
       notifyListeners();
     }
   }
@@ -104,5 +107,14 @@ class WellnessProvider with ChangeNotifier {
       notifyListeners();
       return false;
     }
+  }
+
+  void clear() {
+    _data = DailyWellness.empty();
+    _currentDate = DateTime.now();
+    _isLoading = false;
+    _hasLoaded = false;
+    _errorMessage = null;
+    notifyListeners();
   }
 }

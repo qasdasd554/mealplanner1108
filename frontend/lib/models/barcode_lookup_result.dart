@@ -2,7 +2,7 @@
 /// `BarcodeLookupResponse` w backendzie (app/api/v1/products.py).
 class BarcodeLookupResult {
   final bool found;
-  final String? source; // "catalog" | "open_food_facts" | null
+  final String? source;
   final String? name;
   final String? brand;
   final String unit;
@@ -11,7 +11,8 @@ class BarcodeLookupResult {
   final double? fatPer100;
   final double? carbsPer100;
   final String? existingProductId;
-  final double? suggestedPrice;
+  final double? priceMin;
+  final double? priceMax;
 
   const BarcodeLookupResult({
     required this.found,
@@ -24,7 +25,8 @@ class BarcodeLookupResult {
     this.fatPer100,
     this.carbsPer100,
     this.existingProductId,
-    this.suggestedPrice,
+    this.priceMin,
+    this.priceMax,
   });
 
   /// Czy dane pochodzą z Waszego własnego katalogu (a nie z zewnętrznej
@@ -50,7 +52,8 @@ class BarcodeLookupResult {
       fatPer100: _asDouble(json['fat_per_100']),
       carbsPer100: _asDouble(json['carbs_per_100']),
       existingProductId: json['existing_product_id'] as String?,
-      suggestedPrice: _asDouble(json['suggested_price']),
+      priceMin: _asDouble(json['price_min']),
+      priceMax: _asDouble(json['price_max']),
     );
   }
 }

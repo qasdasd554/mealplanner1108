@@ -151,11 +151,11 @@ class _PickProductFromCatalogSheetState
               children: [
                 if (result.brand?.trim().isNotEmpty == true)
                   Text('Marka: ${result.brand}'),
-                if (result.suggestedPrice != null)
+                if (result.priceMin != null && result.priceMax != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 4, bottom: 12),
                     child: Text(
-                      'Cena orientacyjna: ${result.suggestedPrice!.toStringAsFixed(2)} zł',
+                      'Typowy zakres cen: ${result.priceMin!.toStringAsFixed(0)}–${result.priceMax!.toStringAsFixed(0)} zł',
                     ),
                   ),
                 TextField(

@@ -9,12 +9,14 @@ class MealPlanProvider with ChangeNotifier {
   MealPlan? _currentPlan;
   List<MealPlan> _plans = [];
   bool _isLoading = false;
+  bool _hasLoaded = false;
   bool _isGenerating = false;
   String? _errorMessage;
 
   MealPlan? get currentPlan => _currentPlan;
   List<MealPlan> get plans => _plans;
   bool get isLoading => _isLoading;
+  bool get hasLoaded => _hasLoaded;
   bool get isGenerating => _isGenerating;
   String? get errorMessage => _errorMessage;
 
@@ -68,6 +70,7 @@ class MealPlanProvider with ChangeNotifier {
       _errorMessage = friendlyError(e);
     } finally {
       _isLoading = false;
+      _hasLoaded = true;
       notifyListeners();
     }
   }
@@ -129,7 +132,11 @@ class MealPlanProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      final updatedPlan = await _mealPlanService.swapRecipe(planId, entryId, newRecipeId);
+      final updatedPlan = await _mealPlanService.swapRecipe(
+        planId,
+        entryId,
+        newRecipeId,
+      );
       _currentPlan = updatedPlan;
       // Zaktualizuj na liście planów
       final index = _plans.indexWhere((p) => p.id == planId);
@@ -196,6 +203,7 @@ class MealPlanProvider with ChangeNotifier {
     _currentPlan = null;
     _plans = [];
     _isLoading = false;
+    _hasLoaded = false;
     _isGenerating = false;
     _errorMessage = null;
     notifyListeners();

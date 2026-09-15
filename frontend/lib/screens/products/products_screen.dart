@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
@@ -85,11 +87,19 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
   String? _error;
   String _searchQuery = '';
   String? _selectedStoreId;
+  Timer? _searchDebounce;
+  int _requestGeneration = 0;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _initStoreAndLoad());
+  }
+
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    super.dispose();
   }
 
   Future<void> _initStoreAndLoad() async {
@@ -119,6 +129,9 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
 
   Future<void> _loadProducts() async {
     if (_selectedStoreId == null) return;
+    final generation = ++_requestGeneration;
+    final storeId = _selectedStoreId!;
+    final search = _searchQuery;
 
     setState(() {
       _isLoading = true;
@@ -127,20 +140,20 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
 
     try {
       final list = await _storeService.getAllStoreProducts(
-        _selectedStoreId!,
-        search: _searchQuery,
+        storeId,
+        search: search,
       );
-      if (!mounted) return;
+      if (!mounted || generation != _requestGeneration) return;
       setState(() {
         _products = list;
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || generation != _requestGeneration) return;
       setState(() {
         _error = 'Nie udało się pobrać produktów: $e';
       });
     } finally {
-      if (mounted) {
+      if (mounted && generation == _requestGeneration) {
         setState(() {
           _isLoading = false;
         });
@@ -159,7 +172,11 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
           child: TextField(
             onChanged: (value) {
               _searchQuery = value;
-              _loadProducts();
+              _searchDebounce?.cancel();
+              _searchDebounce = Timer(
+                const Duration(milliseconds: 350),
+                _loadProducts,
+              );
             },
             decoration: InputDecoration(
               hintText: 'Szukaj produktu...',
@@ -192,6 +209,7 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
                         )
                         .toList(),
                 onChanged: (value) {
+                  _searchDebounce?.cancel();
                   setState(() {
                     _selectedStoreId = value;
                   });

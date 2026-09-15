@@ -3,15 +3,19 @@
 from __future__ import annotations
 
 import uuid
+from collections import Counter
 from datetime import date as date_type
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import delete, func, select
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.api.deps import get_current_user, get_db
+from app.models.food_log import FoodLogEntry
 from app.models.user import User
 from app.models.wellness import ActivityLog, WaterLog, WeightLog
 
@@ -73,6 +77,112 @@ class WeightLogResponse(BaseModel):
     weight_kg: float
 
 
+class DailyStatisticsResponse(BaseModel):
+    date: date_type
+    calories: float
+    protein: float
+    fat: float
+    carbs: float
+    water_ml: int
+
+
+class WellnessStatisticsResponse(BaseModel):
+    days: list[DailyStatisticsResponse]
+    weights: list[WeightLogResponse]
+    favorite_meal: str | None = None
+    average_calories: float
+    average_protein: float
+    average_fat: float
+    average_carbs: float
+    average_water_ml: int
+
+
+@router.get("/stats/overview", response_model=WellnessStatisticsResponse)
+@router.get("/statistics", response_model=WellnessStatisticsResponse, include_in_schema=False)
+async def get_wellness_statistics(
+    days: int = Query(default=30, ge=7, le=365),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> WellnessStatisticsResponse:
+    """Zbiorcze dane do ekranu statystyk bez zapytań dzień po dniu."""
+    today = date_type.today()
+    start = today - timedelta(days=days - 1)
+
+    food_result = await db.execute(
+        select(FoodLogEntry)
+        .where(
+            FoodLogEntry.user_id == current_user.id,
+            FoodLogEntry.date >= start,
+            FoodLogEntry.date <= today,
+        )
+        .options(selectinload(FoodLogEntry.recipe))
+    )
+    food_entries = list(food_result.scalars().all())
+    water_result = await db.execute(
+        select(WaterLog).where(
+            WaterLog.user_id == current_user.id,
+            WaterLog.date >= start,
+            WaterLog.date <= today,
+        )
+    )
+    waters = {entry.date: entry.amount_ml for entry in water_result.scalars().all()}
+    weight_result = await db.execute(
+        select(WeightLog)
+        .where(
+            WeightLog.user_id == current_user.id,
+            WeightLog.date >= start,
+            WeightLog.date <= today,
+        )
+        .order_by(WeightLog.date.asc())
+    )
+    weights = list(weight_result.scalars().all())
+
+    totals: dict[date_type, dict[str, float]] = {}
+    meal_names: Counter[str] = Counter()
+    for entry in food_entries:
+        day = totals.setdefault(
+            entry.date,
+            {"calories": 0.0, "protein": 0.0, "fat": 0.0, "carbs": 0.0},
+        )
+        day["calories"] += entry.calories
+        day["protein"] += entry.protein
+        day["fat"] += entry.fat
+        day["carbs"] += entry.carbs
+        name = entry.recipe.name if entry.recipe is not None else entry.custom_name
+        if name and name.strip():
+            meal_names[name.strip()] += 1
+
+    daily: list[DailyStatisticsResponse] = []
+    for offset in range(days):
+        current_date = start + timedelta(days=offset)
+        values = totals.get(current_date, {})
+        daily.append(
+            DailyStatisticsResponse(
+                date=current_date,
+                calories=round(values.get("calories", 0.0), 1),
+                protein=round(values.get("protein", 0.0), 1),
+                fat=round(values.get("fat", 0.0), 1),
+                carbs=round(values.get("carbs", 0.0), 1),
+                water_ml=waters.get(current_date, 0),
+            )
+        )
+
+    food_days = [day for day in daily if day.calories > 0]
+    water_days = [day for day in daily if day.water_ml > 0]
+    food_divisor = len(food_days) or 1
+    water_divisor = len(water_days) or 1
+    return WellnessStatisticsResponse(
+        days=daily,
+        weights=[WeightLogResponse.model_validate(entry) for entry in weights],
+        favorite_meal=meal_names.most_common(1)[0][0] if meal_names else None,
+        average_calories=round(sum(day.calories for day in food_days) / food_divisor, 1),
+        average_protein=round(sum(day.protein for day in food_days) / food_divisor, 1),
+        average_fat=round(sum(day.fat for day in food_days) / food_divisor, 1),
+        average_carbs=round(sum(day.carbs for day in food_days) / food_divisor, 1),
+        average_water_ml=round(sum(day.water_ml for day in water_days) / water_divisor),
+    )
+
+
 # Stała ścieżka musi znaleźć się przed GET /{log_date}, ponieważ inaczej
 # FastAPI próbowałoby zinterpretować słowo "weight" jako datę i zwracało 422.
 @router.get("/weight", response_model=list[WeightLogResponse])
@@ -102,24 +212,24 @@ async def save_weight_log(
     Pole `users.weight_kg` jest synchronizowane z najnowszym pomiarem,
     dzięki czemu BMI i kalkulator kalorii korzystają z aktualnej wagi.
     """
-    result = await db.execute(
-        select(WeightLog).where(
-            WeightLog.user_id == current_user.id,
-            WeightLog.date == log_date,
-        )
-    )
-    entry = result.scalar_one_or_none()
-    if entry is None:
-        entry = WeightLog(
+    statement = (
+        insert(WeightLog)
+        .values(
             user_id=current_user.id,
             date=log_date,
             weight_kg=payload.weight_kg,
         )
-        db.add(entry)
-    else:
-        entry.weight_kg = payload.weight_kg
+        .on_conflict_do_update(
+            index_elements=[WeightLog.user_id, WeightLog.date],
+            set_={
+                "weight_kg": payload.weight_kg,
+                "updated_at": func.now(),
+            },
+        )
+        .returning(WeightLog)
+    )
+    entry = (await db.execute(statement)).scalar_one()
 
-    await db.flush()
     latest = await db.scalar(
         select(WeightLog)
         .where(WeightLog.user_id == current_user.id)
@@ -130,7 +240,6 @@ async def save_weight_log(
         current_user.weight_kg = latest.weight_kg
 
     await db.commit()
-    await db.refresh(entry)
     return entry
 
 

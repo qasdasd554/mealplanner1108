@@ -67,6 +67,18 @@ def _access_token(creds: service_account.Credentials) -> str | None:
         return None
 
 
+def _fcm_error_code(response: httpx.Response) -> str | None:
+    """Zwraca precyzyjny kod FCM, bez zgadywania na podstawie HTTP 4xx."""
+    try:
+        details = response.json().get("error", {}).get("details", [])
+    except (json.JSONDecodeError, AttributeError, TypeError, ValueError):
+        return None
+    for detail in details:
+        if isinstance(detail, dict) and detail.get("errorCode"):
+            return str(detail["errorCode"])
+    return None
+
+
 async def send_push_to_user(
     db: AsyncSession,
     user_id,
@@ -123,6 +135,10 @@ async def send_push_to_user(
                     "data": {k: str(v) for k, v in (data or {}).items()},
                     "android": {"priority": "high"},
                     "apns": {
+                        "headers": {
+                            "apns-priority": "10",
+                            "apns-push-type": "alert",
+                        },
                         "payload": {"aps": {"sound": "default", "badge": 1}},
                     },
                 }
@@ -131,13 +147,12 @@ async def send_push_to_user(
                 response = await client.post(url, headers=headers, json=payload)
                 if response.status_code == 200:
                     sent += 1
-                elif response.status_code in (400, 404):
-                    # 404 UNREGISTERED / 400 INVALID_ARGUMENT dla tokenu
-                    # oznaczają, że aplikacja została odinstalowana albo
-                    # token wygasł. Takie tokeny trzeba usunąć, inaczej
-                    # przy każdym powiadomieniu wykonywalibyśmy zapytanie
-                    # skazane na niepowodzenie — w nieskończoność.
-                    logger.info("Usuwam nieaktualny token urządzenia (%s).", response.status_code)
+                elif _fcm_error_code(response) == "UNREGISTERED":
+                    # Usuwamy tylko token jednoznacznie oznaczony przez FCM
+                    # jako wygasły. Sam status 400/404 może też oznaczać błąd
+                    # konfiguracji APNs; usunięcie wtedy poprawnego tokenu
+                    # iPhone'a uniemożliwia kolejne próby po naprawie klucza.
+                    logger.info("Usuwam nieaktualny token urządzenia (UNREGISTERED).")
                     stale_tokens.append(device)
                 else:
                     logger.warning(

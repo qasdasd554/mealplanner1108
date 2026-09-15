@@ -1,12 +1,14 @@
 """Endpointy produktów i zamienników."""
 
+import logging
 import uuid
 from decimal import Decimal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
-from sqlalchemy import func, or_, select
+from sqlalchemy import or_, select
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -14,7 +16,7 @@ from sqlalchemy.orm import selectinload
 from app.api.deps import get_current_admin, get_current_user
 from app.core.exceptions import NotFoundException
 from app.db.session import get_db
-from app.models import Product, ProductSubstitute, StoreProduct
+from app.models import BarcodeProductCache, Product, ProductSubstitute, StoreProduct
 from app.models.user import User
 from app.schemas.product import ProductResponse, StoreProductResponse, SubstituteResponse
 from app.services import ProductSubstitutionService
@@ -28,6 +30,7 @@ from app.services import ProductSubstitutionService
 # dopisywania Depends do każdej funkcji z osobna — trudniej o pominięcie
 # przy dodawaniu kolejnego endpointu w przyszłości.
 router = APIRouter(dependencies=[Depends(get_current_user)])
+logger = logging.getLogger(__name__)
 
 
 class BarcodeLookupResponse(BaseModel):
@@ -37,7 +40,7 @@ class BarcodeLookupResponse(BaseModel):
     niczego od nowa."""
 
     found: bool
-    source: str | None = None  # "catalog" | "open_food_facts" | None
+    source: str | None = None
     name: str | None = None
     brand: str | None = None
     unit: str = "g"
@@ -46,9 +49,49 @@ class BarcodeLookupResponse(BaseModel):
     fat_per_100: float | None = None
     carbs_per_100: float | None = None
     existing_product_id: uuid.UUID | None = None
-    # Cena katalogowa, obserwacja z Open Prices albo jawny szacunek dla
-    # typowego opakowania. Użytkownik może ją poprawić przed zapisaniem.
-    suggested_price: float | None = None
+    price_min: float | None = None
+    price_max: float | None = None
+
+
+async def _upsert_barcode_cache(
+    db: AsyncSession,
+    *,
+    barcode: str,
+    name: str,
+    brand: str | None,
+    unit: str,
+    kcal_per_100: float | None,
+    protein_per_100: float | None,
+    fat_per_100: float | None,
+    carbs_per_100: float | None,
+    price_min: float,
+    price_max: float,
+    source: str,
+) -> None:
+    """Zapisuje trafienie bez wyścigu między równoczesnymi skanami."""
+    nutrition = {
+        "kcal": kcal_per_100,
+        "protein": protein_per_100,
+        "fat": fat_per_100,
+        "carbs": carbs_per_100,
+    }
+    values = {
+        "barcode": barcode,
+        "name": name,
+        "brand": brand,
+        "unit": unit,
+        "nutrition_per_100": nutrition,
+        "price_min": price_min,
+        "price_max": price_max,
+        "source": source,
+    }
+    statement = insert(BarcodeProductCache).values(**values)
+    statement = statement.on_conflict_do_update(
+        index_elements=[BarcodeProductCache.barcode],
+        set_={key: value for key, value in values.items() if key != "barcode"},
+    )
+    await db.execute(statement)
+    await db.commit()
 
 
 @router.get(
@@ -96,17 +139,16 @@ async def lookup_barcode(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> BarcodeLookupResponse:
-    """Dwuetapowe wyszukiwanie: najpierw WŁASNY katalog (produkty
-    zeskanowane i zgłoszone wcześniej przez kogokolwiek — natychmiastowe,
-    zawiera cenę), potem Open Food Facts i Open Prices jako źródła nazwy,
-    marki, wartości odżywczych i polskiej ceny. Gdy nie ma zgłoszonej ceny,
-    usługa zwraca jej orientacyjny szacunek według kategorii i gramatury.
+    """Najpierw przeszukuje dane w Neon, potem trzy zewnętrzne bazy.
+
+    Każdy wynik zewnętrzny jest zapisywany w cache w Neon, dlatego następny
+    skan tego samego kodu jest szybki i nie zużywa limitów publicznych API.
 
     Gdy nic nie znaleziono w żadnym źródle, frontend pokazuje wtedy
     pusty formularz zgłoszenia z już wpisanym kodem kreskowym, zamiast
     blokować użytkownika.
     """
-    from app.services.barcode_lookup import normalize_barcode
+    from app.services.barcode_lookup import normalize_barcode, price_range_for_product
 
     normalized_barcode = normalize_barcode(barcode)
     if normalized_barcode is None:
@@ -126,14 +168,7 @@ async def lookup_barcode(
     )
     existing = result.scalar_one_or_none()
     if existing is not None:
-        catalog_price = existing.submitted_price
-        if catalog_price is None:
-            catalog_price = await db.scalar(
-                select(func.min(StoreProduct.price)).where(
-                    StoreProduct.product_id == existing.id,
-                    StoreProduct.is_available.is_(True),
-                )
-            )
+        price_min, price_max = price_range_for_product(existing.name)
         return BarcodeLookupResponse(
             found=True,
             source="catalog",
@@ -145,26 +180,69 @@ async def lookup_barcode(
             fat_per_100=(existing.nutrition_per_100 or {}).get("fat"),
             carbs_per_100=(existing.nutrition_per_100 or {}).get("carbs"),
             existing_product_id=existing.id,
-            suggested_price=float(catalog_price) if catalog_price is not None else None,
+            price_min=price_min,
+            price_max=price_max,
         )
 
-    # 2. Open Food Facts — zewnętrzne, może nie znać lokalnej marki.
-    from app.services.barcode_lookup import lookup_barcode_external
-
-    off_result = await lookup_barcode_external(normalized_barcode)
-    if off_result is not None:
+    # 2. Cache Neon — wspólny dla wszystkich użytkowników.
+    cached_result = await db.execute(
+        select(BarcodeProductCache).where(
+            BarcodeProductCache.barcode == normalized_barcode
+        )
+    )
+    cached = cached_result.scalar_one_or_none()
+    if cached is not None:
+        nutrition = cached.nutrition_per_100 or {}
         return BarcodeLookupResponse(
             found=True,
-            source="open_food_facts",
-            name=off_result.name,
-            brand=off_result.brand,
-            unit=off_result.unit,
-            kcal_per_100=off_result.kcal_per_100,
-            protein_per_100=off_result.protein_per_100,
-            fat_per_100=off_result.fat_per_100,
-            carbs_per_100=off_result.carbs_per_100,
+            source="neon_cache",
+            name=cached.name,
+            brand=cached.brand,
+            unit=cached.unit,
+            kcal_per_100=nutrition.get("kcal"),
+            protein_per_100=nutrition.get("protein"),
+            fat_per_100=nutrition.get("fat"),
+            carbs_per_100=nutrition.get("carbs"),
+            price_min=cached.price_min,
+            price_max=cached.price_max,
+        )
+
+    # 3. Open Food Facts, USDA FoodData Central, potem UPCitemdb.
+    from app.services.barcode_lookup import lookup_barcode_external
+
+    external = await lookup_barcode_external(normalized_barcode)
+    if external is not None:
+        try:
+            await _upsert_barcode_cache(
+                db,
+                barcode=normalized_barcode,
+                name=external.name,
+                brand=external.brand,
+                unit=external.unit,
+                kcal_per_100=external.kcal_per_100,
+                protein_per_100=external.protein_per_100,
+                fat_per_100=external.fat_per_100,
+                carbs_per_100=external.carbs_per_100,
+                price_min=external.price_min,
+                price_max=external.price_max,
+                source=external.source,
+            )
+        except Exception as exc:
+            await db.rollback()
+            logger.warning("Nie udało się zapisać kodu %s w cache: %s", normalized_barcode, exc)
+        return BarcodeLookupResponse(
+            found=True,
+            source=external.source,
+            name=external.name,
+            brand=external.brand,
+            unit=external.unit,
+            kcal_per_100=external.kcal_per_100,
+            protein_per_100=external.protein_per_100,
+            fat_per_100=external.fat_per_100,
+            carbs_per_100=external.carbs_per_100,
             existing_product_id=None,
-            suggested_price=off_result.suggested_price,
+            price_min=external.price_min,
+            price_max=external.price_max,
         )
 
     return BarcodeLookupResponse(found=False, source=None, name=None)
@@ -306,14 +384,14 @@ async def get_product_substitutes(
 class ProductSubmission(BaseModel):
     """Zgłoszenie własnego produktu do katalogu.
 
-    Wymagane są tylko nazwa i cena — makroskładniki są opcjonalne, bo
+    Wymagana jest tylko nazwa — cena i makroskładniki są opcjonalne, bo
     użytkownik nie zawsze ma etykietę pod ręką, a produkt bez nich i tak
     jest przydatny na liście zakupów. Przy braku danych odżywczych wpis
     w dzienniku kalorii doda po prostu 0 kcal.
     """
 
     name: str = Field(..., min_length=2, max_length=300)
-    price: Decimal = Field(..., gt=0, le=10_000)
+    price: Decimal | None = Field(None, gt=0, le=10_000)
     unit: str = Field("szt", max_length=20)
     brand: str | None = Field(None, max_length=200)
     kcal_per_100: float | None = Field(None, ge=0, le=2_000)
@@ -324,7 +402,7 @@ class ProductSubmission(BaseModel):
     # produkt. Sama lista niczego jeszcze nie tworzy; dopiero akceptacja
     # administratora zamienia każdy wskazany sklep na prawdziwy wiersz
     # StoreProduct z podaną ceną (patrz review_product niżej).
-    store_ids: list[uuid.UUID] = []
+    store_ids: list[uuid.UUID] = Field(default_factory=list)
     # OPCJONALNE — jeśli produkt zgłoszono po zeskanowaniu kodu, zapisujemy
     # go, żeby KOLEJNE skanowanie tego samego produktu (przez kogokolwiek)
     # trafiało od razu w "własny katalog" (najszybsza, pierwsza gałąź
@@ -546,7 +624,7 @@ async def review_product(
     # i tak by to odrzuciło, ale sprawdzamy jawnie, żeby dać się temu
     # wykonać bezpiecznie również przy PONOWNEJ akceptacji po edycji).
     created_links = 0
-    if approve and product.requested_store_ids:
+    if approve and product.requested_store_ids and product.submitted_price is not None:
         from app.models.product import StoreProduct
         from app.models.store import Store
 
@@ -573,7 +651,7 @@ async def review_product(
                 StoreProduct(
                     store_id=store_id,
                     product_id=product.id,
-                    price=product.submitted_price or 0,
+                    price=product.submitted_price,
                 )
             )
             created_links += 1

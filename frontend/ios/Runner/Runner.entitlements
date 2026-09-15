@@ -6,17 +6,8 @@
 	<array>
 		<string>Default</string>
 	</array>
-	<!-- "production", nie "development".
-
-	     Ten sam plik uprawnień jest używany we WSZYSTKICH konfiguracjach
-	     (patrz CODE_SIGN_ENTITLEMENTS w project.pbxproj), a buildy
-	     trafiające do TestFlight i App Store muszą deklarować środowisko
-	     produkcyjne APNs. Przy "development" system wydaje token
-	     deweloperski, którego produkcyjny serwer Apple nie rozpoznaje —
-	     powiadomienia po prostu nie docierają, bez żadnego błędu.
-
-	     Klucz APNs (.p8) wgrany do Firebase obsługuje OBA środowiska,
-	     więc ta wartość niczego nie ogranicza przy testach lokalnych. -->
+	<!-- Release/Profile używają produkcyjnego APNs (TestFlight/App Store).
+	     Debug ma osobny RunnerDebug.entitlements ze środowiskiem development. -->
 	<key>aps-environment</key>
 	<string>production</string>
 </dict>

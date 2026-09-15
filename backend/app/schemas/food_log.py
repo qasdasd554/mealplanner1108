@@ -2,7 +2,7 @@ import uuid
 from datetime import date, datetime
 from typing import Optional, List
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class FoodLogEntryBase(BaseModel):
@@ -50,6 +50,8 @@ class FoodLogEntryCreate(FoodLogEntryBase):
 
 
 class FoodLogEntryResponse(FoodLogEntryBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     user_id: uuid.UUID
     created_at: datetime
@@ -57,11 +59,6 @@ class FoodLogEntryResponse(FoodLogEntryBase):
     # Bez tego pola aplikacja mobilna nie miała jak pokazać nazwy posiłku —
     # backend zwracał tylko surowe recipe_id (UUID), a nie nazwę dania.
     recipe_name: Optional[str] = None
-
-    class Config:
-        orm_mode = True
-        from_attributes = True
-
 
 class DailySummaryResponse(BaseModel):
     date: date
@@ -73,4 +70,4 @@ class DailySummaryResponse(BaseModel):
     # w Śledzeniu) — wcześniej frontend ZAWSZE zakładał sztywne 2000 kcal,
     # bo to pole w ogóle nie istniało w odpowiedzi.
     target_calories: float = 2000.0
-    entries: List[FoodLogEntryResponse] = []
+    entries: List[FoodLogEntryResponse] = Field(default_factory=list)

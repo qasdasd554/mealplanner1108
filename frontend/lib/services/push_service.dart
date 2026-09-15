@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io' show Platform;
 
 import 'package:firebase_core/firebase_core.dart';
@@ -27,6 +28,7 @@ class PushService {
   bool _available = false;
   String? _currentToken;
   bool _tokenRefreshListenerAttached = false;
+  Future<void>? _registrationInProgress;
 
   /// Czy Firebase wystartował poprawnie (są pliki konfiguracyjne).
   bool get isAvailable => _available;
@@ -102,8 +104,21 @@ class PushService {
   /// Prosi o zgodę i rejestruje token na koncie zalogowanego użytkownika.
   /// Wołane PO zalogowaniu — wtedy prośba o pozwolenie ma dla użytkownika
   /// zrozumiały kontekst.
-  Future<void> registerForUser() async {
-    if (!_available) return;
+  Future<void> registerForUser() {
+    if (!_available) return Future.value();
+    final running = _registrationInProgress;
+    if (running != null) return running;
+
+    final operation = _registerForUser();
+    _registrationInProgress = operation;
+    return operation.whenComplete(() {
+      if (identical(_registrationInProgress, operation)) {
+        _registrationInProgress = null;
+      }
+    });
+  }
+
+  Future<void> _registerForUser() async {
     try {
       final messaging = FirebaseMessaging.instance;
 
@@ -111,12 +126,25 @@ class PushService {
       // przekaże token z opóźnieniem, Firebase zapisze go na backendzie,
       // zamiast czekać do kolejnego uruchomienia aplikacji.
       if (!_tokenRefreshListenerAttached) {
-        messaging.onTokenRefresh.listen(_sendTokenToBackend);
+        messaging.onTokenRefresh.listen(
+          (token) => unawaited(_sendTokenToBackend(token)),
+          onError: (Object error) {
+            debugPrint('Błąd odświeżania tokenu FCM: $error');
+          },
+        );
         _tokenRefreshListenerAttached = true;
       }
       await messaging.setAutoInitEnabled(true);
 
-      final settings = await messaging.requestPermission();
+      final settings = await messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+        announcement: false,
+        carPlay: false,
+        criticalAlert: false,
+        provisional: false,
+      );
       if (settings.authorizationStatus == AuthorizationStatus.denied) {
         // Użytkownik odmówił — uszanuj to i nie próbuj ponownie przy
         // każdym uruchomieniu.
@@ -130,12 +158,20 @@ class PushService {
       // rejestrowało i push na iPhone'ach nie działał w ogóle.
       // Android tego wymogu nie ma, dlatego tam działało od razu.
       if (Platform.isIOS) {
-        var apnsToken = await messaging.getAPNSToken();
+        String? apnsToken;
         // System potrafi zwrócić token dopiero po chwili — próbujemy
-        // kilka razy zamiast poddawać się po pierwszym null.
-        for (var i = 0; i < 5 && apnsToken == null; i++) {
-          await Future.delayed(const Duration(seconds: 2));
-          apnsToken = await messaging.getAPNSToken();
+        // przez maksymalnie 30 sekund zamiast poddawać się po pierwszym
+        // null. Każda próba ma osobną obsługę błędu, bo iOS może zgłosić
+        // chwilowy błąd zanim rejestracja APNs się zakończy.
+        for (var i = 0; i < 15 && apnsToken == null; i++) {
+          try {
+            apnsToken = await messaging.getAPNSToken();
+          } catch (e) {
+            debugPrint('Token APNs jeszcze niedostępny (próba ${i + 1}): $e');
+          }
+          if (apnsToken == null) {
+            await Future.delayed(const Duration(seconds: 2));
+          }
         }
         if (apnsToken == null) {
           debugPrint('Brak tokenu APNs — push na tym urządzeniu nie zadziała.');
@@ -143,9 +179,21 @@ class PushService {
         }
       }
 
-      final token = await messaging.getToken();
+      String? token;
+      for (var i = 0; i < 5 && token == null; i++) {
+        try {
+          token = await messaging.getToken();
+        } catch (e) {
+          debugPrint('Token FCM jeszcze niedostępny (próba ${i + 1}): $e');
+        }
+        if (token == null) {
+          await Future.delayed(const Duration(seconds: 2));
+        }
+      }
       if (token != null) {
         await _sendTokenToBackend(token);
+      } else {
+        debugPrint('Firebase nie zwrócił tokenu FCM dla tego urządzenia.');
       }
     } catch (e) {
       debugPrint('Nie udało się zarejestrować powiadomień push: $e');
@@ -153,14 +201,26 @@ class PushService {
   }
 
   Future<void> _sendTokenToBackend(String token) async {
-    try {
-      await _client.post(
-        '/notifications/device-token',
-        body: {'token': token, 'platform': Platform.isIOS ? 'ios' : 'android'},
-      );
-      _currentToken = token;
-    } catch (e) {
-      debugPrint('Nie udało się zapisać tokenu urządzenia: $e');
+    for (var attempt = 1; attempt <= 3; attempt++) {
+      try {
+        await _client.post(
+          '/notifications/device-token',
+          body: {
+            'token': token,
+            'platform': Platform.isIOS ? 'ios' : 'android',
+          },
+        );
+        _currentToken = token;
+        return;
+      } catch (e) {
+        debugPrint(
+          'Nie udało się zapisać tokenu urządzenia '
+          '(próba $attempt/3): $e',
+        );
+        if (attempt < 3) {
+          await Future.delayed(Duration(seconds: attempt * 2));
+        }
+      }
     }
   }
 

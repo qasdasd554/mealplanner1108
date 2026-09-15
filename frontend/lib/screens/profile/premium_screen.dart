@@ -20,7 +20,9 @@ import '../recipes/pantry_screen.dart';
 /// aplikacja) ostatecznie decyduje, czy nadać dostęp premium — dopiero
 /// PO zweryfikowaniu tokenu zakupu bezpośrednio u Google.
 class PremiumScreen extends StatefulWidget {
-  const PremiumScreen({super.key});
+  final bool popAfterSuccess;
+
+  const PremiumScreen({super.key, this.popAfterSuccess = true});
 
   @override
   State<PremiumScreen> createState() => _PremiumScreenState();
@@ -55,11 +57,13 @@ class _PremiumScreenState extends State<PremiumScreen> {
         if (!mounted) return;
         setState(() => _isProcessingPurchase = false);
         ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),content: Text('Wystąpił błąd podczas zakupu.')),
-        );
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(
+              duration: Duration(seconds: 3),
+              content: Text('Wystąpił błąd podczas zakupu.'),
+            ),
+          );
       },
     );
     _loadProducts();
@@ -83,7 +87,8 @@ class _PremiumScreenState extends State<PremiumScreen> {
         if (!mounted) return;
         setState(() {
           _isLoadingProducts = false;
-          _productsError = 'Płatności są niedostępne na tym urządzeniu (sprawdź konto Google Play).';
+          _productsError =
+              'Płatności są niedostępne na tym urządzeniu (sprawdź konto Google Play).';
         });
         return;
       }
@@ -94,7 +99,8 @@ class _PremiumScreenState extends State<PremiumScreen> {
         _products = {for (final p in response.productDetails) p.id: p};
         _isLoadingProducts = false;
         if (response.productDetails.isEmpty) {
-          _productsError = 'Nie udało się pobrać cen subskrypcji. Spróbuj ponownie za chwilę.';
+          _productsError =
+              'Nie udało się pobrać cen subskrypcji. Spróbuj ponownie za chwilę.';
         }
       });
     } catch (e) {
@@ -132,11 +138,14 @@ class _PremiumScreenState extends State<PremiumScreen> {
       if (!mounted) return;
       setState(() => _isProcessingPurchase = false);
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-            duration: const Duration(seconds: 3),content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(friendlyError(e)),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
     }
   }
 
@@ -154,11 +163,15 @@ class _PremiumScreenState extends State<PremiumScreen> {
             _isRestoring = false;
           });
           ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-            SnackBar(
-            duration: const Duration(seconds: 3),content: Text('Zakup nie powiódł się: ${purchase.error?.message ?? "nieznany błąd"}')),
-          );
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                duration: const Duration(seconds: 3),
+                content: Text(
+                  'Zakup nie powiódł się: ${purchase.error?.message ?? "nieznany błąd"}',
+                ),
+              ),
+            );
         }
         // Błąd zgłoszony przez sam sklep — nie ma czego potwierdzać
         // wobec backendu, ale trzeba domknąć transakcję po stronie
@@ -174,28 +187,41 @@ class _PremiumScreenState extends State<PremiumScreen> {
         continue;
       }
 
-      if (purchase.status == PurchaseStatus.purchased || purchase.status == PurchaseStatus.restored) {
+      if (purchase.status == PurchaseStatus.purchased ||
+          purchase.status == PurchaseStatus.restored) {
         await _verifyWithBackend(purchase);
       }
     }
   }
 
   Future<void> _verifyWithBackend(PurchaseDetails purchase) async {
+    final wasRestoring = _isRestoring;
+    final alreadyHadPremium =
+        Provider.of<AuthProvider>(
+          context,
+          listen: false,
+        ).currentUser?.hasPremiumAccess ??
+        false;
     // UWAGA (naprawa — poprawny identyfikator dla iOS): na Androidzie
     // serverVerificationData to prawidłowy token Google. Na iOS to samo
     // pole zawiera dane paragonu w starszym formacie — App Store Server
     // API (patrz backend, apple_app_store.py) wymaga natomiast ID
     // TRANSAKCJI, dostępnego jako purchase.purchaseID (odpowiednik
     // SKPaymentTransaction.transactionIdentifier).
-    final purchaseToken = defaultTargetPlatform == TargetPlatform.iOS
-        ? (purchase.purchaseID ?? purchase.verificationData.serverVerificationData)
-        : purchase.verificationData.serverVerificationData;
+    final purchaseToken =
+        defaultTargetPlatform == TargetPlatform.iOS
+            ? (purchase.purchaseID ??
+                purchase.verificationData.serverVerificationData)
+            : purchase.verificationData.serverVerificationData;
 
     // UWAGA (rozszerzenie): pakiety punktów to INNY rodzaj produktu
     // (konsumowalny, nie subskrypcja) i mają OSOBNĄ ścieżkę weryfikacji
     // na backendzie — rozpoznajemy je po identyfikatorze produktu.
-    final isPointsPackage = {kPoints10ProductId, kPoints20ProductId, kPoints50ProductId}
-        .contains(purchase.productID);
+    final isPointsPackage = {
+      kPoints10ProductId,
+      kPoints20ProductId,
+      kPoints50ProductId,
+    }.contains(purchase.productID);
 
     if (isPointsPackage) {
       await _verifyPointsWithBackend(purchase, purchaseToken);
@@ -204,9 +230,16 @@ class _PremiumScreenState extends State<PremiumScreen> {
 
     try {
       final isRestore = purchase.status == PurchaseStatus.restored;
-      final result = isRestore
-          ? await _billing.restoreOnBackend(purchaseToken: purchaseToken, productId: purchase.productID)
-          : await _billing.verifyPurchase(purchaseToken: purchaseToken, productId: purchase.productID);
+      final result =
+          isRestore
+              ? await _billing.restoreOnBackend(
+                purchaseToken: purchaseToken,
+                productId: purchase.productID,
+              )
+              : await _billing.verifyPurchase(
+                purchaseToken: purchaseToken,
+                productId: purchase.productID,
+              );
 
       // UWAGA: potwierdzamy zakup wobec Google TYLKO po tym, jak backend
       // faktycznie potwierdził go u Google i nadał premium — jeśli
@@ -225,13 +258,32 @@ class _PremiumScreenState extends State<PremiumScreen> {
           _isProcessingPurchase = false;
           _isRestoring = false;
         });
-        ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),content: Text('Premium aktywowane — dziękujemy!')),
-        );
-        Navigator.of(context).pop();
+        // Strumień sklepu potrafi ponownie przesłać stary zakup po
+        // uruchomieniu aplikacji. Nie pokazujemy wtedy fałszywej,
+        // ponownej aktywacji. Informacja pozostaje przy zakupie nowym
+        // albo ręcznym użyciu przycisku "Przywróć zakupy".
+        if (!alreadyHadPremium || wasRestoring) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                duration: const Duration(seconds: 3),
+                content: Text(
+                  alreadyHadPremium
+                      ? 'Premium jest aktywne.'
+                      : 'Premium aktywowane — dziękujemy!',
+                ),
+              ),
+            );
+        }
+        // Premium może być osobną trasą albo zakładką ekranu głównego.
+        // Zamknięcie zakładki przez pop() usuwało jedyną trasę /home
+        // i pozostawiało użytkownika z czarnym ekranem.
+        if (!alreadyHadPremium &&
+            widget.popAfterSuccess &&
+            Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
       }
     } catch (e) {
       if (!mounted) return;
@@ -240,11 +292,15 @@ class _PremiumScreenState extends State<PremiumScreen> {
         _isRestoring = false;
       });
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-            duration: const Duration(seconds: 3),content: Text('Nie udało się potwierdzić zakupu: ${friendlyError(e)}')),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(
+              'Nie udało się potwierdzić zakupu: ${friendlyError(e)}',
+            ),
+          ),
+        );
     }
   }
 
@@ -253,7 +309,10 @@ class _PremiumScreenState extends State<PremiumScreen> {
   /// premium). Zakup KONSUMOWALNY musi zostać potwierdzony (completePurchase)
   /// NIEZALEŻNIE od wyniku weryfikacji backendu, bo Google traktuje
   /// niekonsumowane zakupy jako "wiszące" i po ~3 dniach zwraca pieniądze.
-  Future<void> _verifyPointsWithBackend(PurchaseDetails purchase, String purchaseToken) async {
+  Future<void> _verifyPointsWithBackend(
+    PurchaseDetails purchase,
+    String purchaseToken,
+  ) async {
     try {
       final newBalance = await _billing.verifyPointsPurchase(
         purchaseToken: purchaseToken,
@@ -269,20 +328,26 @@ class _PremiumScreenState extends State<PremiumScreen> {
       if (!mounted) return;
       setState(() => _isProcessingPurchase = false);
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-            duration: const Duration(seconds: 3),content: Text('Dodano punkty! Masz teraz $newBalance punktów.')),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text('Dodano punkty! Masz teraz $newBalance punktów.'),
+          ),
+        );
     } catch (e) {
       if (!mounted) return;
       setState(() => _isProcessingPurchase = false);
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-            duration: const Duration(seconds: 3),content: Text('Nie udało się potwierdzić zakupu: ${friendlyError(e)}')),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(
+              'Nie udało się potwierdzić zakupu: ${friendlyError(e)}',
+            ),
+          ),
+        );
     }
   }
 
@@ -298,11 +363,15 @@ class _PremiumScreenState extends State<PremiumScreen> {
       if (!mounted) return;
       setState(() => _isProcessingPurchase = false);
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-            duration: const Duration(seconds: 3),content: Text('Nie udało się rozpocząć zakupu: ${friendlyError(e)}')),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(
+              'Nie udało się rozpocząć zakupu: ${friendlyError(e)}',
+            ),
+          ),
+        );
     }
   }
 
@@ -318,24 +387,29 @@ class _PremiumScreenState extends State<PremiumScreen> {
       if (_isRestoring) {
         setState(() => _isRestoring = false);
         ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),content: Text('Nie znaleziono żadnych wcześniejszych zakupów do przywrócenia.')),
-        );
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(
+              duration: Duration(seconds: 3),
+              content: Text(
+                'Nie znaleziono żadnych wcześniejszych zakupów do przywrócenia.',
+              ),
+            ),
+          );
       }
     } catch (e) {
       if (!mounted) return;
       setState(() => _isRestoring = false);
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-            duration: const Duration(seconds: 3),content: Text(friendlyError(e))),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(friendlyError(e)),
+          ),
+        );
     }
   }
-
 
   /// Karta bezpośredniej akcji Premium — dotknięcie prowadzi PROSTO do
   /// danej funkcji (nie tylko jej opisuje). Dla kont bez Premium mała
@@ -387,19 +461,29 @@ class _PremiumScreenState extends State<PremiumScreen> {
                       Flexible(
                         child: Text(
                           title,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       if (!isPremium && pointsAlternativeCost == null) ...[
                         const SizedBox(width: 6),
-                        Icon(Icons.lock_outline, size: 13, color: AppTheme.textSecondary.withOpacity(0.6)),
+                        Icon(
+                          Icons.lock_outline,
+                          size: 13,
+                          color: AppTheme.textSecondary.withOpacity(0.6),
+                        ),
                       ],
                       if (!isPremium && pointsAlternativeCost != null) ...[
                         const SizedBox(width: 6),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: AppTheme.accentColor.withOpacity(0.15),
                             borderRadius: BorderRadius.circular(6),
@@ -407,11 +491,19 @@ class _PremiumScreenState extends State<PremiumScreen> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.toll, size: 11, color: AppTheme.accentColor),
+                              Icon(
+                                Icons.toll,
+                                size: 11,
+                                color: AppTheme.accentColor,
+                              ),
                               const SizedBox(width: 2),
                               Text(
                                 '$pointsAlternativeCost',
-                                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.accentColor),
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.accentColor,
+                                ),
                               ),
                             ],
                           ),
@@ -424,12 +516,18 @@ class _PremiumScreenState extends State<PremiumScreen> {
                     !isPremium && pointsAlternativeCost != null
                         ? '$subtitle — albo $pointsAlternativeCost pkt bez subskrypcji'
                         : subtitle,
-                    style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                    style: TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, color: AppTheme.textSecondary.withOpacity(0.5)),
+            Icon(
+              Icons.chevron_right,
+              color: AppTheme.textSecondary.withOpacity(0.5),
+            ),
           ],
         ),
       ),
@@ -440,7 +538,8 @@ class _PremiumScreenState extends State<PremiumScreen> {
     _PremiumFeature(
       icon: Icons.all_inclusive,
       title: 'Plany posiłków bez limitu',
-      description: 'Generuj tyle planów, ile chcesz — bez dziennego ograniczenia.',
+      description:
+          'Generuj tyle planów, ile chcesz — bez dziennego ograniczenia.',
     ),
     _PremiumFeature(
       icon: Icons.auto_awesome,
@@ -450,12 +549,14 @@ class _PremiumScreenState extends State<PremiumScreen> {
     _PremiumFeature(
       icon: Icons.history,
       title: 'Pełna historia śledzenia',
-      description: 'Przeglądaj całą historię kalorii, bez limitu 30 dni wstecz.',
+      description:
+          'Przeglądaj całą historię kalorii, bez limitu 30 dni wstecz.',
     ),
     _PremiumFeature(
       icon: Icons.calendar_view_week,
       title: 'Wiele planów naraz',
-      description: 'Osobny plan na dni robocze i osobny na weekend — jednocześnie.',
+      description:
+          'Osobny plan na dni robocze i osobny na weekend — jednocześnie.',
     ),
   ];
 
@@ -493,17 +594,31 @@ class _PremiumScreenState extends State<PremiumScreen> {
                           color: Colors.white.withOpacity(0.15),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.workspace_premium, color: Colors.white, size: 40),
-                      ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack),
+                        child: const Icon(
+                          Icons.workspace_premium,
+                          color: Colors.white,
+                          size: 40,
+                        ),
+                      ).animate().scale(
+                        duration: 400.ms,
+                        curve: Curves.easeOutBack,
+                      ),
                       const SizedBox(height: 12),
                       const Text(
                         'Meal Planner Premium',
-                        style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ).animate().fadeIn(delay: 150.ms),
                       const SizedBox(height: 4),
                       Text(
                         'Więcej możliwości dla Twojej kuchni',
-                        style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 13),
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.85),
+                          fontSize: 13,
+                        ),
                       ).animate().fadeIn(delay: 250.ms),
                     ],
                   ),
@@ -527,9 +642,12 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   subtitle: 'Zdjęcie, tekst albo link — AI zrobi resztę',
                   isPremium: isPremium,
                   pointsAlternativeCost: 2,
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const AiAddRecipeScreen()),
-                  ),
+                  onTap:
+                      () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const AiAddRecipeScreen(),
+                        ),
+                      ),
                 ),
                 const SizedBox(height: 10),
                 _buildQuickAction(
@@ -538,9 +656,15 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   title: 'Publikuj przepisy we wspólnocie',
                   subtitle: 'Podziel się swoimi przepisami z innymi',
                   isPremium: isPremium,
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const RecipesScreen(initialMyRecipesOnly: true)),
-                  ),
+                  onTap:
+                      () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder:
+                              (_) => const RecipesScreen(
+                                initialMyRecipesOnly: true,
+                              ),
+                        ),
+                      ),
                 ),
                 const SizedBox(height: 10),
                 _buildQuickAction(
@@ -549,9 +673,12 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   title: 'Listy zakupów z przepisów',
                   subtitle: 'Do 5 zapisanych list (standard: 1)',
                   isPremium: isPremium,
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const RecipesScreen()),
-                  ),
+                  onTap:
+                      () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const RecipesScreen(),
+                        ),
+                      ),
                 ),
                 const SizedBox(height: 10),
                 _buildQuickAction(
@@ -560,9 +687,12 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   title: 'Co ugotować z tego, co mam',
                   subtitle: 'Zaznacz składniki w domu, dopasujemy przepisy',
                   isPremium: isPremium,
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const IngredientMatchSelectScreen()),
-                  ),
+                  onTap:
+                      () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const IngredientMatchSelectScreen(),
+                        ),
+                      ),
                 ),
                 const SizedBox(height: 10),
                 _buildQuickAction(
@@ -573,47 +703,64 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   // Spiżarnia jest dostępna dla WSZYSTKICH kont, nie tylko
                   // Premium — celowo zawsze bez plakietki kłódki.
                   isPremium: true,
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const PantryScreen()),
-                  ),
+                  onTap:
+                      () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const PantryScreen()),
+                      ),
                 ),
                 const SizedBox(height: 28),
                 ..._features.asMap().entries.map((entry) {
                   final index = entry.key;
                   final feature = entry.value;
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: 14),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: AppTheme.secondaryColor.withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: Icon(feature.icon, color: AppTheme.secondaryColor, size: 22),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                feature.title,
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                        padding: const EdgeInsets.only(bottom: 14),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: AppTheme.secondaryColor.withOpacity(
+                                  0.12,
+                                ),
+                                borderRadius: BorderRadius.circular(14),
                               ),
-                              const SizedBox(height: 2),
-                              Text(
-                                feature.description,
-                                style: TextStyle(color: AppTheme.textSecondary, fontSize: 13, height: 1.3),
+                              child: Icon(
+                                feature.icon,
+                                color: AppTheme.secondaryColor,
+                                size: 22,
                               ),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    feature.title,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    feature.description,
+                                    style: TextStyle(
+                                      color: AppTheme.textSecondary,
+                                      fontSize: 13,
+                                      height: 1.3,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ).animate().fadeIn(delay: (300 + index * 100).ms).slideX(begin: 0.05, end: 0);
+                      )
+                      .animate()
+                      .fadeIn(delay: (300 + index * 100).ms)
+                      .slideX(begin: 0.05, end: 0);
                 }),
                 const SizedBox(height: 12),
                 ..._buildPricingSection(context),
@@ -645,25 +792,37 @@ class _PremiumScreenState extends State<PremiumScreen> {
           'po potwierdzeniu zakupu. Możesz zarządzać subskrypcją albo ją '
           'anulować w ustawieniach swojego konta w sklepie.',
           textAlign: TextAlign.center,
-          style: TextStyle(color: AppTheme.textSecondary, fontSize: 11, height: 1.4),
+          style: TextStyle(
+            color: AppTheme.textSecondary,
+            fontSize: 11,
+            height: 1.4,
+          ),
         ),
         const SizedBox(height: 8),
         Wrap(
           alignment: WrapAlignment.center,
           children: [
             TextButton(
-              onPressed: () => _openLegalUrl(
-                context,
-                'https://qasdasd554.github.io/mealplanner1108/terms-of-use.html',
+              onPressed:
+                  () => _openLegalUrl(
+                    context,
+                    'https://qasdasd554.github.io/mealplanner1108/terms-of-use.html',
+                  ),
+              child: const Text(
+                'Regulamin (EULA)',
+                style: TextStyle(fontSize: 12),
               ),
-              child: const Text('Regulamin (EULA)', style: TextStyle(fontSize: 12)),
             ),
             TextButton(
-              onPressed: () => _openLegalUrl(
-                context,
-                'https://qasdasd554.github.io/mealplanner1108/privacy-policy.html',
+              onPressed:
+                  () => _openLegalUrl(
+                    context,
+                    'https://qasdasd554.github.io/mealplanner1108/privacy-policy.html',
+                  ),
+              child: const Text(
+                'Polityka prywatności',
+                style: TextStyle(fontSize: 12),
               ),
-              child: const Text('Polityka prywatności', style: TextStyle(fontSize: 12)),
             ),
           ],
         ),
@@ -692,7 +851,9 @@ class _PremiumScreenState extends State<PremiumScreen> {
           ..hideCurrentSnackBar()
           ..showSnackBar(
             SnackBar(
-            duration: const Duration(seconds: 3),content: Text('Nie udało się otworzyć strony: $url')),
+              duration: const Duration(seconds: 3),
+              content: Text('Nie udało się otworzyć strony: $url'),
+            ),
           );
       }
     }
@@ -714,18 +875,30 @@ class _PremiumScreenState extends State<PremiumScreen> {
           ),
           child: Row(
             children: [
-              const Icon(Icons.check_circle, color: AppTheme.primaryColor, size: 28),
+              const Icon(
+                Icons.check_circle,
+                color: AppTheme.primaryColor,
+                size: 28,
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Masz już aktywne Premium', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Masz już aktywne Premium',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     if (daysLeft != null) ...[
                       const SizedBox(height: 2),
                       Text(
-                        daysLeft == 0 ? 'Wygasa dziś' : 'Aktywne jeszcze przez $daysLeft ${daysLeft == 1 ? "dzień" : "dni"}',
-                        style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                        daysLeft == 0
+                            ? 'Wygasa dziś'
+                            : 'Aktywne jeszcze przez $daysLeft ${daysLeft == 1 ? "dzień" : "dni"}',
+                        style: TextStyle(
+                          color: AppTheme.textSecondary,
+                          fontSize: 12,
+                        ),
                       ),
                     ],
                   ],
@@ -752,9 +925,16 @@ class _PremiumScreenState extends State<PremiumScreen> {
           padding: const EdgeInsets.symmetric(vertical: 16),
           child: Column(
             children: [
-              Text(_productsError!, textAlign: TextAlign.center, style: TextStyle(color: AppTheme.errorColor)),
+              Text(
+                _productsError!,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppTheme.errorColor),
+              ),
               const SizedBox(height: 8),
-              TextButton(onPressed: _loadProducts, child: const Text('Spróbuj ponownie')),
+              TextButton(
+                onPressed: _loadProducts,
+                child: const Text('Spróbuj ponownie'),
+              ),
             ],
           ),
         ),
@@ -806,9 +986,14 @@ class _PremiumScreenState extends State<PremiumScreen> {
       Center(
         child: TextButton.icon(
           onPressed: _isRestoring ? null : _restore,
-          icon: _isRestoring
-              ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
-              : const Icon(Icons.restore, size: 16),
+          icon:
+              _isRestoring
+                  ? const SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                  : const Icon(Icons.restore, size: 16),
           label: const Text('Przywróć zakupy'),
         ),
       ),
@@ -830,12 +1015,17 @@ class _PremiumScreenState extends State<PremiumScreen> {
           const SizedBox(width: 8),
           Text(
             'Punkty premium',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           const Spacer(),
           Text(
             'Masz: $currentBalance',
-            style: TextStyle(color: AppTheme.accentColor, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: AppTheme.accentColor,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),
@@ -860,9 +1050,11 @@ class _PremiumScreenState extends State<PremiumScreen> {
                 child: _buildPointsCard(
                   points: 10,
                   price: _pointsProducts[kPoints10ProductId]!.price,
-                  onTap: _isProcessingPurchase
-                      ? null
-                      : () => _buyPoints(_pointsProducts[kPoints10ProductId]!),
+                  onTap:
+                      _isProcessingPurchase
+                          ? null
+                          : () =>
+                              _buyPoints(_pointsProducts[kPoints10ProductId]!),
                 ),
               ),
             if (_pointsProducts[kPoints20ProductId] != null) ...[
@@ -871,9 +1063,11 @@ class _PremiumScreenState extends State<PremiumScreen> {
                 child: _buildPointsCard(
                   points: 20,
                   price: _pointsProducts[kPoints20ProductId]!.price,
-                  onTap: _isProcessingPurchase
-                      ? null
-                      : () => _buyPoints(_pointsProducts[kPoints20ProductId]!),
+                  onTap:
+                      _isProcessingPurchase
+                          ? null
+                          : () =>
+                              _buyPoints(_pointsProducts[kPoints20ProductId]!),
                 ),
               ),
             ],
@@ -884,9 +1078,11 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   points: 50,
                   price: _pointsProducts[kPoints50ProductId]!.price,
                   highlight: true,
-                  onTap: _isProcessingPurchase
-                      ? null
-                      : () => _buyPoints(_pointsProducts[kPoints50ProductId]!),
+                  onTap:
+                      _isProcessingPurchase
+                          ? null
+                          : () =>
+                              _buyPoints(_pointsProducts[kPoints50ProductId]!),
                 ),
               ),
             ],
@@ -906,10 +1102,16 @@ class _PremiumScreenState extends State<PremiumScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
         decoration: BoxDecoration(
-          color: highlight ? AppTheme.accentColor.withOpacity(0.12) : AppTheme.surfaceColor,
+          color:
+              highlight
+                  ? AppTheme.accentColor.withOpacity(0.12)
+                  : AppTheme.surfaceColor,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: highlight ? AppTheme.accentColor : AppTheme.textSecondary.withOpacity(0.2),
+            color:
+                highlight
+                    ? AppTheme.accentColor
+                    : AppTheme.textSecondary.withOpacity(0.2),
             width: highlight ? 1.5 : 1,
           ),
         ),
@@ -917,9 +1119,15 @@ class _PremiumScreenState extends State<PremiumScreen> {
           children: [
             Icon(Icons.toll, color: AppTheme.accentColor, size: 22),
             const SizedBox(height: 6),
-            Text('$points pkt', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+            Text(
+              '$points pkt',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
             const SizedBox(height: 2),
-            Text(price, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+            Text(
+              price,
+              style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+            ),
           ],
         ),
       ),
@@ -939,24 +1147,29 @@ class _PremiumScreenState extends State<PremiumScreen> {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
-        gradient: highlight
-            ? const LinearGradient(
-                colors: [Color(0xFFF5C24D), Color(0xFFE0A62E)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              )
-            : null,
+        gradient:
+            highlight
+                ? const LinearGradient(
+                  colors: [Color(0xFFF5C24D), Color(0xFFE0A62E)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
+                : null,
         color: highlight ? null : AppTheme.surfaceColor,
-        border: highlight ? null : Border.all(color: AppTheme.textSecondary.withOpacity(0.15)),
-        boxShadow: highlight
-            ? [
-                BoxShadow(
-                  color: const Color(0xFFE0A62E).withOpacity(0.35),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ]
-            : null,
+        border:
+            highlight
+                ? null
+                : Border.all(color: AppTheme.textSecondary.withOpacity(0.15)),
+        boxShadow:
+            highlight
+                ? [
+                  BoxShadow(
+                    color: const Color(0xFFE0A62E).withOpacity(0.35),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+                : null,
       ),
       child: Column(
         children: [
@@ -970,7 +1183,11 @@ class _PremiumScreenState extends State<PremiumScreen> {
               ),
               child: Text(
                 badge,
-                style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           Row(
@@ -995,7 +1212,10 @@ class _PremiumScreenState extends State<PremiumScreen> {
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
-                            color: highlight ? Colors.white : AppTheme.primaryColor,
+                            color:
+                                highlight
+                                    ? Colors.white
+                                    : AppTheme.primaryColor,
                           ),
                         ),
                         if (period.isNotEmpty)
@@ -1003,7 +1223,10 @@ class _PremiumScreenState extends State<PremiumScreen> {
                             text: ' $period',
                             style: TextStyle(
                               fontSize: 13,
-                              color: highlight ? Colors.white.withOpacity(0.85) : AppTheme.textSecondary,
+                              color:
+                                  highlight
+                                      ? Colors.white.withOpacity(0.85)
+                                      : AppTheme.textSecondary,
                             ),
                           ),
                       ],
@@ -1013,20 +1236,24 @@ class _PremiumScreenState extends State<PremiumScreen> {
               ),
               ElevatedButton(
                 onPressed: onTap,
-                style: highlight
-                    ? ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: const Color(0xFFE0A62E),
-                        minimumSize: const Size(110, 44),
-                      )
-                    : ElevatedButton.styleFrom(minimumSize: const Size(110, 44)),
-                child: _isProcessingPurchase
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Kup Premium'),
+                style:
+                    highlight
+                        ? ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: const Color(0xFFE0A62E),
+                          minimumSize: const Size(110, 44),
+                        )
+                        : ElevatedButton.styleFrom(
+                          minimumSize: const Size(110, 44),
+                        ),
+                child:
+                    _isProcessingPurchase
+                        ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                        : const Text('Kup Premium'),
               ),
             ],
           ),
@@ -1041,5 +1268,9 @@ class _PremiumFeature {
   final String title;
   final String description;
 
-  const _PremiumFeature({required this.icon, required this.title, required this.description});
+  const _PremiumFeature({
+    required this.icon,
+    required this.title,
+    required this.description,
+  });
 }

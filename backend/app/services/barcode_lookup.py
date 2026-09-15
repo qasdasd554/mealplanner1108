@@ -1,36 +1,27 @@
-"""Wyszukiwanie produktu i orientacyjnej ceny po kodzie EAN/UPC.
-
-Metadane i wartości odżywcze pobieramy z Open Food Facts. Cenę próbujemy
-odczytać z Open Prices (wyłącznie obserwacje w PLN), a gdy dla danego kodu
-nie ma polskiego wpisu, obliczamy jawnie orientacyjną cenę opakowania na
-podstawie kategorii i gramatury. Brak zewnętrznego API nie blokuje aplikacji.
-"""
+"""Wyszukiwanie produktów po GTIN/EAN/UPC w kilku niezależnych bazach."""
 
 from __future__ import annotations
 
-import asyncio
 import logging
-from statistics import median
+import asyncio
 
 import httpx
 
+from app.core.config import settings
+
 OFF_API_URLS = (
-    # v3 jest obecnie udokumentowanym endpointem pojedynczego produktu.
-    # v2 zostaje jako niezależna ścieżka zapasowa, bo baza nie zawsze
-    # wdraża zmiany równocześnie na wszystkich węzłach.
     ("v3", "https://world.openfoodfacts.org/api/v3/product/{barcode}"),
     ("v2", "https://world.openfoodfacts.org/api/v2/product/{barcode}.json"),
     ("v2", "https://pl.openfoodfacts.org/api/v2/product/{barcode}.json"),
 )
-OPEN_PRICES_API_URL = "https://prices.openfoodfacts.org/api/v1/prices"
+USDA_SEARCH_URL = "https://api.nal.usda.gov/fdc/v1/foods/search"
+UPCITEMDB_LOOKUP_URL = "https://api.upcitemdb.com/prod/trial/lookup"
 USER_AGENT = "MealPlannerPolska/1.0 (https://github.com/qasdasd554/mealplanner1108)"
 
 logger = logging.getLogger(__name__)
 
 
 class BarcodeLookupResult:
-    """Znormalizowany wynik z Open Food Facts i Open Prices."""
-
     def __init__(
         self,
         *,
@@ -41,7 +32,8 @@ class BarcodeLookupResult:
         protein_per_100: float | None,
         fat_per_100: float | None,
         carbs_per_100: float | None,
-        suggested_price: float | None,
+        price_min: float,
+        price_max: float,
         source: str,
     ) -> None:
         self.name = name
@@ -51,17 +43,14 @@ class BarcodeLookupResult:
         self.protein_per_100 = protein_per_100
         self.fat_per_100 = fat_per_100
         self.carbs_per_100 = carbs_per_100
-        self.suggested_price = suggested_price
+        self.price_min = price_min
+        self.price_max = price_max
         self.source = source
 
 
 def normalize_barcode(value: str) -> str | None:
     """Usuwa formatowanie skanera i odrzuca wartości niebędące GTIN."""
     cleaned = value.strip()
-    # Część skanerów zwraca tzw. identyfikator AIM przed właściwym kodem,
-    # np. `]E0` dla EAN/UPC. Poprzednie usuwanie samych znaków innych niż
-    # cyfry zostawiało z takiego prefiksu końcowe `0`, przez co poprawny
-    # EAN-13 zmieniał się w inny, 14-cyfrowy numer i baza nic nie znajdowała.
     if (
         len(cleaned) >= 3
         and cleaned[0] == "]"
@@ -85,6 +74,36 @@ def _number(mapping: dict, *keys: str) -> float | None:
     return None
 
 
+def price_range_for_product(name: str, categories: object = None) -> tuple[float, float]:
+    """Stałe, szerokie widełki detaliczne zamiast udawanej dokładnej ceny."""
+    category_text = (
+        " ".join(str(value) for value in categories)
+        if isinstance(categories, list)
+        else str(categories or "")
+    )
+    text = f"{name} {category_text}".lower()
+    rules: tuple[tuple[tuple[str, ...], tuple[float, float]], ...] = (
+        (("masło", "butter"), (6.0, 10.0)),
+        (("jaj", "egg"), (8.0, 18.0)),
+        (("mleko", "milk"), (3.0, 6.0)),
+        (("jogurt", "yogurt"), (2.0, 7.0)),
+        (("ser ", "sery", "sera", "twaróg", "cheese"), (5.0, 18.0)),
+        (("pieczywo", "chleb", "bread", "bakery"), (3.0, 9.0)),
+        (("ryba", "fish", "seafood", "salmon", "tuna"), (10.0, 40.0)),
+        (("mięso", "meat", "poultry", "beef", "pork"), (10.0, 35.0)),
+        (("makaron", "ryż", "mąka", "pasta", "rice", "flour", "cereal", "legume"), (3.0, 12.0)),
+        (("oliwa", "olej", "oil", "vinegar"), (7.0, 30.0)),
+        (("przypraw", "zioł", "spice", "seasoning", "herb"), (2.0, 10.0)),
+        (("warzyw", "owoc", "vegetable", "fruit"), (2.0, 15.0)),
+        (("sos", "ketchup", "mustard", "pesto", "condiment"), (3.0, 15.0)),
+        (("napój", "sok", "drink", "soda", "juice"), (3.0, 12.0)),
+    )
+    for keywords, price_range in rules:
+        if any(keyword in text for keyword in keywords):
+            return price_range
+    return (3.0, 25.0)
+
+
 def _unit_from_product(product: dict) -> str:
     unit = str(product.get("product_quantity_unit") or "").lower()
     if unit in {"ml", "cl", "dl", "l"}:
@@ -94,208 +113,194 @@ def _unit_from_product(product: dict) -> str:
     return "g"
 
 
-def _quantity_in_base_unit(product: dict) -> float:
-    """Zwraca gramaturę w kg/l do oszacowania ceny całego opakowania."""
-    quantity = _number(product, "product_quantity", "serving_quantity")
-    if quantity is None or quantity <= 0:
-        return 0.5
-    unit = str(product.get("product_quantity_unit") or "g").lower()
-    if unit in {"kg", "l"}:
-        return quantity
-    if unit == "cl":
-        return quantity / 100.0
-    if unit == "dl":
-        return quantity / 10.0
-    if unit in {"g", "ml"}:
-        return quantity / 1000.0
-    return 0.5
-
-
-def _estimate_price_pln(product: dict) -> float:
-    """Konserwatywny szacunek ceny opakowania na podstawie kategorii."""
-    tags = " ".join(str(tag).lower() for tag in product.get("categories_tags") or [])
-    price_per_kg_or_litre = 20.0
-    category_rates = (
-        (("spice", "seasoning", "herb"), 160.0),
-        (("fish", "seafood", "salmon", "tuna"), 48.0),
-        (("meat", "poultry", "beef", "pork"), 32.0),
-        (("cheese",), 38.0),
-        (("chocolate", "cocoa"), 55.0),
-        (("nuts", "seeds"), 45.0),
-        (("oil", "vinegar"), 22.0),
-        (("sauce", "condiment", "pesto"), 28.0),
-        (("bread", "bakery"), 12.0),
-        (("pasta", "rice", "cereal", "flour", "legume"), 13.0),
-        (("milk", "yogurt", "dairy"), 10.0),
-        (("fruit",), 10.0),
-        (("vegetable",), 9.0),
-    )
-    for keywords, rate in category_rates:
-        if any(keyword in tags for keyword in keywords):
-            price_per_kg_or_litre = rate
-            break
-
-    estimate = price_per_kg_or_litre * _quantity_in_base_unit(product)
-    return round(min(max(estimate, 1.49), 99.99), 2)
-
-
 def _product_from_off_response(data: object, api_version: str) -> dict | None:
-    """Wyciąga produkt zarówno z odpowiedzi OFF v3, jak i starszego v2."""
     if not isinstance(data, dict) or not isinstance(data.get("product"), dict):
         return None
-
     if api_version == "v3":
         result = data.get("result") or {}
-        product_found = (
+        found = (
             data.get("status") == "success"
             and isinstance(result, dict)
             and result.get("id") == "product_found"
         )
     else:
-        product_found = str(data.get("status")) == "1"
+        found = str(data.get("status")) == "1"
+    return data["product"] if found else None
 
-    return data["product"] if product_found else None
 
-
-async def _fetch_off_product(client: httpx.AsyncClient, barcode: str) -> dict | None:
-    params = {
-        "cc": "pl",
-        "lc": "pl",
-        "fields": (
-            "product_name_pl,product_name,generic_name_pl,generic_name,"
-            "abbreviated_product_name,brands,nutriments,categories_tags,"
-            "product_quantity,product_quantity_unit,serving_quantity"
+def _result_from_off_product(product: dict) -> BarcodeLookupResult | None:
+    name = next(
+        (
+            value.strip()
+            for key in (
+                "product_name_pl", "product_name", "abbreviated_product_name",
+                "generic_name_pl", "generic_name",
+            )
+            if isinstance((value := product.get(key)), str) and value.strip()
         ),
-    }
-    for api_version, url_template in OFF_API_URLS:
-        try:
-            response = await client.get(url_template.format(barcode=barcode), params=params)
-            response.raise_for_status()
-            data = response.json()
-        except (httpx.HTTPError, ValueError, TypeError) as exc:
-            logger.warning(
-                "Open Food Facts %s lookup failed for %s: %s",
-                api_version,
-                barcode,
-                exc,
-            )
-            continue
-
-        product = _product_from_off_response(data, api_version)
-        if product is not None:
-            return product
-    return None
-
-
-async def _fetch_polish_price(client: httpx.AsyncClient, barcode: str) -> float | None:
-    try:
-        response = await client.get(
-            OPEN_PRICES_API_URL,
-            params={"product_code": barcode, "currency": "PLN", "size": 50},
-        )
-        response.raise_for_status()
-        items = response.json().get("items") or []
-    except (httpx.HTTPError, ValueError, AttributeError) as exc:
-        logger.warning("Open Prices lookup failed for %s: %s", barcode, exc)
-        return None
-
-    polish_prices: list[float] = []
-    for item in items:
-        if not isinstance(item, dict):
-            continue
-        location = item.get("location") or {}
-        country = (
-            str(location.get("osm_address_country_code") or "").upper()
-            if isinstance(location, dict)
-            else ""
-        )
-        if str(item.get("currency") or "").upper() != "PLN":
-            continue
-        if country and country != "PL":
-            continue
-        try:
-            price = float(item["price"])
-        except (KeyError, TypeError, ValueError):
-            continue
-        if 0.1 <= price <= 1000:
-            polish_prices.append(price)
-
-    if not polish_prices:
-        return None
-    return round(float(median(polish_prices[:10])), 2)
-
-
-async def lookup_barcode_external(barcode: str) -> BarcodeLookupResult | None:
-    """Pobiera nazwę, markę, makro i orientacyjną cenę dla kodu."""
-    normalized = normalize_barcode(barcode)
-    if normalized is None:
-        return None
-
-    headers = {"User-Agent": USER_AGENT, "Accept": "application/json"}
-    try:
-        async with httpx.AsyncClient(
-            timeout=10.0,
-            follow_redirects=True,
-            headers=headers,
-        ) as client:
-            # Cena jest dodatkiem. Awaria lub zmiana formatu Open Prices nie
-            # może skasować poprawnego wyniku z Open Food Facts — wcześniej
-            # zwykłe gather propagowało każdy nieprzewidziany wyjątek i cały
-            # skan kończył się pustym wynikiem mimo znalezionej nazwy i makro.
-            product_result, price_result = await asyncio.gather(
-                _fetch_off_product(client, normalized),
-                _fetch_polish_price(client, normalized),
-                return_exceptions=True,
-            )
-    except (httpx.HTTPError, OSError) as exc:
-        logger.warning("Barcode services unavailable for %s: %s", normalized, exc)
-        return None
-
-    if isinstance(product_result, BaseException):
-        logger.warning(
-            "Open Food Facts lookup crashed for %s: %s", normalized, product_result
-        )
-        return None
-    product = product_result
-    if isinstance(price_result, BaseException):
-        logger.warning("Open Prices lookup crashed for %s: %s", normalized, price_result)
-        observed_price = None
-    else:
-        observed_price = price_result
-
-    if product is None:
-        return None
-
-    name = (
-        product.get("product_name_pl")
-        or product.get("product_name")
-        or product.get("abbreviated_product_name")
-        or product.get("generic_name_pl")
-        or product.get("generic_name")
+        None,
     )
-    if not isinstance(name, str) or not name.strip():
+    if name is None:
         return None
-
     nutriments = product.get("nutriments") or {}
     kcal = _number(nutriments, "energy-kcal_100g", "energy-kcal")
     if kcal is None:
         energy_kj = _number(nutriments, "energy_100g", "energy")
         kcal = round(energy_kj / 4.184, 1) if energy_kj is not None else None
-
-    brands = product.get("brands")
-    if isinstance(brands, list):
-        brand = str(brands[0]).strip() if brands else None
-    else:
-        brand = str(brands or "").split(",")[0].strip() or None
-
+    raw_brands = product.get("brands")
+    brand = (
+        str(raw_brands[0]).strip()
+        if isinstance(raw_brands, list) and raw_brands
+        else str(raw_brands or "").split(",")[0].strip() or None
+    )
+    price_min, price_max = price_range_for_product(name, product.get("categories_tags"))
     return BarcodeLookupResult(
-        name=name.strip(),
+        name=name,
         brand=brand,
         unit=_unit_from_product(product),
         kcal_per_100=kcal,
         protein_per_100=_number(nutriments, "proteins_100g", "proteins"),
         fat_per_100=_number(nutriments, "fat_100g", "fat"),
         carbs_per_100=_number(nutriments, "carbohydrates_100g", "carbohydrates"),
-        suggested_price=observed_price or _estimate_price_pln(product),
+        price_min=price_min,
+        price_max=price_max,
         source="open_food_facts",
     )
+
+
+async def _fetch_off(client: httpx.AsyncClient, barcode: str) -> BarcodeLookupResult | None:
+    params = {
+        "cc": "pl", "lc": "pl",
+        "fields": (
+            "product_name_pl,product_name,generic_name_pl,generic_name,"
+            "abbreviated_product_name,brands,nutriments,categories_tags,"
+            "product_quantity,product_quantity_unit,serving_quantity"
+        ),
+    }
+    for api_version, template in OFF_API_URLS:
+        try:
+            response = await client.get(template.format(barcode=barcode), params=params)
+            response.raise_for_status()
+            product = _product_from_off_response(response.json(), api_version)
+        except (httpx.HTTPError, ValueError, TypeError) as exc:
+            logger.warning("Open Food Facts lookup failed for %s: %s", barcode, exc)
+            continue
+        if product is not None and (result := _result_from_off_product(product)):
+            return result
+    return None
+
+
+def _product_from_usda_response(data: object, barcode: str) -> BarcodeLookupResult | None:
+    if not isinstance(data, dict) or not isinstance(data.get("foods"), list):
+        return None
+    normalized = barcode.lstrip("0")
+    for food in data["foods"]:
+        if not isinstance(food, dict):
+            continue
+        gtin = "".join(c for c in str(food.get("gtinUpc") or "") if c.isdigit())
+        if gtin.lstrip("0") != normalized:
+            continue
+        name = str(food.get("description") or "").strip()
+        if not name:
+            continue
+        nutrient_values: dict[int, float] = {}
+        for nutrient in food.get("foodNutrients") or []:
+            if not isinstance(nutrient, dict):
+                continue
+            try:
+                nutrient_values[int(nutrient["nutrientId"])] = float(nutrient["value"])
+            except (KeyError, TypeError, ValueError):
+                continue
+        price_min, price_max = price_range_for_product(name, food.get("brandedFoodCategory"))
+        return BarcodeLookupResult(
+            name=name,
+            brand=str(food.get("brandName") or food.get("brandOwner") or "").strip() or None,
+            unit="g",
+            kcal_per_100=nutrient_values.get(1008),
+            protein_per_100=nutrient_values.get(1003),
+            fat_per_100=nutrient_values.get(1004),
+            carbs_per_100=nutrient_values.get(1005),
+            price_min=price_min, price_max=price_max,
+            source="usda_fooddata_central",
+        )
+    return None
+
+
+async def _fetch_usda(client: httpx.AsyncClient, barcode: str) -> BarcodeLookupResult | None:
+    try:
+        response = await client.post(
+            USDA_SEARCH_URL,
+            params={"api_key": settings.USDA_FDC_API_KEY},
+            json={"query": barcode, "dataType": ["Branded"], "pageSize": 5},
+        )
+        response.raise_for_status()
+        return _product_from_usda_response(response.json(), barcode)
+    except (httpx.HTTPError, ValueError, TypeError) as exc:
+        logger.warning("USDA FoodData Central lookup failed for %s: %s", barcode, exc)
+        return None
+
+
+def _product_from_upcitemdb_response(data: object, barcode: str) -> BarcodeLookupResult | None:
+    if not isinstance(data, dict) or not isinstance(data.get("items"), list):
+        return None
+    normalized = barcode.lstrip("0")
+    for item in data["items"]:
+        if not isinstance(item, dict):
+            continue
+        codes = (item.get("ean"), item.get("upc"), item.get("gtin"))
+        if not any(
+            "".join(c for c in str(code or "") if c.isdigit()).lstrip("0") == normalized
+            for code in codes
+        ):
+            continue
+        name = str(item.get("title") or item.get("description") or "").strip()
+        if not name:
+            continue
+        price_min, price_max = price_range_for_product(name, item.get("category"))
+        return BarcodeLookupResult(
+            name=name,
+            brand=str(item.get("brand") or "").strip() or None,
+            unit="g",
+            kcal_per_100=None, protein_per_100=None, fat_per_100=None, carbs_per_100=None,
+            price_min=price_min, price_max=price_max, source="upcitemdb",
+        )
+    return None
+
+
+async def _fetch_upcitemdb(client: httpx.AsyncClient, barcode: str) -> BarcodeLookupResult | None:
+    try:
+        response = await client.get(UPCITEMDB_LOOKUP_URL, params={"upc": barcode})
+        response.raise_for_status()
+        return _product_from_upcitemdb_response(response.json(), barcode)
+    except (httpx.HTTPError, ValueError, TypeError) as exc:
+        logger.warning("UPCitemdb lookup failed for %s: %s", barcode, exc)
+        return None
+
+
+async def lookup_barcode_external(barcode: str) -> BarcodeLookupResult | None:
+    """Pyta trzy bazy równolegle i wybiera wynik według jakości źródła."""
+    normalized = normalize_barcode(barcode)
+    if normalized is None:
+        return None
+    headers = {"User-Agent": USER_AGENT, "Accept": "application/json"}
+    async with httpx.AsyncClient(timeout=10.0, follow_redirects=True, headers=headers) as client:
+        tasks = [
+            asyncio.create_task(provider(client, normalized))
+            for provider in (_fetch_off, _fetch_usda, _fetch_upcitemdb)
+        ]
+        done, pending = await asyncio.wait(tasks, timeout=6.5)
+        for task in pending:
+            task.cancel()
+        if pending:
+            await asyncio.gather(*pending, return_exceptions=True)
+        results: dict[str, BarcodeLookupResult] = {}
+        for task in done:
+            try:
+                if result := task.result():
+                    results[result.source] = result
+            except Exception as exc:
+                logger.warning("Barcode provider failed for %s: %s", normalized, exc)
+        for source in ("open_food_facts", "usda_fooddata_central", "upcitemdb"):
+            if source in results:
+                return results[source]
+    return None

@@ -6,8 +6,8 @@ import 'package:http/http.dart' as http;
 import '../models/barcode_lookup_result.dart';
 import 'api_client.dart';
 
-/// Wyszukuje produkt po kodzie najpierw we własnym katalogu backendu,
-/// a następnie bezpośrednio w Open Food Facts. Bezpośrednia próba jest
+/// Wyszukuje produkt najpierw w Neon, a potem w bazach zewnętrznych backendu.
+/// Bezpośrednia próba Open Food Facts jest
 /// niezależna od wdrożenia backendu i pozwala uzupełnić formularz także
 /// wtedy, gdy serwer aplikacji chwilowo nie odpowiada.
 class BarcodeLookupService {
@@ -76,7 +76,8 @@ class BarcodeLookupService {
       result.proteinPer100 != null &&
       result.fatPer100 != null &&
       result.carbsPer100 != null &&
-      result.suggestedPrice != null;
+      result.priceMin != null &&
+      result.priceMax != null;
 
   Future<BarcodeLookupResult?> _lookupOpenFoodFacts(String barcode) async {
     final urls = [
@@ -146,7 +147,8 @@ BarcodeLookupResult mergeBarcodeLookupResults(
     fatPer100: catalog.fatPer100 ?? external.fatPer100,
     carbsPer100: catalog.carbsPer100 ?? external.carbsPer100,
     existingProductId: catalog.existingProductId,
-    suggestedPrice: catalog.suggestedPrice ?? external.suggestedPrice,
+    priceMin: catalog.priceMin ?? external.priceMin,
+    priceMax: catalog.priceMax ?? external.priceMax,
   );
 }
 
@@ -222,7 +224,8 @@ BarcodeLookupResult? barcodeResultFromOpenFoodFacts(
       'carbohydrates_100g',
       'carbohydrates',
     ]),
-    suggestedPrice: _estimatePrice(product),
+    priceMin: _fixedPriceRange(product).$1,
+    priceMax: _fixedPriceRange(product).$2,
   );
 }
 
@@ -253,48 +256,61 @@ String _unitFromProduct(Map<String, dynamic> product) {
   return 'g';
 }
 
-double _estimatePrice(Map<String, dynamic> product) {
+/// Stałe, szerokie widełki detaliczne. Nie są wyliczane z przypadkowej
+/// gramatury ani pojedynczej obserwacji cenowej.
+(double, double) _fixedPriceRange(Map<String, dynamic> product) {
+  final name =
+      _firstText(product, const [
+        'product_name_pl',
+        'product_name',
+        'abbreviated_product_name',
+        'generic_name_pl',
+        'generic_name',
+      ]) ??
+      '';
   final tags =
       product['categories_tags'] is List
           ? (product['categories_tags'] as List)
               .map((tag) => tag.toString().toLowerCase())
               .join(' ')
           : '';
-  const rateGroups = <({List<String> keywords, double rate})>[
-    (keywords: ['spice', 'seasoning', 'herb'], rate: 160),
-    (keywords: ['fish', 'seafood', 'salmon', 'tuna'], rate: 48),
-    (keywords: ['meat', 'poultry', 'beef', 'pork'], rate: 32),
-    (keywords: ['cheese'], rate: 38),
-    (keywords: ['chocolate', 'cocoa'], rate: 55),
-    (keywords: ['nuts', 'seeds'], rate: 45),
-    (keywords: ['oil', 'vinegar'], rate: 22),
-    (keywords: ['sauce', 'condiment', 'pesto'], rate: 28),
-    (keywords: ['bread', 'bakery'], rate: 12),
-    (keywords: ['pasta', 'rice', 'cereal', 'flour', 'legume'], rate: 13),
-    (keywords: ['milk', 'yogurt', 'dairy'], rate: 10),
-    (keywords: ['fruit'], rate: 10),
-    (keywords: ['vegetable'], rate: 9),
+  final text = '$name $tags'.toLowerCase();
+  const ranges = <({List<String> keywords, (double, double) range})>[
+    (keywords: ['masło', 'butter'], range: (6, 10)),
+    (keywords: ['jaj', 'egg'], range: (8, 18)),
+    (keywords: ['mleko', 'milk'], range: (3, 6)),
+    (keywords: ['jogurt', 'yogurt'], range: (2, 7)),
+    (keywords: ['ser ', 'sery', 'sera', 'twaróg', 'cheese'], range: (5, 18)),
+    (keywords: ['pieczywo', 'chleb', 'bread', 'bakery'], range: (3, 9)),
+    (keywords: ['ryba', 'fish', 'seafood', 'salmon', 'tuna'], range: (10, 40)),
+    (keywords: ['mięso', 'meat', 'poultry', 'beef', 'pork'], range: (10, 35)),
+    (
+      keywords: [
+        'makaron',
+        'ryż',
+        'mąka',
+        'pasta',
+        'rice',
+        'flour',
+        'cereal',
+        'legume',
+      ],
+      range: (3, 12),
+    ),
+    (keywords: ['oliwa', 'olej', 'oil', 'vinegar'], range: (7, 30)),
+    (
+      keywords: ['przypraw', 'zioł', 'spice', 'seasoning', 'herb'],
+      range: (2, 10),
+    ),
+    (keywords: ['warzyw', 'owoc', 'vegetable', 'fruit'], range: (2, 15)),
+    (
+      keywords: ['sos', 'ketchup', 'mustard', 'pesto', 'condiment'],
+      range: (3, 15),
+    ),
+    (keywords: ['napój', 'sok', 'drink', 'soda', 'juice'], range: (3, 12)),
   ];
-
-  var rate = 20.0;
-  for (final group in rateGroups) {
-    if (group.keywords.any((keyword) => tags.contains(keyword))) {
-      rate = group.rate;
-      break;
-    }
+  for (final item in ranges) {
+    if (item.keywords.any(text.contains)) return item.range;
   }
-
-  final quantity =
-      _firstNumber(product, const ['product_quantity', 'serving_quantity']) ??
-      500;
-  final unit =
-      product['product_quantity_unit']?.toString().toLowerCase() ?? 'g';
-  final baseQuantity = switch (unit) {
-    'kg' || 'l' => quantity,
-    'cl' => quantity / 100,
-    'dl' => quantity / 10,
-    'g' || 'ml' => quantity / 1000,
-    _ => 0.5,
-  };
-  return (rate * baseQuantity).clamp(1.49, 99.99).toDouble();
+  return (3, 25);
 }

@@ -5,9 +5,11 @@ import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1 import router as v1_router
 from app.core.config import settings
@@ -207,6 +209,30 @@ async def _create_tables() -> None:
             text(
                 "CREATE UNIQUE INDEX IF NOT EXISTS uq_water_logs_user_date "
                 "ON water_logs (user_id, date)"
+            )
+        )
+        # Historia wagi została dodana do istniejącej bazy przez create_all.
+        # Sam model zawiera UNIQUE(user_id, date), ale create_all nie dodaje
+        # ograniczenia do tabeli, która powstała we wcześniejszym wdrożeniu.
+        # Najpierw zachowujemy najnowszy wpis z każdego dnia i usuwamy starsze
+        # duplikaty, a dopiero potem zakładamy indeks. Bez sprzątania CREATE
+        # UNIQUE INDEX przerwałby start aplikacji, jeśli duplikaty już istnieją.
+        await conn.execute(
+            text(
+                "DELETE FROM weight_logs WHERE id IN ("
+                "SELECT id FROM ("
+                "SELECT id, ROW_NUMBER() OVER ("
+                "PARTITION BY user_id, date "
+                "ORDER BY updated_at DESC NULLS LAST, created_at DESC NULLS LAST, id DESC"
+                ") AS duplicate_number FROM weight_logs"
+                ") duplicates WHERE duplicate_number > 1"
+                ")"
+            )
+        )
+        await conn.execute(
+            text(
+                "CREATE UNIQUE INDEX IF NOT EXISTS uq_weight_logs_user_date "
+                "ON weight_logs (user_id, date)"
             )
         )
         # Znacznik "ta promocja nadpisała cenę katalogową" — patrz
@@ -423,7 +449,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 app = FastAPI(
     title="Smart Meal Planner PL API",
     description="API do planowania posiłków z integracją z polskimi sieciami handlowymi",
-    version="1.0.0",
+    version="1.0.14",
     lifespan=lifespan,
 )
 
@@ -488,18 +514,23 @@ app.include_router(v1_router, prefix=settings.API_V1_PREFIX)
 # ---------------------------------------------------------------------------
 
 
-@app.api_route(
+@app.get(
     "/health",
-    methods=["GET", "HEAD"],
     tags=["Health"],
     summary="Sprawdzenie stanu aplikacji i połączenia z bazą danych",
 )
-async def health_check() -> dict[str, str]:
+@app.head("/health", include_in_schema=False)
+async def health_check(db: AsyncSession = Depends(get_db)) -> dict[str, str]:
     """Zwraca status zdrowia aplikacji oraz informację o bazie danych Neon."""
+    from app.models.product import Product
+
     db_provider = "Neon PostgreSQL" if "neon.tech" in settings.DATABASE_URL else "PostgreSQL"
+    catalog_products = await db.scalar(select(func.count(Product.id))) or 0
     return {
         "status": "healthy",
         "service": "smart-meal-planner-pl",
+        "release": "1.0.14+211",
+        "catalog_products": str(catalog_products),
         "database_provider": db_provider,
         "database_host": "ep-small-lab-b1y3gm3e.c-5.eu-central-1.aws.neon.tech" if "neon.tech" in settings.DATABASE_URL else "local",
     }

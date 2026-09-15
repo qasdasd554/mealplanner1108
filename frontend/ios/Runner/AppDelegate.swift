@@ -1,3 +1,4 @@
+import FirebaseMessaging
 import Flutter
 import UIKit
 import UserNotifications
@@ -16,5 +17,18 @@ import UserNotifications
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+  }
+
+  override func application(
+    _ application: UIApplication,
+    didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
+  ) {
+    // Jawne przekazanie tokenu APNs usuwa zależność od momentu, w którym
+    // Firebase wykona automatyczne mapowanie metod AppDelegate.
+    Messaging.messaging().apnsToken = deviceToken
+    super.application(
+      application,
+      didRegisterForRemoteNotificationsWithDeviceToken: deviceToken
+    )
   }
 }

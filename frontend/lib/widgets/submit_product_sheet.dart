@@ -10,7 +10,7 @@ import '../utils/error_utils.dart';
 
 /// Okno zgłoszenia własnego produktu do katalogu.
 ///
-/// Wymagane są tylko NAZWA i CENA. Makroskładniki są opcjonalne, bo
+/// Wymagana jest tylko NAZWA. Cena i makroskładniki są opcjonalne, bo
 /// użytkownik nie zawsze ma etykietę pod ręką, a produkt bez nich i tak
 /// przydaje się na liście zakupów. Bez wartości odżywczych wpis
 /// w dzienniku kalorii doda po prostu 0 kcal.
@@ -72,6 +72,8 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
   /// jest edytowalne ręcznie — tylko przez ponowne zeskanowanie.
   String? _barcode;
   bool _isScanning = false;
+  double? _priceMin;
+  double? _priceMax;
 
   @override
   void initState() {
@@ -132,12 +134,8 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
         if (_brand.text.trim().isEmpty && result.brand != null) {
           _brand.text = result.brand!;
         }
-        // Cena jest propozycją: pochodzi z polskiego zgłoszenia cenowego,
-        // z własnego katalogu albo (gdy tych danych brakuje) z ostrożnego
-        // oszacowania na podstawie rodzaju i wielkości opakowania.
-        if (_price.text.trim().isEmpty && result.suggestedPrice != null) {
-          _price.text = result.suggestedPrice!.toStringAsFixed(2);
-        }
+        _priceMin = result.priceMin;
+        _priceMax = result.priceMax;
         final hasNutrition =
             result.kcalPer100 != null ||
             result.proteinPer100 != null ||
@@ -168,7 +166,7 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
             content: Text(
               result.isFromOwnCatalog
                   ? 'Znaleziono w katalogu — dane wypełnione automatycznie.'
-                  : 'Znaleziono produkt — nazwa, marka, makro i cena zostały uzupełnione. Cena jest orientacyjna.',
+                  : 'Znaleziono produkt — nazwa, marka i makro zostały uzupełnione.',
             ),
           ),
         );
@@ -196,7 +194,7 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
     try {
       final body = {
         'name': _name.text.trim(),
-        'price': _parse(_price),
+        if (_parse(_price) != null) 'price': _parse(_price),
         'unit': _unit,
         if (_brand.text.trim().isNotEmpty) 'brand': _brand.text.trim(),
         if (_parse(_kcal) != null) 'kcal_per_100': _parse(_kcal),
@@ -345,6 +343,16 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                   ),
                 ),
                 const SizedBox(height: 8),
+                if (_priceMin != null && _priceMax != null) ...[
+                  Text(
+                    'Typowy zakres cen: ${_priceMin!.toStringAsFixed(0)}–${_priceMax!.toStringAsFixed(0)} zł',
+                    style: TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -356,13 +364,17 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                           decimal: true,
                         ),
                         decoration: const InputDecoration(
-                          labelText: 'Cena *',
+                          labelText: 'Cena widoczna w sklepie (opcjonalnie)',
                           suffixText: 'zł',
                           border: OutlineInputBorder(),
                         ),
                         validator: (v) {
                           final d = _parse(_price);
-                          if (d == null || d <= 0) return 'Podaj cenę';
+                          if (v != null &&
+                              v.trim().isNotEmpty &&
+                              (d == null || d <= 0)) {
+                            return 'Podaj prawidłową cenę';
+                          }
                           return null;
                         },
                       ),

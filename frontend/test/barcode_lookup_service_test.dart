@@ -31,7 +31,8 @@ void main() {
     expect(result?.proteinPer100, 4.2);
     expect(result?.fatPer100, 2);
     expect(result?.carbsPer100, 6.1);
-    expect(result?.suggestedPrice, 4);
+    expect(result?.priceMin, 2);
+    expect(result?.priceMax, 7);
   });
 
   test('rozpoznaje odpowiedź zapasowego API v2', () {
@@ -62,7 +63,8 @@ void main() {
       source: 'catalog',
       name: 'Jogurt z katalogu',
       brand: 'Marka katalogowa',
-      suggestedPrice: 3.49,
+      priceMin: 2,
+      priceMax: 7,
     );
     const external = BarcodeLookupResult(
       found: true,
@@ -72,7 +74,8 @@ void main() {
       proteinPer100: 4.2,
       fatPer100: 2,
       carbsPer100: 6.1,
-      suggestedPrice: 4,
+      priceMin: 3,
+      priceMax: 9,
     );
 
     final result = mergeBarcodeLookupResults(catalog, external);
@@ -82,6 +85,7 @@ void main() {
     expect(result.proteinPer100, 4.2);
     expect(result.fatPer100, 2);
     expect(result.carbsPer100, 6.1);
-    expect(result.suggestedPrice, 3.49);
+    expect(result.priceMin, 2);
+    expect(result.priceMax, 7);
   });
 }

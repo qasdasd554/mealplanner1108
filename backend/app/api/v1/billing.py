@@ -57,6 +57,10 @@ async def verify_purchase(
     if payload.product_id not in _VALID_PRODUCT_IDS:
         raise HTTPException(status_code=400, detail="Nieznany identyfikator subskrypcji.")
 
+    from app.core.premium import is_premium_active
+
+    already_had_premium = is_premium_active(current_user)
+
     if payload.platform == "ios":
         from app.services.apple_app_store import PurchaseVerificationError, verify_apple_subscription
 
@@ -86,11 +90,12 @@ async def verify_purchase(
     await db.commit()
     await db.refresh(current_user)
 
-    await _notify(
-        db,
-        current_user.id,
-        "Premium aktywne! Masz teraz dostęp do wszystkich funkcji aplikacji.",
-    )
+    if not already_had_premium:
+        await _notify(
+            db,
+            current_user.id,
+            "Premium aktywne! Masz teraz dostęp do wszystkich funkcji aplikacji.",
+        )
     return current_user
 
 

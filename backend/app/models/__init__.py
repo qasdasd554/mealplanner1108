@@ -1,6 +1,7 @@
 """Eksport wszystkich modeli ORM i bazy deklaratywnej."""
 
 from app.db.session import Base
+from app.models.barcode_cache import BarcodeProductCache
 from app.models.meal_plan import MealPlan, MealPlanEntry
 from app.models.device_token import DeviceToken
 from app.models.wellness import ActivityLog, WaterLog, WeightLog
@@ -36,6 +37,7 @@ __all__ = [
     "ProductSubstitute",
     "Allergen",
     "ProductAllergen",
+    "BarcodeProductCache",
     # Recipe
     "Recipe",
     "RecipeTag",

@@ -8,6 +8,8 @@
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
 	<string>Meal Planner Polska</string>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<true/>
 	<!-- NAPRAWA AWARYJNA: brak tych dwóch kluczy powodował NATYCHMIASTOWY
 	     twardy crash aplikacji (do ekranu głównego iOS) przy KAŻDEJ próbie
 	     użycia aparatu lub galerii — skanowanie przepisu przez AI, zdjęcie
