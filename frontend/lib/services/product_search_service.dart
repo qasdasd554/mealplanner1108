@@ -15,7 +15,9 @@ class ProductSearchService {
       '${ApiConfig.products}?search=${Uri.encodeComponent(query.trim())}&limit=$limit',
     );
     if (response is List) {
-      return response.map((e) => Product.fromJson(e as Map<String, dynamic>)).toList();
+      return response
+          .map((e) => Product.fromJson(e as Map<String, dynamic>))
+          .toList();
     }
     return [];
   }

@@ -74,7 +74,8 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
         source: source,
         maxWidth: 1200,
         maxHeight: 1200,
-        imageQuality: 80, // kompresja — zdjęcie trafi do bazy danych, patrz backend
+        imageQuality:
+            80, // kompresja — zdjęcie trafi do bazy danych, patrz backend
       );
       if (picked != null) {
         setState(() => _pickedImage = File(picked.path));
@@ -82,39 +83,42 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-            duration: Duration(seconds: 3),content: Text('Nie udało się pobrać zdjęcia')),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            duration: Duration(seconds: 3),
+            content: Text('Nie udało się pobrać zdjęcia'),
+          ),
+        );
     }
   }
 
   void _showImageSourceSheet() {
     showModalBottomSheet(
       context: context,
-      builder: (ctx) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_camera_outlined),
-              title: const Text('Zrób zdjęcie'),
-              onTap: () {
-                Navigator.pop(ctx);
-                _pickImage(ImageSource.camera);
-              },
+      builder:
+          (ctx) => SafeArea(
+            child: Wrap(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.photo_camera_outlined),
+                  title: const Text('Zrób zdjęcie'),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _pickImage(ImageSource.camera);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.photo_library_outlined),
+                  title: const Text('Wybierz z galerii'),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _pickImage(ImageSource.gallery);
+                  },
+                ),
+              ],
             ),
-            ListTile(
-              leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('Wybierz z galerii'),
-              onTap: () {
-                Navigator.pop(ctx);
-                _pickImage(ImageSource.gallery);
-              },
-            ),
-          ],
-        ),
-      ),
+          ),
     );
   }
 
@@ -141,11 +145,13 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-            duration: const Duration(seconds: 3),content: Text(e.toString().replaceAll('Exception: ', ''))),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+          ),
+        );
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -154,17 +160,24 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
   Future<void> _delete(RecipeComment comment) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Usunąć komentarz?'),
-        content: const Text('Tej operacji nie da się cofnąć.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Anuluj')),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Usuń', style: TextStyle(color: AppTheme.errorColor)),
+      builder:
+          (ctx) => AlertDialog(
+            title: const Text('Usunąć komentarz?'),
+            content: const Text('Tej operacji nie da się cofnąć.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Anuluj'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text(
+                  'Usuń',
+                  style: TextStyle(color: AppTheme.errorColor),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
     );
     if (confirmed != true) return;
 
@@ -175,11 +188,13 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-            duration: Duration(seconds: 3),content: Text('Nie udało się usunąć komentarza')),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            duration: Duration(seconds: 3),
+            content: Text('Nie udało się usunąć komentarza'),
+          ),
+        );
     }
   }
 
@@ -211,11 +226,13 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
         if (currentIndex != -1) _comments[currentIndex] = comment;
       });
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-            duration: Duration(seconds: 3),content: Text('Nie udało się zapisać polubienia')),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            duration: Duration(seconds: 3),
+            content: Text('Nie udało się zapisać polubienia'),
+          ),
+        );
     }
   }
 
@@ -239,7 +256,9 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
       children: [
         Text(
           'Komentarze i zdjęcia',
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(
+            context,
+          ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 4),
         Text(
@@ -267,7 +286,12 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: Image.file(_pickedImage!, height: 140, width: double.infinity, fit: BoxFit.cover),
+                        child: Image.file(
+                          _pickedImage!,
+                          height: 140,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                       Positioned(
                         right: 4,
@@ -276,8 +300,15 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
                           onTap: () => setState(() => _pickedImage = null),
                           child: Container(
                             padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
-                            child: const Icon(Icons.close, color: Colors.white, size: 16),
+                            decoration: const BoxDecoration(
+                              color: Colors.black54,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 16,
+                            ),
                           ),
                         ),
                       ),
@@ -292,13 +323,19 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
                 decoration: InputDecoration(
                   hintText: 'Podziel się swoją opinią lub wskazówką...',
                   border: InputBorder.none,
-                  counterStyle: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
+                  counterStyle: TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 11,
+                  ),
                 ),
               ),
               Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.add_photo_alternate_outlined, color: AppTheme.primaryColor),
+                    icon: const Icon(
+                      Icons.add_photo_alternate_outlined,
+                      color: AppTheme.primaryColor,
+                    ),
                     onPressed: _isSubmitting ? null : _showImageSourceSheet,
                     tooltip: 'Dodaj zdjęcie',
                   ),
@@ -317,13 +354,17 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                     ),
                     onPressed: _isSubmitting ? null : _submit,
-                    child: _isSubmitting
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                          )
-                        : const Text('Dodaj'),
+                    child:
+                        _isSubmitting
+                            ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                            : const Text('Dodaj'),
                   ),
                 ],
               ),
@@ -334,12 +375,20 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
 
         // ── Lista komentarzy ────────────────────────────────────────
         if (_isLoading)
-          const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator(color: AppTheme.primaryColor)))
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: CircularProgressIndicator(color: AppTheme.primaryColor),
+            ),
+          )
         else if (_error != null)
           Center(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Text(_error!, style: TextStyle(color: AppTheme.textSecondary)),
+              child: Text(
+                _error!,
+                style: TextStyle(color: AppTheme.textSecondary),
+              ),
             ),
           )
         else
@@ -374,10 +423,19 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(comment.authorName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                            Text(
+                              comment.authorName,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
                             Text(
                               _relativeTime(comment.createdAt),
-                              style: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
+                              style: TextStyle(
+                                color: AppTheme.textSecondary,
+                                fontSize: 11,
+                              ),
                             ),
                           ],
                         ),
@@ -391,25 +449,32 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
                             // komentarza jako admin ma inny kolor niż
                             // usuwanie własnego, żeby nie było wątpliwości,
                             // że to działanie moderacyjne.
-                            color: isMine ? AppTheme.textSecondary : AppTheme.errorColor,
+                            color:
+                                isMine
+                                    ? AppTheme.textSecondary
+                                    : AppTheme.errorColor,
                           ),
                           onPressed: () => _delete(comment),
-                          tooltip: isMine ? 'Usuń komentarz' : 'Usuń komentarz (moderacja)',
+                          tooltip:
+                              isMine
+                                  ? 'Usuń komentarz'
+                                  : 'Usuń komentarz (moderacja)',
                         ),
                       // Zgłoś / zablokuj — TYLKO na cudzych komentarzach.
                       if (!isMine)
                         ReportBlockMenu(
                           authorId: comment.userId,
                           authorName: comment.authorName,
-                          onReport: (reason, details) => Provider.of<AuthProvider>(
-                            context,
-                            listen: false,
-                          ).reportComment(
-                            widget.recipeId,
-                            comment.id,
-                            reason: reason,
-                            details: details,
-                          ),
+                          onReport:
+                              (reason, details) => Provider.of<AuthProvider>(
+                                context,
+                                listen: false,
+                              ).reportComment(
+                                widget.recipeId,
+                                comment.id,
+                                reason: reason,
+                                details: details,
+                              ),
                         ),
                     ],
                   ),
@@ -422,7 +487,9 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
                         width: double.infinity,
                         height: 180,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                        errorBuilder:
+                            (context, error, stackTrace) =>
+                                const SizedBox.shrink(),
                       ),
                     ),
                   ],
@@ -437,14 +504,22 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
                         onTap: () => _toggleLike(comment),
                         borderRadius: BorderRadius.circular(20),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 4,
+                          ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
-                                comment.likedByMe ? Icons.favorite : Icons.favorite_border,
+                                comment.likedByMe
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
                                 size: 18,
-                                color: comment.likedByMe ? AppTheme.errorColor : AppTheme.textSecondary,
+                                color:
+                                    comment.likedByMe
+                                        ? AppTheme.errorColor
+                                        : AppTheme.textSecondary,
                               ),
                               if (comment.likeCount > 0) ...[
                                 const SizedBox(width: 4),
@@ -452,8 +527,14 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
                                   '${comment.likeCount}',
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: comment.likedByMe ? AppTheme.errorColor : AppTheme.textSecondary,
-                                    fontWeight: comment.likedByMe ? FontWeight.bold : FontWeight.normal,
+                                    color:
+                                        comment.likedByMe
+                                            ? AppTheme.errorColor
+                                            : AppTheme.textSecondary,
+                                    fontWeight:
+                                        comment.likedByMe
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
                                   ),
                                 ),
                               ],

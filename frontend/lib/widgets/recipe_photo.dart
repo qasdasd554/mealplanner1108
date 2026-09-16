@@ -50,7 +50,11 @@ class RecipePhoto extends StatelessWidget {
         // ekranu bledu.
         errorBuilder: (context, error, stackTrace) {
           return Center(
-            child: SvgPicture.asset(recipe.categoryImageAsset, width: 64, height: 64),
+            child: SvgPicture.asset(
+              recipe.categoryImageAsset,
+              width: 64,
+              height: 64,
+            ),
           );
         },
       );
@@ -62,13 +66,21 @@ class RecipePhoto extends StatelessWidget {
         height: double.infinity,
         errorBuilder: (context, error, stackTrace) {
           return Center(
-            child: SvgPicture.asset(recipe.categoryImageAsset, width: 64, height: 64),
+            child: SvgPicture.asset(
+              recipe.categoryImageAsset,
+              width: 64,
+              height: 64,
+            ),
           );
         },
       );
     } else {
       image = Center(
-        child: SvgPicture.asset(recipe.categoryImageAsset, width: 64, height: 64),
+        child: SvgPicture.asset(
+          recipe.categoryImageAsset,
+          width: 64,
+          height: 64,
+        ),
       );
     }
 
@@ -94,7 +106,11 @@ class RecipePhoto extends StatelessWidget {
                   opacity: 0.5,
                   child: const Text(
                     'Zdjęcie poglądowe, wygenerowane przez AI',
-                    style: TextStyle(color: Colors.white, fontSize: 8, height: 1.1),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 8,
+                      height: 1.1,
+                    ),
                     textAlign: TextAlign.right,
                   ),
                 ),

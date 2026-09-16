@@ -189,6 +189,8 @@ _TITLES: dict[str, str] = {
     "product_reviewed": "Zgłoszony produkt",
     "broadcast": "Meal Planner Polska",
     "admin_broadcast": "Meal Planner Polska",
+    "friend_invitation": "Nowe zaproszenie do znajomych",
+    "friend_accepted": "Zaproszenie przyjęte",
 }
 
 

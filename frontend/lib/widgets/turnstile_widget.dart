@@ -31,7 +31,8 @@ class TurnstileWidget extends StatefulWidget {
   State<TurnstileWidget> createState() => _TurnstileWidgetState();
 }
 
-class _TurnstileWidgetState extends State<TurnstileWidget> with WidgetsBindingObserver {
+class _TurnstileWidgetState extends State<TurnstileWidget>
+    with WidgetsBindingObserver {
   WebViewController? _controller;
   bool _isLoading = true;
   bool _failed = false;
@@ -112,54 +113,56 @@ class _TurnstileWidgetState extends State<TurnstileWidget> with WidgetsBindingOb
       '&theme=$theme',
     );
 
-    _controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(Colors.transparent)
-      ..addJavaScriptChannel(
-        'TurnstileChannel',
-        onMessageReceived: (message) {
-          try {
-            final data = jsonDecode(message.message) as Map<String, dynamic>;
-            switch (data['type']) {
-              case 'token':
-                widget.onToken(data['token'] as String?);
-                break;
-              case 'expired':
-              case 'error':
-                // Token przestał być ważny (Turnstile odnawia go co ok.
-                // 5 minut) albo wyzwanie się nie powiodło — cofamy zgodę.
+    _controller =
+        WebViewController()
+          ..setJavaScriptMode(JavaScriptMode.unrestricted)
+          ..setBackgroundColor(Colors.transparent)
+          ..addJavaScriptChannel(
+            'TurnstileChannel',
+            onMessageReceived: (message) {
+              try {
+                final data =
+                    jsonDecode(message.message) as Map<String, dynamic>;
+                switch (data['type']) {
+                  case 'token':
+                    widget.onToken(data['token'] as String?);
+                    break;
+                  case 'expired':
+                  case 'error':
+                    // Token przestał być ważny (Turnstile odnawia go co ok.
+                    // 5 minut) albo wyzwanie się nie powiodło — cofamy zgodę.
+                    widget.onToken(null);
+                    break;
+                }
+              } catch (_) {
                 widget.onToken(null);
-                break;
-            }
-          } catch (_) {
-            widget.onToken(null);
-          }
-        },
-      )
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onPageFinished: (_) {
-            if (mounted) setState(() => _isLoading = false);
-          },
-          onWebResourceError: (error) {
-            // WAŻNE: onWebResourceError zgłasza KAŻDY nieudany zasób, nie
-            // tylko samą stronę — a GitHub Pages zwraca 404 dla
-            // /favicon.ico, o który przeglądarka pyta automatycznie. Bez
-            // sprawdzenia isForMainFrame wystarczało to, żeby pokazać
-            // "Nie udało się wczytać weryfikacji", mimo że strona i widget
-            // działały poprawnie. Interesuje nas wyłącznie błąd głównego
-            // dokumentu.
-            if (error.isForMainFrame != true) return;
-            if (mounted) {
-              setState(() {
-                _isLoading = false;
-                _failed = true;
-              });
-            }
-          },
-        ),
-      )
-      ..loadRequest(uri);
+              }
+            },
+          )
+          ..setNavigationDelegate(
+            NavigationDelegate(
+              onPageFinished: (_) {
+                if (mounted) setState(() => _isLoading = false);
+              },
+              onWebResourceError: (error) {
+                // WAŻNE: onWebResourceError zgłasza KAŻDY nieudany zasób, nie
+                // tylko samą stronę — a GitHub Pages zwraca 404 dla
+                // /favicon.ico, o który przeglądarka pyta automatycznie. Bez
+                // sprawdzenia isForMainFrame wystarczało to, żeby pokazać
+                // "Nie udało się wczytać weryfikacji", mimo że strona i widget
+                // działały poprawnie. Interesuje nas wyłącznie błąd głównego
+                // dokumentu.
+                if (error.isForMainFrame != true) return;
+                if (mounted) {
+                  setState(() {
+                    _isLoading = false;
+                    _failed = true;
+                  });
+                }
+              },
+            ),
+          )
+          ..loadRequest(uri);
     _armLoadTimeout();
   }
 
@@ -189,7 +192,10 @@ class _TurnstileWidgetState extends State<TurnstileWidget> with WidgetsBindingOb
                 Expanded(
                   child: Text(
                     'Nie udało się wczytać weryfikacji. Sprawdź połączenie.',
-                    style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.textSecondary,
+                    ),
                   ),
                 ),
                 TextButton(
@@ -242,7 +248,11 @@ class _TurnstileWidgetState extends State<TurnstileWidget> with WidgetsBindingOb
             right: 0,
             top: 4,
             child: IconButton(
-              icon: Icon(Icons.refresh, size: 16, color: AppTheme.textSecondary),
+              icon: Icon(
+                Icons.refresh,
+                size: 16,
+                color: AppTheme.textSecondary,
+              ),
               tooltip: 'Odśwież weryfikację',
               visualDensity: VisualDensity.compact,
               onPressed: () {

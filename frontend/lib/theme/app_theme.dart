@@ -36,10 +36,13 @@ class AppTheme {
   static const Color _lightTextPrimary = Color(0xFF16181D);
   static const Color _lightTextSecondary = Color(0xFF6B7280);
 
-  static Color get backgroundColor => _isDark ? _darkBackground : _lightBackground;
+  static Color get backgroundColor =>
+      _isDark ? _darkBackground : _lightBackground;
   static Color get surfaceColor => _isDark ? _darkSurface : _lightSurface;
-  static Color get textPrimary => _isDark ? _darkTextPrimary : _lightTextPrimary;
-  static Color get textSecondary => _isDark ? _darkTextSecondary : _lightTextSecondary;
+  static Color get textPrimary =>
+      _isDark ? _darkTextPrimary : _lightTextPrimary;
+  static Color get textSecondary =>
+      _isDark ? _darkTextSecondary : _lightTextSecondary;
 
   static ThemeData get lightTheme => _buildTheme(Brightness.light);
   static ThemeData get darkTheme => _buildTheme(Brightness.dark);
@@ -51,21 +54,22 @@ class AppTheme {
     final txtPrimary = isDarkMode ? _darkTextPrimary : _lightTextPrimary;
     final txtSecondary = isDarkMode ? _darkTextSecondary : _lightTextSecondary;
 
-    final colorScheme = isDarkMode
-        ? ColorScheme.dark(
-            surface: surface,
-            primary: primaryColor,
-            secondary: secondaryColor,
-            error: errorColor,
-            onSurface: txtPrimary,
-          )
-        : ColorScheme.light(
-            surface: surface,
-            primary: primaryColor,
-            secondary: secondaryColor,
-            error: errorColor,
-            onSurface: txtPrimary,
-          );
+    final colorScheme =
+        isDarkMode
+            ? ColorScheme.dark(
+              surface: surface,
+              primary: primaryColor,
+              secondary: secondaryColor,
+              error: errorColor,
+              onSurface: txtPrimary,
+            )
+            : ColorScheme.light(
+              surface: surface,
+              primary: primaryColor,
+              secondary: secondaryColor,
+              error: errorColor,
+              onSurface: txtPrimary,
+            );
 
     return ThemeData(
       useMaterial3: true,
@@ -75,14 +79,46 @@ class AppTheme {
 
       // Typografia
       textTheme: TextTheme(
-        displayLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: txtPrimary),
-        displayMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: txtPrimary),
-        displaySmall: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: txtPrimary),
-        headlineMedium: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: txtPrimary),
-        titleLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: txtPrimary),
-        bodyLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: txtPrimary),
-        bodyMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: txtSecondary),
-        labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: txtPrimary),
+        displayLarge: TextStyle(
+          fontSize: 32,
+          fontWeight: FontWeight.bold,
+          color: txtPrimary,
+        ),
+        displayMedium: TextStyle(
+          fontSize: 28,
+          fontWeight: FontWeight.bold,
+          color: txtPrimary,
+        ),
+        displaySmall: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: txtPrimary,
+        ),
+        headlineMedium: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          color: txtPrimary,
+        ),
+        titleLarge: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: txtPrimary,
+        ),
+        bodyLarge: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.normal,
+          color: txtPrimary,
+        ),
+        bodyMedium: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.normal,
+          color: txtSecondary,
+        ),
+        labelLarge: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: txtPrimary,
+        ),
       ),
 
       // Kafelki i karty
@@ -127,11 +163,17 @@ class AppTheme {
         fillColor: surface,
         border: OutlineInputBorder(
           borderRadius: const BorderRadius.all(Radius.circular(12)),
-          borderSide: isDarkMode ? BorderSide.none : BorderSide(color: Colors.grey.shade300),
+          borderSide:
+              isDarkMode
+                  ? BorderSide.none
+                  : BorderSide(color: Colors.grey.shade300),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: const BorderRadius.all(Radius.circular(12)),
-          borderSide: isDarkMode ? BorderSide.none : BorderSide(color: Colors.grey.shade300),
+          borderSide:
+              isDarkMode
+                  ? BorderSide.none
+                  : BorderSide(color: Colors.grey.shade300),
         ),
         focusedBorder: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(12)),
@@ -152,7 +194,11 @@ class AppTheme {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        titleTextStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: txtPrimary),
+        titleTextStyle: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: txtPrimary,
+        ),
         iconTheme: IconThemeData(color: txtPrimary),
       ),
 

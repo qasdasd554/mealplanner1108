@@ -14,6 +14,7 @@ from app.api.deps import get_current_admin, get_current_premium, get_current_use
 from app.core.exceptions import NotFoundException
 from app.db.session import get_db
 from app.models import (
+    Friendship,
     Product,
     Recipe,
     RecipeIngredient,
@@ -326,14 +327,29 @@ async def get_recipe(
         raise NotFoundException(
             detail=f"Przepis o ID {recipe_id} nie został znaleziony"
         )
-    # Prywatne przepisy są widoczne TYLKO dla właściciela — chyba że są
-    # publicznie zaakceptowane (visibility="public"). Próbę dostępu do
-    # cudzego, nadal-prywatnego przepisu traktujemy jak nieistniejący,
-    # żeby nie ujawniać nawet samego faktu jego istnienia.
+    # Prywatny przepis może zobaczyć właściciel oraz zaakceptowany znajomy.
+    # Dla wszystkich pozostałych zachowujemy 404, żeby nie ujawniać nawet
+    # samego faktu istnienia prywatnej treści.
     is_own = recipe.created_by_user_id == current_user.id
     is_public = recipe.visibility == "public"
     if recipe.created_by_user_id is not None and not is_own and not is_public:
-        raise NotFoundException(detail=f"Przepis o ID {recipe_id} nie został znaleziony")
+        friend_result = await db.execute(
+            select(Friendship.id).where(
+                Friendship.status == "accepted",
+                or_(
+                    and_(
+                        Friendship.user_a_id == current_user.id,
+                        Friendship.user_b_id == recipe.created_by_user_id,
+                    ),
+                    and_(
+                        Friendship.user_b_id == current_user.id,
+                        Friendship.user_a_id == recipe.created_by_user_id,
+                    ),
+                ),
+            )
+        )
+        if friend_result.scalar_one_or_none() is None:
+            raise NotFoundException(detail=f"Przepis o ID {recipe_id} nie został znaleziony")
     favorite_ids = await _get_favorite_recipe_ids(db, current_user.id)
     recipe.is_favorite = recipe.id in favorite_ids
     recipe.is_own_recipe = is_own

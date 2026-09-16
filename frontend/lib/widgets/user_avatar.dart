@@ -61,10 +61,7 @@ class UserAvatar extends StatelessWidget {
           color: selected ? AppTheme.primaryColor : Colors.transparent,
           width: selected ? 3 : 0,
         ),
-        image: DecorationImage(
-          image: MemoryImage(bytes),
-          fit: BoxFit.cover,
-        ),
+        image: DecorationImage(image: MemoryImage(bytes), fit: BoxFit.cover),
       ),
     );
   }

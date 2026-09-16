@@ -13,7 +13,10 @@ class PremiumBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: fontSize * 0.7, vertical: fontSize * 0.25),
+      padding: EdgeInsets.symmetric(
+        horizontal: fontSize * 0.7,
+        vertical: fontSize * 0.25,
+      ),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [Color(0xFFF5C24D), Color(0xFFE0A62E)],
@@ -32,7 +35,11 @@ class PremiumBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.workspace_premium, size: fontSize * 1.2, color: Colors.white),
+          Icon(
+            Icons.workspace_premium,
+            size: fontSize * 1.2,
+            color: Colors.white,
+          ),
           SizedBox(width: fontSize * 0.3),
           Text(
             'Premium',

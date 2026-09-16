@@ -44,7 +44,9 @@ class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
       _error = null;
     });
     try {
-      final list = await _service.getAllComments(search: _searchController.text);
+      final list = await _service.getAllComments(
+        search: _searchController.text,
+      );
       if (!mounted) return;
       setState(() {
         _comments = list;
@@ -62,21 +64,24 @@ class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
   Future<void> _delete(Map<String, dynamic> comment) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Usunąć komentarz?'),
-        content: const Text('Tej operacji nie da się cofnąć.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Anuluj'),
+      builder:
+          (dialogContext) => AlertDialog(
+            title: const Text('Usunąć komentarz?'),
+            content: const Text('Tej operacji nie da się cofnąć.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('Anuluj'),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppTheme.errorColor,
+                ),
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: const Text('Usuń'),
+              ),
+            ],
           ),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppTheme.errorColor),
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Usuń'),
-          ),
-        ],
-      ),
     );
     if (confirmed != true) return;
 
@@ -90,20 +95,25 @@ class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
         _busyIds.remove(id);
       });
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-            duration: Duration(seconds: 3),content: Text('Komentarz usunięty')),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            duration: Duration(seconds: 3),
+            content: Text('Komentarz usunięty'),
+          ),
+        );
     } catch (e) {
       if (!mounted) return;
       setState(() => _busyIds.remove(id));
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-            duration: const Duration(seconds: 3),content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(friendlyError(e)),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
     }
   }
 
@@ -130,118 +140,131 @@ class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
             ),
           ),
           Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _error != null
+            child:
+                _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _error != null
                     ? Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(_error!, style: TextStyle(color: AppTheme.errorColor)),
-                            TextButton(onPressed: _load, child: const Text('Spróbuj ponownie')),
-                          ],
-                        ),
-                      )
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _error!,
+                            style: TextStyle(color: AppTheme.errorColor),
+                          ),
+                          TextButton(
+                            onPressed: _load,
+                            child: const Text('Spróbuj ponownie'),
+                          ),
+                        ],
+                      ),
+                    )
                     : _comments.isEmpty
-                        ? Center(
-                            child: Text(
-                              'Brak komentarzy.',
-                              style: TextStyle(color: AppTheme.textSecondary),
-                            ),
-                          )
-                        : RefreshIndicator(
-                            onRefresh: _load,
-                            child: ListView.builder(
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
-                              itemCount: _comments.length,
-                              itemBuilder: (context, index) {
-                                final c = _comments[index];
-                                final id = c['id'] as String;
-                                final isBusy = _busyIds.contains(id);
-                                final text = c['text'] as String?;
-                                final hasPhoto = c['has_photo'] as bool? ?? false;
+                    ? Center(
+                      child: Text(
+                        'Brak komentarzy.',
+                        style: TextStyle(color: AppTheme.textSecondary),
+                      ),
+                    )
+                    : RefreshIndicator(
+                      onRefresh: _load,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        itemCount: _comments.length,
+                        itemBuilder: (context, index) {
+                          final c = _comments[index];
+                          final id = c['id'] as String;
+                          final isBusy = _busyIds.contains(id);
+                          final text = c['text'] as String?;
+                          final hasPhoto = c['has_photo'] as bool? ?? false;
 
-                                return Card(
-                                  margin: const EdgeInsets.only(bottom: 8),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(12),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'pod: ${c['recipe_name']}',
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'pod: ${c['recipe_name']}',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppTheme.textSecondary,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    (text == null || text.isEmpty)
+                                        ? (hasPhoto
+                                            ? '(samo zdjęcie)'
+                                            : '(pusty)')
+                                        : text,
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                  if (hasPhoto &&
+                                      text != null &&
+                                      text.isNotEmpty)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 4),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.image,
+                                            size: 14,
+                                            color: AppTheme.textSecondary,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            'zawiera zdjęcie',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: AppTheme.textSecondary,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          '${c['author_name']} · ${c['author_email']}',
                                           style: TextStyle(
                                             fontSize: 11,
                                             color: AppTheme.textSecondary,
-                                            fontWeight: FontWeight.bold,
                                           ),
+                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                        const SizedBox(height: 6),
-                                        Text(
-                                          (text == null || text.isEmpty)
-                                              ? (hasPhoto ? '(samo zdjęcie)' : '(pusty)')
-                                              : text,
-                                          style: const TextStyle(fontSize: 14),
-                                        ),
-                                        if (hasPhoto && text != null && text.isNotEmpty)
-                                          Padding(
-                                            padding: const EdgeInsets.only(top: 4),
-                                            child: Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.image,
-                                                  size: 14,
-                                                  color: AppTheme.textSecondary,
-                                                ),
-                                                const SizedBox(width: 4),
-                                                Text(
-                                                  'zawiera zdjęcie',
-                                                  style: TextStyle(
-                                                    fontSize: 11,
-                                                    color: AppTheme.textSecondary,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
+                                      ),
+                                      if (isBusy)
+                                        const SizedBox(
+                                          width: 18,
+                                          height: 18,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
                                           ),
-                                        const SizedBox(height: 8),
-                                        Row(
-                                          children: [
-                                            Expanded(
-                                              child: Text(
-                                                '${c['author_name']} · ${c['author_email']}',
-                                                style: TextStyle(
-                                                  fontSize: 11,
-                                                  color: AppTheme.textSecondary,
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                            if (isBusy)
-                                              const SizedBox(
-                                                width: 18,
-                                                height: 18,
-                                                child: CircularProgressIndicator(strokeWidth: 2),
-                                              )
-                                            else
-                                              IconButton(
-                                                icon: Icon(
-                                                  Icons.delete_outline,
-                                                  color: AppTheme.errorColor,
-                                                  size: 20,
-                                                ),
-                                                tooltip: 'Usuń komentarz',
-                                                onPressed: () => _delete(c),
-                                              ),
-                                          ],
+                                        )
+                                      else
+                                        IconButton(
+                                          icon: Icon(
+                                            Icons.delete_outline,
+                                            color: AppTheme.errorColor,
+                                            size: 20,
+                                          ),
+                                          tooltip: 'Usuń komentarz',
+                                          onPressed: () => _delete(c),
                                         ),
-                                      ],
-                                    ),
+                                    ],
                                   ),
-                                );
-                              },
+                                ],
+                              ),
                             ),
-                          ),
+                          );
+                        },
+                      ),
+                    ),
           ),
         ],
       ),

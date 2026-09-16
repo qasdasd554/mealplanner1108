@@ -62,7 +62,10 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Dodaj do listy zakupów', style: Theme.of(sheetContext).textTheme.titleLarge),
+                Text(
+                  'Dodaj do listy zakupów',
+                  style: Theme.of(sheetContext).textTheme.titleLarge,
+                ),
                 const SizedBox(height: 8),
                 Text(
                   'Masz już ${existingLists.length} ${existingLists.length == 1 ? "listę" : "listy"} — dodaj do niej, albo stwórz nową.',
@@ -72,16 +75,24 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
                 ...existingLists.map(
                   (list) => ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.shopping_cart_outlined, color: AppTheme.primaryColor),
+                    leading: const Icon(
+                      Icons.shopping_cart_outlined,
+                      color: AppTheme.primaryColor,
+                    ),
                     title: Text(list.storeName),
-                    subtitle: Text('${list.itemsByDepartment.values.fold<int>(0, (sum, items) => sum + items.length)} pozycji'),
+                    subtitle: Text(
+                      '${list.itemsByDepartment.values.fold<int>(0, (sum, items) => sum + items.length)} pozycji',
+                    ),
                     onTap: () => Navigator.of(sheetContext).pop(list.id),
                   ),
                 ),
                 const Divider(),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.add_circle_outline, color: AppTheme.secondaryColor),
+                  leading: const Icon(
+                    Icons.add_circle_outline,
+                    color: AppTheme.secondaryColor,
+                  ),
                   title: const Text('Stwórz nową listę'),
                   onTap: () => Navigator.of(sheetContext).pop('__new__'),
                 ),
@@ -105,14 +116,18 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
 
   Future<void> _submit({required String? existingListId}) async {
     final storeProvider = Provider.of<StoreProvider>(context, listen: false);
-    final store = storeProvider.selectedStore ?? (storeProvider.stores.isNotEmpty ? storeProvider.stores.first : null);
+    final store =
+        storeProvider.selectedStore ??
+        (storeProvider.stores.isNotEmpty ? storeProvider.stores.first : null);
     if (store == null) {
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-            duration: Duration(seconds: 3),content: Text('Wybierz najpierw sklep w swoim profilu')),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            duration: Duration(seconds: 3),
+            content: Text('Wybierz najpierw sklep w swoim profilu'),
+          ),
+        );
       return;
     }
 
@@ -133,8 +148,10 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
       // Teraz odświeżamy provider (żeby nowa lista pojawiła się i została
       // od razu wybrana) i wracamy do zakładki Zakupy. Jedna lista, jedno
       // miejsce.
-      final shoppingProvider =
-          Provider.of<ShoppingListProvider>(context, listen: false);
+      final shoppingProvider = Provider.of<ShoppingListProvider>(
+        context,
+        listen: false,
+      );
       await shoppingProvider.loadAllLists(preferredListId: list.mealPlanId);
       if (!mounted) return;
 
@@ -156,11 +173,12 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
             duration: const Duration(seconds: 3),
             action: SnackBarAction(
               label: 'ZOBACZ',
-              onPressed: () => rootNavigator.push(
-                MaterialPageRoute(
-                  builder: (_) => const ShoppingListScreen(),
-                ),
-              ),
+              onPressed:
+                  () => rootNavigator.push(
+                    MaterialPageRoute(
+                      builder: (_) => const ShoppingListScreen(),
+                    ),
+                  ),
             ),
           ),
         );
@@ -185,21 +203,25 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
       final messenger = ScaffoldMessenger.of(context);
       final rootNavigator = Navigator.of(context);
       messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
             duration: const Duration(seconds: 3),
-          content: Text(message),
-          action: message.toLowerCase().contains('premium')
-              ? SnackBarAction(
-                  label: 'Premium',
-                  onPressed: () => rootNavigator.push(
-                    MaterialPageRoute(builder: (_) => const PremiumScreen()),
-                  ),
-                )
-              : null,
-        ),
-      );
+            content: Text(message),
+            action:
+                message.toLowerCase().contains('premium')
+                    ? SnackBarAction(
+                      label: 'Premium',
+                      onPressed:
+                          () => rootNavigator.push(
+                            MaterialPageRoute(
+                              builder: (_) => const PremiumScreen(),
+                            ),
+                          ),
+                    )
+                    : null,
+          ),
+        );
       // Patrz komentarz przy takim samym wywołaniu w ścieżce sukcesu
       // wyżej — wymuszone zamknięcie, bo Flutter ignoruje `duration`
       // dla komunikatów z akcją, gdy włączone są ułatwienia dostępu.
@@ -226,10 +248,13 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
             children: [
               _isBusy
                   ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primaryColor),
-                    )
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppTheme.primaryColor,
+                    ),
+                  )
                   : const Icon(Icons.shopping_cart_outlined, size: 18),
               const SizedBox(width: 8),
               const Text('Lista zakupów na to danie'),

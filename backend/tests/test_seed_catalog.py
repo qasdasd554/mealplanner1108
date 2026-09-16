@@ -35,14 +35,34 @@ NEW_RECIPE_PRODUCTS = {
     "Budyń waniliowy",
 }
 
+NEW_SAUCES_AND_SPICES = {
+    "Sos teriyaki", "Sos sweet chili", "Sos barbecue", "Sos czosnkowy",
+    "Sos curry mango", "Pesto rosso", "Pasta curry zielona", "Sambal oelek",
+    "Ajvar", "Oliwki kalamata", "Jalapeño konserwowe", "Mleczko kokosowe light",
+    "Pomidory krojone z bazylią", "Fasola cannellini", "Sos tikka masala",
+    "Sos butter chicken", "Sos marinara", "Salsa pomidorowa", "Sos chipotle",
+    "Sos ponzu", "Mirin", "Pasta tamaryndowa", "Pasta z trawy cytrynowej",
+    "Pasta z czosnku i imbiru", "Krem balsamiczny", "Melasa z granatu",
+    "Masło klarowane ghee", "Bulion grzybowy", "Fond drobiowy", "Papryka ostra",
+    "Garam masala", "Cynamon cejloński", "Kardamon mielony", "Zioła prowansalskie",
+    "Płatki chili", "Czarnuszka", "Sumak", "Za'atar", "Ras el hanout",
+    "Przyprawa pięć smaków", "Anyż gwiazdkowy", "Kozieradka mielona",
+    "Goździki mielone", "Szafran", "Estragon suszony", "Nasiona kopru włoskiego",
+    "Agar", "Mąka tempura", "Tortilla kukurydziana", "Skrobia kukurydziana",
+}
+
 
 def test_25_new_recipe_products_are_complete() -> None:
     names = {row[0] for row in PRODUCTS_DATA}
-    assert len(names) == len(PRODUCTS_DATA) == 240
+    assert len(names) == len(PRODUCTS_DATA) == 290
     assert len(NEW_RECIPE_PRODUCTS) == 25
     assert NEW_RECIPE_PRODUCTS <= names
     assert NEW_RECIPE_PRODUCTS <= PRODUCT_BRANDS.keys()
     assert NEW_RECIPE_PRODUCTS <= NUTRITION_DATA.keys()
+    assert len(NEW_SAUCES_AND_SPICES) == 50
+    assert NEW_SAUCES_AND_SPICES <= names
+    assert NEW_SAUCES_AND_SPICES <= PRODUCT_BRANDS.keys()
+    assert NEW_SAUCES_AND_SPICES <= NUTRITION_DATA.keys()
 
 
 def test_every_recipe_uses_existing_catalog_products() -> None:

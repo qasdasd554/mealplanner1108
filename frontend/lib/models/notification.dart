@@ -22,7 +22,8 @@ class AppNotification {
   factory AppNotification.fromJson(Map<String, dynamic> json) {
     return AppNotification(
       id: json['id'] as String,
-      notificationType: json['notification_type'] as String? ?? 'recipe_comment',
+      notificationType:
+          json['notification_type'] as String? ?? 'recipe_comment',
       message: json['message'] as String? ?? '',
       recipeId: json['recipe_id'] as String?,
       recipeName: json['recipe_name'] as String?,

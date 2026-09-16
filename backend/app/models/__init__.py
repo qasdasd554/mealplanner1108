@@ -25,6 +25,7 @@ from app.models.user import User, UserAllergen
 from app.models.weekly_contest_payout import WeeklyContestPayout
 from app.models.food_log import FoodLogEntry
 from app.models.notification import Notification
+from app.models.friendship import Friendship
 
 __all__ = [
     "Base",
@@ -62,6 +63,7 @@ __all__ = [
     # Food Log
     "FoodLogEntry",
     "Notification",
+    "Friendship",
     # Moderation
     "ContentReport",
     "BlockedUser",

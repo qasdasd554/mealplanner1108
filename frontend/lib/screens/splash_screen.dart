@@ -26,7 +26,9 @@ class _SplashScreenState extends State<SplashScreen> {
   // RAZEM z autoryzacją, PRZED podjęciem jedynej, ostatecznej decyzji
   // o nawigacji, zamiast mieć dwa niezależne, konkurujące ze sobą
   // mechanizmy startowe.
-  static const MethodChannel _shareChannel = MethodChannel('com.meal_planner_polska_v1/share_intent');
+  static const MethodChannel _shareChannel = MethodChannel(
+    'com.meal_planner_polska_v1/share_intent',
+  );
 
   @override
   void initState() {
@@ -59,7 +61,9 @@ class _SplashScreenState extends State<SplashScreen> {
     // jednorazowo zwracaną wartość.
     String? sharedUrl;
     try {
-      final sharedText = await _shareChannel.invokeMethod<String>('getInitialSharedText');
+      final sharedText = await _shareChannel.invokeMethod<String>(
+        'getInitialSharedText',
+      );
       if (sharedText != null) {
         final match = RegExp(r'https?://\S+').firstMatch(sharedText);
         sharedUrl = match?.group(0);
@@ -83,10 +87,11 @@ class _SplashScreenState extends State<SplashScreen> {
       if (update.updateAvailable) {
         await Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => UpdateAvailableScreen(
-              storeUrl: update.storeUrl,
-              forceUpdate: update.forceUpdate,
-            ),
+            builder:
+                (_) => UpdateAvailableScreen(
+                  storeUrl: update.storeUrl,
+                  forceUpdate: update.forceUpdate,
+                ),
           ),
         );
         if (!mounted) return;
@@ -123,7 +128,9 @@ class _SplashScreenState extends State<SplashScreen> {
         // Zalogowany i przyszedł z udostępnienia linku — od razu na
         // ekran rozpoznawania przepisu przez AI, z wypełnionym linkiem.
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => AiAddRecipeScreen(initialUrl: sharedUrl)),
+          MaterialPageRoute(
+            builder: (_) => AiAddRecipeScreen(initialUrl: sharedUrl),
+          ),
         );
       } else {
         Navigator.of(context).pushReplacementNamed('/home');
@@ -146,27 +153,23 @@ class _SplashScreenState extends State<SplashScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Logo
-              Image.asset(
-                'assets/branding/logo.png',
-                width: 120,
-                height: 120,
-              ),
+              Image.asset('assets/branding/logo.png', width: 120, height: 120),
               const SizedBox(height: 24),
               // Tytuł
               Text(
                 'Meal Planner',
                 style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2,
-                    ),
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
               ),
               const SizedBox(height: 8),
               // Podtytuł
               Text(
                 'Planuj posiłki mądrze i oszczędzaj',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppTheme.textSecondary,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: AppTheme.textSecondary),
               ),
               const SizedBox(height: 48),
               // Wskaźnik ładowania
@@ -175,7 +178,9 @@ class _SplashScreenState extends State<SplashScreen> {
                 height: 24,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.5,
-                  valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    AppTheme.primaryColor,
+                  ),
                 ),
               ),
             ],

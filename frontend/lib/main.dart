@@ -56,15 +56,18 @@ void main() async {
     );
   };
 
-  runZonedGuarded(() async {
-    await _bootstrap();
-  }, (error, stack) {
-    // Logujemy zamiast pozwolić błędowi cicho ubić izolat. Bez zdalnego
-    // narzędzia (Crashlytics/Sentry) nie zobaczymy tego na produkcji,
-    // ale samo przechwycenie już zapobiega awarii aplikacji z powodu
-    // pojedynczego nieobsłużonego wyjątku w kodzie asynchronicznym.
-    debugPrint('Nieobsłużony błąd: $error\n$stack');
-  });
+  runZonedGuarded(
+    () async {
+      await _bootstrap();
+    },
+    (error, stack) {
+      // Logujemy zamiast pozwolić błędowi cicho ubić izolat. Bez zdalnego
+      // narzędzia (Crashlytics/Sentry) nie zobaczymy tego na produkcji,
+      // ale samo przechwycenie już zapobiega awarii aplikacji z powodu
+      // pojedynczego nieobsłużonego wyjątku w kodzie asynchronicznym.
+      debugPrint('Nieobsłużony błąd: $error\n$stack');
+    },
+  );
 }
 
 Future<void> _bootstrap() async {

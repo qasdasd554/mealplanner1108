@@ -28,13 +28,17 @@ class WelcomeBonusScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(26),
-                  decoration: BoxDecoration(
-                    color: gold.withOpacity(0.15),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.card_giftcard, size: 58, color: gold),
-                )
+                      padding: const EdgeInsets.all(26),
+                      decoration: BoxDecoration(
+                        color: gold.withOpacity(0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.card_giftcard,
+                        size: 58,
+                        color: gold,
+                      ),
+                    )
                     .animate()
                     .scale(duration: 450.ms, curve: Curves.easeOutBack)
                     .then()
@@ -42,10 +46,9 @@ class WelcomeBonusScreen extends StatelessWidget {
                 const SizedBox(height: 28),
                 Text(
                   'Wszystko gotowe!',
-                  style: Theme.of(context)
-                      .textTheme
-                      .headlineSmall
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                   textAlign: TextAlign.center,
                 ).animate().fadeIn(delay: 200.ms),
                 const SizedBox(height: 10),
@@ -86,8 +89,9 @@ class WelcomeBonusScreen extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton(
-                    onPressed: () => Navigator.of(context)
-                        .pushReplacementNamed('/home'),
+                    onPressed:
+                        () =>
+                            Navigator.of(context).pushReplacementNamed('/home'),
                     child: const Text('Zaczynamy'),
                   ),
                 ).animate().fadeIn(delay: 650.ms),

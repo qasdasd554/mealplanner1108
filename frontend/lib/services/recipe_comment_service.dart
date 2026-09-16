@@ -7,7 +7,9 @@ class RecipeCommentService {
   Future<List<RecipeComment>> getComments(String recipeId) async {
     final response = await _client.get('/recipes/$recipeId/comments');
     if (response is List) {
-      return response.map((e) => RecipeComment.fromJson(e as Map<String, dynamic>)).toList();
+      return response
+          .map((e) => RecipeComment.fromJson(e as Map<String, dynamic>))
+          .toList();
     }
     return [];
   }
@@ -19,10 +21,13 @@ class RecipeCommentService {
     String? text,
     String? photoBase64,
   }) async {
-    final response = await _client.post('/recipes/$recipeId/comments', body: {
-      if (text != null) 'text': text,
-      if (photoBase64 != null) 'photo_base64': photoBase64,
-    });
+    final response = await _client.post(
+      '/recipes/$recipeId/comments',
+      body: {
+        if (text != null) 'text': text,
+        if (photoBase64 != null) 'photo_base64': photoBase64,
+      },
+    );
     return RecipeComment.fromJson(response as Map<String, dynamic>);
   }
 

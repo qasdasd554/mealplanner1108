@@ -78,21 +78,24 @@ Future<void> showReportDialog(
   if (submitted != true) return;
 
   final details = detailsController.text.trim();
-  final success = await onSubmit(selectedReason, details.isEmpty ? null : details);
+  final success = await onSubmit(
+    selectedReason,
+    details.isEmpty ? null : details,
+  );
 
   if (context.mounted) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-      SnackBar(
-            duration: const Duration(seconds: 3),
-        content: Text(
-          success
-              ? 'Dziękujemy za zgłoszenie. Nasz zespół je sprawdzi.'
-              : 'Nie udało się wysłać zgłoszenia. Spróbuj ponownie.',
+        SnackBar(
+          duration: const Duration(seconds: 3),
+          content: Text(
+            success
+                ? 'Dziękujemy za zgłoszenie. Nasz zespół je sprawdzi.'
+                : 'Nie udało się wysłać zgłoszenia. Spróbuj ponownie.',
+          ),
         ),
-      ),
-    );
+      );
   }
 }
 
@@ -107,24 +110,25 @@ Future<void> showBlockUserDialog(
 }) async {
   final confirmed = await showDialog<bool>(
     context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: const Text('Zablokować tego użytkownika?'),
-      content: Text(
-        'Nie będziesz już widzieć przepisów ani komentarzy od "$authorName". '
-        'Możesz cofnąć blokadę w dowolnym momencie w Profil → Zablokowani użytkownicy.',
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(dialogContext).pop(false),
-          child: const Text('Anuluj'),
+    builder:
+        (dialogContext) => AlertDialog(
+          title: const Text('Zablokować tego użytkownika?'),
+          content: Text(
+            'Nie będziesz już widzieć przepisów ani komentarzy od "$authorName". '
+            'Możesz cofnąć blokadę w dowolnym momencie w Profil → Zablokowani użytkownicy.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Anuluj'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(backgroundColor: Colors.red),
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Zablokuj'),
+            ),
+          ],
         ),
-        FilledButton(
-          style: FilledButton.styleFrom(backgroundColor: Colors.red),
-          onPressed: () => Navigator.of(dialogContext).pop(true),
-          child: const Text('Zablokuj'),
-        ),
-      ],
-    ),
   );
 
   if (confirmed != true || !context.mounted) return;
@@ -136,13 +140,15 @@ Future<void> showBlockUserDialog(
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-      SnackBar(
-            duration: const Duration(seconds: 3),
-        content: Text(
-          success ? 'Użytkownik "$authorName" został zablokowany.' : 'Nie udało się zablokować użytkownika.',
+        SnackBar(
+          duration: const Duration(seconds: 3),
+          content: Text(
+            success
+                ? 'Użytkownik "$authorName" został zablokowany.'
+                : 'Nie udało się zablokować użytkownika.',
+          ),
         ),
-      ),
-    );
+      );
   }
 }
 
@@ -170,28 +176,33 @@ class ReportBlockMenu extends StatelessWidget {
         if (value == 'report') {
           showReportDialog(context, onSubmit: onReport);
         } else if (value == 'block' && authorId != null) {
-          showBlockUserDialog(context, userId: authorId!, authorName: authorName);
+          showBlockUserDialog(
+            context,
+            userId: authorId!,
+            authorName: authorName,
+          );
         }
       },
-      itemBuilder: (context) => [
-        const PopupMenuItem(
-          value: 'report',
-          child: ListTile(
-            leading: Icon(Icons.flag_outlined),
-            title: Text('Zgłoś'),
-            contentPadding: EdgeInsets.zero,
-          ),
-        ),
-        if (authorId != null)
-          PopupMenuItem(
-            value: 'block',
-            child: const ListTile(
-              leading: Icon(Icons.block),
-              title: Text('Zablokuj autora'),
-              contentPadding: EdgeInsets.zero,
+      itemBuilder:
+          (context) => [
+            const PopupMenuItem(
+              value: 'report',
+              child: ListTile(
+                leading: Icon(Icons.flag_outlined),
+                title: Text('Zgłoś'),
+                contentPadding: EdgeInsets.zero,
+              ),
             ),
-          ),
-      ],
+            if (authorId != null)
+              PopupMenuItem(
+                value: 'block',
+                child: const ListTile(
+                  leading: Icon(Icons.block),
+                  title: Text('Zablokuj autora'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+          ],
     );
   }
 }

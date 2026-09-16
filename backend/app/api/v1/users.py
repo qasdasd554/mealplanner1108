@@ -15,7 +15,8 @@ from app.api.deps import (
     get_current_user_allow_unverified,
 )
 from app.db.session import get_db
-from app.models import Allergen, BlockedUser, Store, User, UserAllergen
+from app.models import Allergen, BlockedUser, Friendship, Store, User, UserAllergen
+from app.models.friendship import canonical_friend_ids
 from app.schemas.user import UserResponse
 from app.services.display_name import validate_display_name
 from app.schemas.moderation import (
@@ -533,6 +534,16 @@ async def block_user(
         return  # już zablokowany — idempotentnie, bez błędu
 
     db.add(BlockedUser(user_id=current_user.id, blocked_user_id=user_id))
+    # Blokada ma pierwszeństwo przed relacją społecznościową. Usuwamy
+    # zarówno znajomość, jak i oczekujące zaproszenie, aby zablokowana
+    # osoba natychmiast traciła podgląd prywatnych przepisów i list.
+    user_a, user_b = canonical_friend_ids(current_user.id, user_id)
+    await db.execute(
+        delete(Friendship).where(
+            Friendship.user_a_id == user_a,
+            Friendship.user_b_id == user_b,
+        )
+    )
     await db.commit()
 
 

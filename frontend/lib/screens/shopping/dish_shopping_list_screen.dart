@@ -10,8 +10,13 @@ import '../../utils/quantity_formatter.dart';
 /// istniejącym ekranem listy zakupów powiązanej z planem.
 class DishShoppingListScreen extends StatelessWidget {
   final ShoppingList shoppingList;
+  final bool friendReadOnly;
 
-  const DishShoppingListScreen({super.key, required this.shoppingList});
+  const DishShoppingListScreen({
+    super.key,
+    required this.shoppingList,
+    this.friendReadOnly = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -30,55 +35,85 @@ class DishShoppingListScreen extends StatelessWidget {
               children: [
                 Text(
                   shoppingList.storeName,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Szacowany koszt: ${shoppingList.totalEstimatedPrice.toStringAsFixed(2)} zł',
                   style: TextStyle(color: AppTheme.textSecondary),
                 ),
+                if (friendReadOnly) ...[
+                  const SizedBox(height: 8),
+                  const Row(
+                    children: [
+                      Icon(Icons.visibility_outlined, size: 16),
+                      SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          'Podgląd listy znajomego — tylko do odczytu',
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
           Expanded(
-            child: departments.isEmpty
-                ? Center(
-                    child: Text('Brak pozycji na liście', style: TextStyle(color: AppTheme.textSecondary)),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: departments.length,
-                    itemBuilder: (context, index) {
-                      final dept = departments[index];
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 8, top: 12),
-                            child: Text(
-                              dept.key,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.primaryColor,
-                                fontSize: 13,
+            child:
+                departments.isEmpty
+                    ? Center(
+                      child: Text(
+                        'Brak pozycji na liście',
+                        style: TextStyle(color: AppTheme.textSecondary),
+                      ),
+                    )
+                    : ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: departments.length,
+                      itemBuilder: (context, index) {
+                        final dept = departments[index];
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                bottom: 8,
+                                top: 12,
+                              ),
+                              child: Text(
+                                dept.key,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.primaryColor,
+                                  fontSize: 13,
+                                ),
                               ),
                             ),
-                          ),
-                          ...dept.value.map((item) => Card(
+                            ...dept.value.map(
+                              (item) => Card(
                                 margin: const EdgeInsets.only(bottom: 6),
                                 child: ListTile(
                                   title: Text(item.productName),
-                                  subtitle: Text('${formatQuantity(item.requiredQuantity, item.unit)} ${item.unit}'),
+                                  subtitle: Text(
+                                    '${formatQuantity(item.requiredQuantity, item.unit)} ${item.unit}',
+                                  ),
                                   trailing: Text(
                                     '${(item.estimatedPrice ?? 0).toStringAsFixed(2)} zł',
-                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
-                              )),
-                        ],
-                      );
-                    },
-                  ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
           ),
         ],
       ),

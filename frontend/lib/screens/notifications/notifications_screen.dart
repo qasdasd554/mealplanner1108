@@ -49,27 +49,32 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       await _service.markAllAsRead();
       if (!mounted) return;
       setState(() {
-        _notifications = _notifications
-            .map((n) => AppNotification(
-                  id: n.id,
-                  notificationType: n.notificationType,
-                  message: n.message,
-                  recipeId: n.recipeId,
-                  recipeName: n.recipeName,
-                  commentId: n.commentId,
-                  isRead: true,
-                  createdAt: n.createdAt,
-                ))
-            .toList();
+        _notifications =
+            _notifications
+                .map(
+                  (n) => AppNotification(
+                    id: n.id,
+                    notificationType: n.notificationType,
+                    message: n.message,
+                    recipeId: n.recipeId,
+                    recipeName: n.recipeName,
+                    commentId: n.commentId,
+                    isRead: true,
+                    createdAt: n.createdAt,
+                  ),
+                )
+                .toList();
       });
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-            duration: Duration(seconds: 3),content: Text('Nie udało się oznaczyć wszystkich jako przeczytane')),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            duration: Duration(seconds: 3),
+            content: Text('Nie udało się oznaczyć wszystkich jako przeczytane'),
+          ),
+        );
     }
   }
 
@@ -79,7 +84,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         await _service.markAsRead(notification.id);
         if (!mounted) return;
         setState(() {
-          final index = _notifications.indexWhere((n) => n.id == notification.id);
+          final index = _notifications.indexWhere(
+            (n) => n.id == notification.id,
+          );
           if (index != -1) {
             _notifications[index] = AppNotification(
               id: notification.id,
@@ -107,11 +114,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-            duration: Duration(seconds: 3),content: Text('Nie udało się otworzyć przepisu')),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            duration: Duration(seconds: 3),
+            content: Text('Nie udało się otworzyć przepisu'),
+          ),
+        );
     }
   }
 
@@ -139,84 +148,108 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor))
-          : _error != null
-              ? Center(child: Text(_error!, style: TextStyle(color: AppTheme.textSecondary)))
+      body:
+          _isLoading
+              ? const Center(
+                child: CircularProgressIndicator(color: AppTheme.primaryColor),
+              )
+              : _error != null
+              ? Center(
+                child: Text(
+                  _error!,
+                  style: TextStyle(color: AppTheme.textSecondary),
+                ),
+              )
               : _notifications.isEmpty
-                  ? Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(32.0),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.notifications_none, size: 48, color: AppTheme.textSecondary),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Brak powiadomień',
-                              style: TextStyle(color: AppTheme.textSecondary),
-                            ),
-                          ],
-                        ),
+              ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.notifications_none,
+                        size: 48,
+                        color: AppTheme.textSecondary,
                       ),
-                    )
-                  : RefreshIndicator(
-                      onRefresh: _load,
-                      color: AppTheme.primaryColor,
-                      child: ListView.separated(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _notifications.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 8),
-                        itemBuilder: (context, index) {
-                          final n = _notifications[index];
-                          return Material(
-                            color: n.isRead ? AppTheme.surfaceColor : AppTheme.primaryColor.withOpacity(0.08),
-                            borderRadius: BorderRadius.circular(16),
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(16),
-                              onTap: () => _openNotification(n),
-                              child: Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Row(
+                      const SizedBox(height: 16),
+                      Text(
+                        'Brak powiadomień',
+                        style: TextStyle(color: AppTheme.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+              : RefreshIndicator(
+                onRefresh: _load,
+                color: AppTheme.primaryColor,
+                child: ListView.separated(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: _notifications.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  itemBuilder: (context, index) {
+                    final n = _notifications[index];
+                    return Material(
+                      color:
+                          n.isRead
+                              ? AppTheme.surfaceColor
+                              : AppTheme.primaryColor.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(16),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: () => _openNotification(n),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (!n.isRead)
+                                Container(
+                                  margin: const EdgeInsets.only(
+                                    top: 6,
+                                    right: 10,
+                                  ),
+                                  width: 8,
+                                  height: 8,
+                                  decoration: const BoxDecoration(
+                                    color: AppTheme.primaryColor,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              Expanded(
+                                child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    if (!n.isRead)
-                                      Container(
-                                        margin: const EdgeInsets.only(top: 6, right: 10),
-                                        width: 8,
-                                        height: 8,
-                                        decoration: const BoxDecoration(
-                                          color: AppTheme.primaryColor,
-                                          shape: BoxShape.circle,
-                                        ),
+                                    Text(
+                                      n.message,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight:
+                                            n.isRead
+                                                ? FontWeight.normal
+                                                : FontWeight.bold,
                                       ),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            n.message,
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: n.isRead ? FontWeight.normal : FontWeight.bold,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            _relativeTime(n.createdAt),
-                                            style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
-                                          ),
-                                        ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      _relativeTime(n.createdAt),
+                                      style: TextStyle(
+                                        color: AppTheme.textSecondary,
+                                        fontSize: 12,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                            ),
-                          );
-                        },
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
+                    );
+                  },
+                ),
+              ),
     );
   }
 }

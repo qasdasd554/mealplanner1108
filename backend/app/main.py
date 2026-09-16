@@ -463,7 +463,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 app = FastAPI(
     title="Smart Meal Planner PL API",
     description="API do planowania posiłków z integracją z polskimi sieciami handlowymi",
-    version="1.0.16",
+    version="1.0.17",
     lifespan=lifespan,
 )
 
@@ -543,7 +543,7 @@ async def health_check(db: AsyncSession = Depends(get_db)) -> dict[str, str]:
     return {
         "status": "healthy",
         "service": "smart-meal-planner-pl",
-        "release": "1.0.16+213",
+        "release": "1.0.17+214",
         "catalog_products": str(catalog_products),
         "database_provider": db_provider,
         "database_host": "ep-small-lab-b1y3gm3e.c-5.eu-central-1.aws.neon.tech" if "neon.tech" in settings.DATABASE_URL else "local",

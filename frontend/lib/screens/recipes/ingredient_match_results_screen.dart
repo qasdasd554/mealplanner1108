@@ -25,7 +25,8 @@ class IngredientMatchResultsScreen extends StatelessWidget {
 
   void _generateWithAi(BuildContext context) {
     final ingredientsList = usedProductNames.join(', ');
-    final prompt = 'Wygeneruj przepis na danie wykorzystujące GŁÓWNIE te składniki, '
+    final prompt =
+        'Wygeneruj przepis na danie wykorzystujące GŁÓWNIE te składniki, '
         'które mam w domu: $ingredientsList. Możesz dodać maksymalnie 2-3 dodatkowe, '
         'powszechnie dostępne składniki (np. sól, przyprawy, oliwę), jeśli są potrzebne.';
     Navigator.of(context).push(
@@ -43,34 +44,39 @@ class IngredientMatchResultsScreen extends StatelessWidget {
         child: Column(
           children: [
             Expanded(
-              child: matches.isEmpty
-                  ? Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(32.0),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.search_off, size: 64, color: AppTheme.textSecondary),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Nie znaleziono żadnego przepisu w bazie pasującego do '
-                              'wybranych składników. Możesz zamiast tego wygenerować '
-                              'nowy przepis przez AI.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(color: AppTheme.textSecondary),
-                            ),
-                          ],
+              child:
+                  matches.isEmpty
+                      ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(32.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.search_off,
+                                size: 64,
+                                color: AppTheme.textSecondary,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Nie znaleziono żadnego przepisu w bazie pasującego do '
+                                'wybranych składników. Możesz zamiast tego wygenerować '
+                                'nowy przepis przez AI.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: AppTheme.textSecondary),
+                              ),
+                            ],
+                          ),
                         ),
+                      )
+                      : ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: matches.length,
+                        itemBuilder: (context, index) {
+                          final match = matches[index];
+                          return _buildMatchCard(context, match);
+                        },
                       ),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: matches.length,
-                      itemBuilder: (context, index) {
-                        final match = matches[index];
-                        return _buildMatchCard(context, match);
-                      },
-                    ),
             ),
             // Przycisk generowania przez AI — zawsze dostępny jako
             // zapasowa opcja, ale szczególnie wyeksponowany, gdy baza
@@ -79,17 +85,20 @@ class IngredientMatchResultsScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16.0),
               child: SizedBox(
                 width: double.infinity,
-                child: hasFullMatches
-                    ? OutlinedButton.icon(
-                        onPressed: () => _generateWithAi(context),
-                        icon: const Icon(Icons.auto_awesome, size: 18),
-                        label: const Text('Żaden nie pasuje? Wygeneruj przez AI'),
-                      )
-                    : FilledButton.icon(
-                        onPressed: () => _generateWithAi(context),
-                        icon: const Icon(Icons.auto_awesome, size: 18),
-                        label: const Text('Wygeneruj nowy przepis przez AI'),
-                      ),
+                child:
+                    hasFullMatches
+                        ? OutlinedButton.icon(
+                          onPressed: () => _generateWithAi(context),
+                          icon: const Icon(Icons.auto_awesome, size: 18),
+                          label: const Text(
+                            'Żaden nie pasuje? Wygeneruj przez AI',
+                          ),
+                        )
+                        : FilledButton.icon(
+                          onPressed: () => _generateWithAi(context),
+                          icon: const Icon(Icons.auto_awesome, size: 18),
+                          label: const Text('Wygeneruj nowy przepis przez AI'),
+                        ),
               ),
             ),
           ],
@@ -100,13 +109,19 @@ class IngredientMatchResultsScreen extends StatelessWidget {
 
   Widget _buildMatchCard(BuildContext context, RecipeMatch match) {
     return GestureDetector(
-      onTap: () => Navigator.of(context).pushNamed('/recipe/detail', arguments: match.recipe),
+      onTap:
+          () => Navigator.of(
+            context,
+          ).pushNamed('/recipe/detail', arguments: match.recipe),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
           color: AppTheme.surfaceColor,
           borderRadius: BorderRadius.circular(14),
-          border: match.isFullMatch ? Border.all(color: AppTheme.primaryColor, width: 1.5) : null,
+          border:
+              match.isFullMatch
+                  ? Border.all(color: AppTheme.primaryColor, width: 1.5)
+                  : null,
         ),
         clipBehavior: Clip.antiAlias,
         child: Row(
@@ -125,7 +140,10 @@ class IngredientMatchResultsScreen extends StatelessWidget {
                   children: [
                     Text(
                       match.recipe.name,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -133,7 +151,11 @@ class IngredientMatchResultsScreen extends StatelessWidget {
                     if (match.isFullMatch)
                       Row(
                         children: [
-                          Icon(Icons.check_circle, size: 14, color: AppTheme.primaryColor),
+                          Icon(
+                            Icons.check_circle,
+                            size: 14,
+                            color: AppTheme.primaryColor,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             'Możesz ugotować teraz',
@@ -148,7 +170,10 @@ class IngredientMatchResultsScreen extends StatelessWidget {
                     else
                       Text(
                         'Brakuje: ${match.missingIngredientNames.join(", ")}',
-                        style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                        style: TextStyle(
+                          color: AppTheme.textSecondary,
+                          fontSize: 12,
+                        ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),

@@ -25,6 +25,7 @@ import 'premium_screen.dart';
 import '../admin/admin_panel_screen.dart';
 import 'blocked_users_screen.dart';
 import 'statistics_screen.dart';
+import 'friends_screen.dart';
 
 /// Odmiana słowa "dzień" — w polskim wystarczy rozróżnić TYLKO liczbę 1
 /// (dzień) od wszystkich pozostałych (dni), w przeciwieństwie do wielu
@@ -173,6 +174,27 @@ class ProfileScreen extends StatelessWidget {
                     _buildCalorieCalculatorTile(context),
                     const SizedBox(height: 16),
                     const _WeightTrackerCard(),
+                  ],
+                ),
+                const SizedBox(height: 12),
+
+                _ProfileSection(
+                  title: 'Społeczność',
+                  icon: Icons.people_alt_outlined,
+                  children: [
+                    _buildProfileSettingTile(
+                      context,
+                      icon: Icons.group_outlined,
+                      title: 'Znajomi',
+                      value: 'Zaproszenia, przepisy i listy zakupów',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const FriendsScreen(),
+                          ),
+                        );
+                      },
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -454,7 +476,7 @@ class ProfileScreen extends StatelessWidget {
                 // Wersja aplikacji
                 Center(
                   child: Text(
-                    'v1.0.16 (Meal Planner)',
+                    'v1.0.17 (Meal Planner)',
                     style: TextStyle(
                       color: AppTheme.textSecondary,
                       fontSize: 12,
