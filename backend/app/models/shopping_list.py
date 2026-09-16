@@ -82,11 +82,15 @@ class ShoppingListItem(Base):
         ForeignKey("shopping_lists.id", ondelete="CASCADE"),
         nullable=False,
     )
-    store_product_id: Mapped[uuid.UUID] = mapped_column(
+    store_product_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("store_products.id", ondelete="CASCADE"),
-        nullable=False,
+        nullable=True,
     )
+    # Dowolna pozycja wpisana z klawiatury, np. "papier toaletowy".
+    # Dla pozycji katalogowych pole pozostaje puste i używany jest
+    # store_product_id; dla tekstowych jest odwrotnie.
+    custom_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
     department_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("store_departments.id", ondelete="SET NULL"),
@@ -113,7 +117,7 @@ class ShoppingListItem(Base):
     shopping_list: Mapped[ShoppingList] = relationship(
         "ShoppingList", back_populates="items"
     )
-    store_product: Mapped["StoreProduct"] = relationship("StoreProduct")
+    store_product: Mapped["StoreProduct | None"] = relationship("StoreProduct")
     department: Mapped["StoreDepartment | None"] = relationship("StoreDepartment")
     substituted_for_product: Mapped["Product | None"] = relationship(
         "Product", foreign_keys=[substituted_for]

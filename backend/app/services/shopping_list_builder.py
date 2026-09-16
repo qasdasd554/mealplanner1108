@@ -116,9 +116,12 @@ class ShoppingListBuilder:
 
         meal_plan_id = shopping_list.meal_plan_id
 
-        # Usuń stare pozycje
+        # Usuń stare pozycje wyliczone z przepisów. Pozycje wpisane
+        # przez użytkownika z klawiatury nie zależą od planu i muszą
+        # przetrwać jego przeliczenie.
         for item in list(shopping_list.items):
-            await self.db.delete(item)
+            if item.custom_name is None:
+                await self.db.delete(item)
         await self.db.flush()
 
         # Przebuduj
@@ -215,7 +218,7 @@ class ShoppingListBuilder:
         for item in shopping_list.items:
             store_product_obj = item.store_product
             product = store_product_obj.product if store_product_obj else None
-            product_name = product.name if product else "Nieznany produkt"
+            product_name = product.name if product else (item.custom_name or "Nieznany produkt")
             product_id = store_product_obj.product_id if store_product_obj else None
             dept_info = dept_map.get(product_id, ("Inne", 999))
             dept_name, sort_order = dept_info

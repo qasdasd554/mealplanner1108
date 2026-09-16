@@ -1146,15 +1146,17 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
               '${item.estimatedPrice!.toStringAsFixed(2)} zł',
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-          const SizedBox(width: 8),
-          IconButton(
-            icon: Icon(
-              Icons.swap_horiz,
-              size: 20,
-              color: AppTheme.textSecondary,
+          if (item.productId != null) ...[
+            const SizedBox(width: 8),
+            IconButton(
+              icon: Icon(
+                Icons.swap_horiz,
+                size: 20,
+                color: AppTheme.textSecondary,
+              ),
+              onPressed: () => _openSubstitutePicker(item, storeId),
             ),
-            onPressed: () => _openSubstitutePicker(item, storeId),
-          ),
+          ],
         ],
       ),
     );

@@ -41,7 +41,9 @@ class ShoppingListProvider with ChangeNotifier {
       String? target = preferredListId;
       // Porównujemy po mealPlanId, bo tym identyfikatorem backend
       // indeksuje listy zakupów (patrz _get_shopping_list_or_404).
-      final hasPreferred = _allLists.any((l) => l.mealPlanId == preferredListId);
+      final hasPreferred = _allLists.any(
+        (l) => l.mealPlanId == preferredListId,
+      );
       if (!hasPreferred) {
         target = _allLists.isNotEmpty ? _allLists.first.mealPlanId : null;
       }
@@ -69,13 +71,40 @@ class ShoppingListProvider with ChangeNotifier {
   }
 
   /// Dopisuje pojedynczy produkt (spoza przepisu) do bieżącej listy.
-  Future<bool> addProduct(String productId, {double quantity = 1.0, String unit = 'szt'}) async {
+  Future<bool> addProduct(
+    String productId, {
+    double quantity = 1.0,
+    String unit = 'szt',
+  }) async {
     if (_selectedListId == null) return false;
     _errorMessage = null;
     try {
       await _shoppingListService.addProduct(
         _selectedListId!,
         productId,
+        quantity: quantity,
+        unit: unit,
+      );
+      await loadShoppingList(_selectedListId!);
+      return true;
+    } catch (e) {
+      _errorMessage = friendlyError(e);
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> addCustomItem(
+    String name, {
+    double quantity = 1.0,
+    String unit = 'szt',
+  }) async {
+    if (_selectedListId == null || name.trim().isEmpty) return false;
+    _errorMessage = null;
+    try {
+      await _shoppingListService.addCustomItem(
+        _selectedListId!,
+        name.trim(),
         quantity: quantity,
         unit: unit,
       );
@@ -124,7 +153,8 @@ class ShoppingListProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> removeItem(String itemId) async {    if (_selectedListId == null) return false;
+  Future<bool> removeItem(String itemId) async {
+    if (_selectedListId == null) return false;
     _errorMessage = null;
     try {
       await _shoppingListService.deleteItem(_selectedListId!, itemId);

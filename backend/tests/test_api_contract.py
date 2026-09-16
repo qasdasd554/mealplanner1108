@@ -8,6 +8,12 @@ def test_statistics_endpoint_is_present_in_openapi() -> None:
     assert "/api/v1/wellness/stats/overview" in paths
 
 
+def test_scanned_products_and_custom_shopping_items_are_exposed() -> None:
+    paths = app.openapi()["paths"]
+    assert "/api/v1/products/scanned" in paths
+    assert "/api/v1/shopping-lists/{list_id}/items/custom" in paths
+
+
 def test_openapi_operation_ids_are_unique() -> None:
     operation_ids = [
         operation["operationId"]
@@ -19,4 +25,4 @@ def test_openapi_operation_ids_are_unique() -> None:
 
 
 def test_backend_release_matches_mobile_build() -> None:
-    assert app.version == "1.0.14"
+    assert app.version == "1.0.16"

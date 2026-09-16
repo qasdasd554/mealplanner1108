@@ -249,6 +249,54 @@ async def lookup_barcode(
 
 
 @router.get(
+    "/scanned",
+    response_model=list[ProductResponse],
+    summary="Produkty zapamiętane po skanowaniu kodów kreskowych",
+)
+async def list_scanned_products(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=200),
+    search: str | None = Query(None),
+    db: AsyncSession = Depends(get_db),
+) -> list[dict]:
+    """Udostępnia cache Neon na liście produktów w Śledzeniu.
+
+    Wcześniej rekord dało się znaleźć wyłącznie przez ponowne
+    zeskanowanie tego samego kodu. Teraz można wyszukać go po nazwie,
+    marce lub kodzie i dodać do dziennika bez ponownego skanowania.
+    """
+    query = select(BarcodeProductCache)
+    if search and search.strip():
+        pattern = f"%{search.strip()}%"
+        query = query.where(
+            or_(
+                BarcodeProductCache.name.ilike(pattern),
+                BarcodeProductCache.brand.ilike(pattern),
+                BarcodeProductCache.barcode.ilike(pattern),
+            )
+        )
+    result = await db.execute(
+        query.order_by(BarcodeProductCache.updated_at.desc()).offset(skip).limit(limit)
+    )
+    return [
+        {
+            "id": entry.id,
+            "name": entry.name,
+            "brand": entry.brand,
+            "unit": entry.unit,
+            "default_quantity": 100,
+            "barcode": entry.barcode,
+            "nutrition_per_100": entry.nutrition_per_100 or {},
+            "image_url": None,
+            "created_at": entry.created_at,
+            "review_status": "approved",
+            "source": "scan",
+        }
+        for entry in result.scalars().all()
+    ]
+
+
+@router.get(
     "/mine",
     response_model=list[ProductResponse],
     summary="Produkty zgłoszone przeze mnie — dowolny status",

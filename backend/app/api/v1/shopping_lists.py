@@ -5,7 +5,7 @@ from decimal import Decimal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import exists, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -846,6 +846,12 @@ class AddItemRequest(BaseModel):
     unit: str = "szt"
 
 
+class AddCustomItemRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=200)
+    quantity: float = Field(default=1.0, gt=0, le=9999)
+    unit: str = Field(default="szt", min_length=1, max_length=20)
+
+
 @router.post(
     "/{list_id}/items",
     status_code=201,
@@ -911,6 +917,62 @@ async def add_item_to_shopping_list(
     await db.commit()
     await db.refresh(item)
     return {"detail": "Dodano produkt do listy", "item_id": str(item.id)}
+
+
+@router.post(
+    "/{list_id}/items/custom",
+    status_code=201,
+    summary="Dopisz dowolną pozycję tekstową do listy zakupów",
+)
+async def add_custom_item_to_shopping_list(
+    list_id: UUID,
+    payload: AddCustomItemRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Dodaje rzecz spoza katalogu spożywczego, np. baterie lub chemię.
+
+    Nazwa jest normalizowana z nadmiarowych spacji. Ponowne dodanie tej
+    samej nazwy zwiększa ilość zamiast tworzyć drugi wiersz.
+    """
+    shopping_list = await _get_shopping_list_or_404(list_id, current_user, db)
+    name = " ".join(payload.name.split()).strip()
+    unit = payload.unit.strip() or "szt"
+    if not name:
+        raise HTTPException(status_code=400, detail="Wpisz nazwę pozycji")
+
+    existing = next(
+        (
+            item
+            for item in shopping_list.items
+            if item.custom_name is not None
+            and item.custom_name.casefold() == name.casefold()
+            and item.unit.casefold() == unit.casefold()
+        ),
+        None,
+    )
+    if existing is not None:
+        existing.required_quantity += Decimal(str(payload.quantity))
+        db.add(existing)
+        await db.commit()
+        return {
+            "detail": "Zaktualizowano ilość istniejącej pozycji",
+            "item_id": str(existing.id),
+        }
+
+    item = ShoppingListItem(
+        shopping_list_id=shopping_list.id,
+        store_product_id=None,
+        custom_name=name,
+        department_id=None,
+        required_quantity=Decimal(str(payload.quantity)),
+        unit=unit,
+        estimated_price=None,
+    )
+    db.add(item)
+    await db.commit()
+    await db.refresh(item)
+    return {"detail": "Dodano pozycję do listy", "item_id": str(item.id)}
 
 
 @router.delete(

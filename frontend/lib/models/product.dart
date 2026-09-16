@@ -46,6 +46,7 @@ class Product {
   final String reviewStatus;
   final double? submittedPrice;
   final List<String>? requestedStoreIds;
+  final String? source;
 
   Product({
     required this.id,
@@ -59,6 +60,7 @@ class Product {
     this.reviewStatus = 'approved',
     this.submittedPrice,
     this.requestedStoreIds,
+    this.source,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -76,6 +78,7 @@ class Product {
       reviewStatus: json['review_status'] as String? ?? 'approved',
       submittedPrice: (json['submitted_price'] as num?)?.toDouble(),
       requestedStoreIds: (json['requested_store_ids'] as List?)?.cast<String>(),
+      source: json['source'] as String?,
     );
   }
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../models/product.dart';
+import '../config/api_config.dart';
 import '../screens/barcode_scanner_screen.dart';
 import '../services/api_client.dart';
 import '../services/barcode_lookup_service.dart';
@@ -37,8 +38,15 @@ class PickedCatalogProduct {
 /// pojawiają się tu na równi z produktami oficjalnymi.
 class PickProductFromCatalogSheet extends StatefulWidget {
   final bool scanOnOpen;
+  final bool embedded;
+  final ValueChanged<PickedCatalogProduct>? onPicked;
 
-  const PickProductFromCatalogSheet({super.key, this.scanOnOpen = false});
+  const PickProductFromCatalogSheet({
+    super.key,
+    this.scanOnOpen = false,
+    this.embedded = false,
+    this.onPicked,
+  });
 
   @override
   State<PickProductFromCatalogSheet> createState() =>
@@ -51,6 +59,7 @@ class _PickProductFromCatalogSheetState
   final BarcodeLookupService _barcodeLookupService = BarcodeLookupService();
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounce;
+  int _requestGeneration = 0;
 
   List<Product> _results = [];
   bool _isLoading = false;
@@ -84,28 +93,56 @@ class _PickProductFromCatalogSheetState
   }
 
   Future<void> _search(String query) async {
+    final generation = ++_requestGeneration;
     setState(() {
       _isLoading = true;
       _error = null;
     });
     try {
-      final path =
-          query.trim().isEmpty
-              ? '/products?limit=30'
-              : '/products?search=${Uri.encodeQueryComponent(query.trim())}&limit=30';
-      final response = await _client.get(path);
-      if (!mounted) return;
+      final encodedQuery = Uri.encodeQueryComponent(query.trim());
+      final queryPart = query.trim().isEmpty ? '' : '&search=$encodedQuery';
+      // Końcowy ukośnik jest istotny: wcześniej "/products?" było
+      // przekierowywane na "/products/?". Przy takim przekierowaniu klient
+      // potrafił zgubić nagłówek Authorization, dlatego zalogowany
+      // użytkownik dostawał błędny komunikat o konieczności logowania.
+      final responses = await Future.wait<dynamic>([
+        _client.get('${ApiConfig.products}?limit=50$queryPart'),
+        _client.get('${ApiConfig.products}scanned?limit=50$queryPart'),
+      ]);
+      if (!mounted || generation != _requestGeneration) return;
+
+      final merged = <String, Product>{};
+      for (final response in responses) {
+        for (final item in response as List) {
+          final product = Product.fromJson(item as Map<String, dynamic>);
+          final key =
+              '${product.name.trim().toLowerCase()}|'
+              '${(product.brand ?? '').trim().toLowerCase()}';
+          // Katalog oficjalny jest pobierany pierwszy i ma pierwszeństwo
+          // przed takim samym rekordem z cache skanera.
+          merged.putIfAbsent(key, () => product);
+        }
+      }
       setState(() {
         _results =
-            (response as List)
-                .map((e) => Product.fromJson(e as Map<String, dynamic>))
-                .toList();
+            merged.values.toList()..sort((a, b) => a.name.compareTo(b.name));
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || generation != _requestGeneration) return;
       setState(() => _error = friendlyError(e));
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted && generation == _requestGeneration) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _complete(PickedCatalogProduct product) {
+    final callback = widget.onPicked;
+    if (callback != null) {
+      callback(product);
+    } else {
+      Navigator.of(context).pop(product);
     }
   }
 
@@ -189,7 +226,7 @@ class _PickProductFromCatalogSheetState
       if (grams == null || grams <= 0 || !mounted) return;
 
       final factor = grams / 100.0;
-      Navigator.of(context).pop(
+      _complete(
         PickedCatalogProduct(
           name: result.name!,
           grams: grams,
@@ -261,7 +298,7 @@ class _PickProductFromCatalogSheetState
     final n = product.nutritionPer100;
     final factor = grams / 100.0;
 
-    Navigator.of(context).pop(
+    _complete(
       PickedCatalogProduct(
         name: product.name,
         grams: grams,
@@ -275,81 +312,94 @@ class _PickProductFromCatalogSheetState
 
   @override
   Widget build(BuildContext context) {
+    if (widget.embedded) {
+      return _buildContents(null, showHandle: false);
+    }
     return DraggableScrollableSheet(
       initialChildSize: 0.85,
       minChildSize: 0.5,
       maxChildSize: 0.95,
       expand: false,
       builder: (context, scrollController) {
-        return Column(
-          children: [
-            const SizedBox(height: 10),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppTheme.textSecondary.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
-              child: TextField(
-                controller: _searchController,
-                autofocus: !widget.scanOnOpen,
-                onChanged: _onQueryChanged,
-                decoration: InputDecoration(
-                  hintText: 'Szukaj produktu...',
-                  prefixIcon: const Icon(Icons.search),
-                  // Skanowanie tuż obok pola wyszukiwania — szybsza
-                  // alternatywa dla wpisywania nazwy, gdy opakowanie
-                  // jest pod ręką.
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.barcode_reader),
-                    tooltip: 'Skanuj kod kreskowy',
-                    onPressed: _scanBarcode,
-                  ),
-                ),
-              ),
-            ),
-            Expanded(
-              child:
-                  _isLoading && _results.isEmpty
-                      ? const Center(child: CircularProgressIndicator())
-                      : _error != null
-                      ? Center(
-                        child: Text(
-                          _error!,
-                          style: TextStyle(color: AppTheme.textSecondary),
-                        ),
-                      )
-                      : _results.isEmpty
-                      ? Center(
-                        child: Text(
-                          'Brak produktów pasujących do wyszukiwania.',
-                          style: TextStyle(color: AppTheme.textSecondary),
-                        ),
-                      )
-                      : ListView.builder(
-                        controller: scrollController,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: _results.length,
-                        itemBuilder: (context, index) {
-                          final p = _results[index];
-                          return ListTile(
-                            title: Text(p.name),
-                            subtitle: Text(
-                              '${p.nutritionPer100.kcal.round()} kcal / 100${p.unit == 'ml' || p.unit == 'l' ? 'ml' : 'g'}'
-                              '${p.brand != null && p.brand!.isNotEmpty ? ' · ${p.brand}' : ''}',
-                            ),
-                            onTap: () => _pickProduct(p),
-                          );
-                        },
-                      ),
-            ),
-          ],
-        );
+        return _buildContents(scrollController, showHandle: true);
       },
+    );
+  }
+
+  Widget _buildContents(
+    ScrollController? scrollController, {
+    required bool showHandle,
+  }) {
+    return Column(
+      children: [
+        if (showHandle) ...[
+          const SizedBox(height: 10),
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: AppTheme.textSecondary.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+        ],
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+          child: TextField(
+            controller: _searchController,
+            autofocus: !widget.scanOnOpen,
+            onChanged: _onQueryChanged,
+            decoration: InputDecoration(
+              hintText: 'Szukaj produktu...',
+              prefixIcon: const Icon(Icons.search),
+              // Skanowanie tuż obok pola wyszukiwania — szybsza
+              // alternatywa dla wpisywania nazwy, gdy opakowanie
+              // jest pod ręką.
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.barcode_reader),
+                tooltip: 'Skanuj kod kreskowy',
+                onPressed: _scanBarcode,
+              ),
+            ),
+          ),
+        ),
+        Expanded(
+          child:
+              _isLoading && _results.isEmpty
+                  ? const Center(child: CircularProgressIndicator())
+                  : _error != null
+                  ? Center(
+                    child: Text(
+                      _error!,
+                      style: TextStyle(color: AppTheme.textSecondary),
+                    ),
+                  )
+                  : _results.isEmpty
+                  ? Center(
+                    child: Text(
+                      'Brak produktów pasujących do wyszukiwania.',
+                      style: TextStyle(color: AppTheme.textSecondary),
+                    ),
+                  )
+                  : ListView.builder(
+                    controller: scrollController,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: _results.length,
+                    itemBuilder: (context, index) {
+                      final p = _results[index];
+                      return ListTile(
+                        title: Text(p.name),
+                        subtitle: Text(
+                          '${p.nutritionPer100.kcal.round()} kcal / 100${p.unit == 'ml' || p.unit == 'l' ? 'ml' : 'g'}'
+                          '${p.brand != null && p.brand!.isNotEmpty ? ' · ${p.brand}' : ''}'
+                          '${p.source == 'scan' ? ' · zeskanowany' : ''}',
+                        ),
+                        onTap: () => _pickProduct(p),
+                      );
+                    },
+                  ),
+        ),
+      ],
     );
   }
 }

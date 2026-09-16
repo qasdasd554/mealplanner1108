@@ -203,6 +203,20 @@ async def _create_tables() -> None:
         await conn.execute(
             text("ALTER TABLE products ADD COLUMN IF NOT EXISTS requested_store_ids JSON")
         )
+        # Ręcznie wpisane pozycje listy zakupów (np. chemia domowa) nie
+        # mają odpowiednika w katalogu spożywczym ani StoreProduct.
+        await conn.execute(
+            text(
+                "ALTER TABLE shopping_list_items ADD COLUMN IF NOT EXISTS "
+                "custom_name VARCHAR(200)"
+            )
+        )
+        await conn.execute(
+            text(
+                "ALTER TABLE shopping_list_items "
+                "ALTER COLUMN store_product_id DROP NOT NULL"
+            )
+        )
         # Nawodnienie: jeden wpis na użytkownika i dzień — patrz
         # app/models/wellness.py.
         await conn.execute(
@@ -449,7 +463,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 app = FastAPI(
     title="Smart Meal Planner PL API",
     description="API do planowania posiłków z integracją z polskimi sieciami handlowymi",
-    version="1.0.14",
+    version="1.0.16",
     lifespan=lifespan,
 )
 
@@ -529,7 +543,7 @@ async def health_check(db: AsyncSession = Depends(get_db)) -> dict[str, str]:
     return {
         "status": "healthy",
         "service": "smart-meal-planner-pl",
-        "release": "1.0.14+211",
+        "release": "1.0.16+213",
         "catalog_products": str(catalog_products),
         "database_provider": db_provider,
         "database_host": "ep-small-lab-b1y3gm3e.c-5.eu-central-1.aws.neon.tech" if "neon.tech" in settings.DATABASE_URL else "local",

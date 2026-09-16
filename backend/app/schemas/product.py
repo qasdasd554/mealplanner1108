@@ -56,6 +56,9 @@ class ProductResponse(ProductBase):
     # jedynym wyjątkiem.
     submitted_price: float | None = None
     requested_store_ids: list[str] | None = None
+    # "scan" oznacza rekord zapamiętany po skanowaniu kodu kreskowego.
+    # Dla zwykłych produktów katalogowych pole jest puste.
+    source: str | None = None
 
 
 class StoreProductResponse(BaseModel):

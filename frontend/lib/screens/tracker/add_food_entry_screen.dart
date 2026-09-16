@@ -47,13 +47,13 @@ class _AddFoodEntryScreenState extends State<AddFoodEntryScreen>
           tabs: const [
             Tab(text: 'Z planu'),
             Tab(text: 'Z przepisów'),
-            Tab(text: 'Ręcznie'),
+            Tab(text: 'Produkty'),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
-        children: const [_PlanTab(), _RecipesTab(), _ManualTab()],
+        children: const [_PlanTab(), _RecipesTab(), _ProductsTab()],
       ),
     );
   }
@@ -893,59 +893,150 @@ class _EmptyHint extends StatelessWidget {
 }
 
 /// ── Zakładka "Ręcznie" ──────────────────────────────────────────────
-class _ManualTab extends StatelessWidget {
-  const _ManualTab();
+class _ProductsTab extends StatefulWidget {
+  const _ProductsTab();
+
+  @override
+  State<_ProductsTab> createState() => _ProductsTabState();
+}
+
+class _ProductsTabState extends State<_ProductsTab> {
+  static const _mealTypes = [
+    'Śniadanie',
+    'Obiad',
+    'Kolacja',
+    'Przekąska',
+    'Deser',
+  ];
+  bool _isAdding = false;
+
+  Future<void> _pickAndLog(PickedCatalogProduct picked) async {
+    if (_isAdding) return;
+    var mealType = 'Przekąska';
+    final selectedType = await showDialog<String>(
+      context: context,
+      builder:
+          (dialogContext) => StatefulBuilder(
+            builder:
+                (dialogContext, setDialogState) => AlertDialog(
+                  title: Text(picked.name),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${picked.grams.toStringAsFixed(0)} g · '
+                        '${picked.kcal.round()} kcal',
+                        style: TextStyle(color: AppTheme.textSecondary),
+                      ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        value: mealType,
+                        decoration: const InputDecoration(
+                          labelText: 'Rodzaj posiłku',
+                        ),
+                        items:
+                            _mealTypes
+                                .map(
+                                  (type) => DropdownMenuItem(
+                                    value: type,
+                                    child: Text(type),
+                                  ),
+                                )
+                                .toList(),
+                        onChanged: (value) {
+                          if (value != null) {
+                            setDialogState(() => mealType = value);
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(dialogContext),
+                      child: const Text('Anuluj'),
+                    ),
+                    FilledButton(
+                      onPressed: () => Navigator.pop(dialogContext, mealType),
+                      child: const Text('Dodaj do dziennika'),
+                    ),
+                  ],
+                ),
+          ),
+    );
+    if (selectedType == null || !mounted) return;
+
+    setState(() => _isAdding = true);
+    final provider = Provider.of<FoodLogProvider>(context, listen: false);
+    final success = await provider.addManualEntry(
+      mealType: selectedType,
+      foodName: '${picked.name} (${picked.grams.toStringAsFixed(0)} g)',
+      calories: picked.kcal,
+      protein: picked.protein,
+      carbs: picked.carbs,
+      fat: picked.fat,
+    );
+    if (!mounted) return;
+    setState(() => _isAdding = false);
+    if (success) {
+      Navigator.pop(context);
+    } else {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(provider.error ?? 'Nie udało się dodać produktu'),
+          ),
+        );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        children: [
-          const ManualEntryForm(),
-          const SizedBox(height: 20),
-          const Divider(),
-          const SizedBox(height: 12),
-          // Zgłoszenie własnego produktu do katalogu — inna rzecz niż
-          // ręczny wpis powyżej. Ręczny wpis dotyczy JEDNEGO posiłku
-          // i znika po dniu; zgłoszony produkt zostaje w katalogu i można
-          // go używać wielokrotnie, także na liście zakupów.
-          Text(
-            'Jesz coś, czego nie ma w katalogu?',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppTheme.textPrimary,
+    return Stack(
+      children: [
+        Column(
+          children: [
+            Expanded(
+              child: PickProductFromCatalogSheet(
+                embedded: true,
+                onPicked: (product) => unawaited(_pickAndLog(product)),
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Dodaj produkt raz, a potem wybieraj go z listy.',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed:
-                  () => showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    backgroundColor: AppTheme.surfaceColor,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.vertical(
-                        top: Radius.circular(20),
-                      ),
-                    ),
-                    builder: (_) => const SubmitProductSheet(),
+            SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 6, 16, 12),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed:
+                        () => showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: AppTheme.surfaceColor,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(20),
+                            ),
+                          ),
+                          builder: (_) => const SubmitProductSheet(),
+                        ),
+                    icon: const Icon(Icons.add_box_outlined, size: 18),
+                    label: const Text('Nie ma produktu? Dodaj go do bazy'),
                   ),
-              icon: const Icon(Icons.add_box_outlined, size: 18),
-              label: const Text('Dodaj własny produkt'),
+                ),
+              ),
             ),
+          ],
+        ),
+        if (_isAdding)
+          const ColoredBox(
+            color: Color(0x33000000),
+            child: Center(child: CircularProgressIndicator()),
           ),
-        ],
-      ),
+      ],
     );
   }
 }

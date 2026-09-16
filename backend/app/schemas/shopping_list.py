@@ -55,6 +55,20 @@ class ShoppingListItemResponse(BaseModel):
                     else None
                 ),
             }
+        if getattr(data, "custom_name", None):
+            return {
+                "id": data.id,
+                "product_id": None,
+                "product_name": data.custom_name,
+                "brand": None,
+                "department_name": "Inne",
+                "department_sort_order": 999,
+                "required_quantity": data.required_quantity,
+                "unit": data.unit,
+                "estimated_price": None,
+                "is_checked": data.is_checked,
+                "substituted_for_name": None,
+            }
         return data
 
 

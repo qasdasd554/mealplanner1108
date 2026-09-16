@@ -272,20 +272,22 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                         UserAvatar(
                           avatar: recipe.createdByAvatar,
                           avatarPhotoBase64: recipe.createdByAvatarPhoto,
-                          size: 24,
+                          size: 40,
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Dodane przez ${recipe.createdByName}',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.textSecondary,
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Dodane przez ${recipe.createdByName}',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textSecondary,
+                            ),
                           ),
                         ),
                       ],
                     ).animate().fadeIn(),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 16),
                   ],
 
                   // Tagi
