@@ -85,7 +85,9 @@ async def verify_purchase(
     current_user.is_premium = True
     current_user.premium_expires_at = result["expiry_time"]
     current_user.premium_product_id = result["product_id"] or payload.product_id
-    current_user.premium_purchase_token = payload.purchase_token
+    current_user.premium_purchase_token = result.get("purchase_token") or payload.purchase_token
+    current_user.premium_platform = payload.platform
+    current_user.premium_last_verified_at = datetime.now(timezone.utc)
 
     await db.commit()
     await db.refresh(current_user)

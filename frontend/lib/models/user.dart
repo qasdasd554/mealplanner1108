@@ -73,8 +73,17 @@ class User {
   /// z nią rozjechać. Zapasowe liczenie lokalne (`_localPremiumAccess`)
   /// działa tylko wtedy, gdy pole nie przyszło, np. gdy aplikacja rozmawia
   /// ze starszą wersją backendu.
-  bool get hasPremiumAccess =>
-      hasPremiumAccessFromServer ?? _localPremiumAccess;
+  bool get hasPremiumAccess {
+    if (isAdmin) return true;
+    // `hasPremiumAccessFromServer` jest migawką z chwili pobrania profilu.
+    // Jeśli aplikacja pozostanie otwarta do końca okresu, ta migawka nie
+    // może utrzymywać dostępu po lokalnie znanej dacie wygaśnięcia.
+    if (premiumExpiresAt != null &&
+        !premiumExpiresAt!.isAfter(DateTime.now())) {
+      return false;
+    }
+    return hasPremiumAccessFromServer ?? _localPremiumAccess;
+  }
 
   /// Ta sama logika co `is_premium_active` na serwerze — używana wyłącznie
   /// jako zapas, gdy serwer nie przysłał gotowej wartości.

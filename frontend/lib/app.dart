@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'theme/app_theme.dart';
 import 'providers/theme_provider.dart';
+import 'providers/auth_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
@@ -20,7 +23,7 @@ import 'screens/tracker/add_food_entry_screen.dart';
 import 'screens/promotions/promotions_screen.dart';
 import 'screens/notifications/notifications_screen.dart';
 
-class SmartMealPlannerApp extends StatelessWidget {
+class SmartMealPlannerApp extends StatefulWidget {
   const SmartMealPlannerApp({super.key});
 
   // Globalny klucz nawigatora — potrzebny, żeby ShareIntentHandler mógł
@@ -29,6 +32,34 @@ class SmartMealPlannerApp extends StatelessWidget {
   // nie tylko wtedy, gdy mamy pod ręką zwykły BuildContext).
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
+
+  @override
+  State<SmartMealPlannerApp> createState() => _SmartMealPlannerAppState();
+}
+
+class _SmartMealPlannerAppState extends State<SmartMealPlannerApp>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      if (auth.isAuthenticated) {
+        unawaited(auth.loadProfile());
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +81,7 @@ class SmartMealPlannerApp extends StatelessWidget {
           // kolorami. Dzieje się to tylko przy ręcznej zmianie motywu,
           // więc koszt jest bez znaczenia.
           key: ValueKey(themeProvider.isDark),
-          navigatorKey: navigatorKey,
+          navigatorKey: SmartMealPlannerApp.navigatorKey,
           title: 'Meal Planner Polska',
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,

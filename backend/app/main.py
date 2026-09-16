@@ -60,6 +60,12 @@ async def _create_tables() -> None:
             text("ALTER TABLE users ADD COLUMN IF NOT EXISTS premium_purchase_token TEXT")
         )
         await conn.execute(
+            text("ALTER TABLE users ADD COLUMN IF NOT EXISTS premium_platform VARCHAR(20)")
+        )
+        await conn.execute(
+            text("ALTER TABLE users ADD COLUMN IF NOT EXISTS premium_last_verified_at TIMESTAMPTZ")
+        )
+        await conn.execute(
             text("ALTER TABLE users ADD COLUMN IF NOT EXISTS weight_kg DOUBLE PRECISION")
         )
         await conn.execute(
@@ -463,7 +469,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 app = FastAPI(
     title="Smart Meal Planner PL API",
     description="API do planowania posiłków z integracją z polskimi sieciami handlowymi",
-    version="1.0.20",
+    version="1.0.22",
     lifespan=lifespan,
 )
 
@@ -543,7 +549,7 @@ async def health_check(db: AsyncSession = Depends(get_db)) -> dict[str, str]:
     return {
         "status": "healthy",
         "service": "smart-meal-planner-pl",
-        "release": "1.0.20+217",
+        "release": "1.0.22+219",
         "catalog_products": str(catalog_products),
         "database_provider": db_provider,
         "database_host": "ep-small-lab-b1y3gm3e.c-5.eu-central-1.aws.neon.tech" if "neon.tech" in settings.DATABASE_URL else "local",

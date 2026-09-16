@@ -26,6 +26,7 @@ class PushService {
       FlutterLocalNotificationsPlugin();
 
   bool _available = false;
+  Future<void>? _initialization;
   String? _currentToken;
   bool _tokenRefreshListenerAttached = false;
   Future<void>? _registrationInProgress;
@@ -55,9 +56,13 @@ class PushService {
   /// Nie prosi jeszcze o zgodę — o to pytamy dopiero po zalogowaniu
   /// (patrz [registerForUser]), żeby pierwszym, co widzi nowy użytkownik,
   /// nie było systemowe okno z prośbą o pozwolenie.
-  Future<void> init() async {
+  Future<void> init() {
+    return _initialization ??= _init();
+  }
+
+  Future<void> _init() async {
     try {
-      await Firebase.initializeApp();
+      await Firebase.initializeApp().timeout(const Duration(seconds: 10));
       _available = true;
     } catch (e) {
       debugPrint('Firebase niedostępny — push wyłączony: $e');
@@ -74,25 +79,38 @@ class PushService {
       importance: Importance.high,
     );
 
-    await _localNotifications.initialize(
-      const InitializationSettings(
-        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
-        iOS: DarwinInitializationSettings(
-          // Zgody prosimy osobno przez firebase_messaging, żeby nie
-          // wyświetlić użytkownikowi DWÓCH okien z tym samym pytaniem.
-          requestAlertPermission: false,
-          requestBadgePermission: false,
-          requestSoundPermission: false,
-        ),
-      ),
-      onDidReceiveNotificationResponse: (_) => _handleNotificationTap(),
-    );
+    try {
+      await _localNotifications
+          .initialize(
+            const InitializationSettings(
+              android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+              iOS: DarwinInitializationSettings(
+                // Zgody prosimy osobno przez firebase_messaging, żeby nie
+                // wyświetlić użytkownikowi DWÓCH okien z tym samym pytaniem.
+                requestAlertPermission: false,
+                requestBadgePermission: false,
+                requestSoundPermission: false,
+              ),
+            ),
+            onDidReceiveNotificationResponse: (_) => _handleNotificationTap(),
+          )
+          .timeout(const Duration(seconds: 10));
 
-    await _localNotifications
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >()
-        ?.createNotificationChannel(androidChannel);
+      final androidNotifications =
+          _localNotifications
+              .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin
+              >();
+      if (androidNotifications != null) {
+        await androidNotifications
+            .createNotificationChannel(androidChannel)
+            .timeout(const Duration(seconds: 10));
+      }
+    } catch (e) {
+      // Brak lokalnego dymka nie wyłącza odbierania FCM i nigdy nie może
+      // przerwać uruchamiania całej aplikacji.
+      debugPrint('Lokalne powiadomienia niedostępne: $e');
+    }
 
     // Gdy aplikacja jest OTWARTA, system nie pokazuje dymka sam —
     // musimy zrobić to ręcznie, inaczej powiadomienie przepadnie
@@ -105,9 +123,15 @@ class PushService {
     // Powiadomienie, które uruchomiło całkowicie zamkniętą aplikację,
     // nie emituje onMessageOpenedApp. Odbierze je SplashScreen, gdy
     // odtworzy sesję i nawigator będzie już gotowy.
-    final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
-    if (initialMessage != null) {
-      _openNotificationsPending = true;
+    try {
+      final initialMessage = await FirebaseMessaging.instance
+          .getInitialMessage()
+          .timeout(const Duration(seconds: 5));
+      if (initialMessage != null) {
+        _openNotificationsPending = true;
+      }
+    } catch (e) {
+      debugPrint('Nie udało się odczytać powiadomienia startowego: $e');
     }
   }
 
@@ -135,18 +159,26 @@ class PushService {
   /// Prosi o zgodę i rejestruje token na koncie zalogowanego użytkownika.
   /// Wołane PO zalogowaniu — wtedy prośba o pozwolenie ma dla użytkownika
   /// zrozumiały kontekst.
-  Future<void> registerForUser() {
-    if (!_available) return Future.value();
+  Future<void> registerForUser() async {
+    // loadProfile może zakończyć się szybciej niż inicjalizacja Firebase
+    // uruchomiona po pierwszej klatce. Czekamy tu, a nie przed runApp().
+    await init();
+    if (!_available) return;
     final running = _registrationInProgress;
-    if (running != null) return running;
+    if (running != null) {
+      await running;
+      return;
+    }
 
     final operation = _registerForUser();
     _registrationInProgress = operation;
-    return operation.whenComplete(() {
+    try {
+      await operation;
+    } finally {
       if (identical(_registrationInProgress, operation)) {
         _registrationInProgress = null;
       }
-    });
+    }
   }
 
   Future<void> _registerForUser() async {

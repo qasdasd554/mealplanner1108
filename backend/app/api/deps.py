@@ -149,10 +149,16 @@ async def get_current_admin(
 
 async def get_current_premium(
     current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ) -> User:
     """Jak get_current_user, ale odrzuca (403), jeśli konto nie ma
     aktywnego statusu premium (uwzględnia datę wygaśnięcia subskrypcji)."""
     from app.core.premium import is_premium_active
+    from app.services.subscription_sync import refresh_subscription_if_needed
+
+    # Szczególnie ważne dokładnie na granicy wygaśnięcia: jeśli sklep
+    # automatycznie odnowił plan, pobieramy nowy okres przed zwróceniem 403.
+    await refresh_subscription_if_needed(db, current_user)
 
     if not is_premium_active(current_user):
         raise HTTPException(

@@ -138,8 +138,12 @@ async def get_me(
     # ekran logowania zamiast na wpisanie kodu z maila.
     # Wszystkie pozostałe endpointy nadal wymagają zweryfikowanego konta.
     current_user: User = Depends(get_current_user_allow_unverified),
+    db: AsyncSession = Depends(get_db),
 ) -> User:
     """Zwraca profil zalogowanego użytkownika."""
+    from app.services.subscription_sync import refresh_subscription_if_needed
+
+    await refresh_subscription_if_needed(db, current_user)
     return current_user
 
 

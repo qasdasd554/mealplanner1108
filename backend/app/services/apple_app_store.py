@@ -118,25 +118,129 @@ async def _fetch_transaction_info(transaction_id: str) -> dict:
     raise PurchaseVerificationError("Nie znaleziono takiej transakcji u Apple.")
 
 
+async def _fetch_subscription_status(transaction_id: str) -> dict:
+    """Pobiera NAJNOWSZY stan całej subskrypcji, także po odnowieniu.
+
+    Endpoint pojedynczej transakcji zwraca wyłącznie okres wskazany przez
+    przekazany transaction ID. Po automatycznym odnowieniu dawałby więc
+    starą datę. Get All Subscription Statuses przyjmuje dowolny transaction
+    ID z łańcucha i zwraca ostatnią transakcję każdego planu.
+    """
+    token = _generate_apple_jwt()
+    headers = {"Authorization": f"Bearer {token}"}
+
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        for base_url in (_PRODUCTION_URL, _SANDBOX_URL):
+            try:
+                response = await client.get(
+                    f"{base_url}/inApps/v1/subscriptions/{transaction_id}",
+                    headers=headers,
+                )
+            except httpx.HTTPError as exc:
+                logger.warning("Błąd pobierania statusu Apple (%s): %s", base_url, exc)
+                continue
+
+            if response.status_code == 200:
+                payload = response.json()
+                bundle_id = payload.get("bundleId")
+                if settings.APPLE_BUNDLE_ID and bundle_id != settings.APPLE_BUNDLE_ID:
+                    raise PurchaseVerificationError(
+                        "Transakcja Apple należy do innej aplikacji."
+                    )
+                return payload
+
+            if response.status_code == 404:
+                continue
+
+            logger.warning(
+                "Pobieranie statusu Apple nieudane (status %d, %s): %s",
+                response.status_code,
+                base_url,
+                response.text[:300],
+            )
+
+    raise PurchaseVerificationError("Nie znaleziono tej subskrypcji u Apple.")
+
+
 async def verify_apple_subscription(transaction_id: str, expected_product_id: str) -> dict:
     """Zwraca {"is_active": bool, "expiry_time": datetime | None,
     "product_id": str | None} — odpowiednik verify_subscription_purchase
     z google_play_billing.py, ale dla App Store."""
-    claims = await _fetch_transaction_info(transaction_id)
+    payload = await _fetch_subscription_status(transaction_id)
+    candidates: list[dict] = []
 
-    product_id = claims.get("productId")
-    if product_id != expected_product_id:
+    for group in payload.get("data") or []:
+        for item in group.get("lastTransactions") or []:
+            signed_transaction = item.get("signedTransactionInfo")
+            if not signed_transaction:
+                continue
+            claims = jose_jwt.get_unverified_claims(signed_transaction)
+            if claims.get("productId") != expected_product_id:
+                continue
+
+            renewal_claims: dict = {}
+            if item.get("signedRenewalInfo"):
+                renewal_claims = jose_jwt.get_unverified_claims(
+                    item["signedRenewalInfo"]
+                )
+
+            expiry_values = [
+                value
+                for value in (
+                    claims.get("expiresDate"),
+                    renewal_claims.get("gracePeriodExpiresDate"),
+                )
+                if isinstance(value, (int, float))
+            ]
+            expires_ms = max(expiry_values) if expiry_values else None
+            expiry_time = (
+                datetime.fromtimestamp(expires_ms / 1000, tz=timezone.utc)
+                if expires_ms is not None
+                else None
+            )
+            try:
+                status = int(item.get("status"))
+            except (TypeError, ValueError):
+                status = 0
+
+            candidates.append(
+                {
+                    "status": status,
+                    "expiry_time": expiry_time,
+                    "revoked": claims.get("revocationDate") is not None,
+                    "product_id": claims.get("productId"),
+                    "purchase_token": item.get("originalTransactionId")
+                    or claims.get("originalTransactionId")
+                    or transaction_id,
+                }
+            )
+
+    if not candidates:
         raise PurchaseVerificationError(
-            f"Identyfikator produktu nie zgadza się (oczekiwano {expected_product_id}, "
-            f"otrzymano {product_id})."
+            f"Apple nie potwierdziło subskrypcji produktu {expected_product_id}."
         )
 
-    expires_ms = claims.get("expiresDate")
-    expiry_time = datetime.fromtimestamp(expires_ms / 1000, tz=timezone.utc) if expires_ms else None
-    revocation = claims.get("revocationDate")
-    is_active = revocation is None and (expiry_time is None or expiry_time > datetime.now(timezone.utc))
+    # Przy ewentualnych zmianach planu wybieramy najpóźniejszy okres dla
+    # oczekiwanego produktu, nie przypadkowy pierwszy element odpowiedzi.
+    result = max(
+        candidates,
+        key=lambda value: value["expiry_time"]
+        or datetime.min.replace(tzinfo=timezone.utc),
+    )
+    expiry_time = result["expiry_time"]
+    if expiry_time is None:
+        raise PurchaseVerificationError(
+            "Apple nie zwróciło daty wygaśnięcia płatnej subskrypcji."
+        )
 
-    return {"is_active": is_active, "expiry_time": expiry_time, "product_id": product_id}
+    # Apple: 1 = active, 4 = billing grace period. Pozostałe stany nie
+    # dają dostępu. Sama data też musi być przyszła, a zakup niezwrócony.
+    result["is_active"] = (
+        result["status"] in {1, 4}
+        and not result["revoked"]
+        and expiry_time > datetime.now(timezone.utc)
+    )
+    return result
 
 
 async def verify_apple_consumable(transaction_id: str, expected_product_id: str) -> dict:

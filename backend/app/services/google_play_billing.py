@@ -18,7 +18,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
 import httpx
 from google.auth.transport.requests import Request as GoogleAuthRequest
@@ -35,7 +35,13 @@ _ANDROID_PUBLISHER_SCOPE = "https://www.googleapis.com/auth/androidpublisher"
 # powiodła, ale Google wciąż próbuje ponowić obciążenie i celowo NIE
 # odcina dostępu w tym okresie (żeby nie karać użytkownika za np.
 # wygasłą kartę, zanim zdąży ją zaktualizować).
-_ACTIVE_STATES = {"SUBSCRIPTION_STATE_ACTIVE", "SUBSCRIPTION_STATE_IN_GRACE_PERIOD"}
+_ENTITLED_STATES = {
+    "SUBSCRIPTION_STATE_ACTIVE",
+    "SUBSCRIPTION_STATE_IN_GRACE_PERIOD",
+    # Anulowanie wyłącza kolejne odnowienie, ale nie odbiera opłaconego
+    # czasu. Dostęp trwa do expiryTime zwróconego przez Google.
+    "SUBSCRIPTION_STATE_CANCELED",
+}
 
 
 class PurchaseVerificationError(Exception):
@@ -111,8 +117,6 @@ async def verify_subscription_purchase(purchase_token: str, product_id: str) -> 
 
     data = response.json()
     subscription_state = data.get("subscriptionState", "")
-    is_active = subscription_state in _ACTIVE_STATES
-
     line_items = data.get("lineItems") or []
     expiry_time: datetime | None = None
     matched_product_id: str | None = None
@@ -126,21 +130,26 @@ async def verify_subscription_purchase(purchase_token: str, product_id: str) -> 
             if expiry_str:
                 expiry_time = datetime.fromisoformat(expiry_str.replace("Z", "+00:00"))
             break
-    else:
-        # Nie znaleziono dokładnego dopasowania po product_id — weź
-        # pierwszą pozycję, jeśli w ogóle jakaś istnieje (lepsze to niż
-        # całkiem odrzucić poprawny, ale nietypowo ustrukturyzowany zakup).
-        if line_items:
-            matched_product_id = line_items[0].get("productId")
-            expiry_str = line_items[0].get("expiryTime")
-            if expiry_str:
-                expiry_time = datetime.fromisoformat(expiry_str.replace("Z", "+00:00"))
+    if matched_product_id is None:
+        raise PurchaseVerificationError(
+            f"Token Google nie dotyczy produktu {product_id}."
+        )
+    if expiry_time is None:
+        raise PurchaseVerificationError(
+            "Google nie zwróciło daty wygaśnięcia płatnej subskrypcji."
+        )
+
+    is_active = (
+        subscription_state in _ENTITLED_STATES
+        and expiry_time > datetime.now(timezone.utc)
+    )
 
     return {
         "is_active": is_active,
         "subscription_state": subscription_state,
         "expiry_time": expiry_time,
         "product_id": matched_product_id,
+        "purchase_token": purchase_token,
     }
 
 

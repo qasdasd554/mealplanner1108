@@ -78,21 +78,17 @@ Future<void> _bootstrap() async {
     debugPrint('FlutterError: ${details.exceptionAsString()}');
   };
 
-  // WAŻNE: ekran "Śledzenie" używa DateFormat('dd MMMM yyyy', 'pl_PL')
-  // (polskie nazwy miesięcy). Pakiet intl wymaga jawnej inicjalizacji
-  // danych dla danego locale, zanim jakikolwiek DateFormat go użyje —
-  // bez tego rzuca wyjątek wewnątrz build(), co wywalało cały ekran na
-  // biało. Musi się zakończyć PRZED runApp(), inaczej pierwsza klatka
-  // mogłaby wyrenderować się zanim dane będą gotowe.
-  await initializeDateFormatting('pl_PL', null);
-
-  // Powiadomienia push. Inicjalizacja jest ODPORNA na brak konfiguracji:
-  // jeśli pliki Firebase nie zostały jeszcze wgrane, PushService sam to
-  // wykrywa i wyłącza się po cichu, nie blokując startu aplikacji.
-  // Świadomie NIE prosimy tu o zgodę na powiadomienia — to dzieje się
-  // dopiero po zalogowaniu (AuthProvider), żeby pierwszym, co widzi nowy
-  // użytkownik, nie było systemowe okno z prośbą o pozwolenie.
-  await PushService().init();
+  // Dane dat są lokalnym zasobem, ale nawet ich nieoczekiwany błąd nie
+  // może zatrzymać pierwszej klatki aplikacji. Ekrany korzystające z
+  // polskich nazw dat mają własne wartości zapasowe.
+  try {
+    await initializeDateFormatting(
+      'pl_PL',
+      null,
+    ).timeout(const Duration(seconds: 3));
+  } catch (error) {
+    debugPrint('Nie udało się zainicjalizować polskich dat: $error');
+  }
 
   // UWAGA (NAPRAWA AWARYJNA — TYMCZASOWE WYŁĄCZENIE): po skoku wersji
   // google_mobile_ads (5→9) aplikacja zaczęła crashować NATYCHMIAST po
@@ -131,6 +127,12 @@ Future<void> _bootstrap() async {
       child: const SmartMealPlannerApp(),
     ),
   );
+
+  // Firebase, APNs i lokalne powiadomienia są funkcjami dodatkowymi.
+  // Uruchamiamy je dopiero PO runApp(), dzięki czemu błąd lub zawieszenie
+  // dowolnego natywnego pluginu nigdy nie pozostawi użytkownika na białym
+  // ekranie przed pierwszą klatką Fluttera.
+  unawaited(PushService().init());
 
   // Nasłuchiwanie na udostępnienia z innych aplikacji (np. TikTok) — po
   // uruchomieniu aplikacji, żeby GlobalKey nawigatora był już podłączony

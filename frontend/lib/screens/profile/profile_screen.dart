@@ -476,7 +476,7 @@ class ProfileScreen extends StatelessWidget {
                 // Wersja aplikacji
                 Center(
                   child: Text(
-                    'v1.0.20 (Meal Planner)',
+                    'v1.0.22 (Meal Planner)',
                     style: TextStyle(
                       color: AppTheme.textSecondary,
                       fontSize: 12,

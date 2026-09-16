@@ -121,6 +121,15 @@ class User(Base):
     # stanu subskrypcji (czy nadal aktywna, czy anulowana/zwrócona) bez
     # konieczności czekania na kolejne zdarzenie od użytkownika.
     premium_purchase_token: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Sklep, w którym kupiono subskrypcję. Sam token nie mówi w pewny
+    # sposób, czy należy sprawdzić go w Apple, czy w Google.
+    premium_platform: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    # Ostatnia kontrola bieżącego stanu bezpośrednio w sklepie. Pozwala
+    # odświeżać odnowienia/anulowania bez odpytywania Apple/Google przy
+    # każdym pojedynczym żądaniu API.
+    premium_last_verified_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     # Saldo punktów premium — WYMIENNA waluta w aplikacji, niezależna od
     # samej subskrypcji Premium. 2 punkty = jedno zapytanie do AI
     # (rozpoznanie przepisu z tekstu/zdjęcia/linku). Kupowane w pakietach

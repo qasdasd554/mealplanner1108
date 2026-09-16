@@ -15,6 +15,7 @@ class AuthProvider with ChangeNotifier {
   bool _isInitialized = false;
   bool _isLoading = false;
   String? _errorMessage;
+  Timer? _premiumExpiryTimer;
   late final Future<void> initialization;
 
   User? get currentUser => _currentUser;
@@ -188,6 +189,7 @@ class AuthProvider with ChangeNotifier {
   Future<void> loadProfile() async {
     try {
       _currentUser = await _authService.getProfile();
+      _schedulePremiumExpiryRefresh();
       notifyListeners();
 
       // Rejestracja urządzenia do powiadomień push. Robimy to TUTAJ, bo
@@ -221,6 +223,7 @@ class AuthProvider with ChangeNotifier {
         await Future.delayed(const Duration(seconds: 2));
         try {
           _currentUser = await _authService.getProfile();
+          _schedulePremiumExpiryRefresh();
           notifyListeners();
           if (_currentUser != null && _currentUser!.isEmailVerified) {
             unawaited(PushService().registerForUser());
@@ -235,6 +238,27 @@ class AuthProvider with ChangeNotifier {
         }
       }
     }
+  }
+
+  void _schedulePremiumExpiryRefresh() {
+    _premiumExpiryTimer?.cancel();
+    final expiresAt = _currentUser?.premiumExpiresAt;
+    if (expiresAt == null) return;
+
+    final remaining = expiresAt.difference(DateTime.now());
+    if (remaining <= Duration.zero) {
+      // Getter hasPremiumAccess już zwróci false; wymuszamy przebudowę,
+      // a profil odświeży się przy najbliższym starcie/wznowieniu.
+      notifyListeners();
+      return;
+    }
+
+    _premiumExpiryTimer = Timer(remaining + const Duration(seconds: 1), () {
+      notifyListeners();
+      if (_isAuthenticated) {
+        unawaited(loadProfile());
+      }
+    });
   }
 
   /// Potwierdza kod weryfikacyjny e-mail. Zwraca true przy sukcesie —
@@ -399,8 +423,15 @@ class AuthProvider with ChangeNotifier {
     await PushService().unregister();
     await _authService.logout();
     _currentUser = null;
+    _premiumExpiryTimer?.cancel();
     _isAuthenticated = false;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _premiumExpiryTimer?.cancel();
+    super.dispose();
   }
 
   /// Trwale usuwa konto. Po sukcesie czyści lokalną sesję dokładnie tak
@@ -413,6 +444,7 @@ class AuthProvider with ChangeNotifier {
       await _authService.deleteAccount();
       await _authService.logout();
       _currentUser = null;
+      _premiumExpiryTimer?.cancel();
       _isAuthenticated = false;
       notifyListeners();
       return true;

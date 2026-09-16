@@ -17,6 +17,13 @@ from datetime import datetime, timezone
 from app.models.user import User
 
 
+PAID_SUBSCRIPTION_PRODUCT_IDS = {
+    "premium_weekly_v2",
+    "premium_monthly",
+    "premium_yearly",
+}
+
+
 def is_premium_active(user: User) -> bool:
     """Zwraca True, jeśli konto ma AKTYWNY status premium.
 
@@ -37,6 +44,18 @@ def is_premium_active(user: User) -> bool:
         return True
     if not user.is_premium:
         return False
-    if user.premium_expires_at is not None and user.premium_expires_at < datetime.now(timezone.utc):
+    # Płatna subskrypcja zawsze ma konkretny koniec okresu rozliczeniowego.
+    # Brak daty w odpowiedzi sklepu jest błędem danych, a nie zakupem
+    # bezterminowym. Ręczne dostępy administracyjne (bez identyfikatora
+    # płatnego produktu) nadal mogą świadomie nie mieć terminu.
+    if (
+        user.premium_product_id in PAID_SUBSCRIPTION_PRODUCT_IDS
+        and user.premium_expires_at is None
+    ):
+        return False
+    if (
+        user.premium_expires_at is not None
+        and user.premium_expires_at <= datetime.now(timezone.utc)
+    ):
         return False
     return True
