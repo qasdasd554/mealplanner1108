@@ -29,9 +29,27 @@ class PushService {
   String? _currentToken;
   bool _tokenRefreshListenerAttached = false;
   Future<void>? _registrationInProgress;
+  bool _openNotificationsPending = false;
+  final StreamController<bool> _notificationTapController =
+      StreamController<bool>.broadcast();
 
   /// Czy Firebase wystartował poprawnie (są pliki konfiguracyjne).
   bool get isAvailable => _available;
+  Stream<bool> get notificationTaps => _notificationTapController.stream;
+
+  bool takePendingNotificationTap() {
+    if (!_openNotificationsPending) return false;
+    _openNotificationsPending = false;
+    return true;
+  }
+
+  void _handleNotificationTap() {
+    if (_notificationTapController.hasListener) {
+      _notificationTapController.add(true);
+    } else {
+      _openNotificationsPending = true;
+    }
+  }
 
   /// Uruchamiane RAZ przy starcie aplikacji, przed zalogowaniem.
   /// Nie prosi jeszcze o zgodę — o to pytamy dopiero po zalogowaniu
@@ -67,6 +85,7 @@ class PushService {
           requestSoundPermission: false,
         ),
       ),
+      onDidReceiveNotificationResponse: (_) => _handleNotificationTap(),
     );
 
     await _localNotifications
@@ -79,6 +98,17 @@ class PushService {
     // musimy zrobić to ręcznie, inaczej powiadomienie przepadnie
     // niezauważone.
     FirebaseMessaging.onMessage.listen(_showForegroundNotification);
+    FirebaseMessaging.onMessageOpenedApp.listen(
+      (_) => _handleNotificationTap(),
+    );
+
+    // Powiadomienie, które uruchomiło całkowicie zamkniętą aplikację,
+    // nie emituje onMessageOpenedApp. Odbierze je SplashScreen, gdy
+    // odtworzy sesję i nawigator będzie już gotowy.
+    final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+    if (initialMessage != null) {
+      _openNotificationsPending = true;
+    }
   }
 
   void _showForegroundNotification(RemoteMessage message) {
@@ -98,6 +128,7 @@ class PushService {
         ),
         iOS: DarwinNotificationDetails(),
       ),
+      payload: 'open_notifications',
     );
   }
 

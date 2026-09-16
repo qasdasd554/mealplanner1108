@@ -15,6 +15,7 @@ class AuthProvider with ChangeNotifier {
   bool _isInitialized = false;
   bool _isLoading = false;
   String? _errorMessage;
+  late final Future<void> initialization;
 
   User? get currentUser => _currentUser;
   bool get isAuthenticated => _isAuthenticated;
@@ -23,7 +24,7 @@ class AuthProvider with ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
   AuthProvider() {
-    _checkTokenOnInit();
+    initialization = _checkTokenOnInit();
   }
 
   Future<void> _checkTokenOnInit() async {

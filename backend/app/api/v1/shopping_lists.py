@@ -17,6 +17,7 @@ from app.db.session import get_db
 from app.models import (
     MealPlan,
     MealPlanEntry,
+    BlockedUser,
     Product,
     Recipe,
     ShoppingList,
@@ -624,6 +625,26 @@ async def share_shopping_list(
     if target_user.id == current_user.id:
         raise HTTPException(status_code=400, detail="Nie możesz udostępnić listy samemu sobie.")
 
+    blocked_result = await db.execute(
+        select(BlockedUser).where(
+            or_(
+                (
+                    (BlockedUser.user_id == current_user.id)
+                    & (BlockedUser.blocked_user_id == target_user.id)
+                ),
+                (
+                    (BlockedUser.user_id == target_user.id)
+                    & (BlockedUser.blocked_user_id == current_user.id)
+                ),
+            )
+        )
+    )
+    if blocked_result.scalar_one_or_none() is not None:
+        raise HTTPException(
+            status_code=403,
+            detail="Nie można udostępnić listy temu użytkownikowi.",
+        )
+
     # Jeśli zaproszenie już istnieje (pending lub accepted), nie
     # duplikujemy — po prostu zwracamy istniejący wpis.
     existing_result = await db.execute(
@@ -634,7 +655,14 @@ async def share_shopping_list(
     )
     existing = existing_result.scalar_one_or_none()
     if existing is not None:
-        share = existing
+        return ShoppingListShareResponse(
+            id=existing.id,
+            meal_plan_id=existing.meal_plan_id,
+            status=existing.status,
+            created_at=existing.created_at,
+            shared_with_name=target_user.display_name,
+            shared_with_email=target_user.email,
+        )
     else:
         share = ShoppingListShare(
             meal_plan_id=list_id,
@@ -646,7 +674,9 @@ async def share_shopping_list(
         await db.commit()
         await db.refresh(share)
 
-    # Powiadomienie dla odbiorcy. Bez niego zaproszenie było całkowicie
+    # Powiadomienie wysyłamy wyłącznie dla NOWEGO zaproszenia. Ponowne
+    # kliknięcie „Udostępnij” nie może zasypywać odbiorcy duplikatami.
+    # Bez niego zaproszenie byłoby całkowicie
     # niewidoczne: nic nie sygnalizowało, że ktoś udostępnił listę, więc
     # trafiało się na nie tylko przypadkiem, wchodząc w zaproszenia.
     from app.models.notification import Notification
@@ -761,6 +791,15 @@ async def accept_share(
     share = result.scalar_one_or_none()
     if share is None:
         raise NotFoundException(detail="Nie znaleziono tego zaproszenia.")
+
+    if share.status == "accepted":
+        return ShoppingListShareResponse(
+            id=share.id,
+            meal_plan_id=share.meal_plan_id,
+            status=share.status,
+            created_at=share.created_at,
+            shared_by_name=share.shared_by.display_name,
+        )
 
     share.status = "accepted"
     await db.commit()

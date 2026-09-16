@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import '../services/update_service.dart';
+import '../services/push_service.dart';
 import 'recipes/ai_add_recipe_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -39,18 +40,11 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _navigateToNext() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    // Wait for auth initialization with timeout
+    // Czekamy na faktyczne zakończenie inicjalizacji sesji. Poprzedni limit
+    // 5 sekund był krótszy niż timeout żądania API i przy zimnym starcie
+    // Rendera odsyłał poprawnie zalogowaną osobę na ekran logowania.
     if (!authProvider.isInitialized) {
-      await Future.any([
-        // Wait for initialization
-        () async {
-          while (!authProvider.isInitialized) {
-            await Future.delayed(const Duration(milliseconds: 100));
-          }
-        }(),
-        // Timeout after 5 seconds
-        Future.delayed(const Duration(seconds: 5)),
-      ]);
+      await authProvider.initialization;
     }
 
     // Sprawdzamy RÓWNOLEGLE z resztą inicjalizacji (nie dodatkowo po),
@@ -122,6 +116,14 @@ class _SplashScreenState extends State<SplashScreen> {
       final route = authProvider.postLoginRoute;
       if (route != '/home') {
         Navigator.of(context).pushReplacementNamed(route);
+        return;
+      }
+      if (PushService().takePendingNotificationTap()) {
+        final navigator = Navigator.of(context);
+        navigator.pushReplacementNamed('/home');
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          navigator.pushNamed('/notifications');
+        });
         return;
       }
       if (sharedUrl != null) {

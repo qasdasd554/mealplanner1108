@@ -157,13 +157,13 @@ class Settings(BaseSettings):
     # Render, nigdy w repozytorium.
     FCM_SERVICE_ACCOUNT_JSON: str = ""
 
-    LATEST_APP_VERSION_CODE: int = 214
+    LATEST_APP_VERSION_CODE: int = 215
     # Flutter przekazuje numer po "+" jako versionCode Androida i
     # CFBundleVersion iOS. Obie wartości zwiększamy przy każdym buildzie.
     # Można je rozdzielić zmiennymi środowiskowymi, jeśli wydania sklepowe
     # zostaną opublikowane w różnym czasie.
-    LATEST_ANDROID_VERSION_CODE: int = 214
-    LATEST_IOS_BUILD_NUMBER: int = 214
+    LATEST_ANDROID_VERSION_CODE: int = 215
+    LATEST_IOS_BUILD_NUMBER: int = 215
     # Ustaw na True, żeby aktualizacja była WYMAGANA (pełnoekranowy
     # komunikat bez możliwości zamknięcia) — np. gdy stara wersja przestaje
     # działać z powodu zmiany w API. Domyślnie False: komunikat da się

@@ -33,6 +33,19 @@ router = APIRouter(dependencies=[Depends(get_current_user)])
 logger = logging.getLogger(__name__)
 
 
+def _visible_product_filter(user_id: UUID):
+    """Jeden warunek widoczności używany przez wszystkie odczyty produktu.
+
+    Bez tego szczegóły po UUID i zamienniki omijały filtr z listy produktów,
+    więc znając identyfikator można było podejrzeć cudze zgłoszenie przed
+    akceptacją administratora.
+    """
+    return or_(
+        Product.review_status == "approved",
+        Product.created_by_user_id == user_id,
+    )
+
+
 class BarcodeLookupResponse(BaseModel):
     """Wynik wyszukiwania po kodzie kreskowym — gotowy do wypełnienia
     formularza zgłoszenia, albo (gdy `existing_product_id` ustawione)
@@ -113,12 +126,7 @@ async def list_products(
     dało się ich od razu użyć w dzienniku kalorii. Cudze zgłoszenia
     oczekujące pozostają ukryte, dopóki nie zostaną zatwierdzone.
     """
-    query = select(Product).where(
-        or_(
-            Product.review_status == "approved",
-            Product.created_by_user_id == current_user.id,
-        )
-    )
+    query = select(Product).where(_visible_product_filter(current_user.id))
 
     if search:
         query = query.where(Product.name.ilike(f"%{search}%"))
@@ -337,12 +345,16 @@ async def list_my_products(
 async def get_product(
     product_id: UUID,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> Product:
     """Zwraca szczegóły produktu wraz z dostępnością w sklepach."""
     result = await db.execute(
         select(Product)
         .options(selectinload(Product.store_products))
-        .where(Product.id == product_id)
+        .where(
+            Product.id == product_id,
+            _visible_product_filter(current_user.id),
+        )
     )
     product = result.scalar_one_or_none()
     if product is None:
@@ -363,6 +375,7 @@ async def get_product_substitutes(
         None, description="ID sklepu do filtrowania dostępnych zamienników"
     ),
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> list[dict]:
     """Zwraca listę zamienników dla danego produktu.
 
@@ -370,7 +383,10 @@ async def get_product_substitutes(
     """
     # Sprawdź czy produkt istnieje
     product_result = await db.execute(
-        select(Product).where(Product.id == product_id)
+        select(Product).where(
+            Product.id == product_id,
+            _visible_product_filter(current_user.id),
+        )
     )
     if product_result.scalar_one_or_none() is None:
         raise NotFoundException(
@@ -381,7 +397,10 @@ async def get_product_substitutes(
         result = await db.execute(
             select(Product)
             .join(ProductSubstitute, ProductSubstitute.substitute_product_id == Product.id)
-            .where(ProductSubstitute.original_product_id == product_id)
+            .where(
+                ProductSubstitute.original_product_id == product_id,
+                _visible_product_filter(current_user.id),
+            )
         )
         return [
             {
@@ -408,6 +427,11 @@ async def get_product_substitutes(
     response_list = []
     for r in results:
         prod = r["product"]
+        if not (
+            prod.review_status == "approved"
+            or prod.created_by_user_id == current_user.id
+        ):
+            continue
         store_prod = r.get("store_product")
         kcal = None
         if prod.nutrition_per_100 and "kcal" in prod.nutrition_per_100:

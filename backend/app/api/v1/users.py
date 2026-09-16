@@ -15,7 +15,15 @@ from app.api.deps import (
     get_current_user_allow_unverified,
 )
 from app.db.session import get_db
-from app.models import Allergen, BlockedUser, Friendship, Store, User, UserAllergen
+from app.models import (
+    Allergen,
+    BlockedUser,
+    Friendship,
+    ShoppingListShare,
+    Store,
+    User,
+    UserAllergen,
+)
 from app.models.friendship import canonical_friend_ids
 from app.schemas.user import UserResponse
 from app.services.display_name import validate_display_name
@@ -530,10 +538,11 @@ async def block_user(
             BlockedUser.blocked_user_id == user_id,
         )
     )
-    if existing.scalar_one_or_none() is not None:
-        return  # już zablokowany — idempotentnie, bez błędu
-
-    db.add(BlockedUser(user_id=current_user.id, blocked_user_id=user_id))
+    if existing.scalar_one_or_none() is None:
+        db.add(BlockedUser(user_id=current_user.id, blocked_user_id=user_id))
+    # Nawet przy ponownym wywołaniu wykonujemy porządki niżej. Dzięki temu
+    # starsza blokada utworzona przed tą poprawką również cofnie dawne
+    # udostępnienia list, a sam endpoint pozostaje idempotentny.
     # Blokada ma pierwszeństwo przed relacją społecznościową. Usuwamy
     # zarówno znajomość, jak i oczekujące zaproszenie, aby zablokowana
     # osoba natychmiast traciła podgląd prywatnych przepisów i list.
@@ -542,6 +551,23 @@ async def block_user(
         delete(Friendship).where(
             Friendship.user_a_id == user_a,
             Friendship.user_b_id == user_b,
+        )
+    )
+    # Cofamy także bezpośrednie udostępnienia list w obie strony. Sama
+    # blokada bez tego pozostawiała zaakceptowaną listę dostępną przez
+    # endpoint współdzielenia, mimo że relacja znajomych już nie istniała.
+    await db.execute(
+        delete(ShoppingListShare).where(
+            or_(
+                (
+                    (ShoppingListShare.shared_by_user_id == current_user.id)
+                    & (ShoppingListShare.shared_with_user_id == user_id)
+                ),
+                (
+                    (ShoppingListShare.shared_by_user_id == user_id)
+                    & (ShoppingListShare.shared_with_user_id == current_user.id)
+                ),
+            )
         )
     )
     await db.commit()

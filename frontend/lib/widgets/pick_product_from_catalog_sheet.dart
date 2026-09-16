@@ -92,6 +92,26 @@ class _PickProductFromCatalogSheetState
     _debounce = Timer(const Duration(milliseconds: 350), () => _search(query));
   }
 
+  Future<List<Product>> _fetchAllProducts(
+    String endpoint,
+    String queryPart,
+  ) async {
+    const pageSize = 200;
+    final products = <Product>[];
+    for (var skip = 0; skip < 1000; skip += pageSize) {
+      final response = await _client.get(
+        '$endpoint?skip=$skip&limit=$pageSize$queryPart',
+      );
+      final page =
+          (response as List)
+              .map((item) => Product.fromJson(item as Map<String, dynamic>))
+              .toList();
+      products.addAll(page);
+      if (page.length < pageSize) break;
+    }
+    return products;
+  }
+
   Future<void> _search(String query) async {
     final generation = ++_requestGeneration;
     setState(() {
@@ -105,16 +125,15 @@ class _PickProductFromCatalogSheetState
       // przekierowywane na "/products/?". Przy takim przekierowaniu klient
       // potrafił zgubić nagłówek Authorization, dlatego zalogowany
       // użytkownik dostawał błędny komunikat o konieczności logowania.
-      final responses = await Future.wait<dynamic>([
-        _client.get('${ApiConfig.products}?limit=50$queryPart'),
-        _client.get('${ApiConfig.products}scanned?limit=50$queryPart'),
+      final responses = await Future.wait<List<Product>>([
+        _fetchAllProducts(ApiConfig.products, queryPart),
+        _fetchAllProducts('${ApiConfig.products}scanned', queryPart),
       ]);
       if (!mounted || generation != _requestGeneration) return;
 
       final merged = <String, Product>{};
       for (final response in responses) {
-        for (final item in response as List) {
-          final product = Product.fromJson(item as Map<String, dynamic>);
+        for (final product in response) {
           final key =
               '${product.name.trim().toLowerCase()}|'
               '${(product.brand ?? '').trim().toLowerCase()}';

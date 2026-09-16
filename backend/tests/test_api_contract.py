@@ -34,4 +34,4 @@ def test_openapi_operation_ids_are_unique() -> None:
 
 
 def test_backend_release_matches_mobile_build() -> None:
-    assert app.version == "1.0.17"
+    assert app.version == "1.0.18"

@@ -18,6 +18,7 @@ import 'screens/products/products_screen.dart';
 import 'screens/tracker/calorie_tracker_screen.dart';
 import 'screens/tracker/add_food_entry_screen.dart';
 import 'screens/promotions/promotions_screen.dart';
+import 'screens/notifications/notifications_screen.dart';
 
 class SmartMealPlannerApp extends StatelessWidget {
   const SmartMealPlannerApp({super.key});
@@ -73,6 +74,7 @@ class SmartMealPlannerApp extends StatelessWidget {
             '/tracker': (context) => const CalorieTrackerScreen(),
             '/tracker/add': (context) => const AddFoodEntryScreen(),
             '/promotions': (context) => const PromotionsScreen(),
+            '/notifications': (context) => const NotificationsScreen(),
           },
         );
       },

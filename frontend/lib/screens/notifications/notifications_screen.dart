@@ -4,6 +4,8 @@ import '../../models/recipe.dart';
 import '../../services/notification_service.dart';
 import '../../services/recipe_service.dart';
 import '../../theme/app_theme.dart';
+import '../profile/friends_screen.dart';
+import '../shopping/pending_shares_screen.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -106,7 +108,27 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       }
     }
 
-    if (notification.recipeId == null || !mounted) return;
+    if (!mounted) return;
+
+    if (notification.notificationType == 'friend_invitation' ||
+        notification.notificationType == 'friend_accepted') {
+      await Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => const FriendsScreen()));
+      return;
+    }
+
+    if (notification.notificationType == 'shopping_list_share') {
+      await Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => const PendingSharesScreen()));
+      return;
+    }
+
+    // Powiadomienie o przyjęciu listy jest informacyjne; odbiorca nie ma
+    // osobnego ekranu zaproszenia. Pozostałe typy bez przepisu również
+    // kończą się tutaj po oznaczeniu jako przeczytane.
+    if (notification.recipeId == null) return;
     try {
       final recipe = await _recipeService.getRecipe(notification.recipeId!);
       if (!mounted) return;

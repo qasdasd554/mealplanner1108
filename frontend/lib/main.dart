@@ -136,4 +136,14 @@ Future<void> _bootstrap() async {
   // uruchomieniu aplikacji, żeby GlobalKey nawigatora był już podłączony
   // do zbudowanego drzewa widgetów.
   ShareIntentHandler.initialize(SmartMealPlannerApp.navigatorKey);
+
+  // Kliknięcie dymka push przy aplikacji działającej w tle prowadzi do
+  // listy powiadomień. Zimny start obsługuje SplashScreen, ponieważ tutaj
+  // nawigator może nie być jeszcze podłączony do drzewa widgetów.
+  PushService().notificationTaps.listen((_) {
+    final navigator = SmartMealPlannerApp.navigatorKey.currentState;
+    if (navigator != null) {
+      navigator.pushNamed('/notifications');
+    }
+  });
 }
