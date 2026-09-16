@@ -13,6 +13,7 @@ def test_scanned_products_and_custom_shopping_items_are_exposed() -> None:
     assert "/api/v1/products/scanned" in paths
     assert "/api/v1/products/search-by-name" in paths
     assert "/api/v1/shopping-lists/{list_id}/items/custom" in paths
+    assert "/api/v1/shopping-lists/empty" in paths
 
 
 def test_friendship_routes_are_exposed() -> None:
@@ -35,4 +36,4 @@ def test_openapi_operation_ids_are_unique() -> None:
 
 
 def test_backend_release_matches_mobile_build() -> None:
-    assert app.version == "1.0.19"
+    assert app.version == "1.0.20"

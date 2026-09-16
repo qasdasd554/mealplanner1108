@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../models/product.dart';
+import '../models/barcode_lookup_result.dart';
 import '../providers/shopping_list_provider.dart';
-import '../services/product_search_service.dart';
+import '../services/product_name_lookup_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/error_utils.dart';
 
@@ -22,11 +22,11 @@ class AddProductSheet extends StatefulWidget {
 }
 
 class _AddProductSheetState extends State<AddProductSheet> {
-  final ProductSearchService _search = ProductSearchService();
+  final ProductNameLookupService _search = ProductNameLookupService();
   final TextEditingController _queryController = TextEditingController();
 
   Timer? _debounce;
-  List<Product> _results = [];
+  List<BarcodeLookupResult> _results = [];
   bool _isSearching = false;
   bool _isAddingCustom = false;
   String? _busyProductId;
@@ -109,15 +109,22 @@ class _AddProductSheetState extends State<AddProductSheet> {
     }
   }
 
-  Future<void> _add(Product product) async {
+  Future<void> _add(BarcodeLookupResult product) async {
     final provider = Provider.of<ShoppingListProvider>(context, listen: false);
-    setState(() => _busyProductId = product.id);
+    final resultKey =
+        product.existingProductId ??
+        '${product.source}:${product.barcode}:${product.name}';
+    setState(() => _busyProductId = resultKey);
 
-    final ok = await provider.addProduct(
-      product.id,
-      quantity: product.defaultQuantity > 0 ? product.defaultQuantity : 1,
-      unit: product.unit,
-    );
+    // Produkty z katalogu mają własne ID i zachowują dzięki temu dział
+    // sklepu oraz cenę. Wyniki z pamięci skanów i Open Food Facts nie są
+    // jeszcze pełnymi produktami katalogowymi, więc trafiają na listę jako
+    // zwykła pozycja tekstowa. Użytkownik nadal może ją odhaczyć i usunąć.
+    final existingProductId = product.existingProductId;
+    final ok =
+        existingProductId != null
+            ? await provider.addProduct(existingProductId)
+            : await provider.addCustomItem(product.name!.trim());
 
     if (!mounted) return;
     setState(() => _busyProductId = null);
@@ -217,7 +224,7 @@ class _AddProductSheetState extends State<AddProductSheet> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Pasujące produkty z katalogu',
+                      'Pasujące produkty z bazy i wcześniejszych skanów',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppTheme.textSecondary,
@@ -259,14 +266,23 @@ class _AddProductSheetState extends State<AddProductSheet> {
                           itemCount: _results.length,
                           itemBuilder: (context, index) {
                             final p = _results[index];
-                            final isBusy = _busyProductId == p.id;
+                            final resultKey =
+                                p.existingProductId ??
+                                '${p.source}:${p.barcode}:${p.name}';
+                            final isBusy = _busyProductId == resultKey;
                             return ListTile(
-                              title: Text(p.name),
+                              title: Text(p.name ?? 'Produkt'),
                               subtitle: Text(
                                 [
-                                  if (p.brand != null && p.brand!.isNotEmpty)
-                                    p.brand!,
-                                  '${p.defaultQuantity.toStringAsFixed(0)} ${p.unit}',
+                                  if (p.brand?.trim().isNotEmpty == true)
+                                    p.brand!.trim(),
+                                  if (p.kcalPer100 != null)
+                                    '${p.kcalPer100!.round()} kcal / 100 g',
+                                  switch (p.source) {
+                                    'catalog' => 'Katalog aplikacji',
+                                    'neon_cache' => 'Wcześniej zeskanowany',
+                                    _ => 'Open Food Facts',
+                                  },
                                 ].join(' · '),
                                 style: const TextStyle(fontSize: 12),
                               ),

@@ -119,6 +119,112 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     promotionProvider.ensureLoadedForStore(storeProvider.selectedStore?.name);
   }
 
+  Future<void> _openAddProductSheet() async {
+    final shoppingProvider = Provider.of<ShoppingListProvider>(
+      context,
+      listen: false,
+    );
+
+    // Gdy użytkownik nie ma jeszcze listy, plus najpierw tworzy pustą
+    // listę dla wybranego sklepu. Dzięki temu przycisk w pustym stanie
+    // jest nie tylko widoczny, ale od razu prowadzi do dodania produktu.
+    if (shoppingProvider.currentList == null) {
+      final storeProvider = Provider.of<StoreProvider>(context, listen: false);
+      if (storeProvider.stores.isEmpty) {
+        await storeProvider.loadStores();
+      }
+      if (!mounted) return;
+
+      if (storeProvider.stores.isEmpty) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(
+                storeProvider.errorMessage ??
+                    'Nie udało się pobrać listy sklepów.',
+              ),
+              backgroundColor: AppTheme.errorColor,
+            ),
+          );
+        return;
+      }
+
+      final storeId = await showModalBottomSheet<String>(
+        context: context,
+        backgroundColor: AppTheme.surfaceColor,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        builder:
+            (sheetContext) => SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                    child: Text(
+                      'Wybierz sklep dla nowej listy',
+                      style: Theme.of(sheetContext).textTheme.titleLarge,
+                    ),
+                  ),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 360),
+                    child: ListView(
+                      shrinkWrap: true,
+                      children:
+                          storeProvider.stores
+                              .map(
+                                (store) => ListTile(
+                                  leading: const Icon(Icons.store_outlined),
+                                  title: Text(store.name),
+                                  trailing: const Icon(Icons.chevron_right),
+                                  onTap:
+                                      () => Navigator.of(
+                                        sheetContext,
+                                      ).pop(store.id),
+                                ),
+                              )
+                              .toList(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+      );
+      if (storeId == null || !mounted) return;
+
+      final created = await shoppingProvider.createEmptyList(storeId);
+      if (!mounted) return;
+      if (!created) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(
+                shoppingProvider.errorMessage ??
+                    'Nie udało się utworzyć listy zakupów.',
+              ),
+              backgroundColor: AppTheme.errorColor,
+            ),
+          );
+        return;
+      }
+    }
+
+    if (!mounted) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppTheme.surfaceColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => const AddProductSheet(),
+    );
+  }
+
   /// Prosty dialog do udostępnienia listy zakupów innemu użytkownikowi
   /// po adresie e-mail — druga strona musi to zaakceptować, zanim
   /// dostanie faktyczny dostęp (patrz backend, ShoppingListShare).
@@ -358,26 +464,15 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
       // w pasku ginęła między pozostałymi ikonami i była trudna do
       // zauważenia. Ten sam wzorzec co w zakładce Śledzenie, więc
       // zachowanie jest spójne w całej aplikacji.
-      floatingActionButton:
-          list == null
-              ? null
-              : FloatingActionButton(
-                onPressed:
-                    () => showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      backgroundColor: AppTheme.surfaceColor,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(20),
-                        ),
-                      ),
-                      builder: (_) => const AddProductSheet(),
-                    ),
-                backgroundColor: AppTheme.primaryColor,
-                tooltip: 'Dodaj produkt do listy',
-                child: const Icon(Icons.add, color: Colors.white),
-              ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: shoppingListProvider.isLoading ? null : _openAddProductSheet,
+        backgroundColor: AppTheme.primaryColor,
+        tooltip:
+            list == null
+                ? 'Utwórz listę i dodaj produkt'
+                : 'Dodaj produkt do listy',
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
       body: Stack(
         children: [
           const DecorativeCircles(),
@@ -1183,7 +1278,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Zatwierdź swój plan posiłków na ekranie startowym, aby wygenerować listę zakupów.',
+              'Kliknij +, wybierz sklep i dodaj pierwszy produkt. Możesz też wygenerować listę z planu posiłków.',
               textAlign: TextAlign.center,
               style: TextStyle(color: AppTheme.textSecondary),
             ),

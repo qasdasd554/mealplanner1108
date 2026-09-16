@@ -23,6 +23,7 @@ from app.models import (
     ShoppingList,
     ShoppingListItem,
     ShoppingListShare,
+    Store,
     StoreDepartment,
     StoreProduct,
     User,
@@ -50,6 +51,12 @@ class ShoppingListFromRecipesRequest(BaseModel):
     recipe_ids: list[UUID]
     store_id: UUID
     existing_list_id: UUID | None = None
+
+
+class EmptyShoppingListRequest(BaseModel):
+    """Pierwsza, pusta lista tworzona przyciskiem „+” w Zakupach."""
+
+    store_id: UUID
 
 
 @router.get(
@@ -252,6 +259,83 @@ async def create_shopping_list_from_recipes(
             selectinload(ShoppingList.items).selectinload(ShoppingListItem.store_product).selectinload(StoreProduct.product),
             selectinload(ShoppingList.items).selectinload(ShoppingListItem.department),
             selectinload(ShoppingList.items).selectinload(ShoppingListItem.substituted_for_product),
+            selectinload(ShoppingList.store),
+        )
+        .where(ShoppingList.id == shopping_list.id)
+    )
+    return result.scalar_one()
+
+
+@router.post(
+    "/empty",
+    response_model=ShoppingListResponse,
+    status_code=201,
+    summary="Utwórz pustą listę zakupów",
+)
+async def create_empty_shopping_list(
+    payload: EmptyShoppingListRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> ShoppingList:
+    """Tworzy pierwszą listę bez wymuszania planu lub przepisu.
+
+    Lista nadal jest przypisana do sklepu, dzięki czemu późniejsze
+    dodawanie produktów katalogowych może zachować ceny i działy.
+    """
+    store = await db.get(Store, payload.store_id)
+    if store is None:
+        raise NotFoundException(detail="Wybrany sklep nie istnieje")
+
+    count_result = await db.execute(
+        select(func.count(ShoppingList.id))
+        .join(MealPlan, MealPlan.id == ShoppingList.meal_plan_id)
+        .where(
+            MealPlan.user_id == current_user.id,
+            MealPlan.status == "archived",
+            ShoppingList.status != "completed",
+        )
+    )
+    current_count = count_result.scalar() or 0
+    limit = (
+        MAX_SHOPPING_LISTS_PREMIUM
+        if is_premium_active(current_user)
+        else MAX_SHOPPING_LISTS_STANDARD
+    )
+    if current_count >= limit:
+        raise HTTPException(
+            status_code=403,
+            detail=f"Osiągnięto limit aktywnych list zakupów ({limit}).",
+        )
+
+    plan = MealPlan(
+        user_id=current_user.id,
+        store_id=payload.store_id,
+        start_date=date.today(),
+        duration_days=1,
+        meals_per_day=0,
+        status="archived",
+    )
+    db.add(plan)
+    await db.flush()
+
+    shopping_list = ShoppingList(
+        meal_plan_id=plan.id,
+        store_id=payload.store_id,
+        status="pending",
+    )
+    db.add(shopping_list)
+    await db.commit()
+
+    result = await db.execute(
+        select(ShoppingList)
+        .options(
+            selectinload(ShoppingList.items)
+            .selectinload(ShoppingListItem.store_product)
+            .selectinload(StoreProduct.product),
+            selectinload(ShoppingList.items).selectinload(ShoppingListItem.department),
+            selectinload(ShoppingList.items).selectinload(
+                ShoppingListItem.substituted_for_product
+            ),
             selectinload(ShoppingList.store),
         )
         .where(ShoppingList.id == shopping_list.id)

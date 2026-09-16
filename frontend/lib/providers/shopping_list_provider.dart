@@ -117,6 +117,28 @@ class ShoppingListProvider with ChangeNotifier {
     }
   }
 
+  Future<bool> createEmptyList(String storeId) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      final created = await _shoppingListService.createEmptyList(storeId);
+      _currentList = created;
+      _selectedListId = created.mealPlanId;
+      _allLists = [
+        created,
+        ..._allLists.where((list) => list.mealPlanId != created.mealPlanId),
+      ];
+      return true;
+    } catch (e) {
+      _errorMessage = friendlyError(e);
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   /// Usuwa całą listę zakupów i odświeża pozostałe. Jeśli usunięta była
   /// aktualnie oglądaną, `loadAllLists` sam przełączy się na pierwszą
   /// dostępną (albo wyczyści widok, gdy nie ma już żadnej).

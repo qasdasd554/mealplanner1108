@@ -91,6 +91,16 @@ class ShoppingListService {
     );
   }
 
+  /// Tworzy pustą listę, aby użytkownik mógł rozpocząć zakupy od
+  /// przycisku „+”, bez wcześniejszego układania planu posiłków.
+  Future<ShoppingList> createEmptyList(String storeId) async {
+    final response = await _client.post(
+      '${ApiConfig.shoppingLists}empty',
+      body: {'store_id': storeId},
+    );
+    return ShoppingList.fromJson(response as Map<String, dynamic>);
+  }
+
   /// Kończy listę; `moveToPantry` przenosi odhaczone produkty do spiżarni.
   Future<int> completeList(String listId, {bool moveToPantry = true}) async {
     final response = await _client.post(
