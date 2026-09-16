@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/barcode_lookup_service.dart';
 import '../models/product.dart';
+import '../models/barcode_lookup_result.dart';
 import '../providers/store_provider.dart';
 import '../screens/barcode_scanner_screen.dart';
 import '../services/api_client.dart';
 import '../theme/app_theme.dart';
 import '../utils/error_utils.dart';
+import 'product_name_autocomplete_field.dart';
 
 /// Okno zgłoszenia własnego produktu do katalogu.
 ///
@@ -96,6 +98,41 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
   double? _parse(TextEditingController c) {
     final t = c.text.trim().replaceAll(',', '.');
     return t.isEmpty ? null : double.tryParse(t);
+  }
+
+  void _applyNameSuggestion(BarcodeLookupResult result) {
+    const supportedUnits = {'szt', 'g', 'kg', 'ml', 'l', 'opak'};
+    setState(() {
+      if (result.name != null) _name.text = result.name!;
+      if (result.brand?.trim().isNotEmpty == true) {
+        _brand.text = result.brand!;
+      }
+      if (supportedUnits.contains(result.unit)) _unit = result.unit;
+      _barcode = result.barcode ?? _barcode;
+      _priceMin = result.priceMin;
+      _priceMax = result.priceMax;
+
+      final hasNutrition =
+          result.kcalPer100 != null ||
+          result.proteinPer100 != null ||
+          result.fatPer100 != null ||
+          result.carbsPer100 != null;
+      if (hasNutrition) {
+        _showNutrition = true;
+        if (result.kcalPer100 != null) {
+          _kcal.text = result.kcalPer100!.toStringAsFixed(0);
+        }
+        if (result.proteinPer100 != null) {
+          _protein.text = result.proteinPer100!.toStringAsFixed(1);
+        }
+        if (result.fatPer100 != null) {
+          _fat.text = result.fatPer100!.toStringAsFixed(1);
+        }
+        if (result.carbsPer100 != null) {
+          _carbs.text = result.carbsPer100!.toStringAsFixed(1);
+        }
+      }
+    });
   }
 
   Future<void> _scanBarcode() async {
@@ -320,14 +357,12 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                TextFormField(
+                ProductNameAutocompleteField(
                   controller: _name,
                   maxLength: 300,
-                  decoration: const InputDecoration(
-                    labelText: 'Nazwa produktu *',
-                    hintText: 'np. Jogurt naturalny 400 g',
-                    border: OutlineInputBorder(),
-                  ),
+                  labelText: 'Nazwa produktu *',
+                  hintText: 'Wpisz nazwę lub wybierz podpowiedź',
+                  onSelected: _applyNameSuggestion,
                   validator:
                       (v) =>
                           (v == null || v.trim().length < 2)

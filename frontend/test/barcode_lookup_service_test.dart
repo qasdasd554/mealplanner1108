@@ -5,6 +5,7 @@ import 'package:smart_meal_planner/services/barcode_lookup_service.dart';
 void main() {
   const product = <String, dynamic>{
     'product_name_pl': 'Jogurt naturalny',
+    'code': '5901234123457',
     'brands': 'Przykładowa marka, Druga marka',
     'product_quantity': 400,
     'product_quantity_unit': 'g',
@@ -26,6 +27,7 @@ void main() {
 
     final result = barcodeResultFromOpenFoodFacts(extracted!);
     expect(result?.name, 'Jogurt naturalny');
+    expect(result?.barcode, '5901234123457');
     expect(result?.brand, 'Przykładowa marka');
     expect(result?.kcalPer100, 62);
     expect(result?.proteinPer100, 4.2);

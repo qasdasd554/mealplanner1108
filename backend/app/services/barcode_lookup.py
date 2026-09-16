@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import asyncio
+import time
 
 import httpx
 
@@ -16,9 +17,13 @@ OFF_API_URLS = (
 )
 USDA_SEARCH_URL = "https://api.nal.usda.gov/fdc/v1/foods/search"
 UPCITEMDB_LOOKUP_URL = "https://api.upcitemdb.com/prod/trial/lookup"
+OFF_TEXT_SEARCH_URL = "https://world.openfoodfacts.org/cgi/search.pl"
 USER_AGENT = "MealPlannerPolska/1.0 (https://github.com/qasdasd554/mealplanner1108)"
 
 logger = logging.getLogger(__name__)
+_TEXT_SEARCH_CACHE_TTL_SECONDS = 300
+_TEXT_SEARCH_CACHE_MAX_ENTRIES = 200
+_text_search_cache: dict[str, tuple[float, list["BarcodeLookupResult"]]] = {}
 
 
 class BarcodeLookupResult:
@@ -35,6 +40,7 @@ class BarcodeLookupResult:
         price_min: float,
         price_max: float,
         source: str,
+        barcode: str | None = None,
     ) -> None:
         self.name = name
         self.brand = brand
@@ -46,6 +52,7 @@ class BarcodeLookupResult:
         self.price_min = price_min
         self.price_max = price_max
         self.source = source
+        self.barcode = barcode
 
 
 def normalize_barcode(value: str) -> str | None:
@@ -165,7 +172,98 @@ def _result_from_off_product(product: dict) -> BarcodeLookupResult | None:
         price_min=price_min,
         price_max=price_max,
         source="open_food_facts",
+        barcode=normalize_barcode(str(product.get("code") or "")),
     )
+
+
+async def search_products_external(
+    query: str,
+    *,
+    limit: int = 10,
+) -> list[BarcodeLookupResult]:
+    """Wyszukuje produkty po nazwie w tej samej bazie co skaner kodów.
+
+    Open Food Facts udostępnia pełnotekstowe wyszukiwanie przez starszy
+    endpoint v1. Ograniczamy pola, liczbę wyników i czas odpowiedzi, żeby
+    podpowiedzi w formularzu pozostały lekkie i nie blokowały ręcznego
+    wpisywania nazwy przy chwilowej awarii zewnętrznej usługi.
+    """
+    normalized_query = " ".join(query.strip().split())
+    if len(normalized_query) < 2:
+        return []
+    cache_key = f"{normalized_query.casefold()}\0{limit}"
+    cached = _text_search_cache.get(cache_key)
+    now = time.monotonic()
+    if cached is not None and now - cached[0] < _TEXT_SEARCH_CACHE_TTL_SECONDS:
+        return list(cached[1][:limit])
+
+    fields = (
+        "code,product_name_pl,product_name,generic_name_pl,generic_name,"
+        "abbreviated_product_name,brands,nutriments,categories_tags,"
+        "product_quantity,product_quantity_unit,serving_quantity"
+    )
+    params = {
+        "search_terms": normalized_query,
+        "search_simple": "1",
+        "action": "process",
+        "json": "1",
+        "page": "1",
+        "page_size": str(max(1, min(limit, 20))),
+        "sort_by": "unique_scans_n",
+        "fields": fields,
+        "lc": "pl",
+        "cc": "pl",
+    }
+    headers = {"User-Agent": USER_AGENT, "Accept": "application/json"}
+    try:
+        async with httpx.AsyncClient(
+            timeout=7.0,
+            follow_redirects=True,
+            headers=headers,
+        ) as client:
+            response = await client.get(OFF_TEXT_SEARCH_URL, params=params)
+            response.raise_for_status()
+            payload = response.json()
+    except (httpx.HTTPError, ValueError, TypeError) as exc:
+        logger.warning("Open Food Facts text search failed for %r: %s", query, exc)
+        return []
+
+    results = _results_from_off_search_response(payload, limit=limit)
+    if len(_text_search_cache) >= _TEXT_SEARCH_CACHE_MAX_ENTRIES:
+        oldest_key = min(
+            _text_search_cache,
+            key=lambda key: _text_search_cache[key][0],
+        )
+        _text_search_cache.pop(oldest_key, None)
+    _text_search_cache[cache_key] = (now, list(results))
+    return results
+
+
+def _results_from_off_search_response(
+    payload: object,
+    *,
+    limit: int,
+) -> list[BarcodeLookupResult]:
+    """Waliduje i deduplikuje odpowiedź pełnotekstowego wyszukiwania."""
+    if not isinstance(payload, dict) or not isinstance(payload.get("products"), list):
+        return []
+
+    results: list[BarcodeLookupResult] = []
+    seen: set[tuple[str, str]] = set()
+    for product in payload["products"]:
+        if not isinstance(product, dict):
+            continue
+        result = _result_from_off_product(product)
+        if result is None:
+            continue
+        key = (result.name.casefold(), (result.brand or "").casefold())
+        if key in seen:
+            continue
+        seen.add(key)
+        results.append(result)
+        if len(results) >= limit:
+            break
+    return results
 
 
 async def _fetch_off(client: httpx.AsyncClient, barcode: str) -> BarcodeLookupResult | None:

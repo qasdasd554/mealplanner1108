@@ -11,6 +11,7 @@ class BarcodeLookupResult {
   final double? fatPer100;
   final double? carbsPer100;
   final String? existingProductId;
+  final String? barcode;
   final double? priceMin;
   final double? priceMax;
 
@@ -25,6 +26,7 @@ class BarcodeLookupResult {
     this.fatPer100,
     this.carbsPer100,
     this.existingProductId,
+    this.barcode,
     this.priceMin,
     this.priceMax,
   });
@@ -52,6 +54,7 @@ class BarcodeLookupResult {
       fatPer100: _asDouble(json['fat_per_100']),
       carbsPer100: _asDouble(json['carbs_per_100']),
       existingProductId: json['existing_product_id'] as String?,
+      barcode: json['barcode'] as String?,
       priceMin: _asDouble(json['price_min']),
       priceMax: _asDouble(json['price_max']),
     );

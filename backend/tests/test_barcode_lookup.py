@@ -2,6 +2,8 @@
 
 from app.services.barcode_lookup import (
     _product_from_off_response,
+    _result_from_off_product,
+    _results_from_off_search_response,
     _product_from_upcitemdb_response,
     _product_from_usda_response,
     normalize_barcode,
@@ -39,6 +41,37 @@ def test_rejects_not_found_without_throwing() -> None:
 
 def test_butter_has_fixed_price_range() -> None:
     assert price_range_for_product("Masło ekstra 200 g") == (6.0, 10.0)
+
+
+def test_name_search_result_keeps_barcode_and_macros() -> None:
+    result = _result_from_off_product({
+        "code": "5901234123457",
+        "product_name_pl": "Jogurt naturalny",
+        "brands": "Przykładowa marka",
+        "nutriments": {
+            "energy-kcal_100g": 62,
+            "proteins_100g": 4.2,
+            "fat_100g": 2.0,
+            "carbohydrates_100g": 6.1,
+        },
+    })
+    assert result is not None
+    assert result.barcode == "5901234123457"
+    assert result.name == "Jogurt naturalny"
+    assert result.kcal_per_100 == 62
+
+
+def test_name_search_deduplicates_products_and_respects_limit() -> None:
+    payload = {
+        "products": [
+            {"code": "5901234123457", "product_name": "Jogurt", "brands": "Marka"},
+            {"code": "5901234123458", "product_name": "jogurt", "brands": "marka"},
+            {"code": "5901234123459", "product_name": "Kefir", "brands": "Druga"},
+            {"code": "5901234123460", "product_name": "Maślanka", "brands": "Trzecia"},
+        ]
+    }
+    results = _results_from_off_search_response(payload, limit=2)
+    assert [result.name for result in results] == ["Jogurt", "Kefir"]
 
 
 def test_reads_exact_usda_gtin_and_macros() -> None:

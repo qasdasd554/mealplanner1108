@@ -125,7 +125,7 @@ class BarcodeLookupService {
   }
 
   static const _fields =
-      'product_name_pl,product_name,generic_name_pl,generic_name,'
+      'code,product_name_pl,product_name,generic_name_pl,generic_name,'
       'abbreviated_product_name,brands,nutriments,categories_tags,'
       'product_quantity,product_quantity_unit,serving_quantity';
 }
@@ -147,6 +147,7 @@ BarcodeLookupResult mergeBarcodeLookupResults(
     fatPer100: catalog.fatPer100 ?? external.fatPer100,
     carbsPer100: catalog.carbsPer100 ?? external.carbsPer100,
     existingProductId: catalog.existingProductId,
+    barcode: catalog.barcode ?? external.barcode,
     priceMin: catalog.priceMin ?? external.priceMin,
     priceMax: catalog.priceMax ?? external.priceMax,
   );
@@ -211,6 +212,7 @@ BarcodeLookupResult? barcodeResultFromOpenFoodFacts(
   return BarcodeLookupResult(
     found: true,
     source: 'open_food_facts_direct',
+    barcode: _barcodeFromProduct(product),
     name: name,
     brand: brand?.isEmpty == true ? null : brand,
     unit: _unitFromProduct(product),
@@ -227,6 +229,13 @@ BarcodeLookupResult? barcodeResultFromOpenFoodFacts(
     priceMin: _fixedPriceRange(product).$1,
     priceMax: _fixedPriceRange(product).$2,
   );
+}
+
+String? _barcodeFromProduct(Map<String, dynamic> product) {
+  final digits = product['code']?.toString().replaceAll(RegExp(r'[^0-9]'), '');
+  return digits != null && digits.length >= 8 && digits.length <= 14
+      ? digits
+      : null;
 }
 
 String? _firstText(Map<String, dynamic> values, List<String> keys) {

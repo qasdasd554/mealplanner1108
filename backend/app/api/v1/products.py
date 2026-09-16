@@ -20,6 +20,7 @@ from app.models import BarcodeProductCache, Product, ProductSubstitute, StorePro
 from app.models.user import User
 from app.schemas.product import ProductResponse, StoreProductResponse, SubstituteResponse
 from app.services import ProductSubstitutionService
+from app.services.barcode_lookup import price_range_for_product
 
 
 # UWAGA (naprawa bezpieczeństwa): endpointy w tym pliku były CAŁKOWICIE
@@ -62,6 +63,23 @@ class BarcodeLookupResponse(BaseModel):
     fat_per_100: float | None = None
     carbs_per_100: float | None = None
     existing_product_id: uuid.UUID | None = None
+    price_min: float | None = None
+    price_max: float | None = None
+    barcode: str | None = None
+
+
+class ProductNameSuggestion(BaseModel):
+    found: bool = True
+    source: str
+    name: str
+    brand: str | None = None
+    unit: str = "g"
+    barcode: str | None = None
+    existing_product_id: uuid.UUID | None = None
+    kcal_per_100: float | None = None
+    protein_per_100: float | None = None
+    fat_per_100: float | None = None
+    carbs_per_100: float | None = None
     price_min: float | None = None
     price_max: float | None = None
 
@@ -156,7 +174,7 @@ async def lookup_barcode(
     pusty formularz zgłoszenia z już wpisanym kodem kreskowym, zamiast
     blokować użytkownika.
     """
-    from app.services.barcode_lookup import normalize_barcode, price_range_for_product
+    from app.services.barcode_lookup import normalize_barcode
 
     normalized_barcode = normalize_barcode(barcode)
     if normalized_barcode is None:
@@ -190,6 +208,7 @@ async def lookup_barcode(
             existing_product_id=existing.id,
             price_min=price_min,
             price_max=price_max,
+            barcode=normalized_barcode,
         )
 
     # 2. Cache Neon — wspólny dla wszystkich użytkowników.
@@ -213,6 +232,7 @@ async def lookup_barcode(
             carbs_per_100=nutrition.get("carbs"),
             price_min=cached.price_min,
             price_max=cached.price_max,
+            barcode=cached.barcode,
         )
 
     # 3. Open Food Facts, USDA FoodData Central, potem UPCitemdb.
@@ -251,6 +271,7 @@ async def lookup_barcode(
             existing_product_id=None,
             price_min=external.price_min,
             price_max=external.price_max,
+            barcode=normalized_barcode,
         )
 
     return BarcodeLookupResponse(found=False, source=None, name=None)
@@ -302,6 +323,115 @@ async def list_scanned_products(
         }
         for entry in result.scalars().all()
     ]
+
+
+@router.get(
+    "/search-by-name",
+    response_model=list[ProductNameSuggestion],
+    summary="Podpowiedzi produktów po nazwie z katalogu, skanów i Open Food Facts",
+)
+async def search_products_by_name(
+    query: str = Query(..., min_length=2, max_length=120),
+    limit: int = Query(10, ge=1, le=20),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> list[ProductNameSuggestion]:
+    """Zwraca podpowiedzi bez odbierania możliwości ręcznego wpisania.
+
+    Kolejność źródeł jest celowa: własny katalog, zapamiętane skany w Neon,
+    a dopiero potem Open Food Facts — ta sama zewnętrzna baza, z której
+    korzysta skanowanie kodów kreskowych.
+    """
+    normalized = " ".join(query.strip().split())
+    pattern = f"%{normalized}%"
+
+    catalog_result = await db.execute(
+        select(Product)
+        .where(
+            _visible_product_filter(current_user.id),
+            or_(Product.name.ilike(pattern), Product.brand.ilike(pattern)),
+        )
+        .order_by(Product.name)
+        .limit(limit)
+    )
+    cache_result = await db.execute(
+        select(BarcodeProductCache)
+        .where(
+            or_(
+                BarcodeProductCache.name.ilike(pattern),
+                BarcodeProductCache.brand.ilike(pattern),
+            )
+        )
+        .order_by(BarcodeProductCache.updated_at.desc())
+        .limit(limit)
+    )
+
+    suggestions: list[ProductNameSuggestion] = []
+    seen: set[tuple[str, str]] = set()
+
+    def add_suggestion(suggestion: ProductNameSuggestion) -> None:
+        key = (suggestion.name.casefold(), (suggestion.brand or "").casefold())
+        if key not in seen and len(suggestions) < limit:
+            seen.add(key)
+            suggestions.append(suggestion)
+
+    for product in catalog_result.scalars().all():
+        nutrition = product.nutrition_per_100 or {}
+        price_min, price_max = price_range_for_product(product.name)
+        add_suggestion(ProductNameSuggestion(
+            source="catalog",
+            name=product.name,
+            brand=product.brand,
+            unit=product.unit,
+            barcode=product.barcode,
+            existing_product_id=product.id,
+            kcal_per_100=nutrition.get("kcal"),
+            protein_per_100=nutrition.get("protein"),
+            fat_per_100=nutrition.get("fat"),
+            carbs_per_100=nutrition.get("carbs"),
+            price_min=price_min,
+            price_max=price_max,
+        ))
+
+    for cached in cache_result.scalars().all():
+        nutrition = cached.nutrition_per_100 or {}
+        add_suggestion(ProductNameSuggestion(
+            source="neon_cache",
+            name=cached.name,
+            brand=cached.brand,
+            unit=cached.unit,
+            barcode=cached.barcode,
+            kcal_per_100=nutrition.get("kcal"),
+            protein_per_100=nutrition.get("protein"),
+            fat_per_100=nutrition.get("fat"),
+            carbs_per_100=nutrition.get("carbs"),
+            price_min=cached.price_min,
+            price_max=cached.price_max,
+        ))
+
+    if len(suggestions) < limit:
+        from app.services.barcode_lookup import search_products_external
+
+        external_results = await search_products_external(
+            normalized,
+            limit=limit - len(suggestions),
+        )
+        for external in external_results:
+            add_suggestion(ProductNameSuggestion(
+                source=external.source,
+                name=external.name,
+                brand=external.brand,
+                unit=external.unit,
+                barcode=external.barcode,
+                kcal_per_100=external.kcal_per_100,
+                protein_per_100=external.protein_per_100,
+                fat_per_100=external.fat_per_100,
+                carbs_per_100=external.carbs_per_100,
+                price_min=external.price_min,
+                price_max=external.price_max,
+            ))
+
+    return suggestions
 
 
 @router.get(

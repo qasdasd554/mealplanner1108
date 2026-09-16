@@ -4,12 +4,14 @@ import 'package:provider/provider.dart';
 import '../../providers/food_log_provider.dart';
 import '../../providers/meal_plan_provider.dart';
 import '../../models/meal_plan.dart';
+import '../../models/barcode_lookup_result.dart';
 import '../../services/recipe_service.dart';
 import '../../models/recipe.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/edit_ingredients_sheet.dart';
 import '../../widgets/submit_product_sheet.dart';
 import '../../widgets/pick_product_from_catalog_sheet.dart';
+import '../../widgets/product_name_autocomplete_field.dart';
 
 class AddFoodEntryScreen extends StatefulWidget {
   const AddFoodEntryScreen({super.key});
@@ -1067,6 +1069,25 @@ class _ManualEntryFormState extends State<ManualEntryForm> {
     'Deser',
   ];
 
+  void _applySuggestedProduct(BarcodeLookupResult result) {
+    setState(() {
+      if (result.name != null) _nameController.text = result.name!;
+      _portionController.text = '100';
+      if (result.kcalPer100 != null) {
+        _caloriesController.text = result.kcalPer100!.round().toString();
+      }
+      if (result.proteinPer100 != null) {
+        _proteinController.text = result.proteinPer100!.toStringAsFixed(1);
+      }
+      if (result.carbsPer100 != null) {
+        _carbsController.text = result.carbsPer100!.toStringAsFixed(1);
+      }
+      if (result.fatPer100 != null) {
+        _fatController.text = result.fatPer100!.toStringAsFixed(1);
+      }
+    });
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -1172,11 +1193,11 @@ class _ManualEntryFormState extends State<ManualEntryForm> {
             ),
           ),
           const SizedBox(height: 12),
-          TextFormField(
+          ProductNameAutocompleteField(
             controller: _nameController,
-            decoration: const InputDecoration(
-              labelText: 'Nazwa produktu / dania',
-            ),
+            labelText: 'Nazwa produktu / dania',
+            hintText: 'Wpisz nazwę lub wybierz podpowiedź',
+            onSelected: _applySuggestedProduct,
             validator:
                 (val) => val == null || val.isEmpty ? 'Podaj nazwę' : null,
           ),
