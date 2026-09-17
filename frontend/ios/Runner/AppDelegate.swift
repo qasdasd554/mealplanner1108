@@ -26,12 +26,9 @@ import UIKit
     // Firebase Messaging jest już gotowy do odebrania i powiązania tokenu.
     // Eliminuje to zarówno brak tokenu na iOS, jak i wcześniejszy biały
     // ekran powodowany rejestracją zbyt wcześnie podczas natywnego startu.
-    let registrar = engineBridge.pluginRegistry.registrar(
-      forPlugin: "MealPlannerPushRegistration"
-    )
     let channel = FlutterMethodChannel(
       name: "com.meal-planner-polska-v1/push",
-      binaryMessenger: registrar.messenger()
+      binaryMessenger: engineBridge.applicationRegistrar.messenger()
     )
     channel.setMethodCallHandler { call, result in
       guard call.method == "registerForRemoteNotifications" else {
