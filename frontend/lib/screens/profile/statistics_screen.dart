@@ -46,263 +46,210 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Statystyki')),
-      body:
-          _loading
-              ? const Center(child: CircularProgressIndicator())
-              : _error != null
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
               ? Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(_error!, textAlign: TextAlign.center),
-                      const SizedBox(height: 12),
-                      FilledButton(
-                        onPressed: _load,
-                        child: const Text('Spróbuj ponownie'),
-                      ),
-                    ],
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(_error!, textAlign: TextAlign.center),
+                        const SizedBox(height: 12),
+                        FilledButton(onPressed: _load, child: const Text('Spróbuj ponownie')),
+                      ],
+                    ),
                   ),
-                ),
-              )
+                )
               : RefreshIndicator(
-                onRefresh: _load,
-                child: _content(_statistics!),
-              ),
+                  onRefresh: _load,
+                  child: _content(_statistics!),
+                ),
     );
   }
 
   Widget _content(WellnessStatistics statistics) {
-    final chartDays =
-        statistics.days.length > 14
-            ? statistics.days.sublist(statistics.days.length - 14)
-            : statistics.days;
+    final chartDays = statistics.days.length > 14
+        ? statistics.days.sublist(statistics.days.length - 14)
+        : statistics.days;
     final chartLabels = chartDays.map((day) => _shortDate(day.date)).toList();
     final hasCalories = chartDays.any((day) => day.calories > 0);
     final hasMacros = chartDays.any(
       (day) => day.protein > 0 || day.fat > 0 || day.carbs > 0,
     );
     final hasWater = chartDays.any((day) => day.waterMl > 0);
-    final recentDays =
-        statistics.days
-            .where((day) => day.calories > 0 || day.waterMl > 0)
-            .toList()
-            .reversed
-            .take(7)
-            .toList();
+    final recentDays = statistics.days
+        .where((day) => day.calories > 0 || day.waterMl > 0)
+        .toList()
+        .reversed
+        .take(7)
+        .toList();
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
         _section(
           title: 'Zmiana wagi',
           icon: Icons.monitor_weight_outlined,
-          child:
-              statistics.weights.isEmpty
-                  ? const _EmptyText(
-                    'Dodaj co najmniej jeden pomiar w profilu.',
-                  )
-                  : _WeightChart(weights: statistics.weights),
+          child: statistics.weights.isEmpty
+              ? const _EmptyText('Dodaj co najmniej jeden pomiar w profilu.')
+              : _WeightChart(weights: statistics.weights),
         ),
         const SizedBox(height: 14),
         Wrap(
           spacing: 10,
           runSpacing: 10,
           children: [
-            _summaryTile(
-              'Średnio kcal',
-              '${statistics.averageCalories.toStringAsFixed(0)} kcal',
-              Icons.local_fire_department_outlined,
-            ),
-            _summaryTile(
-              'Nawodnienie',
-              '${statistics.averageWaterMl} ml',
-              Icons.water_drop_outlined,
-            ),
-            _summaryTile(
-              'Ulubiony posiłek',
-              statistics.favoriteMeal ?? 'Brak danych',
-              Icons.favorite_outline,
-            ),
+            _summaryTile('Średnio kcal', '${statistics.averageCalories.toStringAsFixed(0)} kcal', Icons.local_fire_department_outlined),
+            _summaryTile('Nawodnienie', '${statistics.averageWaterMl} ml', Icons.water_drop_outlined),
+            _summaryTile('Ulubiony posiłek', statistics.favoriteMeal ?? 'Brak danych', Icons.favorite_outline),
           ],
         ),
         const SizedBox(height: 14),
         _section(
           title: 'Kalorie dziennie',
           icon: Icons.local_fire_department_outlined,
-          child:
-              !hasCalories
-                  ? const _EmptyText(
-                    'Dodaj posiłki w Śledzeniu, aby zobaczyć wykres.',
-                  )
-                  : _TrendChart(
-                    labels: chartLabels,
-                    unit: 'kcal',
-                    series: [
-                      _ChartSeries(
-                        label: 'Kalorie',
-                        color: AppTheme.accentColor,
-                        values: chartDays.map((day) => day.calories).toList(),
-                      ),
-                    ],
-                  ),
+          child: !hasCalories
+              ? const _EmptyText(
+                  'Dodaj posiłki w Śledzeniu, aby zobaczyć wykres.',
+                )
+              : _TrendChart(
+                  labels: chartLabels,
+                  unit: 'kcal',
+                  series: [
+                    _ChartSeries(
+                      label: 'Kalorie',
+                      color: AppTheme.accentColor,
+                      values:
+                          chartDays.map((day) => day.calories).toList(),
+                    ),
+                  ],
+                ),
         ),
         const SizedBox(height: 14),
         _section(
           title: 'Makroskładniki dziennie',
           icon: Icons.pie_chart_outline,
-          child:
-              !hasMacros
-                  ? const _EmptyText(
-                    'Makroskładniki pojawią się po dodaniu posiłków.',
-                  )
-                  : _TrendChart(
-                    labels: chartLabels,
-                    unit: 'g',
-                    series: [
-                      _ChartSeries(
-                        label: 'Białko',
-                        color: AppTheme.primaryColor,
-                        values: chartDays.map((day) => day.protein).toList(),
-                      ),
-                      _ChartSeries(
-                        label: 'Tłuszcze',
-                        color: AppTheme.accentColor,
-                        values: chartDays.map((day) => day.fat).toList(),
-                      ),
-                      _ChartSeries(
-                        label: 'Węglowodany',
-                        color: AppTheme.secondaryColor,
-                        values: chartDays.map((day) => day.carbs).toList(),
-                      ),
-                    ],
-                  ),
+          child: !hasMacros
+              ? const _EmptyText(
+                  'Makroskładniki pojawią się po dodaniu posiłków.',
+                )
+              : _TrendChart(
+                  labels: chartLabels,
+                  unit: 'g',
+                  series: [
+                    _ChartSeries(
+                      label: 'Białko',
+                      color: AppTheme.primaryColor,
+                      values: chartDays.map((day) => day.protein).toList(),
+                    ),
+                    _ChartSeries(
+                      label: 'Tłuszcze',
+                      color: AppTheme.accentColor,
+                      values: chartDays.map((day) => day.fat).toList(),
+                    ),
+                    _ChartSeries(
+                      label: 'Węglowodany',
+                      color: AppTheme.secondaryColor,
+                      values: chartDays.map((day) => day.carbs).toList(),
+                    ),
+                  ],
+                ),
         ),
         const SizedBox(height: 14),
         _section(
           title: 'Nawodnienie dziennie',
           icon: Icons.water_drop_outlined,
-          child:
-              !hasWater
-                  ? const _EmptyText(
-                    'Zapisuj wodę w Śledzeniu, aby zobaczyć wykres.',
-                  )
-                  : _TrendChart(
-                    labels: chartLabels,
-                    unit: 'ml',
-                    series: [
-                      _ChartSeries(
-                        label: 'Woda',
-                        color: Colors.blue,
-                        values:
-                            chartDays
-                                .map((day) => day.waterMl.toDouble())
-                                .toList(),
-                      ),
-                    ],
-                  ),
+          child: !hasWater
+              ? const _EmptyText(
+                  'Zapisuj wodę w Śledzeniu, aby zobaczyć wykres.',
+                )
+              : _TrendChart(
+                  labels: chartLabels,
+                  unit: 'ml',
+                  series: [
+                    _ChartSeries(
+                      label: 'Woda',
+                      color: Colors.blue,
+                      values: chartDays
+                          .map((day) => day.waterMl.toDouble())
+                          .toList(),
+                    ),
+                  ],
+                ),
         ),
         const SizedBox(height: 14),
         _section(
           title: 'Ostatnie zapisane dni',
           icon: Icons.calendar_month_outlined,
-          child:
-              recentDays.isEmpty
-                  ? const _EmptyText(
-                    'Zapisane posiłki i nawodnienie pojawią się tutaj.',
-                  )
-                  : Column(
-                    children: recentDays.map((day) => _dailyRow(day)).toList(),
-                  ),
+          child: recentDays.isEmpty
+              ? const _EmptyText('Zapisane posiłki i nawodnienie pojawią się tutaj.')
+              : Column(
+                  children: recentDays
+                      .map((day) => _dailyRow(day))
+                      .toList(),
+                ),
         ),
         const SizedBox(height: 24),
       ],
     );
   }
 
-  Widget _section({
-    required String title,
-    required IconData icon,
-    required Widget child,
-  }) => Container(
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: AppTheme.surfaceColor,
-      borderRadius: BorderRadius.circular(18),
-      border: Border.all(color: AppTheme.textSecondary.withOpacity(0.15)),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
+  Widget _section({required String title, required IconData icon, required Widget child}) =>
+      Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceColor,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppTheme.textSecondary.withOpacity(0.15)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Icon(icon, color: AppTheme.primaryColor, size: 20),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                title,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
+            Row(children: [
+              Icon(icon, color: AppTheme.primaryColor, size: 20),
+              const SizedBox(width: 8),
+              Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold))),
+            ]),
+            const SizedBox(height: 14),
+            child,
           ],
         ),
-        const SizedBox(height: 14),
-        child,
-      ],
-    ),
-  );
+      );
 
   Widget _summaryTile(String label, String value, IconData icon) => SizedBox(
-    width: 166,
-    child: Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 20, color: AppTheme.primaryColor),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+        width: 166,
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppTheme.surfaceColor,
+            borderRadius: BorderRadius.circular(16),
           ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
-          ),
-        ],
-      ),
-    ),
-  );
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Icon(icon, size: 20, color: AppTheme.primaryColor),
+            const SizedBox(height: 8),
+            Text(value, maxLines: 2, overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+            const SizedBox(height: 2),
+            Text(label, style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+          ]),
+        ),
+      );
 
   Widget _dailyRow(DailyWellnessStatistics day) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 8),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          _date(day.date),
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 3),
-        Text(
-          '${day.calories.toStringAsFixed(0)} kcal  •  B ${day.protein.toStringAsFixed(1)} g  •  '
-          'T ${day.fat.toStringAsFixed(1)} g  •  W ${day.carbs.toStringAsFixed(1)} g',
-          style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-        ),
-        Text(
-          'Woda: ${day.waterMl} ml',
-          style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-        ),
-      ],
-    ),
-  );
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(_date(day.date), style: const TextStyle(fontWeight: FontWeight.w600)),
+          const SizedBox(height: 3),
+          Text(
+            '${day.calories.toStringAsFixed(0)} kcal  •  B ${day.protein.toStringAsFixed(1)} g  •  '
+            'T ${day.fat.toStringAsFixed(1)} g  •  W ${day.carbs.toStringAsFixed(1)} g',
+            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+          ),
+          Text('Woda: ${day.waterMl} ml',
+              style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+        ]),
+      );
 
   String _date(DateTime value) =>
       '${value.day.toString().padLeft(2, '0')}.${value.month.toString().padLeft(2, '0')}.${value.year}';
@@ -315,10 +262,10 @@ class _EmptyText extends StatelessWidget {
   const _EmptyText(this.text);
   @override
   Widget build(BuildContext context) => Text(
-    text,
-    style: TextStyle(color: AppTheme.textSecondary),
-    textAlign: TextAlign.center,
-  );
+        text,
+        style: TextStyle(color: AppTheme.textSecondary),
+        textAlign: TextAlign.center,
+      );
 }
 
 class _ChartSeries {
@@ -379,14 +326,20 @@ class _TrendChart extends StatelessWidget {
               Expanded(
                 child: Text(
                   labels.first,
-                  style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppTheme.textSecondary,
+                  ),
                 ),
               ),
               Expanded(
                 child: Text(
                   labels.last,
                   textAlign: TextAlign.end,
-                  style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppTheme.textSecondary,
+                  ),
                 ),
               ),
             ],
@@ -395,26 +348,25 @@ class _TrendChart extends StatelessWidget {
         Wrap(
           spacing: 14,
           runSpacing: 8,
-          children:
-              series
-                  .map(
-                    (item) => Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 9,
-                          height: 9,
-                          decoration: BoxDecoration(
-                            color: item.color,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(item.label, style: const TextStyle(fontSize: 12)),
-                      ],
+          children: series
+              .map(
+                (item) => Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 9,
+                      height: 9,
+                      decoration: BoxDecoration(
+                        color: item.color,
+                        shape: BoxShape.circle,
+                      ),
                     ),
-                  )
-                  .toList(),
+                    const SizedBox(width: 6),
+                    Text(item.label, style: const TextStyle(fontSize: 12)),
+                  ],
+                ),
+              )
+              .toList(),
         ),
       ],
     );
@@ -425,7 +377,10 @@ class _TrendChartPainter extends CustomPainter {
   final List<_ChartSeries> series;
   final Color gridColor;
 
-  const _TrendChartPainter({required this.series, required this.gridColor});
+  const _TrendChartPainter({
+    required this.series,
+    required this.gridColor,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -437,10 +392,9 @@ class _TrendChartPainter extends CustomPainter {
     }
     if (maximum <= 0) maximum = 1;
 
-    final gridPaint =
-        Paint()
-          ..color = gridColor.withOpacity(0.25)
-          ..strokeWidth = 1;
+    final gridPaint = Paint()
+      ..color = gridColor.withOpacity(0.25)
+      ..strokeWidth = 1;
     for (var line = 0; line <= 3; line++) {
       final y = size.height * line / 3;
       canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
@@ -449,22 +403,19 @@ class _TrendChartPainter extends CustomPainter {
     for (final item in series) {
       if (item.values.isEmpty) continue;
       final path = Path();
-      final linePaint =
-          Paint()
-            ..color = item.color
-            ..strokeWidth = 2.5
-            ..style = PaintingStyle.stroke
-            ..strokeCap = StrokeCap.round
-            ..strokeJoin = StrokeJoin.round;
+      final linePaint = Paint()
+        ..color = item.color
+        ..strokeWidth = 2.5
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round;
       final pointPaint = Paint()..color = item.color;
 
       for (var index = 0; index < item.values.length; index++) {
-        final x =
-            item.values.length == 1
-                ? size.width / 2
-                : size.width * index / (item.values.length - 1);
-        final y =
-            size.height -
+        final x = item.values.length == 1
+            ? size.width / 2
+            : size.width * index / (item.values.length - 1);
+        final y = size.height -
             (item.values[index] / maximum * (size.height - 12)) -
             6;
         if (index == 0) {
@@ -492,48 +443,25 @@ class _WeightChart extends StatelessWidget {
     final first = weights.first;
     final last = weights.last;
     final difference = last.weightKg - first.weightKg;
-    return Column(
-      children: [
-        SizedBox(
-          height: 170,
-          child: CustomPaint(
-            painter: _WeightChartPainter(
-              weights,
-              Theme.of(context).dividerColor,
-            ),
-            child: const SizedBox.expand(),
-          ),
+    return Column(children: [
+      SizedBox(
+        height: 170,
+        child: CustomPaint(
+          painter: _WeightChartPainter(weights, Theme.of(context).dividerColor),
+          child: const SizedBox.expand(),
         ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                _shortDate(first.date),
-                style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
-              ),
-            ),
-            Text(
-              '${difference >= 0 ? '+' : ''}${difference.toStringAsFixed(1)} kg',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color:
-                    difference <= 0
-                        ? AppTheme.primaryColor
-                        : AppTheme.accentColor,
-              ),
-            ),
-            Expanded(
-              child: Text(
-                _shortDate(last.date),
-                textAlign: TextAlign.end,
-                style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
-              ),
-            ),
-          ],
+      ),
+      const SizedBox(height: 8),
+      Row(children: [
+        Expanded(child: Text(_shortDate(first.date), style: TextStyle(fontSize: 11, color: AppTheme.textSecondary))),
+        Text(
+          '${difference >= 0 ? '+' : ''}${difference.toStringAsFixed(1)} kg',
+          style: TextStyle(fontWeight: FontWeight.bold, color: difference <= 0 ? AppTheme.primaryColor : AppTheme.accentColor),
         ),
-      ],
-    );
+        Expanded(child: Text(_shortDate(last.date), textAlign: TextAlign.end,
+            style: TextStyle(fontSize: 11, color: AppTheme.textSecondary))),
+      ]),
+    ]);
   }
 
   static String _shortDate(DateTime value) => '${value.day}.${value.month}';
@@ -550,35 +478,22 @@ class _WeightChartPainter extends CustomPainter {
     final minimum = weights.reduce(math.min);
     final maximum = weights.reduce(math.max);
     final spread = math.max(maximum - minimum, 1.0);
-    final gridPaint =
-        Paint()
-          ..color = gridColor.withOpacity(0.25)
-          ..strokeWidth = 1;
+    final gridPaint = Paint()..color = gridColor.withOpacity(0.25)..strokeWidth = 1;
     for (var line = 0; line <= 3; line++) {
       final y = size.height * line / 3;
       canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
     }
-    final linePaint =
-        Paint()
-          ..color = AppTheme.primaryColor
-          ..strokeWidth = 3
-          ..style = PaintingStyle.stroke
-          ..strokeCap = StrokeCap.round;
+    final linePaint = Paint()
+      ..color = AppTheme.primaryColor
+      ..strokeWidth = 3
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
     final pointPaint = Paint()..color = AppTheme.primaryColor;
     final path = Path();
     for (var index = 0; index < values.length; index++) {
-      final x =
-          values.length == 1
-              ? size.width / 2
-              : size.width * index / (values.length - 1);
-      final y =
-          size.height -
-          ((weights[index] - minimum) / spread * (size.height - 12)) -
-          6;
-      if (index == 0)
-        path.moveTo(x, y);
-      else
-        path.lineTo(x, y);
+      final x = values.length == 1 ? size.width / 2 : size.width * index / (values.length - 1);
+      final y = size.height - ((weights[index] - minimum) / spread * (size.height - 12)) - 6;
+      if (index == 0) path.moveTo(x, y); else path.lineTo(x, y);
       canvas.drawCircle(Offset(x, y), 4, pointPaint);
     }
     canvas.drawPath(path, linePaint);

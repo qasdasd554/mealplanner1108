@@ -42,10 +42,7 @@ void main() {
       'status': 1,
       'product': product,
     }, isV3: false);
-    expect(
-      barcodeResultFromOpenFoodFacts(extracted!)?.name,
-      'Jogurt naturalny',
-    );
+    expect(barcodeResultFromOpenFoodFacts(extracted!)?.name, 'Jogurt naturalny');
   });
 
   test('nie uznaje pustej odpowiedzi za produkt', () {

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../services/moderation_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
+import '../../widgets/user_avatar.dart';
 
 /// Zarządzanie kontami użytkowników — wyszukiwanie i blokowanie/odblokowanie.
 ///
@@ -66,44 +67,41 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     final reasonController = TextEditingController();
     final confirmed = await showDialog<bool>(
       context: context,
-      builder:
-          (dialogContext) => AlertDialog(
-            title: Text('Zablokować ${user['display_name'] ?? user['email']}?'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Konto straci dostęp do aplikacji natychmiast — również '
-                  'jeśli jest właśnie zalogowane. Dane nie zostaną usunięte, '
-                  'blokadę można cofnąć.',
-                  style: TextStyle(fontSize: 13),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: reasonController,
-                  maxLength: 500,
-                  decoration: const InputDecoration(
-                    labelText: 'Powód (widoczny dla użytkownika)',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-              ],
+      builder: (dialogContext) => AlertDialog(
+        title: Text('Zablokować ${user['display_name'] ?? user['email']}?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Konto straci dostęp do aplikacji natychmiast — również '
+              'jeśli jest właśnie zalogowane. Dane nie zostaną usunięte, '
+              'blokadę można cofnąć.',
+              style: TextStyle(fontSize: 13),
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(dialogContext).pop(false),
-                child: const Text('Anuluj'),
+            const SizedBox(height: 12),
+            TextField(
+              controller: reasonController,
+              maxLength: 500,
+              decoration: const InputDecoration(
+                labelText: 'Powód (widoczny dla użytkownika)',
+                border: OutlineInputBorder(),
               ),
-              FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppTheme.errorColor,
-                ),
-                onPressed: () => Navigator.of(dialogContext).pop(true),
-                child: const Text('Zablokuj'),
-              ),
-            ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Anuluj'),
           ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: AppTheme.errorColor),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Zablokuj'),
+          ),
+        ],
+      ),
     );
 
     if (confirmed != true) return;
@@ -119,10 +117,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     setState(() => _busyIds.add(id));
     try {
       if (banned) {
-        await _service.banUser(
-          id,
-          reason: (reason?.isEmpty ?? true) ? null : reason,
-        );
+        await _service.banUser(id, reason: (reason?.isEmpty ?? true) ? null : reason);
       } else {
         await _service.unbanUser(id);
       }
@@ -133,25 +128,20 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
         _busyIds.remove(id);
       });
       ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            duration: const Duration(seconds: 3),
-            content: Text(banned ? 'Konto zablokowane' : 'Konto odblokowane'),
-          ),
-        );
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(banned ? 'Konto zablokowane' : 'Konto odblokowane')),
+      );
     } catch (e) {
       if (!mounted) return;
       setState(() => _busyIds.remove(id));
       ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
+      );
     }
   }
 
@@ -195,99 +185,88 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
             ),
           ),
           Expanded(
-            child:
-                _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : _error != null
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _error != null
                     ? Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            _error!,
-                            style: TextStyle(color: AppTheme.errorColor),
-                          ),
-                          TextButton(
-                            onPressed: _load,
-                            child: const Text('Spróbuj ponownie'),
-                          ),
-                        ],
-                      ),
-                    )
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(_error!, style: TextStyle(color: AppTheme.errorColor)),
+                            TextButton(onPressed: _load, child: const Text('Spróbuj ponownie')),
+                          ],
+                        ),
+                      )
                     : _users.isEmpty
-                    ? Center(
-                      child: Text(
-                        'Brak wyników.',
-                        style: TextStyle(color: AppTheme.textSecondary),
-                      ),
-                    )
-                    : RefreshIndicator(
-                      onRefresh: _load,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        itemCount: _users.length,
-                        itemBuilder: (context, index) {
-                          final u = _users[index];
-                          final id = u['id'] as String;
-                          final isBanned = u['is_banned'] as bool? ?? false;
-                          final isAdmin = u['role'] == 'admin';
-                          final isBusy = _busyIds.contains(id);
+                        ? Center(
+                            child: Text(
+                              'Brak wyników.',
+                              style: TextStyle(color: AppTheme.textSecondary),
+                            ),
+                          )
+                        : RefreshIndicator(
+                            onRefresh: _load,
+                            child: ListView.builder(
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              itemCount: _users.length,
+                              itemBuilder: (context, index) {
+                                final u = _users[index];
+                                final id = u['id'] as String;
+                                final isBanned = u['is_banned'] as bool? ?? false;
+                                final isAdmin = u['role'] == 'admin';
+                                final isBusy = _busyIds.contains(id);
 
-                          return Card(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            child: ListTile(
-                              title: Text(
-                                u['display_name'] as String? ?? 'Bez nazwy',
-                              ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    u['email'] as String? ?? '',
-                                    style: const TextStyle(fontSize: 12),
-                                  ),
-                                  if (isBanned && u['ban_reason'] != null)
-                                    Text(
-                                      'Powód: ${u['ban_reason']}',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: AppTheme.errorColor,
-                                      ),
+                                return Card(
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  child: ListTile(
+                                    leading: UserAvatar(
+                                      avatar: u['avatar'] as String?,
+                                      avatarPhotoBase64:
+                                          u['avatar_photo_base64'] as String?,
+                                      size: 44,
                                     ),
-                                ],
-                              ),
-                              trailing:
-                                  isAdmin
-                                      ? const Chip(label: Text('admin'))
-                                      : isBusy
-                                      ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
+                                    title: Text(u['display_name'] as String? ?? 'Bez nazwy'),
+                                    subtitle: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          u['email'] as String? ?? '',
+                                          style: const TextStyle(fontSize: 12),
                                         ),
-                                      )
-                                      : TextButton(
-                                        style: TextButton.styleFrom(
-                                          foregroundColor:
-                                              isBanned
-                                                  ? AppTheme.primaryColor
-                                                  : AppTheme.errorColor,
-                                        ),
-                                        onPressed:
-                                            () =>
-                                                isBanned
+                                        if (isBanned && u['ban_reason'] != null)
+                                          Text(
+                                            'Powód: ${u['ban_reason']}',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: AppTheme.errorColor,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                    trailing: isAdmin
+                                        ? const Chip(label: Text('admin'))
+                                        : isBusy
+                                            ? const SizedBox(
+                                                width: 20,
+                                                height: 20,
+                                                child: CircularProgressIndicator(strokeWidth: 2),
+                                              )
+                                            : TextButton(
+                                                style: TextButton.styleFrom(
+                                                  foregroundColor: isBanned
+                                                      ? AppTheme.primaryColor
+                                                      : AppTheme.errorColor,
+                                                ),
+                                                onPressed: () => isBanned
                                                     ? _setBanned(u, false)
                                                     : _confirmBan(u),
-                                        child: Text(
-                                          isBanned ? 'Odblokuj' : 'Zablokuj',
-                                        ),
-                                      ),
+                                                child: Text(isBanned ? 'Odblokuj' : 'Zablokuj'),
+                                              ),
+                                  ),
+                                );
+                              },
                             ),
-                          );
-                        },
-                      ),
-                    ),
+                          ),
           ),
         ],
       ),

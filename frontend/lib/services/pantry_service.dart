@@ -9,12 +9,7 @@ class PantryItem {
   final double? quantity;
   final String? unit;
 
-  PantryItem({
-    required this.id,
-    required this.product,
-    this.quantity,
-    this.unit,
-  });
+  PantryItem({required this.id, required this.product, this.quantity, this.unit});
 
   factory PantryItem.fromJson(Map<String, dynamic> json) {
     return PantryItem(
@@ -34,19 +29,12 @@ class PantryService {
 
   Future<List<PantryItem>> getPantry() async {
     final response = await _client.get(ApiConfig.pantry);
-    return (response as List)
-        .map((e) => PantryItem.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return (response as List).map((e) => PantryItem.fromJson(e as Map<String, dynamic>)).toList();
   }
 
   Future<List<PantryItem>> addItems(List<String> productIds) async {
-    final response = await _client.post(
-      ApiConfig.pantry,
-      body: {'product_ids': productIds},
-    );
-    return (response as List)
-        .map((e) => PantryItem.fromJson(e as Map<String, dynamic>))
-        .toList();
+    final response = await _client.post(ApiConfig.pantry, body: {'product_ids': productIds});
+    return (response as List).map((e) => PantryItem.fromJson(e as Map<String, dynamic>)).toList();
   }
 
   Future<void> deleteItem(String itemId) async {
@@ -57,17 +45,10 @@ class PantryService {
   /// jest opcjonalne — jeśli pominięte, backend zostawia poprzednią
   /// jednostkę bez zmian (przydatne przy samej korekcie liczby, np.
   /// "zjadłem połowę", bez konieczności podawania jednostki na nowo).
-  Future<PantryItem> updateQuantity(
-    String itemId, {
-    double? quantity,
-    String? unit,
-  }) async {
+  Future<PantryItem> updateQuantity(String itemId, {double? quantity, String? unit}) async {
     final body = <String, dynamic>{'quantity': quantity};
     if (unit != null) body['unit'] = unit;
-    final response = await _client.patch(
-      '${ApiConfig.pantry}$itemId',
-      body: body,
-    );
+    final response = await _client.patch('${ApiConfig.pantry}$itemId', body: body);
     return PantryItem.fromJson(response as Map<String, dynamic>);
   }
 }

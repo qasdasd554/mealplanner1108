@@ -52,26 +52,19 @@ class _PendingSharesScreenState extends State<PendingSharesScreen> {
       if (!mounted) return;
       setState(() => _pending.remove(share));
       ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),
-            content: Text(
-              'Zaakceptowano — lista pojawi się jako udostępniona.',
-            ),
-          ),
-        );
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Zaakceptowano — lista pojawi się jako udostępniona.')),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
+      );
     }
   }
 
@@ -83,14 +76,11 @@ class _PendingSharesScreenState extends State<PendingSharesScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
+      );
     }
   }
 
@@ -100,79 +90,61 @@ class _PendingSharesScreenState extends State<PendingSharesScreen> {
       appBar: AppBar(title: const Text('Zaproszenia do list zakupów')),
       body: RefreshIndicator(
         onRefresh: _load,
-        child:
-            _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _error != null
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null
                 ? ListView(
-                  children: [
-                    const SizedBox(height: 80),
-                    Center(child: Text(_error!, textAlign: TextAlign.center)),
-                    const SizedBox(height: 12),
-                    Center(
-                      child: TextButton(
-                        onPressed: _load,
-                        child: const Text('Spróbuj ponownie'),
-                      ),
-                    ),
-                  ],
-                )
+                    children: [
+                      const SizedBox(height: 80),
+                      Center(child: Text(_error!, textAlign: TextAlign.center)),
+                      const SizedBox(height: 12),
+                      Center(child: TextButton(onPressed: _load, child: const Text('Spróbuj ponownie'))),
+                    ],
+                  )
                 : _pending.isEmpty
-                ? ListView(
-                  children: [
-                    const SizedBox(height: 100),
-                    Icon(
-                      Icons.mail_outline,
-                      size: 56,
-                      color: AppTheme.textSecondary,
-                    ),
-                    const SizedBox(height: 12),
-                    Center(
-                      child: Text(
-                        'Brak oczekujących zaproszeń.',
-                        style: TextStyle(color: AppTheme.textSecondary),
-                      ),
-                    ),
-                  ],
-                )
-                : ListView.separated(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _pending.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
-                  itemBuilder: (context, index) {
-                    final share = _pending[index];
-                    return Card(
-                      child: ListTile(
-                        leading: const Icon(Icons.shopping_cart_outlined),
-                        title: Text(
-                          '${share.sharedByName ?? "Ktoś"} udostępnił Ci listę zakupów',
-                        ),
-                        subtitle: const Text('Dotknij, aby odpowiedzieć'),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: Icon(
-                                Icons.check_circle,
-                                color: AppTheme.primaryColor,
-                              ),
-                              tooltip: 'Zaakceptuj',
-                              onPressed: () => _accept(share),
+                    ? ListView(
+                        children: [
+                          const SizedBox(height: 100),
+                          Icon(Icons.mail_outline, size: 56, color: AppTheme.textSecondary),
+                          const SizedBox(height: 12),
+                          Center(
+                            child: Text(
+                              'Brak oczekujących zaproszeń.',
+                              style: TextStyle(color: AppTheme.textSecondary),
                             ),
-                            IconButton(
-                              icon: Icon(
-                                Icons.cancel_outlined,
-                                color: AppTheme.errorColor,
+                          ),
+                        ],
+                      )
+                    : ListView.separated(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: _pending.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 8),
+                        itemBuilder: (context, index) {
+                          final share = _pending[index];
+                          return Card(
+                            child: ListTile(
+                              leading: const Icon(Icons.shopping_cart_outlined),
+                              title: Text('${share.sharedByName ?? "Ktoś"} udostępnił Ci listę zakupów'),
+                              subtitle: const Text('Dotknij, aby odpowiedzieć'),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: Icon(Icons.check_circle, color: AppTheme.primaryColor),
+                                    tooltip: 'Zaakceptuj',
+                                    onPressed: () => _accept(share),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.cancel_outlined, color: AppTheme.errorColor),
+                                    tooltip: 'Odrzuć',
+                                    onPressed: () => _decline(share),
+                                  ),
+                                ],
                               ),
-                              tooltip: 'Odrzuć',
-                              onPressed: () => _decline(share),
                             ),
-                          ],
-                        ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
       ),
     );
   }

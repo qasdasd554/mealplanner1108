@@ -16,9 +16,7 @@ class MealPlanService {
   Future<List<MealPlan>> getPlans() async {
     final response = await _client.get(ApiConfig.mealPlans);
     if (response is List) {
-      return response
-          .map((e) => MealPlan.fromJson(e as Map<String, dynamic>))
-          .toList();
+      return response.map((e) => MealPlan.fromJson(e as Map<String, dynamic>)).toList();
     }
     return [];
   }
@@ -35,11 +33,7 @@ class MealPlanService {
     );
   }
 
-  Future<MealPlan> swapRecipe(
-    String planId,
-    String entryId,
-    String newRecipeId,
-  ) async {
+  Future<MealPlan> swapRecipe(String planId, String entryId, String newRecipeId) async {
     final response = await _client.put(
       '${ApiConfig.mealPlans}$planId/entries/$entryId/swap',
       body: {'recipe_id': newRecipeId},

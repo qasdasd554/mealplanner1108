@@ -50,7 +50,9 @@ class UpdateService {
       final uri = Uri.parse(
         '${ApiConfig.baseUrl}/app/version-info?platform=$platform',
       );
-      final response = await http.get(uri).timeout(const Duration(seconds: 5));
+      final response = await http
+          .get(uri)
+          .timeout(const Duration(seconds: 5));
       if (response.statusCode != 200) return UpdateCheckResult.none;
       final data = jsonDecode(response.body) as Map<String, dynamic>;
 
@@ -92,13 +94,11 @@ class UpdateAvailableScreen extends StatelessWidget {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else if (context.mounted) {
       ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),
-            content: Text('Nie udało się otworzyć sklepu.'),
-          ),
-        );
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Nie udało się otworzyć sklepu.')),
+      );
     }
   }
 
@@ -130,8 +130,8 @@ class UpdateAvailableScreen extends StatelessWidget {
                   Text(
                     'Dostępna nowa wersja',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 12),
@@ -141,10 +141,7 @@ class UpdateAvailableScreen extends StatelessWidget {
                             'Zaktualizuj ją, aby korzystać dalej.'
                         : 'Zaktualizuj aplikację, aby korzystać z najnowszych '
                             'funkcji i poprawek.',
-                    style: TextStyle(
-                      color: AppTheme.textSecondary,
-                      height: 1.5,
-                    ),
+                    style: TextStyle(color: AppTheme.textSecondary, height: 1.5),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 32),
@@ -154,9 +151,7 @@ class UpdateAvailableScreen extends StatelessWidget {
                       onPressed: () => _openStore(context),
                       icon: const Icon(Icons.download),
                       label: Text(
-                        Platform.isIOS
-                            ? 'Otwórz App Store'
-                            : 'Otwórz Google Play',
+                        Platform.isIOS ? 'Otwórz App Store' : 'Otwórz Google Play',
                       ),
                     ),
                   ),

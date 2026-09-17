@@ -3,7 +3,7 @@ description: "A smart meal planner mobile application integrated with Polish gro
 publish_to: 'none'
 # Przy każdym kolejnym buildzie sklepowym zwiększ oba numery:
 # wersję iOS przed znakiem `+` oraz kod wersji Androida po `+`.
-version: 1.0.22+219
+version: 1.0.24+221
 
 environment:
   sdk: '>=3.7.0 <4.0.0'

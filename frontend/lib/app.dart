@@ -30,8 +30,7 @@ class SmartMealPlannerApp extends StatefulWidget {
   // otworzyć ekran rozpoznawania przepisu z linku POZA drzewem widgetów
   // (udostępnienie z innej aplikacji może przyjść w dowolnym momencie,
   // nie tylko wtedy, gdy mamy pod ręką zwykły BuildContext).
-  static final GlobalKey<NavigatorState> navigatorKey =
-      GlobalKey<NavigatorState>();
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   State<SmartMealPlannerApp> createState() => _SmartMealPlannerAppState();

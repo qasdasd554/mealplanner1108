@@ -804,6 +804,10 @@ class AdminUserEntry(BaseModel):
     ban_reason: str | None
     role: str
     created_at: datetime
+    # Panel administratora powinien identyfikować użytkownika tak samo jak
+    # reszta aplikacji: własnym zdjęciem, a w jego braku wybraną ikoną.
+    avatar: str | None = None
+    avatar_photo_base64: str | None = None
 
 
 @router.get(

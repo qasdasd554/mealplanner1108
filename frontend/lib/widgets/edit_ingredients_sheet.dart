@@ -77,10 +77,7 @@ class _EditIngredientsSheetState extends State<EditIngredientsSheet> {
   /// GŁÓWNE źródło. Ścieżka przez `product` zostaje jako zabezpieczenie
   /// na przyszłość, gdyby API kiedyś zaczęło go dołączać.
   Map<String, double> _macrosFor(RecipeIngredient ing, double multiplier) {
-    if (ing.protein != null ||
-        ing.fat != null ||
-        ing.carbs != null ||
-        ing.kcal != null) {
+    if (ing.protein != null || ing.fat != null || ing.carbs != null || ing.kcal != null) {
       return {
         'kcal': (ing.kcal ?? 0).toDouble() * multiplier,
         'protein': (ing.protein ?? 0) * multiplier,
@@ -183,10 +180,9 @@ class _EditIngredientsSheetState extends State<EditIngredientsSheet> {
                       color: AppTheme.surfaceColor,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color:
-                            excluded
-                                ? AppTheme.textSecondary.withOpacity(0.2)
-                                : Colors.transparent,
+                        color: excluded
+                            ? AppTheme.textSecondary.withOpacity(0.2)
+                            : Colors.transparent,
                       ),
                     ),
                     child: Row(
@@ -201,14 +197,12 @@ class _EditIngredientsSheetState extends State<EditIngredientsSheet> {
                                 style: TextStyle(
                                   fontWeight: FontWeight.w600,
                                   fontSize: 14,
-                                  decoration:
-                                      excluded
-                                          ? TextDecoration.lineThrough
-                                          : null,
-                                  color:
-                                      excluded
-                                          ? AppTheme.textSecondary
-                                          : AppTheme.textPrimary,
+                                  decoration: excluded
+                                      ? TextDecoration.lineThrough
+                                      : null,
+                                  color: excluded
+                                      ? AppTheme.textSecondary
+                                      : AppTheme.textPrimary,
                                 ),
                               ),
                               const SizedBox(height: 2),
@@ -230,19 +224,13 @@ class _EditIngredientsSheetState extends State<EditIngredientsSheet> {
                         // a wpisywanie gramów z klawiatury przy każdym
                         // składniku byłoby mozolne.
                         IconButton(
-                          icon: const Icon(
-                            Icons.remove_circle_outline,
-                            size: 20,
-                          ),
+                          icon: const Icon(Icons.remove_circle_outline, size: 20),
                           visualDensity: VisualDensity.compact,
-                          onPressed:
-                              mult <= 0
-                                  ? null
-                                  : () => setState(() {
-                                    _multipliers[ing.id] = (mult - 0.25).clamp(
-                                      0.0,
-                                      5.0,
-                                    );
+                          onPressed: mult <= 0
+                              ? null
+                              : () => setState(() {
+                                    _multipliers[ing.id] =
+                                        (mult - 0.25).clamp(0.0, 5.0);
                                     _touched = true;
                                   }),
                         ),
@@ -260,14 +248,11 @@ class _EditIngredientsSheetState extends State<EditIngredientsSheet> {
                         IconButton(
                           icon: const Icon(Icons.add_circle_outline, size: 20),
                           visualDensity: VisualDensity.compact,
-                          onPressed:
-                              mult >= 5
-                                  ? null
-                                  : () => setState(() {
-                                    _multipliers[ing.id] = (mult + 0.25).clamp(
-                                      0.0,
-                                      5.0,
-                                    );
+                          onPressed: mult >= 5
+                              ? null
+                              : () => setState(() {
+                                    _multipliers[ing.id] =
+                                        (mult + 0.25).clamp(0.0, 5.0);
                                     _touched = true;
                                   }),
                         ),
@@ -320,16 +305,15 @@ class _EditIngredientsSheetState extends State<EditIngredientsSheet> {
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(
-                      onPressed:
-                          () => Navigator.of(context).pop(
-                            EditedNutrition(
-                              kcal: total['kcal']!,
-                              protein: total['protein']!,
-                              fat: total['fat']!,
-                              carbs: total['carbs']!,
-                              wasEdited: _touched,
-                            ),
-                          ),
+                      onPressed: () => Navigator.of(context).pop(
+                        EditedNutrition(
+                          kcal: total['kcal']!,
+                          protein: total['protein']!,
+                          fat: total['fat']!,
+                          carbs: total['carbs']!,
+                          wasEdited: _touched,
+                        ),
+                      ),
                       child: const Text('Zapisz do dziennika'),
                     ),
                   ),

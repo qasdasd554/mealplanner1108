@@ -16,8 +16,7 @@ class RecipeLeaderboardScreen extends StatefulWidget {
   const RecipeLeaderboardScreen({super.key});
 
   @override
-  State<RecipeLeaderboardScreen> createState() =>
-      _RecipeLeaderboardScreenState();
+  State<RecipeLeaderboardScreen> createState() => _RecipeLeaderboardScreenState();
 }
 
 class _RecipeLeaderboardScreenState extends State<RecipeLeaderboardScreen>
@@ -97,7 +96,10 @@ class _RecipeLeaderboardScreenState extends State<RecipeLeaderboardScreen>
         title: const Text('Ranking autorów przepisów'),
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [Tab(text: 'Ten tydzień'), Tab(text: 'Cały czas')],
+          tabs: const [
+            Tab(text: 'Ten tydzień'),
+            Tab(text: 'Cały czas'),
+          ],
         ),
       ),
       body: TabBarView(
@@ -148,12 +150,7 @@ class _RecipeLeaderboardScreenState extends State<RecipeLeaderboardScreen>
           const SizedBox(height: 12),
           Center(child: Text(error, textAlign: TextAlign.center)),
           const SizedBox(height: 12),
-          Center(
-            child: TextButton(
-              onPressed: onRetry,
-              child: const Text('Spróbuj ponownie'),
-            ),
-          ),
+          Center(child: TextButton(onPressed: onRetry, child: const Text('Spróbuj ponownie'))),
         ],
       );
     }
@@ -161,11 +158,7 @@ class _RecipeLeaderboardScreenState extends State<RecipeLeaderboardScreen>
       return ListView(
         children: [
           const SizedBox(height: 100),
-          Icon(
-            Icons.emoji_events_outlined,
-            size: 56,
-            color: AppTheme.textSecondary,
-          ),
+          Icon(Icons.emoji_events_outlined, size: 56, color: AppTheme.textSecondary),
           const SizedBox(height: 12),
           Center(
             child: Text(
@@ -194,10 +187,7 @@ class _RecipeLeaderboardScreenState extends State<RecipeLeaderboardScreen>
           decoration: BoxDecoration(
             color: AppTheme.surfaceColor,
             borderRadius: BorderRadius.circular(14),
-            border:
-                index == 0
-                    ? Border.all(color: const Color(0xFFE0A62E), width: 1.5)
-                    : null,
+            border: index == 0 ? Border.all(color: const Color(0xFFE0A62E), width: 1.5) : null,
           ),
           child: Row(
             children: [
@@ -205,35 +195,19 @@ class _RecipeLeaderboardScreenState extends State<RecipeLeaderboardScreen>
                 width: 36,
                 child: Text(
                   medal ?? '${index + 1}.',
-                  style: TextStyle(
-                    fontSize: medal != null ? 22 : 16,
-                    color: AppTheme.textSecondary,
-                  ),
+                  style: TextStyle(fontSize: medal != null ? 22 : 16, color: AppTheme.textSecondary),
                   textAlign: TextAlign.center,
                 ),
               ),
               const SizedBox(width: 8),
-              UserAvatar(
-                avatar: avatar,
-                avatarPhotoBase64: avatarPhoto,
-                size: 32,
-              ),
+              UserAvatar(avatar: avatar, avatarPhotoBase64: avatarPhoto, size: 32),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(
-                  name,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                  ),
-                ),
+                child: Text(name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
               ),
               Text(
                 '$count ${count == 1 ? "przepis" : (count < 5 ? "przepisy" : "przepisów")}',
-                style: const TextStyle(
-                  color: AppTheme.primaryColor,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: const TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold),
               ),
             ],
           ),

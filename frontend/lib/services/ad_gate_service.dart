@@ -36,17 +36,13 @@ class AdGateService {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getStringList(_prefsKey) ?? [];
     final cutoff = DateTime.now().subtract(_window);
-    final recent =
-        raw
-            .map((s) => DateTime.tryParse(s))
-            .whereType<DateTime>()
-            .where((t) => t.isAfter(cutoff))
-            .toList();
+    final recent = raw
+        .map((s) => DateTime.tryParse(s))
+        .whereType<DateTime>()
+        .where((t) => t.isAfter(cutoff))
+        .toList();
     if (recent.length != raw.length) {
-      await prefs.setStringList(
-        _prefsKey,
-        recent.map((t) => t.toIso8601String()).toList(),
-      );
+      await prefs.setStringList(_prefsKey, recent.map((t) => t.toIso8601String()).toList());
     }
     return recent;
   }

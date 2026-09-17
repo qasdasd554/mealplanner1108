@@ -30,10 +30,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
   Future<void> _load() async {
     setState(() => _error = null);
     try {
-      final values = await Future.wait([
-        _service.getFriends(),
-        _service.getInvitations(),
-      ]);
+      final values = await Future.wait([_service.getFriends(), _service.getInvitations()]);
       if (!mounted) return;
       setState(() {
         _friends = values[0];
@@ -48,32 +45,28 @@ class _FriendsScreenState extends State<FriendsScreen> {
     final controller = TextEditingController();
     final identifier = await showDialog<String>(
       context: context,
-      builder:
-          (dialogContext) => AlertDialog(
-            title: const Text('Zaproś znajomego'),
-            content: TextField(
-              controller: controller,
-              autofocus: true,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                labelText: 'Nazwa użytkownika lub e-mail',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Anuluj'),
-              ),
-              FilledButton(
-                onPressed: () {
-                  final value = controller.text.trim();
-                  if (value.length >= 2) Navigator.pop(dialogContext, value);
-                },
-                child: const Text('Wyślij'),
-              ),
-            ],
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Zaproś znajomego'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          keyboardType: TextInputType.emailAddress,
+          decoration: const InputDecoration(
+            labelText: 'Nazwa użytkownika lub e-mail',
+            border: OutlineInputBorder(),
           ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Anuluj')),
+          FilledButton(
+            onPressed: () {
+              final value = controller.text.trim();
+              if (value.length >= 2) Navigator.pop(dialogContext, value);
+            },
+            child: const Text('Wyślij'),
+          ),
+        ],
+      ),
     );
     controller.dispose();
     if (identifier == null || !mounted) return;
@@ -110,12 +103,8 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final incoming =
-        _invitations?.where((item) => item.direction == 'incoming').toList() ??
-        [];
-    final outgoing =
-        _invitations?.where((item) => item.direction == 'outgoing').toList() ??
-        [];
+    final incoming = _invitations?.where((item) => item.direction == 'incoming').toList() ?? [];
+    final outgoing = _invitations?.where((item) => item.direction == 'outgoing').toList() ?? [];
 
     return Scaffold(
       appBar: AppBar(title: const Text('Znajomi')),
@@ -126,113 +115,84 @@ class _FriendsScreenState extends State<FriendsScreen> {
       ),
       body: RefreshIndicator(
         onRefresh: _load,
-        child:
-            _error != null
-                ? ListView(
-                  children: [
-                    const SizedBox(height: 140),
-                    Center(child: Text(_error!, textAlign: TextAlign.center)),
-                    Center(
-                      child: TextButton(
-                        onPressed: _load,
-                        child: const Text('Spróbuj ponownie'),
-                      ),
-                    ),
-                  ],
-                )
-                : (_friends == null || _invitations == null)
+        child: _error != null
+            ? ListView(
+                children: [
+                  const SizedBox(height: 140),
+                  Center(child: Text(_error!, textAlign: TextAlign.center)),
+                  Center(child: TextButton(onPressed: _load, child: const Text('Spróbuj ponownie'))),
+                ],
+              )
+            : (_friends == null || _invitations == null)
                 ? const Center(child: CircularProgressIndicator())
                 : ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                  children: [
-                    if (incoming.isNotEmpty) ...[
-                      const _Heading('Zaproszenia do Ciebie'),
-                      ...incoming.map(
-                        (entry) => _InvitationCard(
-                          entry: entry,
-                          working: _working,
-                          onAccept:
-                              () => _act(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                    children: [
+                      if (incoming.isNotEmpty) ...[
+                        const _Heading('Zaproszenia do Ciebie'),
+                        ...incoming.map((entry) => _InvitationCard(
+                              entry: entry,
+                              working: _working,
+                              onAccept: () => _act(
                                 () => _service.accept(entry.connectionId),
                                 'Zaproszenie zostało przyjęte.',
                               ),
-                          onDecline:
-                              () => _act(
-                                () => _service.declineOrCancel(
-                                  entry.connectionId,
-                                ),
+                              onDecline: () => _act(
+                                () => _service.declineOrCancel(entry.connectionId),
                                 'Zaproszenie zostało odrzucone.',
                               ),
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                    ],
-                    const _Heading('Twoi znajomi'),
-                    if (_friends!.isEmpty)
-                      const _InfoCard(
-                        icon: Icons.people_outline,
-                        text:
-                            'Nie masz jeszcze znajomych. Wyślij pierwsze zaproszenie.',
-                      )
-                    else
-                      ..._friends!.map(
-                        (entry) => Card(
-                          child: ListTile(
-                            leading: UserAvatar(
-                              avatar: entry.avatar,
-                              avatarPhotoBase64: entry.avatarPhotoBase64,
-                              size: 44,
-                            ),
-                            title: Text(
-                              entry.displayName,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            subtitle: const Text('Przepisy i lista zakupów'),
-                            trailing: const Icon(Icons.chevron_right),
-                            onTap:
-                                () => Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder:
-                                        (_) =>
-                                            FriendDetailScreen(friend: entry),
-                                  ),
+                            )),
+                        const SizedBox(height: 18),
+                      ],
+                      const _Heading('Twoi znajomi'),
+                      if (_friends!.isEmpty)
+                        const _InfoCard(
+                          icon: Icons.people_outline,
+                          text: 'Nie masz jeszcze znajomych. Wyślij pierwsze zaproszenie.',
+                        )
+                      else
+                        ..._friends!.map((entry) => Card(
+                              child: ListTile(
+                                leading: UserAvatar(
+                                  avatar: entry.avatar,
+                                  avatarPhotoBase64: entry.avatarPhotoBase64,
+                                  size: 44,
                                 ),
-                          ),
-                        ),
-                      ),
-                    if (outgoing.isNotEmpty) ...[
-                      const SizedBox(height: 18),
-                      const _Heading('Wysłane zaproszenia'),
-                      ...outgoing.map(
-                        (entry) => Card(
-                          child: ListTile(
-                            leading: UserAvatar(
-                              avatar: entry.avatar,
-                              avatarPhotoBase64: entry.avatarPhotoBase64,
-                              size: 40,
-                            ),
-                            title: Text(entry.displayName),
-                            subtitle: const Text('Oczekuje na odpowiedź'),
-                            trailing: TextButton(
-                              onPressed:
-                                  _working
+                                title: Text(entry.displayName,
+                                    style: const TextStyle(fontWeight: FontWeight.w600)),
+                                subtitle: const Text('Przepisy i lista zakupów'),
+                                trailing: const Icon(Icons.chevron_right),
+                                onTap: () => Navigator.of(context).push(
+                                  MaterialPageRoute(builder: (_) => FriendDetailScreen(friend: entry)),
+                                ),
+                              ),
+                            )),
+                      if (outgoing.isNotEmpty) ...[
+                        const SizedBox(height: 18),
+                        const _Heading('Wysłane zaproszenia'),
+                        ...outgoing.map((entry) => Card(
+                              child: ListTile(
+                                leading: UserAvatar(
+                                  avatar: entry.avatar,
+                                  avatarPhotoBase64: entry.avatarPhotoBase64,
+                                  size: 40,
+                                ),
+                                title: Text(entry.displayName),
+                                subtitle: const Text('Oczekuje na odpowiedź'),
+                                trailing: TextButton(
+                                  onPressed: _working
                                       ? null
                                       : () => _act(
-                                        () => _service.declineOrCancel(
-                                          entry.connectionId,
-                                        ),
-                                        'Zaproszenie zostało anulowane.',
-                                      ),
-                              child: const Text('Anuluj'),
-                            ),
-                          ),
-                        ),
-                      ),
+                                            () => _service.declineOrCancel(entry.connectionId),
+                                            'Zaproszenie zostało anulowane.',
+                                          ),
+                                  child: const Text('Anuluj'),
+                                ),
+                              ),
+                            )),
+                      ],
                     ],
-                  ],
-                ),
+                  ),
       ),
     );
   }
@@ -244,14 +204,9 @@ class _Heading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 8),
-    child: Text(
-      text,
-      style: Theme.of(
-        context,
-      ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-    ),
-  );
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Text(text, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+      );
 }
 
 class _InvitationCard extends StatelessWidget {
@@ -269,36 +224,31 @@ class _InvitationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(14),
-      child: Row(
-        children: [
-          UserAvatar(
-            avatar: entry.avatar,
-            avatarPhotoBase64: entry.avatarPhotoBase64,
-            size: 44,
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              UserAvatar(
+                avatar: entry.avatar,
+                avatarPhotoBase64: entry.avatarPhotoBase64,
+                size: 44,
+              ),
+              const SizedBox(width: 12),
+              Expanded(child: Text(entry.displayName, style: const TextStyle(fontWeight: FontWeight.w600))),
+              IconButton(
+                tooltip: 'Odrzuć',
+                onPressed: working ? null : onDecline,
+                icon: const Icon(Icons.close),
+              ),
+              IconButton.filled(
+                tooltip: 'Przyjmij',
+                onPressed: working ? null : onAccept,
+                icon: const Icon(Icons.check),
+              ),
+            ],
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              entry.displayName,
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ),
-          IconButton(
-            tooltip: 'Odrzuć',
-            onPressed: working ? null : onDecline,
-            icon: const Icon(Icons.close),
-          ),
-          IconButton.filled(
-            tooltip: 'Przyjmij',
-            onPressed: working ? null : onAccept,
-            icon: const Icon(Icons.check),
-          ),
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 }
 
 class _InfoCard extends StatelessWidget {
@@ -308,17 +258,17 @@ class _InfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(20),
-    decoration: BoxDecoration(
-      color: AppTheme.primaryColor.withOpacity(0.08),
-      borderRadius: BorderRadius.circular(16),
-    ),
-    child: Row(
-      children: [
-        Icon(icon, color: AppTheme.primaryColor),
-        const SizedBox(width: 12),
-        Expanded(child: Text(text)),
-      ],
-    ),
-  );
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppTheme.primaryColor.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: AppTheme.primaryColor),
+            const SizedBox(width: 12),
+            Expanded(child: Text(text)),
+          ],
+        ),
+      );
 }

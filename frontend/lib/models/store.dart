@@ -22,21 +22,18 @@ class Store {
       logoUrl: json['logo_url'] as String?,
       departmentOrder: json['department_order'] as Map<String, dynamic>?,
       createdAt: DateTime.parse(json['created_at'] as String),
-      updatedAt:
-          json['updated_at'] != null
-              ? DateTime.parse(json['updated_at'] as String)
-              : null,
+      updatedAt: json['updated_at'] != null ? DateTime.parse(json['updated_at'] as String) : null,
     );
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'logo_url': logoUrl,
-    'department_order': departmentOrder,
-    'created_at': createdAt.toIso8601String(),
-    'updated_at': updatedAt?.toIso8601String(),
-  };
+        'id': id,
+        'name': name,
+        'logo_url': logoUrl,
+        'department_order': departmentOrder,
+        'created_at': createdAt.toIso8601String(),
+        'updated_at': updatedAt?.toIso8601String(),
+      };
 }
 
 class StoreDepartment {

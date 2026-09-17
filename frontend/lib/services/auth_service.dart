@@ -20,19 +20,12 @@ class AuthService {
     // nie pokazuje (patrz ApiConfig.googleIosClientId).
     await _googleSignIn.initialize(
       serverClientId: ApiConfig.googleWebClientId,
-      clientId:
-          ApiConfig.googleIosClientId.isEmpty
-              ? null
-              : ApiConfig.googleIosClientId,
+      clientId: ApiConfig.googleIosClientId.isEmpty ? null : ApiConfig.googleIosClientId,
     );
     _googleInitialized = true;
   }
 
-  Future<AuthToken> login(
-    String email,
-    String password, {
-    String? captchaToken,
-  }) async {
+  Future<AuthToken> login(String email, String password, {String? captchaToken}) async {
     final response = await _client.post(
       ApiConfig.authLogin,
       // WAŻNE: backend (app/api/v1/auth.py) parsuje ciało żądania jako JSON
@@ -122,10 +115,7 @@ class AuthService {
 
     final idToken = googleUser.authentication.idToken;
     if (idToken == null) {
-      throw ApiException(
-        401,
-        'Nie udało się uzyskać tokenu tożsamości Google.',
-      );
+      throw ApiException(401, 'Nie udało się uzyskać tokenu tożsamości Google.');
     }
 
     final response = await _client.post(
@@ -189,10 +179,7 @@ class AuthService {
       if (e.code == AuthorizationErrorCode.canceled) {
         return false;
       }
-      throw ApiException(
-        401,
-        'Nie udało się zalogować przez Apple. Spróbuj ponownie.',
-      );
+      throw ApiException(401, 'Nie udało się zalogować przez Apple. Spróbuj ponownie.');
     }
 
     final identityToken = credential.identityToken;
@@ -200,10 +187,9 @@ class AuthService {
       throw ApiException(401, 'Nie udało się uzyskać tokenu tożsamości Apple.');
     }
 
-    final fullName = [
-      credential.givenName,
-      credential.familyName,
-    ].where((s) => s != null && s.isNotEmpty).join(' ');
+    final fullName = [credential.givenName, credential.familyName]
+        .where((s) => s != null && s.isNotEmpty)
+        .join(' ');
 
     final response = await _client.post(
       ApiConfig.authApple,
@@ -248,10 +234,11 @@ class AuthService {
     required String code,
     required String newPassword,
   }) async {
-    await _client.post(
-      ApiConfig.authResetPassword,
-      body: {'email': email, 'code': code, 'new_password': newPassword},
-    );
+    await _client.post(ApiConfig.authResetPassword, body: {
+      'email': email,
+      'code': code,
+      'new_password': newPassword,
+    });
   }
 
   Future<User> updateProfile({
@@ -271,8 +258,7 @@ class AuthService {
     final body = <String, dynamic>{};
     if (displayName != null) body['display_name'] = displayName;
     if (preferredStoreId != null) body['preferred_store_id'] = preferredStoreId;
-    if (dietaryPreferences != null)
-      body['dietary_preferences'] = dietaryPreferences;
+    if (dietaryPreferences != null) body['dietary_preferences'] = dietaryPreferences;
     if (householdSize != null) body['household_size'] = householdSize;
     if (weightKg != null) body['weight_kg'] = weightKg;
     if (heightCm != null) body['height_cm'] = heightCm;
@@ -284,8 +270,7 @@ class AuthService {
     // '' (pusty string) jest CELOWO wysyłane — to kasowanie zdjęcia
     // przy wyborze gotowej ikony. Warunek musi więc sprawdzać `!= null`,
     // nie samą "prawdziwość" wartości.
-    if (avatarPhotoBase64 != null)
-      body['avatar_photo_base64'] = avatarPhotoBase64;
+    if (avatarPhotoBase64 != null) body['avatar_photo_base64'] = avatarPhotoBase64;
 
     final response = await _client.put(ApiConfig.usersMe, body: body);
     return User.fromJson(response as Map<String, dynamic>);
@@ -301,16 +286,13 @@ class AuthService {
     required String gender,
     required String activityLevel,
   }) async {
-    final response = await _client.post(
-      ApiConfig.usersCalorieCalculator,
-      body: {
-        'weight_kg': weightKg,
-        'height_cm': heightCm,
-        'age': age,
-        'gender': gender,
-        'activity_level': activityLevel,
-      },
-    );
+    final response = await _client.post(ApiConfig.usersCalorieCalculator, body: {
+      'weight_kg': weightKg,
+      'height_cm': heightCm,
+      'age': age,
+      'gender': gender,
+      'activity_level': activityLevel,
+    });
     final data = response as Map<String, dynamic>;
     return data.map((k, v) => MapEntry(k, v as int));
   }
@@ -328,10 +310,7 @@ class AuthService {
   }
 
   Future<void> updateAllergens(List<String> allergenIds) async {
-    await _client.put(
-      ApiConfig.usersAllergens,
-      body: {'allergen_ids': allergenIds},
-    );
+    await _client.put(ApiConfig.usersAllergens, body: {'allergen_ids': allergenIds});
   }
 
   /// Trwale usuwa konto (Apple Guideline 5.1.1 v / wymóg Google Play).
@@ -365,11 +344,7 @@ class AuthService {
     return (response as List).cast<Map<String, dynamic>>();
   }
 
-  Future<void> reportRecipe(
-    String recipeId, {
-    required String reason,
-    String? details,
-  }) async {
+  Future<void> reportRecipe(String recipeId, {required String reason, String? details}) async {
     await _client.post(
       ApiConfig.recipeReport(recipeId),
       body: {'reason': reason, if (details != null) 'details': details},

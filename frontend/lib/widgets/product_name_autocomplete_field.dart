@@ -109,17 +109,16 @@ class _ProductNameAutocompleteFieldState
             labelText: widget.labelText,
             hintText: widget.hintText,
             border: const OutlineInputBorder(),
-            suffixIcon:
-                _loading
-                    ? const Padding(
-                      padding: EdgeInsets.all(14),
-                      child: SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                    )
-                    : const Icon(Icons.search),
+            suffixIcon: _loading
+                ? const Padding(
+                    padding: EdgeInsets.all(14),
+                    child: SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
+                : const Icon(Icons.search),
           ),
           validator: widget.validator,
         ),
@@ -148,8 +147,8 @@ class _ProductNameAutocompleteFieldState
                   result.source == 'catalog'
                       ? 'katalog aplikacji'
                       : result.source == 'neon_cache'
-                      ? 'wcześniej zeskanowany'
-                      : 'Open Food Facts',
+                          ? 'wcześniej zeskanowany'
+                          : 'Open Food Facts',
                 ];
                 return ListTile(
                   dense: true,
@@ -175,7 +174,10 @@ class _ProductNameAutocompleteFieldState
             padding: const EdgeInsets.only(bottom: 8),
             child: Text(
               'Możesz wybrać podpowiedź albo pozostawić własną nazwę.',
-              style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+              style: TextStyle(
+                fontSize: 11,
+                color: AppTheme.textSecondary,
+              ),
             ),
           ),
       ],

@@ -7,9 +7,7 @@ class NotificationService {
   Future<List<AppNotification>> getNotifications() async {
     final response = await _client.get('/notifications/');
     if (response is List) {
-      return response
-          .map((e) => AppNotification.fromJson(e as Map<String, dynamic>))
-          .toList();
+      return response.map((e) => AppNotification.fromJson(e as Map<String, dynamic>)).toList();
     }
     return [];
   }

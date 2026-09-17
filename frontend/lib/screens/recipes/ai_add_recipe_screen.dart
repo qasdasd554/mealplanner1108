@@ -31,8 +31,7 @@ class AiAddRecipeScreen extends StatefulWidget {
   State<AiAddRecipeScreen> createState() => _AiAddRecipeScreenState();
 }
 
-class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
-    with SingleTickerProviderStateMixin {
+class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTickerProviderStateMixin {
   late final TabController _tabController;
   final RecipeService _recipeService = RecipeService();
   final TextEditingController _textController = TextEditingController();
@@ -84,42 +83,39 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),
-            content: Text('Nie udało się pobrać zdjęcia'),
-          ),
-        );
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Nie udało się pobrać zdjęcia')),
+      );
     }
   }
 
   void _showImageSourceSheet() {
     showModalBottomSheet(
       context: context,
-      builder:
-          (ctx) => SafeArea(
-            child: Wrap(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.photo_camera_outlined),
-                  title: const Text('Zrób zdjęcie'),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _pickImage(ImageSource.camera);
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.photo_library_outlined),
-                  title: const Text('Wybierz z galerii'),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _pickImage(ImageSource.gallery);
-                  },
-                ),
-              ],
+      builder: (ctx) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: const Text('Zrób zdjęcie'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickImage(ImageSource.camera);
+              },
             ),
-          ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('Wybierz z galerii'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickImage(ImageSource.gallery);
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -199,26 +195,22 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
     if (!mounted) return;
     await showDialog<void>(
       context: context,
-      builder:
-          (ctx) => AlertDialog(
-            title: const Text('Potrzebujesz Premium albo punktów'),
-            content: Text(message),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text('Anuluj'),
-              ),
-              FilledButton(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const PremiumScreen()),
-                  );
-                },
-                child: const Text('Kup punkty'),
-              ),
-            ],
+      builder: (ctx) => AlertDialog(
+        title: const Text('Potrzebujesz Premium albo punktów'),
+        content: Text(message),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Anuluj')),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const PremiumScreen()),
+              );
+            },
+            child: const Text('Kup punkty'),
           ),
+        ],
+      ),
     );
   }
 
@@ -258,9 +250,7 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
     // dodatkowy warunek: wystarczające punkty też otwierają formularz —
     // faktyczne pobranie 2 punktów i tak następuje dopiero po stronie
     // backendu, po udanym rozpoznaniu (patrz ai_import_recipe).
-    final hasAccess =
-        (currentUser?.hasPremiumAccess ?? false) ||
-        (currentUser?.premiumPoints ?? 0) >= 2;
+    final hasAccess = (currentUser?.hasPremiumAccess ?? false) || (currentUser?.premiumPoints ?? 0) >= 2;
 
     if (!hasAccess) {
       return _buildPaywall(context);
@@ -284,17 +274,12 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
       // SafeArea, więc w trybie edge-to-edge mogły częściowo chować się
       // pod systemowym paskiem nawigacji na dole ekranu.
       body: SafeArea(
-        child:
-            _isSubmitting
-                ? _buildLoadingState()
-                : TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _buildTextTab(),
-                    _buildPhotoTab(),
-                    _buildLinkTab(),
-                  ],
-                ),
+        child: _isSubmitting
+            ? _buildLoadingState()
+            : TabBarView(
+                controller: _tabController,
+                children: [_buildTextTab(), _buildPhotoTab(), _buildLinkTab()],
+              ),
       ),
     );
   }
@@ -356,28 +341,16 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
               // się jako tekst "nie mieszczący się" w ramce do wpisywania.
               // Ukrycie licznika to standardowa, zalecana poprawka tej
               // niekompatybilności.
-              buildCounter:
-                  (
-                    context, {
-                    required currentLength,
-                    required isFocused,
-                    maxLength,
-                  }) => null,
+              buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
               decoration: InputDecoration(
-                hintText:
-                    'np. "rosół" albo pełny przepis ze składnikami i krokami...',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                hintText: 'np. "rosół" albo pełny przepis ze składnikami i krokami...',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
           ),
           if (_error != null) ...[
             const SizedBox(height: 8),
-            Text(
-              _error!,
-              style: const TextStyle(color: AppTheme.errorColor, fontSize: 13),
-            ),
+            Text(_error!, style: const TextStyle(color: AppTheme.errorColor, fontSize: 13)),
           ],
           const SizedBox(height: 12),
           SizedBox(
@@ -410,67 +383,51 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
           ),
           const SizedBox(height: 16),
           Expanded(
-            child:
-                _pickedImage != null
-                    ? Stack(
-                      children: [
-                        Positioned.fill(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: Image.file(_pickedImage!, fit: BoxFit.cover),
-                          ),
-                        ),
-                        Positioned(
-                          right: 8,
-                          top: 8,
-                          child: IconButton.filled(
-                            onPressed:
-                                () => setState(() => _pickedImage = null),
-                            icon: const Icon(Icons.close),
-                            style: IconButton.styleFrom(
-                              backgroundColor: Colors.black54,
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                    : InkWell(
-                      onTap: _showImageSourceSheet,
-                      borderRadius: BorderRadius.circular(16),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: AppTheme.surfaceColor,
+            child: _pickedImage != null
+                ? Stack(
+                    children: [
+                      Positioned.fill(
+                        child: ClipRRect(
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: AppTheme.textSecondary.withOpacity(0.3),
-                          ),
+                          child: Image.file(_pickedImage!, fit: BoxFit.cover),
                         ),
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.add_a_photo_outlined,
-                                size: 48,
-                                color: AppTheme.textSecondary,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Dotknij, aby dodać zdjęcie',
-                                style: TextStyle(color: AppTheme.textSecondary),
-                              ),
-                            ],
-                          ),
+                      ),
+                      Positioned(
+                        right: 8,
+                        top: 8,
+                        child: IconButton.filled(
+                          onPressed: () => setState(() => _pickedImage = null),
+                          icon: const Icon(Icons.close),
+                          style: IconButton.styleFrom(backgroundColor: Colors.black54),
+                        ),
+                      ),
+                    ],
+                  )
+                : InkWell(
+                    onTap: _showImageSourceSheet,
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceColor,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppTheme.textSecondary.withOpacity(0.3)),
+                      ),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.add_a_photo_outlined, size: 48, color: AppTheme.textSecondary),
+                            const SizedBox(height: 8),
+                            Text('Dotknij, aby dodać zdjęcie', style: TextStyle(color: AppTheme.textSecondary)),
+                          ],
                         ),
                       ),
                     ),
+                  ),
           ),
           if (_error != null) ...[
             const SizedBox(height: 8),
-            Text(
-              _error!,
-              style: const TextStyle(color: AppTheme.errorColor, fontSize: 13),
-            ),
+            Text(_error!, style: const TextStyle(color: AppTheme.errorColor, fontSize: 13)),
           ],
           const SizedBox(height: 12),
           SizedBox(
@@ -509,17 +466,12 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
             decoration: InputDecoration(
               hintText: 'https://...',
               prefixIcon: const Icon(Icons.link),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             ),
           ),
           if (_error != null) ...[
             const SizedBox(height: 8),
-            Text(
-              _error!,
-              style: const TextStyle(color: AppTheme.errorColor, fontSize: 13),
-            ),
+            Text(_error!, style: const TextStyle(color: AppTheme.errorColor, fontSize: 13)),
           ],
           const SizedBox(height: 20),
           SizedBox(
@@ -549,18 +501,12 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
                 color: AppTheme.secondaryColor.withOpacity(0.12),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.workspace_premium_outlined,
-                size: 40,
-                color: AppTheme.secondaryColor,
-              ),
+              child: const Icon(Icons.workspace_premium_outlined, size: 40, color: AppTheme.secondaryColor),
             ),
             const SizedBox(height: 24),
             Text(
               'Funkcja Premium',
-              style: Theme.of(
-                context,
-              ).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
@@ -569,11 +515,7 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
               'jest dostępne dla kont z aktywną subskrypcją Premium — albo za 2 punkty premium, '
               'bez subskrypcji.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppTheme.textSecondary,
-                fontSize: 15,
-                height: 1.5,
-              ),
+              style: TextStyle(color: AppTheme.textSecondary, fontSize: 15, height: 1.5),
             ),
             const SizedBox(height: 8),
             Text(

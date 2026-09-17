@@ -7,7 +7,7 @@ class ProductNameLookupService {
   final ApiClient _client;
 
   ProductNameLookupService({ApiClient? client})
-    : _client = client ?? ApiClient();
+      : _client = client ?? ApiClient();
 
   Future<List<BarcodeLookupResult>> search(
     String query, {

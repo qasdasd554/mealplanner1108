@@ -40,8 +40,7 @@ class _AdGateScreenState extends State<AdGateScreen> {
     } else {
       setState(() {
         _isLoadingAd = false;
-        _error =
-            'Nie udało się załadować reklamy. Sprawdź połączenie z internetem i spróbuj ponownie.';
+        _error = 'Nie udało się załadować reklamy. Sprawdź połączenie z internetem i spróbuj ponownie.';
       });
     }
   }
@@ -62,18 +61,12 @@ class _AdGateScreenState extends State<AdGateScreen> {
                   color: AppTheme.primaryColor.withOpacity(0.12),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.play_circle_outline,
-                  size: 48,
-                  color: AppTheme.primaryColor,
-                ),
+                child: const Icon(Icons.play_circle_outline, size: 48, color: AppTheme.primaryColor),
               ),
               const SizedBox(height: 24),
               Text(
                 'Obejrzyj krótką reklamę',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
@@ -85,39 +78,26 @@ class _AdGateScreenState extends State<AdGateScreen> {
               ),
               const SizedBox(height: 32),
               if (_error != null) ...[
-                Text(
-                  _error!,
-                  style: TextStyle(color: AppTheme.errorColor),
-                  textAlign: TextAlign.center,
-                ),
+                Text(_error!, style: TextStyle(color: AppTheme.errorColor), textAlign: TextAlign.center),
                 const SizedBox(height: 16),
               ],
               SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
                   onPressed: _isLoadingAd ? null : _watchAd,
-                  icon:
-                      _isLoadingAd
-                          ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                          : const Icon(Icons.play_arrow),
-                  label: Text(
-                    _isLoadingAd ? 'Ładowanie reklamy...' : 'Obejrzyj reklamę',
-                  ),
+                  icon: _isLoadingAd
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Icon(Icons.play_arrow),
+                  label: Text(_isLoadingAd ? 'Ładowanie reklamy...' : 'Obejrzyj reklamę'),
                 ),
               ),
               const SizedBox(height: 12),
               TextButton(
-                onPressed:
-                    _isLoadingAd
-                        ? null
-                        : () => Navigator.of(context).pop(false),
+                onPressed: _isLoadingAd ? null : () => Navigator.of(context).pop(false),
                 child: const Text('Nie teraz'),
               ),
             ],

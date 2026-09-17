@@ -66,20 +66,22 @@ class _FriendDetailScreenState extends State<FriendDetailScreen> {
             ],
           ),
           bottom: const TabBar(
-            tabs: [Tab(text: 'Przepisy'), Tab(text: 'Lista zakupów')],
+            tabs: [
+              Tab(text: 'Przepisy'),
+              Tab(text: 'Lista zakupów'),
+            ],
           ),
         ),
-        body:
-            _error != null
-                ? _ErrorState(message: _error!, onRetry: _load)
-                : (_recipes == null || _shoppingLists == null)
+        body: _error != null
+            ? _ErrorState(message: _error!, onRetry: _load)
+            : (_recipes == null || _shoppingLists == null)
                 ? const Center(child: CircularProgressIndicator())
                 : TabBarView(
-                  children: [
-                    _RecipeList(recipes: _recipes!),
-                    _ShoppingLists(lists: _shoppingLists!),
-                  ],
-                ),
+                    children: [
+                      _RecipeList(recipes: _recipes!),
+                      _ShoppingLists(lists: _shoppingLists!),
+                    ],
+                  ),
       ),
     );
   }
@@ -110,19 +112,15 @@ class _RecipeList extends StatelessWidget {
               backgroundColor: AppTheme.primaryColor.withOpacity(0.12),
               child: const Icon(Icons.restaurant_menu),
             ),
-            title: Text(
-              recipe.name,
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
+            title: Text(recipe.name, style: const TextStyle(fontWeight: FontWeight.w600)),
             subtitle: Text('${recipe.totalTimeMin} min • ${recipe.mealType}'),
             trailing: const Icon(Icons.chevron_right),
-            onTap:
-                () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const RecipeDetailScreen(),
-                    settings: RouteSettings(arguments: recipe),
-                  ),
-                ),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const RecipeDetailScreen(),
+                settings: RouteSettings(arguments: recipe),
+              ),
+            ),
           ),
         );
       },
@@ -155,22 +153,17 @@ class _ShoppingLists extends StatelessWidget {
               backgroundColor: AppTheme.secondaryColor.withOpacity(0.12),
               child: const Icon(Icons.shopping_basket_outlined),
             ),
-            title: Text(
-              list.storeName,
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
+            title: Text(list.storeName, style: const TextStyle(fontWeight: FontWeight.w600)),
             subtitle: Text('${list.checkedItems} z ${list.totalItems} kupione'),
             trailing: const Icon(Icons.visibility_outlined),
-            onTap:
-                () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder:
-                        (_) => DishShoppingListScreen(
-                          shoppingList: list,
-                          friendReadOnly: true,
-                        ),
-                  ),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => DishShoppingListScreen(
+                  shoppingList: list,
+                  friendReadOnly: true,
                 ),
+              ),
+            ),
           ),
         );
       },
@@ -186,18 +179,18 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Center(
-    child: Padding(
-      padding: const EdgeInsets.all(32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 48, color: AppTheme.textSecondary),
-          const SizedBox(height: 12),
-          Text(text, textAlign: TextAlign.center),
-        ],
-      ),
-    ),
-  );
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 48, color: AppTheme.textSecondary),
+              const SizedBox(height: 12),
+              Text(text, textAlign: TextAlign.center),
+            ],
+          ),
+        ),
+      );
 }
 
 class _ErrorState extends StatelessWidget {
@@ -208,19 +201,16 @@ class _ErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Center(
-    child: Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(message, textAlign: TextAlign.center),
-          const SizedBox(height: 12),
-          FilledButton(
-            onPressed: onRetry,
-            child: const Text('Spróbuj ponownie'),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(message, textAlign: TextAlign.center),
+              const SizedBox(height: 12),
+              FilledButton(onPressed: onRetry, child: const Text('Spróbuj ponownie')),
+            ],
           ),
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 }

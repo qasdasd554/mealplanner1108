@@ -132,11 +132,7 @@ class MealPlanProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      final updatedPlan = await _mealPlanService.swapRecipe(
-        planId,
-        entryId,
-        newRecipeId,
-      );
+      final updatedPlan = await _mealPlanService.swapRecipe(planId, entryId, newRecipeId);
       _currentPlan = updatedPlan;
       // Zaktualizuj na liście planów
       final index = _plans.indexWhere((p) => p.id == planId);

@@ -14,11 +14,13 @@ import '../utils/quantity_formatter.dart';
 class RecipeVariantEditorSheet extends StatefulWidget {
   final List<RecipeIngredient> ingredients;
 
-  const RecipeVariantEditorSheet({super.key, required this.ingredients});
+  const RecipeVariantEditorSheet({
+    super.key,
+    required this.ingredients,
+  });
 
   @override
-  State<RecipeVariantEditorSheet> createState() =>
-      _RecipeVariantEditorSheetState();
+  State<RecipeVariantEditorSheet> createState() => _RecipeVariantEditorSheetState();
 }
 
 class _RecipeVariantEditorSheetState extends State<RecipeVariantEditorSheet> {
@@ -42,9 +44,7 @@ class _RecipeVariantEditorSheetState extends State<RecipeVariantEditorSheet> {
     if (_ingredients.any((item) => item.productId == product.id)) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text('Ten produkt jest już na liście.')),
-        );
+        ..showSnackBar(const SnackBar(content: Text('Ten produkt jest już na liście.')));
       return;
     }
 
@@ -79,8 +79,7 @@ class _RecipeVariantEditorSheetState extends State<RecipeVariantEditorSheet> {
     );
     if (quantity == null || !mounted) return;
 
-    final factor =
-        ingredient.quantity > 0 ? quantity / ingredient.quantity : 1.0;
+    final factor = ingredient.quantity > 0 ? quantity / ingredient.quantity : 1.0;
     setState(() {
       _ingredients[index] = RecipeIngredient(
         id: ingredient.id,
@@ -89,12 +88,8 @@ class _RecipeVariantEditorSheetState extends State<RecipeVariantEditorSheet> {
         quantity: quantity,
         unit: ingredient.unit,
         isOptional: ingredient.isOptional,
-        kcal:
-            ingredient.kcal == null
-                ? null
-                : (ingredient.kcal! * factor).round(),
-        protein:
-            ingredient.protein == null ? null : ingredient.protein! * factor,
+        kcal: ingredient.kcal == null ? null : (ingredient.kcal! * factor).round(),
+        protein: ingredient.protein == null ? null : ingredient.protein! * factor,
         fat: ingredient.fat == null ? null : ingredient.fat! * factor,
         carbs: ingredient.carbs == null ? null : ingredient.carbs! * factor,
         product: ingredient.product,
@@ -107,41 +102,31 @@ class _RecipeVariantEditorSheetState extends State<RecipeVariantEditorSheet> {
     required double initialQuantity,
     required String unit,
   }) async {
-    final controller = TextEditingController(
-      text: formatQuantity(initialQuantity, unit),
-    );
+    final controller = TextEditingController(text: formatQuantity(initialQuantity, unit));
     return showDialog<double>(
       context: context,
-      builder:
-          (dialogContext) => AlertDialog(
-            title: Text(name),
-            content: TextField(
-              controller: controller,
-              autofocus: true,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              decoration: InputDecoration(labelText: 'Ilość ($unit)'),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Anuluj'),
-              ),
-              FilledButton(
-                onPressed: () {
-                  final value = double.tryParse(
-                    controller.text.replaceAll(',', '.'),
-                  );
-                  Navigator.pop(
-                    dialogContext,
-                    value != null && value > 0 ? value : null,
-                  );
-                },
-                child: const Text('Zmień'),
-              ),
-            ],
+      builder: (dialogContext) => AlertDialog(
+        title: Text(name),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: InputDecoration(labelText: 'Ilość ($unit)'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Anuluj'),
           ),
+          FilledButton(
+            onPressed: () {
+              final value = double.tryParse(controller.text.replaceAll(',', '.'));
+              Navigator.pop(dialogContext, value != null && value > 0 ? value : null);
+            },
+            child: const Text('Zmień'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -166,10 +151,7 @@ class _RecipeVariantEditorSheetState extends State<RecipeVariantEditorSheet> {
                 ),
               ),
               const SizedBox(height: 16),
-              Text(
-                'Zmień składniki',
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
+              Text('Zmień składniki', style: Theme.of(context).textTheme.headlineSmall),
               const SizedBox(height: 4),
               Text(
                 'Zmiany są tymczasowe. Oryginalny przepis pozostanie bez zmian.',
@@ -199,13 +181,8 @@ class _RecipeVariantEditorSheetState extends State<RecipeVariantEditorSheet> {
                         onTap: () => _editQuantity(index),
                         trailing: IconButton(
                           tooltip: 'Usuń składnik',
-                          icon: const Icon(
-                            Icons.delete_outline,
-                            color: AppTheme.errorColor,
-                          ),
-                          onPressed:
-                              () =>
-                                  setState(() => _ingredients.removeAt(index)),
+                          icon: const Icon(Icons.delete_outline, color: AppTheme.errorColor),
+                          onPressed: () => setState(() => _ingredients.removeAt(index)),
                         ),
                       ),
                     );
@@ -216,10 +193,9 @@ class _RecipeVariantEditorSheetState extends State<RecipeVariantEditorSheet> {
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
-                  onPressed:
-                      _ingredients.isEmpty
-                          ? null
-                          : () => Navigator.pop(
+                  onPressed: _ingredients.isEmpty
+                      ? null
+                      : () => Navigator.pop(
                             context,
                             List<RecipeIngredient>.from(_ingredients),
                           ),
@@ -292,61 +268,51 @@ class _VariantProductPickerState extends State<_VariantProductPicker> {
       minChildSize: 0.5,
       maxChildSize: 0.95,
       expand: false,
-      builder:
-          (context, scrollController) => Padding(
-            padding: EdgeInsets.fromLTRB(
-              16,
-              16,
-              16,
-              MediaQuery.of(context).viewInsets.bottom + 16,
+      builder: (context, scrollController) => Padding(
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          MediaQuery.of(context).viewInsets.bottom + 16,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Dodaj produkt', style: Theme.of(context).textTheme.headlineSmall),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _controller,
+              autofocus: true,
+              onChanged: _onChanged,
+              decoration: const InputDecoration(
+                hintText: 'Wpisz nazwę produktu',
+                prefixIcon: Icon(Icons.search),
+              ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Dodaj produkt',
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _controller,
-                  autofocus: true,
-                  onChanged: _onChanged,
-                  decoration: const InputDecoration(
-                    hintText: 'Wpisz nazwę produktu',
-                    prefixIcon: Icon(Icons.search),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                if (_loading) const LinearProgressIndicator(),
-                if (_error != null)
-                  Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Text(
-                      _error!,
-                      style: const TextStyle(color: AppTheme.errorColor),
-                    ),
-                  ),
-                Expanded(
-                  child: ListView.builder(
-                    controller: scrollController,
-                    itemCount: _results.length,
-                    itemBuilder: (context, index) {
-                      final product = _results[index];
-                      return ListTile(
-                        title: Text(product.name),
-                        subtitle:
-                            product.brand == null
-                                ? null
-                                : Text('Marka: ${product.brand}'),
-                        onTap: () => Navigator.pop(context, product),
-                      );
-                    },
-                  ),
-                ),
-              ],
+            const SizedBox(height: 8),
+            if (_loading) const LinearProgressIndicator(),
+            if (_error != null)
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Text(_error!, style: const TextStyle(color: AppTheme.errorColor)),
+              ),
+            Expanded(
+              child: ListView.builder(
+                controller: scrollController,
+                itemCount: _results.length,
+                itemBuilder: (context, index) {
+                  final product = _results[index];
+                  return ListTile(
+                    title: Text(product.name),
+                    subtitle: product.brand == null ? null : Text('Marka: ${product.brand}'),
+                    onTap: () => Navigator.pop(context, product),
+                  );
+                },
+              ),
             ),
-          ),
+          ],
+        ),
+      ),
     );
   }
 }

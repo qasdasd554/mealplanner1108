@@ -71,11 +71,7 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> login(
-    String email,
-    String password, {
-    String? captchaToken,
-  }) async {
+  Future<bool> login(String email, String password, {String? captchaToken}) async {
     _setLoading(true);
     _clearError();
     try {
@@ -111,9 +107,7 @@ class AuthProvider with ChangeNotifier {
     _setLoading(true);
     _clearError();
     try {
-      final success = await _authService.loginWithGoogle(
-        captchaToken: captchaToken,
-      );
+      final success = await _authService.loginWithGoogle(captchaToken: captchaToken);
       if (!success) {
         _setLoading(false);
         return false;
@@ -136,9 +130,7 @@ class AuthProvider with ChangeNotifier {
     _setLoading(true);
     _clearError();
     try {
-      final success = await _authService.loginWithApple(
-        captchaToken: captchaToken,
-      );
+      final success = await _authService.loginWithApple(captchaToken: captchaToken);
       if (!success) {
         _setLoading(false);
         return false;
@@ -155,21 +147,11 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> register(
-    String email,
-    String password,
-    String displayName, {
-    String? captchaToken,
-  }) async {
+  Future<bool> register(String email, String password, String displayName, {String? captchaToken}) async {
     _setLoading(true);
     _clearError();
     try {
-      await _authService.register(
-        email,
-        password,
-        displayName,
-        captchaToken: captchaToken,
-      );
+      await _authService.register(email, password, displayName, captchaToken: captchaToken);
 
       // Sesja jest już zapisana przez register() na podstawie tokenu
       // zwróconego przez serwer — NIE logujemy się drugi raz.
@@ -305,11 +287,7 @@ class AuthProvider with ChangeNotifier {
   }) async {
     _clearError();
     try {
-      await _authService.resetPassword(
-        email: email,
-        code: code,
-        newPassword: newPassword,
-      );
+      await _authService.resetPassword(email: email, code: code, newPassword: newPassword);
       return true;
     } catch (e) {
       _setErrorMessage(friendlyError(e));
@@ -480,18 +458,10 @@ class AuthProvider with ChangeNotifier {
     return _authService.getBlockedUsers();
   }
 
-  Future<bool> reportRecipe(
-    String recipeId, {
-    required String reason,
-    String? details,
-  }) async {
+  Future<bool> reportRecipe(String recipeId, {required String reason, String? details}) async {
     _clearError();
     try {
-      await _authService.reportRecipe(
-        recipeId,
-        reason: reason,
-        details: details,
-      );
+      await _authService.reportRecipe(recipeId, reason: reason, details: details);
       return true;
     } catch (e) {
       _setErrorMessage(friendlyError(e));
@@ -507,12 +477,7 @@ class AuthProvider with ChangeNotifier {
   }) async {
     _clearError();
     try {
-      await _authService.reportComment(
-        recipeId,
-        commentId,
-        reason: reason,
-        details: details,
-      );
+      await _authService.reportComment(recipeId, commentId, reason: reason, details: details);
       return true;
     } catch (e) {
       _setErrorMessage(friendlyError(e));

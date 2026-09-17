@@ -25,8 +25,7 @@ class SubmitRecipePhotoButton extends StatefulWidget {
   });
 
   @override
-  State<SubmitRecipePhotoButton> createState() =>
-      _SubmitRecipePhotoButtonState();
+  State<SubmitRecipePhotoButton> createState() => _SubmitRecipePhotoButtonState();
 }
 
 class _SubmitRecipePhotoButtonState extends State<SubmitRecipePhotoButton> {
@@ -54,69 +53,60 @@ class _SubmitRecipePhotoButtonState extends State<SubmitRecipePhotoButton> {
       if (!mounted) return;
       setState(() => _isSending = false);
       ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(
             duration: Duration(seconds: 3),
-            content: Text(
-              'Dziękujemy! Zdjęcie pojawi się po akceptacji przez administratora.',
-            ),
-          ),
-        );
+          content: Text('Dziękujemy! Zdjęcie pojawi się po akceptacji przez administratora.'),
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
       setState(() => _isSending = false);
       ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
+      );
     }
   }
 
   void _showSourceSheet() {
     showModalBottomSheet(
       context: context,
-      builder:
-          (sheetContext) => SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (widget.recipeHasPhoto)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                    child: Text(
-                      'Ten przepis ma już zdjęcie. Jeśli Twoje zostanie '
-                      'zaakceptowane, zastąpi obecne.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppTheme.textSecondary,
-                      ),
-                    ),
-                  ),
-                ListTile(
-                  leading: const Icon(Icons.photo_camera_outlined),
-                  title: const Text('Zrób zdjęcie'),
-                  onTap: () {
-                    Navigator.of(sheetContext).pop();
-                    _pickAndSend(ImageSource.camera);
-                  },
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (widget.recipeHasPhoto)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: Text(
+                  'Ten przepis ma już zdjęcie. Jeśli Twoje zostanie '
+                  'zaakceptowane, zastąpi obecne.',
+                  style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                 ),
-                ListTile(
-                  leading: const Icon(Icons.photo_library_outlined),
-                  title: const Text('Wybierz z galerii'),
-                  onTap: () {
-                    Navigator.of(sheetContext).pop();
-                    _pickAndSend(ImageSource.gallery);
-                  },
-                ),
-              ],
+              ),
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: const Text('Zrób zdjęcie'),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                _pickAndSend(ImageSource.camera);
+              },
             ),
-          ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('Wybierz z galerii'),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                _pickAndSend(ImageSource.gallery);
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -124,20 +114,17 @@ class _SubmitRecipePhotoButtonState extends State<SubmitRecipePhotoButton> {
   Widget build(BuildContext context) {
     return OutlinedButton.icon(
       onPressed: _isSending ? null : _showSourceSheet,
-      icon:
-          _isSending
-              ? const SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-              : const Icon(Icons.add_a_photo_outlined, size: 18),
+      icon: _isSending
+          ? const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.add_a_photo_outlined, size: 18),
       label: Text(
         _isSending
             ? 'Wysyłanie…'
-            : (widget.recipeHasPhoto
-                ? 'Zaproponuj inne zdjęcie'
-                : 'Dodaj zdjęcie'),
+            : (widget.recipeHasPhoto ? 'Zaproponuj inne zdjęcie' : 'Dodaj zdjęcie'),
       ),
     );
   }

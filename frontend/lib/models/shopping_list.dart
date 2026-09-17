@@ -35,10 +35,9 @@ class ShoppingListItem {
       departmentSortOrder: json['department_sort_order'] as int? ?? 99,
       requiredQuantity: (json['required_quantity'] as num? ?? 0.0).toDouble(),
       unit: json['unit'] as String? ?? 'szt',
-      estimatedPrice:
-          json['estimated_price'] != null
-              ? (json['estimated_price'] as num).toDouble()
-              : null,
+      estimatedPrice: json['estimated_price'] != null
+          ? (json['estimated_price'] as num).toDouble()
+          : null,
       isChecked: json['is_checked'] as bool? ?? false,
       substitutedForName: json['substituted_for_name'] as String?,
     );
@@ -67,19 +66,14 @@ class ShoppingList {
   });
 
   factory ShoppingList.fromJson(Map<String, dynamic> json) {
-    final rawGrouped =
-        json['items_by_department'] as Map<String, dynamic>? ?? {};
+    final rawGrouped = json['items_by_department'] as Map<String, dynamic>? ?? {};
     final parsedGrouped = <String, List<ShoppingListItem>>{};
 
     rawGrouped.forEach((key, value) {
       if (value is List) {
-        parsedGrouped[key] =
-            value
-                .map(
-                  (item) =>
-                      ShoppingListItem.fromJson(item as Map<String, dynamic>),
-                )
-                .toList();
+        parsedGrouped[key] = value
+            .map((item) => ShoppingListItem.fromJson(item as Map<String, dynamic>))
+            .toList();
       }
     });
 
@@ -89,8 +83,7 @@ class ShoppingList {
       storeId: json['store_id'] as String,
       storeName: json['store_name'] as String? ?? '',
       status: json['status'] as String? ?? 'pending',
-      totalEstimatedPrice:
-          (json['total_estimated_price'] as num? ?? 0.0).toDouble(),
+      totalEstimatedPrice: (json['total_estimated_price'] as num? ?? 0.0).toDouble(),
       itemsByDepartment: parsedGrouped,
       createdAt: DateTime.parse(json['created_at'] as String),
     );

@@ -23,30 +23,24 @@ class _RecipeDeleteButtonState extends State<RecipeDeleteButton> {
   Future<void> _confirmAndDelete() async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder:
-          (ctx) => AlertDialog(
-            title: const Text('Usunąć przepis?'),
-            content: Text(
-              widget.recipe.visibility == 'public'
-                  ? 'Ten przepis jest widoczny dla wszystkich — usunięcie go '
-                      'usunie go też z list zakupów i planów innych osób, które '
-                      'go używały. Tej operacji nie da się cofnąć.'
-                  : 'Tej operacji nie da się cofnąć.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Anuluj'),
-              ),
-              FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppTheme.errorColor,
-                ),
-                onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('Usuń'),
-              ),
-            ],
+      builder: (ctx) => AlertDialog(
+        title: const Text('Usunąć przepis?'),
+        content: Text(
+          widget.recipe.visibility == 'public'
+              ? 'Ten przepis jest widoczny dla wszystkich — usunięcie go '
+                  'usunie go też z list zakupów i planów innych osób, które '
+                  'go używały. Tej operacji nie da się cofnąć.'
+              : 'Tej operacji nie da się cofnąć.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Anuluj')),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: AppTheme.errorColor),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Usuń'),
           ),
+        ],
+      ),
     );
     if (confirmed != true || !mounted) return;
 
@@ -59,13 +53,11 @@ class _RecipeDeleteButtonState extends State<RecipeDeleteButton> {
       if (!mounted) return;
       setState(() => _isDeleting = false);
       ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),
-            content: Text('Nie udało się usunąć przepisu'),
-          ),
-        );
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Nie udało się usunąć przepisu')),
+      );
     }
   }
 
@@ -83,17 +75,13 @@ class _RecipeDeleteButtonState extends State<RecipeDeleteButton> {
             foregroundColor: AppTheme.errorColor,
             side: const BorderSide(color: AppTheme.errorColor),
           ),
-          icon:
-              _isDeleting
-                  ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppTheme.errorColor,
-                    ),
-                  )
-                  : const Icon(Icons.delete_outline, size: 18),
+          icon: _isDeleting
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.errorColor),
+                )
+              : const Icon(Icons.delete_outline, size: 18),
           label: const Text('Usuń przepis'),
         ),
       ),

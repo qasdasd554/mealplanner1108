@@ -101,7 +101,7 @@ class ApiClient {
   Future<dynamic> get(String path, {Duration? timeout}) async {
     final token = await getToken();
     final url = Uri.parse('${ApiConfig.apiUrl}$path');
-
+    
     try {
       final response = await http
           .get(url, headers: _headers(token))
@@ -117,13 +117,11 @@ class ApiClient {
     final url = Uri.parse('${ApiConfig.apiUrl}$path');
 
     try {
-      final response = await http
-          .post(
-            url,
-            headers: _headers(token),
-            body: body != null ? jsonEncode(body) : null,
-          )
-          .timeout(_timeout);
+      final response = await http.post(
+        url,
+        headers: _headers(token),
+        body: body != null ? jsonEncode(body) : null,
+      ).timeout(_timeout);
       return _handleResponse(response);
     } catch (e) {
       _handleError(e);
@@ -133,15 +131,13 @@ class ApiClient {
   Future<dynamic> put(String path, {dynamic body}) async {
     final token = await getToken();
     final url = Uri.parse('${ApiConfig.apiUrl}$path');
-
+    
     try {
-      final response = await http
-          .put(
-            url,
-            headers: _headers(token),
-            body: body != null ? jsonEncode(body) : null,
-          )
-          .timeout(_timeout);
+      final response = await http.put(
+        url,
+        headers: _headers(token),
+        body: body != null ? jsonEncode(body) : null,
+      ).timeout(_timeout);
       return _handleResponse(response);
     } catch (e) {
       _handleError(e);
@@ -153,13 +149,11 @@ class ApiClient {
     final url = Uri.parse('${ApiConfig.apiUrl}$path');
 
     try {
-      final response = await http
-          .patch(
-            url,
-            headers: _headers(token),
-            body: body != null ? jsonEncode(body) : null,
-          )
-          .timeout(_timeout);
+      final response = await http.patch(
+        url,
+        headers: _headers(token),
+        body: body != null ? jsonEncode(body) : null,
+      ).timeout(_timeout);
       return _handleResponse(response);
     } catch (e) {
       _handleError(e);
@@ -169,11 +163,9 @@ class ApiClient {
   Future<dynamic> delete(String path) async {
     final token = await getToken();
     final url = Uri.parse('${ApiConfig.apiUrl}$path');
-
+    
     try {
-      final response = await http
-          .delete(url, headers: _headers(token))
-          .timeout(_timeout);
+      final response = await http.delete(url, headers: _headers(token)).timeout(_timeout);
       return _handleResponse(response);
     } catch (e) {
       _handleError(e);
@@ -218,10 +210,7 @@ class ApiClient {
         'Serwer nie odpowiedział na czas. Spróbuj ponownie za chwilę.',
       );
     } else if (error is SocketException) {
-      throw ApiException(
-        503,
-        'Brak połączenia z serwerem. Sprawdź swoje połączenie internetowe.',
-      );
+      throw ApiException(503, 'Brak połączenia z serwerem. Sprawdź swoje połączenie internetowe.');
     } else {
       throw ApiException(500, 'Błąd połączenia sieciowego: $error');
     }

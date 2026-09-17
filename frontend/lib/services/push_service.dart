@@ -4,6 +4,7 @@ import 'dart:io' show Platform;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'api_client.dart';
@@ -24,6 +25,9 @@ class PushService {
   final ApiClient _client = ApiClient();
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
+  static const MethodChannel _iosPushChannel = MethodChannel(
+    'com.meal-planner-polska-v1/push',
+  );
 
   bool _available = false;
   Future<void>? _initialization;
@@ -96,11 +100,10 @@ class PushService {
           )
           .timeout(const Duration(seconds: 10));
 
-      final androidNotifications =
-          _localNotifications
-              .resolvePlatformSpecificImplementation<
-                AndroidFlutterLocalNotificationsPlugin
-              >();
+      final androidNotifications = _localNotifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
       if (androidNotifications != null) {
         await androidNotifications
             .createNotificationChannel(androidChannel)
@@ -116,9 +119,7 @@ class PushService {
     // musimy zrobić to ręcznie, inaczej powiadomienie przepadnie
     // niezauważone.
     FirebaseMessaging.onMessage.listen(_showForegroundNotification);
-    FirebaseMessaging.onMessageOpenedApp.listen(
-      (_) => _handleNotificationTap(),
-    );
+    FirebaseMessaging.onMessageOpenedApp.listen((_) => _handleNotificationTap());
 
     // Powiadomienie, które uruchomiło całkowicie zamkniętą aplikację,
     // nie emituje onMessageOpenedApp. Odbierze je SplashScreen, gdy
@@ -212,6 +213,22 @@ class PushService {
         // Użytkownik odmówił — uszanuj to i nie próbuj ponownie przy
         // każdym uruchomieniu.
         return;
+      }
+
+      // Rejestracja natywna jest wykonywana dopiero PO Firebase.initializeApp
+      // i po decyzji użytkownika. Samo requestPermission nadaje zgodę, ale
+      // nie na każdej wersji iOS/Xcode niezawodnie rozpoczyna rejestrację
+      // urządzenia w APNs. Jawne wywołanie usuwa ten wyścig, a umieszczenie
+      // go tutaj (zamiast w didFinishLaunchingWithOptions) chroni start
+      // aplikacji przed wcześniejszym białym ekranem.
+      if (Platform.isIOS) {
+        try {
+          await _iosPushChannel.invokeMethod<void>(
+            'registerForRemoteNotifications',
+          );
+        } catch (e) {
+          debugPrint('Nie udało się uruchomić rejestracji APNs: $e');
+        }
       }
 
       // NA iOS trzeba NAJPIERW poczekać na token APNs od systemu.

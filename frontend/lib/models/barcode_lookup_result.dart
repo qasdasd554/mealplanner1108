@@ -59,4 +59,5 @@ class BarcodeLookupResult {
       priceMax: _asDouble(json['price_max']),
     );
   }
+
 }

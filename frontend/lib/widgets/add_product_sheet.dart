@@ -45,10 +45,7 @@ class _AddProductSheetState extends State<AddProductSheet> {
     // naciśnięcie klawisza wysyłałoby osobne zapytanie do serwera.
     _debounce?.cancel();
     setState(() {});
-    _debounce = Timer(
-      const Duration(milliseconds: 350),
-      () => _runSearch(value),
-    );
+    _debounce = Timer(const Duration(milliseconds: 350), () => _runSearch(value));
   }
 
   Future<void> _runSearch(String value) async {
@@ -98,21 +95,18 @@ class _AddProductSheetState extends State<AddProductSheet> {
     } else {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Text(
-              provider.errorMessage ?? 'Nie udało się dodać pozycji',
-            ),
-            backgroundColor: AppTheme.errorColor,
+        ..showSnackBar(SnackBar(
+          content: Text(
+            provider.errorMessage ?? 'Nie udało się dodać pozycji',
           ),
-        );
+          backgroundColor: AppTheme.errorColor,
+        ));
     }
   }
 
   Future<void> _add(BarcodeLookupResult product) async {
     final provider = Provider.of<ShoppingListProvider>(context, listen: false);
-    final resultKey =
-        product.existingProductId ??
+    final resultKey = product.existingProductId ??
         '${product.source}:${product.barcode}:${product.name}';
     setState(() => _busyProductId = resultKey);
 
@@ -121,10 +115,9 @@ class _AddProductSheetState extends State<AddProductSheet> {
     // jeszcze pełnymi produktami katalogowymi, więc trafiają na listę jako
     // zwykła pozycja tekstowa. Użytkownik nadal może ją odhaczyć i usunąć.
     final existingProductId = product.existingProductId;
-    final ok =
-        existingProductId != null
-            ? await provider.addProduct(existingProductId)
-            : await provider.addCustomItem(product.name!.trim());
+    final ok = existingProductId != null
+        ? await provider.addProduct(existingProductId)
+        : await provider.addCustomItem(product.name!.trim());
 
     if (!mounted) return;
     setState(() => _busyProductId = null);
@@ -133,12 +126,8 @@ class _AddProductSheetState extends State<AddProductSheet> {
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            duration: const Duration(seconds: 3),
-            content: Text('Dodano: ${product.name}'),
-          ),
-        );
+        ..showSnackBar(SnackBar(
+            duration: const Duration(seconds: 3),content: Text('Dodano: ${product.name}')));
     } else {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
@@ -159,9 +148,7 @@ class _AddProductSheetState extends State<AddProductSheet> {
     return Padding(
       // Odsuwamy zawartość znad klawiatury, żeby pole wyszukiwania nie
       // chowało się pod nią po otwarciu.
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: DraggableScrollableSheet(
         initialChildSize: 0.75,
         minChildSize: 0.5,
@@ -203,22 +190,20 @@ class _AddProductSheetState extends State<AddProductSheet> {
                     SizedBox(
                       width: double.infinity,
                       child: FilledButton.icon(
-                        onPressed:
-                            _queryController.text.trim().isEmpty ||
-                                    _isAddingCustom
-                                ? null
-                                : _addCustom,
-                        icon:
-                            _isAddingCustom
-                                ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                                : const Icon(Icons.playlist_add),
+                        onPressed: _queryController.text.trim().isEmpty ||
+                                _isAddingCustom
+                            ? null
+                            : _addCustom,
+                        icon: _isAddingCustom
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(Icons.playlist_add),
                         label: const Text('Dodaj wpisaną pozycję'),
                       ),
                     ),
@@ -234,75 +219,70 @@ class _AddProductSheetState extends State<AddProductSheet> {
                 ),
               ),
               Expanded(
-                child:
-                    _isSearching
-                        ? const Center(child: CircularProgressIndicator())
-                        : _error != null
+                child: _isSearching
+                    ? const Center(child: CircularProgressIndicator())
+                    : _error != null
                         ? Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(24),
-                            child: Text(
-                              _error!,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(color: AppTheme.textSecondary),
-                            ),
-                          ),
-                        )
-                        : _results.isEmpty
-                        ? Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(24),
-                            child: Text(
-                              _queryController.text.trim().length < 2
-                                  ? 'Wpisz co najmniej 2 znaki, żeby wyszukać produkt.'
-                                  : 'Nie znaleziono produktu o takiej nazwie.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(color: AppTheme.textSecondary),
-                            ),
-                          ),
-                        )
-                        : ListView.builder(
-                          controller: scrollController,
-                          itemCount: _results.length,
-                          itemBuilder: (context, index) {
-                            final p = _results[index];
-                            final resultKey =
-                                p.existingProductId ??
-                                '${p.source}:${p.barcode}:${p.name}';
-                            final isBusy = _busyProductId == resultKey;
-                            return ListTile(
-                              title: Text(p.name ?? 'Produkt'),
-                              subtitle: Text(
-                                [
-                                  if (p.brand?.trim().isNotEmpty == true)
-                                    p.brand!.trim(),
-                                  if (p.kcalPer100 != null)
-                                    '${p.kcalPer100!.round()} kcal / 100 g',
-                                  switch (p.source) {
-                                    'catalog' => 'Katalog aplikacji',
-                                    'neon_cache' => 'Wcześniej zeskanowany',
-                                    _ => 'Open Food Facts',
-                                  },
-                                ].join(' · '),
-                                style: const TextStyle(fontSize: 12),
+                            child: Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: Text(
+                                _error!,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: AppTheme.textSecondary,
+                                ),
                               ),
-                              trailing:
-                                  isBusy
-                                      ? const SizedBox(
+                            ),
+                          )
+                    : _results.isEmpty
+                        ? Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: Text(
+                                _queryController.text.trim().length < 2
+                                    ? 'Wpisz co najmniej 2 znaki, żeby wyszukać produkt.'
+                                    : 'Nie znaleziono produktu o takiej nazwie.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: AppTheme.textSecondary),
+                              ),
+                            ),
+                          )
+                        : ListView.builder(
+                            controller: scrollController,
+                            itemCount: _results.length,
+                            itemBuilder: (context, index) {
+                              final p = _results[index];
+                              final resultKey = p.existingProductId ??
+                                  '${p.source}:${p.barcode}:${p.name}';
+                              final isBusy = _busyProductId == resultKey;
+                              return ListTile(
+                                title: Text(p.name ?? 'Produkt'),
+                                subtitle: Text(
+                                  [
+                                    if (p.brand?.trim().isNotEmpty == true)
+                                      p.brand!.trim(),
+                                    if (p.kcalPer100 != null)
+                                      '${p.kcalPer100!.round()} kcal / 100 g',
+                                    switch (p.source) {
+                                      'catalog' => 'Katalog aplikacji',
+                                      'neon_cache' => 'Wcześniej zeskanowany',
+                                      _ => 'Open Food Facts',
+                                    },
+                                  ].join(' · '),
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                                trailing: isBusy
+                                    ? const SizedBox(
                                         width: 20,
                                         height: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
+                                        child: CircularProgressIndicator(strokeWidth: 2),
                                       )
-                                      : Icon(
-                                        Icons.add_circle_outline,
-                                        color: AppTheme.primaryColor,
-                                      ),
-                              onTap: isBusy ? null : () => _add(p),
-                            );
-                          },
-                        ),
+                                    : Icon(Icons.add_circle_outline,
+                                        color: AppTheme.primaryColor),
+                                onTap: isBusy ? null : () => _add(p),
+                              );
+                            },
+                          ),
               ),
             ],
           );

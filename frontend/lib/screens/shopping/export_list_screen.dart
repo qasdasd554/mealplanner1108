@@ -7,8 +7,7 @@ import '../../models/shopping_list.dart';
 class ExportListDialog extends StatelessWidget {
   final ShoppingList shoppingList;
 
-  const ExportListDialog({Key? key, required this.shoppingList})
-    : super(key: key);
+  const ExportListDialog({Key? key, required this.shoppingList}) : super(key: key);
 
   String _formatList() {
     final buffer = StringBuffer();
@@ -20,9 +19,7 @@ class ExportListDialog extends StatelessWidget {
         buffer.writeln('\n[$department]');
         for (var item in items) {
           final status = item.isChecked ? '[x]' : '[ ]';
-          buffer.writeln(
-            '$status ${item.productName} - ${item.requiredQuantity} ${item.unit}',
-          );
+          buffer.writeln('$status ${item.productName} - ${item.requiredQuantity} ${item.unit}');
         }
       }
     });
@@ -36,11 +33,9 @@ class ExportListDialog extends StatelessWidget {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(
-          duration: Duration(seconds: 3),
-          content: Text('Skopiowano do schowka!'),
-        ),
-      );
+      const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Skopiowano do schowka!')),
+    );
     Navigator.of(context).pop();
   }
 
@@ -56,23 +51,19 @@ class ExportListDialog extends StatelessWidget {
         await launchUrlString(urlScheme);
       } else {
         ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(
-            const SnackBar(
-              duration: Duration(seconds: 3),
-              content: Text('Aplikacja nie jest zainstalowana.'),
-            ),
-          );
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+          const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Aplikacja nie jest zainstalowana.')),
+        );
       }
     } catch (e) {
       ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),
-            content: Text('Nie udało się otworzyć aplikacji.'),
-          ),
-        );
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Nie udało się otworzyć aplikacji.')),
+      );
     }
   }
 

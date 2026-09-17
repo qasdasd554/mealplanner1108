@@ -29,9 +29,7 @@ import '../screens/recipes/ai_add_recipe_screen.dart';
 /// pushReplacementNamed('/home'). Scalenie decyzji o trasie w JEDNYM
 /// miejscu (SplashScreen) eliminuje ten problem u źródła.
 class ShareIntentHandler {
-  static const MethodChannel _channel = MethodChannel(
-    'com.meal_planner_polska_v1/share_intent',
-  );
+  static const MethodChannel _channel = MethodChannel('com.meal_planner_polska_v1/share_intent');
   static final RegExp _urlPattern = RegExp(r'https?://\S+');
 
   static void initialize(GlobalKey<NavigatorState> navigatorKey) {
@@ -42,10 +40,7 @@ class ShareIntentHandler {
     });
   }
 
-  static void _handleSharedText(
-    String? sharedText,
-    GlobalKey<NavigatorState> navigatorKey,
-  ) {
+  static void _handleSharedText(String? sharedText, GlobalKey<NavigatorState> navigatorKey) {
     if (sharedText == null || sharedText.isEmpty) return;
 
     final match = _urlPattern.firstMatch(sharedText);

@@ -17,7 +17,6 @@ class User {
   final bool isEmailVerified;
   final String role;
   final bool isPremium;
-
   /// Gotowy wynik z serwera (`has_premium_access`) — uwzględnia datę
   /// wygaśnięcia i rolę admina. `null` oznacza starszy backend, który
   /// tego pola jeszcze nie zwraca (patrz getter hasPremiumAccess).
@@ -90,8 +89,7 @@ class User {
   bool get _localPremiumAccess {
     if (isAdmin) return true;
     if (!isPremium) return false;
-    if (premiumExpiresAt != null &&
-        premiumExpiresAt!.isBefore(DateTime.now())) {
+    if (premiumExpiresAt != null && premiumExpiresAt!.isBefore(DateTime.now())) {
       return false;
     }
     return true;
@@ -127,10 +125,9 @@ class User {
       role: json['role'] as String? ?? 'user',
       isPremium: json['is_premium'] as bool? ?? false,
       hasPremiumAccessFromServer: json['has_premium_access'] as bool?,
-      premiumExpiresAt:
-          json['premium_expires_at'] != null
-              ? DateTime.tryParse(json['premium_expires_at'] as String)
-              : null,
+      premiumExpiresAt: json['premium_expires_at'] != null
+          ? DateTime.tryParse(json['premium_expires_at'] as String)
+          : null,
       premiumProductId: json['premium_product_id'] as String?,
       premiumPoints: json['premium_points'] as int? ?? 0,
       createdAt: DateTime.parse(json['created_at'] as String),
@@ -187,7 +184,10 @@ class AuthToken {
   final String accessToken;
   final String tokenType;
 
-  AuthToken({required this.accessToken, required this.tokenType});
+  AuthToken({
+    required this.accessToken,
+    required this.tokenType,
+  });
 
   factory AuthToken.fromJson(Map<String, dynamic> json) {
     final token = json['access_token'] as String?;

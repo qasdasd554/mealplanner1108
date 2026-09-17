@@ -1,5 +1,6 @@
 """Regresje kontraktu tras używanych bezpośrednio przez aplikację."""
 
+from app.api.v1.users import AdminUserEntry
 from app.main import app
 
 
@@ -37,3 +38,7 @@ def test_openapi_operation_ids_are_unique() -> None:
 
 def test_backend_release_matches_mobile_build() -> None:
     assert app.version == "1.0.22"
+
+
+def test_admin_user_contract_contains_both_avatar_variants() -> None:
+    assert {"avatar", "avatar_photo_base64"} <= AdminUserEntry.model_fields.keys()

@@ -44,11 +44,7 @@ class BillingService {
   /// Pobiera prawdziwe, lokalne ceny (uwzględniające walutę i podatki
   /// danego kraju) dla obu planów subskrypcji.
   Future<ProductDetailsResponse> queryProducts() {
-    return _iap.queryProductDetails({
-      kWeeklyProductId,
-      kMonthlyProductId,
-      kYearlyProductId,
-    });
+    return _iap.queryProductDetails({kWeeklyProductId, kMonthlyProductId, kYearlyProductId});
   }
 
   /// Rozpoczyna zakup — wynik przyjdzie asynchronicznie przez
@@ -89,11 +85,7 @@ class BillingService {
   }) async {
     final response = await _client.post(
       ApiConfig.billingVerify,
-      body: {
-        'purchase_token': purchaseToken,
-        'product_id': productId,
-        'platform': _currentStorePlatform,
-      },
+      body: {'purchase_token': purchaseToken, 'product_id': productId, 'platform': _currentStorePlatform},
     );
     return response as Map<String, dynamic>;
   }
@@ -107,22 +99,14 @@ class BillingService {
   }) async {
     final response = await _client.post(
       ApiConfig.billingRestore,
-      body: {
-        'purchase_token': purchaseToken,
-        'product_id': productId,
-        'platform': _currentStorePlatform,
-      },
+      body: {'purchase_token': purchaseToken, 'product_id': productId, 'platform': _currentStorePlatform},
     );
     return response as Map<String, dynamic>;
   }
 
   /// Pobiera prawdziwe, lokalne ceny pakietów punktów premium.
   Future<ProductDetailsResponse> queryPointsProducts() {
-    return _iap.queryProductDetails({
-      kPoints10ProductId,
-      kPoints20ProductId,
-      kPoints50ProductId,
-    });
+    return _iap.queryProductDetails({kPoints10ProductId, kPoints20ProductId, kPoints50ProductId});
   }
 
   /// Rozpoczyna zakup pakietu punktów — KONSUMOWALNY zakup
@@ -142,11 +126,7 @@ class BillingService {
   }) async {
     final response = await _client.post(
       ApiConfig.billingVerifyPoints,
-      body: {
-        'purchase_token': purchaseToken,
-        'product_id': productId,
-        'platform': _currentStorePlatform,
-      },
+      body: {'purchase_token': purchaseToken, 'product_id': productId, 'platform': _currentStorePlatform},
     );
     return (response as Map<String, dynamic>)['premium_points'] as int;
   }

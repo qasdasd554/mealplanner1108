@@ -327,12 +327,16 @@ async def get_recipe(
         raise NotFoundException(
             detail=f"Przepis o ID {recipe_id} nie został znaleziony"
         )
-    # Prywatny przepis może zobaczyć właściciel oraz zaakceptowany znajomy.
+    # Prywatny/oczekujący przepis może zobaczyć właściciel, administrator
+    # wykonujący moderację oraz zaakceptowany znajomy. Wcześniej administrator
+    # dostawał 404 po wejściu ze swojej listy „do akceptacji”, więc ekran
+    # szczegółów nie mógł odświeżyć pełnych danych przed decyzją.
     # Dla wszystkich pozostałych zachowujemy 404, żeby nie ujawniać nawet
     # samego faktu istnienia prywatnej treści.
     is_own = recipe.created_by_user_id == current_user.id
     is_public = recipe.visibility == "public"
-    if recipe.created_by_user_id is not None and not is_own and not is_public:
+    is_admin = current_user.role == "admin"
+    if recipe.created_by_user_id is not None and not is_own and not is_public and not is_admin:
         friend_result = await db.execute(
             select(Friendship.id).where(
                 Friendship.status == "accepted",
@@ -444,6 +448,9 @@ async def create_recipe(
         .options(
             selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product),
             selectinload(Recipe.tags),
+            # Nazwa i awatar autora są istotne dla moderatora przed
+            # opublikowaniem przepisu we wspólnym katalogu.
+            selectinload(Recipe.creator),
         )
         .where(Recipe.id == recipe.id)
     )
@@ -696,6 +703,7 @@ async def list_pending_recipes(
         .options(
             selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product),
             selectinload(Recipe.tags),
+            selectinload(Recipe.creator),
         )
         .where(Recipe.visibility == "pending")
         .order_by(Recipe.created_at)

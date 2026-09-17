@@ -8,6 +8,7 @@ from uuid import uuid4
 import pytest
 
 from app.api.v1.shopping_lists import ShareShoppingListRequest, share_shopping_list
+from app.api.v1.recipes import get_recipe
 from app.api.v1.users import block_user
 
 
@@ -63,3 +64,25 @@ async def test_repeated_block_still_revokes_friendship_and_list_shares() -> None
     # udostępnień list. Wcześniej funkcja kończyła się po pierwszym kroku.
     assert db.execute.await_count == 3
     db.commit.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_admin_can_review_a_pending_recipe_without_being_the_author_or_friend() -> None:
+    recipe = SimpleNamespace(
+        id=uuid4(),
+        created_by_user_id=uuid4(),
+        visibility="pending",
+    )
+    recipe_result = _result(recipe)
+    favorites_result = MagicMock()
+    favorites_result.scalars.return_value.all.return_value = []
+    db = AsyncMock()
+    db.execute.side_effect = [recipe_result, favorites_result]
+    admin = SimpleNamespace(id=uuid4(), role="admin")
+
+    response = await get_recipe(recipe.id, current_user=admin, db=db)
+
+    assert response is recipe
+    assert response.is_own_recipe is False
+    # Zapytanie o znajomość nie powinno być potrzebne administratorowi.
+    assert db.execute.await_count == 2

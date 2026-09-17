@@ -20,13 +20,13 @@ class FriendEntry {
   });
 
   factory FriendEntry.fromJson(Map<String, dynamic> json) => FriendEntry(
-    connectionId: json['connection_id'] as String,
-    userId: json['user_id'] as String,
-    displayName: json['display_name'] as String? ?? 'Użytkownik',
-    avatar: json['avatar'] as String?,
-    avatarPhotoBase64: json['avatar_photo_base64'] as String?,
-    status: json['status'] as String? ?? 'pending',
-    direction: json['direction'] as String?,
-    createdAt: DateTime.parse(json['created_at'] as String),
-  );
+        connectionId: json['connection_id'] as String,
+        userId: json['user_id'] as String,
+        displayName: json['display_name'] as String? ?? 'Użytkownik',
+        avatar: json['avatar'] as String?,
+        avatarPhotoBase64: json['avatar_photo_base64'] as String?,
+        status: json['status'] as String? ?? 'pending',
+        direction: json['direction'] as String?,
+        createdAt: DateTime.parse(json['created_at'] as String),
+      );
 }

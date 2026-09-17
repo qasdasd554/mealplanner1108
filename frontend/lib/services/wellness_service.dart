@@ -15,11 +15,11 @@ class ActivityEntry {
   });
 
   factory ActivityEntry.fromJson(Map<String, dynamic> json) => ActivityEntry(
-    id: json['id'] as String,
-    name: json['name'] as String,
-    kcalBurned: json['kcal_burned'] as int,
-    durationMin: json['duration_min'] as int?,
-  );
+        id: json['id'] as String,
+        name: json['name'] as String,
+        kcalBurned: json['kcal_burned'] as int,
+        durationMin: json['duration_min'] as int?,
+      );
 }
 
 /// Nawodnienie i aktywności z jednego dnia.
@@ -37,21 +37,20 @@ class DailyWellness {
   });
 
   factory DailyWellness.empty() => DailyWellness(
-    waterMl: 0,
-    waterGoalMl: 2000,
-    activities: const [],
-    totalKcalBurned: 0,
-  );
+        waterMl: 0,
+        waterGoalMl: 2000,
+        activities: const [],
+        totalKcalBurned: 0,
+      );
 
   factory DailyWellness.fromJson(Map<String, dynamic> json) {
     final water = json['water'] as Map<String, dynamic>? ?? {};
     return DailyWellness(
       waterMl: water['amount_ml'] as int? ?? 0,
       waterGoalMl: water['goal_ml'] as int? ?? 2000,
-      activities:
-          ((json['activities'] as List?) ?? [])
-              .map((e) => ActivityEntry.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      activities: ((json['activities'] as List?) ?? [])
+          .map((e) => ActivityEntry.fromJson(e as Map<String, dynamic>))
+          .toList(),
       totalKcalBurned: json['total_kcal_burned'] as int? ?? 0,
     );
   }

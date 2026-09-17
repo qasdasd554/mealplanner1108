@@ -9,7 +9,12 @@ void main() {
       'brand': 'Marka',
       'unit': 'g',
       'default_quantity': 100,
-      'nutrition_per_100': {'kcal': 250, 'protein': 8, 'fat': 10, 'carbs': 30},
+      'nutrition_per_100': {
+        'kcal': 250,
+        'protein': 8,
+        'fat': 10,
+        'carbs': 30,
+      },
       'source': 'scan',
     });
 

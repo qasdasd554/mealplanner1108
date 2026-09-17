@@ -102,10 +102,9 @@ class _PickProductFromCatalogSheetState
       final response = await _client.get(
         '$endpoint?skip=$skip&limit=$pageSize$queryPart',
       );
-      final page =
-          (response as List)
-              .map((item) => Product.fromJson(item as Map<String, dynamic>))
-              .toList();
+      final page = (response as List)
+          .map((item) => Product.fromJson(item as Map<String, dynamic>))
+          .toList();
       products.addAll(page);
       if (page.length < pageSize) break;
     }
@@ -134,8 +133,7 @@ class _PickProductFromCatalogSheetState
       final merged = <String, Product>{};
       for (final response in responses) {
         for (final product in response) {
-          final key =
-              '${product.name.trim().toLowerCase()}|'
+          final key = '${product.name.trim().toLowerCase()}|'
               '${(product.brand ?? '').trim().toLowerCase()}';
           // Katalog oficjalny jest pobierany pierwszy i ma pierwszeństwo
           // przed takim samym rekordem z cache skanera.
@@ -143,8 +141,8 @@ class _PickProductFromCatalogSheetState
         }
       }
       setState(() {
-        _results =
-            merged.values.toList()..sort((a, b) => a.name.compareTo(b.name));
+        _results = merged.values.toList()
+          ..sort((a, b) => a.name.compareTo(b.name));
       });
     } catch (e) {
       if (!mounted || generation != _requestGeneration) return;
@@ -178,15 +176,13 @@ class _PickProductFromCatalogSheetState
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(
-            const SnackBar(
-              duration: Duration(seconds: 4),
-              content: Text(
-                'Nie znaleziono tego produktu. Możesz dodać go ręcznie przez '
-                'Produkty → Moje → Dodaj produkt (ten sam kod da się tam zeskanować).',
-              ),
+          ..showSnackBar(const SnackBar(
+            duration: Duration(seconds: 4),
+            content: Text(
+              'Nie znaleziono tego produktu. Możesz dodać go ręcznie przez '
+              'Produkty → Moje → Dodaj produkt (ten sam kod da się tam zeskanować).',
             ),
-          );
+          ));
         return;
       }
 
@@ -216,24 +212,18 @@ class _PickProductFromCatalogSheetState
                   ),
                 TextField(
                   controller: controller,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   autofocus: true,
                   decoration: const InputDecoration(labelText: 'Ilość (g)'),
                 ),
               ],
             ),
             actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text('Anuluj'),
-              ),
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Anuluj')),
               FilledButton(
                 onPressed: () {
-                  final val = double.tryParse(
-                    controller.text.replaceAll(',', '.'),
-                  );
+                  final val = double.tryParse(controller.text.replaceAll(',', '.'));
                   Navigator.pop(ctx, val);
                 },
                 child: const Text('Dalej'),
@@ -260,12 +250,10 @@ class _PickProductFromCatalogSheetState
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
-          ),
-        );
+        ..showSnackBar(SnackBar(
+          duration: const Duration(seconds: 3),
+          content: Text(friendlyError(e)),
+        ));
     }
   }
 
@@ -274,10 +262,9 @@ class _PickProductFromCatalogSheetState
       context: context,
       builder: (ctx) {
         final controller = TextEditingController(
-          text:
-              product.defaultQuantity > 0
-                  ? product.defaultQuantity.toStringAsFixed(0)
-                  : '100',
+          text: product.defaultQuantity > 0
+              ? product.defaultQuantity.toStringAsFixed(0)
+              : '100',
         );
         return AlertDialog(
           title: Text(product.name),
@@ -297,9 +284,7 @@ class _PickProductFromCatalogSheetState
             ),
             FilledButton(
               onPressed: () {
-                final val = double.tryParse(
-                  controller.text.replaceAll(',', '.'),
-                );
+                final val = double.tryParse(controller.text.replaceAll(',', '.'));
                 Navigator.pop(ctx, val);
               },
               child: const Text('Dalej'),
@@ -353,70 +338,67 @@ class _PickProductFromCatalogSheetState
       children: [
         if (showHandle) ...[
           const SizedBox(height: 10),
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: AppTheme.textSecondary.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-        ],
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
-          child: TextField(
-            controller: _searchController,
-            autofocus: !widget.scanOnOpen,
-            onChanged: _onQueryChanged,
-            decoration: InputDecoration(
-              hintText: 'Szukaj produktu...',
-              prefixIcon: const Icon(Icons.search),
-              // Skanowanie tuż obok pola wyszukiwania — szybsza
-              // alternatywa dla wpisywania nazwy, gdy opakowanie
-              // jest pod ręką.
-              suffixIcon: IconButton(
-                icon: const Icon(Icons.barcode_reader),
-                tooltip: 'Skanuj kod kreskowy',
-                onPressed: _scanBarcode,
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppTheme.textSecondary.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(2),
               ),
             ),
-          ),
-        ),
-        Expanded(
-          child:
-              _isLoading && _results.isEmpty
+        ],
+        Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+              child: TextField(
+                controller: _searchController,
+                autofocus: !widget.scanOnOpen,
+                onChanged: _onQueryChanged,
+                decoration: InputDecoration(
+                  hintText: 'Szukaj produktu...',
+                  prefixIcon: const Icon(Icons.search),
+                  // Skanowanie tuż obok pola wyszukiwania — szybsza
+                  // alternatywa dla wpisywania nazwy, gdy opakowanie
+                  // jest pod ręką.
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.barcode_reader),
+                    tooltip: 'Skanuj kod kreskowy',
+                    onPressed: _scanBarcode,
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: _isLoading && _results.isEmpty
                   ? const Center(child: CircularProgressIndicator())
                   : _error != null
-                  ? Center(
-                    child: Text(
-                      _error!,
-                      style: TextStyle(color: AppTheme.textSecondary),
-                    ),
-                  )
-                  : _results.isEmpty
-                  ? Center(
-                    child: Text(
-                      'Brak produktów pasujących do wyszukiwania.',
-                      style: TextStyle(color: AppTheme.textSecondary),
-                    ),
-                  )
-                  : ListView.builder(
-                    controller: scrollController,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: _results.length,
-                    itemBuilder: (context, index) {
-                      final p = _results[index];
-                      return ListTile(
-                        title: Text(p.name),
-                        subtitle: Text(
-                          '${p.nutritionPer100.kcal.round()} kcal / 100${p.unit == 'ml' || p.unit == 'l' ? 'ml' : 'g'}'
-                          '${p.brand != null && p.brand!.isNotEmpty ? ' · ${p.brand}' : ''}'
-                          '${p.source == 'scan' ? ' · zeskanowany' : ''}',
-                        ),
-                        onTap: () => _pickProduct(p),
-                      );
-                    },
-                  ),
+                      ? Center(
+                          child: Text(_error!,
+                              style: TextStyle(color: AppTheme.textSecondary)),
+                        )
+                      : _results.isEmpty
+                          ? Center(
+                              child: Text(
+                                'Brak produktów pasujących do wyszukiwania.',
+                                style: TextStyle(color: AppTheme.textSecondary),
+                              ),
+                            )
+                          : ListView.builder(
+                              controller: scrollController,
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              itemCount: _results.length,
+                              itemBuilder: (context, index) {
+                                final p = _results[index];
+                                return ListTile(
+                                  title: Text(p.name),
+                                  subtitle: Text(
+                                    '${p.nutritionPer100.kcal.round()} kcal / 100${p.unit == 'ml' || p.unit == 'l' ? 'ml' : 'g'}'
+                                    '${p.brand != null && p.brand!.isNotEmpty ? ' · ${p.brand}' : ''}'
+                                    '${p.source == 'scan' ? ' · zeskanowany' : ''}',
+                                  ),
+                                  onTap: () => _pickProduct(p),
+                                );
+                              },
+                            ),
         ),
       ],
     );

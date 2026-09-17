@@ -10,8 +10,10 @@ import 'admin_comments_screen.dart';
 import 'admin_photos_screen.dart';
 import 'admin_products_screen.dart';
 import 'admin_all_recipes_screen.dart';
+import '../recipes/recipe_detail_screen.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
+import '../../widgets/user_avatar.dart';
 
 /// Panel administratora — na razie tylko skanowanie gazetek promocyjnych
 /// przez AI i akceptacja/odrzucanie znalezionych promocji. Widoczny
@@ -86,24 +88,19 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       if (!mounted) return;
       _broadcastController.clear();
       ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            duration: const Duration(seconds: 3),
-            content: Text('Wysłano do $sentTo użytkowników.'),
-          ),
-        );
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text('Wysłano do $sentTo użytkowników.')),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
+      );
     } finally {
       if (mounted) setState(() => _isSendingBroadcast = false);
     }
@@ -123,10 +120,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Zgłoszenia treści',
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
+        Text('Zgłoszenia treści', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 4),
         Text(
           'Przepisy i komentarze zgłoszone przez użytkowników jako spam, nękanie '
@@ -135,37 +129,23 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         ),
         const SizedBox(height: 12),
         if (_isLoadingReports)
-          const Center(
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: CircularProgressIndicator(),
-            ),
-          )
+          const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()))
         else if (_reportsError != null)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  _reportsError!,
-                  style: TextStyle(color: AppTheme.errorColor),
-                ),
+                Text(_reportsError!, style: TextStyle(color: AppTheme.errorColor)),
                 const SizedBox(height: 8),
-                TextButton(
-                  onPressed: _loadReports,
-                  child: const Text('Spróbuj ponownie'),
-                ),
+                TextButton(onPressed: _loadReports, child: const Text('Spróbuj ponownie')),
               ],
             ),
           )
         else if (_reports.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Text(
-              'Brak nierozpatrzonych zgłoszeń.',
-              style: TextStyle(color: AppTheme.textSecondary),
-            ),
+            child: Text('Brak nierozpatrzonych zgłoszeń.', style: TextStyle(color: AppTheme.textSecondary)),
           )
         else
           ..._reports.map((report) {
@@ -184,9 +164,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
               decoration: BoxDecoration(
                 color: AppTheme.surfaceColor,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: AppTheme.errorColor.withOpacity(0.25),
-                ),
+                border: Border.all(color: AppTheme.errorColor.withOpacity(0.25)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -194,38 +172,25 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                   Row(
                     children: [
                       Icon(
-                        contentType == 'recipe'
-                            ? Icons.menu_book_outlined
-                            : Icons.chat_bubble_outline,
+                        contentType == 'recipe' ? Icons.menu_book_outlined : Icons.chat_bubble_outline,
                         size: 16,
                         color: AppTheme.textSecondary,
                       ),
                       const SizedBox(width: 6),
                       Text(
                         contentType == 'recipe' ? 'Przepis' : 'Komentarz',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppTheme.textSecondary,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: TextStyle(fontSize: 12, color: AppTheme.textSecondary, fontWeight: FontWeight.bold),
                       ),
                       const Spacer(),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
                           color: AppTheme.errorColor.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           _reasonLabels[reason] ?? reason,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: AppTheme.errorColor,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: TextStyle(fontSize: 11, color: AppTheme.errorColor, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ],
@@ -234,19 +199,13 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                   if (preview != null && preview.isNotEmpty)
                     Text(
                       '"$preview"',
-                      style: const TextStyle(
-                        fontStyle: FontStyle.italic,
-                        fontSize: 13,
-                      ),
+                      style: const TextStyle(fontStyle: FontStyle.italic, fontSize: 13),
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                     ),
                   if (details != null && details.isNotEmpty) ...[
                     const SizedBox(height: 6),
-                    Text(
-                      'Szczegóły od zgłaszającego: $details',
-                      style: const TextStyle(fontSize: 12),
-                    ),
+                    Text('Szczegóły od zgłaszającego: $details', style: const TextStyle(fontSize: 12)),
                   ],
                   const SizedBox(height: 6),
                   Text(
@@ -254,10 +213,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                       if (authorEmail != null) 'Autor: $authorEmail',
                       if (reporterEmail != null) 'Zgłosił: $reporterEmail',
                     ].join('  ·  '),
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: AppTheme.textSecondary,
-                    ),
+                    style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
                   ),
                   const SizedBox(height: 12),
                   // Wrap zamiast Row: dwa przyciski z długimi etykietami
@@ -271,10 +227,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                     runSpacing: 4,
                     children: [
                       TextButton(
-                        onPressed:
-                            isBusy
-                                ? null
-                                : () => _resolveReport(id, 'dismissed'),
+                        onPressed: isBusy ? null : () => _resolveReport(id, 'dismissed'),
                         child: const Text('Odrzuć zgłoszenie'),
                       ),
                       // Usunięcie SAMEJ TREŚCI. Wcześniej panel pozwalał
@@ -282,32 +235,20 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                       // zostawał w aplikacji — moderacja kończyła się na
                       // odhaczeniu, bez żadnego skutku dla użytkowników.
                       TextButton(
-                        style: TextButton.styleFrom(
-                          foregroundColor: AppTheme.errorColor,
-                        ),
-                        onPressed:
-                            isBusy ? null : () => _deleteReportedContent(id),
+                        style: TextButton.styleFrom(foregroundColor: AppTheme.errorColor),
+                        onPressed: isBusy ? null : () => _deleteReportedContent(id),
                         child: const Text('Usuń treść'),
                       ),
                       FilledButton(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: AppTheme.errorColor,
-                        ),
-                        onPressed:
-                            isBusy
-                                ? null
-                                : () => _resolveReport(id, 'resolved'),
-                        child:
-                            isBusy
-                                ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                                : const Text('Oznacz jako rozpatrzone'),
+                        style: FilledButton.styleFrom(backgroundColor: AppTheme.errorColor),
+                        onPressed: isBusy ? null : () => _resolveReport(id, 'resolved'),
+                        child: isBusy
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              )
+                            : const Text('Oznacz jako rozpatrzone'),
                       ),
                     ],
                   ),
@@ -323,10 +264,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Wyślij powiadomienie do wszystkich',
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
+        Text('Wyślij powiadomienie do wszystkich', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 4),
         Text(
           'Trafi do dzwoneczka powiadomień KAŻDEGO użytkownika aplikacji — nieodwracalne, sprawdź treść przed wysłaniem.',
@@ -346,17 +284,11 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
           width: double.infinity,
           child: FilledButton.icon(
             onPressed: _isSendingBroadcast ? null : _sendBroadcast,
-            icon:
-                _isSendingBroadcast
-                    ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                    : const Icon(Icons.campaign_outlined),
+            icon: _isSendingBroadcast
+                ? const SizedBox(
+                    width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                  )
+                : const Icon(Icons.campaign_outlined),
             label: const Text('Wyślij do wszystkich'),
           ),
         ),
@@ -417,26 +349,24 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       final result = await _service.triggerAiScan(storeName);
       if (!mounted) return;
       ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(
-              'Znaleziono ${result['found']}, zakolejkowano ${result['queued_for_review']} do akceptacji.',
-            ),
+          content: Text(
+            'Znaleziono ${result['found']}, zakolejkowano ${result['queued_for_review']} do akceptacji.',
           ),
-        );
+        ),
+      );
       await _loadPending();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
-          ),
-        );
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(friendlyError(e))),
+      );
     } finally {
       if (mounted) setState(() => _scanningStore = null);
     }
@@ -455,25 +385,19 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         _pending.removeWhere((p) => p.id == promotion.id);
       });
       ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            duration: const Duration(seconds: 3),
-            content: Text(
-              approve ? 'Promocja zaakceptowana' : 'Promocja odrzucona',
-            ),
-          ),
-        );
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(approve ? 'Promocja zaakceptowana' : 'Promocja odrzucona')),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),
-            content: Text('Nie udało się wykonać akcji'),
-          ),
-        );
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Nie udało się wykonać akcji')),
+      );
     } finally {
       if (mounted) setState(() => _busyPromotionIds.remove(promotion.id));
     }
@@ -495,8 +419,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       if (!mounted) return;
       setState(() {
         _isLoadingPendingRecipes = false;
-        _pendingRecipesError =
-            'Nie udało się wczytać listy oczekujących przepisów.';
+        _pendingRecipesError = 'Nie udało się wczytać listy oczekujących przepisów.';
       });
     }
   }
@@ -525,27 +448,24 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   Future<void> _deleteReportedContent(String reportId) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder:
-          (ctx) => AlertDialog(
-            title: const Text('Usunąć zgłoszoną treść?'),
-            content: const Text(
-              'Komentarz albo przepis zostanie trwale usunięty, a zgłoszenie '
-              'zamknięte. Tej operacji nie da się cofnąć.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(false),
-                child: const Text('Anuluj'),
-              ),
-              FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppTheme.errorColor,
-                ),
-                onPressed: () => Navigator.of(ctx).pop(true),
-                child: const Text('Usuń'),
-              ),
-            ],
+      builder: (ctx) => AlertDialog(
+        title: const Text('Usunąć zgłoszoną treść?'),
+        content: const Text(
+          'Komentarz albo przepis zostanie trwale usunięty, a zgłoszenie '
+          'zamknięte. Tej operacji nie da się cofnąć.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Anuluj'),
           ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: AppTheme.errorColor),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Usuń'),
+          ),
+        ],
+      ),
     );
     if (confirmed != true) return;
 
@@ -559,24 +479,15 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       });
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),
-            content: Text('Treść usunięta, zgłoszenie zamknięte'),
-          ),
-        );
+        ..showSnackBar(const SnackBar(
+            duration: Duration(seconds: 3),content: Text('Treść usunięta, zgłoszenie zamknięte')));
     } catch (e) {
       if (!mounted) return;
       setState(() => _busyReportIds.remove(reportId));
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
+        ..showSnackBar(SnackBar(
+            duration: const Duration(seconds: 3),content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor));
     }
   }
 
@@ -590,28 +501,22 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         _busyReportIds.remove(reportId);
       });
       ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(
-              status == 'resolved'
-                  ? 'Zgłoszenie oznaczone jako rozpatrzone'
-                  : 'Zgłoszenie odrzucone',
-            ),
-          ),
-        );
+          content: Text(status == 'resolved' ? 'Zgłoszenie oznaczone jako rozpatrzone' : 'Zgłoszenie odrzucone'),
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
       setState(() => _busyReportIds.remove(reportId));
       ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
-          ),
-        );
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(friendlyError(e))),
+      );
     }
   }
 
@@ -628,28 +533,35 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         _pendingRecipes.removeWhere((r) => r.id == recipe.id);
       });
       ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            duration: const Duration(seconds: 3),
-            content: Text(
-              approve ? 'Przepis zaakceptowany' : 'Przepis odrzucony',
-            ),
-          ),
-        );
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(approve ? 'Przepis zaakceptowany' : 'Przepis odrzucony')),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
-          ),
-        );
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+            duration: const Duration(seconds: 3),content: Text(friendlyError(e))),
+      );
     } finally {
       if (mounted) setState(() => _busyRecipeIds.remove(recipe.id));
     }
+  }
+
+  Future<void> _openRecipeForReview(Recipe recipe) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const RecipeDetailScreen(),
+        settings: RouteSettings(arguments: recipe),
+      ),
+    );
+    // Na ekranie szczegółów administrator ma również pasek decyzji.
+    // Po powrocie odświeżamy kolejkę, żeby zaakceptowany lub odrzucony
+    // przepis nie pozostał na liście jako oczekujący.
+    if (mounted) await _loadPendingRecipes();
   }
 
   @override
@@ -658,11 +570,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       appBar: AppBar(title: const Text('Panel administratora')),
       body: RefreshIndicator(
         onRefresh: () async {
-          await Future.wait([
-            _loadPending(),
-            _loadPendingRecipes(),
-            _loadReports(),
-          ]);
+          await Future.wait([_loadPending(), _loadPendingRecipes(), _loadReports()]);
         },
         color: AppTheme.primaryColor,
         child: ListView(
@@ -672,10 +580,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             // wcześniej nie było tu żadnej listy, mimo że backend i
             // przyciski akceptacji/odrzucenia (RecipeApprovalBar) już
             // istniały — admin nie miał jak w ogóle odkryć, że coś czeka.
-            Text(
-              'Przepisy oczekujące na akceptację',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
+            Text('Przepisy oczekujące na akceptację', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 4),
             Text(
               'Przepisy zgłoszone przez użytkowników Premium do wspólnego, publicznego katalogu.',
@@ -683,27 +588,16 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             ),
             const SizedBox(height: 12),
             if (_isLoadingPendingRecipes)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: CircularProgressIndicator(),
-                ),
-              )
+              const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()))
             else if (_pendingRecipesError != null)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      _pendingRecipesError!,
-                      style: TextStyle(color: AppTheme.errorColor),
-                    ),
+                    Text(_pendingRecipesError!, style: TextStyle(color: AppTheme.errorColor)),
                     const SizedBox(height: 8),
-                    TextButton(
-                      onPressed: _loadPendingRecipes,
-                      child: const Text('Spróbuj ponownie'),
-                    ),
+                    TextButton(onPressed: _loadPendingRecipes, child: const Text('Spróbuj ponownie')),
                   ],
                 ),
               )
@@ -720,61 +614,112 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                 final isBusy = _busyRecipeIds.contains(recipe.id);
                 return Card(
                   margin: const EdgeInsets.only(bottom: 10),
-                  child: Padding(
-                    padding: const EdgeInsets.all(14),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          recipe.name,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${recipe.mealType} • ${recipe.servings} porcji • ${recipe.difficulty}',
-                          style: TextStyle(
-                            color: AppTheme.textSecondary,
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: OutlinedButton(
-                                onPressed:
-                                    isBusy
-                                        ? null
-                                        : () => _actOnRecipe(recipe, false),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: AppTheme.errorColor,
-                                ),
-                                child: const Text('Odrzuć'),
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    onTap: isBusy ? null : () => _openRecipeForReview(recipe),
+                    child: Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              UserAvatar(
+                                avatar: recipe.createdByAvatar,
+                                avatarPhotoBase64: recipe.createdByAvatarPhoto,
+                                size: 38,
                               ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      recipe.name,
+                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                    if (recipe.createdByName != null)
+                                      Text(
+                                        'Autor: ${recipe.createdByName}',
+                                        style: TextStyle(
+                                          color: AppTheme.textSecondary,
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                              Icon(Icons.chevron_right, color: AppTheme.actionPrimaryColor),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            '${recipe.mealType} • ${recipe.servings} porcji • ${recipe.difficulty}',
+                            style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                          ),
+                          if (recipe.description?.trim().isNotEmpty ?? false) ...[
+                            const SizedBox(height: 6),
+                            Text(
+                              recipe.description!,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                             ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: FilledButton(
-                                onPressed:
-                                    isBusy
-                                        ? null
-                                        : () => _actOnRecipe(recipe, true),
-                                child:
-                                    isBusy
-                                        ? const SizedBox(
+                          ],
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.visibility_outlined,
+                                size: 17,
+                                color: AppTheme.actionPrimaryColor,
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  'Dotknij, aby sprawdzić składniki, instrukcję, zdjęcie i makro',
+                                  style: TextStyle(
+                                    color: AppTheme.actionPrimaryColor,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: isBusy ? null : () => _actOnRecipe(recipe, false),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppTheme.errorColor,
+                                    side: const BorderSide(color: AppTheme.errorColor),
+                                  ),
+                                  child: const Text('Odrzuć'),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: FilledButton(
+                                  onPressed: isBusy ? null : () => _actOnRecipe(recipe, true),
+                                  child: isBusy
+                                      ? SizedBox(
                                           width: 16,
                                           height: 16,
                                           child: CircularProgressIndicator(
                                             strokeWidth: 2,
-                                            color: Colors.white,
+                                            color: Theme.of(context).colorScheme.onPrimary,
                                           ),
                                         )
-                                        : const Text('Zaakceptuj'),
+                                      : const Text('Zaakceptuj'),
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -783,10 +728,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             // Sprawdzanie stanu klucza/limitów Gemini API — proaktywnie,
             // zanim na wyczerpany limit natrafi prawdziwy użytkownik
             // próbujący dodać przepis przez AI albo zeskanować gazetkę.
-            Text(
-              'Stan usługi AI',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
+            Text('Stan usługi AI', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 4),
             Text(
               'Sprawdza, czy klucz Gemini działa i czy limit tokenów/zapytań '
@@ -796,25 +738,18 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             const SizedBox(height: 12),
             OutlinedButton.icon(
               onPressed: _isCheckingAiStatus ? null : _checkAiStatus,
-              icon:
-                  _isCheckingAiStatus
-                      ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: AppTheme.primaryColor,
-                        ),
-                      )
-                      : const Icon(Icons.health_and_safety_outlined, size: 18),
+              icon: _isCheckingAiStatus
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primaryColor),
+                    )
+                  : const Icon(Icons.health_and_safety_outlined, size: 18),
               label: const Text('Sprawdź stan AI'),
             ),
             if (_aiStatusError != null) ...[
               const SizedBox(height: 10),
-              Text(
-                _aiStatusError!,
-                style: TextStyle(color: AppTheme.errorColor),
-              ),
+              Text(_aiStatusError!, style: TextStyle(color: AppTheme.errorColor)),
             ],
             if (_aiStatus != null) ...[
               const SizedBox(height: 10),
@@ -827,8 +762,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
-                    _aiStatus!['summary'] as String? ??
-                        'Klucz API nie jest skonfigurowany.',
+                    _aiStatus!['summary'] as String? ?? 'Klucz API nie jest skonfigurowany.',
                     style: TextStyle(color: AppTheme.errorColor, fontSize: 13),
                   ),
                 )
@@ -845,20 +779,11 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                           size: 18,
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          '${m['model']}: ',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
+                        Text('${m['model']}: ', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                         Expanded(
                           child: Text(
                             m['detail'] as String,
-                            style: TextStyle(
-                              color: ok ? Colors.green : AppTheme.errorColor,
-                              fontSize: 13,
-                            ),
+                            style: TextStyle(color: ok ? Colors.green : AppTheme.errorColor, fontSize: 13),
                           ),
                         ),
                       ],
@@ -868,19 +793,12 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                 const SizedBox(height: 4),
                 Text(
                   _aiStatus!['summary'] as String? ?? '',
-                  style: TextStyle(
-                    color: AppTheme.textSecondary,
-                    fontSize: 12,
-                    fontStyle: FontStyle.italic,
-                  ),
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, fontStyle: FontStyle.italic),
                 ),
               ],
             ],
             const SizedBox(height: 32),
-            Text(
-              'Skanuj gazetki promocyjne',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
+            Text('Skanuj gazetki promocyjne', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 4),
             Text(
               'AI przeszuka internet w poszukiwaniu aktualnej gazetki danego '
@@ -892,29 +810,21 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             Wrap(
               spacing: 10,
               runSpacing: 10,
-              children:
-                  _stores.map((store) {
-                    final isBusy = _scanningStore == store;
-                    return ElevatedButton.icon(
-                      onPressed:
-                          _scanningStore != null ? null : () => _scan(store),
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 44),
-                      ),
-                      icon:
-                          isBusy
-                              ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                              : const Icon(Icons.search, size: 18),
-                      label: Text('Skanuj $store'),
-                    );
-                  }).toList(),
+              children: _stores.map((store) {
+                final isBusy = _scanningStore == store;
+                return ElevatedButton.icon(
+                  onPressed: _scanningStore != null ? null : () => _scan(store),
+                  style: ElevatedButton.styleFrom(minimumSize: const Size(0, 44)),
+                  icon: isBusy
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Icon(Icons.search, size: 18),
+                  label: Text('Skanuj $store'),
+                );
+              }).toList(),
             ),
             const SizedBox(height: 32),
             Row(
@@ -931,10 +841,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  '${_pending.length}',
-                  style: TextStyle(color: AppTheme.textSecondary),
-                ),
+                Text('${_pending.length}', style: TextStyle(color: AppTheme.textSecondary)),
               ],
             ),
             const SizedBox(height: 12),
@@ -942,9 +849,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
               const Center(
                 child: Padding(
                   padding: EdgeInsets.all(24.0),
-                  child: CircularProgressIndicator(
-                    color: AppTheme.primaryColor,
-                  ),
+                  child: CircularProgressIndicator(color: AppTheme.primaryColor),
                 ),
               )
             else if (_pendingError != null)
@@ -953,15 +858,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      _pendingError!,
-                      style: TextStyle(color: AppTheme.errorColor),
-                    ),
+                    Text(_pendingError!, style: TextStyle(color: AppTheme.errorColor)),
                     const SizedBox(height: 8),
-                    TextButton(
-                      onPressed: _loadPending,
-                      child: const Text('Spróbuj ponownie'),
-                    ),
+                    TextButton(onPressed: _loadPending, child: const Text('Spróbuj ponownie')),
                   ],
                 ),
               )
@@ -988,18 +887,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                             Expanded(
                               child: Text(
                                 promo.productName,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                style: const TextStyle(fontWeight: FontWeight.bold),
                               ),
                             ),
-                            Text(
-                              promo.storeName,
-                              style: TextStyle(
-                                color: AppTheme.textSecondary,
-                                fontSize: 12,
-                              ),
-                            ),
+                            Text(promo.storeName, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
                           ],
                         ),
                         // Warunek promocji (np. "Kup 2, zapłać za 1") —
@@ -1011,11 +902,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(
-                                Icons.info_outline,
-                                size: 13,
-                                color: AppTheme.secondaryColor,
-                              ),
+                              Icon(Icons.info_outline, size: 13, color: AppTheme.secondaryColor),
                               const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
@@ -1044,19 +931,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                             const SizedBox(width: 8),
                             Text(
                               '${promo.promoPrice.toStringAsFixed(2)} zł',
-                              style: const TextStyle(
-                                color: AppTheme.primaryColor,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: const TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(width: 8),
-                            Text(
-                              '-${promo.savingsPercent}%',
-                              style: TextStyle(
-                                color: AppTheme.errorColor,
-                                fontSize: 12,
-                              ),
-                            ),
+                            Text('-${promo.savingsPercent}%', style: TextStyle(color: AppTheme.errorColor, fontSize: 12)),
                           ],
                         ),
                         const SizedBox(height: 12),
@@ -1064,13 +942,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                           children: [
                             Expanded(
                               child: OutlinedButton(
-                                onPressed:
-                                    isBusy ? null : () => _act(promo, false),
+                                onPressed: isBusy ? null : () => _act(promo, false),
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: AppTheme.errorColor,
-                                  side: const BorderSide(
-                                    color: AppTheme.errorColor,
-                                  ),
+                                  side: const BorderSide(color: AppTheme.errorColor),
                                   minimumSize: const Size(0, 40),
                                 ),
                                 child: const Text('Odrzuć'),
@@ -1079,22 +954,15 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                             const SizedBox(width: 10),
                             Expanded(
                               child: ElevatedButton(
-                                onPressed:
-                                    isBusy ? null : () => _act(promo, true),
-                                style: ElevatedButton.styleFrom(
-                                  minimumSize: const Size(0, 40),
-                                ),
-                                child:
-                                    isBusy
-                                        ? const SizedBox(
-                                          width: 16,
-                                          height: 16,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            color: Colors.white,
-                                          ),
-                                        )
-                                        : const Text('Zaakceptuj'),
+                                onPressed: isBusy ? null : () => _act(promo, true),
+                                style: ElevatedButton.styleFrom(minimumSize: const Size(0, 40)),
+                                child: isBusy
+                                    ? const SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                      )
+                                    : const Text('Zaakceptuj'),
                               ),
                             ),
                           ],
@@ -1117,52 +985,37 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                 OutlinedButton.icon(
                   icon: const Icon(Icons.people_outline, size: 18),
                   label: const Text('Użytkownicy'),
-                  onPressed:
-                      () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const AdminUsersScreen(),
-                        ),
-                      ),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const AdminUsersScreen()),
+                  ),
                 ),
                 OutlinedButton.icon(
                   icon: const Icon(Icons.chat_bubble_outline, size: 18),
                   label: const Text('Komentarze'),
-                  onPressed:
-                      () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const AdminCommentsScreen(),
-                        ),
-                      ),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const AdminCommentsScreen()),
+                  ),
                 ),
                 OutlinedButton.icon(
                   icon: const Icon(Icons.photo_library_outlined, size: 18),
                   label: const Text('Zdjęcia'),
-                  onPressed:
-                      () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const AdminPhotosScreen(),
-                        ),
-                      ),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const AdminPhotosScreen()),
+                  ),
                 ),
                 OutlinedButton.icon(
                   icon: const Icon(Icons.inventory_2_outlined, size: 18),
                   label: const Text('Produkty'),
-                  onPressed:
-                      () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const AdminProductsScreen(),
-                        ),
-                      ),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const AdminProductsScreen()),
+                  ),
                 ),
                 OutlinedButton.icon(
                   icon: const Icon(Icons.menu_book_outlined, size: 18),
                   label: const Text('Przepisy użytkowników'),
-                  onPressed:
-                      () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const AdminAllRecipesScreen(),
-                        ),
-                      ),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const AdminAllRecipesScreen()),
+                  ),
                 ),
               ],
             ),

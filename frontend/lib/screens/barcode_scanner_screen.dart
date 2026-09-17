@@ -41,29 +41,28 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     final controller = TextEditingController();
     final value = await showDialog<String>(
       context: context,
-      builder:
-          (dialogContext) => AlertDialog(
-            title: const Text('Wpisz kod kreskowy'),
-            content: TextField(
-              controller: controller,
-              autofocus: true,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'EAN/UPC',
-                hintText: '8–14 cyfr',
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Anuluj'),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.pop(dialogContext, controller.text),
-                child: const Text('Wyszukaj'),
-              ),
-            ],
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Wpisz kod kreskowy'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'EAN/UPC',
+            hintText: '8–14 cyfr',
           ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Anuluj'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, controller.text),
+            child: const Text('Wyszukaj'),
+          ),
+        ],
+      ),
     );
     controller.dispose();
     if (!mounted || value == null) return;

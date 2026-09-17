@@ -125,8 +125,7 @@ class FoodLogProvider with ChangeNotifier {
 
     try {
       await _service.addFoodLog({
-        'date':
-            '${_currentDate.year.toString().padLeft(4, '0')}-'
+        'date': '${_currentDate.year.toString().padLeft(4, '0')}-'
             '${_currentDate.month.toString().padLeft(2, '0')}-'
             '${_currentDate.day.toString().padLeft(2, '0')}',
         'meal_type': mealType,
@@ -144,10 +143,7 @@ class FoodLogProvider with ChangeNotifier {
 
   /// Loguje posiłek bezpośrednio z pozycji planu posiłków przypisanej do
   /// aktualnie przeglądanego dnia (`_currentDate`) — nie zawsze "dziś".
-  Future<bool> addFromMealPlanEntry(
-    String mealPlanEntryId, {
-    double? servings,
-  }) async {
+  Future<bool> addFromMealPlanEntry(String mealPlanEntryId, {double? servings}) async {
     final token = await _resolveToken();
     if (token == null) {
       _error = 'Musisz być zalogowany, aby dodać wpis.';
@@ -156,12 +152,7 @@ class FoodLogProvider with ChangeNotifier {
     }
 
     try {
-      await _service.addFromMealPlanEntry(
-        mealPlanEntryId,
-        token,
-        forDate: _currentDate,
-        servings: servings,
-      );
+      await _service.addFromMealPlanEntry(mealPlanEntryId, token, forDate: _currentDate, servings: servings);
       await fetchLogsForDate(_currentDate);
       return true;
     } catch (e) {

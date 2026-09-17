@@ -86,23 +86,20 @@ class _CookingTipsScreenState extends State<CookingTipsScreen> {
           itemCount: kCookingTips.length,
           itemBuilder: (context, index) {
             final tip = kCookingTips[index];
-            final isHighlighted =
-                _highlightVisible && index == widget.highlightIndex;
+            final isHighlighted = _highlightVisible && index == widget.highlightIndex;
             return AnimatedContainer(
               duration: const Duration(milliseconds: 400),
               margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color:
-                    isHighlighted
-                        ? AppTheme.secondaryColor.withOpacity(0.12)
-                        : AppTheme.surfaceColor,
+                color: isHighlighted
+                    ? AppTheme.secondaryColor.withOpacity(0.12)
+                    : AppTheme.surfaceColor,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color:
-                      isHighlighted
-                          ? AppTheme.secondaryColor
-                          : Colors.transparent,
+                  color: isHighlighted
+                      ? AppTheme.secondaryColor
+                      : Colors.transparent,
                   width: 2,
                 ),
               ),
@@ -115,11 +112,7 @@ class _CookingTipsScreenState extends State<CookingTipsScreen> {
                       color: AppTheme.secondaryColor.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(
-                      _iconFor(tip.icon),
-                      color: AppTheme.secondaryColor,
-                      size: 20,
-                    ),
+                    child: Icon(_iconFor(tip.icon), color: AppTheme.secondaryColor, size: 20),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -128,19 +121,12 @@ class _CookingTipsScreenState extends State<CookingTipsScreen> {
                       children: [
                         Text(
                           tip.title,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                          ),
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           tip.tip,
-                          style: TextStyle(
-                            color: AppTheme.textSecondary,
-                            fontSize: 13,
-                            height: 1.4,
-                          ),
+                          style: TextStyle(color: AppTheme.textSecondary, fontSize: 13, height: 1.4),
                         ),
                       ],
                     ),

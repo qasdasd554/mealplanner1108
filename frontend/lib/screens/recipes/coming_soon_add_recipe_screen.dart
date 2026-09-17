@@ -28,18 +28,12 @@ class ComingSoonAddRecipeScreen extends StatelessWidget {
                 color: AppTheme.secondaryColor.withOpacity(0.12),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.auto_awesome_outlined,
-                size: 40,
-                color: AppTheme.secondaryColor,
-              ),
+              child: const Icon(Icons.auto_awesome_outlined, size: 40, color: AppTheme.secondaryColor),
             ),
             const SizedBox(height: 24),
             Text(
               'Już wkrótce',
-              style: Theme.of(
-                context,
-              ).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
@@ -49,27 +43,14 @@ class ComingSoonAddRecipeScreen extends StatelessWidget {
               'Aplikacja sama rozpozna potrzebne produkty i rozpisze sposób '
               'przygotowania krok po kroku.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppTheme.textSecondary,
-                fontSize: 15,
-                height: 1.5,
-              ),
+              style: TextStyle(color: AppTheme.textSecondary, fontSize: 15, height: 1.5),
             ),
             const SizedBox(height: 28),
-            _buildFeatureRow(
-              Icons.videocam_outlined,
-              'Prześlij film z gotowania',
-            ),
+            _buildFeatureRow(Icons.videocam_outlined, 'Prześlij film z gotowania'),
             const SizedBox(height: 12),
-            _buildFeatureRow(
-              Icons.photo_camera_outlined,
-              'Zrób zdjęcie gotowego dania',
-            ),
+            _buildFeatureRow(Icons.photo_camera_outlined, 'Zrób zdjęcie gotowego dania'),
             const SizedBox(height: 12),
-            _buildFeatureRow(
-              Icons.text_snippet_outlined,
-              'Wklej przepis z dowolnego źródła',
-            ),
+            _buildFeatureRow(Icons.text_snippet_outlined, 'Wklej przepis z dowolnego źródła'),
             const SizedBox(height: 32),
             OutlinedButton.icon(
               onPressed: null,
@@ -88,10 +69,7 @@ class ComingSoonAddRecipeScreen extends StatelessWidget {
         Icon(icon, size: 22, color: AppTheme.textSecondary),
         const SizedBox(width: 12),
         Expanded(
-          child: Text(
-            text,
-            style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
-          ),
+          child: Text(text, style: TextStyle(color: AppTheme.textSecondary, fontSize: 14)),
         ),
       ],
     );
