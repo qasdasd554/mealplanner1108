@@ -18,6 +18,12 @@ def _result(value):
     return result
 
 
+def _scalars_result(values):
+    result = MagicMock()
+    result.scalars.return_value.all.return_value = values
+    return result
+
+
 @pytest.mark.asyncio
 async def test_existing_share_does_not_create_duplicate_notification() -> None:
     owner_id = uuid4()
@@ -32,7 +38,9 @@ async def test_existing_share_does_not_create_duplicate_notification() -> None:
     db = AsyncMock()
     db.execute.side_effect = [
         _result(SimpleNamespace(id=plan_id)),
-        _result(SimpleNamespace(id=recipient_id, display_name="Ola", email="ola@example.com")),
+        _scalars_result(
+            [SimpleNamespace(id=recipient_id, display_name="Ola", email="ola@example.com")]
+        ),
         _result(None),
         _result(existing),
     ]

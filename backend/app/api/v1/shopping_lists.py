@@ -677,23 +677,53 @@ async def share_shopping_list(
     # osoba, której ktoś inny już go udostępnił — bez tego można by
     # było "podudostępniać dalej" bez wiedzy/zgody oryginalnego
     # właściciela).
+    # Starsze ekrany przekazywały publiczne ID planu, a część nowszych
+    # operacji posługiwała się technicznym PK tabeli shopping_lists.
+    # Udostępnianie akceptuje oba warianty i dalej używa jednego,
+    # kanonicznego meal_plan_id. Zawartość listy (w tym pozycje „Inne”
+    # bez product_id) nie bierze udziału w tworzeniu zaproszenia.
     plan_result = await db.execute(
-        select(MealPlan).where(MealPlan.id == list_id, MealPlan.user_id == current_user.id)
+        select(MealPlan)
+        .join(ShoppingList, ShoppingList.meal_plan_id == MealPlan.id)
+        .where(
+            or_(MealPlan.id == list_id, ShoppingList.id == list_id),
+            MealPlan.user_id == current_user.id,
+        )
     )
     plan = plan_result.scalar_one_or_none()
     if plan is None:
         raise NotFoundException(detail="Nie znaleziono Twojej listy zakupów do udostępnienia.")
+    canonical_plan_id = plan.id
 
     if payload.display_name and payload.display_name.strip():
         # Porównanie bez rozróżniania wielkości liter — tak samo jak przy
         # sprawdzaniu zajętości nazwy, żeby "Kucharz" i "kucharz" trafiały
         # w to samo konto.
         needle = payload.display_name.strip().lower()
+        # Akceptujemy także e-mail wpisany przez użytkowników starszej
+        # wersji aplikacji, w której dialog udostępniania prosił o adres.
         target_result = await db.execute(
-            select(User).where(func.lower(User.display_name) == needle)
+            select(User)
+            .where(
+                or_(
+                    func.lower(User.display_name) == needle,
+                    func.lower(User.email) == needle,
+                )
+            )
+            .limit(2)
         )
-        target_user = target_result.scalar_one_or_none()
-        not_found_detail = "Nie znaleziono użytkownika o takiej nazwie."
+        candidates = list(target_result.scalars().all())
+        if len(candidates) > 1:
+            email_match = [u for u in candidates if u.email.lower() == needle]
+            if len(email_match) == 1:
+                candidates = email_match
+            else:
+                raise HTTPException(
+                    status_code=409,
+                    detail="Ta nazwa użytkownika nie jest jednoznaczna. Podaj jego adres e-mail.",
+                )
+        target_user = candidates[0] if candidates else None
+        not_found_detail = "Nie znaleziono użytkownika o takiej nazwie ani adresie e-mail."
     elif payload.email and payload.email.strip():
         # Ścieżka zgodności ze starszymi wersjami aplikacji.
         target_result = await db.execute(
@@ -733,7 +763,7 @@ async def share_shopping_list(
     # duplikujemy — po prostu zwracamy istniejący wpis.
     existing_result = await db.execute(
         select(ShoppingListShare).where(
-            ShoppingListShare.meal_plan_id == list_id,
+            ShoppingListShare.meal_plan_id == canonical_plan_id,
             ShoppingListShare.shared_with_user_id == target_user.id,
         )
     )
@@ -749,7 +779,7 @@ async def share_shopping_list(
         )
     else:
         share = ShoppingListShare(
-            meal_plan_id=list_id,
+            meal_plan_id=canonical_plan_id,
             shared_by_user_id=current_user.id,
             shared_with_user_id=target_user.id,
             status="pending",

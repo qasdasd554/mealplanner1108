@@ -691,6 +691,17 @@ async def submit_product(
             detail="Produkt z tym kodem kreskowym został już zgłoszony przez kogoś innego.",
         )
     await db.refresh(product)
+
+    from app.services.admin_notifications import notify_admins_pending_review
+
+    await notify_admins_pending_review(
+        db,
+        notification_type="product_pending_approval",
+        message=(
+            f'{current_user.display_name or "Użytkownik"} zgłosił(a) produkt '
+            f'"{product.name}" — wymaga akceptacji.'
+        ),
+    )
     return product
 
 
@@ -719,6 +730,8 @@ async def update_own_product(
         raise HTTPException(
             status_code=403, detail="Możesz edytować tylko własne zgłoszenia."
         )
+
+    was_pending = product.review_status == "pending"
 
     nutrition = None
     if payload.kcal_per_100 is not None:
@@ -754,6 +767,18 @@ async def update_own_product(
             detail="Ten kod kreskowy jest już przypisany do innego produktu.",
         )
     await db.refresh(product)
+
+    if not was_pending:
+        from app.services.admin_notifications import notify_admins_pending_review
+
+        await notify_admins_pending_review(
+            db,
+            notification_type="product_pending_approval",
+            message=(
+                f'{current_user.display_name or "Użytkownik"} ponownie zgłosił(a) '
+                f'produkt "{product.name}" po edycji — wymaga akceptacji.'
+            ),
+        )
     return product
 
 

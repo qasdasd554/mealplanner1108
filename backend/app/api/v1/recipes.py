@@ -590,25 +590,16 @@ async def save_recipe_variant(
 async def _notify_admins_pending_recipe(db: AsyncSession, recipe: Recipe, author: User) -> None:
     """Powiadamia WSZYSTKICH administratorów o nowym przepisie czekającym
     na akceptację do wspólnego katalogu."""
-    from app.models.notification import Notification
-
-    admins_result = await db.execute(select(User.id).where(User.role == "admin"))
-    admin_ids = list(admins_result.scalars().all())
-    if not admin_ids:
-        return
+    from app.services.admin_notifications import notify_admins_pending_review
 
     author_name = author.display_name or "Ktoś"
     message = f'{author_name} zgłosił(a) przepis "{recipe.name}" do wspólnego katalogu — wymaga akceptacji.'
-    for admin_id in admin_ids:
-        db.add(
-            Notification(
-                user_id=admin_id,
-                notification_type="recipe_pending_approval",
-                message=message,
-                recipe_id=recipe.id,
-            )
-        )
-    await db.commit()
+    await notify_admins_pending_review(
+        db,
+        notification_type="recipe_pending_approval",
+        message=message,
+        recipe_id=recipe.id,
+    )
 
 
 @router.put(
@@ -1172,6 +1163,18 @@ async def report_recipe(
     db.add(report)
     await db.commit()
     await db.refresh(report)
+
+    from app.services.admin_notifications import notify_admins_pending_review
+
+    await notify_admins_pending_review(
+        db,
+        notification_type="content_report_pending",
+        message=(
+            f'{current_user.display_name or "Użytkownik"} zgłosił(a) przepis '
+            f'"{recipe.name}" do moderacji.'
+        ),
+        recipe_id=recipe.id,
+    )
     return report
 
 
@@ -1314,6 +1317,18 @@ async def submit_recipe_photo(
     recipe.pending_photo_submitted_at = datetime.now(timezone.utc)
     db.add(recipe)
     await db.commit()
+
+    from app.services.admin_notifications import notify_admins_pending_review
+
+    await notify_admins_pending_review(
+        db,
+        notification_type="photo_pending_approval",
+        message=(
+            f'{current_user.display_name or "Użytkownik"} dodał(a) zdjęcie do '
+            f'przepisu "{recipe.name}" — wymaga akceptacji.'
+        ),
+        recipe_id=recipe.id,
+    )
     return {"detail": "Zdjęcie zgłoszone. Pojawi się po akceptacji przez administratora."}
 
 

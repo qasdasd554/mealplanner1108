@@ -297,17 +297,14 @@ async def trigger_ai_scan(
 async def _notify_admins_pending_promotions(db: AsyncSession, store_name: str, count: int) -> None:
     """Powiadamia wszystkich administratorów o nowych promocjach
     czekających na akceptację."""
-    from app.models.notification import Notification
-
-    admins_result = await db.execute(select(User.id).where(User.role == "admin"))
-    admin_ids = list(admins_result.scalars().all())
-    if not admin_ids:
-        return
+    from app.services.admin_notifications import notify_admins_pending_review
 
     message = f"AI znalazło {count} nowych promocji w gazetce {store_name} — czekają na akceptację."
-    for admin_id in admin_ids:
-        db.add(Notification(user_id=admin_id, notification_type="promotion_pending_approval", message=message))
-    await db.commit()
+    await notify_admins_pending_review(
+        db,
+        notification_type="promotion_pending_approval",
+        message=message,
+    )
 
 
 @router.get(

@@ -340,6 +340,18 @@ async def report_recipe_comment(
     db.add(report)
     await db.commit()
     await db.refresh(report)
+
+    from app.services.admin_notifications import notify_admins_pending_review
+
+    await notify_admins_pending_review(
+        db,
+        notification_type="content_report_pending",
+        message=(
+            f'{current_user.display_name or "Użytkownik"} zgłosił(a) komentarz '
+            "do moderacji."
+        ),
+        recipe_id=recipe_id,
+    )
     return report
 
 async def _send_pushes(db, notifications) -> None:
