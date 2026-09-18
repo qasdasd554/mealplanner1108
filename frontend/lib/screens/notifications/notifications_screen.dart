@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/notification.dart';
 import '../../models/recipe.dart';
 import '../../services/notification_service.dart';
+import '../../services/push_service.dart';
 import '../../services/recipe_service.dart';
 import '../../theme/app_theme.dart';
 import '../profile/friends_screen.dart';
@@ -37,6 +38,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         _error = null;
         _isLoading = false;
       });
+      if (list.every((notification) => notification.isRead)) {
+        await PushService().clearBadge();
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -49,6 +53,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Future<void> _markAllRead() async {
     try {
       await _service.markAllAsRead();
+      await PushService().clearBadge();
       if (!mounted) return;
       setState(() {
         _notifications = _notifications
@@ -99,6 +104,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         // Nieudane oznaczenie jako przeczytane nie powinno blokować
         // przejścia do przepisu — użytkownik i tak chce go zobaczyć.
       }
+    }
+
+    if (_notifications.every((item) => item.isRead)) {
+      await PushService().clearBadge();
     }
 
     if (!mounted) return;

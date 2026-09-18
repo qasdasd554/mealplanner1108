@@ -49,10 +49,34 @@ class PushService {
   }
 
   void _handleNotificationTap() {
+    // Samo otwarcie dymka nie zeruje wartości `badge` ustawionej przez
+    // APNs. Czyścimy ją jawnie, zanim pokażemy ekran powiadomień.
+    unawaited(clearBadge());
     if (_notificationTapController.hasListener) {
       _notificationTapController.add(true);
     } else {
       _openNotificationsPending = true;
+    }
+  }
+
+  /// Usuwa czerwony licznik z ikony aplikacji i aktywne lokalne dymki.
+  ///
+  /// `cancelAll` wystarcza na Androidzie. iOS przechowuje licznik ikony
+  /// niezależnie od centrum powiadomień, dlatego zerujemy go dodatkowo
+  /// przez natywny kanał obsługiwany w AppDelegate.
+  Future<void> clearBadge() async {
+    try {
+      await _localNotifications.cancelAll();
+    } catch (e) {
+      debugPrint('Nie udało się usunąć lokalnych powiadomień: $e');
+    }
+
+    if (Platform.isIOS) {
+      try {
+        await _iosPushChannel.invokeMethod<void>('clearApplicationBadge');
+      } catch (e) {
+        debugPrint('Nie udało się wyzerować licznika powiadomień iOS: $e');
+      }
     }
   }
 

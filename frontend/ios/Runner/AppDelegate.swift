@@ -1,5 +1,6 @@
 import Flutter
 import UIKit
+import UserNotifications
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
@@ -31,13 +32,23 @@ import UIKit
       binaryMessenger: engineBridge.applicationRegistrar.messenger()
     )
     channel.setMethodCallHandler { call, result in
-      guard call.method == "registerForRemoteNotifications" else {
+      switch call.method {
+      case "registerForRemoteNotifications":
+        DispatchQueue.main.async {
+          UIApplication.shared.registerForRemoteNotifications()
+          result(nil)
+        }
+      case "clearApplicationBadge":
+        DispatchQueue.main.async {
+          if #available(iOS 16.0, *) {
+            UNUserNotificationCenter.current().setBadgeCount(0)
+          } else {
+            UIApplication.shared.applicationIconBadgeNumber = 0
+          }
+          result(nil)
+        }
+      default:
         result(FlutterMethodNotImplemented)
-        return
-      }
-      DispatchQueue.main.async {
-        UIApplication.shared.registerForRemoteNotifications()
-        result(nil)
       }
     }
     pushRegistrationChannel = channel
