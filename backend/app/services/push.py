@@ -184,6 +184,8 @@ _TITLES: dict[str, str] = {
     "recipe_photo": "Zdjęcie przepisu",
     "recipe_approved": "Przepis zaakceptowany",
     "recipe_rejected": "Przepis odrzucony",
+    "recipe_import_ready": "Przepis jest gotowy",
+    "recipe_import_failed": "Nie udało się dodać przepisu",
     "promotion_pending_approval": "Promocja do sprawdzenia",
     "recipe_pending_approval": "Przepis do sprawdzenia",
     "product_pending_approval": "Produkt do sprawdzenia",

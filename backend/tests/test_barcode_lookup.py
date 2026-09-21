@@ -1,11 +1,16 @@
 """Testy odporności odpowiedzi zewnętrznej bazy kodów kreskowych."""
 
+import asyncio
+import time
+
+from app.services import barcode_lookup
 from app.services.barcode_lookup import (
     _product_from_off_response,
     _result_from_off_product,
     _results_from_off_search_response,
     _product_from_upcitemdb_response,
     _product_from_usda_response,
+    barcode_variants,
     normalize_barcode,
     price_range_for_product,
 )
@@ -13,6 +18,12 @@ from app.services.barcode_lookup import (
 
 def test_normalize_barcode_removes_scanner_formatting() -> None:
     assert normalize_barcode("]E0 5449-0000-0099-6") == "5449000000996"
+
+
+def test_upc_and_ean_aliases_match_same_product() -> None:
+    assert "00123456789012" in barcode_variants("0123456789012")
+    assert "123456789012" in barcode_variants("0123456789012")
+    assert "0123456789012" in barcode_variants("123456789012")
 
 
 def test_reads_current_v3_product_response() -> None:
@@ -120,3 +131,25 @@ def test_reads_upcitemdb_identity() -> None:
     assert result.name == "Pomidory krojone"
     assert result.brand == "Przykładowa marka"
     assert (result.price_min, result.price_max) == (2.0, 15.0)
+
+
+def test_lookup_returns_fast_complete_result_without_waiting_for_slow_providers(monkeypatch) -> None:
+    async def fast_off(client, barcode):
+        await asyncio.sleep(0.01)
+        return barcode_lookup.BarcodeLookupResult(
+            name="Sok", brand="Marka", unit="ml", kcal_per_100=40,
+            protein_per_100=0, fat_per_100=0, carbs_per_100=10,
+            price_min=3, price_max=12, source="open_food_facts",
+        )
+
+    async def slow_provider(client, barcode):
+        await asyncio.sleep(1)
+        return None
+
+    monkeypatch.setattr(barcode_lookup, "_fetch_off", fast_off)
+    monkeypatch.setattr(barcode_lookup, "_fetch_usda", slow_provider)
+    monkeypatch.setattr(barcode_lookup, "_fetch_upcitemdb", slow_provider)
+    started = time.monotonic()
+    result = asyncio.run(barcode_lookup.lookup_barcode_external("5901234123457"))
+    assert result is not None and result.name == "Sok"
+    assert time.monotonic() - started < 0.5

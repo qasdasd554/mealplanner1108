@@ -20,9 +20,12 @@ infrastruktury do wyciągania klatek/transkrypcji dźwięku.
 from __future__ import annotations
 
 import asyncio
+from difflib import SequenceMatcher
 import json
 import logging
 import re
+import time
+import unicodedata
 
 import httpx
 
@@ -45,6 +48,10 @@ GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model
 # faktycznie próbowano już 6). Teraz JEDNO źródło prawdy w
 # gemini_models.py, importowane wszędzie tam, gdzie potrzebne.
 from app.services.gemini_models import GEMINI_MODELS
+
+# Krótka pamięć niedostępnych modeli chroni następnych użytkowników przed
+# powtarzaniem tych samych 429/503 na początku każdego importu.
+_model_unavailable_until: dict[str, float] = {}
 
 ALLOWED_UNITS = {"g", "kg", "ml", "l", "szt"}
 ALLOWED_MEAL_TYPES = {"śniadanie", "obiad", "kolacja", "przekąska", "deser"}
@@ -72,8 +79,56 @@ class _ModelUnavailableError(Exception):
         self.reason = reason
 
 
-def _build_prompt(available_products: list[str]) -> str:
-    products_list = "\n".join(f"- {p}" for p in sorted(available_products))
+def _normalize_product_name(value: str) -> str:
+    ascii_text = "".join(
+        char for char in unicodedata.normalize("NFKD", value.casefold())
+        if not unicodedata.combining(char)
+    )
+    return " ".join(re.findall(r"[\w]+", ascii_text, flags=re.UNICODE))
+
+
+def match_product_name(name: str, available_products: list[str]) -> str | None:
+    """Zwraca pewne dopasowanie; nie podmienia niepodobnych składników."""
+    target = _normalize_product_name(name)
+    if not target:
+        return None
+    normalized = [(candidate, _normalize_product_name(candidate)) for candidate in available_products]
+    for candidate, key in normalized:
+        if key == target:
+            return candidate
+    scored = sorted(
+        ((SequenceMatcher(None, target, key).ratio(), candidate) for candidate, key in normalized),
+        reverse=True,
+    )
+    if not scored or scored[0][0] < 0.78:
+        return None
+    if len(scored) > 1 and scored[0][0] - scored[1][0] < 0.04:
+        return None
+    return scored[0][1]
+
+
+def _select_prompt_products(available_products: list[str], context: str | None) -> list[str]:
+    """Skraca katalog tylko gdy tekst rzeczywiście wskazuje kilka składników."""
+    unique = list(dict.fromkeys(available_products))
+    if not context or len(unique) <= 140:
+        return unique
+    words = set(_normalize_product_name(context).split())
+    scored = []
+    for name in unique:
+        product_words = set(_normalize_product_name(name).split())
+        overlap = len(words & product_words)
+        if overlap:
+            scored.append((overlap, name))
+    if len(scored) < 4:
+        return unique
+    scored.sort(key=lambda entry: (-entry[0], entry[1]))
+    return [name for _, name in scored[:140]]
+
+
+def _build_prompt(available_products: list[str], *, context: str | None = None) -> str:
+    products_list = "\n".join(
+        f"- {p}" for p in sorted(_select_prompt_products(available_products, context))
+    )
     return f"""Jesteś asystentem kulinarnym. Otrzymujesz treść (tekst, zdjęcie albo
 samą nazwę dania) i masz dostarczyć przepis kulinarny w ściśle określonym
 formacie JSON, PO POLSKU.
@@ -98,12 +153,10 @@ B) SAMA NAZWA DANIA ALBO ZDJĘCIE GOTOWEGO DANIA (np. użytkownik wpisał
 WAŻNE ZASADY:
 1. Odpowiedz WYŁĄCZNIE poprawnym obiektem JSON — bez żadnego tekstu przed
    ani po, bez bloków markdown (```), sam surowy JSON.
-2. Pole "ingredients" MUSI używać nazw produktów WYŁĄCZNIE z poniższej
-   listy dostępnych produktów. Dla każdego składnika przepisu wybierz
-   NAJBLIŻSZY pasujący produkt z listy (np. jeśli przepis wymaga "cukru
-   pudru", a na liście jest tylko "Cukier", użyj "Cukier"). Jeśli
-   naprawdę żaden produkt z listy nie pasuje do składnika, pomiń ten
-   składnik całkowicie (nie wymyślaj nowych nazw produktów).
+2. Dla każdego składnika wybierz NAJBLIŻSZY pasujący produkt z poniższej
+   listy (np. "cukier puder" może odpowiadać "Cukier"). Jeśli na liście
+   nie ma dobrego odpowiednika, zachowaj oryginalną nazwę składnika;
+   nie pomijaj składników z przepisu. Serwer dopasuje je do pełnego katalogu.
 3. Pole "unit" MUSI być jednym z: g, kg, ml, l, szt.
 4. Pole "meal_type" MUSI być jednym z: śniadanie, obiad, kolacja, przekąska, deser.
 5. Pole "difficulty" MUSI być jednym z: łatwy, średni, trudny.
@@ -117,7 +170,7 @@ WAŻNE ZASADY:
    dania ani zdjęcia posiłku, które trzeba potraktować jak przypadek (B)
    powyżej.
 
-DOSTĘPNE PRODUKTY (używaj TYLKO tych nazw w "ingredients"):
+PREFEROWANE NAZWY PRODUKTÓW (fragment katalogu):
 {products_list}
 
 FORMAT ODPOWIEDZI (przykład struktury, wypełnij prawdziwymi danymi):
@@ -219,6 +272,11 @@ async def _call_gemini_model(parts: list[dict], model: str, *, timeout_seconds: 
             reason = classify_gemini_error(429, error_body)
             raise _ModelUnavailableError(f"Model {model}: wyczerpany limit (429)", reason=reason)
 
+        if response.status_code == 404:
+            raise _ModelUnavailableError(
+                f"Model {model}: niedostępny (404)", reason="unavailable"
+            )
+
         if response.status_code in (503, 502, 500) and attempt < max_attempts:
             await asyncio.sleep(attempt * 1.5)
             continue
@@ -267,10 +325,15 @@ async def _call_gemini(parts: list[dict], *, timeout_seconds: float = 25.0) -> s
     unavailable_reasons: list[str] = []
     reason_types: list[str] = []
     for model in GEMINI_MODELS:
+        if _model_unavailable_until.get(model, 0) > time.monotonic():
+            continue
         try:
             return await _call_gemini_model(parts, model, timeout_seconds=timeout_seconds)
         except _ModelUnavailableError as exc:
             logger.warning("Gemini: %s — próbuję kolejnego modelu, jeśli jest", exc)
+            _model_unavailable_until[model] = time.monotonic() + (
+                300 if exc.reason in {"quota_exhausted", "rate_limited"} else 45
+            )
             unavailable_reasons.append(str(exc))
             reason_types.append(exc.reason)
             continue
@@ -319,13 +382,103 @@ def _parse_recipe_json(raw_text: str) -> dict:
 
 async def extract_recipe_from_text(recipe_text: str, available_products: list[str]) -> dict:
     """Zwraca ustrukturyzowany przepis (dict) rozpoznany z wklejonego tekstu."""
-    prompt = _build_prompt(available_products)
+    prompt = _build_prompt(available_products, context=recipe_text)
     parts = [{"text": f"{prompt}\n\nTREŚĆ DO ROZPOZNANIA (tekst przepisu):\n{recipe_text}"}]
     raw = await _call_gemini(parts)
     return _parse_recipe_json(raw)
 
 
-async def _fetch_url_text(url: str) -> str:
+def _jsonld_instruction_text(value) -> list[str]:
+    if isinstance(value, str):
+        return [value.strip()] if value.strip() else []
+    if isinstance(value, list):
+        return [step for item in value for step in _jsonld_instruction_text(item)]
+    if isinstance(value, dict):
+        if value.get("text"):
+            return _jsonld_instruction_text(value["text"])
+        return _jsonld_instruction_text(value.get("itemListElement", []))
+    return []
+
+
+def _jsonld_recipe_from_soup(soup) -> dict | None:
+    """Szybka ścieżka dla blogów publikujących schema.org/Recipe."""
+    def find_recipe(value):
+        if isinstance(value, list):
+            for item in value:
+                found = find_recipe(item)
+                if found:
+                    return found
+        if isinstance(value, dict):
+            types = value.get("@type", [])
+            if isinstance(types, str):
+                types = [types]
+            if any(str(kind).split("/")[-1] == "Recipe" for kind in types):
+                return value
+            for nested in value.values():
+                found = find_recipe(nested)
+                if found:
+                    return found
+        return None
+
+    for script in soup.find_all("script", attrs={"type": "application/ld+json"}):
+        try:
+            recipe = find_recipe(json.loads(script.string or ""))
+        except (ValueError, TypeError):
+            continue
+        if not recipe or not isinstance(recipe.get("recipeIngredient"), list):
+            continue
+        if not isinstance(recipe.get("name"), str) or not recipe["name"].strip():
+            continue
+        raw_ingredients = recipe["recipeIngredient"]
+        ingredients = []
+        for raw in raw_ingredients:
+            if not isinstance(raw, str):
+                break
+            match = re.match(
+                r"^\s*(\d+(?:[.,]\d+)?)\s*(kg|g|ml|l|szt\.?|sztuk[aię]?)?\s+(.+?)\s*$",
+                raw, flags=re.IGNORECASE,
+            )
+            if not match:
+                break
+            quantity, unit, name = match.groups()
+            ingredients.append({
+                "product_name": name.strip(" ,-"),
+                "quantity": float(quantity.replace(",", ".")),
+                "unit": "szt" if not unit or unit.lower().startswith("szt") else unit.lower(),
+            })
+        if len(ingredients) != len(raw_ingredients) or not ingredients:
+            continue
+        instructions = _jsonld_instruction_text(recipe.get("recipeInstructions"))
+        if not instructions:
+            continue
+        yield_text = recipe.get("recipeYield", 2)
+        if isinstance(yield_text, list):
+            yield_text = yield_text[0] if yield_text else 2
+        yield_match = re.search(r"\d+", str(yield_text))
+        servings = int(yield_match.group()) if yield_match else 2
+        category = str(recipe.get("recipeCategory") or "").casefold()
+        if any(word in category for word in ("deser", "dessert", "ciasto")):
+            meal_type = "deser"
+        elif any(word in category for word in ("śniad", "breakfast")):
+            meal_type = "śniadanie"
+        elif any(word in category for word in ("kolac", "dinner", "supper")):
+            meal_type = "kolacja"
+        else:
+            meal_type = "obiad"
+        return {
+            "name": recipe["name"][:300],
+            "description": str(recipe.get("description") or "")[:1000],
+            "meal_type": meal_type,
+            "difficulty": "łatwy",
+            "servings": max(1, servings),
+            "ingredients": ingredients,
+            "instructions": instructions,
+            "suggested_seasonings": [],
+        }
+    return None
+
+
+async def _fetch_url_text(url: str) -> tuple[str, dict | None]:
     """Pobiera i wyciąga tekst czytelny dla człowieka ze strony pod danym
     adresem — do rozpoznawania przepisu z linku (blog kulinarny, TikTok,
     Instagram itp.).
@@ -376,6 +529,7 @@ async def _fetch_url_text(url: str) -> str:
         )
 
     soup = BeautifulSoup(response.text, "html.parser")
+    structured_recipe = _jsonld_recipe_from_soup(soup)
 
     parts: list[str] = []
     title = soup.find("title")
@@ -405,12 +559,15 @@ async def _fetch_url_text(url: str) -> str:
 
     for tag in soup(["script", "style", "noscript"]):
         tag.decompose()
-    body_text = soup.get_text(separator="\n", strip=True)
+    article = soup.find("article") or soup.find("main") or soup
+    body_text = article.get_text(separator="\n", strip=True)
     if body_text:
         # Limit rozmiaru — nie chcemy wysyłać całej, ogromnej strony do AI.
         parts.append(body_text[:8000])
 
     combined = "\n\n".join(p for p in parts if p)
+    if not combined.strip() and structured_recipe is not None:
+        return "", structured_recipe
     if not combined.strip():
         raise AIRecipeImportError(
             "Nie udało się wyciągnąć żadnej treści z podanego linku."
@@ -420,7 +577,7 @@ async def _fetch_url_text(url: str) -> str:
     # zamiast prawdziwej treści filmiku (ochrona przed botami) — lepiej
     # od razu jasno to powiedzieć, niż wysłać AI prawie pustą treść i
     # dostać mylące "nie rozpoznano przepisu", nie wiedząc dlaczego.
-    if len(combined.strip()) < 40:
+    if len(combined.strip()) < 40 and structured_recipe is None:
         raise AIRecipeImportError(
             "Nie udało się odczytać treści z tego linku (strona mogła zablokować "
             "automatyczny dostęp). Spróbuj wkleić opis/podpis filmiku bezpośrednio "
@@ -450,14 +607,14 @@ async def _fetch_url_text(url: str) -> str:
     # powinno fałszywie blokować poprawnego rozpoznawania. Dwa niezależne
     # sygnały naraz to znacznie mocniejszy dowód, że to faktycznie strona
     # blokady, nie prawdziwa treść.
-    if signal_hits >= 2:
+    if signal_hits >= 2 and structured_recipe is None:
         raise AIRecipeImportError(
             "Ten link prowadzi do strony logowania/weryfikacji zamiast prawdziwej "
             "treści (typowe zabezpieczenie TikToka przed automatycznym dostępem). "
             "Otwórz filmik w aplikacji TikTok, skopiuj opis pod nim i wklej go "
             "bezpośrednio jako tekst, w zakładce \"Wklej tekst\"."
         )
-    return combined
+    return combined, structured_recipe
 
 
 def _extract_desc_fields_from_scripts(soup) -> list[str]:
@@ -508,7 +665,21 @@ async def extract_recipe_from_url(url: str, available_products: list[str]) -> di
     """Rozpoznaje przepis na podstawie treści strony pod danym adresem
     URL (blog kulinarny, TikTok, Instagram itp.) — patrz ograniczenia
     w docstringu `_fetch_url_text`."""
-    page_text = await _fetch_url_text(url)
+    page_text, structured_recipe = await _fetch_url_text(url)
+    if structured_recipe is not None:
+        matched = []
+        for ingredient in structured_recipe["ingredients"]:
+            canonical = match_product_name(ingredient["product_name"], available_products)
+            if canonical is None:
+                break
+            matched.append({**ingredient, "product_name": canonical})
+        if len(matched) == len(structured_recipe["ingredients"]):
+            structured_recipe["ingredients"] = matched
+            logger.info("Import linku: kompletny schema.org/Recipe, bez wywołania AI")
+            return structured_recipe
+        # Nie zgadujemy brakujących produktów, ale przekazujemy AI krótki,
+        # merytoryczny JSON-LD zamiast nawigacji/stopki strony.
+        page_text = json.dumps(structured_recipe, ensure_ascii=False)
     return await extract_recipe_from_text(page_text, available_products)
 
 

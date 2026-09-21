@@ -5,6 +5,24 @@ import UserNotifications
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   private var pushRegistrationChannel: FlutterMethodChannel?
+  private var shareChannel: FlutterMethodChannel?
+  private var shareChannelReady = false
+  private var initialShareChecked = false
+  private let shareGroup = "group.com.meal-planner-polska-v1"
+  private let pendingShareKey = "pending_recipe_url"
+
+  private func takeSharedLink() -> String? {
+    guard let defaults = UserDefaults(suiteName: shareGroup),
+          let url = defaults.string(forKey: pendingShareKey) else { return nil }
+    defaults.removeObject(forKey: pendingShareKey)
+    return url
+  }
+
+  func deliverPendingSharedLink() {
+    guard shareChannelReady, initialShareChecked, let channel = shareChannel,
+          let url = takeSharedLink() else { return }
+    channel.invokeMethod("onSharedText", arguments: url)
+  }
 
   override func application(
     _ application: UIApplication,
@@ -52,5 +70,24 @@ import UserNotifications
       }
     }
     pushRegistrationChannel = channel
+
+    let incomingShareChannel = FlutterMethodChannel(
+      name: "com.meal_planner_polska_v1/share_intent",
+      binaryMessenger: engineBridge.applicationRegistrar.messenger()
+    )
+    incomingShareChannel.setMethodCallHandler { [weak self] call, result in
+      guard let self else { result(nil); return }
+      switch call.method {
+      case "getInitialSharedText":
+        self.initialShareChecked = true
+        result(self.takeSharedLink())
+      case "shareChannelReady":
+        self.shareChannelReady = true
+        result(nil)
+      default:
+        result(FlutterMethodNotImplemented)
+      }
+    }
+    shareChannel = incomingShareChannel
   }
 }

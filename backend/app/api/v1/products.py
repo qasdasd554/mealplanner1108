@@ -84,6 +84,20 @@ class ProductNameSuggestion(BaseModel):
     price_max: float | None = None
 
 
+class RecipeIngredientProductCreate(BaseModel):
+    """Wybrany wynik wyszukiwania po nazwie użyty w prywatnym przepisie."""
+
+    name: str = Field(..., min_length=2, max_length=300)
+    brand: str | None = Field(None, max_length=200)
+    unit: str = Field("g", max_length=20)
+    barcode: str | None = Field(None, max_length=14)
+    existing_product_id: uuid.UUID | None = None
+    kcal_per_100: float | None = Field(None, ge=0, le=2_000)
+    protein_per_100: float | None = Field(None, ge=0, le=200)
+    fat_per_100: float | None = Field(None, ge=0, le=200)
+    carbs_per_100: float | None = Field(None, ge=0, le=200)
+
+
 async def _upsert_barcode_cache(
     db: AsyncSession,
     *,
@@ -174,7 +188,7 @@ async def lookup_barcode(
     pusty formularz zgłoszenia z już wpisanym kodem kreskowym, zamiast
     blokować użytkownika.
     """
-    from app.services.barcode_lookup import normalize_barcode
+    from app.services.barcode_lookup import barcode_variants, normalize_barcode
 
     normalized_barcode = normalize_barcode(barcode)
     if normalized_barcode is None:
@@ -185,12 +199,12 @@ async def lookup_barcode(
     # cudzego jeszcze niezatwierdzonego zgłoszenia jako "gotowy produkt".
     result = await db.execute(
         select(Product).where(
-            Product.barcode == normalized_barcode,
+            Product.barcode.in_(barcode_variants(normalized_barcode)),
             or_(
                 Product.review_status == "approved",
                 Product.created_by_user_id == current_user.id,
             ),
-        )
+        ).limit(1)
     )
     existing = result.scalar_one_or_none()
     if existing is not None:
@@ -214,8 +228,8 @@ async def lookup_barcode(
     # 2. Cache Neon — wspólny dla wszystkich użytkowników.
     cached_result = await db.execute(
         select(BarcodeProductCache).where(
-            BarcodeProductCache.barcode == normalized_barcode
-        )
+            BarcodeProductCache.barcode.in_(barcode_variants(normalized_barcode))
+        ).limit(1)
     )
     cached = cached_result.scalar_one_or_none()
     if cached is not None:
@@ -375,10 +389,11 @@ async def search_products_by_name(
             seen.add(key)
             suggestions.append(suggestion)
 
+    catalog_suggestions: list[ProductNameSuggestion] = []
     for product in catalog_result.scalars().all():
         nutrition = product.nutrition_per_100 or {}
         price_min, price_max = price_range_for_product(product.name)
-        add_suggestion(ProductNameSuggestion(
+        catalog_suggestions.append(ProductNameSuggestion(
             source="catalog",
             name=product.name,
             brand=product.brand,
@@ -393,9 +408,10 @@ async def search_products_by_name(
             price_max=price_max,
         ))
 
+    cache_suggestions: list[ProductNameSuggestion] = []
     for cached in cache_result.scalars().all():
         nutrition = cached.nutrition_per_100 or {}
-        add_suggestion(ProductNameSuggestion(
+        cache_suggestions.append(ProductNameSuggestion(
             source="neon_cache",
             name=cached.name,
             brand=cached.brand,
@@ -408,6 +424,15 @@ async def search_products_by_name(
             price_min=cached.price_min,
             price_max=cached.price_max,
         ))
+
+    # Bez rezerwacji katalog potrafi zapełnić cały limit, więc wyszukiwanie
+    # zewnętrzne nigdy nie jest wywoływane dla popularnych składników.
+    catalog_quota = max(1, limit // 2)
+    cache_quota = max(0, limit // 5)
+    for suggestion in catalog_suggestions[:catalog_quota]:
+        add_suggestion(suggestion)
+    for suggestion in cache_suggestions[:cache_quota]:
+        add_suggestion(suggestion)
 
     if len(suggestions) < limit:
         from app.services.barcode_lookup import search_products_external
@@ -431,7 +456,101 @@ async def search_products_by_name(
                 price_max=external.price_max,
             ))
 
+    # Gdy OFF jest niedostępne albo nie ma dopasowań, wykorzystaj pełny
+    # limit wyników lokalnych zamiast zostawiać pustą część listy.
+    for suggestion in catalog_suggestions[catalog_quota:]:
+        add_suggestion(suggestion)
+    for suggestion in cache_suggestions[cache_quota:]:
+        add_suggestion(suggestion)
+
     return suggestions
+
+
+@router.post(
+    "/recipe-ingredient",
+    response_model=ProductResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Użyj produktu z zewnętrznej bazy jako składnika przepisu",
+)
+async def resolve_recipe_ingredient_product(
+    payload: RecipeIngredientProductCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> Product:
+    """Zwraca istniejący produkt albo tworzy prywatną kopię wyniku OFF.
+
+    Składnik przepisu wymaga klucza obcego do products. Kopia nie trafia do
+    publicznego katalogu ani kolejki moderacji i nie zajmuje unikalnego EAN-u.
+    """
+    if payload.existing_product_id is not None:
+        result = await db.execute(select(Product).where(
+            Product.id == payload.existing_product_id,
+            _visible_product_filter(current_user.id),
+        ))
+        existing = result.scalar_one_or_none()
+        if existing is None:
+            raise HTTPException(status_code=404, detail="Nie znaleziono produktu")
+        return existing
+
+    name = " ".join(payload.name.split())
+    brand = (payload.brand or "").strip() or None
+    unit = payload.unit.strip() if payload.unit in {"g", "kg", "ml", "l", "szt"} else "g"
+    if payload.barcode:
+        from app.services.barcode_lookup import barcode_variants
+
+        result = await db.execute(select(Product).where(
+            Product.barcode.in_(barcode_variants(payload.barcode)),
+            _visible_product_filter(current_user.id),
+        ).limit(1))
+        existing = result.scalar_one_or_none()
+        same_dimension = (
+            existing is not None and (
+                existing.unit == unit
+                or {existing.unit, unit} <= {"g", "kg"}
+                or {existing.unit, unit} <= {"ml", "l"}
+            )
+        )
+        if same_dimension:
+            return existing
+    result = await db.execute(select(Product).where(
+        Product.created_by_user_id == current_user.id,
+        Product.review_status == "private",
+        Product.name == name,
+        Product.brand == brand,
+        Product.unit == unit,
+    ).limit(1))
+    existing = result.scalar_one_or_none()
+    if existing is not None:
+        return existing
+
+    from app.core.rate_limit import enforce_user_rate_limit, recipe_ingredient_limiter
+
+    enforce_user_rate_limit(
+        recipe_ingredient_limiter, current_user.id, "dodawanie składników do przepisu"
+    )
+    nutrition = None
+    if any(value is not None for value in (
+        payload.kcal_per_100, payload.protein_per_100,
+        payload.fat_per_100, payload.carbs_per_100,
+    )):
+        nutrition = {
+            "kcal": payload.kcal_per_100,
+            "protein": payload.protein_per_100,
+            "fat": payload.fat_per_100,
+            "carbs": payload.carbs_per_100,
+            "fiber": None,
+        }
+    product = Product(
+        name=name, brand=brand, unit=unit,
+        default_quantity=Decimal(1 if unit in {"szt", "kg", "l"} else 100),
+        nutrition_per_100=nutrition,
+        created_by_user_id=current_user.id, review_status="private",
+        barcode=None,
+    )
+    db.add(product)
+    await db.commit()
+    await db.refresh(product)
+    return product
 
 
 @router.get(
@@ -455,7 +574,10 @@ async def list_my_products(
     """
     result = await db.execute(
         select(Product)
-        .where(Product.created_by_user_id == current_user.id)
+        .where(
+            Product.created_by_user_id == current_user.id,
+            Product.review_status != "private",
+        )
         .order_by(Product.created_at.desc())
     )
     return list(result.scalars().all())
@@ -842,6 +964,9 @@ async def review_product(
 
     product.review_status = "approved" if approve else "rejected"
     db.add(product)
+    # Samą decyzję zapisujemy przed operacjami dodatkowymi. Błędny sklep
+    # lub awaria powiadomienia nie może cofnąć akceptacji.
+    await db.commit()
 
     # Przy akceptacji: każdy sklep zaproponowany przez zgłaszającego
     # zamieniamy na prawdziwy wiersz StoreProduct z podaną ceną — dopiero
@@ -850,41 +975,52 @@ async def review_product(
     # jakiś wpis dla tego produktu (ograniczenie unikalności store+product
     # i tak by to odrzuciło, ale sprawdzamy jawnie, żeby dać się temu
     # wykonać bezpiecznie również przy PONOWNEJ akceptacji po edycji).
-    created_links = 0
-    if approve and product.requested_store_ids and product.submitted_price is not None:
+    if (approve and isinstance(product.requested_store_ids, list)
+            and product.submitted_price is not None
+            and product.submitted_price > 0):
         from app.models.product import StoreProduct
         from app.models.store import Store
 
         for store_id_str in product.requested_store_ids:
             try:
-                store_id = uuid.UUID(store_id_str)
+                store_id = uuid.UUID(str(store_id_str))
             except (ValueError, TypeError):
                 continue
 
-            store = await db.get(Store, store_id)
-            if store is None:
-                continue
-
-            existing = await db.execute(
-                select(StoreProduct).where(
-                    StoreProduct.store_id == store_id,
-                    StoreProduct.product_id == product.id,
+            try:
+                async with db.begin_nested():
+                    store = await db.get(Store, store_id)
+                    if store is None:
+                        continue
+                    existing = await db.execute(
+                        select(StoreProduct).where(
+                            StoreProduct.store_id == store_id,
+                            StoreProduct.product_id == product.id,
+                        )
+                    )
+                    if existing.scalar_one_or_none() is not None:
+                        continue
+                    db.add(StoreProduct(
+                        store_id=store_id,
+                        product_id=product.id,
+                        price=product.submitted_price,
+                    ))
+                    await db.flush()
+            except Exception as exc:
+                logger.warning(
+                    "Nie dodano produktu %s do sklepu %s: %s",
+                    product.id, store_id, exc,
                 )
-            )
-            if existing.scalar_one_or_none() is not None:
-                continue
 
-            db.add(
-                StoreProduct(
-                    store_id=store_id,
-                    product_id=product.id,
-                    price=product.submitted_price,
-                )
+        try:
+            await db.commit()
+        except Exception as exc:
+            await db.rollback()
+            logger.warning(
+                "Produkt %s zaakceptowany, ale nie zapisano przypisań sklepów: %s",
+                product.id, exc,
             )
-            created_links += 1
 
-    # Powiadomienie dla zgłaszającego — bez niego nigdy by się nie
-    # dowiedział, co się stało z jego zgłoszeniem.
     if product.created_by_user_id:
         from app.models.notification import Notification
 
@@ -897,14 +1033,15 @@ async def review_product(
             ),
         )
         db.add(n)
-
-    await db.commit()
-
-    if product.created_by_user_id:
         try:
+            await db.commit()
             from app.services.push import is_push_enabled, push_for_notification
 
             if is_push_enabled():
                 await push_for_notification(db, n)
-        except Exception:
-            pass
+        except Exception as exc:
+            await db.rollback()
+            logger.warning(
+                "Produkt %s oceniony, ale powiadomienie nie zostało wysłane: %s",
+                product_id, exc,
+            )

@@ -13,7 +13,6 @@ from app.core.config import settings
 OFF_API_URLS = (
     ("v3", "https://world.openfoodfacts.org/api/v3/product/{barcode}"),
     ("v2", "https://world.openfoodfacts.org/api/v2/product/{barcode}.json"),
-    ("v2", "https://pl.openfoodfacts.org/api/v2/product/{barcode}.json"),
 )
 USDA_SEARCH_URL = "https://api.nal.usda.gov/fdc/v1/foods/search"
 UPCITEMDB_LOOKUP_URL = "https://api.upcitemdb.com/prod/trial/lookup"
@@ -67,6 +66,21 @@ def normalize_barcode(value: str) -> str | None:
         cleaned = cleaned[3:]
     digits = "".join(char for char in cleaned if char.isdigit())
     return digits if 8 <= len(digits) <= 14 else None
+
+
+def barcode_variants(barcode: str) -> tuple[str, ...]:
+    """Równoważne zapisy GTIN (skanery różnie zwracają UPC-A/EAN-13)."""
+    normalized = normalize_barcode(barcode)
+    if normalized is None:
+        return ()
+    variants = [normalized]
+    if len(normalized) in (12, 13):
+        variants.append(normalized.zfill(14))
+    if len(normalized) == 12:
+        variants.append("0" + normalized)
+    if len(normalized) in (13, 14) and normalized.startswith("0"):
+        variants.append(normalized.lstrip("0"))
+    return tuple(dict.fromkeys(value for value in variants if 8 <= len(value) <= 14))
 
 
 def _number(mapping: dict, *keys: str) -> float | None:
@@ -275,16 +289,29 @@ async def _fetch_off(client: httpx.AsyncClient, barcode: str) -> BarcodeLookupRe
             "product_quantity,product_quantity_unit,serving_quantity"
         ),
     }
-    for api_version, template in OFF_API_URLS:
-        try:
-            response = await client.get(template.format(barcode=barcode), params=params)
-            response.raise_for_status()
-            product = _product_from_off_response(response.json(), api_version)
-        except (httpx.HTTPError, ValueError, TypeError) as exc:
-            logger.warning("Open Food Facts lookup failed for %s: %s", barcode, exc)
-            continue
-        if product is not None and (result := _result_from_off_product(product)):
-            return result
+    # UPC-A jest czasem zapisany w OFF jako EAN-13 z początkowym zerem.
+    # Nie pytamy o wszystkie zera GTIN-14: to mnożyłoby ruch bez wartości.
+    candidates = [barcode]
+    if len(barcode) == 12:
+        candidates.append("0" + barcode)
+    elif len(barcode) == 13 and barcode.startswith("0"):
+        candidates.append(barcode[1:])
+    for candidate in candidates:
+        for api_version, template in OFF_API_URLS:
+            try:
+                response = await client.get(template.format(barcode=candidate), params=params)
+                response.raise_for_status()
+                payload = response.json()
+            except (httpx.HTTPError, ValueError, TypeError) as exc:
+                logger.warning("Open Food Facts lookup failed for %s: %s", candidate, exc)
+                continue
+            product = _product_from_off_response(payload, api_version)
+            if product is not None and (result := _result_from_off_product(product)):
+                return result
+            if (api_version == "v3" and isinstance(payload, dict) and
+                    isinstance(payload.get("result"), dict) and
+                    payload["result"].get("id") == "product_not_found"):
+                break
     return None
 
 
@@ -376,7 +403,7 @@ async def _fetch_upcitemdb(client: httpx.AsyncClient, barcode: str) -> BarcodeLo
 
 
 async def lookup_barcode_external(barcode: str) -> BarcodeLookupResult | None:
-    """Pyta trzy bazy równolegle i wybiera wynik według jakości źródła."""
+    """Zwraca pierwszy pełny wynik, bez czekania na wolniejsze bazy."""
     normalized = normalize_barcode(barcode)
     if normalized is None:
         return None
@@ -386,19 +413,43 @@ async def lookup_barcode_external(barcode: str) -> BarcodeLookupResult | None:
             asyncio.create_task(provider(client, normalized))
             for provider in (_fetch_off, _fetch_usda, _fetch_upcitemdb)
         ]
-        done, pending = await asyncio.wait(tasks, timeout=6.5)
-        for task in pending:
-            task.cancel()
-        if pending:
-            await asyncio.gather(*pending, return_exceptions=True)
-        results: dict[str, BarcodeLookupResult] = {}
-        for task in done:
-            try:
-                if result := task.result():
-                    results[result.source] = result
-            except Exception as exc:
-                logger.warning("Barcode provider failed for %s: %s", normalized, exc)
-        for source in ("open_food_facts", "usda_fooddata_central", "upcitemdb"):
-            if source in results:
-                return results[source]
+        fallback: BarcodeLookupResult | None = None
+        deadline = asyncio.get_running_loop().time() + 5.0
+        pending = set(tasks)
+        try:
+            while pending:
+                remaining = deadline - asyncio.get_running_loop().time()
+                if remaining <= 0:
+                    break
+                # UPCitemdb bez makro może przyjść pierwszy. Dajemy pozostałym
+                # źródłom najwyżej 600 ms na pełniejsze dane, nie 5 sekund.
+                if fallback is not None:
+                    remaining = min(remaining, 0.6)
+                done, pending = await asyncio.wait(
+                    pending, timeout=remaining, return_when=asyncio.FIRST_COMPLETED,
+                )
+                if not done:
+                    break
+                for task in done:
+                    try:
+                        result = task.result()
+                    except Exception as exc:
+                        logger.warning("Barcode provider failed for %s: %s", normalized, exc)
+                        continue
+                    if result is None:
+                        continue
+                    if result.source == "open_food_facts" or all(
+                        value is not None for value in (
+                            result.kcal_per_100, result.protein_per_100,
+                            result.fat_per_100, result.carbs_per_100,
+                        )
+                    ):
+                        return result
+                    fallback = fallback or result
+        finally:
+            for task in tasks:
+                if not task.done():
+                    task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
+        return fallback
     return None

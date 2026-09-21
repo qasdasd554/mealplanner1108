@@ -5,6 +5,7 @@ import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import '../services/update_service.dart';
 import '../services/push_service.dart';
+import '../services/share_intent_handler.dart';
 import 'recipes/ai_add_recipe_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -55,8 +56,7 @@ class _SplashScreenState extends State<SplashScreen> {
     try {
       final sharedText = await _shareChannel.invokeMethod<String>('getInitialSharedText');
       if (sharedText != null) {
-        final match = RegExp(r'https?://\S+').firstMatch(sharedText);
-        sharedUrl = match?.group(0);
+        sharedUrl = ShareIntentHandler.extractUrl(sharedText);
       }
     } catch (_) {
       // Cicho ignorujemy — to nie jest krytyczna ścieżka startu aplikacji.
@@ -125,7 +125,10 @@ class _SplashScreenState extends State<SplashScreen> {
         // Zalogowany i przyszedł z udostępnienia linku — od razu na
         // ekran rozpoznawania przepisu przez AI, z wypełnionym linkiem.
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => AiAddRecipeScreen(initialUrl: sharedUrl)),
+          MaterialPageRoute(builder: (_) => AiAddRecipeScreen(
+            initialUrl: sharedUrl,
+            autoStartImport: true,
+          )),
         );
       } else {
         Navigator.of(context).pushReplacementNamed('/home');

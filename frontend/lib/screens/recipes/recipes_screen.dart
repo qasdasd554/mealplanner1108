@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../models/recipe.dart';
+import '../../models/recipe_import_job.dart';
 import '../../config/constants.dart';
 import '../../services/recipe_service.dart';
 import '../../theme/app_theme.dart';
@@ -26,6 +28,9 @@ class RecipesScreen extends StatefulWidget {
 
 class _RecipesScreenState extends State<RecipesScreen> {
   final RecipeService _recipeService = RecipeService();
+  RecipeImportJob? _activeImport;
+  Timer? _importPollTimer;
+  bool _checkingImport = false;
   List<Recipe> _recipes = [];
   bool _isLoading = false;
   String _searchQuery = '';
@@ -46,6 +51,43 @@ class _RecipesScreenState extends State<RecipesScreen> {
   void initState() {
     super.initState();
     _loadRecipes();
+    _loadImportStatus();
+  }
+
+  @override
+  void dispose() {
+    _importPollTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _loadImportStatus() async {
+    if (_checkingImport) return;
+    _checkingImport = true;
+    try {
+      final jobs = await _recipeService.getRecentRecipeImportJobs();
+      if (!mounted) return;
+      RecipeImportJob? active;
+      for (final job in jobs) {
+        if (job.isActive) {
+          active = job;
+          break;
+        }
+      }
+      final wasActive = _activeImport != null;
+      setState(() => _activeImport = active);
+      _importPollTimer?.cancel();
+      if (active != null) {
+        _importPollTimer = Timer.periodic(
+          const Duration(seconds: 10), (_) => _loadImportStatus(),
+        );
+      } else if (wasActive) {
+        _loadRecipes();
+      }
+    } catch (_) {
+      // Błąd statusu nie może blokować przeglądania przepisów.
+    } finally {
+      _checkingImport = false;
+    }
   }
 
   Future<void> _loadRecipes() async {
@@ -100,6 +142,27 @@ class _RecipesScreenState extends State<RecipesScreen> {
       appBar: AppBar(
         title: const Text('Przepisy'),
         actions: [
+          if (_activeImport != null)
+            IconButton(
+              tooltip: 'Trwa dodawanie przepisu przez AI',
+              icon: const SizedBox(
+                width: 24,
+                height: 24,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Icon(Icons.auto_awesome, size: 15),
+                    CircularProgressIndicator(strokeWidth: 2),
+                  ],
+                ),
+              ),
+              onPressed: () async {
+                await Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => const AiAddRecipeScreen(),
+                ));
+                _loadImportStatus();
+              },
+            ),
           // UWAGA (naprawa widoczności): zwykła, konturowa ikona ledwo
           // było widać na pasku — teraz wypełniona, w złotym kolorze
           // trofeum, na delikatnym tle, z subtelną animacją pulsowania,
@@ -320,12 +383,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        // UWAGA (naprawa widoczności): wcześniej FAB prowadził od razu do
-        // ręcznego formularza, a dodawanie przez AI było schowane jako
-        // mały TextButton w pasku AppBar tamtego ekranu — łatwo było go
-        // przeoczyć. Teraz FAB otwiera wybór z DUŻĄ, wyróżnioną kartą AI
-        // na pierwszym miejscu (główna, zalecana ścieżka) i mniejszą
-        // opcją ręczną poniżej.
+        // Stały przycisk otwiera bezpośrednio cztery sposoby dodania.
+        // Nie zabiera miejsca siatce przepisów, gdy użytkownik przegląda.
         onPressed: () => _showAddRecipeChoice(context),
         icon: const Icon(Icons.add),
         label: const Text('Dodaj przepis'),
@@ -349,57 +408,39 @@ class _RecipesScreenState extends State<RecipesScreen> {
               children: [
                 Text('Dodaj przepis', style: Theme.of(sheetContext).textTheme.titleLarge),
                 const SizedBox(height: 16),
-                // Duża, wyróżniona karta AI — GŁÓWNA, zalecana ścieżka.
-                GestureDetector(
+                Text('Z pomocą AI', style: Theme.of(sheetContext).textTheme.titleMedium),
+                ListTile(
+                  leading: const Icon(Icons.photo_camera_outlined),
+                  title: const Text('Zrób zdjęcie'),
+                  subtitle: const Text('Przepisu albo gotowego dania'),
                   onTap: () {
                     Navigator.of(sheetContext).pop();
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const AiAddRecipeScreen()),
-                    );
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => const AiAddRecipeScreen(initialTabIndex: 1),
+                    )).then((_) { if (mounted) _loadImportStatus(); });
                   },
-                  child: Container(
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [AppTheme.secondaryColor, AppTheme.primaryColor],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(Icons.auto_awesome, color: Colors.white, size: 26),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Dodaj przez AI',
-                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                'Zdjęcie, tekst albo link — AI zrobi resztę',
-                                style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 12),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Icon(Icons.chevron_right, color: Colors.white),
-                      ],
-                    ),
-                  ),
                 ),
-                const SizedBox(height: 12),
+                ListTile(
+                  leading: const Icon(Icons.text_snippet_outlined),
+                  title: const Text('Wklej tekst'),
+                  onTap: () {
+                    Navigator.of(sheetContext).pop();
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => const AiAddRecipeScreen(initialTabIndex: 0),
+                    )).then((_) { if (mounted) _loadImportStatus(); });
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.link),
+                  title: const Text('Wklej link'),
+                  onTap: () {
+                    Navigator.of(sheetContext).pop();
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => const AiAddRecipeScreen(initialTabIndex: 2),
+                    )).then((_) { if (mounted) _loadImportStatus(); });
+                  },
+                ),
+                const SizedBox(height: 8),
                 // Mniejsza, drugorzędna opcja ręczna.
                 SizedBox(
                   width: double.infinity,

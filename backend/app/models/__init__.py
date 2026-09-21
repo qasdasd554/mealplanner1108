@@ -14,6 +14,7 @@ from app.models.product import (
     StoreProduct,
 )
 from app.models.recipe import Recipe, RecipeIngredient, RecipeTag
+from app.models.recipe_import_job import RecipeImportJob
 from app.models.recipe_comment import RecipeComment, RecipeCommentLike
 from app.models.recipe_favorite import RecipeFavorite
 from app.models.shopping_list import ShoppingList, ShoppingListItem
@@ -41,6 +42,7 @@ __all__ = [
     "BarcodeProductCache",
     # Recipe
     "Recipe",
+    "RecipeImportJob",
     "RecipeTag",
     "RecipeIngredient",
     "RecipeComment",

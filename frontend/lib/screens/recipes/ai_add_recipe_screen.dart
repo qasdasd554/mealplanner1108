@@ -1,9 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import '../../models/recipe.dart';
+import '../../models/recipe_import_job.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/recipe_service.dart';
 import '../../services/api_client.dart';
@@ -12,10 +13,8 @@ import 'recipe_detail_screen.dart';
 import '../profile/premium_screen.dart';
 import '../../utils/error_utils.dart';
 
-/// Ekran dodawania własnego przepisu przez AI — z wklejonego tekstu albo
-/// zdjęcia. Funkcja Premium: konta bez aktywnej subskrypcji widzą tu
-/// czytelną informację zamiast formularza (bez udawania niedziałającego
-/// przycisku zakupu — prawdziwe płatności jeszcze nie są podłączone).
+/// Dodawanie przepisu z tekstu, zdjęcia lub linku. Wynik jest zapisywany
+/// przez backend w tle; ekran może zostać zamknięty po przyjęciu zadania.
 class AiAddRecipeScreen extends StatefulWidget {
   // Jeśli podany (np. z udostępnienia linku z TikToka), ekran otwiera
   // się od razu na zakładce "Link" z tym adresem wpisanym w polu.
@@ -24,8 +23,16 @@ class AiAddRecipeScreen extends StatefulWidget {
   // z bazy nic nie znajdzie), ekran otwiera się od razu na zakładce
   // "Tekst" z gotowym opisem wypełnionym w polu.
   final String? initialText;
+  final int initialTabIndex;
+  final bool autoStartImport;
 
-  const AiAddRecipeScreen({super.key, this.initialUrl, this.initialText});
+  const AiAddRecipeScreen({
+    super.key,
+    this.initialUrl,
+    this.initialText,
+    this.initialTabIndex = 0,
+    this.autoStartImport = false,
+  });
 
   @override
   State<AiAddRecipeScreen> createState() => _AiAddRecipeScreenState();
@@ -41,6 +48,8 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
   File? _pickedImage;
   bool _isSubmitting = false;
   String? _error;
+  RecipeImportJob? _currentJob;
+  Timer? _jobPollTimer;
 
   @override
   void initState() {
@@ -54,24 +63,74 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
       _textController.text = widget.initialText!;
       // Indeks 0 = zakładka "Tekst" — już domyślna, ale jawnie dla jasności.
       _tabController.index = 0;
+    } else {
+      _tabController.index = widget.initialTabIndex.clamp(0, 2).toInt();
     }
+    _initializeImport();
   }
 
   @override
   void dispose() {
+    _jobPollTimer?.cancel();
     _tabController.dispose();
     _textController.dispose();
     _urlController.dispose();
     super.dispose();
   }
 
+  Future<void> _loadActiveJob() async {
+    try {
+      final jobs = await _recipeService.getRecentRecipeImportJobs();
+      if (!mounted || jobs.isEmpty || !jobs.first.isActive) return;
+      _watchJob(jobs.first);
+    } catch (_) {
+      // Formularz pozostaje dostępny przy chwilowym błędzie sieci.
+    }
+  }
+
+  Future<void> _initializeImport() async {
+    await _loadActiveJob();
+    if (!mounted || !widget.autoStartImport || _currentJob != null ||
+        _urlController.text.isEmpty) return;
+    final user = Provider.of<AuthProvider>(context, listen: false).currentUser;
+    if (user == null ||
+        (!user.hasPremiumAccess && user.premiumPoints < 2)) return;
+    await _submitUrl();
+  }
+
+  void _watchJob(RecipeImportJob job) {
+    if (!mounted) return;
+    setState(() => _currentJob = job);
+    _jobPollTimer?.cancel();
+    if (job.isActive) {
+      _jobPollTimer = Timer.periodic(const Duration(seconds: 6), (_) => _pollJob());
+    }
+  }
+
+  Future<void> _pollJob() async {
+    final id = _currentJob?.id;
+    if (id == null) return;
+    try {
+      final updated = await _recipeService.getRecipeImportJob(id);
+      if (!mounted || _currentJob?.id != id) return;
+      _watchJob(updated);
+      if (!updated.isActive) {
+        await Provider.of<AuthProvider>(context, listen: false).loadProfile();
+      }
+    } catch (_) {
+      // Kolejna próba za sześć sekund; praca serwera trwa dalej.
+    }
+  }
+
   Future<void> _pickImage(ImageSource source) async {
     try {
       final picked = await _picker.pickImage(
         source: source,
-        maxWidth: 1600,
-        maxHeight: 1600,
-        imageQuality: 85,
+        // Mniejszy JPEG skraca przesłanie zdjęcia i analizę obrazu.
+        // 1400 px zachowuje czytelność większości fotografowanych stron.
+        maxWidth: 1400,
+        maxHeight: 1400,
+        imageQuality: 80,
       );
       if (picked != null) {
         if (!mounted) return;
@@ -128,8 +187,8 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
       _error = null;
     });
     try {
-      final recipe = await _recipeService.importRecipeFromText(text);
-      await _onSuccess(recipe);
+      final job = await _recipeService.startRecipeImport(text: text);
+      _watchJob(job);
     } catch (e) {
       _handleError(e);
     } finally {
@@ -146,8 +205,8 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
       _error = null;
     });
     try {
-      final recipe = await _recipeService.importRecipeFromUrl(url);
-      await _onSuccess(recipe);
+      final job = await _recipeService.startRecipeImport(url: url);
+      _watchJob(job);
     } catch (e) {
       _handleError(e);
     } finally {
@@ -165,8 +224,8 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
     try {
       final bytes = await _pickedImage!.readAsBytes();
       final base64Photo = base64Encode(bytes);
-      final recipe = await _recipeService.importRecipeFromPhoto(base64Photo);
-      await _onSuccess(recipe);
+      final job = await _recipeService.startRecipeImport(photoBase64: base64Photo);
+      _watchJob(job);
     } catch (e) {
       _handleError(e);
     } finally {
@@ -214,28 +273,6 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
     );
   }
 
-  Future<void> _onSuccess(Recipe recipe) async {
-    if (!mounted) return;
-    // UWAGA (naprawa — "punkty nie ubywają"): backend POPRAWNIE odejmuje
-    // punkty w bazie po udanym imporcie, ale to konto (AuthProvider)
-    // nigdy nie było odświeżane po tej operacji — więc wyświetlane
-    // saldo pozostawało STARE, sprzed wysłania zapytania, dopóki
-    // aplikacja nie została zrestartowana (co wymusza nowe pobranie
-    // profilu przy starcie). Odświeżamy tutaj, PRZED nawigacją dalej,
-    // żeby saldo widoczne gdziekolwiek w aplikacji było już aktualne.
-    await Provider.of<AuthProvider>(context, listen: false).loadProfile();
-    if (!mounted) return;
-    // Przejdź od razu do widoku nowego przepisu — użytkownik widzi
-    // natychmiast, co AI rozpoznało, zamiast dodatkowego ekranu
-    // potwierdzenia.
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (_) => RecipeDetailScreen(),
-        settings: RouteSettings(arguments: recipe),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final currentUser = Provider.of<AuthProvider>(context).currentUser;
@@ -252,14 +289,14 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
     // backendu, po udanym rozpoznaniu (patrz ai_import_recipe).
     final hasAccess = (currentUser?.hasPremiumAccess ?? false) || (currentUser?.premiumPoints ?? 0) >= 2;
 
-    if (!hasAccess) {
+    if (!hasAccess && _currentJob == null) {
       return _buildPaywall(context);
     }
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dodaj przepis przez AI'),
-        bottom: TabBar(
+        bottom: _currentJob != null ? null : TabBar(
           controller: _tabController,
           labelColor: AppTheme.primaryColor,
           tabs: const [
@@ -276,6 +313,8 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
       body: SafeArea(
         child: _isSubmitting
             ? _buildLoadingState()
+            : _currentJob != null
+                ? _buildJobState(_currentJob!)
             : TabBarView(
                 controller: _tabController,
                 children: [_buildTextTab(), _buildPhotoTab(), _buildLinkTab()],
@@ -294,15 +333,86 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
             const CircularProgressIndicator(color: AppTheme.primaryColor),
             const SizedBox(height: 24),
             Text(
-              'Rozpoznaję przepis...',
+              'Przyjmuję przepis...',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
             Text(
-              'To może potrwać kilka-kilkanaście sekund.',
+              'Za chwilę możesz wrócić do korzystania z aplikacji.',
               style: TextStyle(color: AppTheme.textSecondary),
               textAlign: TextAlign.center,
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildJobState(RecipeImportJob job) {
+    final active = job.isActive;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (active) const CircularProgressIndicator()
+            else Icon(
+              job.status == 'completed' ? Icons.check_circle : Icons.error_outline,
+              size: 48,
+              color: job.status == 'completed' ? AppTheme.primaryColor : AppTheme.errorColor,
+            ),
+            const SizedBox(height: 20),
+            Text(
+              active ? 'Twój przepis jest przygotowywany' :
+                  job.status == 'completed' ? 'Przepis jest gotowy' : 'Nie udało się rozpoznać przepisu',
+              style: Theme.of(context).textTheme.titleLarge,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              active
+                  ? 'Możesz wyjść z tego ekranu. O wyniku poinformujemy Cię w aplikacji, a przy włączonych pushach także na telefonie.'
+                  : job.status == 'completed'
+                      ? 'Znajdziesz go też w zakładce Moje.'
+                      : (job.error ?? 'Spróbuj ponownie.'),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            if (job.status == 'completed' && job.recipeId != null)
+              FilledButton(
+                onPressed: () async {
+                  try {
+                    final recipe = await _recipeService.getRecipe(job.recipeId!);
+                    if (!mounted) return;
+                    Navigator.of(context).pushReplacement(MaterialPageRoute(
+                      builder: (_) => const RecipeDetailScreen(),
+                      settings: RouteSettings(arguments: recipe),
+                    ));
+                  } catch (error) {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(friendlyError(error))),
+                    );
+                  }
+                },
+                child: const Text('Otwórz przepis'),
+              ),
+            if (job.status == 'completed')
+              TextButton(
+                onPressed: () => setState(() => _currentJob = null),
+                child: const Text('Dodaj kolejny przepis'),
+              ),
+            if (!active && job.status != 'completed')
+              OutlinedButton(
+                onPressed: () => setState(() => _currentJob = null),
+                child: const Text('Spróbuj ponownie'),
+              ),
+            if (active)
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Wróć do aplikacji'),
+              ),
           ],
         ),
       ),

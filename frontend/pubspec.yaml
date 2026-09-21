@@ -3,7 +3,7 @@ description: "A smart meal planner mobile application integrated with Polish gro
 publish_to: 'none'
 # Przy każdym kolejnym buildzie sklepowym zwiększ oba numery:
 # wersję iOS przed znakiem `+` oraz kod wersji Androida po `+`.
-version: 1.0.25+222
+version: 1.0.26+223
 
 environment:
   sdk: '>=3.7.0 <4.0.0'
@@ -69,7 +69,7 @@ dependencies:
   flutter_local_notifications: ^18.0.1
   package_info_plus: ^8.1.2
   image_picker: ^1.1.2
-  flutter_zxing: ^2.0.1
+  mobile_scanner: ^7.4.2
   # UWAGA: obsługa udostępnień z TikToka (link -> rozpoznanie przepisu
   # przez AI) NIE korzysta z żadnego pakietu z pub.dev. Dwie kolejne
   # biblioteki do tego celu (receive_sharing_intent,

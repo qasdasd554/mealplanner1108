@@ -129,6 +129,13 @@ async def _create_tables() -> None:
             text("ALTER TABLE recipes ADD COLUMN IF NOT EXISTS created_by_user_id UUID")
         )
         await conn.execute(
+            text("ALTER TABLE recipes ADD COLUMN IF NOT EXISTS import_job_id UUID")
+        )
+        await conn.execute(
+            text("CREATE UNIQUE INDEX IF NOT EXISTS uq_recipes_import_job_id "
+                 "ON recipes (import_job_id) WHERE import_job_id IS NOT NULL")
+        )
+        await conn.execute(
             text("ALTER TABLE recipes ADD COLUMN IF NOT EXISTS visibility VARCHAR(20) NOT NULL DEFAULT 'private'")
         )
         await conn.execute(
@@ -458,12 +465,16 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     scraper_task = asyncio.create_task(_price_scraper_background_loop())
     weekly_contest_task = asyncio.create_task(_weekly_contest_background_loop())
     promotion_expiry_task = asyncio.create_task(_promotion_expiry_background_loop())
+    from app.services.recipe_import_worker import recipe_import_worker_loop
+
+    recipe_import_task = asyncio.create_task(recipe_import_worker_loop())
     logger.info("Aplikacja gotowa do obsługi żądań.")
     yield
     logger.info("Zamykanie Smart Meal Planner PL API...")
     scraper_task.cancel()
     weekly_contest_task.cancel()
     promotion_expiry_task.cancel()
+    recipe_import_task.cancel()
 
 
 app = FastAPI(

@@ -143,6 +143,9 @@ content_report_limiter = SlidingWindowRateLimiter(max_events=20, window_seconds=
 # moderacji, więc bez limitu jedna osoba mogłaby ją zasypać.
 product_submission_limiter = SlidingWindowRateLimiter(max_events=15, window_seconds=3600)
 
+# Prywatne kopie składników wybranych z zewnętrznej wyszukiwarki przepisów.
+recipe_ingredient_limiter = SlidingWindowRateLimiter(max_events=100, window_seconds=86400)
+
 recipe_photo_submission_limiter = SlidingWindowRateLimiter(max_events=10, window_seconds=3600)
 
 

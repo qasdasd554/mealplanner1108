@@ -32,26 +32,42 @@ class ShareIntentHandler {
   static const MethodChannel _channel = MethodChannel('com.meal_planner_polska_v1/share_intent');
   static final RegExp _urlPattern = RegExp(r'https?://\S+');
 
+  static String? extractUrl(String? sharedText) {
+    if (sharedText == null) return null;
+    final raw = _urlPattern.firstMatch(sharedText)?.group(0);
+    if (raw == null) return null;
+    final url = raw.replaceFirst(RegExp(r'[.,;!?\)\]\}]+$'), '');
+    final uri = Uri.tryParse(url);
+    if (uri == null || !uri.hasAuthority ||
+        (uri.scheme != 'https' && uri.scheme != 'http')) return null;
+    return url;
+  }
+
   static void initialize(GlobalKey<NavigatorState> navigatorKey) {
     _channel.setMethodCallHandler((call) async {
       if (call.method == 'onSharedText') {
         _handleSharedText(call.arguments as String?, navigatorKey);
       }
     });
+    // Zimny start obsługuje SplashScreen; po wznowieniu iOS może już
+    // przekazać link z rozszerzenia do działającej aplikacji.
+    _channel.invokeMethod<void>('shareChannelReady').catchError((_) {});
   }
 
   static void _handleSharedText(String? sharedText, GlobalKey<NavigatorState> navigatorKey) {
     if (sharedText == null || sharedText.isEmpty) return;
 
-    final match = _urlPattern.firstMatch(sharedText);
-    if (match == null) return;
-    final url = match.group(0)!;
+    final url = extractUrl(sharedText);
+    if (url == null) return;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final navigator = navigatorKey.currentState;
       if (navigator == null) return;
       navigator.push(
-        MaterialPageRoute(builder: (_) => AiAddRecipeScreen(initialUrl: url)),
+        MaterialPageRoute(builder: (_) => AiAddRecipeScreen(
+          initialUrl: url,
+          autoStartImport: true,
+        )),
       );
     });
   }

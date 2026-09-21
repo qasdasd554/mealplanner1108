@@ -1,4 +1,5 @@
 import '../models/recipe.dart';
+import '../models/recipe_import_job.dart';
 import 'api_client.dart';
 import '../config/api_config.dart';
 
@@ -99,6 +100,35 @@ class RecipeService {
   }
 
   /// Rozpoznaje przepis z wklejonego tekstu przez AI (funkcja Premium).
+  Future<RecipeImportJob> startRecipeImport({
+    String? text,
+    String? photoBase64,
+    String? url,
+  }) async {
+    final response = await _client.post(
+      '${ApiConfig.recipes}ai-import/jobs',
+      body: {
+        if (text != null) 'text': text,
+        if (photoBase64 != null) 'photo_base64': photoBase64,
+        if (url != null) 'url': url,
+      },
+    );
+    return RecipeImportJob.fromJson(response as Map<String, dynamic>);
+  }
+
+  Future<RecipeImportJob> getRecipeImportJob(String jobId) async {
+    final response = await _client.get('${ApiConfig.recipes}ai-import/jobs/$jobId');
+    return RecipeImportJob.fromJson(response as Map<String, dynamic>);
+  }
+
+  Future<List<RecipeImportJob>> getRecentRecipeImportJobs() async {
+    final response = await _client.get('${ApiConfig.recipes}ai-import/jobs/recent');
+    if (response is! List) return [];
+    return response
+        .map((item) => RecipeImportJob.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<Recipe> importRecipeFromText(String text) async {
     final response = await _client.post(
       '${ApiConfig.recipes}ai-import',

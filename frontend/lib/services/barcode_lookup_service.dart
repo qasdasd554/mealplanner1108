@@ -11,8 +11,8 @@ import 'api_client.dart';
 /// niezależna od wdrożenia backendu i pozwala uzupełnić formularz także
 /// wtedy, gdy serwer aplikacji chwilowo nie odpowiada.
 class BarcodeLookupService {
-  static const _backendTimeout = Duration(seconds: 8);
-  static const _externalTimeout = Duration(seconds: 12);
+  static const _backendTimeout = Duration(seconds: 6);
+  static const _externalTimeout = Duration(seconds: 4);
   static const _userAgent =
       'MealPlannerPolska/1.0 (https://github.com/qasdasd554/mealplanner1108)';
 
@@ -26,52 +26,69 @@ class BarcodeLookupService {
   void close() => _httpClient.close();
 
   Future<BarcodeLookupResult> lookup(String barcode) async {
-    Object? backendError;
-    BarcodeLookupResult? backendResult;
-    // Uruchamiamy niezależne źródło od razu. Dzięki temu uśpiony backend
-    // nie opóźnia o kilkanaście sekund danych, które OFF ma już gotowe.
-    final externalFuture = _lookupOpenFoodFacts(barcode);
+    // Dajemy Neon 250 ms na szybki hit. Nie pytamy OFF ponownie przy każdym
+    // skanie znanego kodu (publiczne API ma limity żądań na adres IP).
+    final backendFuture = _lookupBackend(barcode);
+    final fastBackend = await backendFuture.timeout(
+      const Duration(milliseconds: 250),
+      onTimeout: () => (result: null, error: null, backend: true),
+    );
+    if (fastBackend.result != null && fastBackend.result!.found &&
+        _hasName(fastBackend.result!) &&
+        _hasCompleteProductData(fastBackend.result!)) {
+      return fastBackend.result!;
+    }
+    final externalFuture = _lookupOpenFoodFacts(barcode)
+        .then((result) => (result: result, error: null as Object?, backend: false));
+    final first = fastBackend.result != null || fastBackend.error != null
+        ? fastBackend
+        : await Future.any([backendFuture, externalFuture]);
+    final other = first.backend ? externalFuture : backendFuture;
+    final result = first.result;
 
+    if (result != null && result.found && _hasName(result)) {
+      if (first.backend && _hasCompleteProductData(result)) return result;
+      // Krótka szansa na uzupełnienie makro lub identyfikatora produktu
+      // z katalogu; nie opóźniamy wyświetlenia o całe timeouty API.
+      final second = await other.timeout(
+        Duration(milliseconds: first.backend ? 900 : 250),
+        onTimeout: () => (result: null, error: null, backend: !first.backend),
+      );
+      if (second.result != null && second.result!.found &&
+          _hasName(second.result!)) {
+        return first.backend
+            ? mergeBarcodeLookupResults(result, second.result!)
+            : mergeBarcodeLookupResults(second.result!, result);
+      }
+      return result;
+    }
+
+    final second = await other;
+    if (second.result != null) return second.result!;
+    if (result != null) return result;
+    if (first.error != null) throw first.error!;
+    if (second.error != null) throw second.error!;
+    return const BarcodeLookupResult(found: false);
+  }
+
+  Future<({BarcodeLookupResult? result, Object? error, bool backend})>
+      _lookupBackend(String barcode) async {
     try {
       final response = await _apiClient.get(
-        '/products/barcode/$barcode',
-        timeout: _backendTimeout,
+        '/products/barcode/$barcode', timeout: _backendTimeout,
       );
-      backendResult = BarcodeLookupResult.fromJson(
+      return (result: BarcodeLookupResult.fromJson(
         response as Map<String, dynamic>,
-      );
-      if (backendResult.found &&
-          _hasName(backendResult) &&
-          _hasCompleteProductData(backendResult)) {
-        return backendResult;
-      }
+      ), error: null, backend: true);
     } catch (error) {
-      backendError = error;
+      return (result: null, error: error, backend: true);
     }
-
-    final externalResult = await externalFuture;
-    if (externalResult != null) {
-      if (backendResult != null &&
-          backendResult.found &&
-          _hasName(backendResult)) {
-        return mergeBarcodeLookupResults(backendResult, externalResult);
-      }
-      return externalResult;
-    }
-
-    // Gdy backend odpowiedział poprawnie "nie znaleziono", zachowujemy ten
-    // wynik. Błąd połączenia pokazujemy dopiero wtedy, gdy zawiodła również
-    // niezależna próba w Open Food Facts.
-    if (backendResult != null) return backendResult;
-    if (backendError != null) throw backendError;
-    return const BarcodeLookupResult(found: false);
   }
 
   bool _hasName(BarcodeLookupResult result) =>
       result.name?.trim().isNotEmpty == true;
 
   bool _hasCompleteProductData(BarcodeLookupResult result) =>
-      _nonEmpty(result.brand) != null &&
       result.kcalPer100 != null &&
       result.proteinPer100 != null &&
       result.fatPer100 != null &&
@@ -93,36 +110,34 @@ class BarcodeLookupService {
       }),
     ];
 
-    for (var index = 0; index < urls.length; index++) {
-      try {
-        final response = await _httpClient.get(
-          urls[index],
-          headers: const {
-            'Accept': 'application/json',
-            'User-Agent': _userAgent,
-          },
-        ).timeout(_externalTimeout);
-        if (response.statusCode != 200) continue;
+    final attempts = [
+      _lookupOffUrl(urls[0], isV3: true),
+      _lookupOffUrl(urls[1], isV3: false),
+    ];
+    final first = await Future.any([
+      attempts[0].then((result) => (index: 0, result: result)),
+      attempts[1].then((result) => (index: 1, result: result)),
+    ]);
+    return first.result ?? await attempts[1 - first.index];
+  }
 
-        final decoded = jsonDecode(response.body);
-        if (decoded is! Map<String, dynamic>) continue;
-        final product = extractOpenFoodFactsProduct(
-          decoded,
-          isV3: index == 0,
-        );
-        if (product == null) continue;
-
-        final result = barcodeResultFromOpenFoodFacts(product);
-        if (result != null) return result;
-      } on TimeoutException {
-        continue;
-      } on http.ClientException {
-        continue;
-      } on FormatException {
-        continue;
-      }
+  Future<BarcodeLookupResult?> _lookupOffUrl(Uri url, {required bool isV3}) async {
+    try {
+      final response = await _httpClient.get(url, headers: const {
+        'Accept': 'application/json', 'User-Agent': _userAgent,
+      }).timeout(_externalTimeout);
+      if (response.statusCode != 200) return null;
+      final decoded = jsonDecode(response.body);
+      if (decoded is! Map<String, dynamic>) return null;
+      final product = extractOpenFoodFactsProduct(decoded, isV3: isV3);
+      return product == null ? null : barcodeResultFromOpenFoodFacts(product);
+    } on TimeoutException {
+      return null;
+    } on http.ClientException {
+      return null;
+    } on FormatException {
+      return null;
     }
-    return null;
   }
 
   static const _fields =

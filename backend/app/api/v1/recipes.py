@@ -1,5 +1,7 @@
 """Endpointy przepisów kulinarnych."""
 
+import logging
+import time
 from datetime import datetime, timezone
 import re
 from uuid import UUID
@@ -33,6 +35,7 @@ from app.services.moderation import get_blocked_user_ids
 from app.services.nutrition_calculator import compute_recipe_nutrition_total, is_ingredient_quantity_reasonable
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 async def _get_favorite_recipe_ids(db: AsyncSession, user_id: UUID) -> set[UUID]:
@@ -815,6 +818,17 @@ async def ai_import_recipe(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> Recipe:
+    return await _create_ai_recipe(payload, current_user, db)
+
+
+async def _create_ai_recipe(
+    payload: AIRecipeImportRequest,
+    current_user: User,
+    db: AsyncSession,
+    *,
+    import_job_id: UUID | None = None,
+    skip_rate_limit: bool = False,
+) -> Recipe:
     """Rozpoznaje przepis z wklejonego tekstu, zdjęcia ALBO linku
     (np. blog kulinarny, TikTok, Instagram) i tworzy z niego nowy,
     PRYWATNY przepis (widoczny tylko dla Ciebie — nie trafia
@@ -839,6 +853,8 @@ async def ai_import_recipe(
         validate_and_clean_recipe_dict,
     )
 
+    started_at = time.perf_counter()
+    source_kind = "text" if payload.text else "photo" if payload.photo_base64 else "url"
     provided = [bool(payload.text), bool(payload.photo_base64), bool(payload.url)]
     if sum(provided) != 1:
         raise HTTPException(
@@ -862,13 +878,19 @@ async def ai_import_recipe(
             ),
         )
 
-    enforce_user_rate_limit(ai_recipe_import_limiter, current_user.id, "rozpoznawanie przepisu przez AI")
+    if not skip_rate_limit:
+        enforce_user_rate_limit(ai_recipe_import_limiter, current_user.id, "rozpoznawanie przepisu przez AI")
 
-    # Pełna lista nazw produktów — AI dobiera składniki WYŁĄCZNIE spośród
-    # nich, żeby lista zakupów/porównanie cen dalej działały poprawnie
-    # dla przepisów dodanych przez AI.
-    products_result = await db.execute(select(Product.name))
-    available_products = list(products_result.scalars().all())
+    # Jeden odczyt katalogu zamiast osobno listy nazw do promptu i potem
+    # całej tabeli do zapisu. Cudze niezatwierdzone produkty nie powinny
+    # trafiać ani do promptu, ani do przepisu innego użytkownika.
+    products_result = await db.execute(select(Product).where(or_(
+        Product.review_status == "approved",
+        Product.created_by_user_id == current_user.id,
+    )))
+    available_product_rows = list(products_result.scalars().all())
+    available_products = list(dict.fromkeys(p.name for p in available_product_rows))
+    catalog_seconds = time.perf_counter() - started_at
 
     try:
         if payload.text:
@@ -881,6 +903,8 @@ async def ai_import_recipe(
             parsed = await extract_recipe_from_url(payload.url, available_products)
     except AIRecipeImportError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
+
+    extraction_seconds = time.perf_counter() - started_at - catalog_seconds
 
     parsed = validate_and_clean_recipe_dict(parsed)
 
@@ -900,11 +924,11 @@ async def ai_import_recipe(
     # Zgłoszenie do wspólnego katalogu — jak przy ręcznym dodawaniu.
     visibility = "pending" if payload.request_public else "private"
 
-    # Dopasuj nazwy produktów zwrócone przez AI do prawdziwych wierszy
-    # Product (dokładne dopasowanie po nazwie, bez rozróżniania wielkości
-    # liter — prompt instruuje AI, żeby używało DOKŁADNIE tych nazw).
-    all_products_result = await db.execute(select(Product))
-    products_by_name = {p.name.lower(): p for p in all_products_result.scalars().all()}
+    # Wyniki Gemini bywają odmienione po polsku. Ostrożne dopasowanie
+    # nazwy pozwala użyć krótszego promptu bez utraty składników.
+    from app.services.ai_recipe_import import match_product_name
+
+    products_by_name = {p.name.casefold(): p for p in available_product_rows}
 
     recipe = Recipe(
         name=parsed["name"][:300],
@@ -918,6 +942,7 @@ async def ai_import_recipe(
         instructions=parsed["instructions"],
         suggested_seasonings=parsed["suggested_seasonings"],
         created_by_user_id=current_user.id,
+        import_job_id=import_job_id,
         visibility=visibility,
         # Jeśli przepis rozpoznano ZE ZDJĘCIA, to samo zdjęcie staje się
         # zdjęciem przepisu — to zwykle prawdziwe zdjęcie tego dania,
@@ -929,7 +954,8 @@ async def ai_import_recipe(
 
     matched_count = 0
     for ing in parsed["ingredients"]:
-        product = products_by_name.get(ing["product_name"].lower())
+        canonical_name = match_product_name(ing["product_name"], available_products)
+        product = products_by_name.get(canonical_name.casefold()) if canonical_name else None
         if product is None:
             continue
         # UWAGA (naprawa): AI generuje przepisy niezależnie od schematu
@@ -992,6 +1018,10 @@ async def ai_import_recipe(
 
     final_recipe.is_favorite = False
     final_recipe.is_own_recipe = True
+    logger.info(
+        "AI recipe import source=%s catalog=%.2fs extraction=%.2fs total=%.2fs",
+        source_kind, catalog_seconds, extraction_seconds, time.perf_counter() - started_at,
+    )
     return final_recipe
 
 

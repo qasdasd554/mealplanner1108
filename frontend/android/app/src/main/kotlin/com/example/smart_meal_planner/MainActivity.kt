@@ -74,7 +74,8 @@ class MainActivity : FlutterActivity() {
 
     private fun extractSharedText(intent: Intent?): String? {
         if (intent?.action == Intent.ACTION_SEND && intent.type == "text/plain") {
-            return intent.getStringExtra(Intent.EXTRA_TEXT)
+            return intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString()
+                ?: intent.dataString
         }
         return null
     }

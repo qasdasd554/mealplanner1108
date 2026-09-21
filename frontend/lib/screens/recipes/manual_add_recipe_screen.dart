@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../models/barcode_lookup_result.dart';
 import '../../models/product.dart';
 import '../../providers/auth_provider.dart';
-import '../../services/product_search_service.dart';
+import '../../services/product_name_lookup_service.dart';
 import '../../utils/quantity_formatter.dart';
 import '../../services/recipe_service.dart';
 import '../../theme/app_theme.dart';
@@ -32,6 +35,7 @@ class ManualAddRecipeScreen extends StatefulWidget {
 class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
   final _formKey = GlobalKey<FormState>();
   final RecipeService _recipeService = RecipeService();
+  final ProductNameLookupService _productLookupService = ProductNameLookupService();
 
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -64,19 +68,44 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
   }
 
   Future<void> _addIngredient() async {
-    final selected = await showModalBottomSheet<Product>(
+    final selected = await showModalBottomSheet<BarcodeLookupResult>(
       context: context,
       isScrollControlled: true,
       builder: (ctx) => const _ProductPickerSheet(),
     );
     if (selected == null || !mounted) return;
 
-    final quantity = await _askQuantity(selected);
+    final preview = Product(
+      id: selected.existingProductId ?? '',
+      name: selected.name ?? '',
+      brand: selected.brand,
+      unit: selected.unit,
+      defaultQuantity: {'szt', 'kg', 'l'}.contains(selected.unit) ? 1 : 100,
+      nutritionPer100: NutritionInfo(
+        kcal: selected.kcalPer100 ?? 0,
+        protein: selected.proteinPer100 ?? 0,
+        fat: selected.fatPer100 ?? 0,
+        carbs: selected.carbsPer100 ?? 0,
+        fiber: 0,
+      ),
+    );
+    final quantity = await _askQuantity(preview);
     if (quantity == null || !mounted) return;
 
-    setState(() {
-      _ingredients.add(_IngredientRow(product: selected, quantity: quantity, unit: selected.unit));
-    });
+    try {
+      final product = await _productLookupService.resolveForRecipe(selected);
+      if (!mounted) return;
+      setState(() => _ingredients.add(_IngredientRow(
+        product: product,
+        quantity: quantity * _conversionFactor(selected.unit, product.unit),
+        unit: product.unit,
+      )));
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(friendlyError(error))),
+      );
+    }
   }
 
   /// Jednostki DOKŁADNIEJSZE niż podstawowa jednostka produktu z katalogu.
@@ -99,6 +128,8 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
     if (fromUnit == baseUnit) return 1.0;
     if (fromUnit == 'ml' && baseUnit == 'l') return 0.001;
     if (fromUnit == 'g' && baseUnit == 'kg') return 0.001;
+    if (fromUnit == 'l' && baseUnit == 'ml') return 1000;
+    if (fromUnit == 'kg' && baseUnit == 'g') return 1000;
     return 1.0;
   }
 
@@ -483,18 +514,38 @@ class _ProductPickerSheet extends StatefulWidget {
 }
 
 class _ProductPickerSheetState extends State<_ProductPickerSheet> {
-  final ProductSearchService _service = ProductSearchService();
+  final ProductNameLookupService _service = ProductNameLookupService();
   final TextEditingController _searchController = TextEditingController();
-  List<Product> _results = [];
+  List<BarcodeLookupResult> _results = [];
   bool _isSearching = false;
+  String? _error;
+  Timer? _debounce;
+  int _generation = 0;
 
-  Future<void> _search(String query) async {
-    setState(() => _isSearching = true);
-    final results = await _service.search(query);
-    if (!mounted) return;
-    setState(() {
-      _results = results;
-      _isSearching = false;
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _search(String query) {
+    _debounce?.cancel();
+    final generation = ++_generation;
+    if (query.trim().length < 2) {
+      setState(() { _results = []; _isSearching = false; _error = null; });
+      return;
+    }
+    setState(() { _isSearching = true; _error = null; });
+    _debounce = Timer(const Duration(milliseconds: 400), () async {
+      try {
+        final results = await _service.search(query);
+        if (!mounted || generation != _generation) return;
+        setState(() { _results = results; _isSearching = false; });
+      } catch (error) {
+        if (!mounted || generation != _generation) return;
+        setState(() { _results = []; _isSearching = false; _error = friendlyError(error); });
+      }
     });
   }
 
@@ -516,13 +567,13 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Wybierz produkt', style: Theme.of(context).textTheme.titleLarge),
+              Text('Wybierz składnik', style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 12),
               TextField(
                 controller: _searchController,
                 autofocus: true,
                 decoration: const InputDecoration(
-                  hintText: 'Szukaj produktu...',
+                  hintText: 'Szukaj w katalogu i bazie produktów...',
                   prefixIcon: Icon(Icons.search),
                 ),
                 onChanged: _search,
@@ -531,14 +582,21 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
               Expanded(
                 child: _isSearching
                     ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor))
+                    : _error != null
+                    ? Center(child: Text(_error!, textAlign: TextAlign.center))
                     : ListView.builder(
                         controller: scrollController,
                         itemCount: _results.length,
                         itemBuilder: (context, index) {
                           final product = _results[index];
                           return ListTile(
-                            title: Text(product.name),
-                            subtitle: product.brand != null ? Text(product.brand!) : null,
+                            title: Text(product.name ?? ''),
+                            subtitle: Text([
+                              if (product.brand?.isNotEmpty == true) product.brand!,
+                              if (product.kcalPer100 != null)
+                                '${product.kcalPer100!.toStringAsFixed(0)} kcal / 100 ${product.unit}',
+                              if (product.source == 'open_food_facts') 'Open Food Facts',
+                            ].join(' · ')),
                             onTap: () => Navigator.of(context).pop(product),
                           );
                         },

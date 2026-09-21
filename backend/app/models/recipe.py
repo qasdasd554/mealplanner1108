@@ -93,6 +93,11 @@ class Recipe(Base):
     created_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=True
     )
+    # Idempotencja importu w tle: po restarcie serwera można odnaleźć już
+    # zapisany przepis zamiast tworzyć go i pobierać punkty po raz drugi.
+    import_job_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), nullable=True, unique=True
+    )
     # Status widoczności przepisu dodanego przez użytkownika (nieistotne
     # dla 81 oficjalnych przepisów — te zawsze mają created_by_user_id=NULL
     # i są widoczne dla wszystkich niezależnie od tej wartości):
