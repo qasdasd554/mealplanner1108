@@ -105,15 +105,47 @@ class RecipeService {
     String? photoBase64,
     String? url,
   }) async {
+    final body = {
+      if (text != null) 'text': text,
+      if (photoBase64 != null) 'photo_base64': photoBase64,
+      if (url != null) 'url': url,
+    };
+    try {
+      final response = await _client.post(
+        '${ApiConfig.recipes}ai-import/jobs',
+        body: body,
+      );
+      return RecipeImportJob.fromJson(response as Map<String, dynamic>);
+    } on ApiException catch (error) {
+      // Starszy backend ma synchroniczny import AI, ale nie ma jeszcze
+      // kolejki /jobs. To właśnie dawało użytkownikowi surowe „Not Found”
+      // dla tekstu, zdjęcia i linku. 404 z nieistniejącej trasy jest
+      // bezpieczne do ponowienia: żadna praca ani opłata nie powstały.
+      if (error.statusCode != 404 ||
+          error.message.toLowerCase() != 'not found') rethrow;
+      final response = await _client.post(
+        '${ApiConfig.recipes}ai-import',
+        body: body,
+        timeout: const Duration(minutes: 3),
+      );
+      final recipe = Recipe.fromJson(response as Map<String, dynamic>);
+      return RecipeImportJob(
+        id: 'legacy-${recipe.id}',
+        status: 'completed',
+        recipeId: recipe.id,
+      );
+    }
+  }
+
+  /// Zmienia własny przepis poleceniem tekstowym; serwer pobiera 1 punkt
+  /// dopiero po udanej zmianie i zwraca aktualny przepis.
+  Future<Recipe> editRecipeWithAi(String recipeId, String prompt) async {
     final response = await _client.post(
-      '${ApiConfig.recipes}ai-import/jobs',
-      body: {
-        if (text != null) 'text': text,
-        if (photoBase64 != null) 'photo_base64': photoBase64,
-        if (url != null) 'url': url,
-      },
+      '${ApiConfig.recipes}$recipeId/ai-edit',
+      body: {'prompt': prompt},
+      timeout: const Duration(minutes: 3),
     );
-    return RecipeImportJob.fromJson(response as Map<String, dynamic>);
+    return Recipe.fromJson(response as Map<String, dynamic>);
   }
 
   Future<RecipeImportJob> getRecipeImportJob(String jobId) async {

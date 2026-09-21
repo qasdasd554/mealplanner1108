@@ -101,7 +101,7 @@ class ApiClient {
   Future<dynamic> get(String path, {Duration? timeout}) async {
     final token = await getToken();
     final url = Uri.parse('${ApiConfig.apiUrl}$path');
-    
+
     try {
       final response = await http
           .get(url, headers: _headers(token))
@@ -112,7 +112,7 @@ class ApiClient {
     }
   }
 
-  Future<dynamic> post(String path, {dynamic body}) async {
+  Future<dynamic> post(String path, {dynamic body, Duration? timeout}) async {
     final token = await getToken();
     final url = Uri.parse('${ApiConfig.apiUrl}$path');
 
@@ -121,7 +121,7 @@ class ApiClient {
         url,
         headers: _headers(token),
         body: body != null ? jsonEncode(body) : null,
-      ).timeout(_timeout);
+      ).timeout(timeout ?? _timeout);
       return _handleResponse(response);
     } catch (e) {
       _handleError(e);
@@ -131,7 +131,7 @@ class ApiClient {
   Future<dynamic> put(String path, {dynamic body}) async {
     final token = await getToken();
     final url = Uri.parse('${ApiConfig.apiUrl}$path');
-    
+
     try {
       final response = await http.put(
         url,
@@ -163,7 +163,7 @@ class ApiClient {
   Future<dynamic> delete(String path) async {
     final token = await getToken();
     final url = Uri.parse('${ApiConfig.apiUrl}$path');
-    
+
     try {
       final response = await http.delete(url, headers: _headers(token)).timeout(_timeout);
       return _handleResponse(response);

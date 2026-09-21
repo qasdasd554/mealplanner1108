@@ -12,6 +12,7 @@ import '../../theme/app_theme.dart';
 import 'recipe_detail_screen.dart';
 import '../profile/premium_screen.dart';
 import '../../utils/error_utils.dart';
+import '../../widgets/ai_recipe_edit_sheet.dart';
 
 /// Dodawanie przepisu z tekstu, zdjęcia lub linku. Wynik jest zapisywany
 /// przez backend w tle; ekran może zostać zamknięty po przyjęciu zadania.
@@ -189,6 +190,9 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
     try {
       final job = await _recipeService.startRecipeImport(text: text);
       _watchJob(job);
+      if (!job.isActive && mounted) {
+        await context.read<AuthProvider>().loadProfile();
+      }
     } catch (e) {
       _handleError(e);
     } finally {
@@ -207,6 +211,9 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
     try {
       final job = await _recipeService.startRecipeImport(url: url);
       _watchJob(job);
+      if (!job.isActive && mounted) {
+        await context.read<AuthProvider>().loadProfile();
+      }
     } catch (e) {
       _handleError(e);
     } finally {
@@ -226,6 +233,9 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
       final base64Photo = base64Encode(bytes);
       final job = await _recipeService.startRecipeImport(photoBase64: base64Photo);
       _watchJob(job);
+      if (!job.isActive && mounted) {
+        await context.read<AuthProvider>().loadProfile();
+      }
     } catch (e) {
       _handleError(e);
     } finally {
@@ -243,6 +253,12 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
     // wskazania, co dalej.
     if (e is ApiException && e.statusCode == 402) {
       _showPointsNeededDialog(e.message);
+      return;
+    }
+    if (e is ApiException && e.statusCode == 404 &&
+        e.message.toLowerCase() == 'not found') {
+      setState(() => _error =
+          'Serwer nie ma jeszcze funkcji importu AI. Dokończ wdrożenie backendu na Renderze.');
       return;
     }
     setState(() {
@@ -351,7 +367,7 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
   Widget _buildJobState(RecipeImportJob job) {
     final active = job.isActive;
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(28),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -398,6 +414,30 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
                 },
                 child: const Text('Otwórz przepis'),
               ),
+            if (job.status == 'completed' && job.recipeId != null) ...[
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: () async {
+                  try {
+                    final recipe = await _recipeService.getRecipe(job.recipeId!);
+                    if (!mounted) return;
+                    final updated = await showAiRecipeEditSheet(context, recipe);
+                    if (updated == null || !mounted) return;
+                    Navigator.of(context).pushReplacement(MaterialPageRoute(
+                      builder: (_) => const RecipeDetailScreen(),
+                      settings: RouteSettings(arguments: updated),
+                    ));
+                  } catch (error) {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(friendlyError(error))),
+                    );
+                  }
+                },
+                icon: const Icon(Icons.auto_awesome_outlined),
+                label: const Text('Dostosuj z AI · 1 pkt'),
+              ),
+            ],
             if (job.status == 'completed')
               TextButton(
                 onPressed: () => setState(() => _currentJob = null),

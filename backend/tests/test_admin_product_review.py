@@ -61,3 +61,30 @@ def test_store_error_does_not_undo_approval() -> None:
     ))
     assert product.review_status == "approved"
     assert db.commit.await_count == 2
+
+
+def test_approval_adds_store_product_once() -> None:
+    product = _pending_product()
+    product.requested_store_ids = [str(uuid.uuid4())]
+    product.submitted_price = Decimal("5.00")
+    nested = MagicMock()
+    nested.__aenter__ = AsyncMock()
+    nested.__aexit__ = AsyncMock(return_value=False)
+    existing_result = MagicMock()
+    existing_result.scalar_one_or_none.return_value = None
+    db = SimpleNamespace(
+        get=AsyncMock(side_effect=[product, SimpleNamespace(id=uuid.uuid4())]),
+        execute=AsyncMock(return_value=existing_result),
+        add=MagicMock(), flush=AsyncMock(), commit=AsyncMock(),
+        begin_nested=MagicMock(return_value=nested),
+    )
+    asyncio.run(review_product(
+        product.id, approve=True, db=db,
+        current_user=SimpleNamespace(role="admin"),
+    ))
+    assert product.review_status == "approved"
+    assert db.commit.await_count == 2
+    assert db.flush.await_count == 1
+    # Jedna decyzja Product i dokładnie jeden StoreProduct — wcześniej
+    # kod dopisywał ten sam produkt sklepu ponownie poza savepointem.
+    assert db.add.call_count == 2

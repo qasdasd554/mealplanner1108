@@ -23,6 +23,7 @@ import asyncio
 from difflib import SequenceMatcher
 import json
 import logging
+import math
 import re
 import time
 import unicodedata
@@ -370,6 +371,8 @@ def _parse_recipe_json(raw_text: str) -> dict:
             "Nie udało się zinterpretować odpowiedzi AI jako przepisu. Spróbuj sformułować to inaczej."
         )
 
+    if not isinstance(parsed, dict):
+        raise AIRecipeImportError("AI zwróciło niepoprawny format przepisu. Spróbuj ponownie.")
     if "error" in parsed:
         raise AIRecipeImportError(parsed["error"])
 
@@ -386,6 +389,25 @@ async def extract_recipe_from_text(recipe_text: str, available_products: list[st
     parts = [{"text": f"{prompt}\n\nTREŚĆ DO ROZPOZNANIA (tekst przepisu):\n{recipe_text}"}]
     raw = await _call_gemini(parts)
     return _parse_recipe_json(raw)
+
+
+async def revise_recipe_with_ai(
+    recipe: dict, instruction: str, available_products: list[str]
+) -> dict:
+    """Zwraca pełny przepis po jednej zmianie opisanej przez właściciela."""
+    original = json.dumps(recipe, ensure_ascii=False)
+    context = f"{original}\n{instruction}"
+    prompt = _build_prompt(available_products, context=context)
+    parts = [{"text": (
+        f"{prompt}\n\nISTNIEJĄCY PRZEPIS (JSON):\n{original}\n\n"
+        f"POLECENIE WŁAŚCICIELA: {instruction}\n\n"
+        "Zmień istniejący przepis zgodnie z poleceniem. Zachowaj pozostałe "
+        "składniki i kroki, o ile polecenie nie wymaga ich zmiany. Zwróć "
+        "CAŁY przepis w formacie JSON powyżej, nie tylko fragment różnic. "
+        "Nie dodawaj składników, których nie ma w katalogu."
+    )}]
+    raw = await _call_gemini(parts)
+    return validate_and_clean_recipe_dict(_parse_recipe_json(raw))
 
 
 def _jsonld_instruction_text(value) -> list[str]:
@@ -717,17 +739,35 @@ async def extract_recipe_from_photo(
 def validate_and_clean_recipe_dict(parsed: dict) -> dict:
     """Domyka luki/niepoprawne wartości w odpowiedzi AI zamiast na ślepo
     ufać, że model dokładnie trzymał się instrukcji formatu."""
+    name = parsed.get("name")
+    if not isinstance(name, str) or not name.strip():
+        raise AIRecipeImportError("AI nie podało nazwy przepisu. Spróbuj ponownie.")
+    parsed["name"] = name.strip()[:300]
+    for key in ("description", "cuisine"):
+        value = parsed.get(key)
+        parsed[key] = value.strip() if isinstance(value, str) and value.strip() else None
+    if parsed["cuisine"]:
+        parsed["cuisine"] = parsed["cuisine"][:100]
     parsed["meal_type"] = parsed.get("meal_type") if parsed.get("meal_type") in ALLOWED_MEAL_TYPES else "obiad"
     parsed["difficulty"] = (
         parsed.get("difficulty") if parsed.get("difficulty") in ALLOWED_DIFFICULTIES else "łatwy"
     )
     try:
-        parsed["servings"] = max(1, int(parsed.get("servings", 2)))
+        parsed["servings"] = min(100, max(1, int(parsed.get("servings", 2))))
     except (TypeError, ValueError):
         parsed["servings"] = 2
 
+    for key in ("prep_time_min", "cook_time_min"):
+        try:
+            value = int(parsed[key]) if parsed.get(key) is not None else None
+        except (TypeError, ValueError, OverflowError):
+            value = None
+        parsed[key] = value if value is not None and 0 <= value <= 1440 else None
+
     cleaned_ingredients = []
-    for ing in parsed.get("ingredients", []):
+    for ing in parsed.get("ingredients", []) if isinstance(parsed.get("ingredients"), list) else []:
+        if not isinstance(ing, dict):
+            continue
         unit = ing.get("unit")
         if unit not in ALLOWED_UNITS:
             continue
@@ -735,15 +775,18 @@ def validate_and_clean_recipe_dict(parsed: dict) -> dict:
             qty = float(ing.get("quantity"))
         except (TypeError, ValueError):
             continue
-        if qty <= 0 or not ing.get("product_name"):
+        product_name = ing.get("product_name")
+        if not math.isfinite(qty) or qty <= 0 or not isinstance(product_name, str) or not product_name.strip():
             continue
-        cleaned_ingredients.append({"product_name": ing["product_name"], "quantity": qty, "unit": unit})
+        cleaned_ingredients.append({"product_name": product_name.strip(), "quantity": qty, "unit": unit})
     parsed["ingredients"] = cleaned_ingredients
 
+    instructions = parsed.get("instructions")
+    seasonings = parsed.get("suggested_seasonings")
     parsed["instructions"] = [
-        s.strip() for s in parsed.get("instructions", []) if isinstance(s, str) and s.strip()
-    ]
+        s.strip() for s in instructions if isinstance(s, str) and s.strip()
+    ] if isinstance(instructions, list) else []
     parsed["suggested_seasonings"] = [
-        s.strip() for s in parsed.get("suggested_seasonings", []) if isinstance(s, str) and s.strip()
-    ]
+        s.strip() for s in seasonings if isinstance(s, str) and s.strip()
+    ] if isinstance(seasonings, list) else []
     return parsed

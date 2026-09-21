@@ -55,7 +55,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _nextPage() {
-    if (_currentPage < 4) {
+    if (_currentPage < 5) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
@@ -134,10 +134,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               padding: const EdgeInsets.all(24.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(5, (index) => _buildDot(index)),
+                children: List.generate(6, (index) => _buildDot(index)),
               ),
             ),
-            
+
             // Zawartość stron
             Expanded(
               child: PageView(
@@ -154,6 +154,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   _buildDietStep(),
                   _buildHouseholdStep(),
                   _buildPantryStep(),
+                  _buildAiRecipeStep(),
                 ],
               ),
             ),
@@ -179,7 +180,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(120, 48),
                     ),
-                    child: Text(_currentPage == 4 ? 'Gotowe!' : 'Dalej'),
+                    child: Text(_currentPage == 5 ? 'Gotowe!' : 'Dalej'),
                   ),
                 ],
               ),
@@ -482,7 +483,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 48),
-          
+
           // Licznik
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -588,6 +589,73 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  // KROK 6: odkrycie importu AI bez dokładania przycisków na ekranie głównym.
+  Widget _buildAiRecipeStep() {
+    Widget option(IconData icon, String title, String description) => Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: AppTheme.primaryColor, size: 25),
+          const SizedBox(width: 14),
+          Expanded(child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+              Text(description, style: TextStyle(color: AppTheme.textSecondary)),
+            ],
+          )),
+        ],
+      ),
+    );
+
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+      children: [
+        const Icon(Icons.auto_awesome_outlined,
+            size: 58, color: AppTheme.primaryColor),
+        const SizedBox(height: 18),
+        Text('Masz przepis? Dodaj go w chwilę',
+            style: Theme.of(context).textTheme.displaySmall,
+            textAlign: TextAlign.center),
+        const SizedBox(height: 12),
+        Text(
+          'W zakładce Przepisy wybierz „Dodaj przepis”. AI przygotuje składniki i kroki na podstawie:',
+          style: Theme.of(context).textTheme.bodyMedium,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 22),
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: AppTheme.surfaceColor,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(children: [
+            option(Icons.photo_camera_outlined, 'Zdjęcia',
+                'Sfotografuj kartkę z przepisem albo gotowe danie.'),
+            option(Icons.text_snippet_outlined, 'Tekstu',
+                'Wklej opis lub wpisz samą nazwę potrawy.'),
+            option(Icons.link, 'Linku',
+                'Wklej adres strony lub udostępnij go z innej aplikacji.'),
+          ]),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'Przykład: w TikToku wybierz „Udostępnij” → Meal Planner Polska. '
+          'Gdy przepis będzie gotowy, możesz poprosić AI o zmianę, np. wersję bez laktozy.',
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        const SizedBox(height: 10),
+        Text(
+          'Dodanie przepisu kosztuje 2 punkty bez subskrypcji Premium. '
+          'Późniejsza zmiana przez AI kosztuje 1 punkt.',
+          style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+        ),
+      ],
     );
   }
 

@@ -26,6 +26,7 @@ from app.models import (
 )
 from app.schemas.moderation import ContentReportCreate, ContentReportResponse
 from app.schemas.recipe import (
+    AIRecipeEditRequest,
     AIRecipeImportRequest,
     RecipeCreate,
     RecipeResponse,
@@ -906,7 +907,10 @@ async def _create_ai_recipe(
 
     extraction_seconds = time.perf_counter() - started_at - catalog_seconds
 
-    parsed = validate_and_clean_recipe_dict(parsed)
+    try:
+        parsed = validate_and_clean_recipe_dict(parsed)
+    except AIRecipeImportError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
     if not parsed["ingredients"]:
         raise HTTPException(
@@ -1025,6 +1029,146 @@ async def _create_ai_recipe(
     return final_recipe
 
 
+@router.post(
+    "/{recipe_id}/ai-edit",
+    response_model=RecipeResponse,
+    summary="Zmień własny przepis przez AI za 1 punkt premium",
+)
+async def edit_recipe_with_ai(
+    recipe_id: UUID,
+    payload: AIRecipeEditRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> RecipeResponse:
+    from app.core.rate_limit import ai_recipe_import_limiter, enforce_user_rate_limit
+    from app.services.ai_recipe_import import (
+        AIRecipeImportError,
+        match_product_name,
+        revise_recipe_with_ai,
+    )
+
+    user_id = current_user.id
+    if current_user.premium_points < 1:
+        raise HTTPException(status_code=402, detail="Zmiana przez AI kosztuje 1 punkt premium.")
+    enforce_user_rate_limit(ai_recipe_import_limiter, user_id, "edycja przepisu przez AI")
+
+    result = await db.execute(select(Recipe).options(
+        selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product)
+    ).where(Recipe.id == recipe_id))
+    recipe = result.scalar_one_or_none()
+    if recipe is None or recipe.created_by_user_id != user_id:
+        raise HTTPException(status_code=404, detail="Nie znaleziono Twojego przepisu.")
+    if recipe.visibility != "private":
+        raise HTTPException(
+            status_code=409,
+            detail="Przepis zgłoszony do publikacji nie może być zmieniany w trakcie moderacji.",
+        )
+
+    snapshot = {
+        "name": recipe.name,
+        "description": recipe.description,
+        "cuisine": recipe.cuisine,
+        "meal_type": recipe.meal_type,
+        "prep_time_min": recipe.prep_time_min,
+        "cook_time_min": recipe.cook_time_min,
+        "servings": recipe.servings,
+        "difficulty": recipe.difficulty,
+        "ingredients": [
+            {"product_name": ingredient.product.name,
+             "quantity": float(ingredient.quantity), "unit": ingredient.unit}
+            for ingredient in recipe.ingredients if ingredient.product is not None
+        ],
+        "instructions": list(recipe.instructions or []),
+        "suggested_seasonings": list(recipe.suggested_seasonings or []),
+    }
+    product_result = await db.execute(select(Product).where(or_(
+        Product.review_status == "approved", Product.created_by_user_id == user_id,
+    )))
+    available_rows = list(product_result.scalars().all())
+    product_by_name = {
+        product.name.casefold(): (product.id, product.name)
+        for product in available_rows
+    }
+    available_names = list(dict.fromkeys(product.name for product in available_rows))
+    # Nie trzymaj połączenia i transakcji z Neonem w czasie odpowiedzi Gemini.
+    await db.rollback()
+
+    try:
+        parsed = await revise_recipe_with_ai(snapshot, payload.prompt, available_names)
+    except AIRecipeImportError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    matched: list[tuple[UUID, str, dict]] = []
+    missing: list[str] = []
+    for ingredient in parsed["ingredients"]:
+        canonical = match_product_name(ingredient["product_name"], available_names)
+        product = product_by_name.get(canonical.casefold()) if canonical else None
+        if product is None:
+            missing.append(ingredient["product_name"])
+        elif not is_ingredient_quantity_reasonable(ingredient["quantity"], ingredient["unit"]):
+            raise HTTPException(status_code=422, detail="AI podało nieprawidłową ilość składnika.")
+        else:
+            matched.append((product[0], product[1], ingredient))
+    if missing:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Nie ma w katalogu: {', '.join(missing[:3])}. Punkt nie został pobrany.",
+        )
+    if not matched or not parsed["instructions"]:
+        raise HTTPException(status_code=422, detail="AI zwróciło niekompletny przepis. Punkt nie został pobrany.")
+
+    before = [(i["product_name"], i["quantity"], i["unit"]) for i in snapshot["ingredients"]]
+    after = [(name, i["quantity"], i["unit"]) for _, name, i in matched]
+    if before == after and all(parsed.get(key) == snapshot.get(key) for key in (
+        "name", "description", "cuisine", "meal_type", "prep_time_min",
+        "cook_time_min", "servings", "difficulty", "instructions", "suggested_seasonings",
+    )):
+        raise HTTPException(status_code=422, detail="AI nie wprowadziło żadnej zmiany. Punkt nie został pobrany.")
+
+    locked_user = (await db.execute(
+        select(User).where(User.id == user_id).with_for_update()
+    )).scalar_one()
+    locked_recipe = (await db.execute(
+        select(Recipe).where(Recipe.id == recipe_id).with_for_update()
+    )).scalar_one_or_none()
+    if locked_recipe is None or locked_recipe.created_by_user_id != user_id:
+        raise HTTPException(status_code=404, detail="Nie znaleziono Twojego przepisu.")
+    if locked_recipe.visibility != "private":
+        raise HTTPException(status_code=409, detail="Przepis został już zgłoszony do moderacji.")
+    if locked_user.premium_points < 1:
+        raise HTTPException(status_code=402, detail="Brakuje 1 punktu premium.")
+
+    locked_recipe.name = parsed["name"][:300]
+    locked_recipe.description = parsed.get("description")
+    locked_recipe.cuisine = (parsed.get("cuisine") or "")[:100] or None
+    locked_recipe.meal_type = parsed["meal_type"]
+    locked_recipe.prep_time_min = parsed.get("prep_time_min")
+    locked_recipe.cook_time_min = parsed.get("cook_time_min")
+    locked_recipe.servings = parsed["servings"]
+    locked_recipe.difficulty = parsed["difficulty"]
+    locked_recipe.instructions = parsed["instructions"]
+    locked_recipe.suggested_seasonings = parsed["suggested_seasonings"]
+    await db.execute(delete(RecipeIngredient).where(RecipeIngredient.recipe_id == recipe_id))
+    db.add_all(RecipeIngredient(
+        recipe_id=recipe_id, product_id=product_id,
+        quantity=ingredient["quantity"], unit=ingredient["unit"], is_optional=False,
+    ) for product_id, _, ingredient in matched)
+    locked_user.premium_points -= 1
+    await db.flush()
+
+    final_result = await db.execute(select(Recipe).options(
+        selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product),
+        selectinload(Recipe.tags),
+    ).where(Recipe.id == recipe_id).execution_options(populate_existing=True))
+    final_recipe = final_result.scalar_one()
+    final_recipe.nutrition_total = compute_recipe_nutrition_total(final_recipe.ingredients)
+    final_recipe.is_own_recipe = True
+    final_recipe.is_favorite = recipe_id in await _get_favorite_recipe_ids(db, user_id)
+    response = RecipeResponse.model_validate(final_recipe)
+    await db.commit()
+    return response
+
+
 @router.put(
     "/{recipe_id}/request-publish",
     response_model=RecipeResponse,
@@ -1041,9 +1185,8 @@ async def request_publish_recipe(
     społeczności"). Tylko właściciel przepisu może to zrobić, i tylko
     dla przepisu, który jest jeszcze prywatny (nie da się "ponownie
     zgłosić" czegoś, co już czeka na przegląd, jest publiczne, albo
-    zostało odrzucone bez zmian — odrzucony przepis trzeba najpierw
-    zedytować, żeby to miało sens, ale edycja przepisów to osobna,
-    jeszcze nieistniejąca funkcja).
+    zostało odrzucone bez zmian — odrzucony przepis wymaga osobnego
+    rozpatrzenia przed ponownym zgłoszeniem).
     """
     recipe = await db.get(Recipe, recipe_id)
     if recipe is None:

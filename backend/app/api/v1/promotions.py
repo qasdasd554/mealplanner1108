@@ -176,7 +176,14 @@ async def trigger_ai_scan(
         # AKTUALNĄ cenę regularną (nie ufamy ślepo cenie odczytanej z PDF-a
         # przez AI, jeśli mamy własne, bardziej wiarygodne dane).
         product_result = await db.execute(
-            select(Product).where(Product.name.ilike(item["product_name"]))
+            select(Product).join(StoreProduct, StoreProduct.product_id == Product.id)
+            .where(
+                StoreProduct.store_id == store.id,
+                Product.name.ilike(item["product_name"]),
+                Product.review_status == "approved",
+            )
+            .order_by(Product.created_by_user_id.is_not(None), Product.created_at)
+            .limit(1)
         )
         product = product_result.scalar_one_or_none()
         if product is None:
@@ -252,7 +259,7 @@ async def trigger_ai_scan(
                 Promotion.valid_until >= date.today(),
             )
         )
-        if existing_result.scalar_one_or_none() is not None:
+        if existing_result.scalars().first() is not None:
             skipped_duplicates += 1
             continue
 
@@ -359,15 +366,13 @@ async def approve_promotion(
     if promotion.promo_type == "price_cut":
         store_result = await db.execute(select(Store).where(Store.name == promotion.store_name))
         store = store_result.scalar_one_or_none()
-        product_result = await db.execute(
-            select(Product).where(Product.name == promotion.product_name)
-        )
-        product = product_result.scalar_one_or_none()
-        if store and product:
+        if store:
             sp_result = await db.execute(
-                select(StoreProduct).where(
-                    StoreProduct.store_id == store.id, StoreProduct.product_id == product.id
-                )
+                select(StoreProduct).join(Product, Product.id == StoreProduct.product_id)
+                .where(StoreProduct.store_id == store.id,
+                       Product.name == promotion.product_name)
+                .order_by(Product.created_by_user_id.is_not(None), Product.created_at)
+                .limit(1)
             )
             store_product = sp_result.scalar_one_or_none()
             if store_product:

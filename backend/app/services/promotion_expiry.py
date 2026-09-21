@@ -59,17 +59,15 @@ async def restore_expired_promotion_prices(db: AsyncSession) -> int:
     for promo in expired:
         store_result = await db.execute(select(Store).where(Store.name == promo.store_name))
         store = store_result.scalar_one_or_none()
-        product_result = await db.execute(
-            select(Product).where(Product.name == promo.product_name)
-        )
-        product = product_result.scalar_one_or_none()
-
-        if store and product:
+        if store:
             sp_result = await db.execute(
-                select(StoreProduct).where(
+                select(StoreProduct).join(Product, Product.id == StoreProduct.product_id)
+                .where(
                     StoreProduct.store_id == store.id,
-                    StoreProduct.product_id == product.id,
+                    Product.name == promo.product_name,
                 )
+                .order_by(Product.created_by_user_id.is_not(None), Product.created_at)
+                .limit(1)
             )
             store_product = sp_result.scalar_one_or_none()
             if store_product is not None and store_product.price == promo.promo_price:

@@ -150,6 +150,20 @@ class RecipeVariantCreate(BaseModel):
     ingredients: list[RecipeIngredientCreate] = Field(min_length=1)
 
 
+class AIRecipeEditRequest(BaseModel):
+    """Jedno polecenie zmieniające własny prywatny przepis za 1 punkt."""
+
+    prompt: str = Field(min_length=3, max_length=1000)
+
+    @field_validator("prompt")
+    @classmethod
+    def strip_prompt(cls, value: str) -> str:
+        value = value.strip()
+        if len(value) < 3:
+            raise ValueError("Opisz zmianę w co najmniej trzech znakach.")
+        return value
+
+
 class RecipeResponse(RecipeBase):
     """Odpowiedź API — pełne dane przepisu."""
 

@@ -13,6 +13,7 @@ import '../../widgets/recipe_photo.dart';
 import '../../widgets/report_block_menu.dart';
 import '../../widgets/submit_recipe_photo_button.dart';
 import '../../widgets/recipe_variant_editor_sheet.dart';
+import '../../widgets/ai_recipe_edit_sheet.dart';
 import '../../utils/quantity_formatter.dart';
 import '../../utils/error_utils.dart';
 import '../../providers/auth_provider.dart';
@@ -88,6 +89,20 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     );
     if (changed == null || !mounted) return;
     setState(() => _temporaryIngredients = changed);
+  }
+
+  Future<void> _editWithAi(Recipe recipe) async {
+    final updated = await showAiRecipeEditSheet(context, recipe);
+    if (updated == null || !mounted) return;
+    setState(() {
+      _initialRecipe = updated;
+      _freshRecipe = updated;
+      _temporaryIngredients = null;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Przepis został zmieniony przez AI.')),
+    );
+    _refreshFromServer();
   }
 
   Future<void> _saveVariant(Recipe source) async {
@@ -236,6 +251,18 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
           SliverToBoxAdapter(
             child: RecipeDeleteButton(recipe: recipe),
           ),
+
+          if (recipe.isOwnRecipe && recipe.visibility == 'private')
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+                child: OutlinedButton.icon(
+                  onPressed: () => _editWithAi(recipe),
+                  icon: const Icon(Icons.auto_awesome_outlined),
+                  label: const Text('Dostosuj przepis z AI · 1 pkt'),
+                ),
+              ),
+            ),
 
           // 2. Karta z detalami przepisu
           SliverToBoxAdapter(
