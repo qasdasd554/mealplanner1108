@@ -11,8 +11,8 @@ import httpx
 from app.core.config import settings
 
 OFF_API_URLS = (
-    ("v3", "https://world.openfoodfacts.org/api/v3/product/{barcode}"),
     ("v2", "https://world.openfoodfacts.org/api/v2/product/{barcode}.json"),
+    ("v3", "https://world.openfoodfacts.org/api/v3/product/{barcode}"),
 )
 USDA_SEARCH_URL = "https://api.nal.usda.gov/fdc/v1/foods/search"
 UPCITEMDB_LOOKUP_URL = "https://api.upcitemdb.com/prod/trial/lookup"
@@ -52,6 +52,36 @@ class BarcodeLookupResult:
         self.price_max = price_max
         self.source = source
         self.barcode = barcode
+
+
+def _has_complete_nutrition(result: BarcodeLookupResult) -> bool:
+    return all(value is not None for value in (
+        result.kcal_per_100, result.protein_per_100,
+        result.fat_per_100, result.carbs_per_100,
+    ))
+
+
+def _merge_lookup_results(
+    primary: BarcodeLookupResult, supplementary: BarcodeLookupResult,
+) -> BarcodeLookupResult:
+    """Zachowuje polską nazwę z OFF, uzupełniając brakujące makro."""
+    return BarcodeLookupResult(
+        name=primary.name,
+        brand=primary.brand or supplementary.brand,
+        unit=primary.unit,
+        kcal_per_100=primary.kcal_per_100 if primary.kcal_per_100 is not None
+        else supplementary.kcal_per_100,
+        protein_per_100=primary.protein_per_100 if primary.protein_per_100 is not None
+        else supplementary.protein_per_100,
+        fat_per_100=primary.fat_per_100 if primary.fat_per_100 is not None
+        else supplementary.fat_per_100,
+        carbs_per_100=primary.carbs_per_100 if primary.carbs_per_100 is not None
+        else supplementary.carbs_per_100,
+        price_min=primary.price_min,
+        price_max=primary.price_max,
+        source=primary.source,
+        barcode=primary.barcode or supplementary.barcode,
+    )
 
 
 def normalize_barcode(value: str) -> str | None:
@@ -302,13 +332,22 @@ async def _fetch_off(client: httpx.AsyncClient, barcode: str) -> BarcodeLookupRe
                 response = await client.get(template.format(barcode=candidate), params=params)
                 response.raise_for_status()
                 payload = response.json()
+            except httpx.HTTPStatusError as exc:
+                # Brak w bazie jest normalny, nie wymaga drugiego żądania
+                # do tej samej bazy przez inną wersję API.
+                if exc.response.status_code == 404:
+                    break
+                logger.warning("Open Food Facts lookup failed for %s: %s", candidate, exc)
+                continue
             except (httpx.HTTPError, ValueError, TypeError) as exc:
                 logger.warning("Open Food Facts lookup failed for %s: %s", candidate, exc)
                 continue
             product = _product_from_off_response(payload, api_version)
             if product is not None and (result := _result_from_off_product(product)):
                 return result
-            if (api_version == "v3" and isinstance(payload, dict) and
+            if (api_version == "v2" and isinstance(payload, dict) and
+                    str(payload.get("status")) == "0") or (
+                    api_version == "v3" and isinstance(payload, dict) and
                     isinstance(payload.get("result"), dict) and
                     payload["result"].get("id") == "product_not_found"):
                 break
@@ -414,17 +453,19 @@ async def lookup_barcode_external(barcode: str) -> BarcodeLookupResult | None:
             for provider in (_fetch_off, _fetch_usda, _fetch_upcitemdb)
         ]
         fallback: BarcodeLookupResult | None = None
-        deadline = asyncio.get_running_loop().time() + 5.0
+        # Poprzednie 5 sekund często kończyło skan przed odpowiedzią OFF,
+        # mimo że produkt tam istniał. Szybki pełny wynik nadal wraca od razu.
+        deadline = asyncio.get_running_loop().time() + 8.0
         pending = set(tasks)
         try:
             while pending:
                 remaining = deadline - asyncio.get_running_loop().time()
                 if remaining <= 0:
                     break
-                # UPCitemdb bez makro może przyjść pierwszy. Dajemy pozostałym
-                # źródłom najwyżej 600 ms na pełniejsze dane, nie 5 sekund.
+                # UPCitemdb bez makro może przyjść pierwszy. Pozostałe
+                # źródła mają krótką szansę zwrócić również makroskładniki.
                 if fallback is not None:
-                    remaining = min(remaining, 0.6)
+                    remaining = min(remaining, 2.0)
                 done, pending = await asyncio.wait(
                     pending, timeout=remaining, return_when=asyncio.FIRST_COMPLETED,
                 )
@@ -438,14 +479,17 @@ async def lookup_barcode_external(barcode: str) -> BarcodeLookupResult | None:
                         continue
                     if result is None:
                         continue
-                    if result.source == "open_food_facts" or all(
-                        value is not None for value in (
-                            result.kcal_per_100, result.protein_per_100,
-                            result.fat_per_100, result.carbs_per_100,
-                        )
-                    ):
+                    if fallback is not None:
+                        if result.source == "open_food_facts":
+                            fallback = _merge_lookup_results(result, fallback)
+                        else:
+                            fallback = _merge_lookup_results(fallback, result)
+                        if _has_complete_nutrition(fallback):
+                            return fallback
+                    if _has_complete_nutrition(result):
                         return result
-                    fallback = fallback or result
+                    if fallback is None:
+                        fallback = result
         finally:
             for task in tasks:
                 if not task.done():

@@ -309,32 +309,41 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
       return _buildPaywall(context);
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dodaj przepis przez AI'),
-        bottom: _currentJob != null ? null : TabBar(
-          controller: _tabController,
-          labelColor: AppTheme.primaryColor,
-          tabs: const [
-            Tab(text: 'Wklej tekst', icon: Icon(Icons.text_snippet_outlined)),
-            Tab(text: 'Zdjęcie', icon: Icon(Icons.photo_camera_outlined)),
-            Tab(text: 'Link', icon: Icon(Icons.link)),
-          ],
+    return PopScope(
+      canPop: Navigator.of(context).canPop(),
+      onPopInvoked: (didPop) {
+        if (!didPop) {
+          WidgetsBinding.instance.addPostFrameCallback((_) => _leaveImport());
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            tooltip: 'Wróć do aplikacji',
+            icon: const Icon(Icons.arrow_back),
+            onPressed: _leaveImport,
+          ),
+          title: const Text('Dodaj przepis przez AI'),
+          bottom: _currentJob != null ? null : TabBar(
+            controller: _tabController,
+            labelColor: AppTheme.primaryColor,
+            tabs: const [
+              Tab(text: 'Wklej tekst', icon: Icon(Icons.text_snippet_outlined)),
+              Tab(text: 'Zdjęcie', icon: Icon(Icons.photo_camera_outlined)),
+              Tab(text: 'Link', icon: Icon(Icons.link)),
+            ],
+          ),
         ),
-      ),
-      // UWAGA (naprawa — ten sam błąd co wcześniej z wyborem awatara):
-      // przyciski na dole każdej z trzech zakładek nie były chronione
-      // SafeArea, więc w trybie edge-to-edge mogły częściowo chować się
-      // pod systemowym paskiem nawigacji na dole ekranu.
-      body: SafeArea(
-        child: _isSubmitting
-            ? _buildLoadingState()
-            : _currentJob != null
-                ? _buildJobState(_currentJob!)
-            : TabBarView(
-                controller: _tabController,
-                children: [_buildTextTab(), _buildPhotoTab(), _buildLinkTab()],
-              ),
+        body: SafeArea(
+          child: _isSubmitting
+              ? _buildLoadingState()
+              : _currentJob != null
+                  ? _buildJobState(_currentJob!)
+                  : TabBarView(
+                      controller: _tabController,
+                      children: [_buildTextTab(), _buildPhotoTab(), _buildLinkTab()],
+                    ),
+        ),
       ),
     );
   }
@@ -450,13 +459,23 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen> with SingleTicker
               ),
             if (active)
               TextButton(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: _leaveImport,
                 child: const Text('Wróć do aplikacji'),
               ),
           ],
         ),
       ),
     );
+  }
+
+  void _leaveImport() {
+    if (!mounted) return;
+    final navigator = Navigator.of(context);
+    if (navigator.canPop()) {
+      navigator.pop();
+    } else {
+      navigator.pushReplacementNamed('/home');
+    }
   }
 
   Widget _buildTextTab() {

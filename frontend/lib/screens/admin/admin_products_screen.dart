@@ -20,6 +20,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
   final ApiClient _client = ApiClient();
   List<dynamic> _products = [];
   bool _isLoading = true;
+  String? _loadError;
   final Set<String> _busy = {};
 
   @override
@@ -33,16 +34,14 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
     try {
       final response = await _client.get('/products/admin/pending');
       if (!mounted) return;
-      setState(() => _products = response is List ? response : []);
+      if (response is! List) throw const FormatException('Nieprawidłowa odpowiedź serwera');
+      setState(() {
+        _products = response;
+        _loadError = null;
+      });
     } catch (e) {
       if (!mounted) return;
-      setState(() => _products = []);
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(
-          duration: const Duration(seconds: 3),
-          content: Text(friendlyError(e)),
-        ));
+      setState(() => _loadError = friendlyError(e));
     } finally {
       // finally, żeby kółko zniknęło niezależnie od wyniku żądania.
       if (mounted) setState(() => _isLoading = false);
@@ -83,6 +82,15 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
       appBar: AppBar(title: const Text('Zgłoszone produkty')),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
+          : _loadError != null
+              ? Center(child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    Text(_loadError!, textAlign: TextAlign.center),
+                    const SizedBox(height: 12),
+                    FilledButton(onPressed: _load, child: const Text('Spróbuj ponownie')),
+                  ]),
+                ))
           : _products.isEmpty
               ? Center(
                   child: Padding(

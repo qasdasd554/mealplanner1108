@@ -11,7 +11,9 @@ import 'api_client.dart';
 /// niezależna od wdrożenia backendu i pozwala uzupełnić formularz także
 /// wtedy, gdy serwer aplikacji chwilowo nie odpowiada.
 class BarcodeLookupService {
-  static const _backendTimeout = Duration(seconds: 6);
+  // Serwer daje źródłom zewnętrznym do 8 s. Krótszy limit klienta
+  // odcinał prawidłową odpowiedź i pokazywał „nie znaleziono”.
+  static const _backendTimeout = Duration(seconds: 11);
   static const _externalTimeout = Duration(seconds: 4);
   static const _userAgent =
       'MealPlannerPolska/1.0 (https://github.com/qasdasd554/mealplanner1108)';

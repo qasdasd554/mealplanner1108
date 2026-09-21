@@ -109,21 +109,32 @@ def match_product_name(name: str, available_products: list[str]) -> str | None:
 
 
 def _select_prompt_products(available_products: list[str], context: str | None) -> list[str]:
-    """Skraca katalog tylko gdy tekst rzeczywiście wskazuje kilka składników."""
+    """Ogranicza wielkość promptu niezależnie od liczby produktów w bazie."""
     unique = list(dict.fromkeys(available_products))
-    if not context or len(unique) <= 140:
+    if len(unique) <= 140:
         return unique
-    words = set(_normalize_product_name(context).split())
+    words = set(_normalize_product_name(context or "").split())
     scored = []
     for name in unique:
         product_words = set(_normalize_product_name(name).split())
         overlap = len(words & product_words)
         if overlap:
             scored.append((overlap, name))
-    if len(scored) < 4:
-        return unique
     scored.sort(key=lambda entry: (-entry[0], entry[1]))
-    return [name for _, name in scored[:140]]
+    selected = [name for _, name in scored[:140]]
+    if len(selected) < 140:
+        # Krótkie, ogólne nazwy są użyteczniejsze w promptcie niż setki
+        # wariantów marek. Pełny katalog pozostaje dostępny do dopasowania
+        # po odpowiedzi modelu.
+        staples = sorted(unique, key=lambda name: (len(name.split()), len(name), name.casefold()))
+        seen = set(selected)
+        for name in staples:
+            if name not in seen:
+                selected.append(name)
+                seen.add(name)
+            if len(selected) == 140:
+                break
+    return selected
 
 
 def _build_prompt(available_products: list[str], *, context: str | None = None) -> str:
@@ -146,8 +157,8 @@ B) SAMA NAZWA DANIA ALBO ZDJĘCIE GOTOWEGO DANIA (np. użytkownik wpisał
    tylko "rosół" albo "lasagne", albo przesłał zdjęcie ugotowanego
    posiłku bez żadnego opisu) — to NIE jest błąd ani "brak treści do
    rozpoznania". W tym przypadku SAM UŁÓŻ autentyczny, typowy przepis na
-   to danie (klasyczna, sprawdzona wersja), używając WYŁĄCZNIE produktów
-   z dostępnego katalogu. To jest oczekiwane, normalne zachowanie — nie
+   to danie (klasyczna, sprawdzona wersja), preferując produkty
+   z poniższej listy. To jest oczekiwane, normalne zachowanie — nie
    proś użytkownika o więcej informacji, po prostu zaproponuj sensowny
    przepis.
 
@@ -208,30 +219,15 @@ async def _call_gemini_model(parts: list[dict], model: str, *, timeout_seconds: 
         # Wymuszenie czystego JSON-a w odpowiedzi — bez tego trzeba by
         # ręcznie wyciągać JSON spośród ewentualnego tekstu/markdown wokół
         # niego.
-        "generationConfig": {"responseMimeType": "application/json"},
+        "generationConfig": {
+            "responseMimeType": "application/json",
+            "thinkingConfig": {"thinkingLevel": "LOW"},
+            "maxOutputTokens": 8192,
+        },
     }
 
-    # 503 od Gemini zwykle oznacza chwilowe przeciążenie serwerów Google
-    # (typowe na darmowym poziomie) — to błąd PRZEJŚCIOWY. Zamiast od razu
-    # poddawać się przy pierwszej takiej odpowiedzi, ponawiamy próbę kilka
-    # razy z rosnącym opóźnieniem, zanim uznamy TEN model za niedostępny.
-    # UWAGA (naprawa wydajności): 60 sekund na PRÓBĘ, x3 próby na model,
-    # x3 modele w łańcuchu zapasowym — w najgorszym, ale realnym
-    # scenariuszu (jeden model chwilowo przeciążony) dawało to nawet
-    # kilka MINUT oczekiwania, zanim aplikacja w ogóle przeszła do
-    # kolejnego modelu. Typowa, udana odpowiedź Gemini na tak duży
-    # (JSON) prompt to zwykle kilka-kilkanaście sekund — 25s z zapasem
-    # w pełni wystarcza normalnym zapytaniom, a znacznie szybciej
-    # wykrywa i omija te faktycznie zawieszone/przeciążone.
-    # UWAGA (korekta wydajności): przy rozszerzeniu łańcucha do 6 modeli,
-    # 2 próby na model dawałyby w najgorszym scenariusze (wszystkie modele
-    # zawiodą) nawet 5-9 minut oczekiwania — zbyt długo, koliduje z
-    # wcześniejszą naprawą wydajności (skrócone timeouty). Skoro teraz
-    # jest WIĘCEJ niezależnych modeli jako zapas, redundancja na poziomie
-    # całego łańcucha jest silniejsza niż wcześniej — 1 próba na model
-    # (bez wewnętrznego ponawiania) i szybsze przejście do KOLEJNEGO,
-    # świeżego modelu jest rozsądniejsze niż tracenie czasu na ponowną
-    # próbę tego samego, który właśnie zawiódł.
+    # Przy przeciążeniu lub timeoutcie przechodzimy do kolejnego modelu.
+    # Ponawianie tej samej próby wydłużało import do kilku minut.
     max_attempts = 1
 
     for attempt in range(1, max_attempts + 1):
@@ -245,13 +241,18 @@ async def _call_gemini_model(parts: list[dict], model: str, *, timeout_seconds: 
                     },
                     json=request_body,
                 )
-            except httpx.TimeoutException:
-                if attempt < max_attempts:
-                    await asyncio.sleep(attempt * 1.5)
-                    continue
-                raise AIRecipeImportError("Rozpoznawanie przepisu trwało zbyt długo. Spróbuj ponownie.")
+            except httpx.TimeoutException as exc:
+                # Timeout jednego modelu nie oznacza porażki całego importu.
+                # Kolejny model może odpowiedzieć prawidłowo w kilka sekund.
+                raise _ModelUnavailableError(
+                    f"Model {model}: nie odpowiedział w {timeout_seconds:.0f} s",
+                    reason="timeout",
+                ) from exc
             except httpx.HTTPError as exc:
-                raise AIRecipeImportError(f"Nie udało się połączyć z usługą AI: {exc}")
+                raise _ModelUnavailableError(
+                    f"Model {model}: błąd połączenia z usługą AI: {exc}",
+                    reason="connection",
+                ) from exc
 
         if response.status_code == 200:
             break
@@ -306,7 +307,7 @@ async def _call_gemini_model(parts: list[dict], model: str, *, timeout_seconds: 
     return text
 
 
-async def _call_gemini(parts: list[dict], *, timeout_seconds: float = 25.0) -> str:
+async def _call_gemini(parts: list[dict], *, timeout_seconds: float = 35.0) -> str:
     """Próbuje kolejnych modeli z GEMINI_MODELS (najpierw główny, potem
     "lite" jako zapasowy), przechodząc do następnego, gdy poprzedni
     zgłosi `_ModelUnavailableError` (limit wyczerpany albo uporczywe
@@ -325,15 +326,21 @@ async def _call_gemini(parts: list[dict], *, timeout_seconds: float = 25.0) -> s
 
     unavailable_reasons: list[str] = []
     reason_types: list[str] = []
+    deadline = time.monotonic() + (120 if timeout_seconds > 35 else 95)
     for model in GEMINI_MODELS:
         if _model_unavailable_until.get(model, 0) > time.monotonic():
             continue
+        remaining = deadline - time.monotonic()
+        if remaining < 8:
+            break
         try:
-            return await _call_gemini_model(parts, model, timeout_seconds=timeout_seconds)
+            return await _call_gemini_model(
+                parts, model, timeout_seconds=min(timeout_seconds, remaining),
+            )
         except _ModelUnavailableError as exc:
             logger.warning("Gemini: %s — próbuję kolejnego modelu, jeśli jest", exc)
             _model_unavailable_until[model] = time.monotonic() + (
-                300 if exc.reason in {"quota_exhausted", "rate_limited"} else 45
+                300 if exc.reason in {"quota_exhausted", "rate_limited"} else 20
             )
             unavailable_reasons.append(str(exc))
             reason_types.append(exc.reason)
@@ -351,6 +358,11 @@ async def _call_gemini(parts: list[dict], *, timeout_seconds: float = 25.0) -> s
     if reason_types and all(r == "rate_limited" for r in reason_types):
         raise AIRecipeImportError(
             "Zbyt wiele zapytań do AI w krótkim czasie. Odczekaj minutę i spróbuj ponownie."
+        )
+    if "timeout" in reason_types:
+        raise AIRecipeImportError(
+            "Modele AI nie odpowiedziały w wyznaczonym czasie. "
+            "Przepis nie został dodany i nie pobrano punktów. Spróbuj ponownie za chwilę."
         )
 
     raise AIRecipeImportError(
@@ -715,7 +727,7 @@ async def extract_recipe_from_photo(
     [hint] to opcjonalna, krótka podpowiedź od użytkownika (np. "to jest
     szarlotka") — pomaga AI, gdy zdjęcie samo w sobie jest niejednoznaczne
     (np. danie trudne do rozpoznania wizualnie)."""
-    prompt = _build_prompt(available_products)
+    prompt = _build_prompt(available_products, context=hint)
     if hint:
         prompt += f'\n\nDODATKOWA PODPOWIEDŹ OD UŻYTKOWNIKA (potraktuj jako wskazówkę, co widać na zdjęciu): "{hint}"'
     parts = [
@@ -726,12 +738,7 @@ async def extract_recipe_from_photo(
         {"inlineData": {"mimeType": "image/jpeg", "data": photo_base64}},
         {"text": prompt},
     ]
-    # UWAGA (naprawa wydajności): analiza ZDJĘCIA (multimodalny prompt)
-    # jest z natury cięższa i wolniejsza niż czysty tekst — te same 25s,
-    # które w pełni wystarczają tekstowi, czasem ucinały faktycznie udane,
-    # tylko nieco wolniejsze odpowiedzi dla zdjęć, dając w efekcie błąd
-    # "trwało zbyt długo" nawet gdy model by w końcu odpowiedział. 45s
-    # daje zdjęciom realistyczny zapas, wciąż daleko od pierwotnych 60s.
+    # Zdjęcie ma dłuższy limit na model, a timeout przełącza na następny.
     raw = await _call_gemini(parts, timeout_seconds=45.0)
     return _parse_recipe_json(raw)
 

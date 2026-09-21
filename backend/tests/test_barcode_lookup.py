@@ -3,6 +3,8 @@
 import asyncio
 import time
 
+import httpx
+
 from app.services import barcode_lookup
 from app.services.barcode_lookup import (
     _product_from_off_response,
@@ -153,3 +155,40 @@ def test_lookup_returns_fast_complete_result_without_waiting_for_slow_providers(
     result = asyncio.run(barcode_lookup.lookup_barcode_external("5901234123457"))
     assert result is not None and result.name == "Sok"
     assert time.monotonic() - started < 0.5
+
+
+def test_off_not_found_does_not_repeat_lookup_in_second_api_version() -> None:
+    class MissingClient:
+        def __init__(self):
+            self.calls = []
+
+        async def get(self, url, *, params):
+            self.calls.append(url)
+            request = httpx.Request("GET", url)
+            response = httpx.Response(404, request=request)
+            raise httpx.HTTPStatusError("not found", request=request, response=response)
+
+    client = MissingClient()
+    result = asyncio.run(barcode_lookup._fetch_off(client, "5901234123457"))
+    assert result is None
+    assert len(client.calls) == 1
+
+
+def test_partial_off_product_can_take_macros_from_second_source() -> None:
+    off = barcode_lookup.BarcodeLookupResult(
+        name="Jogurt naturalny", brand="Polska marka", unit="g",
+        kcal_per_100=None, protein_per_100=None,
+        fat_per_100=None, carbs_per_100=None,
+        price_min=2, price_max=7, source="open_food_facts",
+    )
+    usda = barcode_lookup.BarcodeLookupResult(
+        name="Natural yogurt", brand=None, unit="g",
+        kcal_per_100=62, protein_per_100=4.2,
+        fat_per_100=2, carbs_per_100=6.1,
+        price_min=2, price_max=7, source="usda_fooddata_central",
+    )
+    merged = barcode_lookup._merge_lookup_results(off, usda)
+    assert merged.name == "Jogurt naturalny"
+    assert merged.brand == "Polska marka"
+    assert merged.kcal_per_100 == 62
+    assert merged.protein_per_100 == 4.2

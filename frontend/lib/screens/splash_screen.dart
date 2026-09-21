@@ -122,14 +122,20 @@ class _SplashScreenState extends State<SplashScreen> {
         return;
       }
       if (sharedUrl != null) {
-        // Zalogowany i przyszedł z udostępnienia linku — od razu na
-        // ekran rozpoznawania przepisu przez AI, z wypełnionym linkiem.
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => AiAddRecipeScreen(
-            initialUrl: sharedUrl,
-            autoStartImport: true,
-          )),
-        );
+        // Zostaw stronę główną pod ekranem AI. Poprzednio zastępowaliśmy
+        // splash bezpośrednio ekranem importu; po cofnięciu nie było już
+        // żadnej trasy i aplikacja zamykała się zamiast wrócić do domu.
+        final navigator = Navigator.of(context);
+        navigator.pushReplacementNamed('/home');
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!navigator.mounted) return;
+          navigator.push(MaterialPageRoute(
+            builder: (_) => AiAddRecipeScreen(
+              initialUrl: sharedUrl,
+              autoStartImport: true,
+            ),
+          ));
+        });
       } else {
         Navigator.of(context).pushReplacementNamed('/home');
       }

@@ -1,7 +1,10 @@
 """Regresje szybkiej ścieżki importu i doboru produktów."""
 
+import asyncio
+
 from bs4 import BeautifulSoup
 
+from app.services import ai_recipe_import
 from app.services.ai_recipe_import import (
     _jsonld_recipe_from_soup,
     _select_prompt_products,
@@ -47,3 +50,29 @@ def test_full_recipe_text_uses_smaller_prompt_catalog() -> None:
     )
     assert set(["Jajka", "Mąka", "Mleko", "Masło"]).issubset(selected)
     assert len(selected) < len(names)
+
+
+def test_photo_prompt_never_includes_entire_large_catalog() -> None:
+    selected = _select_prompt_products([f"Produkt {i}" for i in range(3000)], None)
+    assert len(selected) == 140
+
+
+def test_timeout_of_first_model_tries_second_model(monkeypatch) -> None:
+    attempted = []
+
+    async def fake_model(parts, model, *, timeout_seconds):
+        attempted.append(model)
+        if model == "first":
+            raise ai_recipe_import._ModelUnavailableError("timeout", reason="timeout")
+        return '{"name":"Omlet"}'
+
+    monkeypatch.setattr(ai_recipe_import.settings, "GEMINI_API_KEY", "test-key")
+    monkeypatch.setattr(ai_recipe_import, "GEMINI_MODELS", ["first", "second"])
+    monkeypatch.setattr(ai_recipe_import, "_call_gemini_model", fake_model)
+    ai_recipe_import._model_unavailable_until.clear()
+    try:
+        result = asyncio.run(ai_recipe_import._call_gemini([{"text": "omlet"}]))
+    finally:
+        ai_recipe_import._model_unavailable_until.clear()
+    assert result == '{"name":"Omlet"}'
+    assert attempted == ["first", "second"]
