@@ -46,7 +46,7 @@ class ShoppingList(Base):
         String(50),
         default="pending",
         nullable=False,
-        comment="pending | in_progress | completed",
+        comment="pending | in_progress | completed | merged",
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
@@ -105,6 +105,12 @@ class ShoppingListItem(Base):
     )
     is_checked: Mapped[bool] = mapped_column(
         Boolean, default=False, nullable=False
+    )
+    is_from_pantry: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False,
+    )
+    is_generated: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False,
     )
     substituted_for: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),

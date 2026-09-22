@@ -198,7 +198,7 @@ class HomeTab extends StatelessWidget {
     // currentPlan respektuje ręczny wybór z przełącznika planów (patrz
     // MealPlanProvider.selectPlan) — activePlan zawsze zwraca pierwszy
     // znaleziony, co uniemożliwiłoby przełączanie się między kilkoma
-    // aktywnymi planami (funkcja premium).
+    // aktywnymi planami.
     final activePlan = mealPlanProvider.currentPlan ?? mealPlanProvider.activePlan;
     final currentDay = activePlan != null ? _getCurrentPlanDay(activePlan) : 1;
 
@@ -380,11 +380,9 @@ class HomeTab extends StatelessWidget {
                       ),
                     ],
                   ),
-                  // Przełącznik między kilkoma aktywnymi planami naraz —
-                  // funkcja Premium. Widoczny TYLKO gdy faktycznie jest
-                  // więcej niż jeden aktywny plan (darmowe konta mają
-                  // zawsze co najwyżej jeden, więc dla nich ten rząd
-                  // nigdy się nie pojawi).
+                  // Plany z różnych tygodni mogą współistnieć również
+                  // na koncie standardowym. Przełącznik pojawia się,
+                  // gdy użytkownik ma więcej niż jeden aktywny plan.
                   if (mealPlanProvider.activePlans.length > 1) ...[
                     const SizedBox(height: 8),
                     SizedBox(
@@ -397,7 +395,10 @@ class HomeTab extends StatelessWidget {
                           final plan = mealPlanProvider.activePlans[index];
                           final isSelected = plan.id == activePlan.id;
                           return ChoiceChip(
-                            label: Text('Plan ${plan.durationDays} dni'),
+                            label: Text(
+                              'Plan ${plan.createdAt.toLocal().day}.${plan.createdAt.toLocal().month} '
+                              '· ${plan.durationDays} dni',
+                            ),
                             selected: isSelected,
                             onSelected: (_) => mealPlanProvider.selectPlan(plan),
                             selectedColor: AppTheme.actionPrimaryColor,

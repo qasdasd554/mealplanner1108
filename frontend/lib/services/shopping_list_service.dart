@@ -47,8 +47,7 @@ class ShoppingListService {
   }
 
   /// Twoje zarządzalne listy zakupów (utworzone z wybranych przepisów) —
-  /// te, do których można dopisywać kolejne przepisy, i które liczą się
-  /// do limitu (1 dla standardu, 5 dla Premium).
+  /// te, do których można dopisywać kolejne przepisy.
   Future<List<ShoppingList>> getMyLists() async {
     final response = await _client.get('${ApiConfig.shoppingLists}mine');
     return (response as List)
@@ -56,7 +55,7 @@ class ShoppingListService {
         .toList();
   }
 
-  /// Usuwa zarządzalną listę zakupów — zwalnia miejsce w limicie.
+  /// Usuwa listę zakupów; tygodniowy limit utworzeń pozostaje zużyty.
   Future<void> deleteList(String listId) async {
     await _client.delete('${ApiConfig.shoppingLists}$listId');
   }
@@ -101,6 +100,15 @@ class ShoppingListService {
     return ShoppingList.fromJson(response as Map<String, dynamic>);
   }
 
+  /// Łączy co najmniej dwie własne listy z tego samego sklepu.
+  Future<ShoppingList> mergeLists(List<String> listIds) async {
+    final response = await _client.post(
+      '${ApiConfig.shoppingLists}merge',
+      body: {'list_ids': listIds},
+    );
+    return ShoppingList.fromJson(response as Map<String, dynamic>);
+  }
+
   /// Kończy listę; `moveToPantry` przenosi odhaczone produkty do spiżarni.
   Future<int> completeList(String listId, {bool moveToPantry = true}) async {
     final response = await _client.post(
@@ -129,7 +137,7 @@ class ShoppingListService {
   }
 
   /// Tworzy NOWĄ listę zakupów na konkretne danie/dania (podlega
-  /// limitowi: 1 dla standardu, 5 dla Premium) — ALBO, jeśli podano
+  /// limitowi jednej nowej listy tygodniowo dla konta standardowego) — ALBO, jeśli podano
   /// [existingListId], dopisuje przepisy do JUŻ ISTNIEJĄCEJ listy (nie
   /// zużywa limitu).
   Future<ShoppingList> createFromRecipes({

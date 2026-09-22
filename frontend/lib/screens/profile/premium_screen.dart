@@ -9,7 +9,9 @@ import 'dart:async';
 import '../../theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/billing_service.dart';
+import '../../services/api_client.dart';
 import '../../utils/error_utils.dart';
+import '../../widgets/campaign_icon.dart';
 import '../recipes/recipes_screen.dart';
 import '../recipes/ai_add_recipe_screen.dart';
 import '../recipes/ingredient_match_select_screen.dart';
@@ -37,6 +39,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
 
   bool _isLoadingProducts = true;
   Map<String, ProductDetails> _products = {};
+  Map<String, Map<String, dynamic>> _activeOffers = {};
   String? _productsError;
 
   // Osobne od subskrypcji — pakiety punktów to inna kategoria produktów
@@ -69,6 +72,47 @@ class _PremiumScreenState extends State<PremiumScreen> {
     );
     _loadProducts();
     _loadPointsProducts();
+    _loadCampaigns();
+  }
+
+  Future<void> _loadCampaigns() async {
+    if (!Platform.isIOS) return;
+    try {
+      final response = await ApiClient().get('/purchase-campaigns/active');
+      if (!mounted || response is! List) return;
+      final offers = <String, Map<String, dynamic>>{};
+      for (final raw in response) {
+        if (raw is! Map<String, dynamic>) continue;
+        final productId = raw['product_id'];
+        final percent = raw['discount_percent'];
+        if (productId is! String || percent is! int) continue;
+        final previous = offers[productId];
+        if (previous == null || (previous['discount_percent'] as int) < percent) {
+          offers[productId] = raw;
+        }
+      }
+      setState(() => _activeOffers = offers);
+    } catch (_) {
+      // Brak informacji o kampanii nie może zablokować zwykłych zakupów.
+    }
+  }
+
+  Future<void> _openOffer(String productId) async {
+    final url = _activeOffers[productId]?['ios_offer_url'];
+    if (url is! String) return;
+    final uri = Uri.tryParse(url);
+    if (uri == null || uri.scheme != 'https' || uri.host != 'apps.apple.com' ||
+        uri.path != '/redeem' || uri.queryParameters['ctx'] != 'offercodes') return;
+    try {
+      final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!opened && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Nie udało się otworzyć oferty w App Store.')),
+        );
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(friendlyError(e))));
+    }
   }
 
   @override
@@ -468,7 +512,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
     _PremiumFeature(
       icon: Icons.all_inclusive,
       title: 'Plany posiłków bez limitu',
-      description: 'Generuj tyle planów, ile chcesz — bez dziennego ograniczenia.',
+      description: 'Generuj tyle planów, ile chcesz — bez tygodniowego limitu.',
     ),
     _PremiumFeature(
       icon: Icons.auto_awesome,
@@ -482,8 +526,8 @@ class _PremiumScreenState extends State<PremiumScreen> {
     ),
     _PremiumFeature(
       icon: Icons.calendar_view_week,
-      title: 'Wiele planów naraz',
-      description: 'Osobny plan na dni robocze i osobny na weekend — jednocześnie.',
+      title: 'Listy zakupów bez limitu',
+      description: 'Twórz nowe listy zakupów wtedy, kiedy ich potrzebujesz.',
     ),
   ];
 
@@ -801,7 +845,9 @@ class _PremiumScreenState extends State<PremiumScreen> {
           price: weekly.price,
           period: '',
           highlight: false,
-          onTap: _isProcessingPurchase ? null : () => _buy(kWeeklyProductId),
+          discountPercent: _activeOffers[kWeeklyProductId]?['discount_percent'] as int?,
+          onTap: _isProcessingPurchase ? null : () => _activeOffers.containsKey(kWeeklyProductId)
+              ? _openOffer(kWeeklyProductId) : _buy(kWeeklyProductId),
         ).animate().fadeIn(delay: 650.ms),
       if (weekly != null) const SizedBox(height: 12),
       if (monthly != null)
@@ -811,7 +857,9 @@ class _PremiumScreenState extends State<PremiumScreen> {
           price: monthly.price,
           period: '',
           highlight: false,
-          onTap: _isProcessingPurchase ? null : () => _buy(kMonthlyProductId),
+          discountPercent: _activeOffers[kMonthlyProductId]?['discount_percent'] as int?,
+          onTap: _isProcessingPurchase ? null : () => _activeOffers.containsKey(kMonthlyProductId)
+              ? _openOffer(kMonthlyProductId) : _buy(kMonthlyProductId),
         ).animate().fadeIn(delay: 700.ms),
       if (monthly != null) const SizedBox(height: 12),
       if (yearly != null)
@@ -820,13 +868,17 @@ class _PremiumScreenState extends State<PremiumScreen> {
           title: 'Rocznie',
           price: yearly.price,
           period: '',
-          badge: 'Oszczędzasz 17%',
+          badge: _activeOffers.containsKey(kYearlyProductId) ? null : 'Oszczędzasz 17%',
           highlight: true,
-          onTap: _isProcessingPurchase ? null : () => _buy(kYearlyProductId),
+          discountPercent: _activeOffers[kYearlyProductId]?['discount_percent'] as int?,
+          onTap: _isProcessingPurchase ? null : () => _activeOffers.containsKey(kYearlyProductId)
+              ? _openOffer(kYearlyProductId) : _buy(kYearlyProductId),
         ).animate().fadeIn(delay: 800.ms),
       const SizedBox(height: 20),
       Text(
-        'Subskrypcję można anulować w dowolnym momencie w ustawieniach Google Play.',
+        Platform.isIOS
+            ? 'Subskrypcję można anulować w ustawieniach Apple ID. Cenę po rabacie potwierdza App Store przed zakupem.'
+            : 'Subskrypcję można anulować w dowolnym momencie w ustawieniach Google Play.',
         textAlign: TextAlign.center,
         style: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
       ),
@@ -888,9 +940,11 @@ class _PremiumScreenState extends State<PremiumScreen> {
                 child: _buildPointsCard(
                   points: 10,
                   price: _pointsProducts[kPoints10ProductId]!.price,
+                  discountPercent: _activeOffers[kPoints10ProductId]?['discount_percent'] as int?,
                   onTap: _isProcessingPurchase
                       ? null
-                      : () => _buyPoints(_pointsProducts[kPoints10ProductId]!),
+                      : () => _activeOffers.containsKey(kPoints10ProductId)
+                          ? _openOffer(kPoints10ProductId) : _buyPoints(_pointsProducts[kPoints10ProductId]!),
                 ),
               ),
             if (_pointsProducts[kPoints20ProductId] != null) ...[
@@ -899,9 +953,11 @@ class _PremiumScreenState extends State<PremiumScreen> {
                 child: _buildPointsCard(
                   points: 20,
                   price: _pointsProducts[kPoints20ProductId]!.price,
+                  discountPercent: _activeOffers[kPoints20ProductId]?['discount_percent'] as int?,
                   onTap: _isProcessingPurchase
                       ? null
-                      : () => _buyPoints(_pointsProducts[kPoints20ProductId]!),
+                      : () => _activeOffers.containsKey(kPoints20ProductId)
+                          ? _openOffer(kPoints20ProductId) : _buyPoints(_pointsProducts[kPoints20ProductId]!),
                 ),
               ),
             ],
@@ -911,10 +967,12 @@ class _PremiumScreenState extends State<PremiumScreen> {
                 child: _buildPointsCard(
                   points: 50,
                   price: _pointsProducts[kPoints50ProductId]!.price,
+                  discountPercent: _activeOffers[kPoints50ProductId]?['discount_percent'] as int?,
                   highlight: true,
                   onTap: _isProcessingPurchase
                       ? null
-                      : () => _buyPoints(_pointsProducts[kPoints50ProductId]!),
+                      : () => _activeOffers.containsKey(kPoints50ProductId)
+                          ? _openOffer(kPoints50ProductId) : _buyPoints(_pointsProducts[kPoints50ProductId]!),
                 ),
               ),
             ],
@@ -927,6 +985,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
     required int points,
     required String price,
     required VoidCallback? onTap,
+    int? discountPercent,
     bool highlight = false,
   }) {
     return GestureDetector(
@@ -943,11 +1002,15 @@ class _PremiumScreenState extends State<PremiumScreen> {
         ),
         child: Column(
           children: [
-            Icon(Icons.toll, color: AppTheme.accentColor, size: 22),
+            CampaignIcon(icon: Icons.toll, color: AppTheme.accentColor, discountPercent: discountPercent),
             const SizedBox(height: 6),
             Text('$points pkt', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
             const SizedBox(height: 2),
-            Text(price, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+            Text(discountPercent == null ? price : 'Cena zwykła: $price',
+                textAlign: TextAlign.center, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+            if (discountPercent != null)
+              const Text('Odbierz w App Store', textAlign: TextAlign.center,
+                  style: TextStyle(color: Color(0xFF9F1749), fontSize: 10, fontWeight: FontWeight.bold)),
           ],
         ),
       ),
@@ -960,6 +1023,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
     required String price,
     required String period,
     String? badge,
+    int? discountPercent,
     required bool highlight,
     required VoidCallback? onTap,
   }) {
@@ -1001,10 +1065,19 @@ class _PremiumScreenState extends State<PremiumScreen> {
                 style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
               ),
             ),
+          if (discountPercent != null)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: CampaignIcon(
+                icon: Icons.workspace_premium,
+                color: highlight ? Colors.white : AppTheme.accentColor,
+                discountPercent: discountPercent,
+              ),
+            ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
+              Expanded(child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
@@ -1019,9 +1092,9 @@ class _PremiumScreenState extends State<PremiumScreen> {
                     text: TextSpan(
                       children: [
                         TextSpan(
-                          text: price,
+                          text: discountPercent == null ? price : 'Cena zwykła: $price',
                           style: TextStyle(
-                            fontSize: 22,
+                            fontSize: discountPercent == null ? 22 : 15,
                             fontWeight: FontWeight.bold,
                             color: highlight ? Colors.white : AppTheme.primaryColor,
                           ),
@@ -1038,23 +1111,24 @@ class _PremiumScreenState extends State<PremiumScreen> {
                     ),
                   ),
                 ],
-              ),
+              )),
+              const SizedBox(width: 8),
               ElevatedButton(
                 onPressed: onTap,
                 style: highlight
                     ? ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: const Color(0xFFE0A62E),
-                        minimumSize: const Size(110, 44),
+                        minimumSize: const Size(100, 44),
                       )
-                    : ElevatedButton.styleFrom(minimumSize: const Size(110, 44)),
+                    : ElevatedButton.styleFrom(minimumSize: const Size(100, 44)),
                 child: _isProcessingPurchase
                     ? const SizedBox(
                         width: 18,
                         height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Kup Premium'),
+                    : Text(discountPercent == null ? 'Kup Premium' : 'Odbierz rabat'),
               ),
             ],
           ),

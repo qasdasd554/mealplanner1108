@@ -6,7 +6,12 @@ from decimal import Decimal
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
-from app.api.v1.products import review_product
+from app.api.v1.products import review_product, router as products_router
+
+
+def test_pending_route_precedes_generic_product_route() -> None:
+    get_paths = [route.path for route in products_router.routes if "GET" in route.methods]
+    assert get_paths.index("/admin/pending") < get_paths.index("/{product_id}")
 
 
 def _pending_product():

@@ -14,8 +14,8 @@ import '../utils/error_utils.dart';
 ///
 /// UWAGA (zmiana): wcześniej ta funkcja była CAŁKOWICIE zablokowana bez
 /// Premium (dotknięcie prowadziło od razu do ekranu zakupu subskrypcji).
-/// Teraz dostępna dla WSZYSTKICH — konto standardowe może mieć 1 taką
-/// listę, Premium do 5. Po dotknięciu pokazuje wybór: dodaj do już
+/// Teraz dostępna dla WSZYSTKICH — konto standardowe może stworzyć jedną
+/// nową listę tygodniowo, Premium bez limitu. Po dotknięciu pokazuje wybór: dodaj do już
 /// istniejącej listy (jeśli jakąś masz) albo stwórz nową — backend sam
 /// pilnuje limitu i zwraca czytelny błąd, jeśli został przekroczony.
 class DishShoppingListButton extends StatefulWidget {
@@ -96,17 +96,21 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
     if (choice == '__new__') {
       await _createNew();
     } else {
-      await _addToExisting(choice);
+      final existing = existingLists.firstWhere((list) => list.id == choice);
+      await _submit(
+        existingListId: existing.id,
+        storeIdOverride: existing.storeId,
+      );
     }
   }
 
   Future<void> _createNew() => _submit(existingListId: null);
-  Future<void> _addToExisting(String listId) => _submit(existingListId: listId);
 
-  Future<void> _submit({required String? existingListId}) async {
+  Future<void> _submit({required String? existingListId, String? storeIdOverride}) async {
     final storeProvider = Provider.of<StoreProvider>(context, listen: false);
     final store = storeProvider.selectedStore ?? (storeProvider.stores.isNotEmpty ? storeProvider.stores.first : null);
-    if (store == null) {
+    final storeId = storeIdOverride ?? store?.id;
+    if (storeId == null) {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
@@ -120,7 +124,7 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
     try {
       final list = await _service.createFromRecipes(
         recipeIds: [widget.recipe.id],
-        storeId: store.id,
+        storeId: storeId,
         existingListId: existingListId,
       );
       if (!mounted) return;

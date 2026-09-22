@@ -112,38 +112,54 @@ class BarcodeLookupService {
       }),
     ];
 
-    final attempts = [
-      _lookupOffUrl(urls[0], isV3: true),
-      _lookupOffUrl(urls[1], isV3: false),
-    ];
-    final first = await Future.any([
-      attempts[0].then((result) => (index: 0, result: result)),
-      attempts[1].then((result) => (index: 1, result: result)),
-    ]);
-    return first.result ?? await attempts[1 - first.index];
+    // Światowe API zawiera cały katalog żywności OFF. Nie wysyłamy
+    // równocześnie dwóch pytań o ten sam EAN: limit odczytu jest niski,
+    // a v2 i v3 korzystają z tej samej bazy. v2 służy tylko jako zapas
+    // przy błędzie v3, nie gdy produkt naprawdę nie istnieje.
+    final primary = await _lookupOffUrl(urls[0], isV3: true);
+    if (primary.result != null || primary.skipFallback) return primary.result;
+    final secondary = await _lookupOffUrl(urls[1], isV3: false);
+    return secondary.result;
   }
 
-  Future<BarcodeLookupResult?> _lookupOffUrl(Uri url, {required bool isV3}) async {
+  Future<({BarcodeLookupResult? result, bool skipFallback})> _lookupOffUrl(
+    Uri url, {
+    required bool isV3,
+  }) async {
     try {
       final response = await _httpClient.get(url, headers: const {
         'Accept': 'application/json', 'User-Agent': _userAgent,
       }).timeout(_externalTimeout);
-      if (response.statusCode != 200) return null;
+      if (response.statusCode == 404 || response.statusCode == 429 ||
+          response.statusCode == 503) {
+        return (result: null, skipFallback: true);
+      }
+      if (response.statusCode != 200) return (result: null, skipFallback: false);
       final decoded = jsonDecode(response.body);
-      if (decoded is! Map<String, dynamic>) return null;
+      if (decoded is! Map<String, dynamic>) {
+        return (result: null, skipFallback: false);
+      }
       final product = extractOpenFoodFactsProduct(decoded, isV3: isV3);
-      return product == null ? null : barcodeResultFromOpenFoodFacts(product);
+      final missing = isV3
+          ? (decoded['result'] is Map<String, dynamic> &&
+              decoded['result']['id'] == 'product_not_found')
+          : decoded['status'].toString() == '0';
+      return (
+        result: product == null ? null : barcodeResultFromOpenFoodFacts(product),
+        skipFallback: missing,
+      );
     } on TimeoutException {
-      return null;
+      return (result: null, skipFallback: false);
     } on http.ClientException {
-      return null;
+      return (result: null, skipFallback: false);
     } on FormatException {
-      return null;
+      return (result: null, skipFallback: false);
     }
   }
 
   static const _fields =
-      'code,product_name_pl,product_name,generic_name_pl,generic_name,'
+      'code,product_name_pl,product_name,product_name_en,'
+      'generic_name_pl,generic_name,generic_name_en,'
       'abbreviated_product_name,brands,nutriments,categories_tags,'
       'product_quantity,product_quantity_unit,serving_quantity';
 }
@@ -185,7 +201,8 @@ Map<String, dynamic>? extractOpenFoodFactsProduct(
 
   if (isV3) {
     final result = response['result'];
-    if (response['status'] != 'success' ||
+    if ((response['status'] != 'success' &&
+        response['status'] != 'success_with_errors') ||
         result is! Map<String, dynamic> ||
         result['id'] != 'product_found') {
       return null;
@@ -202,9 +219,11 @@ BarcodeLookupResult? barcodeResultFromOpenFoodFacts(
   final name = _firstText(product, const [
     'product_name_pl',
     'product_name',
+    'product_name_en',
     'abbreviated_product_name',
     'generic_name_pl',
     'generic_name',
+    'generic_name_en',
   ]);
   if (name == null) return null;
 

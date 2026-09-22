@@ -9,6 +9,7 @@ class ShoppingListItem {
   final String unit;
   final double? estimatedPrice;
   bool isChecked;
+  final bool isFromPantry;
   final String? substitutedForName;
 
   ShoppingListItem({
@@ -22,6 +23,7 @@ class ShoppingListItem {
     required this.unit,
     this.estimatedPrice,
     required this.isChecked,
+    this.isFromPantry = false,
     this.substitutedForName,
   });
 
@@ -39,6 +41,7 @@ class ShoppingListItem {
           ? (json['estimated_price'] as num).toDouble()
           : null,
       isChecked: json['is_checked'] as bool? ?? false,
+      isFromPantry: json['is_from_pantry'] as bool? ?? false,
       substitutedForName: json['substituted_for_name'] as String?,
     );
   }
@@ -90,7 +93,9 @@ class ShoppingList {
   }
 
   int get totalItems {
-    return itemsByDepartment.values.fold(0, (sum, list) => sum + list.length);
+    return itemsByDepartment.values.fold(
+      0, (sum, list) => sum + list.where((item) => !item.isFromPantry).length,
+    );
   }
 
   /// Kwota za produkty JESZCZE NIEKUPIONE — czyli ile realnie zostało
@@ -105,11 +110,18 @@ class ShoppingList {
     var sum = 0.0;
     for (final items in itemsByDepartment.values) {
       for (final item in items) {
-        if (!item.isChecked) sum += item.estimatedPrice ?? 0;
+        if (!item.isFromPantry && !item.isChecked) {
+          sum += item.estimatedPrice ?? 0;
+        }
       }
     }
     return sum;
   }
+
+  bool get hasUnknownPrices => itemsByDepartment.values.any(
+    (items) => items.any((item) =>
+        !item.isFromPantry && !item.isChecked && item.estimatedPrice == null),
+  );
 
   /// Czy wszystko na liście jest już odhaczone (i lista nie jest pusta).
   bool get isFullyChecked => totalItems > 0 && checkedItems == totalItems;
@@ -117,7 +129,7 @@ class ShoppingList {
   int get checkedItems {
     return itemsByDepartment.values.fold(
       0,
-      (sum, list) => sum + list.where((item) => item.isChecked).length,
+      (sum, list) => sum + list.where((item) => !item.isFromPantry && item.isChecked).length,
     );
   }
 

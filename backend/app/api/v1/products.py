@@ -583,12 +583,25 @@ async def list_my_products(
     return list(result.scalars().all())
 
 
-# WAŻNA KOLEJNOŚĆ: ta trasa MUSI stać PRZED "/{product_id}" niżej.
-# FastAPI dopasowuje trasy w kolejności rejestracji — gdyby "/{product_id}"
-# było pierwsze, żądanie GET /products/mine trafiałoby właśnie w nie,
-# z "mine" jako wartością product_id. Ponieważ ta wartość nie jest
-# poprawnym UUID, Pydantic odrzucał żądanie błędem "Input should be
-# a valid uuid" — dokładnie ten zgłoszony błąd.
+# Trasy statyczne GET muszą być przed /{product_id}. Inaczej FastAPI
+# odczytuje "admin" jako identyfikator produktu i zwraca błąd UUID.
+@router.get(
+    "/admin/pending",
+    response_model=list[ProductResponse],
+    summary="Produkty zgłoszone przez użytkowników (admin)",
+)
+async def list_pending_products(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_admin),
+) -> list[Product]:
+    result = await db.execute(
+        select(Product)
+        .where(Product.review_status == "pending")
+        .order_by(Product.created_at.desc())
+    )
+    return list(result.scalars().all())
+
+
 @router.get(
     "/{product_id}",
     response_model=ProductResponse,
@@ -927,23 +940,6 @@ async def delete_own_product(
         )
     await db.delete(product)
     await db.commit()
-
-
-@router.get(
-    "/admin/pending",
-    response_model=list[ProductResponse],
-    summary="Produkty zgłoszone przez użytkowników (admin)",
-)
-async def list_pending_products(
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_admin),
-) -> list[Product]:
-    result = await db.execute(
-        select(Product)
-        .where(Product.review_status == "pending")
-        .order_by(Product.created_at.desc())
-    )
-    return list(result.scalars().all())
 
 
 @router.post(

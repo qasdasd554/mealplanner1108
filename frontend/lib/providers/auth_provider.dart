@@ -344,15 +344,25 @@ class AuthProvider with ChangeNotifier {
     required List<String> allergenIds,
     required String diet,
     required int householdSize,
+    double? weightKg,
+    double? heightCm,
+    int? dailyKcalGoal,
   }) async {
     _setLoading(true);
     try {
       // 1. Zapisz profil (sklep, dieta, household)
-      await updateProfile(
+      final profileSaved = await updateProfile(
         preferredStoreId: storeId,
         dietaryPreferences: {'diet': diet},
         householdSize: householdSize,
+        weightKg: weightKg,
+        heightCm: heightCm,
+        dailyKcalGoal: dailyKcalGoal,
       );
+      if (!profileSaved) {
+        _setLoading(false);
+        return false;
+      }
       // 2. Zapisz alergeny
       await _authService.updateAllergens(allergenIds);
 

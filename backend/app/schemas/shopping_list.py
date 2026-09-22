@@ -23,6 +23,7 @@ class ShoppingListItemResponse(BaseModel):
     unit: str
     estimated_price: float | None = None
     is_checked: bool
+    is_from_pantry: bool = False
     substituted_for_name: str | None = None
 
     @model_validator(mode="before")
@@ -43,12 +44,17 @@ class ShoppingListItemResponse(BaseModel):
                 "product_id": prod.id if prod else None,
                 "product_name": prod.name if prod else "Nieznany produkt",
                 "brand": brand,
-                "department_name": dept.name if dept else "Inne",
-                "department_sort_order": dept.sort_order if dept else 99,
+                "department_name": "W spiżarni" if getattr(data, "is_from_pantry", False) else (
+                    dept.name if dept else "Inne"
+                ),
+                "department_sort_order": 10_000 if getattr(data, "is_from_pantry", False) else (
+                    dept.sort_order if dept else 99
+                ),
                 "required_quantity": data.required_quantity,
                 "unit": data.unit,
                 "estimated_price": data.estimated_price,
                 "is_checked": data.is_checked,
+                "is_from_pantry": getattr(data, "is_from_pantry", False),
                 "substituted_for_name": (
                     data.substituted_for_product.name
                     if getattr(data, "substituted_for_product", None) is not None
@@ -61,12 +67,13 @@ class ShoppingListItemResponse(BaseModel):
                 "product_id": None,
                 "product_name": data.custom_name,
                 "brand": None,
-                "department_name": "Inne",
-                "department_sort_order": 999,
+                "department_name": "W spiżarni" if getattr(data, "is_from_pantry", False) else "Inne",
+                "department_sort_order": 10_000 if getattr(data, "is_from_pantry", False) else 999,
                 "required_quantity": data.required_quantity,
                 "unit": data.unit,
-                "estimated_price": None,
+                "estimated_price": data.estimated_price if getattr(data, "is_from_pantry", False) else None,
                 "is_checked": data.is_checked,
+                "is_from_pantry": getattr(data, "is_from_pantry", False),
                 "substituted_for_name": None,
             }
         return data
@@ -93,13 +100,19 @@ class ShoppingListResponse(BaseModel):
             items_by_dept = {}
             total_price = 0.0
             for item in (data.items or []):
-                dept_name = item.department.name if item.department else "Inne"
+                dept_name = (
+                    "W spiżarni" if getattr(item, "is_from_pantry", False) else
+                    item.department.name if item.department else "Inne"
+                )
                 if dept_name not in items_by_dept:
                     items_by_dept[dept_name] = []
                 items_by_dept[dept_name].append(item)
                 if item.estimated_price:
                     total_price += float(item.estimated_price)
-            
+            pantry_items = items_by_dept.pop("W spiżarni", None)
+            if pantry_items is not None:
+                items_by_dept["W spiżarni"] = pantry_items
+
             return {
                 # UWAGA: zwracamy meal_plan_id jako "id", ponieważ wszystkie endpointy
                 # listy zakupów (/shopping-lists/{list_id}/...) identyfikują listę po ID

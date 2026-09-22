@@ -20,6 +20,7 @@ from sqlalchemy.orm import joinedload, selectinload
 from app.models import (
     MealPlan,
     MealPlanEntry,
+    PantryItem,
     Product,
     Recipe,
     RecipeIngredient,
@@ -27,11 +28,30 @@ from app.models import (
     ShoppingListItem,
     StoreDepartment,
     StoreProduct,
+    User,
 )
 from app.services.exceptions import MealPlanNotFoundError, ShoppingListNotFoundError
 from app.services.nutrition_calculator import grams_to_quantity, quantity_to_grams
+from app.services.shopping_list_quota import record_shopping_list_creation
 
 logger = logging.getLogger(__name__)
+
+
+def pantry_coverage_grams(
+    product_name: str,
+    required_grams: float,
+    pantry: PantryItem | None,
+    product_unit: str,
+) -> float:
+    """Ile z zapotrzebowania pokrywa obecna spiżarnia (bez zużywania stanu)."""
+    if pantry is None:
+        return 0.0
+    if pantry.quantity is None:
+        return required_grams
+    available = quantity_to_grams(
+        product_name, float(pantry.quantity), pantry.unit or product_unit,
+    )
+    return min(required_grams, max(0.0, available))
 
 
 class ShoppingListBuilder:
@@ -72,6 +92,7 @@ class ShoppingListBuilder:
         items_data = await self._resolve_store_details(
             aggregated=aggregated,
             store_id=meal_plan.store_id,
+            user_id=meal_plan.user_id,
         )
 
         # ── 5. Utwórz listę zakupów ─────────────────────────────────
@@ -116,11 +137,11 @@ class ShoppingListBuilder:
 
         meal_plan_id = shopping_list.meal_plan_id
 
-        # Usuń stare pozycje wyliczone z przepisów. Pozycje wpisane
-        # przez użytkownika z klawiatury nie zależą od planu i muszą
-        # przetrwać jego przeliczenie.
+        # Usuń tylko pozycje wyliczone z przepisów. Ręczne oraz
+        # zaimportowane przez łączenie list nie mogą zniknąć przy
+        # przeliczeniu planu.
         for item in list(shopping_list.items):
-            if item.custom_name is None:
+            if item.is_generated:
                 await self.db.delete(item)
         await self.db.flush()
 
@@ -130,6 +151,7 @@ class ShoppingListBuilder:
         items_data = await self._resolve_store_details(
             aggregated=aggregated,
             store_id=meal_plan.store_id,
+            user_id=meal_plan.user_id,
         )
 
         for item_data in items_data:
@@ -140,7 +162,7 @@ class ShoppingListBuilder:
             self.db.add(item)
 
         await self.db.commit()
-        
+
         result = await self.db.execute(
             select(ShoppingList)
             .options(selectinload(ShoppingList.items))
@@ -220,7 +242,10 @@ class ShoppingListBuilder:
             product = store_product_obj.product if store_product_obj else None
             product_name = product.name if product else (item.custom_name or "Nieznany produkt")
             product_id = store_product_obj.product_id if store_product_obj else None
-            dept_info = dept_map.get(product_id, ("Inne", 999))
+            dept_info = (
+                ("W spiżarni", 10_000) if item.is_from_pantry
+                else dept_map.get(product_id, ("Inne", 999))
+            )
             dept_name, sort_order = dept_info
             sort_keys[dept_name] = sort_order
 
@@ -308,6 +333,7 @@ class ShoppingListBuilder:
         self,
         aggregated: dict[UUID, float],
         store_id: UUID,
+        user_id: UUID,
     ) -> list[dict[str, Any]]:
         """Uzupełnia dane sklepowe: opakowania, ceny, działy.
 
@@ -349,27 +375,73 @@ class ShoppingListBuilder:
             sp.product_id: sp for sp in sp_result.scalars().unique().all()
         }
 
+        pantry_result = await self.db.execute(
+            select(PantryItem).where(
+                PantryItem.user_id == user_id,
+                PantryItem.product_id.in_(product_ids),
+            )
+        )
+        pantry_by_product = {
+            item.product_id: item for item in pantry_result.scalars().all()
+        }
+
         items_data: list[dict[str, Any]] = []
 
         for product_id, total_qty_grams in aggregated.items():
             product = products.get(product_id)
             store_product = store_products.get(product_id)
 
-            # Pomiń składniki, które nie mają pozycji w sklepie
-            if store_product is None:
-                logger.warning(
-                    "Produkt %s nie ma pozycji w sklepie — pomijam na liście zakupów",
-                    product_id,
-                )
+            if product is None:
                 continue
 
-            product_name = product.name if product else ""
+            product_name = product.name
             product_unit = getattr(product, "unit", None) or "szt"
+
+            pantry_grams = pantry_coverage_grams(
+                product_name, total_qty_grams,
+                pantry_by_product.get(product_id), product_unit,
+            )
+            purchase_grams = max(0.0, total_qty_grams - pantry_grams)
+
+            if pantry_grams > 0:
+                items_data.append({
+                    "store_product_id": store_product.id if store_product else None,
+                    "custom_name": None if store_product else product_name,
+                    "required_quantity": round(grams_to_quantity(
+                        product_name, pantry_grams, product_unit,
+                    ), 3),
+                    "unit": product_unit,
+                    "estimated_price": 0,
+                    "department_id": None,
+                    "is_checked": True,
+                    "is_from_pantry": True,
+                    "is_generated": True,
+                })
+            if purchase_grams <= 0:
+                continue
+
+            if store_product is None:
+                # Nie ukrywamy brakującej części tylko dlatego, że ten
+                # sklep nie ma produktu w katalogu. Ceny nie zgadujemy.
+                items_data.append({
+                    "store_product_id": None,
+                    "custom_name": product_name,
+                    "required_quantity": round(grams_to_quantity(
+                        product_name, purchase_grams, product_unit,
+                    ), 3),
+                    "unit": product_unit,
+                    "estimated_price": None,
+                    "department_id": None,
+                    "is_checked": False,
+                    "is_from_pantry": False,
+                    "is_generated": True,
+                })
+                continue
 
             # Ilość potrzebna, przeliczona na jednostkę natywną produktu
             # (tę samą, w której podane jest default_quantity opakowania)
             required_in_product_unit = grams_to_quantity(
-                product_name, total_qty_grams, product_unit
+                product_name, purchase_grams, product_unit
             )
 
             # Rozmiar opakowania — przeliczony na wspólną bazę gramów/ml,
@@ -380,7 +452,7 @@ class ShoppingListBuilder:
             )
 
             package_count = (
-                math.ceil(total_qty_grams / default_qty_grams)
+                math.ceil(purchase_grams / default_qty_grams)
                 if default_qty_grams > 0
                 else 1
             )
@@ -400,6 +472,8 @@ class ShoppingListBuilder:
                     "estimated_price": estimated_price,
                     "department_id": department_id,
                     "is_checked": False,
+                    "is_from_pantry": False,
+                    "is_generated": True,
                 }
             )
 
@@ -410,7 +484,10 @@ class ShoppingListBuilder:
             if dept is not None:
                 dept_order[sp.department_id] = getattr(dept, "sort_order", 999)
 
-        items_data.sort(key=lambda x: dept_order.get(x.get("department_id"), 999))
+        items_data.sort(key=lambda x: (
+            x.get("is_from_pantry", False),
+            dept_order.get(x.get("department_id"), 999),
+        ))
         return items_data
 
     async def _create_shopping_list(
@@ -425,6 +502,12 @@ class ShoppingListBuilder:
         )
         self.db.add(shopping_list)
         await self.db.flush()
+        user = await self.db.get(User, meal_plan.user_id)
+        if user is None:
+            raise MealPlanNotFoundError(meal_plan.id)
+        await record_shopping_list_creation(
+            self.db, user=user, shopping_list_id=shopping_list.id,
+        )
 
         for item_data in items_data:
             item = ShoppingListItem(
@@ -434,7 +517,7 @@ class ShoppingListBuilder:
             self.db.add(item)
 
         await self.db.commit()
-        
+
         result = await self.db.execute(
             select(ShoppingList)
             .options(selectinload(ShoppingList.items))

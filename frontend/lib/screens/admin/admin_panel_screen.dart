@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../models/promotion.dart';
 import '../../models/recipe.dart';
 import '../../services/promotion_service.dart';
-import '../../services/api_client.dart';
 import '../../services/recipe_service.dart';
 import '../../services/notification_service.dart';
 import '../../services/moderation_service.dart';
@@ -11,6 +10,7 @@ import 'admin_comments_screen.dart';
 import 'admin_photos_screen.dart';
 import 'admin_products_screen.dart';
 import 'admin_all_recipes_screen.dart';
+import 'admin_campaigns_screen.dart';
 import '../recipes/recipe_detail_screen.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
@@ -26,11 +26,6 @@ class AdminPanelScreen extends StatefulWidget {
 }
 
 class _AdminPanelScreenState extends State<AdminPanelScreen> {
-  final ApiClient _apiClient = ApiClient();
-  bool _isLoadingPendingProducts = true;
-  String? _pendingProductsError;
-  List<Map<String, dynamic>> _pendingProducts = [];
-  final Set<String> _busyProductIds = {};
   final PromotionService _service = PromotionService();
   final RecipeService _recipeService = RecipeService();
   final NotificationService _notificationService = NotificationService();
@@ -69,7 +64,6 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   @override
   void initState() {
     super.initState();
-    _loadPendingProducts();
     _loadPendingRecipes();
     _loadPending();
     _loadReports();
@@ -557,108 +551,6 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     }
   }
 
-  Future<void> _loadPendingProducts() async {
-    if (mounted) setState(() => _isLoadingPendingProducts = true);
-    try {
-      final response = await _apiClient.get('/products/admin/pending');
-      if (!mounted) return;
-      if (response is! List) throw const FormatException('Nieprawidłowa odpowiedź serwera');
-      setState(() {
-        _pendingProducts = response.whereType<Map<String, dynamic>>().toList();
-        _pendingProductsError = null;
-      });
-    } catch (error) {
-      if (!mounted) return;
-      setState(() => _pendingProductsError = friendlyError(error));
-    } finally {
-      if (mounted) setState(() => _isLoadingPendingProducts = false);
-    }
-  }
-
-  Future<void> _reviewProduct(String id, bool approve) async {
-    if (_busyProductIds.contains(id)) return;
-    setState(() => _busyProductIds.add(id));
-    try {
-      await _apiClient.post('/products/admin/$id/review?approve=$approve');
-      if (!mounted) return;
-      setState(() => _pendingProducts.removeWhere((product) => product['id'] == id));
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(approve ? 'Produkt zaakceptowany' : 'Produkt odrzucony'),
-      ));
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(friendlyError(error)),
-        backgroundColor: AppTheme.errorColor,
-      ));
-    } finally {
-      if (mounted) setState(() => _busyProductIds.remove(id));
-    }
-  }
-
-  Widget _buildPendingProductsSection(BuildContext context) {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text('Produkty oczekujące na akceptację',
-          style: Theme.of(context).textTheme.titleLarge),
-      const SizedBox(height: 10),
-      if (_isLoadingPendingProducts)
-        const Center(child: Padding(
-          padding: EdgeInsets.all(16), child: CircularProgressIndicator(),
-        ))
-      else if (_pendingProductsError != null) ...[
-        Text(_pendingProductsError!, style: TextStyle(color: AppTheme.errorColor)),
-        TextButton(onPressed: _loadPendingProducts, child: const Text('Spróbuj ponownie')),
-      ] else if (_pendingProducts.isEmpty)
-        Text('Brak produktów do sprawdzenia.',
-            style: TextStyle(color: AppTheme.textSecondary))
-      else
-        ..._pendingProducts.map((product) {
-          final id = product['id']?.toString() ?? '';
-          final busy = _busyProductIds.contains(id);
-          final nutrition = product['nutrition_per_100'];
-          return Card(
-            margin: const EdgeInsets.only(bottom: 10),
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(product['name']?.toString() ?? 'Produkt bez nazwy',
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                Text([
-                  if ((product['brand']?.toString() ?? '').isNotEmpty)
-                    product['brand'].toString(),
-                  if ((product['barcode']?.toString() ?? '').isNotEmpty)
-                    'EAN: ${product['barcode']}',
-                  if (product['submitted_price'] != null)
-                    'Cena zgłoszona: ${product['submitted_price']} zł',
-                ].join(' · ')),
-                if (nutrition is Map) ...[
-                  const SizedBox(height: 4),
-                  Text('Na 100 g: ${nutrition['kcal'] ?? '—'} kcal · '
-                      'B ${nutrition['protein'] ?? '—'} · '
-                      'T ${nutrition['fat'] ?? '—'} · '
-                      'W ${nutrition['carbs'] ?? '—'}'),
-                ],
-                const SizedBox(height: 8),
-                Row(children: [
-                  OutlinedButton(
-                    onPressed: busy || id.isEmpty ? null : () => _reviewProduct(id, false),
-                    child: const Text('Odrzuć'),
-                  ),
-                  const SizedBox(width: 8),
-                  FilledButton(
-                    onPressed: busy || id.isEmpty ? null : () => _reviewProduct(id, true),
-                    child: const Text('Zatwierdź'),
-                  ),
-                ]),
-              ]),
-            ),
-          );
-        }),
-      const SizedBox(height: 20),
-    ]);
-  }
-
   Future<void> _openRecipeForReview(Recipe recipe) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
@@ -678,13 +570,12 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       appBar: AppBar(title: const Text('Panel administratora')),
       body: RefreshIndicator(
         onRefresh: () async {
-          await Future.wait([_loadPendingProducts(), _loadPending(), _loadPendingRecipes(), _loadReports()]);
+          await Future.wait([_loadPending(), _loadPendingRecipes(), _loadReports()]);
         },
         color: AppTheme.primaryColor,
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            _buildPendingProductsSection(context),
             // Przepisy oczekujące na akceptację do wspólnego katalogu —
             // wcześniej nie było tu żadnej listy, mimo że backend i
             // przyciski akceptacji/odrzucenia (RecipeApprovalBar) już
@@ -1124,6 +1015,13 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                   label: const Text('Przepisy użytkowników'),
                   onPressed: () => Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const AdminAllRecipesScreen()),
+                  ),
+                ),
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.local_offer_outlined, size: 18),
+                  label: const Text('Kampanie'),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const AdminCampaignsScreen()),
                   ),
                 ),
               ],

@@ -217,9 +217,16 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                   ],
                 ),
               ),
-            // Dla kont standardowych (bez Premium) — proaktywna informacja
-            // o limicie, ZANIM na niego trafią (nie tylko reaktywnie, gdy
-            // spróbują wygenerować drugi plan i zostaną zablokowani).
+            if (plan?.shoppingListLimitReached ?? false) ...[
+              const SizedBox(height: 12),
+              const Text(
+                'Plan jest gotowy, ale w tym tygodniu wykorzystano już '
+                'darmowy limit jednej nowej listy zakupów. Produkty możesz '
+                'dopisać do istniejącej listy albo utworzyć kolejną w '
+                'przyszłym tygodniu.',
+              ),
+            ],
+            // Proaktywna informacja o tygodniowym limicie konta standardowego.
             if (!(Provider.of<AuthProvider>(context, listen: false).currentUser?.hasPremiumAccess ?? false)) ...[
               const SizedBox(height: 12),
               Container(
@@ -240,12 +247,12 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'Na koncie standardowym masz jeden plan naraz',
+                            'Konto standardowe: jeden nowy plan tygodniowo',
                             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'Premium pozwala mieć kilka planów jednocześnie (np. osobny na dni robocze i weekend).',
+                            'Limit odnawia się w poniedziałek. Usunięcie planu go nie odnawia. Premium pozwala tworzyć plany bez limitu.',
                             style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                           ),
                         ],
@@ -599,7 +606,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
               ],
             ),
           ),
-          
+
           // Nakładka ładowania w trakcie generowania
           if (mealPlanProvider.isGenerating)
             Container(

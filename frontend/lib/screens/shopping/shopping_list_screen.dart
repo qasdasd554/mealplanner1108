@@ -279,6 +279,85 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     }
   }
 
+  Future<void> _showMergeDialog(ShoppingListProvider provider) async {
+    final current = provider.currentList;
+    if (current == null) return;
+    final candidates = provider.allLists.where((list) =>
+        list.mealPlanId != current.mealPlanId &&
+        list.storeId == current.storeId).toList();
+    if (candidates.isEmpty) return;
+    final selected = <String>{};
+    final sourceIds = await showDialog<List<String>>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          title: const Text('Połącz listy zakupów'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Wybierz listy sklepu ${current.storeName}, które chcesz '
+                    'połączyć z obecną listą. Poprzednie listy znikną z '
+                    'Zakupów, ale plany posiłków pozostaną bez zmian.'),
+                const SizedBox(height: 12),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 260),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: candidates.length,
+                    itemBuilder: (dialogContext, index) {
+                      final list = candidates[index];
+                      return CheckboxListTile(
+                        contentPadding: EdgeInsets.zero,
+                        value: selected.contains(list.mealPlanId),
+                        title: Text('Lista ${provider.allLists.indexOf(list) + 1}'),
+                        subtitle: Text('${list.createdAt.day}.${list.createdAt.month} '
+                            '· ${list.totalItems} produktów'),
+                        onChanged: (checked) => setDialogState(() {
+                          if (checked == true) {
+                            selected.add(list.mealPlanId);
+                          } else {
+                            selected.remove(list.mealPlanId);
+                          }
+                        }),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Anuluj'),
+            ),
+            FilledButton(
+              onPressed: selected.isEmpty
+                  ? null
+                  : () => Navigator.of(dialogContext).pop(selected.toList()),
+              child: const Text('Połącz'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (sourceIds == null || sourceIds.isEmpty || !mounted) return;
+    final success = await provider.mergeLists([current.mealPlanId, ...sourceIds]);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        duration: const Duration(seconds: 4),
+        content: Text(success
+            ? 'Listy zostały połączone'
+            : provider.errorMessage ?? 'Nie udało się połączyć list'),
+        backgroundColor: success ? null : AppTheme.errorColor,
+      ));
+  }
+
   // Ikony działów (wcześniej tu było mapowanie na emoji — usunięte razem
   // z resztą emotek w aplikacji; funkcja zwracała odtąd puste stringi,
   // czyli renderowała nic zamiast ikony).
@@ -292,6 +371,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
       'produkty suche' || 'suche' => Icons.grain_outlined,
       'mrożonki' => Icons.ac_unit_outlined,
       'przyprawy i sosy' || 'przyprawy' => Icons.local_dining_outlined,
+      'w spiżarni' => Icons.kitchen_outlined,
       _ => Icons.shopping_basket_outlined,
     };
   }
@@ -500,6 +580,20 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                     // ma więcej niż jedną (Premium może mieć do 5).
                     if (shoppingListProvider.allLists.length > 1)
                       _buildListSelector(shoppingListProvider),
+                    if (shoppingListProvider.allLists.any((other) =>
+                        other.mealPlanId != list.mealPlanId &&
+                        other.storeId == list.storeId))
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: OutlinedButton.icon(
+                            onPressed: () => _showMergeDialog(shoppingListProvider),
+                            icon: const Icon(Icons.merge_type, size: 18),
+                            label: const Text('Połącz listy'),
+                          ),
+                        ),
+                      ),
 
                     // Panel domknięcia zakupów — pokazuje się DOPIERO
                     // po odhaczeniu wszystkiego, więc nie zabiera miejsca
@@ -604,7 +698,9 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                                     ),
                               ),
                               subtitle: Text(
-                                '${items.where((i) => i.isChecked).length} z ${items.length} kupione',
+                                deptName == 'W spiżarni'
+                                    ? '${items.length} produktów już masz · 0 zł'
+                                    : '${items.where((i) => i.isChecked).length} z ${items.length} kupione',
                                 style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                               ),
                               children: items.map((item) {
@@ -680,7 +776,8 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
           // ShoppingList.id (patrz _get_shopping_list_or_404 w
           // backend/app/api/v1/shopping_lists.py) — stąd mealPlanId.
           final isSelected = l.mealPlanId == provider.selectedListId;
-          final allItems = l.itemsByDepartment.values.expand((x) => x).toList();
+          final allItems = l.itemsByDepartment.values
+              .expand((x) => x).where((item) => !item.isFromPantry).toList();
           final checked = allItems.where((i) => i.isChecked).length;
           final total = allItems.length;
           final done = total > 0 && checked == total;
@@ -776,7 +873,8 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
         content: Text(
           'Lista zakupów dla sklepu ${list.storeName} zostanie trwale '
           'usunięta wraz ze wszystkimi pozycjami. Plan posiłków pozostaje '
-          'bez zmian — listę można wygenerować ponownie.',
+          'bez zmian. Usunięcie nie odnawia tygodniowego limitu tworzenia '
+          'list na koncie standardowym.',
         ),
         actions: [
           TextButton(
@@ -925,7 +1023,9 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
             child: Text(
               list.isFullyChecked
                   ? 'Wszystko kupione'
-                  : 'Do zapłaty: ~${list.remainingPrice.toStringAsFixed(2)} zł',
+                  : list.hasUnknownPrices
+                      ? 'Od ~${list.remainingPrice.toStringAsFixed(2)} zł · część cen nieznana'
+                      : 'Do zapłaty: ~${list.remainingPrice.toStringAsFixed(2)} zł',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
@@ -995,7 +1095,9 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                 Text(
                   list.isFullyChecked
                       ? 'Wszystko kupione'
-                      : 'Do zapłaty: ~${list.remainingPrice.toStringAsFixed(2)} zł',
+                      : list.hasUnknownPrices
+                          ? 'Od ~${list.remainingPrice.toStringAsFixed(2)} zł · część cen nieznana'
+                          : 'Do zapłaty: ~${list.remainingPrice.toStringAsFixed(2)} zł',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         color: AppTheme.primaryColor,
                         fontWeight: FontWeight.bold,
@@ -1024,11 +1126,15 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
   ) {
     // Odznaka promocji — sprawdzana z już wczytanej listy promocji
     // (patrz _loadData), bez dodatkowego zapytania sieciowego na każdą pozycję.
-    final promotion = Provider.of<PromotionProvider>(context).findForProduct(item.productName);
+    final promotion = item.isFromPantry
+        ? null
+        : Provider.of<PromotionProvider>(context).findForProduct(item.productName);
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-      leading: Checkbox(
+      leading: item.isFromPantry
+          ? const Icon(Icons.kitchen_outlined, color: AppTheme.primaryColor)
+          : Checkbox(
         value: item.isChecked,
         activeColor: AppTheme.primaryColor,
         onChanged: (_) {
@@ -1054,9 +1160,12 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
       title: Text(
         item.productName,
         style: TextStyle(
-          decoration: item.isChecked ? TextDecoration.lineThrough : null,
-          color: item.isChecked ? AppTheme.textSecondary : AppTheme.textPrimary,
-          fontWeight: item.isChecked ? FontWeight.normal : FontWeight.bold,
+          decoration: !item.isFromPantry && item.isChecked
+              ? TextDecoration.lineThrough : null,
+          color: !item.isFromPantry && item.isChecked
+              ? AppTheme.textSecondary : AppTheme.textPrimary,
+          fontWeight: !item.isFromPantry && item.isChecked
+              ? FontWeight.normal : FontWeight.bold,
         ),
       ),
       subtitle: Wrap(
@@ -1114,7 +1223,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
               '${item.estimatedPrice!.toStringAsFixed(2)} zł',
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-          if (item.productId != null) ...[
+          if (item.productId != null && !item.isFromPantry) ...[
             const SizedBox(width: 8),
             IconButton(
               icon: Icon(

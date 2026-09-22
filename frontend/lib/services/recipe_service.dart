@@ -13,9 +13,12 @@ class RecipeService {
     String? tag,
     String? search,
     bool favoritesOnly = false,
+    bool newOnly = false,
     bool communityOnly = false,
     // 'name' | 'kcal_asc' | 'kcal_desc' | 'prep_time'
     String? sortBy,
+    int limit = 200,
+    int skip = 0,
   }) async {
     var path = '${ApiConfig.recipes}?';
     final params = <String>[];
@@ -43,16 +46,17 @@ class RecipeService {
     if (favoritesOnly) {
       params.add('favorites_only=true');
     }
+    if (newOnly) {
+      params.add('new_only=true');
+    }
     if (communityOnly) {
       params.add('community_only=true');
     }
     if (sortBy != null && sortBy.isNotEmpty && sortBy != 'name') {
       params.add('sort_by=${Uri.encodeComponent(sortBy)}');
     }
-    // Backend domyślnie zwraca tylko 50 przepisów (paginacja). Baza ma ich
-    // teraz ~80, więc bez podania limitu część z nich byłaby niewidoczna
-    // w aplikacji. 200 to maksimum akceptowane przez backend.
-    params.add('limit=200');
+    params.add('limit=$limit');
+    params.add('skip=$skip');
 
     path += params.join('&');
     final response = await _client.get(path);
@@ -87,11 +91,30 @@ class RecipeService {
   /// [sortBy]: 'newest' (domyślne), 'name', 'kcal_asc', 'kcal_desc',
   /// 'prep_time' — te same tryby co w [getRecipes], żeby przełącznik
   /// "Moje" nie gubił wybranego sortowania.
-  Future<List<Recipe>> getMyRecipes({String? sortBy}) async {
-    var path = '${ApiConfig.recipes}mine';
-    if (sortBy != null && sortBy.isNotEmpty && sortBy != 'name') {
-      path += '?sort_by=${Uri.encodeComponent(sortBy)}';
+  Future<List<Recipe>> getMyRecipes({
+    String? sortBy,
+    bool favoritesOnly = false,
+    bool newOnly = false,
+    bool communityOnly = false,
+    String? search,
+    String? mealType,
+    String? difficulty,
+    String? tag,
+    int limit = 50,
+    int skip = 0,
+  }) async {
+    final params = <String>['limit=$limit', 'skip=$skip'];
+    if (sortBy != null && sortBy.isNotEmpty) {
+      params.add('sort_by=${Uri.encodeComponent(sortBy)}');
     }
+    if (favoritesOnly) params.add('favorites_only=true');
+    if (newOnly) params.add('new_only=true');
+    if (communityOnly) params.add('community_only=true');
+    if (search != null && search.isNotEmpty) params.add('search=${Uri.encodeComponent(search)}');
+    if (mealType != null && mealType.isNotEmpty) params.add('meal_type=${Uri.encodeComponent(mealType)}');
+    if (difficulty != null && difficulty.isNotEmpty) params.add('difficulty=${Uri.encodeComponent(difficulty)}');
+    if (tag != null && tag.isNotEmpty) params.add('tags=${Uri.encodeComponent(tag)}');
+    final path = '${ApiConfig.recipes}mine?${params.join('&')}';
     final response = await _client.get(path);
     if (response is List) {
       return response.map((e) => Recipe.fromJson(e as Map<String, dynamic>)).toList();

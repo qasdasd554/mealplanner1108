@@ -30,9 +30,15 @@ class _RecipesScreenState extends State<RecipesScreen> {
   final RecipeService _recipeService = RecipeService();
   RecipeImportJob? _activeImport;
   Timer? _importPollTimer;
+  Timer? _searchTimer;
   bool _checkingImport = false;
   List<Recipe> _recipes = [];
   bool _isLoading = false;
+  bool _isLoadingMore = false;
+  bool _hasMore = false;
+  int _nextSkip = 0;
+  int _requestVersion = 0;
+  static const int _pageSize = 30;
   String _searchQuery = '';
   // Sortowanie listy: 'name' | 'kcal_asc' | 'kcal_desc' | 'prep_time'.
   // 'kcal_*' sortuje po kaloriach NA JEDNĄ PORCJĘ (czyli na osobę),
@@ -57,6 +63,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   @override
   void dispose() {
     _importPollTimer?.cancel();
+    _searchTimer?.cancel();
     super.dispose();
   }
 
@@ -91,8 +98,12 @@ class _RecipesScreenState extends State<RecipesScreen> {
   }
 
   Future<void> _loadRecipes() async {
+    final requestVersion = ++_requestVersion;
     setState(() {
       _isLoading = true;
+      _isLoadingMore = false;
+      _hasMore = false;
+      _nextSkip = 0;
     });
 
     try {
@@ -100,26 +111,36 @@ class _RecipesScreenState extends State<RecipesScreen> {
       // backendzie i w serwisie, tylko nigdy nie był podłączony pod
       // żaden przełącznik w interfejsie.
       final list = _myRecipesOnly
-          ? await _recipeService.getMyRecipes()
+          ? await _recipeService.getMyRecipes(
+              sortBy: _sortBy == 'name' ? 'newest' : _sortBy,
+              favoritesOnly: _favoritesOnly,
+              newOnly: _newOnly,
+              communityOnly: _communityOnly,
+              search: _searchQuery,
+              mealType: _selectedMealType,
+              difficulty: _selectedDifficulty,
+              tag: _selectedDietTag != null ? kDietNameToTag[_selectedDietTag] : null,
+              limit: _pageSize,
+            )
           : await _recipeService.getRecipes(
               search: _searchQuery,
               mealType: _selectedMealType,
               difficulty: _selectedDifficulty,
               tag: _selectedDietTag != null ? kDietNameToTag[_selectedDietTag] : null,
               favoritesOnly: _favoritesOnly,
+              newOnly: _newOnly,
               communityOnly: _communityOnly,
               sortBy: _sortBy,
+              limit: _pageSize,
             );
-      if (!mounted) return;
+      if (!mounted || requestVersion != _requestVersion) return;
       setState(() {
-        // Filtr "Nowość" jest liczony CAŁKOWICIE po stronie klienta (na
-        // podstawie createdAt, bez dodatkowego zapytania do backendu) —
-        // prostsze niż dodawanie kolejnego parametru API, i wystarczająco
-        // szybkie, bo lista przepisów i tak jest już pobrana.
-        _recipes = _newOnly ? list.where((r) => r.isNew).toList() : list;
+        _recipes = list;
+        _nextSkip = list.length;
+        _hasMore = list.length == _pageSize;
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || requestVersion != _requestVersion) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             duration: const Duration(seconds: 3),
@@ -128,10 +149,62 @@ class _RecipesScreenState extends State<RecipesScreen> {
         ),
       );
     } finally {
-      if (mounted) {
+      if (mounted && requestVersion == _requestVersion) {
         setState(() {
           _isLoading = false;
         });
+      }
+    }
+  }
+
+  Future<void> _loadMore() async {
+    if (_isLoading || _isLoadingMore || !_hasMore) return;
+    final requestVersion = _requestVersion;
+    final skip = _nextSkip;
+    setState(() => _isLoadingMore = true);
+    try {
+      final list = _myRecipesOnly
+          ? await _recipeService.getMyRecipes(
+              sortBy: _sortBy == 'name' ? 'newest' : _sortBy,
+              favoritesOnly: _favoritesOnly,
+              newOnly: _newOnly,
+              communityOnly: _communityOnly,
+              search: _searchQuery,
+              mealType: _selectedMealType,
+              difficulty: _selectedDifficulty,
+              tag: _selectedDietTag != null ? kDietNameToTag[_selectedDietTag] : null,
+              limit: _pageSize,
+              skip: skip,
+            )
+          : await _recipeService.getRecipes(
+              search: _searchQuery,
+              mealType: _selectedMealType,
+              difficulty: _selectedDifficulty,
+              tag: _selectedDietTag != null ? kDietNameToTag[_selectedDietTag] : null,
+              favoritesOnly: _favoritesOnly,
+              newOnly: _newOnly,
+              communityOnly: _communityOnly,
+              sortBy: _sortBy,
+              limit: _pageSize,
+              skip: skip,
+            );
+      if (!mounted || requestVersion != _requestVersion) return;
+      final seen = _recipes.map((r) => r.id).toSet();
+      setState(() {
+        _recipes.addAll(list.where((r) => seen.add(r.id)));
+        _nextSkip += list.length;
+        _hasMore = list.length == _pageSize;
+      });
+    } catch (e) {
+      if (mounted && requestVersion == _requestVersion) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Nie udało się wczytać kolejnych przepisów: $e'),
+          backgroundColor: AppTheme.errorColor,
+        ));
+      }
+    } finally {
+      if (mounted && requestVersion == _requestVersion) {
+        setState(() => _isLoadingMore = false);
       }
     }
   }
@@ -196,10 +269,12 @@ class _RecipesScreenState extends State<RecipesScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
             child: TextField(
               onChanged: (value) {
+                _searchTimer?.cancel();
+                ++_requestVersion;
                 setState(() {
                   _searchQuery = value;
                 });
-                _loadRecipes();
+                _searchTimer = Timer(const Duration(milliseconds: 350), _loadRecipes);
               },
               decoration: InputDecoration(
                 hintText: 'Szukaj przepisu...',
@@ -365,19 +440,40 @@ class _RecipesScreenState extends State<RecipesScreen> {
             ? const Center(child: CircularProgressIndicator())
             : _recipes.isEmpty
                 ? _buildEmptyState()
-                : GridView.builder(
-                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      childAspectRatio: 0.82,
-                    ),
-                    itemCount: _recipes.length,
-                    itemBuilder: (context, index) {
-                      final recipe = _recipes[index];
-                      return _buildRecipeCard(recipe);
-                    },
+                : CustomScrollView(
+                    slivers: [
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+                        sliver: SliverGrid(
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                            childAspectRatio: 0.82,
+                          ),
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) => _buildRecipeCard(_recipes[index]),
+                            childCount: _recipes.length,
+                          ),
+                        ),
+                      ),
+                      if (_hasMore)
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(24, 12, 24, 96),
+                            child: OutlinedButton.icon(
+                              onPressed: _isLoadingMore ? null : _loadMore,
+                              icon: _isLoadingMore
+                                  ? const SizedBox(width: 18, height: 18,
+                                      child: CircularProgressIndicator(strokeWidth: 2))
+                                  : const Icon(Icons.expand_more),
+                              label: Text(_isLoadingMore ? 'Wczytywanie…' : 'Pokaż więcej przepisów'),
+                            ),
+                          ),
+                        )
+                      else
+                        const SliverToBoxAdapter(child: SizedBox(height: 96)),
+                    ],
                   ),
       ),
         ],

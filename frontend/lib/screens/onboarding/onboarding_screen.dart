@@ -18,6 +18,9 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
+  final TextEditingController _weightController = TextEditingController();
+  final TextEditingController _heightController = TextEditingController();
+  final TextEditingController _kcalController = TextEditingController();
   int _currentPage = 0;
 
   // Preferencje wybrane podczas onboarding
@@ -51,11 +54,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   void dispose() {
     _pageController.dispose();
+    _weightController.dispose();
+    _heightController.dispose();
+    _kcalController.dispose();
     super.dispose();
   }
 
   void _nextPage() {
-    if (_currentPage < 5) {
+    if (_currentPage == 4 && !_validateOptionalProfile()) return;
+    if (_currentPage < 6) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
@@ -75,6 +82,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _finishOnboarding() async {
+    if (!_validateOptionalProfile()) return;
     if (_selectedStore == null) {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -94,6 +102,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       allergenIds: _selectedAllergens,
       diet: _selectedDiet,
       householdSize: _householdSize,
+      weightKg: _optionalDecimal(_weightController),
+      heightCm: _optionalDecimal(_heightController),
+      dailyKcalGoal: _optionalWholeNumber(_kcalController),
     );
 
     if (mounted) {
@@ -134,7 +145,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               padding: const EdgeInsets.all(24.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(6, (index) => _buildDot(index)),
+                children: List.generate(7, (index) => _buildDot(index)),
               ),
             ),
 
@@ -153,6 +164,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   _buildAllergensStep(),
                   _buildDietStep(),
                   _buildHouseholdStep(),
+                  _buildProfileStep(),
                   _buildPantryStep(),
                   _buildAiRecipeStep(),
                 ],
@@ -180,7 +192,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(120, 48),
                     ),
-                    child: Text(_currentPage == 5 ? 'Gotowe!' : 'Dalej'),
+                    child: Text(_currentPage == 6 ? 'Gotowe!' : 'Dalej'),
                   ),
                 ],
               ),
@@ -536,7 +548,80 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  // --- KROK 5: Spiżarnia ---
+  double? _optionalDecimal(TextEditingController controller) {
+    final text = controller.text.trim().replaceAll(',', '.');
+    return text.isEmpty ? null : double.tryParse(text);
+  }
+
+  int? _optionalWholeNumber(TextEditingController controller) {
+    final text = controller.text.trim();
+    return text.isEmpty ? null : int.tryParse(text);
+  }
+
+  bool _validateOptionalProfile() {
+    final weight = _optionalDecimal(_weightController);
+    final height = _optionalDecimal(_heightController);
+    final kcal = _optionalWholeNumber(_kcalController);
+    String? error;
+    if (_weightController.text.trim().isNotEmpty &&
+        (weight == null || !weight.isFinite || weight <= 0 || weight > 400)) {
+      error = 'Wpisz wagę większą od 0 i nie większą niż 400 kg albo zostaw pole puste.';
+    } else if (_heightController.text.trim().isNotEmpty &&
+        (height == null || !height.isFinite || height <= 0 || height > 280)) {
+      error = 'Wpisz wzrost większy od 0 i nie większy niż 280 cm albo zostaw pole puste.';
+    } else if (_kcalController.text.trim().isNotEmpty &&
+        (kcal == null || kcal < 800 || kcal > 6000)) {
+      error = 'Wpisz cel od 800 do 6000 kcal albo zostaw pole puste.';
+    }
+    if (error == null) return true;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(error), backgroundColor: AppTheme.errorColor));
+    return false;
+  }
+
+  // --- KROK 5: Dane zdrowotne ---
+  Widget _buildProfileStep() {
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      children: [
+        const Icon(Icons.monitor_weight_outlined, size: 56, color: AppTheme.primaryColor),
+        const SizedBox(height: 16),
+        Text('Twój profil i cel', style: Theme.of(context).textTheme.displaySmall,
+            textAlign: TextAlign.center),
+        const SizedBox(height: 12),
+        Text('Możesz dodać te dane teraz albo później w profilu. Każde pole jest opcjonalne.',
+            style: Theme.of(context).textTheme.bodyMedium, textAlign: TextAlign.center),
+        const SizedBox(height: 28),
+        TextField(
+          controller: _weightController,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          textInputAction: TextInputAction.next,
+          decoration: const InputDecoration(labelText: 'Waga', hintText: 'np. 72,5', suffixText: 'kg'),
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          controller: _heightController,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          textInputAction: TextInputAction.next,
+          decoration: const InputDecoration(labelText: 'Wzrost', hintText: 'np. 175', suffixText: 'cm'),
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          controller: _kcalController,
+          keyboardType: TextInputType.number,
+          textInputAction: TextInputAction.done,
+          decoration: const InputDecoration(labelText: 'Dzienny cel kaloryczny',
+              hintText: 'np. 2000', suffixText: 'kcal'),
+        ),
+        const SizedBox(height: 18),
+        Text('Nie potrzebujesz kalkulatora, żeby ustawić cel. Możesz go zmienić w każdej chwili.',
+            style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+      ],
+    );
+  }
+
+  // --- KROK 6: Spiżarnia ---
   Widget _buildPantryStep() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -592,7 +677,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  // KROK 6: odkrycie importu AI bez dokładania przycisków na ekranie głównym.
+  // KROK 7: odkrycie importu AI bez dokładania przycisków na ekranie głównym.
   Widget _buildAiRecipeStep() {
     Widget option(IconData icon, String title, String description) => Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),

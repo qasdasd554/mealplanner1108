@@ -2,7 +2,7 @@
 
 import logging
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import re
 from uuid import UUID
 
@@ -73,12 +73,12 @@ def _apply_recipe_sort(query, sort_by: str):
     zamiast udawać "0 kcal" i fałszywie zajmować pierwsze miejsca.
     """
     if sort_by == "kcal_asc":
-        return query.order_by(nullslast(_kcal_per_serving_expr().asc()), Recipe.name)
+        return query.order_by(nullslast(_kcal_per_serving_expr().asc()), Recipe.name, Recipe.id)
     if sort_by == "kcal_desc":
-        return query.order_by(nullslast(_kcal_per_serving_expr().desc()), Recipe.name)
+        return query.order_by(nullslast(_kcal_per_serving_expr().desc()), Recipe.name, Recipe.id)
     if sort_by == "prep_time":
-        return query.order_by(nullslast(Recipe.prep_time_min.asc()), Recipe.name)
-    return query.order_by(Recipe.name)
+        return query.order_by(nullslast(Recipe.prep_time_min.asc()), Recipe.name, Recipe.id)
+    return query.order_by(Recipe.name, Recipe.id)
 
 
 def _visibility_filter(current_user_id: UUID, blocked_user_ids: set[UUID] | None = None):
@@ -115,6 +115,7 @@ async def list_recipes(
     max_prep_time: int | None = Query(None, ge=1, description="Maksymalny czas przygotowania w minutach"),
     search: str | None = Query(None, description="Szukaj po nazwie przepisu"),
     favorites_only: bool = Query(False, description="Pokaż tylko przepisy dodane do ulubionych"),
+    new_only: bool = Query(False, description="Pokaż przepisy z ostatnich 14 dni"),
     # Przepisy dodane przez społeczność — publiczne, ale NIE część
     # oryginalnych 81 oficjalnych przepisów dostarczonych z aplikacją
     # (te mają created_by_user_id puste).
@@ -162,20 +163,25 @@ async def list_recipes(
         query = query.where(Recipe.created_by_user_id.is_not(None), Recipe.visibility == "public")
 
     if tags:
-        query = query.join(Recipe.tags).where(RecipeTag.tag.in_(tags))
+        query = query.where(Recipe.tags.any(RecipeTag.tag.in_(tags)))
+
+    if new_only:
+        query = query.where(Recipe.created_at >= datetime.now(timezone.utc) - timedelta(days=14))
+
+    favorite_ids = await _get_favorite_recipe_ids(db, current_user.id)
+    if favorites_only:
+        if not favorite_ids:
+            return []
+        query = query.where(Recipe.id.in_(favorite_ids))
 
     query = _apply_recipe_sort(query, sort_by).offset(skip).limit(limit)
 
     result = await db.execute(query)
     recipes = list(result.unique().scalars().all())
 
-    favorite_ids = await _get_favorite_recipe_ids(db, current_user.id)
     for recipe in recipes:
         recipe.is_favorite = recipe.id in favorite_ids
         recipe.is_own_recipe = recipe.created_by_user_id == current_user.id
-
-    if favorites_only:
-        recipes = [r for r in recipes if r.is_favorite]
 
     return recipes
 
@@ -251,6 +257,15 @@ async def list_my_recipes(
             "'kcal_asc' / 'kcal_desc' (kalorie na porcję), 'prep_time'"
         ),
     ),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=200),
+    new_only: bool = Query(False),
+    favorites_only: bool = Query(False),
+    search: str | None = Query(None),
+    meal_type: str | None = Query(None),
+    difficulty: str | None = Query(None),
+    tags: list[str] | None = Query(None),
+    community_only: bool = Query(False),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> list[Recipe]:
@@ -271,17 +286,33 @@ async def list_my_recipes(
         )
         .where(Recipe.created_by_user_id == current_user.id)
     )
+    favorite_ids = await _get_favorite_recipe_ids(db, current_user.id)
+    if favorites_only:
+        if not favorite_ids:
+            return []
+        query = query.where(Recipe.id.in_(favorite_ids))
+    if new_only:
+        query = query.where(Recipe.created_at >= datetime.now(timezone.utc) - timedelta(days=14))
+    if search:
+        query = query.where(Recipe.name.ilike(f"%{search}%"))
+    if meal_type:
+        query = query.where(Recipe.meal_type == meal_type)
+    if difficulty:
+        query = query.where(Recipe.difficulty == difficulty)
+    if tags:
+        query = query.where(Recipe.tags.any(RecipeTag.tag.in_(tags)))
+    if community_only:
+        query = query.where(Recipe.visibility == "public")
     # Domyślne "newest" jest specyficzne dla tego widoku (własne przepisy
     # najwygodniej oglądać od ostatnio dodanych), pozostałe tryby są
     # wspólne z główną listą.
     if sort_by == "newest":
-        query = query.order_by(Recipe.created_at.desc())
+        query = query.order_by(Recipe.created_at.desc(), Recipe.id)
     else:
         query = _apply_recipe_sort(query, sort_by)
 
-    result = await db.execute(query)
+    result = await db.execute(query.offset(skip).limit(limit))
     recipes = list(result.unique().scalars().all())
-    favorite_ids = await _get_favorite_recipe_ids(db, current_user.id)
     for recipe in recipes:
         recipe.is_favorite = recipe.id in favorite_ids
         recipe.is_own_recipe = True

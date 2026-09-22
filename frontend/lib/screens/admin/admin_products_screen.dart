@@ -106,6 +106,12 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
                           textAlign: TextAlign.center,
                           style: TextStyle(color: AppTheme.textSecondary),
                         ),
+                        const SizedBox(height: 12),
+                        TextButton.icon(
+                          onPressed: _load,
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Odśwież zgłoszenia'),
+                        ),
                       ],
                     ),
                   ),
@@ -160,28 +166,30 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
                             ),
                             const SizedBox(height: 12),
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
                               children: [
-                                TextButton(
-                                  onPressed:
-                                      isBusy ? null : () => _review(id, false),
-                                  child: Text('Odrzuć',
-                                      style:
-                                          TextStyle(color: AppTheme.errorColor)),
+                                Expanded(
+                                  child: TextButton(
+                                    onPressed:
+                                        isBusy ? null : () => _review(id, false),
+                                    child: Text('Odrzuć',
+                                        style: TextStyle(color: AppTheme.errorColor)),
+                                  ),
                                 ),
                                 const SizedBox(width: 8),
-                                FilledButton(
-                                  onPressed:
-                                      isBusy ? null : () => _review(id, true),
-                                  child: isBusy
-                                      ? const SizedBox(
-                                          width: 16,
-                                          height: 16,
-                                          child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              color: Colors.white),
-                                        )
-                                      : const Text('Zatwierdź'),
+                                Expanded(
+                                  child: FilledButton(
+                                    onPressed:
+                                        isBusy ? null : () => _review(id, true),
+                                    child: isBusy
+                                        ? const SizedBox(
+                                            width: 16,
+                                            height: 16,
+                                            child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: Colors.white),
+                                          )
+                                        : const Text('Akceptuj'),
+                                  ),
                                 ),
                               ],
                             ),

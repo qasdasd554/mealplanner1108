@@ -4,7 +4,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import delete, select, text, update
+from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -65,60 +65,16 @@ async def generate_meal_plan(
     Limity:
     - Techniczny (wszyscy): 15 wywołań/godzinę — ochrona przed zasypaniem
       serwera żądaniami.
-    - Biznesowy (tylko konta bez premium): tylko JEDEN plan naraz. Żeby
-      wygenerować nowy, trzeba najpierw usunąć obecny. Konta premium
-      omijają ten limit całkowicie i mogą mieć wiele aktywnych planów
-      równocześnie (np. osobny na dni robocze i osobny na weekend).
+    - Biznesowy (tylko konta bez Premium): jeden NOWY plan w tygodniu
+      kalendarzowym. Usunięcie planu nie odnawia limitu. Premium nie ma
+      limitu liczby planów.
     """
-    from app.core.premium import is_premium_active
     from app.core.rate_limit import enforce_user_rate_limit, meal_plan_generation_limiter
     from app.services.exceptions import ServiceError
+    from app.services.meal_plan_quota import ensure_can_create_meal_plan
 
     enforce_user_rate_limit(meal_plan_generation_limiter, current_user.id, "generowanie planu posiłków")
-
-    user_is_premium = is_premium_active(current_user)
-    if not user_is_premium:
-        # UWAGA (naprawa wyścigu/race condition): sprawdzenie "czy już
-        # istnieje plan" i późniejsze UTWORZENIE nowego to DWA osobne
-        # kroki (sprawdź, potem zapisz) — jeśli dwa żądania od tego
-        # samego użytkownika przyjdą niemal jednocześnie (np. podwójne
-        # kliknięcie szybsze niż zdąży się zablokować przycisk w UI,
-        # albo ponowienie po niestabilnym połączeniu), oba mogłyby
-        # przejść sprawdzenie PRZED zapisaniem pierwszego z nich,
-        # skutkując dwoma planami mimo limitu "tylko jeden". Blokada
-        # transakcyjna PostgreSQL (zwalniana automatycznie po
-        # zatwierdzeniu/wycofaniu transakcji) serializuje to sprawdzenie
-        # per-użytkownik, zamykając to okno.
-        await db.execute(text("SELECT pg_advisory_xact_lock(hashtext(:uid))"), {"uid": str(current_user.id)})
-
-        # UWAGA (zmiana): darmowe konto może mieć tylko JEDEN plan naraz —
-        # nie auto-archiwizujemy już starego przy generowaniu nowego (tak
-        # było wcześniej), tylko wprost ODRZUCAMY żądanie, jeśli
-        # użytkownik ma już jakiś nieusunięty plan. Musi go najpierw
-        # usunąć (funkcja usuwania planu jest już naprawiona), żeby
-        # stworzyć kolejny — albo przejść na Premium, gdzie ten limit
-        # w ogóle nie obowiązuje.
-        #
-        # Nowo wygenerowany plan dostaje status "draft" (patrz
-        # MealPlanGenerator), NIE "active" — to istniejące zachowanie
-        # tej aplikacji. Frontend traktuje "aktywny plan" jako pierwszy
-        # o statusie "active", a w jego braku pierwszy "draft" (patrz
-        # MealPlanProvider.activePlan) — sprawdzamy więc OBA te statusy.
-        existing_plan = await db.execute(
-            select(MealPlan.id).where(
-                MealPlan.user_id == current_user.id,
-                MealPlan.status.in_(["active", "draft"]),
-            )
-        )
-        if existing_plan.scalar_one_or_none() is not None:
-            raise HTTPException(
-                status_code=403,
-                detail=(
-                    "Darmowe konto może mieć tylko jeden plan posiłków naraz. "
-                    "Usuń obecny plan, żeby wygenerować nowy, albo odblokuj Premium "
-                    "dla wielu planów jednocześnie."
-                ),
-            )
+    await ensure_can_create_meal_plan(db, user=current_user)
 
     try:
         generator = MealPlanGenerator(db)
@@ -306,7 +262,7 @@ async def update_meal_plan_status(
     plan.status = payload.status
     db.add(plan)
     await db.commit()
-    
+
     # Przeładuj obiekt z relacjami
     result = await db.execute(
         select(MealPlan)
@@ -375,9 +331,8 @@ async def swap_recipe_in_plan(
     if plan.shopping_list is not None:
         shopping_list_builder = ShoppingListBuilder(db)
         await shopping_list_builder.recalculate(plan.shopping_list.id)
-    else:
-        shopping_list_builder = ShoppingListBuilder(db)
-        await shopping_list_builder.build_from_meal_plan(plan.id)
+    # Jeśli użytkownik usunął listę, sama zamiana dania nie powinna
+    # tworzyć nowej listy ani zużywać tygodniowego limitu.
 
     await db.commit()
 

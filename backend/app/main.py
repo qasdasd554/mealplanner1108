@@ -26,6 +26,31 @@ async def _create_tables() -> None:
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        # Przy pierwszym uruchomieniu po wprowadzeniu limitu zaliczamy
+        # istniejące zwykłe plany. Archiwalne plany techniczne, tworzone
+        # pod listy zakupów z przepisów, nie są planami posiłków.
+        await conn.execute(text(
+            "INSERT INTO meal_plan_creations "
+            "(id, user_id, meal_plan_id, week_start, created_at) "
+            "SELECT gen_random_uuid(), mp.user_id, mp.id, "
+            "date_trunc('week', mp.created_at AT TIME ZONE 'Europe/Warsaw')::date, "
+            "mp.created_at FROM meal_plans mp "
+            "WHERE mp.status != 'archived' "
+            "ON CONFLICT (meal_plan_id) DO NOTHING"
+        ))
+        # Historia utworzeń pozostaje po usunięciu listy. Włączając limit
+        # tygodniowy na istniejącej bazie, zaliczamy też listy sprzed
+        # aktualizacji (bez dublowania przy kolejnych startach serwera).
+        await conn.execute(text(
+            "INSERT INTO shopping_list_creations "
+            "(id, user_id, shopping_list_id, week_start, created_at) "
+            "SELECT gen_random_uuid(), mp.user_id, sl.id, "
+            "date_trunc('week', sl.created_at AT TIME ZONE 'Europe/Warsaw')::date, "
+            "sl.created_at FROM shopping_lists sl "
+            "JOIN meal_plans mp ON mp.id = sl.meal_plan_id "
+            "WHERE COALESCE(mp.preferences->>'shopping_list_merge', 'false') != 'true' "
+            "ON CONFLICT (shopping_list_id) DO NOTHING"
+        ))
         # UWAGA: create_all() tworzy TYLKO brakujące tabele — nie dokłada
         # nowych kolumn do tabel, które już istnieją. Kolumna `instructions`
         # została dodana do modelu Recipe już PO tym, jak tabela `recipes`
@@ -230,6 +255,26 @@ async def _create_tables() -> None:
                 "ALTER COLUMN store_product_id DROP NOT NULL"
             )
         )
+        await conn.execute(text(
+            "ALTER TABLE shopping_list_items ADD COLUMN IF NOT EXISTS "
+            "is_from_pantry BOOLEAN NOT NULL DEFAULT FALSE"
+        ))
+        # Jednorazowa migracja starych pozycji sklepowych. Ponowne
+        # uruchomienie nie może zmienić ręcznie połączonych pozycji.
+        await conn.execute(text(
+            "DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM information_schema.columns "
+            "WHERE table_name = 'shopping_list_items' AND column_name = 'is_generated') "
+            "THEN ALTER TABLE shopping_list_items ADD COLUMN is_generated "
+            "BOOLEAN NOT NULL DEFAULT FALSE; "
+            "UPDATE shopping_list_items sli SET is_generated = TRUE "
+            "FROM shopping_lists sl, meal_plan_entries mpe, "
+            "recipe_ingredients ri, store_products sp "
+            "WHERE sli.shopping_list_id = sl.id "
+            "AND mpe.meal_plan_id = sl.meal_plan_id "
+            "AND ri.recipe_id = mpe.recipe_id "
+            "AND sp.id = sli.store_product_id "
+            "AND sp.product_id = ri.product_id; END IF; END $$"
+        ))
         # Nawodnienie: jeden wpis na użytkownika i dzień — patrz
         # app/models/wellness.py.
         await conn.execute(
@@ -480,7 +525,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 app = FastAPI(
     title="Smart Meal Planner PL API",
     description="API do planowania posiłków z integracją z polskimi sieciami handlowymi",
-    version="1.0.22",
+    version="1.0.30",
     lifespan=lifespan,
 )
 
@@ -560,7 +605,7 @@ async def health_check(db: AsyncSession = Depends(get_db)) -> dict[str, str]:
     return {
         "status": "healthy",
         "service": "smart-meal-planner-pl",
-        "release": "1.0.22+219",
+        "release": "1.0.30+227",
         "catalog_products": str(catalog_products),
         "database_provider": db_provider,
         "database_host": "ep-small-lab-b1y3gm3e.c-5.eu-central-1.aws.neon.tech" if "neon.tech" in settings.DATABASE_URL else "local",

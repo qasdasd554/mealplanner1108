@@ -10,7 +10,7 @@ class ShoppingListProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
 
-  // NAPRAWA: użytkownik Premium może mieć do 5 list, ale ekran zakupów
+  // Użytkownik Premium może mieć wiele list, ale ekran zakupów
   // ładował WYŁĄCZNIE listę powiązaną z aktywnym planem posiłków
   // (mealPlanProvider.activePlan), więc pozostałych nie dało się w ogóle
   // otworzyć — istniały w bazie i zwracał je GET /shopping-lists/mine,
@@ -123,6 +123,29 @@ class ShoppingListProvider with ChangeNotifier {
         created,
         ..._allLists.where((list) => list.mealPlanId != created.mealPlanId),
       ];
+      return true;
+    } catch (e) {
+      _errorMessage = friendlyError(e);
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> mergeLists(List<String> listIds) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      final merged = await _shoppingListService.mergeLists(listIds);
+      final sourceIds = listIds.toSet();
+      _allLists = [
+        merged,
+        ..._allLists.where((list) => !sourceIds.contains(list.mealPlanId)),
+      ];
+      _currentList = merged;
+      _selectedListId = merged.mealPlanId;
       return true;
     } catch (e) {
       _errorMessage = friendlyError(e);

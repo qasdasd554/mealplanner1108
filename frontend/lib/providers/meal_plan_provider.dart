@@ -20,36 +20,30 @@ class MealPlanProvider with ChangeNotifier {
   bool get isGenerating => _isGenerating;
   String? get errorMessage => _errorMessage;
 
-  // Pobierz plan oznaczony jako aktywny (lub najnowszy draft jeśli brak aktywnego)
+  // Lista jest sortowana od najnowszego, więc nowszy draft nie może być
+  // przesłonięty przez starszy plan ze statusem active.
   MealPlan? get activePlan {
     try {
-      return _plans.firstWhere((plan) => plan.status == 'active');
+      return _plans.firstWhere(
+        (plan) => plan.status == 'active' || plan.status == 'draft',
+      );
     } catch (_) {
-      try {
-        return _plans.firstWhere((plan) => plan.status == 'draft');
-      } catch (_) {
-        return _plans.isNotEmpty ? _plans.first : null;
-      }
+      return _plans.isNotEmpty ? _plans.first : null;
     }
   }
 
-  /// WSZYSTKIE aktywne plany — dla darmowych kont to zawsze co najwyżej
-  /// jeden (backend automatycznie archiwizuje poprzedni przy generowaniu
-  /// nowego), ale konta premium mogą mieć ich kilka naraz (np. osobny na
-  /// dni robocze i osobny na weekend). UI powinno pokazać przełącznik
-  /// tylko wtedy, gdy ta lista ma więcej niż jeden element.
+  /// Wszystkie aktywne plany. Konto standardowe może utworzyć jeden nowy
+  /// plan tygodniowo, więc z różnych tygodni może mieć ich kilka.
+  /// UI pokazuje przełącznik, gdy dostępny jest więcej niż jeden.
   ///
   /// UWAGA: nowo wygenerowany plan ma status "draft" (nie "active") —
   /// backend nigdy go automatycznie nie "aktywuje". Traktujemy więc
-  /// "draft" i "active" jako "obecnie w użyciu", spójnie z logiką
-  /// archiwizacji po stronie backendu (patrz meal_plans.py:generate_meal_plan)
-  /// i z istniejącym zachowaniem [activePlan] powyżej.
+  /// "draft" i "active" jako "obecnie w użyciu".
   List<MealPlan> get activePlans =>
       _plans.where((p) => p.status == 'active' || p.status == 'draft').toList();
 
   /// Ustawia, który plan jest aktualnie przeglądany — używane przez
-  /// przełącznik planów, gdy użytkownik (premium) ma ich kilka aktywnych
-  /// naraz.
+  /// przełącznik planów, gdy użytkownik ma ich kilka aktywnych naraz.
   void selectPlan(MealPlan plan) {
     _currentPlan = plan;
     notifyListeners();
@@ -64,7 +58,13 @@ class MealPlanProvider with ChangeNotifier {
       // Posortuj od najnowszych
       _plans.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       if (_plans.isNotEmpty) {
-        _currentPlan = activePlan;
+        final selectedId = _currentPlan?.id;
+        final stillAvailable = _plans.where((plan) => plan.id == selectedId);
+        _currentPlan = stillAvailable.isNotEmpty
+            ? stillAvailable.first
+            : activePlan;
+      } else {
+        _currentPlan = null;
       }
     } catch (e) {
       _errorMessage = friendlyError(e);

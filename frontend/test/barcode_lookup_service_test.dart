@@ -45,6 +45,21 @@ void main() {
     expect(barcodeResultFromOpenFoodFacts(extracted!)?.name, 'Jogurt naturalny');
   });
 
+  test('rozpoznaje częściowy sukces v3 i angielską nazwę', () {
+    final extracted = extractOpenFoodFactsProduct({
+      'status': 'success_with_errors',
+      'result': {'id': 'product_found'},
+      'product': <String, dynamic>{
+        'product_name_en': 'Puff pastry',
+        'code': '5901234123457',
+        'nutriments': {'energy-kcal_100g': 310},
+      },
+    }, isV3: true);
+    final result = barcodeResultFromOpenFoodFacts(extracted!);
+    expect(result?.name, 'Puff pastry');
+    expect(result?.kcalPer100, 310);
+  });
+
   test('nie uznaje pustej odpowiedzi za produkt', () {
     expect(
       extractOpenFoodFactsProduct({

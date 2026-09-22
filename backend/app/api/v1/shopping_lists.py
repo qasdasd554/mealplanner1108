@@ -6,13 +6,12 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy import exists, func, or_, select
+from sqlalchemy import exists, func, or_, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import get_current_user
 from app.core.exceptions import NotFoundException
-from app.core.premium import is_premium_active
 from app.db.session import get_db
 from app.models import (
     MealPlan,
@@ -31,20 +30,13 @@ from app.models import (
 from app.schemas.shopping_list import ShoppingListItemResponse, ShoppingListResponse
 from app.services import ProductSubstitutionService
 from app.services.shopping_list_builder import ShoppingListBuilder
+from app.services.shopping_list_quota import record_shopping_list_creation
 
 router = APIRouter()
 
-# Limity liczby "zarządzalnych" list zakupów (utworzonych explicite z
-# wybranych przepisów, NIE zwykłych list generowanych automatycznie przy
-# każdym planie posiłków — te są bez ograniczeń, bo to podstawowa funkcja
-# aplikacji dostępna dla każdego konta).
-MAX_SHOPPING_LISTS_STANDARD = 1
-MAX_SHOPPING_LISTS_PREMIUM = 5
-
-
 class ShoppingListFromRecipesRequest(BaseModel):
     """Żądanie stworzenia listy zakupów na konkretne dania — ALBO nowej
-    (podlega limitowi 1 dla standardu / 5 dla Premium), ALBO dopisania
+    (podlega limitowi tygodniowemu dla konta standardowego), ALBO dopisania
     składników do JUŻ ISTNIEJĄCEJ listy (existing_list_id) — to drugie
     nie tworzy nowej listy, więc nie zużywa limitu."""
 
@@ -59,6 +51,25 @@ class EmptyShoppingListRequest(BaseModel):
     store_id: UUID
 
 
+class MergeShoppingListsRequest(BaseModel):
+    """Połącz co najmniej dwie własne, otwarte listy z jednego sklepu."""
+
+    list_ids: list[UUID] = Field(..., min_length=2)
+
+
+def shopping_item_merge_key(item: ShoppingListItem) -> tuple:
+    """Stan kupienia jest częścią klucza, aby nie zgubić części zakupów."""
+    return (
+        item.is_from_pantry,
+        item.store_product_id,
+        (item.custom_name or "").strip().casefold(),
+        item.unit,
+        item.department_id,
+        item.substituted_for,
+        item.is_checked,
+    )
+
+
 @router.get(
     "/mine",
     response_model=list[ShoppingListResponse],
@@ -69,8 +80,7 @@ async def get_my_shopping_lists(
     db: AsyncSession = Depends(get_db),
 ) -> list[ShoppingList]:
     """Zwraca listy zakupów utworzone przez /from-recipes — te, do
-    których można dopisywać kolejne przepisy, albo które liczą się do
-    limitu (1 dla standardu, 5 dla Premium). NIE zwraca zwykłych list
+    których można dopisywać kolejne przepisy. NIE zwraca zwykłych list
     powiązanych z prawdziwymi, wielodniowymi planami posiłków.
 
     NAPRAWA: warunek sprawdzał WYŁĄCZNIE `MealPlan.user_id ==
@@ -109,7 +119,7 @@ async def get_my_shopping_lists(
             # nadal jest wykluczana — zakupy są zrobione, więc nie ma czego
             # pokazywać, a jej obecność sugerowałaby, że "Zakończ" nie
             # zadziałało.
-            ShoppingList.status != "completed",
+            ShoppingList.status.notin_(["completed", "merged"]),
         )
         .order_by(ShoppingList.created_at.desc())
     )
@@ -171,6 +181,10 @@ async def create_shopping_list_from_recipes(
         target_list = existing.scalar_one_or_none()
         if target_list is None:
             raise NotFoundException(detail="Nie znaleziono podanej listy zakupów.")
+        if target_list.status in {"completed", "merged"}:
+            raise HTTPException(status_code=409, detail="Ta lista jest już zakończona.")
+        if target_list.store_id != payload.store_id:
+            raise HTTPException(status_code=400, detail="Lista jest przypisana do innego sklepu.")
 
         max_day_result = await db.execute(
             select(func.max(MealPlanEntry.day_number)).where(MealPlanEntry.meal_plan_id == target_list.meal_plan_id)
@@ -196,29 +210,8 @@ async def create_shopping_list_from_recipes(
         # meal_plan_id) i aktualizuje pozycje w miejscu.
         shopping_list = await builder.recalculate(target_list.id)
     else:
-        # --- Nowa lista — podlega limitowi ---
-        count_result = await db.execute(
-            select(func.count(ShoppingList.id))
-            .join(MealPlan, MealPlan.id == ShoppingList.meal_plan_id)
-            .where(MealPlan.user_id == current_user.id, MealPlan.status == "archived")
-        )
-        current_count = count_result.scalar() or 0
-        limit = MAX_SHOPPING_LISTS_PREMIUM if is_premium_active(current_user) else MAX_SHOPPING_LISTS_STANDARD
-
-        if current_count >= limit:
-            if limit == MAX_SHOPPING_LISTS_STANDARD:
-                raise HTTPException(
-                    status_code=403,
-                    detail=(
-                        f"Konto standardowe może mieć maksymalnie {MAX_SHOPPING_LISTS_STANDARD} "
-                        "taką listę zakupów. Usuń istniejącą, dopisz do niej kolejne przepisy, "
-                        "albo przejdź na Premium (do 5 list)."
-                    ),
-                )
-            raise HTTPException(
-                status_code=403,
-                detail=f"Konto Premium może mieć maksymalnie {MAX_SHOPPING_LISTS_PREMIUM} takich list zakupów.",
-            )
+        # Wspólny builder sprawdza limit tygodniowy także dla list
+        # powstałych z normalnego planu posiłków.
 
         plan = MealPlan(
             user_id=current_user.id,
@@ -240,7 +233,7 @@ async def create_shopping_list_from_recipes(
                     meal_slot="obiad",
                 )
             )
-        await db.commit()
+        await db.flush()
 
         builder = ShoppingListBuilder(db)
         shopping_list = await builder.build_from_meal_plan(plan.id)
@@ -286,27 +279,6 @@ async def create_empty_shopping_list(
     if store is None:
         raise NotFoundException(detail="Wybrany sklep nie istnieje")
 
-    count_result = await db.execute(
-        select(func.count(ShoppingList.id))
-        .join(MealPlan, MealPlan.id == ShoppingList.meal_plan_id)
-        .where(
-            MealPlan.user_id == current_user.id,
-            MealPlan.status == "archived",
-            ShoppingList.status != "completed",
-        )
-    )
-    current_count = count_result.scalar() or 0
-    limit = (
-        MAX_SHOPPING_LISTS_PREMIUM
-        if is_premium_active(current_user)
-        else MAX_SHOPPING_LISTS_STANDARD
-    )
-    if current_count >= limit:
-        raise HTTPException(
-            status_code=403,
-            detail=f"Osiągnięto limit aktywnych list zakupów ({limit}).",
-        )
-
     plan = MealPlan(
         user_id=current_user.id,
         store_id=payload.store_id,
@@ -324,6 +296,10 @@ async def create_empty_shopping_list(
         status="pending",
     )
     db.add(shopping_list)
+    await db.flush()
+    await record_shopping_list_creation(
+        db, user=current_user, shopping_list_id=shopping_list.id,
+    )
     await db.commit()
 
     result = await db.execute(
@@ -341,6 +317,126 @@ async def create_empty_shopping_list(
         .where(ShoppingList.id == shopping_list.id)
     )
     return result.scalar_one()
+
+
+@router.post(
+    "/merge",
+    response_model=ShoppingListResponse,
+    status_code=201,
+    summary="Połącz listy zakupów przypisane do tego samego sklepu",
+)
+async def merge_shopping_lists(
+    payload: MergeShoppingListsRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> ShoppingList:
+    ids = list(dict.fromkeys(payload.list_ids))
+    if len(ids) < 2:
+        raise HTTPException(status_code=400, detail="Wybierz co najmniej dwie różne listy.")
+
+    await db.execute(
+        text("SELECT pg_advisory_xact_lock(hashtext(:key))"),
+        {"key": f"shopping-merge:{current_user.id}"},
+    )
+    result = await db.execute(
+        select(ShoppingList)
+        .join(MealPlan, ShoppingList.meal_plan_id == MealPlan.id)
+        .options(selectinload(ShoppingList.items))
+        .where(
+            ShoppingList.meal_plan_id.in_(ids),
+            MealPlan.user_id == current_user.id,
+            ShoppingList.status.notin_(["completed", "merged"]),
+        )
+    )
+    by_plan = {shopping_list.meal_plan_id: shopping_list for shopping_list in result.scalars().all()}
+    if len(by_plan) != len(ids):
+        raise HTTPException(status_code=404, detail="Nie znaleziono jednej z wybranych list.")
+    lists = [by_plan[list_id] for list_id in ids]
+    store_id = lists[0].store_id
+    if any(shopping_list.store_id != store_id for shopping_list in lists):
+        raise HTTPException(status_code=400, detail="Można łączyć tylko listy z tego samego sklepu.")
+
+    # Nie odbieramy po cichu dostępu osobom, którym jedna z list została
+    # udostępniona. Najpierw trzeba zakończyć udostępnienie źródła.
+    shared_result = await db.execute(
+        select(ShoppingListShare.id).where(
+            ShoppingListShare.meal_plan_id.in_(ids),
+            ShoppingListShare.status.in_(["pending", "accepted"]),
+        ).limit(1)
+    )
+    if shared_result.scalar_one_or_none() is not None:
+        raise HTTPException(
+            status_code=409,
+            detail="Najpierw usuń udostępnienie wybranych list, aby je połączyć.",
+        )
+
+    # To jedna lista wynikowa zamiast dwóch lub więcej; scalenie nie
+    # zużywa dodatkowego tygodniowego limitu tworzenia list.
+    plan = MealPlan(
+        user_id=current_user.id,
+        store_id=store_id,
+        start_date=date.today(),
+        duration_days=1,
+        meals_per_day=0,
+        status="archived",
+        preferences={"shopping_list_merge": True},
+    )
+    db.add(plan)
+    await db.flush()
+    merged = ShoppingList(
+        meal_plan_id=plan.id,
+        store_id=store_id,
+        status="pending",
+    )
+    db.add(merged)
+    await db.flush()
+
+    combined: dict[tuple, ShoppingListItem] = {}
+    for source in lists:
+        for item in list(source.items):
+            key = shopping_item_merge_key(item)
+            existing = combined.get(key)
+            if existing is not None:
+                existing.required_quantity += item.required_quantity
+                if existing.estimated_price is not None and item.estimated_price is not None:
+                    existing.estimated_price += item.estimated_price
+                else:
+                    existing.estimated_price = None
+            else:
+                # Zachowujemy źródłowe pozycje w ukrytych listach. Kopia
+                # umożliwia odtworzenie danych i nie koliduje z relacją
+                # ORM delete-orphan podczas przenoszenia między listami.
+                copied = ShoppingListItem(
+                    shopping_list_id=merged.id,
+                    store_product_id=item.store_product_id,
+                    custom_name=item.custom_name,
+                    department_id=item.department_id,
+                    required_quantity=item.required_quantity,
+                    unit=item.unit,
+                    estimated_price=item.estimated_price,
+                    is_checked=item.is_checked,
+                    is_from_pantry=item.is_from_pantry,
+                    is_generated=False,
+                    substituted_for=item.substituted_for,
+                )
+                db.add(copied)
+                combined[key] = copied
+        source.status = "merged"
+        db.add(source)
+    await db.commit()
+
+    loaded = await db.execute(
+        select(ShoppingList)
+        .execution_options(populate_existing=True)
+        .options(
+            selectinload(ShoppingList.items).selectinload(ShoppingListItem.store_product).selectinload(StoreProduct.product),
+            selectinload(ShoppingList.items).selectinload(ShoppingListItem.department),
+            selectinload(ShoppingList.items).selectinload(ShoppingListItem.substituted_for_product),
+            selectinload(ShoppingList.store),
+        )
+        .where(ShoppingList.id == merged.id)
+    )
+    return loaded.scalar_one()
 
 
 
@@ -403,6 +499,7 @@ async def _get_shopping_list_or_404(
         .where(
             ShoppingList.meal_plan_id == list_id,
             or_(MealPlan.user_id == current_user.id, shared_access),
+            ShoppingList.status != "merged",
         )
     )
     shopping_list = result.scalar_one_or_none()
@@ -458,11 +555,13 @@ async def toggle_item_checked(
         raise NotFoundException(
             detail=f"Pozycja o ID {item_id} nie została znaleziona na liście"
         )
+    if item.is_from_pantry:
+        raise HTTPException(status_code=400, detail="Produkt jest już w spiżarni, nie trzeba go kupować.")
 
     item.is_checked = not item.is_checked
     db.add(item)
     await db.commit()
-    
+
     # Przeładuj obiekt z relacjami
     result = await db.execute(
         select(ShoppingListItem)
@@ -510,6 +609,8 @@ async def substitute_item(
         raise NotFoundException(
             detail=f"Pozycja o ID {item_id} nie została znaleziona na liście"
         )
+    if item.is_from_pantry:
+        raise HTTPException(status_code=400, detail="Nie można zamienić produktu ze spiżarni.")
 
     substitution_service = ProductSubstitutionService(db)
     updated_item = await substitution_service.substitute_shopping_list_item(
@@ -519,7 +620,7 @@ async def substitute_item(
     )
 
     await db.commit()
-    
+
     # Przeładuj obiekt z relacjami
     result = await db.execute(
         select(ShoppingListItem)
@@ -547,7 +648,7 @@ async def get_shopping_list_summary(
     """Zwraca podsumowanie listy zakupów: łączną cenę, postęp zakupów, itp."""
     shopping_list = await _get_shopping_list_or_404(list_id, current_user, db)
 
-    items = shopping_list.items or []
+    items = [item for item in (shopping_list.items or []) if not item.is_from_pantry]
     total_items = len(items)
     checked_items = sum(1 for i in items if i.is_checked)
     unchecked_items = total_items - checked_items
@@ -572,7 +673,7 @@ async def get_shopping_list_summary(
 @router.delete(
     "/{list_id}",
     status_code=204,
-    summary="Usuń zarządzalną listę zakupów (zwalnia miejsce w limicie)",
+    summary="Usuń listę zakupów (nie odnawia limitu tygodniowego)",
 )
 async def delete_shopping_list(
     list_id: UUID,
@@ -1049,7 +1150,8 @@ async def add_item_to_shopping_list(
         )
 
     existing = next(
-        (i for i in shopping_list.items if i.store_product_id == store_product.id),
+        (i for i in shopping_list.items
+         if i.store_product_id == store_product.id and not i.is_from_pantry),
         None,
     )
     if existing is not None:
@@ -1099,6 +1201,7 @@ async def add_custom_item_to_shopping_list(
             item
             for item in shopping_list.items
             if item.custom_name is not None
+            and not item.is_from_pantry
             and item.custom_name.casefold() == name.casefold()
             and item.unit.casefold() == unit.casefold()
         ),
@@ -1184,7 +1287,7 @@ async def complete_shopping_list(
     moved = 0
     if move_to_pantry:
         for item in shopping_list.items:
-            if not item.is_checked:
+            if not item.is_checked or item.is_from_pantry:
                 continue
             store_product = item.store_product
             if store_product is None:

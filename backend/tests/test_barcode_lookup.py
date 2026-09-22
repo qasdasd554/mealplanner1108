@@ -38,6 +38,25 @@ def test_reads_current_v3_product_response() -> None:
     assert _product_from_off_response(response, "v3") == product
 
 
+def test_reads_partial_success_with_english_name() -> None:
+    product = {
+        "product_name_en": "Puff pastry",
+        "code": "5901234123457",
+        "nutriments": {"energy-kcal_100g": 310},
+    }
+    response = {
+        "status": "success_with_errors",
+        "result": {"id": "product_found"},
+        "product": product,
+    }
+    extracted = _product_from_off_response(response, "v3")
+    assert extracted == product
+    parsed = _result_from_off_product(extracted)
+    assert parsed is not None
+    assert parsed.name == "Puff pastry"
+    assert parsed.kcal_per_100 == 310
+
+
 def test_keeps_v2_fallback_compatible() -> None:
     product = {"product_name": "Starsza odpowiedź"}
     assert _product_from_off_response({"status": 1, "product": product}, "v2") == product
@@ -169,6 +188,23 @@ def test_off_not_found_does_not_repeat_lookup_in_second_api_version() -> None:
             raise httpx.HTTPStatusError("not found", request=request, response=response)
 
     client = MissingClient()
+    result = asyncio.run(barcode_lookup._fetch_off(client, "5901234123457"))
+    assert result is None
+    assert len(client.calls) == 1
+
+
+def test_off_rate_limit_does_not_repeat_lookup_in_second_api_version() -> None:
+    class LimitedClient:
+        def __init__(self):
+            self.calls = []
+
+        async def get(self, url, *, params):
+            self.calls.append(url)
+            request = httpx.Request("GET", url)
+            response = httpx.Response(429, request=request)
+            raise httpx.HTTPStatusError("rate limited", request=request, response=response)
+
+    client = LimitedClient()
     result = asyncio.run(barcode_lookup._fetch_off(client, "5901234123457"))
     assert result is None
     assert len(client.calls) == 1

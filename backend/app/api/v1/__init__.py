@@ -19,6 +19,7 @@ from app.api.v1.price_compare import router as price_compare_router
 from app.api.v1.billing import router as billing_router
 from app.api.v1.pantry import router as pantry_router
 from app.api.v1.friends import router as friends_router
+from app.api.v1.purchase_campaigns import router as purchase_campaigns_router
 
 router = APIRouter()
 
@@ -41,3 +42,4 @@ router.include_router(promotions_router, prefix="/promotions", tags=["Promotions
 router.include_router(billing_router, prefix="/billing", tags=["Billing"])
 router.include_router(pantry_router, prefix="/pantry", tags=["Pantry"])
 router.include_router(friends_router, prefix="/friends", tags=["Friends"])
+router.include_router(purchase_campaigns_router, prefix="/purchase-campaigns", tags=["Purchase Campaigns"])

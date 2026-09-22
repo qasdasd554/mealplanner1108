@@ -20,8 +20,6 @@ class PlanViewScreen extends StatefulWidget {
 class _PlanViewScreenState extends State<PlanViewScreen> {
   int _selectedDay = 1;
   final RecipeService _recipeService = RecipeService();
-  List<Recipe> _swapRecipes = [];
-  bool _isLoadingSwapRecipes = false;
 
   Future<void> _activatePlan(String planId) async {
     final mealPlanProvider = Provider.of<MealPlanProvider>(context, listen: false);
@@ -53,132 +51,133 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
     }
   }
 
-  // Otwórz panel dolny do zamiany przepisu
-  void _openSwapBottomSheet(MealPlanEntry entry, String planId) async {
-    setState(() {
-      _isLoadingSwapRecipes = true;
-      _swapRecipes = [];
-    });
-
-    showModalBottomSheet(
+  // Wyszukiwanie działa lokalnie w pobranej kategorii; Future powstaje
+  // raz, więc wpisywanie tekstu nie wysyła kolejnych żądań do serwera.
+  Future<void> _openSwapBottomSheet(MealPlanEntry entry, String planId) async {
+    final searchController = TextEditingController();
+    final recipesFuture = _recipeService.getRecipes(
+      mealType: entry.recipe.mealType,
+    );
+    final picked = await showModalBottomSheet<Recipe>(
       context: context,
+      isScrollControlled: true,
       backgroundColor: AppTheme.surfaceColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            if (_isLoadingSwapRecipes) {
-              // Załaduj alternatywne przepisy o tym samym typie posiłku
-              _recipeService.getRecipes(mealType: entry.recipe.mealType).then((recipes) {
-                if (mounted) {
-                  setModalState(() {
-                    // Wyklucz aktualny przepis
-                    _swapRecipes = recipes.where((r) => r.id != entry.recipe.id).toList();
-                    _isLoadingSwapRecipes = false;
-                  });
-                }
-              });
-
-              return const SizedBox(
-                height: 300,
-                child: Center(
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
+          ),
+          child: SizedBox(
+            height: MediaQuery.sizeOf(sheetContext).height * 0.78,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Zamień: ${entry.recipe.name}',
+                          maxLines: 2, overflow: TextOverflow.ellipsis,
+                          style: Theme.of(sheetContext).textTheme.titleLarge),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: searchController,
+                        autofocus: true,
+                        onChanged: (_) => setSheetState(() {}),
+                        decoration: InputDecoration(
+                          labelText: 'Szukaj dania',
+                          hintText: 'Wpisz nazwę przepisu',
+                          prefixIcon: const Icon(Icons.search),
+                          suffixIcon: searchController.text.isEmpty
+                              ? null
+                              : IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () {
+                                    searchController.clear();
+                                    setSheetState(() {});
+                                  },
+                                ),
+                          border: const OutlineInputBorder(),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              );
-            }
-
-            return Container(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Zamień: ${entry.recipe.name}',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Wybierz inny posiłek z kategorii: ${entry.recipe.mealType}',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: _swapRecipes.isEmpty
-                        ? Center(
-                            child: Text(
-                              'Brak dostępnych alternatywnych przepisów',
-                              style: TextStyle(color: AppTheme.textSecondary),
+                Expanded(
+                  child: FutureBuilder<List<Recipe>>(
+                    future: recipesFuture,
+                    builder: (sheetContext, snapshot) {
+                      if (snapshot.connectionState != ConnectionState.done) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (snapshot.hasError) {
+                        return const Center(child: Text(
+                          'Nie udało się pobrać przepisów. Spróbuj ponownie.',
+                          textAlign: TextAlign.center,
+                        ));
+                      }
+                      final needle = searchController.text.trim().toLowerCase();
+                      final recipes = (snapshot.data ?? <Recipe>[])
+                          .where((r) => r.id != entry.recipe.id &&
+                              r.name.toLowerCase().contains(needle))
+                          .toList();
+                      if (recipes.isEmpty) {
+                        return Center(child: Text(
+                          needle.isEmpty
+                              ? 'Brak innych dań w tej kategorii'
+                              : 'Nie znaleziono dania o tej nazwie',
+                          textAlign: TextAlign.center,
+                        ));
+                      }
+                      return ListView.builder(
+                        itemCount: recipes.length,
+                        itemBuilder: (sheetContext, index) {
+                          final recipe = recipes[index];
+                          return ListTile(
+                            leading: SizedBox(
+                              width: 40, height: 40,
+                              child: RecipePhoto(
+                                recipe: recipe,
+                                borderRadius: BorderRadius.circular(6),
+                                showAiBadge: false,
+                              ),
                             ),
-                          )
-                        : ListView.builder(
-                            itemCount: _swapRecipes.length,
-                            itemBuilder: (context, index) {
-                              final recipe = _swapRecipes[index];
-
-                              return ListTile(
-                                contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                                leading: SizedBox(
-                                  width: 32,
-                                  height: 32,
-                                  child: RecipePhoto(
-                                    recipe: recipe,
-                                    borderRadius: BorderRadius.circular(6),
-                                    showAiBadge: false,
-                                  ),
-                                ),
-                                title: Text(
-                                  recipe.name,
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                subtitle: Text(
-                                  '${recipe.totalTimeMin} min • ${recipe.difficulty}',
-                                  style: TextStyle(color: AppTheme.textSecondary),
-                                ),
-                                trailing: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    minimumSize: const Size(80, 36),
-                                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                                  ),
-                                  onPressed: () async {
-                                    Navigator.of(context).pop(); // Zamknij bottom sheet
-                                    final mealPlanProvider =
-                                        Provider.of<MealPlanProvider>(this.context, listen: false);
-                                    
-                                    final success = await mealPlanProvider.swapRecipe(
-                                      planId: planId,
-                                      entryId: entry.id,
-                                      newRecipeId: recipe.id,
-                                    );
-
-                                    if (success && this.mounted) {
-                                      ScaffoldMessenger.of(this.context).showSnackBar(
-                                        const SnackBar(
-            duration: Duration(seconds: 3),
-                                          content: Text('Przepis został zamieniony!'),
-                                          backgroundColor: AppTheme.primaryColor,
-                                        ),
-                                      );
-                                    }
-                                  },
-                                  child: const Text('Wybierz', style: TextStyle(fontSize: 12)),
-                                ),
-                              );
-                            },
-                          ),
+                            title: Text(recipe.name),
+                            subtitle: Text('${recipe.totalTimeMin} min • ${recipe.difficulty}'),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () => Navigator.of(sheetContext).pop(recipe),
+                          );
+                        },
+                      );
+                    },
                   ),
-                ],
-              ),
-            );
-          },
-        );
-      },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
+    searchController.dispose();
+    if (picked == null || !mounted) return;
+    final provider = Provider.of<MealPlanProvider>(context, listen: false);
+    final success = await provider.swapRecipe(
+      planId: planId,
+      entryId: entry.id,
+      newRecipeId: picked.id,
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      duration: const Duration(seconds: 3),
+      content: Text(success
+          ? 'Przepis został zamieniony'
+          : provider.errorMessage ?? 'Nie udało się zamienić przepisu'),
+      backgroundColor: success ? AppTheme.primaryColor : AppTheme.errorColor,
+    ));
   }
 
   @override
@@ -244,7 +243,11 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
                 context: context,
                 builder: (context) => AlertDialog(
                   title: const Text('Usuń plan'),
-                  content: const Text('Czy na pewno chcesz usunąć ten plan posiłków?'),
+                  content: const Text(
+                    'Czy na pewno chcesz usunąć ten plan posiłków? '
+                    'Na koncie standardowym usunięcie nie odnawia limitu '
+                    'jednego nowego planu tygodniowo.',
+                  ),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(),

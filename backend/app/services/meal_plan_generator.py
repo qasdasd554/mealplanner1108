@@ -277,6 +277,12 @@ class MealPlanGenerator:
             household_size=household_size,
         )
 
+        # Sam plan nadal można utworzyć, gdy darmowy limit list w tym
+        # tygodniu został wykorzystany. Blokada jest wspólna z tworzeniem
+        # listy, więc równoległe żądanie nie ominie limitu.
+        from app.services.shopping_list_quota import can_create_shopping_list
+        can_create_list = await can_create_shopping_list(self.db, user=user)
+
         # Krok 5 — zapis do bazy
         meal_plan = await self._persist_plan(
             user_id=user_id,
@@ -285,23 +291,28 @@ class MealPlanGenerator:
             meals_per_day=meals_per_day,
             entries_data=entries_data,
         )
-
-        # Krok 6 — automatyczna lista zakupów
-        builder = ShoppingListBuilder(self.db)
-        shopping_list = await builder.build_from_meal_plan(meal_plan.id)
-
-        # Zsumuj koszt listy zakupów i zapisz jako szacowany minimalny
-        # budżet planu — wcześniej to pole istniało w API (zawsze null),
-        # ale nigdy nie było faktycznie liczone.
-        from app.models import ShoppingListItem
-        from sqlalchemy import func
-
-        total_result = await self.db.execute(
-            select(func.coalesce(func.sum(ShoppingListItem.estimated_price), 0)).where(
-                ShoppingListItem.shopping_list_id == shopping_list.id
-            )
+        # Historia powstaje przed commitem buildera listy. Dzięki temu
+        # plan, wpis limitu i lista są atomowe, a usunięcie planu nie
+        # pozwala wygenerować drugiego w tym samym tygodniu.
+        from app.services.meal_plan_quota import record_meal_plan_creation
+        await record_meal_plan_creation(
+            self.db, user=user, meal_plan_id=meal_plan.id,
         )
-        meal_plan.estimated_min_budget = total_result.scalar_one()
+
+        # Krok 6 — automatyczna lista zakupów, tylko jeśli limit pozwala.
+        if can_create_list:
+            builder = ShoppingListBuilder(self.db)
+            shopping_list = await builder.build_from_meal_plan(meal_plan.id)
+
+            from app.models import ShoppingListItem
+            from sqlalchemy import func
+
+            total_result = await self.db.execute(
+                select(func.coalesce(func.sum(ShoppingListItem.estimated_price), 0)).where(
+                    ShoppingListItem.shopping_list_id == shopping_list.id
+                )
+            )
+            meal_plan.estimated_min_budget = total_result.scalar_one()
         await self.db.commit()
 
         # Obiekt meal_plan wygasł po commicie z ShoppingListBuilder, trzeba przeładować
@@ -319,6 +330,7 @@ class MealPlanGenerator:
             .where(MealPlan.id == meal_plan.id)
         )
         meal_plan_reloaded = result.scalar_one()
+        meal_plan_reloaded.shopping_list_limit_reached = not can_create_list
 
         return meal_plan_reloaded
 
@@ -1033,7 +1045,7 @@ class MealPlanGenerator:
         from sqlalchemy import select
         from sqlalchemy.orm import selectinload
         from app.models import MealPlanEntry, Recipe, RecipeIngredient
-        
+
         meal_plan = MealPlan(
             user_id=user_id,
             store_id=store_id,
@@ -1052,7 +1064,9 @@ class MealPlanGenerator:
             )
             self.db.add(entry)
 
-        await self.db.commit()
+        # Zapis planu i nowej listy zakupów musi być atomowy. Builder
+        # listy zatwierdzi oba obiekty dopiero po sprawdzeniu limitu.
+        await self.db.flush()
 
         result = await self.db.execute(
             select(MealPlan)

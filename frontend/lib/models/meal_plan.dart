@@ -41,6 +41,7 @@ class MealPlan {
   final int mealsPerDay;
   final String status; // 'draft', 'active', 'completed', 'archived'
   final double? estimatedMinBudget;
+  final bool shoppingListLimitReached;
   final List<MealPlanEntry> entries;
   final DateTime createdAt;
 
@@ -53,6 +54,7 @@ class MealPlan {
     required this.mealsPerDay,
     required this.status,
     this.estimatedMinBudget,
+    this.shoppingListLimitReached = false,
     required this.entries,
     required this.createdAt,
   });
@@ -67,6 +69,7 @@ class MealPlan {
       mealsPerDay: json['meals_per_day'] as int? ?? 3,
       status: json['status'] as String? ?? 'draft',
       estimatedMinBudget: (json['estimated_min_budget'] as num?)?.toDouble(),
+      shoppingListLimitReached: json['shopping_list_limit_reached'] as bool? ?? false,
       entries: (json['entries'] as List<dynamic>?)
               ?.map((e) => MealPlanEntry.fromJson(e as Map<String, dynamic>))
               .toList() ??

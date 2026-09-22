@@ -47,6 +47,7 @@ class MealPlanResponse(BaseModel):
     meals_per_day: int
     status: str
     estimated_min_budget: float | None = None
+    shopping_list_limit_reached: bool = False
     entries: list[MealPlanEntryResponse] = []
     created_at: datetime
 

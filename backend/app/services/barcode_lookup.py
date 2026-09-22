@@ -170,7 +170,7 @@ def _product_from_off_response(data: object, api_version: str) -> dict | None:
     if api_version == "v3":
         result = data.get("result") or {}
         found = (
-            data.get("status") == "success"
+            data.get("status") in {"success", "success_with_errors"}
             and isinstance(result, dict)
             and result.get("id") == "product_found"
         )
@@ -184,8 +184,9 @@ def _result_from_off_product(product: dict) -> BarcodeLookupResult | None:
         (
             value.strip()
             for key in (
-                "product_name_pl", "product_name", "abbreviated_product_name",
-                "generic_name_pl", "generic_name",
+                "product_name_pl", "product_name", "product_name_en",
+                "abbreviated_product_name", "generic_name_pl", "generic_name",
+                "generic_name_en",
             )
             if isinstance((value := product.get(key)), str) and value.strip()
         ),
@@ -242,7 +243,8 @@ async def search_products_external(
         return list(cached[1][:limit])
 
     fields = (
-        "code,product_name_pl,product_name,generic_name_pl,generic_name,"
+        "code,product_name_pl,product_name,product_name_en,"
+        "generic_name_pl,generic_name,generic_name_en,"
         "abbreviated_product_name,brands,nutriments,categories_tags,"
         "product_quantity,product_quantity_unit,serving_quantity"
     )
@@ -314,7 +316,8 @@ async def _fetch_off(client: httpx.AsyncClient, barcode: str) -> BarcodeLookupRe
     params = {
         "cc": "pl", "lc": "pl",
         "fields": (
-            "product_name_pl,product_name,generic_name_pl,generic_name,"
+            "code,product_name_pl,product_name,product_name_en,"
+            "generic_name_pl,generic_name,generic_name_en,"
             "abbreviated_product_name,brands,nutriments,categories_tags,"
             "product_quantity,product_quantity_unit,serving_quantity"
         ),
@@ -335,6 +338,8 @@ async def _fetch_off(client: httpx.AsyncClient, barcode: str) -> BarcodeLookupRe
             except httpx.HTTPStatusError as exc:
                 # Brak w bazie jest normalny, nie wymaga drugiego żądania
                 # do tej samej bazy przez inną wersję API.
+                if exc.response.status_code in (429, 503):
+                    break
                 if exc.response.status_code == 404:
                     break
                 logger.warning("Open Food Facts lookup failed for %s: %s", candidate, exc)
