@@ -8,6 +8,7 @@ import '../../config/constants.dart';
 import '../../theme/app_theme.dart';
 import 'welcome_bonus_screen.dart';
 import '../recipes/pantry_screen.dart';
+import '../tracker/calorie_calculator_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -18,9 +19,6 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
-  final TextEditingController _weightController = TextEditingController();
-  final TextEditingController _heightController = TextEditingController();
-  final TextEditingController _kcalController = TextEditingController();
   int _currentPage = 0;
 
   // Preferencje wybrane podczas onboarding
@@ -54,14 +52,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   void dispose() {
     _pageController.dispose();
-    _weightController.dispose();
-    _heightController.dispose();
-    _kcalController.dispose();
     super.dispose();
   }
 
   void _nextPage() {
-    if (_currentPage == 4 && !_validateOptionalProfile()) return;
     if (_currentPage < 6) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
@@ -82,7 +76,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _finishOnboarding() async {
-    if (!_validateOptionalProfile()) return;
     if (_selectedStore == null) {
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -102,9 +95,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       allergenIds: _selectedAllergens,
       diet: _selectedDiet,
       householdSize: _householdSize,
-      weightKg: _optionalDecimal(_weightController),
-      heightCm: _optionalDecimal(_heightController),
-      dailyKcalGoal: _optionalWholeNumber(_kcalController),
     );
 
     if (mounted) {
@@ -136,7 +126,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) _previousPage();
+      },
+      child: Scaffold(
       body: SafeArea(
         child: Column(
           children: [
@@ -199,6 +194,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }
@@ -548,38 +544,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  double? _optionalDecimal(TextEditingController controller) {
-    final text = controller.text.trim().replaceAll(',', '.');
-    return text.isEmpty ? null : double.tryParse(text);
-  }
-
-  int? _optionalWholeNumber(TextEditingController controller) {
-    final text = controller.text.trim();
-    return text.isEmpty ? null : int.tryParse(text);
-  }
-
-  bool _validateOptionalProfile() {
-    final weight = _optionalDecimal(_weightController);
-    final height = _optionalDecimal(_heightController);
-    final kcal = _optionalWholeNumber(_kcalController);
-    String? error;
-    if (_weightController.text.trim().isNotEmpty &&
-        (weight == null || !weight.isFinite || weight <= 0 || weight > 400)) {
-      error = 'Wpisz wagę większą od 0 i nie większą niż 400 kg albo zostaw pole puste.';
-    } else if (_heightController.text.trim().isNotEmpty &&
-        (height == null || !height.isFinite || height <= 0 || height > 280)) {
-      error = 'Wpisz wzrost większy od 0 i nie większy niż 280 cm albo zostaw pole puste.';
-    } else if (_kcalController.text.trim().isNotEmpty &&
-        (kcal == null || kcal < 800 || kcal > 6000)) {
-      error = 'Wpisz cel od 800 do 6000 kcal albo zostaw pole puste.';
-    }
-    if (error == null) return true;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(error), backgroundColor: AppTheme.errorColor));
-    return false;
-  }
-
   // --- KROK 5: Dane zdrowotne ---
   Widget _buildProfileStep() {
     return ListView(
@@ -590,32 +554,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         Text('Twój profil i cel', style: Theme.of(context).textTheme.displaySmall,
             textAlign: TextAlign.center),
         const SizedBox(height: 12),
-        Text('Możesz dodać te dane teraz albo później w profilu. Każde pole jest opcjonalne.',
+        Text('Chcesz teraz obliczyć zapotrzebowanie kaloryczne i uzupełnić wagę, wzrost oraz cel? Możesz też zrobić to później w profilu.',
             style: Theme.of(context).textTheme.bodyMedium, textAlign: TextAlign.center),
         const SizedBox(height: 28),
-        TextField(
-          controller: _weightController,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(labelText: 'Waga', hintText: 'np. 72,5', suffixText: 'kg'),
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _heightController,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(labelText: 'Wzrost', hintText: 'np. 175', suffixText: 'cm'),
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _kcalController,
-          keyboardType: TextInputType.number,
-          textInputAction: TextInputAction.done,
-          decoration: const InputDecoration(labelText: 'Dzienny cel kaloryczny',
-              hintText: 'np. 2000', suffixText: 'kcal'),
+        FilledButton.icon(
+          onPressed: () async {
+            await Navigator.of(context).push<bool>(
+              MaterialPageRoute(builder: (_) => const CalorieCalculatorScreen()),
+            );
+            if (mounted) setState(() {});
+          },
+          icon: const Icon(Icons.calculate_outlined),
+          label: const Text('Otwórz kalkulator zapotrzebowania'),
         ),
         const SizedBox(height: 18),
-        Text('Nie potrzebujesz kalkulatora, żeby ustawić cel. Możesz go zmienić w każdej chwili.',
+        Text('Ten krok jest opcjonalny. Wybierz „Dalej”, aby go pominąć.',
             style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
       ],
     );

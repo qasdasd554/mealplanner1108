@@ -13,6 +13,7 @@ from app.core.exceptions import NotFoundException
 from app.db.session import get_db
 from app.models import PantryItem, Product, User
 from app.schemas.product import ProductResponse
+from app.services.pantry_shopping_sync import sync_product_in_shopping_lists
 
 router = APIRouter()
 
@@ -102,6 +103,9 @@ async def add_pantry_items(
     to_add = valid_ids - already_have_ids
     for product_id in to_add:
         db.add(PantryItem(user_id=current_user.id, product_id=product_id))
+    await db.flush()
+    for product_id in valid_ids:
+        await sync_product_in_shopping_lists(db, current_user.id, product_id)
     await db.commit()
 
     result = await db.execute(
@@ -140,6 +144,8 @@ async def update_pantry_item_quantity(
     item.quantity = payload.quantity
     if payload.unit is not None:
         item.unit = payload.unit
+    await db.flush()
+    await sync_product_in_shopping_lists(db, current_user.id, item.product_id)
     await db.commit()
     await db.refresh(item)
     return item
@@ -158,5 +164,8 @@ async def delete_pantry_item(
     if item is None:
         raise NotFoundException(detail="Nie znaleziono tego produktu w Twojej spiżarni.")
 
+    product_id = item.product_id
     await db.delete(item)
+    await db.flush()
+    await sync_product_in_shopping_lists(db, current_user.id, product_id)
     await db.commit()

@@ -130,7 +130,8 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
       // Przy okazji zapisujemy też dane wejściowe do profilu — dzięki
       // temu przy kolejnej wizycie kalkulator wypełni się sam (patrz
       // initState), a nie tylko sam wybrany cel.
-      await Provider.of<AuthProvider>(context, listen: false).updateProfile(
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final saved = await auth.updateProfile(
         weightKg: weight,
         heightCm: height,
         age: age,
@@ -139,6 +140,15 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
         dailyKcalGoal: _selectedGoal!.round(),
       );
       if (!mounted) return;
+      if (!saved) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(
+            content: Text(auth.errorMessage ?? 'Nie udało się zapisać celu.'),
+            backgroundColor: AppTheme.errorColor,
+          ));
+        return;
+      }
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(

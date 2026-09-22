@@ -37,7 +37,7 @@ def test_openapi_operation_ids_are_unique() -> None:
 
 
 def test_backend_release_matches_mobile_build() -> None:
-    assert app.version == "1.0.30"
+    assert app.version == "1.0.31"
 
 
 def test_admin_user_contract_contains_both_avatar_variants() -> None:

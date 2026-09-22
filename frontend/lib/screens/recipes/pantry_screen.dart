@@ -1,4 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/shopping_list_provider.dart';
 import '../../models/product.dart';
 import '../../services/pantry_service.dart';
 import '../../services/product_search_service.dart';
@@ -24,6 +27,11 @@ class _PantryScreenState extends State<PantryScreen> {
   List<PantryItem> _items = [];
   bool _isLoading = true;
   String? _errorMessage;
+
+  void _refreshShoppingLists() {
+    final shopping = context.read<ShoppingListProvider>();
+    unawaited(shopping.loadAllLists(preferredListId: shopping.selectedListId));
+  }
 
   @override
   void initState() {
@@ -64,6 +72,7 @@ class _PantryScreenState extends State<PantryScreen> {
     setState(() => _items.remove(item));
     try {
       await _pantryService.deleteItem(item.id);
+      if (mounted) _refreshShoppingLists();
     } catch (e) {
       if (!mounted) return;
       setState(() => _items.insert(removedIndex, item));
@@ -128,6 +137,7 @@ class _PantryScreenState extends State<PantryScreen> {
         final index = _items.indexWhere((i) => i.id == item.id);
         if (index != -1) _items[index] = updated;
       });
+      _refreshShoppingLists();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
@@ -150,6 +160,7 @@ class _PantryScreenState extends State<PantryScreen> {
     );
     if (added == true) {
       _load();
+      if (mounted) _refreshShoppingLists();
     }
   }
 

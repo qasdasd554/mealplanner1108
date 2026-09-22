@@ -68,7 +68,14 @@ class _HomeScreenState extends State<HomeScreen> {
       const ProfileScreen(),
     ];
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop && _currentIndex != 0) {
+          setState(() => _currentIndex = 0);
+        }
+      },
+      child: Scaffold(
       body: tabs[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         // 5 zakladek wymaga trybu 'fixed' — bez tego Flutter przechodzi
@@ -147,6 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Profil',
           ),
         ],
+      ),
       ),
     );
   }
