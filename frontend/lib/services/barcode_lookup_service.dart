@@ -6,14 +6,11 @@ import 'package:http/http.dart' as http;
 import '../models/barcode_lookup_result.dart';
 import 'api_client.dart';
 
-/// Wyszukuje produkt najpierw w Neon, a potem w bazach zewnętrznych backendu.
-/// Bezpośrednia próba Open Food Facts jest
-/// niezależna od wdrożenia backendu i pozwala uzupełnić formularz także
-/// wtedy, gdy serwer aplikacji chwilowo nie odpowiada.
+/// Wyszukuje produkt najpierw w Neon, potem w OFF v3.6 i USDA na backendzie.
+/// Bezpośrednie OFF jest wyłącznie zabezpieczeniem na awarię serwera — nie
+/// startuje równolegle, więc nie dubluje żądań ani nie zużywa limitu API.
 class BarcodeLookupService {
-  // Serwer daje źródłom zewnętrznym do 8 s. Krótszy limit klienta
-  // odcinał prawidłową odpowiedź i pokazywał „nie znaleziono”.
-  static const _backendTimeout = Duration(seconds: 11);
+  static const _backendTimeout = Duration(seconds: 8);
   static const _externalTimeout = Duration(seconds: 4);
   static const _userAgent =
       'MealPlannerPolska/1.0 (https://github.com/qasdasd554/mealplanner1108)';
@@ -28,79 +25,28 @@ class BarcodeLookupService {
   void close() => _httpClient.close();
 
   Future<BarcodeLookupResult> lookup(String barcode) async {
-    // Dajemy Neon 250 ms na szybki hit. Nie pytamy OFF ponownie przy każdym
-    // skanie znanego kodu (publiczne API ma limity żądań na adres IP).
-    final backendFuture = _lookupBackend(barcode);
-    final fastBackend = await backendFuture.timeout(
-      const Duration(milliseconds: 250),
-      onTimeout: () => (result: null, error: null, backend: true),
-    );
-    if (fastBackend.result != null && fastBackend.result!.found &&
-        _hasName(fastBackend.result!) &&
-        _hasCompleteProductData(fastBackend.result!)) {
-      return fastBackend.result!;
-    }
-    final externalFuture = _lookupOpenFoodFacts(barcode)
-        .then((result) => (result: result, error: null as Object?, backend: false));
-    final first = fastBackend.result != null || fastBackend.error != null
-        ? fastBackend
-        : await Future.any([backendFuture, externalFuture]);
-    final other = first.backend ? externalFuture : backendFuture;
-    final result = first.result;
-
-    if (result != null && result.found && _hasName(result)) {
-      if (first.backend && _hasCompleteProductData(result)) return result;
-      // Krótka szansa na uzupełnienie makro lub identyfikatora produktu
-      // z katalogu; nie opóźniamy wyświetlenia o całe timeouty API.
-      final second = await other.timeout(
-        Duration(milliseconds: first.backend ? 900 : 250),
-        onTimeout: () => (result: null, error: null, backend: !first.backend),
-      );
-      if (second.result != null && second.result!.found &&
-          _hasName(second.result!)) {
-        return first.backend
-            ? mergeBarcodeLookupResults(result, second.result!)
-            : mergeBarcodeLookupResults(second.result!, result);
-      }
-      return result;
-    }
-
-    final second = await other;
-    if (second.result != null) return second.result!;
-    if (result != null) return result;
-    if (first.error != null) throw first.error!;
-    if (second.error != null) throw second.error!;
-    return const BarcodeLookupResult(found: false);
-  }
-
-  Future<({BarcodeLookupResult? result, Object? error, bool backend})>
-      _lookupBackend(String barcode) async {
     try {
-      final response = await _apiClient.get(
-        '/products/barcode/$barcode', timeout: _backendTimeout,
-      );
-      return (result: BarcodeLookupResult.fromJson(
-        response as Map<String, dynamic>,
-      ), error: null, backend: true);
-    } catch (error) {
-      return (result: null, error: error, backend: true);
+      return await _lookupBackend(barcode);
+    } catch (_) {
+      // Tylko awaria/timeout backendu. Odpowiedź „found: false” NIE trafia
+      // tutaj, bo serwer sprawdził już OFF i USDA.
+      final direct = await _lookupOpenFoodFacts(barcode);
+      if (direct != null) return direct;
+      rethrow;
     }
   }
 
-  bool _hasName(BarcodeLookupResult result) =>
-      result.name?.trim().isNotEmpty == true;
-
-  bool _hasCompleteProductData(BarcodeLookupResult result) =>
-      result.kcalPer100 != null &&
-      result.proteinPer100 != null &&
-      result.fatPer100 != null &&
-      result.carbsPer100 != null &&
-      result.priceMin != null &&
-      result.priceMax != null;
+  Future<BarcodeLookupResult> _lookupBackend(String barcode) async {
+    final response = await _apiClient.get(
+      '/products/barcode/$barcode',
+      timeout: _backendTimeout,
+    );
+    return BarcodeLookupResult.fromJson(response as Map<String, dynamic>);
+  }
 
   Future<BarcodeLookupResult?> _lookupOpenFoodFacts(String barcode) async {
     final urls = [
-      Uri.https('world.openfoodfacts.org', '/api/v3/product/$barcode', {
+      Uri.https('world.openfoodfacts.org', '/api/v3.6/product/$barcode.json', {
         'cc': 'pl',
         'lc': 'pl',
         'fields': _fields,
@@ -157,6 +103,48 @@ class BarcodeLookupService {
     }
   }
 
+  /// Awaryjna ścieżka po braku kodu w Neon, OFF i USDA. Zdjęcia są
+  /// wysyłane dopiero po decyzji użytkownika, więc zwykły skan nie ponosi
+  /// żadnego kosztu czasowego ani transferu związanego z AI.
+  Future<BarcodeLookupResult> recognizeLabel({
+    required String barcode,
+    required String frontPhotoBase64,
+    required String nutritionPhotoBase64,
+  }) async {
+    final response = await _apiClient.post(
+      '/products/barcode/recognize-label',
+      body: {
+        'barcode': barcode,
+        'front_photo_base64': frontPhotoBase64,
+        'nutrition_photo_base64': nutritionPhotoBase64,
+      },
+      timeout: const Duration(seconds: 50),
+    );
+    return BarcodeLookupResult.fromJson(response as Map<String, dynamic>);
+  }
+
+  /// Utrwala w Neon dopiero dane obejrzane i zatwierdzone przez użytkownika.
+  Future<BarcodeLookupResult> confirmRecognizedLabel(
+    BarcodeLookupResult result,
+  ) async {
+    final response = await _apiClient.post(
+      '/products/barcode/confirm-label',
+      body: {
+        'barcode': result.barcode,
+        'name': result.name,
+        'brand': result.brand,
+        'unit': result.unit,
+        'serving_quantity': result.servingQuantity,
+        'kcal_per_100': result.kcalPer100,
+        'protein_per_100': result.proteinPer100,
+        'fat_per_100': result.fatPer100,
+        'carbs_per_100': result.carbsPer100,
+      },
+      timeout: const Duration(seconds: 12),
+    );
+    return BarcodeLookupResult.fromJson(response as Map<String, dynamic>);
+  }
+
   static const _fields =
       'code,product_name_pl,product_name,product_name_en,'
       'generic_name_pl,generic_name,generic_name_en,'
@@ -184,6 +172,7 @@ BarcodeLookupResult mergeBarcodeLookupResults(
     barcode: catalog.barcode ?? external.barcode,
     priceMin: catalog.priceMin ?? external.priceMin,
     priceMax: catalog.priceMax ?? external.priceMax,
+    servingQuantity: catalog.servingQuantity ?? external.servingQuantity,
   );
 }
 
@@ -270,6 +259,10 @@ BarcodeLookupResult? barcodeResultFromOpenFoodFacts(
     ]),
     priceMin: _fixedPriceRange(product).$1,
     priceMax: _fixedPriceRange(product).$2,
+    servingQuantity: _firstNumber(product, const [
+      'serving_quantity',
+      'product_quantity',
+    ]),
   );
 }
 

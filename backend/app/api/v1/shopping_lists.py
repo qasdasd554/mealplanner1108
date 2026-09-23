@@ -30,15 +30,18 @@ from app.models import (
 from app.schemas.shopping_list import ShoppingListItemResponse, ShoppingListResponse
 from app.services import ProductSubstitutionService
 from app.services.shopping_list_builder import ShoppingListBuilder
-from app.services.shopping_list_quota import record_shopping_list_creation
+from app.services.shopping_list_quota import (
+    can_append_recipes_to_existing_list,
+    record_shopping_list_creation,
+)
 
 router = APIRouter()
 
 class ShoppingListFromRecipesRequest(BaseModel):
     """Żądanie stworzenia listy zakupów na konkretne dania — ALBO nowej
     (podlega limitowi tygodniowemu dla konta standardowego), ALBO dopisania
-    składników do JUŻ ISTNIEJĄCEJ listy (existing_list_id) — to drugie
-    nie tworzy nowej listy, więc nie zużywa limitu."""
+    składników do JUŻ ISTNIEJĄCEJ listy (existing_list_id). Dopisywanie
+    kolejnych przepisów jest funkcją Premium, aby nie obchodziło limitu."""
 
     recipe_ids: list[UUID]
     store_id: UUID
@@ -168,7 +171,21 @@ async def create_shopping_list_from_recipes(
         raise NotFoundException(detail=f"Nie znaleziono przepisu/przepisów: {missing}")
 
     if payload.existing_list_id is not None:
-        # --- Dopisanie do ISTNIEJĄCEJ listy — nie zużywa limitu ---
+        # Dopisywanie kolejnych przepisów do jednej listy wcześniej
+        # pozwalało kontu standardowemu bez końca obchodzić limit jednej
+        # listy tygodniowo. Ręczne dopisywanie pojedynczych produktów
+        # pozostaje dostępne; ograniczamy tylko import całego przepisu.
+        if not can_append_recipes_to_existing_list(current_user):
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Konto standardowe może utworzyć jedną listę zakupów "
+                    "w tygodniu. Dodawanie kolejnych przepisów do istniejącej "
+                    "listy jest dostępne w Premium."
+                ),
+            )
+
+        # --- Dopisanie do ISTNIEJĄCEJ listy dla Premium ---
         # UWAGA: zgodnie z konwencją całej reszty tego pliku (patrz
         # komentarz w schemas/shopping_list.py), "ID listy" widziane przez
         # frontend to FAKTYCZNIE meal_plan_id, nie klucz główny

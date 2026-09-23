@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import '../config/api_config.dart';
 import 'api_client.dart';
 
@@ -50,11 +51,60 @@ class BillingService {
   /// Rozpoczyna zakup — wynik przyjdzie asynchronicznie przez
   /// [purchaseStream], nie przez zwróconą wartość tej metody.
   Future<void> buy(ProductDetails product) {
-    final purchaseParam = PurchaseParam(productDetails: product);
+    final purchaseParam = product is GooglePlayProductDetails
+        ? GooglePlayPurchaseParam(
+            productDetails: product,
+            offerToken: product.offerToken,
+          )
+        : PurchaseParam(productDetails: product);
     // Subskrypcje w ujednoliconym API in_app_purchase obsługuje się przez
     // buyNonConsumable (mimo nazwy — to standardowa ścieżka dla
     // subskrypcji na Androidzie, konsumpcja nie ma tu zastosowania).
     return _iap.buyNonConsumable(purchaseParam: purchaseParam);
+  }
+
+  /// Zwraca dokładnie tę ofertę subskrypcji Google Play, którą administrator
+  /// powiązał z kampanią. Google generuje `offerToken` osobno dla urządzenia,
+  /// dlatego w bazie zapisujemy stabilne offerId/basePlanId, a token wybieramy
+  /// dopiero z aktualnej odpowiedzi sklepu.
+  ProductDetails? selectAndroidSubscriptionOffer(
+    Iterable<ProductDetails> products, {
+    required String productId,
+    required String basePlanId,
+    required String offerId,
+  }) {
+    for (final product in products) {
+      if (product.id != productId || product is! GooglePlayProductDetails) continue;
+      final index = product.subscriptionIndex;
+      final offers = product.productDetails.subscriptionOfferDetails;
+      if (index == null || offers == null || index >= offers.length) continue;
+      final details = offers[index];
+      if (details.basePlanId == basePlanId && details.offerId == offerId) {
+        return product;
+      }
+    }
+    return null;
+  }
+
+  /// Wariant bez kampanii: wybiera regularny plan (offerId == null), a gdy
+  /// sklep zwróci starszą konfigurację — pierwszy dostępny wariant produktu.
+  ProductDetails? selectRegularSubscriptionOffer(
+    Iterable<ProductDetails> products,
+    String productId,
+  ) {
+    ProductDetails? fallback;
+    for (final product in products) {
+      if (product.id != productId) continue;
+      fallback ??= product;
+      if (product is! GooglePlayProductDetails) return product;
+      final index = product.subscriptionIndex;
+      final offers = product.productDetails.subscriptionOfferDetails;
+      if (index != null && offers != null && index < offers.length &&
+          offers[index].offerId == null) {
+        return product;
+      }
+    }
+    return fallback;
   }
 
   /// Przywraca wcześniej kupione, wciąż aktywne subskrypcje — potrzebne

@@ -55,6 +55,7 @@ class Settings(BaseSettings):
     # główną przyczyną częstego, niechcianego wylogowywania użytkowników
     # z aplikacji mobilnej.
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 30
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 180
 
     # ── Logowanie przez Google ───────────────────────────────────
     # Client ID typu "Web application" z Google Cloud Console — musi być
@@ -162,8 +163,8 @@ class Settings(BaseSettings):
     # CFBundleVersion iOS. Obie wartości zwiększamy przy każdym buildzie.
     # Można je rozdzielić zmiennymi środowiskowymi, jeśli wydania sklepowe
     # zostaną opublikowane w różnym czasie.
-    LATEST_ANDROID_VERSION_CODE: int = 228
-    LATEST_IOS_BUILD_NUMBER: int = 228
+    LATEST_ANDROID_VERSION_CODE: int = 229
+    LATEST_IOS_BUILD_NUMBER: int = 229
     # Ustaw na True, żeby aktualizacja była WYMAGANA (pełnoekranowy
     # komunikat bez możliwości zamknięcia) — np. gdy stara wersja przestaje
     # działać z powodu zmiany w API. Domyślnie False: komunikat da się

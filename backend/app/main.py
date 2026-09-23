@@ -236,10 +236,37 @@ async def _create_tables() -> None:
         await conn.execute(
             text("ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_photo_base64 TEXT")
         )
+        # Kampanie zakupowe powstały najpierw wyłącznie dla Apple. Te
+        # kolumny rozszerzają istniejącą tabelę o oferty Google Play bez
+        # usuwania ani dezaktywowania wcześniejszych kampanii iOS.
+        await conn.execute(text(
+            "ALTER TABLE purchase_campaigns ADD COLUMN IF NOT EXISTS "
+            "platform VARCHAR(20) NOT NULL DEFAULT 'ios'"
+        ))
+        await conn.execute(text(
+            "ALTER TABLE purchase_campaigns ALTER COLUMN ios_offer_url DROP NOT NULL"
+        ))
+        await conn.execute(text(
+            "ALTER TABLE purchase_campaigns ADD COLUMN IF NOT EXISTS "
+            "android_base_plan_id VARCHAR(120)"
+        ))
+        await conn.execute(text(
+            "ALTER TABLE purchase_campaigns ADD COLUMN IF NOT EXISTS "
+            "android_offer_id VARCHAR(120)"
+        ))
         # Proponowane sklepy przy zgłoszeniu produktu — patrz
         # app/models/product.py.
         await conn.execute(
             text("ALTER TABLE products ADD COLUMN IF NOT EXISTS requested_store_ids JSON")
+        )
+        # Porcja/opakowanie rozpoznane z Open Food Facts albo etykiety AI.
+        # Kolumna jest opcjonalna, więc wdrożenie nie zmienia istniejących
+        # rekordów cache i nie blokuje startu aplikacji.
+        await conn.execute(
+            text(
+                "ALTER TABLE barcode_product_cache ADD COLUMN IF NOT EXISTS "
+                "serving_quantity DOUBLE PRECISION"
+            )
         )
         # Ręcznie wpisane pozycje listy zakupów (np. chemia domowa) nie
         # mają odpowiednika w katalogu spożywczym ani StoreProduct.
@@ -525,7 +552,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 app = FastAPI(
     title="Smart Meal Planner PL API",
     description="API do planowania posiłków z integracją z polskimi sieciami handlowymi",
-    version="1.0.31",
+    version="1.0.32",
     lifespan=lifespan,
 )
 
@@ -605,7 +632,7 @@ async def health_check(db: AsyncSession = Depends(get_db)) -> dict[str, str]:
     return {
         "status": "healthy",
         "service": "smart-meal-planner-pl",
-        "release": "1.0.31+228",
+        "release": "1.0.32+229",
         "catalog_products": str(catalog_products),
         "database_provider": db_provider,
         "database_host": "ep-small-lab-b1y3gm3e.c-5.eu-central-1.aws.neon.tech" if "neon.tech" in settings.DATABASE_URL else "local",

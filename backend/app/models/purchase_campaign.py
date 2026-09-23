@@ -1,4 +1,4 @@
-"""Kampanie ofert App Store; nie zmieniają ceny zakupu po stronie serwera."""
+"""Kampanie rabatowe powiązane z rzeczywistą ofertą Apple albo Google."""
 
 from __future__ import annotations
 
@@ -24,8 +24,12 @@ class PurchaseCampaign(Base):
     target_email: Mapped[str | None] = mapped_column(String(320), nullable=True)
     starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     ends_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    # Link do rzeczywistego kodu ofertowego skonfigurowanego w App Store Connect.
-    # Android nie jest uruchamiany samym linkiem: wymaga obsługi offerToken.
-    ios_offer_url: Mapped[str] = mapped_column(String(1000), nullable=False)
+    platform: Mapped[str] = mapped_column(String(20), nullable=False, default="ios")
+    # iOS: link do kodu ofertowego skonfigurowanego w App Store Connect.
+    ios_offer_url: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    # Android/subskrypcje: identyfikatory oferty utworzonej w Google Play.
+    # Sam offerToken jest krótkotrwały i pobierany na urządzeniu z Google Play.
+    android_base_plan_id: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    android_offer_id: Mapped[str | None] = mapped_column(String(120), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)

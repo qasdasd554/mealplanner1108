@@ -24,6 +24,7 @@ class BarcodeProductCache(Base):
     name: Mapped[str] = mapped_column(String(300), nullable=False)
     brand: Mapped[str | None] = mapped_column(String(200), nullable=True)
     unit: Mapped[str] = mapped_column(String(20), nullable=False, default="g")
+    serving_quantity: Mapped[float | None] = mapped_column(Float, nullable=True)
     nutrition_per_100: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     price_min: Mapped[float | None] = mapped_column(Float, nullable=True)
     price_max: Mapped[float | None] = mapped_column(Float, nullable=True)

@@ -44,6 +44,7 @@ class ApiClient {
     aOptions: AndroidOptions(encryptedSharedPreferences: true),
   );
   static const _tokenKey = 'auth_token';
+  static const _refreshTokenKey = 'auth_refresh_token';
   // Stary klucz w SharedPreferences — używany tylko do jednorazowego
   // przeniesienia tokenu istniejących, już zalogowanych użytkowników do
   // nowego, bezpiecznego magazynu, żeby nikogo nie wylogować przy
@@ -74,12 +75,67 @@ class ApiClient {
     await _secureStorage.write(key: _tokenKey, value: token);
   }
 
+  Future<void> setSession(String accessToken, String? refreshToken) async {
+    await setToken(accessToken);
+    if (refreshToken != null && refreshToken.isNotEmpty) {
+      await _secureStorage.write(key: _refreshTokenKey, value: refreshToken);
+    }
+  }
+
+  Future<bool> hasRefreshToken() async {
+    final token = await _secureStorage.read(key: _refreshTokenKey);
+    return token != null && token.isNotEmpty;
+  }
+
   Future<void> clearToken() async {
     _token = null;
     await _secureStorage.delete(key: _tokenKey);
+    await _secureStorage.delete(key: _refreshTokenKey);
     // Sprzątamy też ewentualną starą, niezaszyfrowaną kopię.
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_legacyPrefsKey);
+  }
+
+  bool _canRefresh(String path) => !{
+        ApiConfig.authLogin,
+        ApiConfig.authRegister,
+        ApiConfig.authGoogle,
+        ApiConfig.authApple,
+        ApiConfig.authRefresh,
+        ApiConfig.authSession,
+      }.contains(path);
+
+  Future<bool> _refreshSession() async {
+    final refreshToken = await _secureStorage.read(key: _refreshTokenKey);
+    if (refreshToken == null || refreshToken.isEmpty) return false;
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConfig.apiUrl}${ApiConfig.authRefresh}'),
+        headers: _headers(null),
+        body: jsonEncode({'refresh_token': refreshToken}),
+      ).timeout(_timeout);
+      if (response.statusCode < 200 || response.statusCode >= 300) return false;
+      final decoded = jsonDecode(response.body);
+      if (decoded is! Map || decoded['access_token'] is! String) return false;
+      await setSession(
+        decoded['access_token'] as String,
+        decoded['refresh_token'] as String?,
+      );
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<http.Response> _sendWithRefresh(
+    String path,
+    Future<http.Response> Function(Map<String, String> headers) send,
+  ) async {
+    var response = await send(_headers(await getToken()));
+    if (response.statusCode == 401 && _canRefresh(path) && await _refreshSession()) {
+      response = await send(_headers(await getToken()));
+    }
+    return response;
   }
 
   Map<String, String> _headers(String? token) {
@@ -99,13 +155,13 @@ class ApiClient {
   }
 
   Future<dynamic> get(String path, {Duration? timeout}) async {
-    final token = await getToken();
     final url = Uri.parse('${ApiConfig.apiUrl}$path');
 
     try {
-      final response = await http
-          .get(url, headers: _headers(token))
-          .timeout(timeout ?? _timeout);
+      final response = await _sendWithRefresh(
+        path,
+        (headers) => http.get(url, headers: headers).timeout(timeout ?? _timeout),
+      );
       return _handleResponse(response);
     } catch (e) {
       _handleError(e);
@@ -113,15 +169,17 @@ class ApiClient {
   }
 
   Future<dynamic> post(String path, {dynamic body, Duration? timeout}) async {
-    final token = await getToken();
     final url = Uri.parse('${ApiConfig.apiUrl}$path');
 
     try {
-      final response = await http.post(
-        url,
-        headers: _headers(token),
-        body: body != null ? jsonEncode(body) : null,
-      ).timeout(timeout ?? _timeout);
+      final response = await _sendWithRefresh(
+        path,
+        (headers) => http.post(
+          url,
+          headers: headers,
+          body: body != null ? jsonEncode(body) : null,
+        ).timeout(timeout ?? _timeout),
+      );
       return _handleResponse(response);
     } catch (e) {
       _handleError(e);
@@ -129,15 +187,15 @@ class ApiClient {
   }
 
   Future<dynamic> put(String path, {dynamic body}) async {
-    final token = await getToken();
     final url = Uri.parse('${ApiConfig.apiUrl}$path');
 
     try {
-      final response = await http.put(
-        url,
-        headers: _headers(token),
-        body: body != null ? jsonEncode(body) : null,
-      ).timeout(_timeout);
+      final response = await _sendWithRefresh(
+        path,
+        (headers) => http.put(
+          url, headers: headers, body: body != null ? jsonEncode(body) : null,
+        ).timeout(_timeout),
+      );
       return _handleResponse(response);
     } catch (e) {
       _handleError(e);
@@ -145,15 +203,15 @@ class ApiClient {
   }
 
   Future<dynamic> patch(String path, {dynamic body}) async {
-    final token = await getToken();
     final url = Uri.parse('${ApiConfig.apiUrl}$path');
 
     try {
-      final response = await http.patch(
-        url,
-        headers: _headers(token),
-        body: body != null ? jsonEncode(body) : null,
-      ).timeout(_timeout);
+      final response = await _sendWithRefresh(
+        path,
+        (headers) => http.patch(
+          url, headers: headers, body: body != null ? jsonEncode(body) : null,
+        ).timeout(_timeout),
+      );
       return _handleResponse(response);
     } catch (e) {
       _handleError(e);
@@ -161,11 +219,13 @@ class ApiClient {
   }
 
   Future<dynamic> delete(String path) async {
-    final token = await getToken();
     final url = Uri.parse('${ApiConfig.apiUrl}$path');
 
     try {
-      final response = await http.delete(url, headers: _headers(token)).timeout(_timeout);
+      final response = await _sendWithRefresh(
+        path,
+        (headers) => http.delete(url, headers: headers).timeout(_timeout),
+      );
       return _handleResponse(response);
     } catch (e) {
       _handleError(e);

@@ -22,7 +22,6 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
   // Id pozycji aktualnie "odsłoniętej" na czerwono po dotknięciu — tylko
   // jedna naraz. Dotknięcie tej samej pozycji ponownie (albo usunięcie)
   // ją chowa z powrotem.
-  String? _revealedDeleteItemId;
 
   @override
   void initState() {
@@ -96,7 +95,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<FoodLogProvider>(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Śledzenie kalorii'),
@@ -249,7 +248,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
     if (date.year == DateTime.now().year && date.month == DateTime.now().month && date.day == DateTime.now().day) {
       formattedDate = 'Dzisiaj, $formattedDate';
     }
-    
+
     return Text(
       formattedDate,
       style: TextStyle(
@@ -276,7 +275,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
     double remaining = target - consumed;
     if (remaining < 0) remaining = 0;
     double progress = target > 0 ? (consumed / target).clamp(0.0, 1.0) : 0.0;
-    
+
     return Center(
       child: Stack(
         alignment: Alignment.center,
@@ -877,7 +876,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
       children: existingTypes.map((type) {
         final items = groupedLogs[type]!;
         double totalCal = items.fold(0, (sum, item) => sum + item.calories);
-        
+
         return Padding(
           padding: const EdgeInsets.only(bottom: 24.0),
           child: Column(
@@ -913,14 +912,29 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
     );
   }
 
-  Widget _buildLogItem(BuildContext context, FoodLogEntry item) {
-    // UWAGA (zmiana): wcześniej jedynym sposobem usunięcia pozycji było
-    // przesunięcie palcem (Dismissible) — gest niezbyt odkrywalny bez
-    // podpowiedzi. Teraz zwykłe DOTKNIĘCIE pozycji też "odsłania" ją na
-    // czerwono z wyraźnym przyciskiem "Usuń", jako bardziej intuicyjna,
-    // dodatkowa droga do tego samego celu (przesunięcie dalej działa).
-    final isRevealed = _revealedDeleteItemId == item.id;
+  Future<bool> _confirmDeleteEntry(FoodLogEntry item) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: const Text('Usunąć posiłek?'),
+            content: Text('„${item.displayName}” zostanie usunięty ze śledzenia.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: const Text('Anuluj'),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: AppTheme.errorColor),
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: const Text('Usuń'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
 
+  Widget _buildLogItem(BuildContext context, FoodLogEntry item) {
     return Dismissible(
       key: ValueKey(item.id),
       direction: DismissDirection.endToStart,
@@ -934,69 +948,26 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
         alignment: Alignment.centerRight,
         child: const Icon(Icons.delete_outline, color: Colors.white),
       ),
+      confirmDismiss: (_) => _confirmDeleteEntry(item),
       onDismissed: (_) {
         Provider.of<FoodLogProvider>(context, listen: false).deleteEntry(item.id);
       },
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        // DOTKNIĘCIE otwiera edycję składników (gdy wpis pochodzi
-        // z przepisu). Usuwanie przeniesione na PRZYTRZYMANIE i przesunięcie
-        // palcem — wcześniej dotknięcie od razu pokazywało potwierdzenie
-        // usunięcia, co blokowało jakąkolwiek inną akcję na wpisie.
         onTap: () {
-          if (isRevealed) {
-            setState(() => _revealedDeleteItemId = null);
-            return;
-          }
           if (item.recipeId != null) {
             _editEntryIngredients(item);
-          } else {
-            // Wpis własny (bez przepisu) nie ma składników do edycji —
-            // wtedy dotknięcie zachowuje się jak dotąd.
-            setState(() => _revealedDeleteItemId = item.id);
           }
-        },
-        onLongPress: () {
-          setState(() => _revealedDeleteItemId = item.id);
         },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           margin: const EdgeInsets.only(bottom: 8),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: isRevealed ? AppTheme.errorColor.withOpacity(0.12) : AppTheme.surfaceColor,
+            color: AppTheme.surfaceColor,
             borderRadius: BorderRadius.circular(16),
-            border: isRevealed ? Border.all(color: AppTheme.errorColor, width: 1.5) : null,
           ),
-          child: isRevealed
-              ? Row(
-                  children: [
-                    Icon(Icons.delete_outline, color: AppTheme.errorColor),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Usunąć „${item.displayName}"?',
-                        style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.errorColor),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        setState(() => _revealedDeleteItemId = null);
-                      },
-                      child: const Text('Anuluj'),
-                    ),
-                    const SizedBox(width: 4),
-                    FilledButton(
-                      style: FilledButton.styleFrom(backgroundColor: AppTheme.errorColor),
-                      onPressed: () {
-                        Provider.of<FoodLogProvider>(context, listen: false).deleteEntry(item.id);
-                        setState(() => _revealedDeleteItemId = null);
-                      },
-                      child: const Text('Usuń'),
-                    ),
-                  ],
-                )
-              : Row(
+          child: Row(
                   children: [
                     Icon(
                       item.recipeId != null ? Icons.menu_book_outlined : Icons.restaurant_menu,
@@ -1050,6 +1021,16 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                           ],
                         ),
                       ],
+                    ),
+                    IconButton(
+                      tooltip: 'Usuń ze śledzenia',
+                      icon: Icon(Icons.delete_outline, color: AppTheme.errorColor),
+                      onPressed: () async {
+                        if (await _confirmDeleteEntry(item) && mounted) {
+                          await Provider.of<FoodLogProvider>(context, listen: false)
+                              .deleteEntry(item.id);
+                        }
+                      },
                     ),
                   ],
                 ),

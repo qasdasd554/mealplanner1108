@@ -5,8 +5,8 @@ import uuid
 from decimal import Decimal
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import or_, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import IntegrityError
@@ -66,6 +66,7 @@ class BarcodeLookupResponse(BaseModel):
     price_min: float | None = None
     price_max: float | None = None
     barcode: str | None = None
+    serving_quantity: float | None = None
 
 
 class ProductNameSuggestion(BaseModel):
@@ -82,6 +83,7 @@ class ProductNameSuggestion(BaseModel):
     carbs_per_100: float | None = None
     price_min: float | None = None
     price_max: float | None = None
+    serving_quantity: float | None = None
 
 
 class RecipeIngredientProductCreate(BaseModel):
@@ -112,6 +114,7 @@ async def _upsert_barcode_cache(
     price_min: float,
     price_max: float,
     source: str,
+    serving_quantity: float | None = None,
 ) -> None:
     """Zapisuje trafienie bez wyścigu między równoczesnymi skanami."""
     nutrition = {
@@ -129,6 +132,7 @@ async def _upsert_barcode_cache(
         "price_min": price_min,
         "price_max": price_max,
         "source": source,
+        "serving_quantity": serving_quantity,
     }
     statement = insert(BarcodeProductCache).values(**values)
     statement = statement.on_conflict_do_update(
@@ -137,6 +141,21 @@ async def _upsert_barcode_cache(
     )
     await db.execute(statement)
     await db.commit()
+
+
+async def _persist_barcode_cache_in_background(**values) -> None:
+    """Zapisuje trafienie po wysłaniu odpowiedzi do telefonu.
+
+    Użytkownik dostaje wynik z OFF/USDA bez czekania na dodatkowy zapis
+    w Neon. Następny skan korzysta już z lokalnego cache.
+    """
+    from app.db.session import async_session_factory
+
+    try:
+        async with async_session_factory() as session:
+            await _upsert_barcode_cache(session, **values)
+    except Exception:
+        logger.exception("Nie udało się zapisać produktu w cache kodów kreskowych")
 
 
 @router.get(
@@ -176,6 +195,7 @@ async def list_products(
 )
 async def lookup_barcode(
     barcode: str,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> BarcodeLookupResponse:
@@ -223,6 +243,7 @@ async def lookup_barcode(
             price_min=price_min,
             price_max=price_max,
             barcode=normalized_barcode,
+            serving_quantity=float(existing.default_quantity or 0) or None,
         )
 
     # 2. Cache Neon — wspólny dla wszystkich użytkowników.
@@ -247,31 +268,32 @@ async def lookup_barcode(
             price_min=cached.price_min,
             price_max=cached.price_max,
             barcode=cached.barcode,
+            serving_quantity=cached.serving_quantity,
         )
 
-    # 3. Open Food Facts, USDA FoodData Central, potem UPCitemdb.
+    # 3. Open Food Facts v3.6 oraz USDA FoodData Central. UPCitemdb zostało
+    # usunięte z aktywnej ścieżki: często zwracało 429 i nie zawiera makro.
     from app.services.barcode_lookup import lookup_barcode_external
 
     external = await lookup_barcode_external(normalized_barcode)
     if external is not None:
-        try:
-            await _upsert_barcode_cache(
-                db,
-                barcode=normalized_barcode,
-                name=external.name,
-                brand=external.brand,
-                unit=external.unit,
-                kcal_per_100=external.kcal_per_100,
-                protein_per_100=external.protein_per_100,
-                fat_per_100=external.fat_per_100,
-                carbs_per_100=external.carbs_per_100,
-                price_min=external.price_min,
-                price_max=external.price_max,
-                source=external.source,
-            )
-        except Exception as exc:
-            await db.rollback()
-            logger.warning("Nie udało się zapisać kodu %s w cache: %s", normalized_barcode, exc)
+        # Zapis nie blokuje odpowiedzi. Po zakończeniu tego żądania FastAPI
+        # otwiera osobną sesję i utrwala wynik dla kolejnych użytkowników.
+        background_tasks.add_task(
+            _persist_barcode_cache_in_background,
+            barcode=normalized_barcode,
+            name=external.name,
+            brand=external.brand,
+            unit=external.unit,
+            kcal_per_100=external.kcal_per_100,
+            protein_per_100=external.protein_per_100,
+            fat_per_100=external.fat_per_100,
+            carbs_per_100=external.carbs_per_100,
+            price_min=external.price_min,
+            price_max=external.price_max,
+            source=external.source,
+            serving_quantity=external.serving_quantity,
+        )
         return BarcodeLookupResponse(
             found=True,
             source=external.source,
@@ -286,9 +308,126 @@ async def lookup_barcode(
             price_min=external.price_min,
             price_max=external.price_max,
             barcode=normalized_barcode,
+            serving_quantity=external.serving_quantity,
         )
 
     return BarcodeLookupResponse(found=False, source=None, name=None)
+
+
+class ProductLabelRecognitionRequest(BaseModel):
+    barcode: str = Field(..., min_length=8, max_length=50)
+    front_photo_base64: str
+    nutrition_photo_base64: str
+
+    @field_validator("front_photo_base64", "nutrition_photo_base64")
+    @classmethod
+    def validate_photo(cls, value: str) -> str:
+        from app.core.photo_validation import validate_and_check_photo_base64
+
+        return validate_and_check_photo_base64(value, 3 * 1024 * 1024)
+
+
+class ProductLabelConfirmation(BaseModel):
+    barcode: str = Field(..., min_length=8, max_length=50)
+    name: str = Field(..., min_length=2, max_length=300)
+    brand: str | None = Field(None, max_length=200)
+    unit: str = Field("g", pattern="^(g|ml|szt)$")
+    serving_quantity: float | None = Field(None, gt=0, le=100_000)
+    kcal_per_100: float | None = Field(None, ge=0, le=2_000)
+    protein_per_100: float | None = Field(None, ge=0, le=200)
+    fat_per_100: float | None = Field(None, ge=0, le=200)
+    carbs_per_100: float | None = Field(None, ge=0, le=200)
+
+
+@router.post(
+    "/barcode/recognize-label",
+    response_model=BarcodeLookupResponse,
+    summary="Rozpoznaj brakujący produkt z przodu opakowania i tabeli",
+)
+async def recognize_product_from_label(
+    payload: ProductLabelRecognitionRequest,
+    current_user: User = Depends(get_current_user),
+) -> BarcodeLookupResponse:
+    """Awaryjny OCR/AI uruchamiany wyłącznie po braku w bezpłatnych bazach."""
+    from app.services.barcode_lookup import normalize_barcode
+    from app.services.product_label_ai import (
+        ProductLabelRecognitionError,
+        recognize_product_label,
+    )
+
+    barcode = normalize_barcode(payload.barcode)
+    if barcode is None:
+        raise HTTPException(status_code=400, detail="Nieprawidłowy kod EAN/UPC")
+    from app.core.rate_limit import enforce_user_rate_limit, product_label_ai_limiter
+
+    enforce_user_rate_limit(
+        product_label_ai_limiter,
+        current_user.id,
+        "rozpoznawanie etykiet produktów",
+    )
+    try:
+        result = await recognize_product_label(
+            barcode=barcode,
+            front_photo_base64=payload.front_photo_base64,
+            nutrition_photo_base64=payload.nutrition_photo_base64,
+        )
+    except ProductLabelRecognitionError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    price_min, price_max = price_range_for_product(result["name"])
+    result["price_min"] = price_min
+    result["price_max"] = price_max
+    return BarcodeLookupResponse(**result)
+
+
+@router.post(
+    "/barcode/confirm-label",
+    response_model=BarcodeLookupResponse,
+    summary="Potwierdź dane etykiety i zapisz produkt w Neon",
+)
+async def confirm_product_label(
+    payload: ProductLabelConfirmation,
+    db: AsyncSession = Depends(get_db),
+) -> BarcodeLookupResponse:
+    """Dopiero świadome potwierdzenie użytkownika zasila wspólny cache."""
+    from app.services.barcode_lookup import normalize_barcode
+
+    barcode = normalize_barcode(payload.barcode)
+    if barcode is None:
+        raise HTTPException(status_code=400, detail="Nieprawidłowy kod EAN/UPC")
+    name = payload.name.strip()
+    brand = (payload.brand or "").strip() or None
+    price_min, price_max = price_range_for_product(name)
+    await _upsert_barcode_cache(
+        db,
+        barcode=barcode,
+        name=name,
+        brand=brand,
+        unit=payload.unit,
+        kcal_per_100=payload.kcal_per_100,
+        protein_per_100=payload.protein_per_100,
+        fat_per_100=payload.fat_per_100,
+        carbs_per_100=payload.carbs_per_100,
+        price_min=price_min,
+        price_max=price_max,
+        source="product_label_ai_confirmed",
+        serving_quantity=payload.serving_quantity,
+    )
+    return BarcodeLookupResponse(
+        found=True,
+        source="neon_cache",
+        barcode=barcode,
+        name=name,
+        brand=brand,
+        unit=payload.unit,
+        serving_quantity=payload.serving_quantity,
+        kcal_per_100=payload.kcal_per_100,
+        protein_per_100=payload.protein_per_100,
+        fat_per_100=payload.fat_per_100,
+        carbs_per_100=payload.carbs_per_100,
+        price_min=price_min,
+        price_max=price_max,
+    )
 
 
 @router.get(
@@ -327,7 +466,7 @@ async def list_scanned_products(
             "name": entry.name,
             "brand": entry.brand,
             "unit": entry.unit,
-            "default_quantity": 100,
+            "default_quantity": entry.serving_quantity or 100,
             "barcode": entry.barcode,
             "nutrition_per_100": entry.nutrition_per_100 or {},
             "image_url": None,

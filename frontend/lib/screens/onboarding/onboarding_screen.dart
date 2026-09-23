@@ -565,7 +565,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             if (mounted) setState(() {});
           },
           icon: const Icon(Icons.calculate_outlined),
-          label: const Text('Otwórz kalkulator zapotrzebowania'),
+          label: const Text(
+            'Otwórz kalkulator zapotrzebowania',
+            maxLines: 2,
+            softWrap: true,
+            textAlign: TextAlign.center,
+          ),
         ),
         const SizedBox(height: 18),
         Text('Ten krok jest opcjonalny. Wybierz „Dalej”, aby go pominąć.',
@@ -617,7 +622,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               );
             },
             icon: const Icon(Icons.add),
-            label: const Text('Dodaj produkty do spiżarni'),
+            label: const Text(
+              'Dodaj produkty do spiżarni',
+              maxLines: 2,
+              softWrap: true,
+              textAlign: TextAlign.center,
+            ),
           ),
           const SizedBox(height: 12),
           Text(

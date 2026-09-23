@@ -41,7 +41,7 @@ class AuthService {
       },
     );
     final token = AuthToken.fromJson(response as Map<String, dynamic>);
-    await _client.setToken(token.accessToken);
+    await _client.setSession(token.accessToken, token.refreshToken);
     return token;
   }
 
@@ -74,7 +74,8 @@ class AuthService {
     );
 
     if (response is Map<String, dynamic> && response['access_token'] != null) {
-      await _client.setToken(response['access_token'] as String);
+      final token = AuthToken.fromJson(response);
+      await _client.setSession(token.accessToken, token.refreshToken);
     }
   }
 
@@ -127,7 +128,7 @@ class AuthService {
       },
     );
     final token = AuthToken.fromJson(response as Map<String, dynamic>);
-    await _client.setToken(token.accessToken);
+    await _client.setSession(token.accessToken, token.refreshToken);
     return true;
   }
 
@@ -150,7 +151,7 @@ class AuthService {
         body: {'id_token': idToken},
       );
       final token = AuthToken.fromJson(response as Map<String, dynamic>);
-      await _client.setToken(token.accessToken);
+      await _client.setSession(token.accessToken, token.refreshToken);
       return true;
     } catch (_) {
       return false;
@@ -201,12 +202,25 @@ class AuthService {
       },
     );
     final token = AuthToken.fromJson(response as Map<String, dynamic>);
-    await _client.setToken(token.accessToken);
+    await _client.setSession(token.accessToken, token.refreshToken);
     return true;
   }
 
   Future<User> getProfile() async {
     final response = await _client.get(ApiConfig.usersMe);
+    // Starsze instalacje mają tylko access token. Gdy jest jeszcze ważny,
+    // jednorazowo wymieniamy go na pełną, odnawialną sesję bez proszenia
+    // użytkownika o ponowne logowanie.
+    if (!await _client.hasRefreshToken()) {
+      try {
+        final session = await _client.post(ApiConfig.authSession);
+        final token = AuthToken.fromJson(session as Map<String, dynamic>);
+        await _client.setSession(token.accessToken, token.refreshToken);
+      } catch (_) {
+        // Profil został poprawnie pobrany; chwilowa awaria bootstrapu nie
+        // może sama w sobie wylogować ani zablokować wejścia do aplikacji.
+      }
+    }
     return User.fromJson(response as Map<String, dynamic>);
   }
 

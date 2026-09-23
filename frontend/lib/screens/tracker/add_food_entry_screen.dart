@@ -15,7 +15,9 @@ import '../../widgets/product_name_autocomplete_field.dart';
 
 
 class AddFoodEntryScreen extends StatefulWidget {
-  const AddFoodEntryScreen({super.key});
+  final String? initialBarcode;
+
+  const AddFoodEntryScreen({super.key, this.initialBarcode});
 
   @override
   State<AddFoodEntryScreen> createState() => _AddFoodEntryScreenState();
@@ -27,7 +29,11 @@ class _AddFoodEntryScreenState extends State<AddFoodEntryScreen> with SingleTick
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(
+      length: 3,
+      vsync: this,
+      initialIndex: widget.initialBarcode == null ? 0 : 2,
+    );
   }
 
   @override
@@ -55,10 +61,10 @@ class _AddFoodEntryScreenState extends State<AddFoodEntryScreen> with SingleTick
       ),
       body: TabBarView(
         controller: _tabController,
-        children: const [
-          _PlanTab(),
-          _RecipesTab(),
-          _ProductsTab(),
+        children: [
+          const _PlanTab(),
+          const _RecipesTab(),
+          _ProductsTab(initialBarcode: widget.initialBarcode),
         ],
       ),
     );
@@ -769,7 +775,9 @@ class _EmptyHint extends StatelessWidget {
 
 /// ── Zakładka "Ręcznie" ──────────────────────────────────────────────
 class _ProductsTab extends StatefulWidget {
-  const _ProductsTab();
+  final String? initialBarcode;
+
+  const _ProductsTab({this.initialBarcode});
 
   @override
   State<_ProductsTab> createState() => _ProductsTabState();
@@ -867,6 +875,7 @@ class _ProductsTabState extends State<_ProductsTab> {
             Expanded(
               child: PickProductFromCatalogSheet(
                 embedded: true,
+                initialBarcode: widget.initialBarcode,
                 onPicked: (product) => unawaited(_pickAndLog(product)),
               ),
             ),
@@ -889,7 +898,12 @@ class _ProductsTabState extends State<_ProductsTab> {
                       builder: (_) => const SubmitProductSheet(),
                     ),
                     icon: const Icon(Icons.add_box_outlined, size: 18),
-                    label: const Text('Nie ma produktu? Dodaj go do bazy'),
+                    label: const Text(
+                      'Nie ma produktu? Dodaj go do bazy',
+                      maxLines: 2,
+                      softWrap: true,
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                 ),
               ),

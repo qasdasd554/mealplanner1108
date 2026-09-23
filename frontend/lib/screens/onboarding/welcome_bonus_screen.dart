@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../theme/app_theme.dart';
+import '../../widgets/premium_feature_tag.dart';
+import '../../widgets/barcode_destination_sheet.dart';
+import '../recipes/ai_add_recipe_screen.dart';
 
 /// Ekran pokazywany raz, zaraz po ukończeniu onboardingu — informuje
 /// o punktach powitalnych.
@@ -82,7 +85,56 @@ class WelcomeBonusScreen extends StatelessWidget {
                     ],
                   ),
                 ).animate().fadeIn(delay: 500.ms),
-                const SizedBox(height: 34),
+                const SizedBox(height: 22),
+                Text(
+                  'Wypróbuj teraz',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => scanProductWithDestination(context),
+                    icon: const Icon(Icons.barcode_reader),
+                    label: const Text('Zeskanuj pierwszy produkt'),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const AiAddRecipeScreen(
+                          initialTabIndex: 2,
+                        ),
+                      ),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.link),
+                        SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            'Dodaj przepis z linku',
+                            maxLines: 2,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        PremiumFeatureTag(
+                          label: 'PREMIUM / 2 PKT',
+                          fontSize: 8,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton(

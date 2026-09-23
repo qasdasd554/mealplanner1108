@@ -6,8 +6,13 @@ import 'package:flutter/material.dart';
 /// bardzo kompaktowy, żeby nie zdominować przycisku, który opisuje.
 class PremiumFeatureTag extends StatelessWidget {
   final double fontSize;
+  final String label;
 
-  const PremiumFeatureTag({super.key, this.fontSize = 10});
+  const PremiumFeatureTag({
+    super.key,
+    this.fontSize = 10,
+    this.label = 'PREMIUM',
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +27,7 @@ class PremiumFeatureTag extends StatelessWidget {
         borderRadius: BorderRadius.circular(fontSize),
       ),
       child: Text(
-        'PREMIUM',
+        label,
         style: TextStyle(
           color: Colors.white,
           fontSize: fontSize,

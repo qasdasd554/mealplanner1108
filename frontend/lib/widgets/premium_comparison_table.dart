@@ -15,6 +15,7 @@ class PremiumComparisonTable extends StatelessWidget {
 
   static const List<(String, Object, Object)> _comparisonRows = [
     ('Import przepisu przez AI (zdjęcie, tekst, link)', true, false),
+    ('Seryjne skanowanie produktów bez zamykania aparatu', true, false),
     ('Publikacja przepisów we wspólnym katalogu', true, false),
     ('Listy zakupów z wybranych przepisów', '5', '1'),
     ('Generowanie planu posiłków', true, true),

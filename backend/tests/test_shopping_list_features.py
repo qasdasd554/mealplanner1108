@@ -13,7 +13,8 @@ from app.api.v1.shopping_lists import shopping_item_merge_key
 from app.schemas.shopping_list import ShoppingListItemResponse
 from app.services.shopping_list_builder import pantry_coverage_grams
 from app.services.shopping_list_quota import (
-    calendar_week_start, can_create_shopping_list, record_shopping_list_creation,
+    calendar_week_start, can_append_recipes_to_existing_list,
+    can_create_shopping_list, record_shopping_list_creation,
 )
 
 
@@ -57,6 +58,16 @@ def test_premium_can_create_list_without_weekly_count_query() -> None:
     db.execute.assert_not_called()
     db.add.assert_called_once()
     db.flush.assert_awaited_once()
+
+
+def test_standard_cannot_append_whole_recipe_to_existing_list() -> None:
+    user = SimpleNamespace(id=uuid4(), role="user", is_premium=False)
+    assert can_append_recipes_to_existing_list(user) is False
+
+
+def test_admin_can_append_whole_recipe_to_existing_list() -> None:
+    user = SimpleNamespace(id=uuid4(), role="admin")
+    assert can_append_recipes_to_existing_list(user) is True
 
 
 def test_pantry_covers_only_available_amount() -> None:

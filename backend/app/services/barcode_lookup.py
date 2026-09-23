@@ -10,9 +10,11 @@ import httpx
 
 from app.core.config import settings
 
+# Jedno, aktualne API całej światowej bazy. Nie pytamy kolejno v2 i v3 o
+# ten sam kod, ponieważ obie wersje korzystają z tych samych danych, a każde
+# dodatkowe żądanie tylko zużywa limit Open Food Facts i wydłuża skan.
 OFF_API_URLS = (
-    ("v2", "https://world.openfoodfacts.org/api/v2/product/{barcode}.json"),
-    ("v3", "https://world.openfoodfacts.org/api/v3/product/{barcode}"),
+    ("v3", "https://world.openfoodfacts.org/api/v3.6/product/{barcode}.json"),
 )
 USDA_SEARCH_URL = "https://api.nal.usda.gov/fdc/v1/foods/search"
 UPCITEMDB_LOOKUP_URL = "https://api.upcitemdb.com/prod/trial/lookup"
@@ -40,6 +42,7 @@ class BarcodeLookupResult:
         price_max: float,
         source: str,
         barcode: str | None = None,
+        serving_quantity: float | None = None,
     ) -> None:
         self.name = name
         self.brand = brand
@@ -52,6 +55,7 @@ class BarcodeLookupResult:
         self.price_max = price_max
         self.source = source
         self.barcode = barcode
+        self.serving_quantity = serving_quantity
 
 
 def _has_complete_nutrition(result: BarcodeLookupResult) -> bool:
@@ -81,6 +85,7 @@ def _merge_lookup_results(
         price_max=primary.price_max,
         source=primary.source,
         barcode=primary.barcode or supplementary.barcode,
+        serving_quantity=primary.serving_quantity or supplementary.serving_quantity,
     )
 
 
@@ -218,6 +223,7 @@ def _result_from_off_product(product: dict) -> BarcodeLookupResult | None:
         price_max=price_max,
         source="open_food_facts",
         barcode=normalize_barcode(str(product.get("code") or "")),
+        serving_quantity=_number(product, "serving_quantity", "product_quantity"),
     )
 
 
@@ -391,6 +397,8 @@ def _product_from_usda_response(data: object, barcode: str) -> BarcodeLookupResu
             carbs_per_100=nutrient_values.get(1005),
             price_min=price_min, price_max=price_max,
             source="usda_fooddata_central",
+            barcode=normalize_barcode(gtin),
+            serving_quantity=_number(food, "servingSize"),
         )
     return None
 
@@ -447,28 +455,41 @@ async def _fetch_upcitemdb(client: httpx.AsyncClient, barcode: str) -> BarcodeLo
 
 
 async def lookup_barcode_external(barcode: str) -> BarcodeLookupResult | None:
-    """Zwraca pierwszy pełny wynik, bez czekania na wolniejsze bazy."""
+    """OFF jest źródłem głównym, USDA uzupełnia braki bez opóźniania UI.
+
+    Oba bezpłatne źródła startują współbieżnie. To celowe: ścisłe czekanie
+    na timeout OFF przed uruchomieniem USDA dodawałoby kilka sekund przy
+    każdym brakującym kodzie. Wynik OFF ma pierwszeństwo, a USDA służy jako
+    zapas lub uzupełnienie makro.
+    """
     normalized = normalize_barcode(barcode)
     if normalized is None:
         return None
     headers = {"User-Agent": USER_AGENT, "Accept": "application/json"}
     async with httpx.AsyncClient(timeout=10.0, follow_redirects=True, headers=headers) as client:
+        async def fetch_usda_after_off_head_start() -> BarcodeLookupResult | None:
+            # Większość polskich trafień OFF zwraca się szybko. Krótki start
+            # przewagi ogranicza zbędne zapytania USDA, ale 350 ms jest na
+            # tyle małe, że przy wolnym/brakującym OFF użytkownik go nie odczuje.
+            await asyncio.sleep(0.35)
+            return await _fetch_usda(client, normalized)
+
         tasks = [
-            asyncio.create_task(provider(client, normalized))
-            for provider in (_fetch_off, _fetch_usda, _fetch_upcitemdb)
+            asyncio.create_task(_fetch_off(client, normalized)),
+            asyncio.create_task(fetch_usda_after_off_head_start()),
         ]
         fallback: BarcodeLookupResult | None = None
-        # Poprzednie 5 sekund często kończyło skan przed odpowiedzią OFF,
-        # mimo że produkt tam istniał. Szybki pełny wynik nadal wraca od razu.
-        deadline = asyncio.get_running_loop().time() + 8.0
+        # Pięć sekund to twardy budżet całego wyszukiwania zewnętrznego.
+        # Cache Neon jest sprawdzany wcześniej i nie podlega temu limitowi.
+        deadline = asyncio.get_running_loop().time() + 5.0
         pending = set(tasks)
         try:
             while pending:
                 remaining = deadline - asyncio.get_running_loop().time()
                 if remaining <= 0:
                     break
-                # UPCitemdb bez makro może przyjść pierwszy. Pozostałe
-                # źródła mają krótką szansę zwrócić również makroskładniki.
+                # Częściowy wynik jednego źródła dostaje krótką szansę na
+                # uzupełnienie makro przez drugie, bez czekania do deadline.
                 if fallback is not None:
                     remaining = min(remaining, 2.0)
                 done, pending = await asyncio.wait(

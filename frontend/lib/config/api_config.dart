@@ -118,6 +118,8 @@ class ApiConfig {
   static const String authRegister = '/auth/register';
   static const String authGoogle = '/auth/google';
   static const String authApple = '/auth/apple';
+  static const String authRefresh = '/auth/refresh';
+  static const String authSession = '/auth/session';
   static const String authVerifyEmail = '/auth/verify-email';
   static const String authResendCode = '/auth/resend-code';
   static const String authForgotPassword = '/auth/forgot-password';

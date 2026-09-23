@@ -17,6 +17,7 @@ import 'screens/shopping/shopping_list_screen.dart';
 import 'screens/recipes/recipes_screen.dart';
 import 'screens/recipes/recipe_detail_screen.dart';
 import 'screens/profile/profile_screen.dart';
+import 'screens/profile/premium_screen.dart';
 import 'screens/products/products_screen.dart';
 import 'screens/tracker/calorie_tracker_screen.dart';
 import 'screens/tracker/add_food_entry_screen.dart';
@@ -93,13 +94,17 @@ class _SmartMealPlannerAppState extends State<SmartMealPlannerApp>
             '/register': (context) => const RegisterScreen(),
             '/verify-email': (context) => const EmailVerificationScreen(),
             '/onboarding': (context) => const OnboardingScreen(),
-            '/home': (context) => const HomeScreen(),
+            '/home': (context) => HomeScreen(
+              initialIndex:
+                  (ModalRoute.of(context)?.settings.arguments as int?) ?? 0,
+            ),
             '/plan/config': (context) => const PlanConfigScreen(),
             '/plan/view': (context) => const PlanViewScreen(),
             '/shopping': (context) => const ShoppingListScreen(),
             '/recipes': (context) => const RecipesScreen(),
             '/recipe/detail': (context) => const RecipeDetailScreen(),
             '/profile': (context) => const ProfileScreen(),
+            '/premium': (context) => const PremiumScreen(),
             '/products': (context) => const ProductsScreen(),
             '/tracker': (context) => const CalorieTrackerScreen(),
             '/tracker/add': (context) => const AddFoodEntryScreen(),

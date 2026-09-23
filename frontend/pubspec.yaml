@@ -3,7 +3,7 @@ description: "A smart meal planner mobile application integrated with Polish gro
 publish_to: 'none'
 # Przy każdym kolejnym buildzie sklepowym zwiększ oba numery:
 # wersję iOS przed znakiem `+` oraz kod wersji Androida po `+`.
-version: 1.0.31+228
+version: 1.0.32+229
 
 environment:
   sdk: '>=3.7.0 <4.0.0'
@@ -31,6 +31,9 @@ dependencies:
   # zespołu Fluttera, wspiera Google Play Billing Library 8+ (wymóg
   # Google od 31 sierpnia 2026).
   in_app_purchase: ^3.2.3
+  # Potrzebny bezpośrednio do wyboru konkretnej oferty subskrypcji
+  # Google Play (basePlanId + offerId -> offerToken).
+  in_app_purchase_android: ^0.5.3
 
   # Reklamy nagradzane (Śledzenie dla kont bez Premium) — oficjalny
   # pakiet Google dla AdMob.

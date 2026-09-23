@@ -32,9 +32,36 @@ class PantryService {
     return (response as List).map((e) => PantryItem.fromJson(e as Map<String, dynamic>)).toList();
   }
 
-  Future<List<PantryItem>> addItems(List<String> productIds) async {
-    final response = await _client.post(ApiConfig.pantry, body: {'product_ids': productIds});
+  Future<List<PantryItem>> addItems(
+    List<String> productIds, {
+    double? quantity,
+    String? unit,
+  }) async {
+    final response = await _client.post(ApiConfig.pantry, body: {
+      'product_ids': productIds,
+      if (quantity != null) 'quantity': quantity,
+      if (unit != null) 'unit': unit,
+    });
     return (response as List).map((e) => PantryItem.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  Future<PantryItem> addFromBarcode(
+    String barcode, {
+    required double quantity,
+    required String unit,
+    bool batch = false,
+  }) async {
+    final response = await _client.post(
+      '${ApiConfig.pantry}from-barcode',
+      body: {
+        'barcode': barcode,
+        'quantity': quantity,
+        'unit': unit,
+        if (batch) 'batch': true,
+      },
+      timeout: const Duration(seconds: 15),
+    );
+    return PantryItem.fromJson(response as Map<String, dynamic>);
   }
 
   Future<void> deleteItem(String itemId) async {

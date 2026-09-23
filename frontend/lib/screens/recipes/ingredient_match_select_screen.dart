@@ -318,13 +318,23 @@ class _IngredientMatchSelectScreenState extends State<IngredientMatchSelectScree
                                 OutlinedButton.icon(
                                   onPressed: _generateWithAi,
                                   icon: const Icon(Icons.auto_awesome, size: 18),
-                                  label: const Text('Wygeneruj nowy przepis przez AI'),
+                                  label: const Text(
+                                    'Wygeneruj nowy przepis przez AI',
+                                    maxLines: 2,
+                                    softWrap: true,
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
                                 const SizedBox(height: 4),
                                 TextButton.icon(
                                   onPressed: () => _openPantry(addProductImmediately: true),
                                   icon: const Icon(Icons.add_circle_outline, size: 18),
-                                  label: const Text('Dodaj produkt do spiżarni'),
+                                  label: const Text(
+                                    'Dodaj produkt do spiżarni',
+                                    maxLines: 2,
+                                    softWrap: true,
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
                               ],
                             ),

@@ -153,6 +153,9 @@ recipe_photo_submission_limiter = SlidingWindowRateLimiter(max_events=10, window
 # (API Anthropic) — limit dzienny, niezależny od statusu premium (nawet
 # premium nie powinno móc wygenerować kosztów bez żadnego sufitu).
 ai_recipe_import_limiter = SlidingWindowRateLimiter(max_events=20, window_seconds=24 * 3600)
+# OCR etykiet uruchamia Gemini dopiero po braku kodu w trzech źródłach.
+# Limit chroni wspólny klucz API przed automatycznym wysyłaniem zdjęć.
+product_label_ai_limiter = SlidingWindowRateLimiter(max_events=15, window_seconds=24 * 3600)
 # Ponowne wysłanie kodu weryfikacyjnego e-mail — max 3 razy na 10 minut,
 # żeby nie dało się zasypać cudzej skrzynki mailem (albo zużyć darmowy
 # limit Resend) powtarzanym "wyślij ponownie".

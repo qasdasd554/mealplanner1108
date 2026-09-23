@@ -15,6 +15,11 @@ from app.models.shopping_list_creation import ShoppingListCreation
 from app.models.user import User
 
 
+def can_append_recipes_to_existing_list(user: User) -> bool:
+    """Cały kolejny przepis można dopisać tylko z aktywnym Premium."""
+    return is_premium_active(user)
+
+
 def calendar_week_start(day: date | None = None) -> date:
     day = day or datetime.now(ZoneInfo("Europe/Warsaw")).date()
     return day - timedelta(days=day.weekday())

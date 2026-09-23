@@ -1,0 +1,296 @@
+import 'package:flutter/material.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+
+import '../services/pantry_service.dart';
+import '../theme/app_theme.dart';
+import '../utils/barcode_utils.dart';
+import '../utils/error_utils.dart';
+
+/// Seryjne skanowanie Premium. Aparat pozostaje otwarty, a każdy poprawnie
+/// rozpoznany produkt jest od razu dodawany do spiżarni. Ten sam kod w jednej
+/// sesji jest obsługiwany tylko raz, więc kamera nie tworzy duplikatów.
+class BatchBarcodeScannerScreen extends StatefulWidget {
+  const BatchBarcodeScannerScreen({super.key});
+
+  @override
+  State<BatchBarcodeScannerScreen> createState() =>
+      _BatchBarcodeScannerScreenState();
+}
+
+class _BatchBarcodeScannerScreenState
+    extends State<BatchBarcodeScannerScreen> {
+  final MobileScannerController _scanner = MobileScannerController(
+    facing: CameraFacing.back,
+    detectionSpeed: DetectionSpeed.noDuplicates,
+    autoZoom: true,
+    formats: const [
+      BarcodeFormat.ean8,
+      BarcodeFormat.ean13,
+      BarcodeFormat.upcA,
+      BarcodeFormat.upcE,
+      BarcodeFormat.code128,
+      BarcodeFormat.itf,
+    ],
+  );
+  final PantryService _pantry = PantryService();
+  final Set<String> _seen = {};
+  final List<_BatchScanItem> _items = [];
+  final List<String> _queue = [];
+  bool _processing = false;
+
+  @override
+  void dispose() {
+    _scanner.dispose();
+    super.dispose();
+  }
+
+  Future<void> _onScan(BarcodeCapture capture) async {
+    if (!mounted) return;
+    String? code;
+    for (final candidate in capture.barcodes) {
+      final normalized = normalizeScannedBarcode(candidate.rawValue);
+      if (normalized != null && !_seen.contains(normalized)) {
+        code = normalized;
+        break;
+      }
+    }
+    if (code == null) return;
+    final scannedCode = code;
+
+    _seen.add(scannedCode);
+    setState(() {
+      _queue.add(scannedCode);
+      _items.insert(
+        0,
+        _BatchScanItem(code: scannedCode, state: _BatchState.loading),
+      );
+    });
+    await _processQueue();
+  }
+
+  Future<void> _processQueue() async {
+    if (_processing) return;
+    _processing = true;
+    while (_queue.isNotEmpty && mounted) {
+      final scannedCode = _queue.removeAt(0);
+      if (mounted) setState(() {});
+      await _processCode(scannedCode);
+    }
+    _processing = false;
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _processCode(String scannedCode) async {
+    try {
+      final pantryItem = await _pantry.addFromBarcode(
+        scannedCode,
+        // W trybie batch backend dobiera właściwą ilość i jednostkę po
+        // rozpoznaniu produktu. Te wartości są bezpiecznym fallbackiem.
+        quantity: 1,
+        unit: 'szt',
+        batch: true,
+      );
+      if (!mounted) return;
+      _replaceItem(
+        scannedCode,
+        state: _BatchState.added,
+        name: pantryItem.product.name,
+        quantity: pantryItem.quantity,
+        unit: pantryItem.unit,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      _replaceItem(
+        scannedCode,
+        state: _BatchState.error,
+        message: friendlyError(error),
+      );
+    }
+  }
+
+  void _replaceItem(
+    String code, {
+    required _BatchState state,
+    String? name,
+    double? quantity,
+    String? unit,
+    String? message,
+  }) {
+    setState(() {
+      final index = _items.indexWhere((item) => item.code == code);
+      if (index == -1) return;
+      _items[index] = _BatchScanItem(
+        code: code,
+        state: state,
+        name: name,
+        quantity: quantity,
+        unit: unit,
+        message: message,
+      );
+    });
+  }
+
+  int get _addedCount =>
+      _items.where((item) => item.state == _BatchState.added).length;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Skanowanie seryjne'),
+        actions: [
+          TextButton(
+            onPressed: _processing || _queue.isNotEmpty
+                ? null
+                : () => Navigator.of(context).pop(_addedCount),
+            child: const Text('Zakończ'),
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            flex: 3,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                MobileScanner(
+                  controller: _scanner,
+                  onDetect: _onScan,
+                  tapToFocus: true,
+                  errorBuilder: (context, error) => Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Text(
+                        'Nie można uruchomić aparatu. Sprawdź uprawnienie do kamery.\n$error',
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                ),
+                IgnorePointer(
+                  child: Center(
+                    child: Container(
+                      width: MediaQuery.sizeOf(context).width * .82,
+                      height: 135,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.white, width: 3),
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: 12,
+                  right: 12,
+                  top: 12,
+                  child: Card(
+                    color: Colors.black.withOpacity(.72),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 10,
+                      ),
+                      child: Text(
+                        _processing || _queue.isNotEmpty
+                            ? 'Rozpoznaję produkty · oczekuje ${_queue.length + 1}'
+                            : 'Skanuj kolejne produkty. Aparat pozostanie otwarty.',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Container(
+              color: AppTheme.backgroundColor,
+              child: _items.isEmpty
+                  ? Center(
+                      child: Text(
+                        'Zeskanowane produkty pojawią się tutaj.',
+                        style: TextStyle(color: AppTheme.textSecondary),
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.all(12),
+                      itemCount: _items.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 6),
+                      itemBuilder: (_, index) => _buildItem(_items[index]),
+                    ),
+            ),
+          ),
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              child: SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: _processing || _queue.isNotEmpty
+                      ? null
+                      : () => Navigator.of(context).pop(_addedCount),
+                  icon: const Icon(Icons.check),
+                  label: Text('Zakończ · dodano $_addedCount'),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildItem(_BatchScanItem item) {
+    final (icon, color, status) = switch (item.state) {
+      _BatchState.loading =>
+        (Icons.hourglass_top, AppTheme.textSecondary, 'Rozpoznawanie…'),
+      _BatchState.added =>
+        (Icons.check_circle, AppTheme.primaryColor, 'Dodano do spiżarni'),
+      _BatchState.error =>
+        (Icons.error_outline, AppTheme.errorColor, item.message ?? 'Błąd'),
+    };
+    return Card(
+      child: ListTile(
+        dense: true,
+        leading: Icon(icon, color: color),
+        title: Text(
+          item.name ?? item.code,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Text(
+          item.state == _BatchState.added
+              ? '$status · ${item.quantity?.toStringAsFixed(0)} ${item.unit}'
+              : status,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+    );
+  }
+}
+
+enum _BatchState { loading, added, error }
+
+class _BatchScanItem {
+  final String code;
+  final _BatchState state;
+  final String? name;
+  final double? quantity;
+  final String? unit;
+  final String? message;
+
+  const _BatchScanItem({
+    required this.code,
+    required this.state,
+    this.name,
+    this.quantity,
+    this.unit,
+    this.message,
+  });
+}

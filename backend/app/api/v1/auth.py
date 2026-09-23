@@ -9,6 +9,7 @@ import uuid
 from datetime import datetime, timedelta, timezone
 
 from google.auth.exceptions import GoogleAuthError
+from jose import JWTError, jwt
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token as google_id_token
 
@@ -37,7 +38,12 @@ from app.core.rate_limit import (
     enforce_user_rate_limit,
     login_limiter,
 )
-from app.core.security import create_access_token, get_password_hash, verify_password
+from app.core.security import (
+    create_access_token,
+    create_refresh_token,
+    get_password_hash,
+    verify_password,
+)
 from app.db.session import get_db
 from app.models import User
 from app.schemas.user import UserCreate, UserResponse
@@ -45,6 +51,15 @@ from app.api.deps import get_current_user, get_current_user_allow_unverified
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+
+def _session_tokens(user: User) -> dict[str, str]:
+    subject = {"sub": str(user.id)}
+    return {
+        "access_token": create_access_token(data=subject),
+        "refresh_token": create_refresh_token(data=subject),
+        "token_type": "bearer",
+    }
 
 async def get_parsed_body(request: Request):
     try:
@@ -150,10 +165,7 @@ async def register(request: Request, db: AsyncSession = Depends(get_db)):
     except EmailSendError:
         logger.warning("Nie udało się wysłać maila weryfikacyjnego do %s przy rejestracji.", user.email)
 
-    return {
-        "access_token": create_access_token(data={"sub": str(user.id)}),
-        "token_type": "bearer",
-    }
+    return _session_tokens(user)
 
 @router.post("/login")
 async def login(request: Request, db: AsyncSession = Depends(get_db)):
@@ -201,10 +213,38 @@ async def login(request: Request, db: AsyncSession = Depends(get_db)):
             detail=user.ban_reason or "To konto zostało zablokowane przez administratora.",
         )
 
-    return {
-        "access_token": create_access_token(data={"sub": str(user.id)}),
-        "token_type": "bearer",
-    }
+    return _session_tokens(user)
+
+
+@router.post("/refresh")
+async def refresh_session(request: Request, db: AsyncSession = Depends(get_db)):
+    """Wymienia ważny token odświeżający na nową, rotowaną parę tokenów."""
+    body = await get_parsed_body(request)
+    refresh_token = body.get("refresh_token")
+    if not isinstance(refresh_token, str) or not refresh_token:
+        raise HTTPException(status_code=401, detail="Sesja wygasła. Zaloguj się ponownie.")
+    try:
+        payload = jwt.decode(
+            refresh_token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+        )
+        if payload.get("type") != "refresh":
+            raise JWTError("wrong token type")
+        user_id = uuid.UUID(str(payload.get("sub")))
+    except (JWTError, ValueError, TypeError, AttributeError):
+        raise HTTPException(status_code=401, detail="Sesja wygasła. Zaloguj się ponownie.")
+
+    user = await db.get(User, user_id)
+    if user is None or user.is_banned:
+        raise HTTPException(status_code=401, detail="Sesja wygasła. Zaloguj się ponownie.")
+    return _session_tokens(user)
+
+
+@router.post("/session")
+async def bootstrap_refresh_session(
+    current_user: User = Depends(get_current_user_allow_unverified),
+):
+    """Dodaje refresh token istniejącym instalacjom bez ponownego logowania."""
+    return _session_tokens(current_user)
 
 @router.get("/me")
 async def get_me(current_user: User = Depends(get_current_user_allow_unverified)):
@@ -460,10 +500,7 @@ async def google_login(request: Request, db: AsyncSession = Depends(get_db)):
             detail=user.ban_reason or "To konto zostało zablokowane przez administratora.",
         )
 
-    return {
-        "access_token": create_access_token(data={"sub": str(user.id)}),
-        "token_type": "bearer",
-    }
+    return _session_tokens(user)
 
 
 @router.post("/apple")
@@ -555,7 +592,4 @@ async def apple_login(request: Request, db: AsyncSession = Depends(get_db)):
             detail=user.ban_reason or "To konto zostało zablokowane przez administratora.",
         )
 
-    return {
-        "access_token": create_access_token(data={"sub": str(user.id)}),
-        "token_type": "bearer",
-    }
+    return _session_tokens(user)

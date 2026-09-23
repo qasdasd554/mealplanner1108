@@ -14,6 +14,7 @@ class BarcodeLookupResult {
   final String? barcode;
   final double? priceMin;
   final double? priceMax;
+  final double? servingQuantity;
 
   const BarcodeLookupResult({
     required this.found,
@@ -29,6 +30,7 @@ class BarcodeLookupResult {
     this.barcode,
     this.priceMin,
     this.priceMax,
+    this.servingQuantity,
   });
 
   /// Czy dane pochodzą z Waszego własnego katalogu (a nie z zewnętrznej
@@ -57,6 +59,7 @@ class BarcodeLookupResult {
       barcode: json['barcode'] as String?,
       priceMin: _asDouble(json['price_min']),
       priceMax: _asDouble(json['price_max']),
+      servingQuantity: _asDouble(json['serving_quantity']),
     );
   }
 

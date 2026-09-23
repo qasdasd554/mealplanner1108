@@ -10,6 +10,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/recipe_photo.dart';
 import '../../widgets/decorative_circles.dart';
 import '../../widgets/recipe_favorite_button.dart';
+import '../../widgets/premium_feature_tag.dart';
 import 'recipe_leaderboard_screen.dart';
 import 'manual_add_recipe_screen.dart';
 import 'ai_add_recipe_screen.dart';
@@ -509,6 +510,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
                   leading: const Icon(Icons.photo_camera_outlined),
                   title: const Text('Zrób zdjęcie'),
                   subtitle: const Text('Przepisu albo gotowego dania'),
+                  trailing: const PremiumFeatureTag(
+                    label: 'PREMIUM / 2 PKT',
+                    fontSize: 8,
+                  ),
                   onTap: () {
                     Navigator.of(sheetContext).pop();
                     Navigator.of(context).push(MaterialPageRoute(
@@ -519,6 +524,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 ListTile(
                   leading: const Icon(Icons.text_snippet_outlined),
                   title: const Text('Wklej tekst'),
+                  trailing: const PremiumFeatureTag(
+                    label: 'PREMIUM / 2 PKT',
+                    fontSize: 8,
+                  ),
                   onTap: () {
                     Navigator.of(sheetContext).pop();
                     Navigator.of(context).push(MaterialPageRoute(
@@ -529,6 +538,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 ListTile(
                   leading: const Icon(Icons.link),
                   title: const Text('Wklej link'),
+                  trailing: const PremiumFeatureTag(
+                    label: 'PREMIUM / 2 PKT',
+                    fontSize: 8,
+                  ),
                   onTap: () {
                     Navigator.of(sheetContext).pop();
                     Navigator.of(context).push(MaterialPageRoute(

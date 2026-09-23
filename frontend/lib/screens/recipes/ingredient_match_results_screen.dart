@@ -83,12 +83,22 @@ class IngredientMatchResultsScreen extends StatelessWidget {
                     ? OutlinedButton.icon(
                         onPressed: () => _generateWithAi(context),
                         icon: const Icon(Icons.auto_awesome, size: 18),
-                        label: const Text('Żaden nie pasuje? Wygeneruj przez AI'),
+                        label: const Text(
+                          'Żaden nie pasuje? Wygeneruj przez AI',
+                          maxLines: 2,
+                          softWrap: true,
+                          textAlign: TextAlign.center,
+                        ),
                       )
                     : FilledButton.icon(
                         onPressed: () => _generateWithAi(context),
                         icon: const Icon(Icons.auto_awesome, size: 18),
-                        label: const Text('Wygeneruj nowy przepis przez AI'),
+                        label: const Text(
+                          'Wygeneruj nowy przepis przez AI',
+                          maxLines: 2,
+                          softWrap: true,
+                          textAlign: TextAlign.center,
+                        ),
                       ),
               ),
             ),

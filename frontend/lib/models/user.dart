@@ -182,10 +182,12 @@ class User {
 
 class AuthToken {
   final String accessToken;
+  final String? refreshToken;
   final String tokenType;
 
   AuthToken({
     required this.accessToken,
+    this.refreshToken,
     required this.tokenType,
   });
 
@@ -196,6 +198,7 @@ class AuthToken {
     }
     return AuthToken(
       accessToken: token,
+      refreshToken: json['refresh_token'] as String?,
       tokenType: json['token_type'] as String? ?? 'bearer',
     );
   }

@@ -191,6 +191,7 @@ def test_off_not_found_does_not_repeat_lookup_in_second_api_version() -> None:
     result = asyncio.run(barcode_lookup._fetch_off(client, "5901234123457"))
     assert result is None
     assert len(client.calls) == 1
+    assert "/api/v3.6/product/" in client.calls[0]
 
 
 def test_off_rate_limit_does_not_repeat_lookup_in_second_api_version() -> None:
@@ -228,3 +229,15 @@ def test_partial_off_product_can_take_macros_from_second_source() -> None:
     assert merged.brand == "Polska marka"
     assert merged.kcal_per_100 == 62
     assert merged.protein_per_100 == 4.2
+
+
+def test_off_reads_serving_quantity_for_quick_amount_prompt() -> None:
+    result = _result_from_off_product({
+        "code": "5901234123457",
+        "product_name_pl": "Serek wiejski",
+        "serving_quantity": "200",
+        "product_quantity_unit": "g",
+        "nutriments": {},
+    })
+    assert result is not None
+    assert result.serving_quantity == 200

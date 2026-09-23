@@ -9,6 +9,7 @@ import '../services/api_client.dart';
 import '../theme/app_theme.dart';
 import '../utils/error_utils.dart';
 import 'product_name_autocomplete_field.dart';
+import 'product_label_recognition_sheet.dart';
 
 /// Okno zgłoszenia własnego produktu do katalogu.
 ///
@@ -21,8 +22,15 @@ class SubmitProductSheet extends StatefulWidget {
   /// (pola wypełnione danymi z `Product`, zapis idzie przez PUT zamiast
   /// POST). Gdy null — zwykłe zgłoszenie nowego produktu.
   final Product? editing;
+  final bool autoStartBarcodeScan;
+  final String? initialBarcode;
 
-  const SubmitProductSheet({super.key, this.editing});
+  const SubmitProductSheet({
+    super.key,
+    this.editing,
+    this.autoStartBarcodeScan = false,
+    this.initialBarcode,
+  });
 
   @override
   State<SubmitProductSheet> createState() => _SubmitProductSheetState();
@@ -67,6 +75,7 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
   bool _isScanning = false;
   double? _priceMin;
   double? _priceMax;
+  String? _existingProductId;
 
   @override
   void initState() {
@@ -74,7 +83,17 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
     if (widget.editing?.requestedStoreIds != null) {
       _selectedStoreIds.addAll(widget.editing!.requestedStoreIds!);
     }
-    _barcode = widget.editing?.barcode;
+    _barcode = widget.editing?.barcode ?? widget.initialBarcode;
+    if (widget.initialBarcode != null || widget.autoStartBarcodeScan) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        if (widget.initialBarcode != null) {
+          _lookupBarcode(widget.initialBarcode!);
+        } else {
+          _scanBarcode();
+        }
+      });
+    }
   }
 
   @override
@@ -129,30 +148,45 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
     final code = await scanBarcode(context);
     if (code == null || !mounted) return;
 
+    await _lookupBarcode(code);
+  }
+
+  Future<void> _lookupBarcode(String code) async {
+    if (!mounted) return;
+
     setState(() {
       _barcode = code;
       _isScanning = true;
     });
 
     try {
-      final result = await _barcodeLookupService.lookup(code);
+      var result = await _barcodeLookupService.lookup(code);
       if (!mounted) return;
 
       if (!result.found) {
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(const SnackBar(
-            duration: Duration(seconds: 3),
-            content: Text(
-              'Nie znaleziono tego kodu — uzupełnij dane ręcznie, kod zapisze się przy produkcie.',
-            ),
-          ));
-        return;
+        final recognized = await showProductLabelRecognitionSheet(
+          context,
+          barcode: code,
+        );
+        if (!mounted) return;
+        if (recognized == null) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(const SnackBar(
+              duration: Duration(seconds: 3),
+              content: Text(
+                'Możesz nadal wpisać dane ręcznie. Kod zostanie zachowany.',
+              ),
+            ));
+          return;
+        }
+        result = recognized;
       }
 
       // Wypełniamy TYLKO puste pola — nie nadpisujemy tego, co
       // użytkownik już zdążył wpisać ręcznie przed skanowaniem.
       setState(() {
+        _existingProductId = _isEditing ? null : result.existingProductId;
         if (_name.text.trim().isEmpty && result.name != null) {
           _name.text = result.name!;
         }
@@ -320,12 +354,43 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : const Icon(Icons.barcode_reader, size: 18),
-                    label: Text(_barcode == null
-                        ? 'Skanuj kod kreskowy'
-                        : 'Zeskanowano: $_barcode (zmień)'),
+                    label: Text(
+                      _barcode == null
+                          ? 'Skanuj kod kreskowy'
+                          : 'Zeskanowano: $_barcode (zmień)',
+                      maxLines: 2,
+                      softWrap: true,
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
+                if (_existingProductId != null) ...[
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppTheme.primaryColor.withOpacity(0.35),
+                      ),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.check_circle_outline,
+                            color: AppTheme.primaryColor),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Ten produkt jest już zapisany w bazie. Nie trzeba dodawać go ponownie.',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 ProductNameAutocompleteField(
                   controller: _name,
                   maxLength: 300,
@@ -413,12 +478,16 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                           color: AppTheme.primaryColor,
                         ),
                         const SizedBox(width: 6),
-                        Text(
-                          'Wartości odżywcze na 100 g (opcjonalnie)',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.primaryColor,
+                        Expanded(
+                          child: Text(
+                            'Wartości odżywcze na 100 g (opcjonalnie)',
+                            maxLines: 2,
+                            softWrap: true,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.primaryColor,
+                            ),
                           ),
                         ),
                       ],
@@ -512,7 +581,11 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                 SizedBox(
                   height: 48,
                   child: FilledButton(
-                    onPressed: _isSaving ? null : _submit,
+                    onPressed: _isSaving
+                        ? null
+                        : (_existingProductId != null
+                            ? () => Navigator.of(context).pop(false)
+                            : _submit),
                     child: _isSaving
                         ? const SizedBox(
                             width: 20,
@@ -520,7 +593,13 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                             child: CircularProgressIndicator(
                                 strokeWidth: 2, color: Colors.white),
                           )
-                        : Text(_isEditing ? 'Zapisz zmiany' : 'Dodaj produkt'),
+                        : Text(
+                            _existingProductId != null
+                                ? 'Zamknij — produkt jest już w bazie'
+                                : (_isEditing
+                                    ? 'Zapisz zmiany'
+                                    : 'Dodaj produkt'),
+                          ),
                   ),
                 ),
                 const SizedBox(height: 12),

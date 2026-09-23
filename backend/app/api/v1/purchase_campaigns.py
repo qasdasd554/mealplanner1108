@@ -1,8 +1,7 @@
 """Kampanie rabatowe dla zakupów Premium i punktów.
 
-Rabat jest realizowany przez ofertę sklepu, nigdy przez zmianę kwoty w API.
-Obecna integracja udostępnia linki do kodów ofertowych Apple. Dla Google Play
-nie emitujemy kampanii, dopóki zakup nie będzie wybierał właściwego offerToken.
+Rabat jest zawsze realizowany przez sklep. Backend jedynie kieruje właściwą
+kampanię do uprawnionego użytkownika; nie oblicza ani nie pobiera płatności.
 """
 
 from datetime import datetime, timezone
@@ -30,7 +29,10 @@ class CampaignCreate(BaseModel):
     target_email: str | None = None
     starts_at: datetime
     ends_at: datetime
-    ios_offer_url: str = Field(max_length=1000)
+    platform: str = "ios"
+    ios_offer_url: str | None = Field(default=None, max_length=1000)
+    android_base_plan_id: str | None = Field(default=None, max_length=120)
+    android_offer_id: str | None = Field(default=None, max_length=120)
 
     @model_validator(mode="after")
     def validate_campaign(self):
@@ -44,17 +46,28 @@ class CampaignCreate(BaseModel):
             raise ValueError("Produkt nie pasuje do rodzaju kampanii")
         if self.audience not in {"all", "user"}:
             raise ValueError("Odbiorcy muszą być all albo user")
+        if self.platform not in {"ios", "android"}:
+            raise ValueError("Platforma musi być ios albo android")
         if self.audience == "user" and not (self.target_email or "").strip():
             raise ValueError("Podaj e-mail użytkownika")
         if self.starts_at.tzinfo is None or self.ends_at.tzinfo is None:
             raise ValueError("Daty muszą zawierać strefę czasową")
         if self.ends_at <= self.starts_at:
             raise ValueError("Koniec kampanii musi być później niż początek")
-        parsed = urlparse(self.ios_offer_url)
-        if (parsed.scheme != "https" or parsed.hostname != "apps.apple.com"
-                or parsed.path != "/redeem"
-                or parse_qs(parsed.query).get("ctx") != ["offercodes"]):
-            raise ValueError("Podaj link do kodu ofertowego z apps.apple.com/redeem?ctx=offercodes")
+        if self.platform == "ios":
+            parsed = urlparse(self.ios_offer_url or "")
+            if (parsed.scheme != "https" or parsed.hostname != "apps.apple.com"
+                    or parsed.path != "/redeem"
+                    or parse_qs(parsed.query).get("ctx") != ["offercodes"]):
+                raise ValueError("Podaj link do kodu ofertowego z apps.apple.com/redeem?ctx=offercodes")
+        elif self.kind == "premium":
+            if not (self.android_base_plan_id or "").strip() or not (self.android_offer_id or "").strip():
+                raise ValueError("Dla subskrypcji Google podaj identyfikator planu bazowego i oferty")
+        elif self.audience != "all":
+            # Wtyczka Fluttera nie udostępnia jeszcze tokenów wielu ofert
+            # jednorazowych PBL8. Punkty działają więc przez czasową cenę
+            # podstawowego produktu, która z definicji obejmuje wszystkich.
+            raise ValueError("Rabat punktów na Androidzie może obejmować tylko wszystkich użytkowników")
         return self
 
 
@@ -69,7 +82,10 @@ def _admin_response(campaign: PurchaseCampaign) -> dict:
         "target_email": campaign.target_email,
         "starts_at": campaign.starts_at.isoformat(),
         "ends_at": campaign.ends_at.isoformat(),
+        "platform": campaign.platform,
         "ios_offer_url": campaign.ios_offer_url,
+        "android_base_plan_id": campaign.android_base_plan_id,
+        "android_offer_id": campaign.android_offer_id,
         "is_active": campaign.is_active,
     }
 
@@ -101,7 +117,11 @@ async def create_campaign(
         target_email=target_email,
         starts_at=payload.starts_at.astimezone(timezone.utc),
         ends_at=payload.ends_at.astimezone(timezone.utc),
-        ios_offer_url=payload.ios_offer_url.strip(), is_active=False,
+        platform=payload.platform,
+        ios_offer_url=payload.ios_offer_url.strip() if payload.ios_offer_url else None,
+        android_base_plan_id=(payload.android_base_plan_id or "").strip() or None,
+        android_offer_id=(payload.android_offer_id or "").strip() or None,
+        is_active=False,
     )
     db.add(campaign)
     await db.commit()
@@ -143,18 +163,28 @@ async def active_campaigns(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    if request.headers.get("x-platform") != "ios":
+    platform = request.headers.get("x-platform")
+    if platform not in {"ios", "android"}:
         return []
     now = datetime.now(timezone.utc)
     result = await db.execute(
         select(PurchaseCampaign).where(
             PurchaseCampaign.is_active.is_(True),
+            PurchaseCampaign.platform == platform,
             PurchaseCampaign.starts_at <= now,
             PurchaseCampaign.ends_at > now,
         )
     )
     return [
-        {"kind": c.kind, "product_id": c.product_id, "discount_percent": c.discount_percent, "ios_offer_url": c.ios_offer_url}
+        {
+            "kind": c.kind,
+            "product_id": c.product_id,
+            "discount_percent": c.discount_percent,
+            "platform": c.platform,
+            "ios_offer_url": c.ios_offer_url,
+            "android_base_plan_id": c.android_base_plan_id,
+            "android_offer_id": c.android_offer_id,
+        }
         for c in result.scalars().all()
         if c.audience == "all" or c.target_email == current_user.email.lower()
     ]

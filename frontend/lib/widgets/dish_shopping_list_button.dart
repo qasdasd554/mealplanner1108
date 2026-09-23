@@ -5,7 +5,7 @@ import '../models/shopping_list.dart';
 import '../providers/store_provider.dart';
 import '../services/shopping_list_service.dart';
 import '../providers/shopping_list_provider.dart';
-import '../screens/shopping/shopping_list_screen.dart';
+import '../providers/auth_provider.dart';
 import '../screens/profile/premium_screen.dart';
 import '../theme/app_theme.dart';
 import '../utils/error_utils.dart';
@@ -44,6 +44,15 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
     setState(() => _isBusy = false);
 
     if (existingLists.isEmpty) {
+      await _createNew();
+      return;
+    }
+
+    // Konto standardowe nie może obchodzić limitu jednej listy na tydzień
+    // przez dokładanie całych przepisów do już istniejącej listy. Backend
+    // egzekwuje tę samą regułę; tutaj usuwamy mylącą opcję z interfejsu.
+    final hasPremium = context.read<AuthProvider>().currentUser?.hasPremiumAccess ?? false;
+    if (!hasPremium) {
       await _createNew();
       return;
     }
@@ -142,44 +151,15 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
       await shoppingProvider.loadAllLists(preferredListId: list.mealPlanId);
       if (!mounted) return;
 
-      // NAPRAWA: ScaffoldMessenger.of(context) był wołany PO popUntil,
-      // na kontekście widgetu leżącego na właśnie zamykanym ekranie —
-      // element mógł być już unieważniony, przez co SnackBar potrafił
-      // przyczepić się do overlayu, który zaraz znika, i zostać na
-      // ekranie w nieokreślonym stanie. Przechwytujemy messenger PRZED
-      // zamknięciem ekranu, na kontekście, który jeszcze na pewno żyje.
-      final messenger = ScaffoldMessenger.of(context);
       final rootNavigator = Navigator.of(context);
-      rootNavigator.popUntil((route) => route.isFirst);
-
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Text('Dodano "${widget.recipe.name}" do listy zakupów'),
-            duration: const Duration(seconds: 3),
-            action: SnackBarAction(
-              label: 'ZOBACZ',
-              onPressed: () => rootNavigator.push(
-                MaterialPageRoute(
-                  builder: (_) => const ShoppingListScreen(),
-                ),
-              ),
-            ),
-          ),
-        );
-      // Wymuszone zamknięcie po 3 s, NIEZALEŻNE od wewnętrznego timera
-      // SnackBar. Flutter celowo WYŁĄCZA automatyczne znikanie komunikatów
-      // z przyciskiem akcji, gdy w systemie jest włączona jakakolwiek
-      // usługa ułatwień dostępu (czytnik ekranu) — zakłada, że taki
-      // komunikat trzeba zdążyć przeczytać i dotknąć, więc `duration`
-      // jest wtedy ignorowany. To wyjaśniało, dlaczego akurat te dwa
-      // komunikaty (jedyne w aplikacji z przyciskiem akcji) nie znikały
-      // same, podczas gdy reszta działała poprawnie. Wymuszamy zamknięcie
-      // ręcznie zamiast liczyć wyłącznie na wewnętrzny timer.
-      Future.delayed(const Duration(seconds: 3), () {
-        messenger.hideCurrentSnackBar();
-      });
+      // `route.isFirst` nie zawsze oznacza ekran główny (np. po wejściu
+      // z udostępnionego linku pierwszą trasą potrafił być ekran logowania).
+      // To wyglądało jak samoczynne wylogowanie, choć token nadal istniał.
+      rootNavigator.pushNamedAndRemoveUntil(
+        '/home',
+        (route) => false,
+        arguments: 2,
+      );
     } catch (e) {
       if (!mounted) return;
       // UWAGA: limit list (403) to najbardziej prawdopodobny błąd tutaj —

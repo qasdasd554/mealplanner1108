@@ -58,6 +58,11 @@ async def get_current_user_allow_unverified(
         user_id_str: str | None = payload.get("sub")
         if user_id_str is None:
             raise credentials_exception
+        # Token odświeżający nie może działać jako zwykły Bearer do API.
+        # Brak pola `type` akceptujemy przejściowo dla tokenów dostępu
+        # wydanych przez starsze wersje backendu przed tą zmianą.
+        if payload.get("type") not in (None, "access"):
+            raise credentials_exception
         user_id = UUID(user_id_str)
     except (JWTError, ValueError):
         raise credentials_exception

@@ -13,6 +13,10 @@ import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
 import '../../widgets/submit_product_sheet.dart';
 import '../../widgets/price_source_info.dart';
+import '../../widgets/premium_feature_tag.dart';
+import '../../widgets/barcode_destination_sheet.dart';
+import '../batch_barcode_scanner_screen.dart';
+import '../profile/premium_screen.dart';
 
 /// Ekran produktów w dwóch zakładkach: „Sklep” (katalog produktów
 /// wybranego sklepu, z cenami) i „Moje” (własne zgłoszenia użytkownika,
@@ -33,6 +37,7 @@ class ProductsScreen extends StatefulWidget {
 class _ProductsScreenState extends State<ProductsScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
+  int _myProductsRefresh = 0;
 
   @override
   void initState() {
@@ -44,6 +49,57 @@ class _ProductsScreenState extends State<ProductsScreen>
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> _scanBarcode() async {
+    final added = await scanProductWithDestination(context);
+    if (added && mounted) {
+      setState(() => _myProductsRefresh++);
+      _tabController.animateTo(1);
+    }
+  }
+
+  Future<void> _scanBatch() async {
+    final hasPremium =
+        context.read<AuthProvider>().currentUser?.hasPremiumAccess ?? false;
+    if (!hasPremium) {
+      final showPremium = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Skanowanie seryjne jest w Premium'),
+          content: const Text(
+            'Skanuj wiele produktów bez zamykania aparatu i dodawaj je '
+            'od razu do spiżarni.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Nie teraz'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Zobacz Premium'),
+            ),
+          ],
+        ),
+      );
+      if (showPremium == true && mounted) {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const PremiumScreen()),
+        );
+      }
+      return;
+    }
+
+    final added = await Navigator.of(context).push<int>(
+      MaterialPageRoute(builder: (_) => const BatchBarcodeScannerScreen()),
+    );
+    if (!mounted || added == null || added == 0) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text('Dodano do spiżarni: $added produktów.')),
+      );
   }
 
   @override
@@ -66,11 +122,55 @@ class _ProductsScreenState extends State<ProductsScreen>
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: const [
-          _StoreProductsTab(),
-          _MyProductsTab(),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                FilledButton.icon(
+                  onPressed: _scanBarcode,
+                  icon: const Icon(Icons.barcode_reader),
+                  label: const Text(
+                    'Skanuj kod kreskowy',
+                    maxLines: 2,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                OutlinedButton(
+                  onPressed: _scanBatch,
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.qr_code_2, size: 19),
+                      SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          'Skanuj seryjnie do spiżarni',
+                          maxLines: 2,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      PremiumFeatureTag(fontSize: 8),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                const _StoreProductsTab(),
+                _MyProductsTab(key: ValueKey(_myProductsRefresh)),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -400,7 +500,7 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
 /// Zakładka „Moje” — produkty zgłoszone przez zalogowanego użytkownika,
 /// niezależnie od tego, czy zostały już zatwierdzone.
 class _MyProductsTab extends StatefulWidget {
-  const _MyProductsTab();
+  const _MyProductsTab({super.key});
 
   @override
   State<_MyProductsTab> createState() => _MyProductsTabState();

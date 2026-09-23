@@ -2,9 +2,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/shopping_list_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../models/product.dart';
 import '../../services/pantry_service.dart';
 import '../../services/product_search_service.dart';
+import '../../services/barcode_lookup_service.dart';
+import '../../widgets/product_label_recognition_sheet.dart';
+import '../../widgets/premium_feature_tag.dart';
+import '../barcode_scanner_screen.dart';
+import '../batch_barcode_scanner_screen.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
 import '../../utils/quantity_formatter.dart';
@@ -265,10 +271,74 @@ class _AddToPantrySheet extends StatefulWidget {
 
 class _AddToPantrySheetState extends State<_AddToPantrySheet> {
   final ProductSearchService _searchService = ProductSearchService();
+  final BarcodeLookupService _barcodeService = BarcodeLookupService();
   final TextEditingController _controller = TextEditingController();
   List<Product> _results = [];
   bool _isSearching = false;
   bool _isSaving = false;
+
+  Future<({double quantity, String unit})?> _askQuantity(
+    String productName,
+    String suggestedUnit, {
+    double? suggestedQuantity,
+  }) async {
+    const units = ['g', 'kg', 'ml', 'l', 'szt'];
+    var unit = units.contains(suggestedUnit) ? suggestedUnit : 'g';
+    final double initial = suggestedQuantity != null && suggestedQuantity > 0
+        ? suggestedQuantity
+        : (unit == 'kg' || unit == 'l' || unit == 'szt' ? 1.0 : 100.0);
+    final controller = TextEditingController(text: formatQuantity(initial, unit));
+    final result = await showDialog<({double quantity, String unit})>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text(productName),
+          content: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  autofocus: true,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(labelText: 'Ilość'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              DropdownButton<String>(
+                value: unit,
+                items: units.map((value) => DropdownMenuItem(
+                  value: value,
+                  child: Text(value),
+                )).toList(),
+                onChanged: (value) {
+                  if (value != null) setDialogState(() => unit = value);
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Anuluj'),
+            ),
+            FilledButton(
+              onPressed: () {
+                final quantity = double.tryParse(
+                  controller.text.trim().replaceAll(',', '.'),
+                );
+                if (quantity == null || quantity <= 0) return;
+                Navigator.pop(dialogContext, (quantity: quantity, unit: unit));
+              },
+              child: const Text('Dodaj'),
+            ),
+          ],
+        ),
+      ),
+    );
+    controller.dispose();
+    return result;
+  }
 
   Future<void> _search(String query) async {
     if (query.trim().length < 2) {
@@ -294,9 +364,19 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
   }
 
   Future<void> _add(Product product) async {
+    final amount = await _askQuantity(
+      product.name,
+      product.unit,
+      suggestedQuantity: product.defaultQuantity,
+    );
+    if (amount == null || !mounted) return;
     setState(() => _isSaving = true);
     try {
-      await widget.pantryService.addItems([product.id]);
+      await widget.pantryService.addItems(
+        [product.id],
+        quantity: amount.quantity,
+        unit: amount.unit,
+      );
       if (!mounted) return;
       ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -317,8 +397,89 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
     }
   }
 
+  Future<void> _scanAndAdd() async {
+    final barcode = await scanBarcode(context);
+    if (barcode == null || !mounted) return;
+    setState(() => _isSaving = true);
+    try {
+      var lookup = await _barcodeService.lookup(barcode);
+      if (!mounted) return;
+      if (!lookup.found || lookup.name == null) {
+        setState(() => _isSaving = false);
+        final recognized = await showProductLabelRecognitionSheet(
+          context,
+          barcode: barcode,
+        );
+        if (!mounted || recognized == null) return;
+        lookup = recognized;
+      }
+      setState(() => _isSaving = false);
+      final amount = await _askQuantity(
+        lookup.name!,
+        lookup.unit,
+        suggestedQuantity: lookup.servingQuantity,
+      );
+      if (amount == null || !mounted) return;
+      setState(() => _isSaving = true);
+      await widget.pantryService.addFromBarcode(
+        barcode,
+        quantity: amount.quantity,
+        unit: amount.unit,
+      );
+      if (!mounted) return;
+      Navigator.of(context).pop(true);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isSaving = false);
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(
+          duration: const Duration(seconds: 3),
+          content: Text(friendlyError(e)),
+          backgroundColor: AppTheme.errorColor,
+        ));
+    }
+  }
+
+  Future<void> _scanBatch() async {
+    final hasPremium =
+        context.read<AuthProvider>().currentUser?.hasPremiumAccess ?? false;
+    if (!hasPremium) {
+      final showPremium = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Skanowanie seryjne jest w Premium'),
+          content: const Text(
+            'Dodawaj kolejne produkty bez zamykania aparatu.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Nie teraz'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Zobacz Premium'),
+            ),
+          ],
+        ),
+      );
+      if (showPremium == true && mounted) {
+        await Navigator.of(context).pushNamed('/premium');
+      }
+      return;
+    }
+
+    final added = await Navigator.of(context).push<int>(
+      MaterialPageRoute(builder: (_) => const BatchBarcodeScannerScreen()),
+    );
+    if (!mounted || added == null || added == 0) return;
+    Navigator.of(context).pop(true);
+  }
+
   @override
   void dispose() {
+    _barcodeService.close();
     _controller.dispose();
     super.dispose();
   }
@@ -338,6 +499,39 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Dodaj do spiżarni', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _isSaving ? null : _scanAndAdd,
+                icon: const Icon(Icons.qr_code_scanner),
+                label: const Text('Skanuj kod kreskowy'),
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: _isSaving ? null : _scanBatch,
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.qr_code_2, size: 19),
+                    SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'Skanuj wiele produktów',
+                        maxLines: 2,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    PremiumFeatureTag(fontSize: 8),
+                  ],
+                ),
+              ),
+            ),
             const SizedBox(height: 12),
             TextField(
               controller: _controller,

@@ -10,11 +10,15 @@ import '../../theme/app_theme.dart';
 import '../../widgets/recipe_photo.dart';
 import '../../widgets/notification_bell.dart';
 import '../../widgets/premium_badge.dart';
+import '../../widgets/premium_feature_tag.dart';
+import '../../widgets/barcode_destination_sheet.dart';
 import '../../widgets/user_avatar.dart';
 import '../../models/meal_plan.dart';
 import '../recipes/recipes_screen.dart';
 import '../recipes/recipe_leaderboard_screen.dart';
 import '../recipes/pantry_screen.dart';
+import '../recipes/ai_add_recipe_screen.dart';
+import '../batch_barcode_scanner_screen.dart';
 import '../../widgets/decorative_circles.dart';
 import '../shopping/shopping_list_screen.dart';
 import '../profile/profile_screen.dart';
@@ -26,18 +30,21 @@ import '../../data/cooking_tips.dart';
 import 'cooking_tips_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final int initialIndex;
+
+  const HomeScreen({super.key, this.initialIndex = 0});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _currentIndex = 0;
+  late int _currentIndex;
 
   @override
   void initState() {
     super.initState();
+    _currentIndex = widget.initialIndex.clamp(0, 5) as int;
     // Pobierz plany posiłków na start
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<MealPlanProvider>(context, listen: false).loadPlans();
@@ -77,6 +84,13 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       child: Scaffold(
       body: tabs[_currentIndex],
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'home-quick-add',
+        onPressed: _showQuickAddSheet,
+        icon: const Icon(Icons.add),
+        label: const Text('Dodaj'),
+      ),
       bottomNavigationBar: BottomNavigationBar(
         // 5 zakladek wymaga trybu 'fixed' — bez tego Flutter przechodzi
         // w tryb 'shifting' i rzuca wyjatek, co wywalalo aplikacje
@@ -155,6 +169,124 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+      ),
+    );
+  }
+
+  Future<void> _openBatchScanner() async {
+    final user = context.read<AuthProvider>().currentUser;
+    if (!(user?.hasPremiumAccess ?? false)) {
+      final openPremium = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Skanowanie seryjne jest w Premium'),
+          content: const Text(
+            'Aparat pozostaje otwarty, a kolejne produkty są automatycznie '
+            'dodawane do spiżarni.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Nie teraz'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Zobacz Premium'),
+            ),
+          ],
+        ),
+      );
+      if (openPremium == true && mounted) {
+        setState(() => _currentIndex = 4);
+      }
+      return;
+    }
+
+    final added = await Navigator.of(context).push<int>(
+      MaterialPageRoute(builder: (_) => const BatchBarcodeScannerScreen()),
+    );
+    if (!mounted || added == null || added == 0) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        content: Text('Dodano do spiżarni: $added produktów.'),
+      ));
+  }
+
+  void _showQuickAddSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Co chcesz dodać?',
+                style: Theme.of(sheetContext).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 10),
+              ListTile(
+                leading: const Icon(Icons.barcode_reader),
+                title: const Text('Zeskanuj produkt'),
+                subtitle: const Text(
+                  'Dodaj do śledzenia albo bazy produktów',
+                ),
+                onTap: () async {
+                  Navigator.pop(sheetContext);
+                  await scanProductWithDestination(context);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.qr_code_2),
+                title: const Text('Skanuj seryjnie do spiżarni'),
+                subtitle: const Text('Wiele produktów bez zamykania aparatu'),
+                trailing: const PremiumFeatureTag(),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _openBatchScanner();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.auto_awesome),
+                title: const Text('Dodaj przepis z AI'),
+                subtitle: const Text('Ze zdjęcia, tekstu albo linku'),
+                trailing: const PremiumFeatureTag(label: 'PREMIUM / 2 PKT'),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => const AiAddRecipeScreen(),
+                  ));
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.restaurant_menu),
+                title: const Text('Dodaj posiłek'),
+                subtitle: const Text('Zapisz kalorie i makroskładniki'),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  Navigator.of(context).pushNamed('/tracker/add');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.inventory_2_outlined),
+                title: const Text('Dodaj do spiżarni'),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => const PantryScreen(openAddOnStart: true),
+                  ));
+                },
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -311,7 +443,12 @@ class HomeTab extends StatelessWidget {
                   crossAxisCount: 2,
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
-                  childAspectRatio: 1.9,
+                  // Nie ściskamy kafelków do jednego wiersza. Na węższych
+                  // telefonach i przy większym rozmiarze tekstu tytuły
+                  // (np. „Baza produktów”) mogą dzięki temu ułożyć się w
+                  // dwóch pełnych wierszach zamiast kończyć wielokropkiem.
+                  childAspectRatio:
+                      MediaQuery.sizeOf(context).width < 370 ? 1.55 : 1.75,
                   children: [
                     _buildQuickActionCard(
                       context,
@@ -903,14 +1040,16 @@ class HomeTab extends StatelessWidget {
                   Text(
                     title,
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                    softWrap: true,
+                    overflow: TextOverflow.fade,
                   ),
                   Text(
                     subtitle,
                     style: TextStyle(fontSize: 10, color: AppTheme.textSecondary),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                    softWrap: true,
+                    overflow: TextOverflow.fade,
                   ),
                 ],
               ),

@@ -307,7 +307,12 @@ async def _call_gemini_model(parts: list[dict], model: str, *, timeout_seconds: 
     return text
 
 
-async def _call_gemini(parts: list[dict], *, timeout_seconds: float = 35.0) -> str:
+async def _call_gemini(
+    parts: list[dict],
+    *,
+    timeout_seconds: float = 35.0,
+    max_total_seconds: float | None = None,
+) -> str:
     """Próbuje kolejnych modeli z GEMINI_MODELS (najpierw główny, potem
     "lite" jako zapasowy), przechodząc do następnego, gdy poprzedni
     zgłosi `_ModelUnavailableError` (limit wyczerpany albo uporczywe
@@ -326,7 +331,11 @@ async def _call_gemini(parts: list[dict], *, timeout_seconds: float = 35.0) -> s
 
     unavailable_reasons: list[str] = []
     reason_types: list[str] = []
-    deadline = time.monotonic() + (120 if timeout_seconds > 35 else 95)
+    deadline = time.monotonic() + (
+        max_total_seconds
+        if max_total_seconds is not None
+        else (120 if timeout_seconds > 35 else 95)
+    )
     for model in GEMINI_MODELS:
         if _model_unavailable_until.get(model, 0) > time.monotonic():
             continue

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../config/api_config.dart';
 import '../screens/barcode_scanner_screen.dart';
+import 'product_label_recognition_sheet.dart';
 import '../services/api_client.dart';
 import '../services/barcode_lookup_service.dart';
 import '../theme/app_theme.dart';
@@ -38,12 +39,14 @@ class PickedCatalogProduct {
 /// pojawiają się tu na równi z produktami oficjalnymi.
 class PickProductFromCatalogSheet extends StatefulWidget {
   final bool scanOnOpen;
+  final String? initialBarcode;
   final bool embedded;
   final ValueChanged<PickedCatalogProduct>? onPicked;
 
   const PickProductFromCatalogSheet({
     super.key,
     this.scanOnOpen = false,
+    this.initialBarcode,
     this.embedded = false,
     this.onPicked,
   });
@@ -69,9 +72,14 @@ class _PickProductFromCatalogSheetState
   void initState() {
     super.initState();
     _search('');
-    if (widget.scanOnOpen) {
+    if (widget.initialBarcode != null || widget.scanOnOpen) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _scanBarcode();
+        if (!mounted) return;
+        if (widget.initialBarcode != null) {
+          _lookupBarcode(widget.initialBarcode!);
+        } else {
+          _scanBarcode();
+        }
       });
     }
   }
@@ -167,23 +175,25 @@ class _PickProductFromCatalogSheetState
     final code = await scanBarcode(context);
     if (code == null || !mounted) return;
 
+    await _lookupBarcode(code);
+  }
+
+  Future<void> _lookupBarcode(String code) async {
+    if (!mounted) return;
+
     setState(() => _isLoading = true);
     try {
-      final result = await _barcodeLookupService.lookup(code);
+      var result = await _barcodeLookupService.lookup(code);
       if (!mounted) return;
 
       if (!result.found || result.name == null) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(const SnackBar(
-            duration: Duration(seconds: 4),
-            content: Text(
-              'Nie znaleziono tego produktu. Możesz dodać go ręcznie przez '
-              'Produkty → Moje → Dodaj produkt (ten sam kod da się tam zeskanować).',
-            ),
-          ));
-        return;
+        final recognized = await showProductLabelRecognitionSheet(
+          context,
+          barcode: code,
+        );
+        if (!mounted || recognized == null) return;
+        result = recognized;
       }
 
       setState(() => _isLoading = false);
@@ -194,7 +204,12 @@ class _PickProductFromCatalogSheetState
       final grams = await showDialog<double>(
         context: context,
         builder: (ctx) {
-          final controller = TextEditingController(text: '100');
+          final suggested = result.servingQuantity ?? 100;
+          final controller = TextEditingController(
+            text: suggested == suggested.roundToDouble()
+                ? suggested.toStringAsFixed(0)
+                : suggested.toStringAsFixed(1),
+          );
           return AlertDialog(
             title: Text(result.name!),
             content: Column(
@@ -215,7 +230,9 @@ class _PickProductFromCatalogSheetState
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   autofocus: true,
-                  decoration: const InputDecoration(labelText: 'Ilość (g)'),
+                  decoration: InputDecoration(
+                    labelText: 'Ilość (${result.unit})',
+                  ),
                 ),
               ],
             ),
@@ -351,7 +368,8 @@ class _PickProductFromCatalogSheetState
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
               child: TextField(
                 controller: _searchController,
-                autofocus: !widget.scanOnOpen,
+                autofocus:
+                    widget.initialBarcode == null && !widget.scanOnOpen,
                 onChanged: _onQueryChanged,
                 decoration: InputDecoration(
                   hintText: 'Szukaj produktu...',

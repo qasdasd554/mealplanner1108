@@ -35,6 +35,7 @@ void main() {
     expect(result?.carbsPer100, 6.1);
     expect(result?.priceMin, 2);
     expect(result?.priceMax, 7);
+    expect(result?.servingQuantity, 400);
   });
 
   test('rozpoznaje odpowiedź zapasowego API v2', () {
