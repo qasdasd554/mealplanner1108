@@ -17,6 +17,9 @@ Future<BarcodeLookupResult?> showProductLabelRecognitionSheet(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
+    constraints: BoxConstraints(
+      maxHeight: MediaQuery.sizeOf(context).height * 0.92,
+    ),
     builder: (_) => _ProductLabelRecognitionSheet(barcode: barcode),
   );
 }
@@ -195,17 +198,22 @@ class _ProductLabelRecognitionSheetState
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(
-        20,
-        16,
-        20,
-        20 + MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    final media = MediaQuery.of(context);
+    return SafeArea(
+      top: false,
+      minimum: const EdgeInsets.only(bottom: 8),
+      child: SingleChildScrollView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        padding: EdgeInsets.fromLTRB(
+          20,
+          16,
+          20,
+          24 + media.viewInsets.bottom + media.viewPadding.bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           Text('Dodaj brakujący produkt',
               style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 6),
@@ -319,7 +327,8 @@ class _ProductLabelRecognitionSheetState
             Text(_error!, style: const TextStyle(color: AppTheme.errorColor)),
           ],
           const SizedBox(height: 8),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -315,6 +315,7 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     value: _mealType,
+                    isExpanded: true,
                     decoration: const InputDecoration(labelText: 'Rodzaj posiłku'),
                     items: _mealTypes.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
                     onChanged: (v) => setState(() => _mealType = v!),
@@ -324,6 +325,7 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     value: _difficulty,
+                    isExpanded: true,
                     decoration: const InputDecoration(labelText: 'Trudność'),
                     items: _difficulties.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
                     onChanged: (v) => setState(() => _difficulty = v!),
@@ -332,38 +334,55 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final fields = <Widget>[
+                  TextFormField(
                     controller: _prepTimeController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(labelText: 'Przygotowanie (min)'),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextFormField(
+                  TextFormField(
                     controller: _cookTimeController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(labelText: 'Gotowanie (min)'),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextFormField(
+                  TextFormField(
                     controller: _servingsController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(labelText: 'Porcje'),
                   ),
-                ),
-              ],
+                ];
+                if (constraints.maxWidth < 480) {
+                  return Column(
+                    children: [
+                      fields[0],
+                      const SizedBox(height: 12),
+                      fields[1],
+                      const SizedBox(height: 12),
+                      fields[2],
+                    ],
+                  );
+                }
+                return Row(
+                  children: [
+                    Expanded(child: fields[0]),
+                    const SizedBox(width: 12),
+                    Expanded(child: fields[1]),
+                    const SizedBox(width: 12),
+                    Expanded(child: fields[2]),
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 28),
 
             // Składniki
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 4,
               children: [
                 Text('Składniki', style: Theme.of(context).textTheme.titleMedium),
                 TextButton.icon(
@@ -394,8 +413,11 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
             const SizedBox(height: 20),
 
             // Kroki przygotowania
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 4,
               children: [
                 Text('Kroki przygotowania', style: Theme.of(context).textTheme.titleMedium),
                 TextButton.icon(

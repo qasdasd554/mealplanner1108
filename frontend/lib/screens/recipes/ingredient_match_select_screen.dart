@@ -253,8 +253,11 @@ class _IngredientMatchSelectScreenState extends State<IngredientMatchSelectScree
                         children: [
                           Padding(
                             padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            child: Wrap(
+                              alignment: WrapAlignment.spaceBetween,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: 8,
+                              runSpacing: 4,
                               children: [
                                 Text(
                                   'Zaznaczono ${_selectedIds.length} z ${_pantryItems.length}',

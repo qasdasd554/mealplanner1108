@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
+import '../services/api_client.dart';
 import '../services/pantry_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/barcode_utils.dart';
 import '../utils/error_utils.dart';
+import '../widgets/product_label_recognition_sheet.dart';
 
 /// Seryjne skanowanie Premium. Aparat pozostaje otwarty, a każdy poprawnie
 /// rozpoznany produkt jest od razu dodawany do spiżarni. Ten sam kod w jednej
@@ -102,10 +104,33 @@ class _BatchBarcodeScannerScreenState
       if (!mounted) return;
       _replaceItem(
         scannedCode,
-        state: _BatchState.error,
-        message: friendlyError(error),
+        state: error is ApiException && error.statusCode == 404
+            ? _BatchState.missing
+            : _BatchState.error,
+        message: error is ApiException && error.statusCode == 404
+            ? 'Nie znaleziono. Dotknij, aby dodać produkt ze zdjęć.'
+            : friendlyError(error),
       );
     }
+  }
+
+  Future<void> _completeMissingProduct(_BatchScanItem item) async {
+    if (item.state != _BatchState.missing || _processing) return;
+    await _scanner.stop();
+    if (!mounted) return;
+    final recognized = await showProductLabelRecognitionSheet(
+      context,
+      barcode: item.code,
+    );
+    if (!mounted) return;
+    await _scanner.start();
+    if (recognized == null) return;
+    _replaceItem(
+      item.code,
+      state: _BatchState.loading,
+      name: recognized.name,
+    );
+    await _processCode(item.code);
   }
 
   void _replaceItem(
@@ -251,6 +276,9 @@ class _BatchBarcodeScannerScreenState
         (Icons.hourglass_top, AppTheme.textSecondary, 'Rozpoznawanie…'),
       _BatchState.added =>
         (Icons.check_circle, AppTheme.primaryColor, 'Dodano do spiżarni'),
+      _BatchState.missing =>
+        (Icons.add_a_photo_outlined, AppTheme.secondaryColor,
+          item.message ?? 'Dotknij, aby uzupełnić produkt'),
       _BatchState.error =>
         (Icons.error_outline, AppTheme.errorColor, item.message ?? 'Błąd'),
     };
@@ -270,12 +298,18 @@ class _BatchBarcodeScannerScreenState
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
+        trailing: item.state == _BatchState.missing
+            ? const Icon(Icons.chevron_right)
+            : null,
+        onTap: item.state == _BatchState.missing
+            ? () => _completeMissingProduct(item)
+            : null,
       ),
     );
   }
 }
 
-enum _BatchState { loading, added, error }
+enum _BatchState { loading, added, missing, error }
 
 class _BatchScanItem {
   final String code;

@@ -293,20 +293,21 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
           title: Text(productName),
-          content: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(
-                child: TextField(
-                  controller: controller,
-                  autofocus: true,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: 'Ilość'),
-                ),
+              TextField(
+                controller: controller,
+                autofocus: true,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(labelText: 'Ilość'),
               ),
-              const SizedBox(width: 12),
-              DropdownButton<String>(
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
                 value: unit,
+                isExpanded: true,
+                decoration: const InputDecoration(labelText: 'Jednostka'),
                 items: units.map((value) => DropdownMenuItem(
                   value: value,
                   child: Text(value),

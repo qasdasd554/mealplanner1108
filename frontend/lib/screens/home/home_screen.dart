@@ -83,21 +83,52 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       },
       child: Scaffold(
-      body: tabs[_currentIndex],
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: FloatingActionButton.extended(
-        heroTag: 'home-quick-add',
-        onPressed: _showQuickAddSheet,
-        icon: const Icon(Icons.add),
-        label: const Text('Dodaj'),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
+        body: tabs[_currentIndex],
+        bottomNavigationBar: Material(
+          color: Theme.of(context).bottomNavigationBarTheme.backgroundColor ??
+              Theme.of(context).colorScheme.surface,
+          elevation: 8,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 5),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: Theme.of(context).dividerColor.withOpacity(0.45),
+                      width: 0.7,
+                    ),
+                  ),
+                ),
+                child: Center(
+                  child: SizedBox(
+                    width: 116,
+                    height: 34,
+                    child: FilledButton.tonalIcon(
+                      onPressed: _showQuickAddSheet,
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        minimumSize: const Size(116, 34),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        visualDensity: VisualDensity.compact,
+                        shape: const StadiumBorder(),
+                      ),
+                      icon: const Icon(Icons.add, size: 18),
+                      label: const Text('Dodaj'),
+                    ),
+                  ),
+                ),
+              ),
+              BottomNavigationBar(
+                elevation: 0,
         // 5 zakladek wymaga trybu 'fixed' — bez tego Flutter przechodzi
         // w tryb 'shifting' i rzuca wyjatek, co wywalalo aplikacje
         // zaraz po zakonczeniu onboardingu.
-        type: BottomNavigationBarType.fixed,
-        currentIndex: _currentIndex,
-        onTap: (index) async {
+                type: BottomNavigationBarType.fixed,
+                currentIndex: _currentIndex,
+                onTap: (index) async {
           // UWAGA (nowe): "Śledzenie" (indeks 3) wymaga bramki reklamowej
           // dla kont bez Premium — patrz AdGateService (limit 2 reklamy
           // na 8 godzin, potem wolny dostęp aż do wygaśnięcia okna).
@@ -131,8 +162,8 @@ class _HomeScreenState extends State<HomeScreen> {
           setState(() {
             _currentIndex = index;
           });
-        },
-        items: [
+                },
+                items: [
           const BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
             activeIcon: Icon(Icons.home),
@@ -167,8 +198,11 @@ class _HomeScreenState extends State<HomeScreen> {
             activeIcon: Icon(Icons.person),
             label: 'Profil',
           ),
-        ],
-      ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

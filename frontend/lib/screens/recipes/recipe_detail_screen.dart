@@ -353,8 +353,11 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       color: AppTheme.surfaceColor,
                       borderRadius: BorderRadius.all(Radius.circular(16)),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    child: Wrap(
+                      alignment: WrapAlignment.spaceAround,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 12,
+                      runSpacing: 14,
                       children: [
                         _buildInfoColumn(
                           context,
@@ -362,9 +365,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                           '${recipe.totalTimeMin} min',
                           icon: Icons.schedule,
                         ),
-                        _buildDivider(),
                         _buildInfoColumn(context, 'Porcje', '${recipe.servings} porcje'),
-                        _buildDivider(),
                         _buildInfoColumn(context, 'Trudność', recipe.difficulty),
                       ],
                     ),
@@ -397,8 +398,11 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                   const SizedBox(height: 28),
 
                   // Składniki
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
+                    runSpacing: 4,
                     children: [
                       Text(
                         'Składniki',
@@ -438,6 +442,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                           const SizedBox(height: 10),
                           Wrap(
                             spacing: 8,
+                            runSpacing: 6,
                             children: [
                               FilledButton.icon(
                                 onPressed: _isSavingVariant ? null : () => _saveVariant(recipe),

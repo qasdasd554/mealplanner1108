@@ -216,6 +216,11 @@ class _RecipesScreenState extends State<RecipesScreen> {
       appBar: AppBar(
         title: const Text('Przepisy'),
         actions: [
+          IconButton(
+            tooltip: 'Dodaj przepis',
+            onPressed: () => _showAddRecipeChoice(context),
+            icon: const Icon(Icons.add_box_outlined),
+          ),
           if (_activeImport != null)
             IconButton(
               tooltip: 'Trwa dodawanie przepisu przez AI',
@@ -479,13 +484,6 @@ class _RecipesScreenState extends State<RecipesScreen> {
       ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        // Stały przycisk otwiera bezpośrednio cztery sposoby dodania.
-        // Nie zabiera miejsca siatce przepisów, gdy użytkownik przegląda.
-        onPressed: () => _showAddRecipeChoice(context),
-        icon: const Icon(Icons.add),
-        label: const Text('Dodaj przepis'),
-      ),
     );
   }
 
@@ -499,10 +497,11 @@ class _RecipesScreenState extends State<RecipesScreen> {
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 Text('Dodaj przepis', style: Theme.of(sheetContext).textTheme.titleLarge),
                 const SizedBox(height: 16),
                 Text('Z pomocą AI', style: Theme.of(sheetContext).textTheme.titleMedium),
@@ -565,7 +564,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
                     style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
                   ),
                 ),
-              ],
+                ],
+              ),
             ),
           ),
         );
@@ -672,8 +672,11 @@ class _RecipesScreenState extends State<RecipesScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 8,
+                        runSpacing: 4,
                         children: [
                           Text('Filtry', style: Theme.of(sheetContext).textTheme.titleLarge),
                           if (_moreFiltersActiveCount > 0)
