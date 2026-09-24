@@ -201,16 +201,15 @@ class _PickProductFromCatalogSheetState
       // Ilość — TA SAMA ścieżka co przy wyborze produktu z listy, żeby
       // zachowanie było spójne niezależnie od tego, czy trafiono
       // wyszukiwaniem tekstowym, czy skanowaniem.
+      final suggested = result.servingQuantity ?? 100;
+      final controller = TextEditingController(
+        text: suggested == suggested.roundToDouble()
+            ? suggested.toStringAsFixed(0)
+            : suggested.toStringAsFixed(1),
+      );
       final grams = await showDialog<double>(
         context: context,
-        builder: (ctx) {
-          final suggested = result.servingQuantity ?? 100;
-          final controller = TextEditingController(
-            text: suggested == suggested.roundToDouble()
-                ? suggested.toStringAsFixed(0)
-                : suggested.toStringAsFixed(1),
-          );
-          return AlertDialog(
+        builder: (ctx) => AlertDialog(
             title: Text(result.name!),
             content: Column(
               mainAxisSize: MainAxisSize.min,
@@ -246,9 +245,9 @@ class _PickProductFromCatalogSheetState
                 child: const Text('Dalej'),
               ),
             ],
-          );
-        },
+          ),
       );
+      controller.dispose();
       if (grams == null || grams <= 0 || !mounted) return;
 
       final factor = grams / 100.0;
@@ -275,15 +274,14 @@ class _PickProductFromCatalogSheetState
   }
 
   Future<void> _pickProduct(Product product) async {
+    final controller = TextEditingController(
+      text: product.defaultQuantity > 0
+          ? product.defaultQuantity.toStringAsFixed(0)
+          : '100',
+    );
     final grams = await showDialog<double>(
       context: context,
-      builder: (ctx) {
-        final controller = TextEditingController(
-          text: product.defaultQuantity > 0
-              ? product.defaultQuantity.toStringAsFixed(0)
-              : '100',
-        );
-        return AlertDialog(
+      builder: (ctx) => AlertDialog(
           title: Text(product.name),
           content: TextField(
             controller: controller,
@@ -307,9 +305,9 @@ class _PickProductFromCatalogSheetState
               child: const Text('Dalej'),
             ),
           ],
-        );
-      },
+        ),
     );
+    controller.dispose();
     if (grams == null || grams <= 0 || !mounted) return;
 
     // Jednostka bazowa produktu bywa "l"/"kg" (duże opakowanie) — okno

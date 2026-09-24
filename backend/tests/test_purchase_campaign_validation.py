@@ -46,6 +46,14 @@ def test_accepts_android_global_points_price_campaign():
     assert CampaignCreate(**payload).kind == "points"
 
 
+def test_accepts_ios_global_points_price_campaign_without_offer_code():
+    payload = _payload(
+        platform="ios", ios_offer_url=None, kind="points",
+        product_id="points_20", audience="all",
+    )
+    assert CampaignCreate(**payload).ios_offer_url is None
+
+
 @pytest.mark.parametrize("changes", [
     {"ios_offer_url": "https://apps.apple.com.evil.example/redeem"},
     {"product_id": "points_20"},
@@ -53,6 +61,7 @@ def test_accepts_android_global_points_price_campaign():
     {"discount_percent": 0},
     {"platform": "android", "ios_offer_url": None},
     {"platform": "android", "ios_offer_url": None, "kind": "points", "product_id": "points_20", "audience": "user", "target_email": "a@b.pl"},
+    {"platform": "ios", "ios_offer_url": None, "kind": "points", "product_id": "points_20", "audience": "user", "target_email": "a@b.pl"},
 ])
 def test_rejects_invalid_campaign(changes):
     with pytest.raises(ValidationError):

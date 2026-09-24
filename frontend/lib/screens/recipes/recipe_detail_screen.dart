@@ -348,25 +348,38 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
                   // Czas, Porcje, Trudność (Info Row)
                   Container(
+                    width: double.infinity,
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: AppTheme.surfaceColor,
                       borderRadius: BorderRadius.all(Radius.circular(16)),
                     ),
-                    child: Wrap(
-                      alignment: WrapAlignment.spaceAround,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 12,
-                      runSpacing: 14,
+                    child: Row(
                       children: [
-                        _buildInfoColumn(
-                          context,
-                          'Czas',
-                          '${recipe.totalTimeMin} min',
-                          icon: Icons.schedule,
+                        Expanded(
+                          child: _buildInfoColumn(
+                            context,
+                            'Czas',
+                            '${recipe.totalTimeMin} min',
+                            icon: Icons.schedule,
+                          ),
                         ),
-                        _buildInfoColumn(context, 'Porcje', '${recipe.servings} porcje'),
-                        _buildInfoColumn(context, 'Trudność', recipe.difficulty),
+                        _buildDivider(),
+                        Expanded(
+                          child: _buildInfoColumn(
+                            context,
+                            'Porcje',
+                            '${recipe.servings}',
+                          ),
+                        ),
+                        _buildDivider(),
+                        Expanded(
+                          child: _buildInfoColumn(
+                            context,
+                            'Trudność',
+                            recipe.difficulty,
+                          ),
+                        ),
                       ],
                     ),
                   ).animate().fadeIn(delay: 300.ms),
@@ -650,12 +663,22 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
               Icon(icon, size: 14, color: AppTheme.textSecondary),
               const SizedBox(width: 3),
             ],
-            Text(label, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+            Flexible(
+              child: Text(
+                label,
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 4),
         Text(
           value,
+          maxLines: 2,
+          textAlign: TextAlign.center,
+          overflow: TextOverflow.ellipsis,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 15),
         ),
       ],

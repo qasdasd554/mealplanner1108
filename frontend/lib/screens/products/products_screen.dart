@@ -69,7 +69,7 @@ class _ProductsScreenState extends State<ProductsScreen>
           title: const Text('Skanowanie seryjne jest w Premium'),
           content: const Text(
             'Skanuj wiele produktów bez zamykania aparatu i dodawaj je '
-            'od razu do spiżarni.',
+            'do spiżarni, śledzenia lub bazy produktów.',
           ),
           actions: [
             TextButton(

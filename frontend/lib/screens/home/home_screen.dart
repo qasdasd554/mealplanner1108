@@ -84,44 +84,34 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       child: Scaffold(
         body: tabs[_currentIndex],
-        bottomNavigationBar: Material(
-          color: Theme.of(context).bottomNavigationBarTheme.backgroundColor ??
-              Theme.of(context).colorScheme.surface,
-          elevation: 8,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 5),
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                      color: Theme.of(context).dividerColor.withOpacity(0.45),
-                      width: 0.7,
+        bottomNavigationBar: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (_currentIndex == 0 || _currentIndex == 4)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 2),
+                child: SizedBox(
+                  width: 116,
+                  height: 34,
+                  child: FilledButton.tonalIcon(
+                    onPressed: _showQuickAddSheet,
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      minimumSize: const Size(116, 34),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      visualDensity: VisualDensity.compact,
+                      shape: const StadiumBorder(),
                     ),
-                  ),
-                ),
-                child: Center(
-                  child: SizedBox(
-                    width: 116,
-                    height: 34,
-                    child: FilledButton.tonalIcon(
-                      onPressed: _showQuickAddSheet,
-                      style: FilledButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        minimumSize: const Size(116, 34),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        visualDensity: VisualDensity.compact,
-                        shape: const StadiumBorder(),
-                      ),
-                      icon: const Icon(Icons.add, size: 18),
-                      label: const Text('Dodaj'),
-                    ),
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('Dodaj'),
                   ),
                 ),
               ),
-              BottomNavigationBar(
+            Material(
+              color: Theme.of(context).bottomNavigationBarTheme.backgroundColor ??
+                  Theme.of(context).colorScheme.surface,
+              elevation: 8,
+              child: BottomNavigationBar(
                 elevation: 0,
         // 5 zakladek wymaga trybu 'fixed' — bez tego Flutter przechodzi
         // w tryb 'shifting' i rzuca wyjatek, co wywalalo aplikacje
@@ -200,8 +190,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
                 ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -216,7 +206,8 @@ class _HomeScreenState extends State<HomeScreen> {
           title: const Text('Skanowanie seryjne jest w Premium'),
           content: const Text(
             'Aparat pozostaje otwarty, a kolejne produkty są automatycznie '
-            'dodawane do spiżarni.',
+            'dodawane do spiżarni. Każdy wynik możesz też przekazać do '
+            'śledzenia albo bazy produktów.',
           ),
           actions: [
             TextButton(
@@ -270,7 +261,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 leading: const Icon(Icons.barcode_reader),
                 title: const Text('Zeskanuj produkt'),
                 subtitle: const Text(
-                  'Dodaj do śledzenia albo bazy produktów',
+                  'Dodaj do śledzenia, bazy produktów albo spiżarni',
                 ),
                 onTap: () async {
                   Navigator.pop(sheetContext);
@@ -280,7 +271,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ListTile(
                 leading: const Icon(Icons.qr_code_2),
                 title: const Text('Skanuj seryjnie do spiżarni'),
-                subtitle: const Text('Wiele produktów bez zamykania aparatu'),
+                subtitle: const Text(
+                  'Wiele produktów; także śledzenie i baza produktów',
+                ),
                 trailing: const PremiumFeatureTag(),
                 onTap: () {
                   Navigator.pop(sheetContext);

@@ -32,6 +32,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   RecipeImportJob? _activeImport;
   Timer? _importPollTimer;
   Timer? _searchTimer;
+  final TextEditingController _searchController = TextEditingController();
   bool _checkingImport = false;
   List<Recipe> _recipes = [];
   bool _isLoading = false;
@@ -65,7 +66,15 @@ class _RecipesScreenState extends State<RecipesScreen> {
   void dispose() {
     _importPollTimer?.cancel();
     _searchTimer?.cancel();
+    _searchController.dispose();
     super.dispose();
+  }
+
+  void _setSearchQuery(String value) {
+    _searchTimer?.cancel();
+    ++_requestVersion;
+    setState(() => _searchQuery = value);
+    _searchTimer = Timer(const Duration(milliseconds: 350), _loadRecipes);
   }
 
   Future<void> _loadImportStatus() async {
@@ -216,11 +225,6 @@ class _RecipesScreenState extends State<RecipesScreen> {
       appBar: AppBar(
         title: const Text('Przepisy'),
         actions: [
-          IconButton(
-            tooltip: 'Dodaj przepis',
-            onPressed: () => _showAddRecipeChoice(context),
-            icon: const Icon(Icons.add_box_outlined),
-          ),
           if (_activeImport != null)
             IconButton(
               tooltip: 'Trwa dodawanie przepisu przez AI',
@@ -274,17 +278,21 @@ class _RecipesScreenState extends State<RecipesScreen> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
             child: TextField(
-              onChanged: (value) {
-                _searchTimer?.cancel();
-                ++_requestVersion;
-                setState(() {
-                  _searchQuery = value;
-                });
-                _searchTimer = Timer(const Duration(milliseconds: 350), _loadRecipes);
-              },
+              controller: _searchController,
+              onChanged: _setSearchQuery,
               decoration: InputDecoration(
                 hintText: 'Szukaj przepisu...',
                 prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchQuery.isEmpty
+                    ? null
+                    : IconButton(
+                        tooltip: 'Wyczyść wyszukiwanie',
+                        icon: const Icon(Icons.close),
+                        onPressed: () {
+                          _searchController.clear();
+                          _setSearchQuery('');
+                        },
+                      ),
                 contentPadding: const EdgeInsets.symmetric(vertical: 12),
                 fillColor: AppTheme.surfaceColor.withOpacity(0.5),
               ),
@@ -483,6 +491,11 @@ class _RecipesScreenState extends State<RecipesScreen> {
                   ),
       ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showAddRecipeChoice(context),
+        icon: const Icon(Icons.add),
+        label: const Text('Dodaj przepis'),
       ),
     );
   }

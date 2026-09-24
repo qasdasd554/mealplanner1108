@@ -257,6 +257,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
       ),
     );
 
+    controller.dispose();
     if (nickname == null || nickname.isEmpty || !mounted) return;
 
     try {

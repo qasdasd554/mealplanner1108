@@ -1043,7 +1043,7 @@ class _ManualEntryFormState extends State<ManualEntryForm> {
                   ),
                   builder: (_) => const PickProductFromCatalogSheet(),
                 );
-                if (picked == null) return;
+                if (picked == null || !mounted) return;
                 setState(() {
                   _nameController.text = picked.name;
                   _portionController.text = picked.grams.toStringAsFixed(0);

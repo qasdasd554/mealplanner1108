@@ -7,6 +7,8 @@ import '../theme/app_theme.dart';
 import '../utils/barcode_utils.dart';
 import '../utils/error_utils.dart';
 import '../widgets/product_label_recognition_sheet.dart';
+import '../widgets/submit_product_sheet.dart';
+import 'tracker/add_food_entry_screen.dart';
 
 /// Seryjne skanowanie Premium. Aparat pozostaje otwarty, a każdy poprawnie
 /// rozpoznany produkt jest od razu dodawany do spiżarni. Ten sam kod w jednej
@@ -39,6 +41,9 @@ class _BatchBarcodeScannerScreenState
   final List<_BatchScanItem> _items = [];
   final List<String> _queue = [];
   bool _processing = false;
+  bool _itemActionBusy = false;
+
+  bool get _busy => _processing || _queue.isNotEmpty || _itemActionBusy;
 
   @override
   void dispose() {
@@ -115,22 +120,113 @@ class _BatchBarcodeScannerScreenState
   }
 
   Future<void> _completeMissingProduct(_BatchScanItem item) async {
-    if (item.state != _BatchState.missing || _processing) return;
+    if (item.state != _BatchState.missing || _busy) return;
+    setState(() => _itemActionBusy = true);
     await _scanner.stop();
-    if (!mounted) return;
-    final recognized = await showProductLabelRecognitionSheet(
-      context,
-      barcode: item.code,
-    );
-    if (!mounted) return;
-    await _scanner.start();
-    if (recognized == null) return;
-    _replaceItem(
-      item.code,
-      state: _BatchState.loading,
-      name: recognized.name,
-    );
-    await _processCode(item.code);
+    try {
+      if (!mounted) return;
+      final recognized = await showProductLabelRecognitionSheet(
+        context,
+        barcode: item.code,
+      );
+      if (!mounted || recognized == null) return;
+      _replaceItem(
+        item.code,
+        state: _BatchState.loading,
+        name: recognized.name,
+      );
+      await _processCode(item.code);
+    } finally {
+      if (mounted) {
+        setState(() => _itemActionBusy = false);
+        try {
+          await _scanner.start();
+        } catch (_) {
+          // Powrót z formularza może zbiec się z zamknięciem ekranu.
+        }
+      }
+    }
+  }
+
+  Future<void> _openProductActions(_BatchScanItem item) async {
+    if (item.state != _BatchState.added || _busy) return;
+    setState(() => _itemActionBusy = true);
+    await _scanner.stop();
+    try {
+      if (!mounted) return;
+      final destination = await showModalBottomSheet<_BatchDestination>(
+        context: context,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+        ),
+        builder: (sheetContext) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.name ?? item.code,
+                  style: Theme.of(sheetContext).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 6),
+                const ListTile(
+                  enabled: false,
+                  leading: Icon(Icons.kitchen_outlined),
+                  title: Text('Dodano do spiżarni'),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.local_fire_department_outlined),
+                  title: const Text('Dodaj do śledzenia'),
+                  subtitle: const Text('Wybierz ilość i rodzaj posiłku'),
+                  onTap: () => Navigator.pop(
+                    sheetContext,
+                    _BatchDestination.tracking,
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.inventory_2_outlined),
+                  title: const Text('Dodaj lub sprawdź w bazie produktów'),
+                  subtitle: const Text('Nazwa, marka i makroskładniki'),
+                  onTap: () => Navigator.pop(
+                    sheetContext,
+                    _BatchDestination.productDatabase,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      if (!mounted || destination == null) return;
+      if (destination == _BatchDestination.tracking) {
+        await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => AddFoodEntryScreen(initialBarcode: item.code),
+          ),
+        );
+      } else {
+        await showModalBottomSheet<bool>(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: AppTheme.surfaceColor,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          builder: (_) => SubmitProductSheet(initialBarcode: item.code),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _itemActionBusy = false);
+        try {
+          await _scanner.start();
+        } catch (_) {
+          // Ekran mógł zostać zamknięty podczas powrotu z formularza.
+        }
+      }
+    }
   }
 
   void _replaceItem(
@@ -165,7 +261,7 @@ class _BatchBarcodeScannerScreenState
         title: const Text('Skanowanie seryjne'),
         actions: [
           TextButton(
-            onPressed: _processing || _queue.isNotEmpty
+            onPressed: _busy
                 ? null
                 : () => Navigator.of(context).pop(_addedCount),
             child: const Text('Zakończ'),
@@ -217,7 +313,7 @@ class _BatchBarcodeScannerScreenState
                         vertical: 10,
                       ),
                       child: Text(
-                        _processing || _queue.isNotEmpty
+                        _busy
                             ? 'Rozpoznaję produkty · oczekuje ${_queue.length + 1}'
                             : 'Skanuj kolejne produkty. Aparat pozostanie otwarty.',
                         textAlign: TextAlign.center,
@@ -256,7 +352,7 @@ class _BatchBarcodeScannerScreenState
               child: SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
-                  onPressed: _processing || _queue.isNotEmpty
+                  onPressed: _busy
                       ? null
                       : () => Navigator.of(context).pop(_addedCount),
                   icon: const Icon(Icons.check),
@@ -293,23 +389,30 @@ class _BatchBarcodeScannerScreenState
         ),
         subtitle: Text(
           item.state == _BatchState.added
-              ? '$status · ${item.quantity?.toStringAsFixed(0)} ${item.unit}'
+              ? '$status · ${item.quantity?.toStringAsFixed(0)} ${item.unit}\n'
+                  'Dotknij, aby dodać też do śledzenia lub bazy produktów.'
               : status,
-          maxLines: 2,
+          maxLines: 3,
           overflow: TextOverflow.ellipsis,
         ),
-        trailing: item.state == _BatchState.missing
-            ? const Icon(Icons.chevron_right)
-            : null,
-        onTap: item.state == _BatchState.missing
-            ? () => _completeMissingProduct(item)
-            : null,
+        trailing: switch (item.state) {
+          _BatchState.missing => const Icon(Icons.chevron_right),
+          _BatchState.added => const Icon(Icons.more_horiz),
+          _ => null,
+        },
+        onTap: switch (item.state) {
+          _BatchState.missing => () => _completeMissingProduct(item),
+          _BatchState.added => () => _openProductActions(item),
+          _ => null,
+        },
       ),
     );
   }
 }
 
 enum _BatchState { loading, added, missing, error }
+
+enum _BatchDestination { tracking, productDatabase }
 
 class _BatchScanItem {
   final String code;

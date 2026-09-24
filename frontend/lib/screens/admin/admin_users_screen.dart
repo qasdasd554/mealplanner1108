@@ -104,8 +104,10 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
       ),
     );
 
-    if (confirmed != true) return;
-    await _setBanned(user, true, reason: reasonController.text.trim());
+    final reason = reasonController.text.trim();
+    reasonController.dispose();
+    if (confirmed != true || !mounted) return;
+    await _setBanned(user, true, reason: reason);
   }
 
   Future<void> _setBanned(

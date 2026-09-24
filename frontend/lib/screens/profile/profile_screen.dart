@@ -1121,7 +1121,7 @@ void _showEditNicknameDialog(BuildContext context, AuthProvider authProvider) {
         ],
       );
     },
-  );
+  ).whenComplete(controller.dispose);
 }
 
 /// Usunięcie konta — dwuetapowe potwierdzenie, bo operacja jest

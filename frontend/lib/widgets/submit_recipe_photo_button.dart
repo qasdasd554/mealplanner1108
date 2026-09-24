@@ -44,7 +44,7 @@ class _SubmitRecipePhotoButtonState extends State<SubmitRecipePhotoButton> {
         maxHeight: 1600,
         imageQuality: 85,
       );
-      if (picked == null) return;
+      if (picked == null || !mounted) return;
 
       setState(() => _isSending = true);
       final bytes = await File(picked.path).readAsBytes();

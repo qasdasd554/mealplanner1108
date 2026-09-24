@@ -134,6 +134,7 @@ class _PantryScreenState extends State<PantryScreen> {
       ),
     );
 
+    controller.dispose();
     if (newQuantity == null) return;
 
     try {

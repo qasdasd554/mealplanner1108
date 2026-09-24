@@ -130,8 +130,8 @@ class _PremiumScreenState extends State<PremiumScreen> {
         effectiveCampaigns[id] = campaign;
       }
     }
-    // Punkty na iOS korzystają z kodu, a na Androidzie z zaplanowanej
-    // ceny podstawowego produktu. W obu przypadkach kwotę potwierdza sklep.
+    // Pakiety punktów korzystają z czasowej ceny produktu ustawionej w
+    // odpowiednim sklepie. Kody ofertowe Apple dotyczą tylko subskrypcji.
     for (final id in const [kPoints10ProductId, kPoints20ProductId, kPoints50ProductId]) {
       final campaign = _campaignsFromBackend[id];
       if (campaign != null) effectiveCampaigns[id] = campaign;
@@ -433,10 +433,6 @@ class _PremiumScreenState extends State<PremiumScreen> {
   }
 
   Future<void> _usePointsOffer(ProductDetails product) async {
-    if (Platform.isIOS && _activeOffers.containsKey(product.id)) {
-      await _openOffer(product.id);
-      return;
-    }
     await _buyPoints(product);
   }
 
@@ -1100,12 +1096,10 @@ class _PremiumScreenState extends State<PremiumScreen> {
             const SizedBox(height: 6),
             Text('$points pkt', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
             const SizedBox(height: 2),
-            Text(discountPercent == null
-                    ? price
-                    : Platform.isIOS ? 'Cena przed kodem: $price' : 'Cena promocyjna: $price',
+            Text(discountPercent == null ? price : 'Cena promocyjna: $price',
                 textAlign: TextAlign.center, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
             if (discountPercent != null)
-              Text(Platform.isIOS ? 'Odbierz kod w App Store' : 'Kup w Google Play',
+              Text(Platform.isIOS ? 'Kup w App Store' : 'Kup w Google Play',
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: Color(0xFF9F1749), fontSize: 10, fontWeight: FontWeight.bold)),
           ],

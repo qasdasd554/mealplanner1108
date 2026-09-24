@@ -32,10 +32,11 @@ Future<void> showReportDialog(
         builder: (dialogContext, setState) {
           return AlertDialog(
             title: const Text('Zgłoś treść'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 const Text('Powód zgłoszenia:'),
                 const SizedBox(height: 8),
                 ...kReportReasons.entries.map(
@@ -57,7 +58,8 @@ Future<void> showReportDialog(
                     border: OutlineInputBorder(),
                   ),
                 ),
-              ],
+                ],
+              ),
             ),
             actions: [
               TextButton(
@@ -75,9 +77,10 @@ Future<void> showReportDialog(
     },
   );
 
+  final details = detailsController.text.trim();
+  detailsController.dispose();
   if (submitted != true) return;
 
-  final details = detailsController.text.trim();
   final success = await onSubmit(selectedReason, details.isEmpty ? null : details);
 
   if (context.mounted) {

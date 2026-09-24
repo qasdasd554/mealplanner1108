@@ -103,7 +103,7 @@ class _RecipeVariantEditorSheetState extends State<RecipeVariantEditorSheet> {
     required String unit,
   }) async {
     final controller = TextEditingController(text: formatQuantity(initialQuantity, unit));
-    return showDialog<double>(
+    final result = await showDialog<double>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(name),
@@ -128,6 +128,8 @@ class _RecipeVariantEditorSheetState extends State<RecipeVariantEditorSheet> {
         ],
       ),
     );
+    controller.dispose();
+    return result;
   }
 
   @override

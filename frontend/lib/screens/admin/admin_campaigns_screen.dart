@@ -62,7 +62,7 @@ class _AdminCampaignsScreenState extends State<AdminCampaignsScreen> {
   }
 
   Future<void> _save() async {
-    final missingStoreConfiguration = _platform == 'ios'
+    final missingStoreConfiguration = _platform == 'ios' && _kind == 'premium'
         ? _offerUrl.text.trim().isEmpty
         : _kind == 'premium' &&
             (_basePlanId.text.trim().isEmpty || _androidOfferId.text.trim().isEmpty);
@@ -88,7 +88,8 @@ class _AdminCampaignsScreenState extends State<AdminCampaignsScreen> {
         'starts_at': start.toUtc().toIso8601String(),
         'ends_at': end.toUtc().toIso8601String(),
         'platform': _platform,
-        'ios_offer_url': _platform == 'ios' ? _offerUrl.text.trim() : null,
+        'ios_offer_url': _platform == 'ios' && _kind == 'premium'
+            ? _offerUrl.text.trim() : null,
         'android_base_plan_id': _platform == 'android' && _kind == 'premium'
             ? _basePlanId.text.trim() : null,
         'android_offer_id': _platform == 'android' && _kind == 'premium'
@@ -116,8 +117,8 @@ class _AdminCampaignsScreenState extends State<AdminCampaignsScreen> {
               ? 'Potwierdź ofertę w Google Play'
               : 'Potwierdź ofertę w App Store'),
           content: Text(
-            campaign['platform'] == 'android' && campaign['kind'] == 'points'
-                ? 'Włącz tylko po ustawieniu czasowej ceny tego pakietu punktów w Google Play dla wszystkich użytkowników. Cena w aplikacji pochodzi bezpośrednio ze sklepu.'
+            campaign['kind'] == 'points'
+                ? 'Włącz tylko po ustawieniu czasowej ceny tego pakietu punktów w ${campaign['platform'] == 'android' ? 'Google Play' : 'App Store Connect'} dla wszystkich użytkowników. Cena w aplikacji pochodzi bezpośrednio ze sklepu.'
                 : 'Włącz tylko wtedy, gdy wskazana oferta sklepu jest aktywna, ma dokładnie ten rabat i obejmuje właściwy produkt. Aplikacja nie zmienia ceny samodzielnie.',
           ),
           actions: [
@@ -166,7 +167,7 @@ class _AdminCampaignsScreenState extends State<AdminCampaignsScreen> {
         children: [
           const Text('Promocja Premium i punktów', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          const Text('Szarfy pojawiają się na ikonkach w panelu Premium. iOS otwiera kod ofertowy Apple, a Android wybiera skonfigurowaną ofertę subskrypcji Google Play. Dla punktów na Androidzie ustaw czasową cenę produktu dla wszystkich.'),
+          const Text('Szarfy pojawiają się na ikonkach w panelu Premium. Subskrypcja iOS otwiera kod ofertowy Apple, a Android wybiera ofertę Google Play. Dla punktów ustaw czasową cenę produktu w odpowiednim sklepie dla wszystkich.'),
           const SizedBox(height: 20),
           Row(children: [
             CampaignIcon(icon: Icons.workspace_premium, color: AppTheme.accentColor, discountPercent: _percent),
@@ -185,7 +186,7 @@ class _AdminCampaignsScreenState extends State<AdminCampaignsScreen> {
             ],
             onChanged: (value) => setState(() {
               _platform = value ?? 'ios';
-              if (_platform == 'android' && _kind == 'points') {
+              if (_kind == 'points') {
                 _audience = 'all';
               }
             }),
@@ -201,7 +202,7 @@ class _AdminCampaignsScreenState extends State<AdminCampaignsScreen> {
             onChanged: (value) => setState(() {
               _kind = value ?? 'premium';
               _productId = _kind == 'premium' ? 'premium_monthly' : 'points_20';
-              if (_platform == 'android' && _kind == 'points') {
+              if (_kind == 'points') {
                 _audience = 'all';
               }
             }),
@@ -231,7 +232,7 @@ class _AdminCampaignsScreenState extends State<AdminCampaignsScreen> {
               DropdownMenuItem(value: 'all', child: Text('Wszyscy')),
               DropdownMenuItem(value: 'user', child: Text('Jeden użytkownik')),
             ],
-            onChanged: _platform == 'android' && _kind == 'points'
+            onChanged: _kind == 'points'
                 ? null
                 : (value) => setState(() => _audience = value ?? 'all'),
           ),
@@ -254,7 +255,7 @@ class _AdminCampaignsScreenState extends State<AdminCampaignsScreen> {
             label: Text(_dates == null ? 'Wybierz termin' : '${_dates!.start.day}.${_dates!.start.month}.${_dates!.start.year} – ${_dates!.end.day}.${_dates!.end.month}.${_dates!.end.year}'),
           ),
           const SizedBox(height: 12),
-          if (_platform == 'ios')
+          if (_platform == 'ios' && _kind == 'premium')
             TextField(
               controller: _offerUrl,
               keyboardType: TextInputType.url,
@@ -263,7 +264,7 @@ class _AdminCampaignsScreenState extends State<AdminCampaignsScreen> {
                 helperText: 'Link apps.apple.com/redeem?ctx=offercodes…',
               ),
             )
-          else if (_kind == 'premium') ...[
+          else if (_platform == 'android' && _kind == 'premium') ...[
             TextField(
               controller: _basePlanId,
               decoration: const InputDecoration(labelText: 'Google Play: ID planu bazowego'),
@@ -274,8 +275,8 @@ class _AdminCampaignsScreenState extends State<AdminCampaignsScreen> {
               decoration: const InputDecoration(labelText: 'Google Play: ID oferty'),
             ),
           ] else
-            const Text(
-              'Najpierw zaplanuj obniżoną cenę podstawowego produktu w Google Play. Ta kampania pokazuje szarfę, ale kwotę zawsze pobiera ze sklepu.',
+            Text(
+              'Najpierw zaplanuj czasową obniżkę ceny tego pakietu punktów w ${_platform == 'ios' ? 'App Store Connect' : 'Google Play'}. Kampania pokazuje szarfę, ale kwotę zawsze pobiera bezpośrednio ze sklepu.',
               style: TextStyle(fontSize: 12),
             ),
           const SizedBox(height: 14),

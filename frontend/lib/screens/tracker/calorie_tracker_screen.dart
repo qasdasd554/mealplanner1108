@@ -439,10 +439,14 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
       ),
     );
 
-    if (saved != true) return;
-
     final name = nameController.text.trim();
     final kcal = int.tryParse(kcalController.text.trim());
+    final durationMin = int.tryParse(minutesController.text.trim());
+    nameController.dispose();
+    kcalController.dispose();
+    minutesController.dispose();
+    if (saved != true) return;
+
     if (name.isEmpty || kcal == null || kcal <= 0) {
       if (context.mounted) {
         ScaffoldMessenger.of(context)
@@ -460,7 +464,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
       () => wellness.addActivity(
         name: name,
         kcalBurned: kcal,
-        durationMin: int.tryParse(minutesController.text.trim()),
+        durationMin: durationMin,
       ),
     );
   }
@@ -744,9 +748,10 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
         ],
       ),
     );
+    final value = int.tryParse(controller.text.trim());
+    controller.dispose();
     if (ok != true) return;
 
-    final value = int.tryParse(controller.text.trim());
     if (value == null || value <= 0) {
       if (context.mounted) {
         ScaffoldMessenger.of(context)

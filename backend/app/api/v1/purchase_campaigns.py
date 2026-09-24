@@ -54,7 +54,12 @@ class CampaignCreate(BaseModel):
             raise ValueError("Daty muszą zawierać strefę czasową")
         if self.ends_at <= self.starts_at:
             raise ValueError("Koniec kampanii musi być później niż początek")
-        if self.platform == "ios":
+        if self.kind == "points" and self.audience != "all":
+            # Pakiety punktów korzystają z czasowej ceny produktu ustawionej
+            # w sklepie. Taka cena obejmuje wszystkich klientów, a kody
+            # ofertowe Apple dotyczą wyłącznie subskrypcji.
+            raise ValueError("Rabat punktów może obejmować tylko wszystkich użytkowników")
+        if self.platform == "ios" and self.kind == "premium":
             parsed = urlparse(self.ios_offer_url or "")
             if (parsed.scheme != "https" or parsed.hostname != "apps.apple.com"
                     or parsed.path != "/redeem"
@@ -63,11 +68,6 @@ class CampaignCreate(BaseModel):
         elif self.kind == "premium":
             if not (self.android_base_plan_id or "").strip() or not (self.android_offer_id or "").strip():
                 raise ValueError("Dla subskrypcji Google podaj identyfikator planu bazowego i oferty")
-        elif self.audience != "all":
-            # Wtyczka Fluttera nie udostępnia jeszcze tokenów wielu ofert
-            # jednorazowych PBL8. Punkty działają więc przez czasową cenę
-            # podstawowego produktu, która z definicji obejmuje wszystkich.
-            raise ValueError("Rabat punktów na Androidzie może obejmować tylko wszystkich użytkowników")
         return self
 
 
