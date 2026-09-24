@@ -452,7 +452,8 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
         builder: (dialogContext) => AlertDialog(
           title: const Text('Skanowanie seryjne jest w Premium'),
           content: const Text(
-            'Dodawaj kolejne produkty bez zamykania aparatu.',
+            'Skanuj kolejne produkty bez zamykania aparatu, a potem wybierz '
+            'dla każdego spiżarnię, katalog albo śledzenie.',
           ),
           actions: [
             TextButton(
@@ -472,10 +473,10 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
       return;
     }
 
-    final added = await Navigator.of(context).push<int>(
+    final completed = await Navigator.of(context).push<int>(
       MaterialPageRoute(builder: (_) => const BatchBarcodeScannerScreen()),
     );
-    if (!mounted || added == null || added == 0) return;
+    if (!mounted || completed == null || completed == 0) return;
     Navigator.of(context).pop(true);
   }
 

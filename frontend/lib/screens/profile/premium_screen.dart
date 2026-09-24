@@ -672,7 +672,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   context,
                   icon: Icons.qr_code_2,
                   title: 'Skanuj wiele produktów po kolei',
-                  subtitle: 'Aparat pozostaje otwarty, produkty trafiają do spiżarni',
+                  subtitle: 'Wybierz spiżarnię, katalog albo śledzenie',
                   isPremium: isPremium,
                   onTap: () async {
                     if (!isPremium) {
@@ -685,14 +685,14 @@ class _PremiumScreenState extends State<PremiumScreen> {
                         ));
                       return;
                     }
-                    final added = await Navigator.of(context).push<int>(
+                    final completed = await Navigator.of(context).push<int>(
                       MaterialPageRoute(
                         builder: (_) => const BatchBarcodeScannerScreen(),
                       ),
                     );
-                    if (!context.mounted || added == null || added == 0) return;
+                    if (!context.mounted || completed == null || completed == 0) return;
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Dodano do spiżarni: $added produktów.')),
+                      SnackBar(content: Text('Obsłużono: $completed produktów.')),
                     );
                   },
                 ),

@@ -91,14 +91,14 @@ class _ProductsScreenState extends State<ProductsScreen>
       return;
     }
 
-    final added = await Navigator.of(context).push<int>(
+    final completed = await Navigator.of(context).push<int>(
       MaterialPageRoute(builder: (_) => const BatchBarcodeScannerScreen()),
     );
-    if (!mounted || added == null || added == 0) return;
+    if (!mounted || completed == null || completed == 0) return;
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text('Dodano do spiżarni: $added produktów.')),
+        SnackBar(content: Text('Obsłużono: $completed produktów.')),
       );
   }
 
@@ -149,7 +149,7 @@ class _ProductsScreenState extends State<ProductsScreen>
                       SizedBox(width: 8),
                       Flexible(
                         child: Text(
-                          'Skanuj seryjnie do spiżarni',
+                          'Skanuj wiele produktów',
                           maxLines: 2,
                           textAlign: TextAlign.center,
                         ),

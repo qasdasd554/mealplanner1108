@@ -84,24 +84,43 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       child: Scaffold(
         body: tabs[_currentIndex],
-        floatingActionButton: (_currentIndex == 0 || _currentIndex == 4)
-            ? SizedBox(
-                width: 116,
-                height: 34,
-                child: FilledButton.tonalIcon(
-                  onPressed: _showQuickAddSheet,
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    minimumSize: const Size(116, 34),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    visualDensity: VisualDensity.compact,
-                    shape: const StadiumBorder(),
+        // Stały rozmiar eliminuje dodatkową animację położenia Scaffolda.
+        // AnimatedSwitcher używa tej samej krzywej w obu kierunkach, więc
+        // pojawianie jest dokładnym odwróceniem znikania.
+        floatingActionButton: SizedBox(
+          width: 116,
+          height: 34,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 220),
+            reverseDuration: const Duration(milliseconds: 220),
+            switchInCurve: Curves.easeInOut,
+            switchOutCurve: Curves.easeInOut,
+            transitionBuilder: (child, animation) => FadeTransition(
+              opacity: animation,
+              child: ScaleTransition(
+                scale: Tween<double>(begin: .88, end: 1).animate(animation),
+                child: child,
+              ),
+            ),
+            child: (_currentIndex == 0 || _currentIndex == 4)
+                ? FilledButton.tonalIcon(
+                    key: const ValueKey('quick-add-visible'),
+                    onPressed: _showQuickAddSheet,
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      minimumSize: const Size(116, 34),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      visualDensity: VisualDensity.compact,
+                      shape: const StadiumBorder(),
+                    ),
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('Dodaj'),
+                  )
+                : const SizedBox.shrink(
+                    key: ValueKey('quick-add-hidden'),
                   ),
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Dodaj'),
-                ),
-              )
-            : null,
+          ),
+        ),
         floatingActionButtonLocation: const _QuickAddFabLocation(),
         bottomNavigationBar: Material(
           color: Theme.of(context).bottomNavigationBarTheme.backgroundColor ??
@@ -200,8 +219,8 @@ class _HomeScreenState extends State<HomeScreen> {
           title: const Text('Skanowanie seryjne jest w Premium'),
           content: const Text(
             'Aparat pozostaje otwarty, a kolejne produkty są automatycznie '
-            'dodawane do spiżarni. Każdy wynik możesz też przekazać do '
-            'śledzenia albo bazy produktów.',
+            'rozpoznawane. Dla każdego wyniku wybierzesz spiżarnię, '
+            'śledzenie albo katalog produktów.',
           ),
           actions: [
             TextButton(
@@ -221,14 +240,14 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    final added = await Navigator.of(context).push<int>(
+    final completed = await Navigator.of(context).push<int>(
       MaterialPageRoute(builder: (_) => const BatchBarcodeScannerScreen()),
     );
-    if (!mounted || added == null || added == 0) return;
+    if (!mounted || completed == null || completed == 0) return;
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(
-        content: Text('Dodano do spiżarni: $added produktów.'),
+        content: Text('Obsłużono: $completed produktów.'),
       ));
   }
 
@@ -264,9 +283,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               ListTile(
                 leading: const Icon(Icons.qr_code_2),
-                title: const Text('Skanuj seryjnie do spiżarni'),
+                title: const Text('Skanuj wiele produktów'),
                 subtitle: const Text(
-                  'Wiele produktów; także śledzenie i baza produktów',
+                  'Wybierz dla każdego: spiżarnia, śledzenie lub katalog',
                 ),
                 trailing: const PremiumFeatureTag(),
                 onTap: () {
@@ -339,7 +358,18 @@ class _QuickAddFabLocation extends FloatingActionButtonLocation {
   Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
     final buttonSize = scaffoldGeometry.floatingActionButtonSize;
     final x = (scaffoldGeometry.scaffoldSize.width - buttonSize.width) / 2;
-    final y = scaffoldGeometry.contentBottom - buttonSize.height - 2;
+    const navigationGap = 12.0;
+    const notificationGap = 10.0;
+    final regularY = scaffoldGeometry.contentBottom -
+        buttonSize.height -
+        navigationGap;
+    final notificationY = scaffoldGeometry.contentBottom -
+        scaffoldGeometry.snackBarSize.height -
+        buttonSize.height -
+        notificationGap;
+    final y = scaffoldGeometry.snackBarSize.height > 0
+        ? notificationY
+        : regularY;
     return Offset(x, y);
   }
 }

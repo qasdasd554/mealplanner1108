@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../services/api_client.dart';
+import '../services/barcode_lookup_service.dart';
 import '../services/pantry_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/barcode_utils.dart';
@@ -10,9 +11,9 @@ import '../widgets/product_label_recognition_sheet.dart';
 import '../widgets/submit_product_sheet.dart';
 import 'tracker/add_food_entry_screen.dart';
 
-/// Seryjne skanowanie Premium. Aparat pozostaje otwarty, a każdy poprawnie
-/// rozpoznany produkt jest od razu dodawany do spiżarni. Ten sam kod w jednej
-/// sesji jest obsługiwany tylko raz, więc kamera nie tworzy duplikatów.
+/// Seryjne skanowanie Premium. Aparat pozostaje otwarty, a po rozpoznaniu
+/// produktu użytkownik wybiera: spiżarnia, katalog albo śledzenie. Ten sam kod
+/// w jednej sesji jest obsługiwany tylko raz, więc kamera nie tworzy duplikatów.
 class BatchBarcodeScannerScreen extends StatefulWidget {
   const BatchBarcodeScannerScreen({super.key});
 
@@ -37,6 +38,7 @@ class _BatchBarcodeScannerScreenState
     ],
   );
   final PantryService _pantry = PantryService();
+  final BarcodeLookupService _lookup = BarcodeLookupService();
   final Set<String> _seen = {};
   final List<_BatchScanItem> _items = [];
   final List<String> _queue = [];
@@ -48,6 +50,7 @@ class _BatchBarcodeScannerScreenState
   @override
   void dispose() {
     _scanner.dispose();
+    _lookup.close();
     super.dispose();
   }
 
@@ -89,21 +92,22 @@ class _BatchBarcodeScannerScreenState
 
   Future<void> _processCode(String scannedCode) async {
     try {
-      final pantryItem = await _pantry.addFromBarcode(
-        scannedCode,
-        // W trybie batch backend dobiera właściwą ilość i jednostkę po
-        // rozpoznaniu produktu. Te wartości są bezpiecznym fallbackiem.
-        quantity: 1,
-        unit: 'szt',
-        batch: true,
-      );
+      final result = await _lookup.lookup(scannedCode);
       if (!mounted) return;
+      if (!result.found || (result.name?.trim().isEmpty ?? true)) {
+        _replaceItem(
+          scannedCode,
+          state: _BatchState.missing,
+          message: 'Nie znaleziono. Dotknij, aby dodać produkt ze zdjęć.',
+        );
+        return;
+      }
       _replaceItem(
         scannedCode,
-        state: _BatchState.added,
-        name: pantryItem.product.name,
-        quantity: pantryItem.quantity,
-        unit: pantryItem.unit,
+        state: _BatchState.ready,
+        name: result.name,
+        quantity: result.servingQuantity,
+        unit: result.unit,
       );
     } catch (error) {
       if (!mounted) return;
@@ -132,10 +136,11 @@ class _BatchBarcodeScannerScreenState
       if (!mounted || recognized == null) return;
       _replaceItem(
         item.code,
-        state: _BatchState.loading,
+        state: _BatchState.ready,
         name: recognized.name,
+        quantity: recognized.servingQuantity,
+        unit: recognized.unit,
       );
-      await _processCode(item.code);
     } finally {
       if (mounted) {
         setState(() => _itemActionBusy = false);
@@ -149,7 +154,7 @@ class _BatchBarcodeScannerScreenState
   }
 
   Future<void> _openProductActions(_BatchScanItem item) async {
-    if (item.state != _BatchState.added || _busy) return;
+    if (item.state != _BatchState.ready || _busy) return;
     setState(() => _itemActionBusy = true);
     await _scanner.stop();
     try {
@@ -171,10 +176,14 @@ class _BatchBarcodeScannerScreenState
                   style: Theme.of(sheetContext).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 6),
-                const ListTile(
-                  enabled: false,
-                  leading: Icon(Icons.kitchen_outlined),
-                  title: Text('Dodano do spiżarni'),
+                ListTile(
+                  leading: const Icon(Icons.kitchen_outlined),
+                  title: const Text('Dodaj do spiżarni'),
+                  subtitle: const Text('Ilość zostanie dobrana z opakowania'),
+                  onTap: () => Navigator.pop(
+                    sheetContext,
+                    _BatchDestination.pantry,
+                  ),
                 ),
                 ListTile(
                   leading: const Icon(Icons.local_fire_department_outlined),
@@ -187,7 +196,7 @@ class _BatchBarcodeScannerScreenState
                 ),
                 ListTile(
                   leading: const Icon(Icons.inventory_2_outlined),
-                  title: const Text('Dodaj lub sprawdź w bazie produktów'),
+                  title: const Text('Dodaj do katalogu produktów'),
                   subtitle: const Text('Nazwa, marka i makroskładniki'),
                   onTap: () => Navigator.pop(
                     sheetContext,
@@ -200,14 +209,49 @@ class _BatchBarcodeScannerScreenState
         ),
       );
       if (!mounted || destination == null) return;
-      if (destination == _BatchDestination.tracking) {
+      if (destination == _BatchDestination.pantry) {
+        try {
+          final pantryItem = await _pantry.addFromBarcode(
+            item.code,
+            quantity: 1,
+            unit: 'szt',
+            batch: true,
+          );
+          if (!mounted) return;
+          _replaceItem(
+            item.code,
+            state: _BatchState.completed,
+            name: pantryItem.product.name,
+            quantity: pantryItem.quantity,
+            unit: pantryItem.unit,
+            destinationLabel: 'Dodano do spiżarni',
+          );
+        } catch (error) {
+          if (!mounted) return;
+          _replaceItem(
+            item.code,
+            state: _BatchState.error,
+            name: item.name,
+            message: friendlyError(error),
+          );
+        }
+      } else if (destination == _BatchDestination.tracking) {
         await Navigator.of(context).push(
           MaterialPageRoute(
             builder: (_) => AddFoodEntryScreen(initialBarcode: item.code),
           ),
         );
+        if (!mounted) return;
+        _replaceItem(
+          item.code,
+          state: _BatchState.completed,
+          name: item.name,
+          quantity: item.quantity,
+          unit: item.unit,
+          destinationLabel: 'Przekazano do śledzenia',
+        );
       } else {
-        await showModalBottomSheet<bool>(
+        final saved = await showModalBottomSheet<bool>(
           context: context,
           isScrollControlled: true,
           backgroundColor: AppTheme.surfaceColor,
@@ -215,6 +259,15 @@ class _BatchBarcodeScannerScreenState
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
           builder: (_) => SubmitProductSheet(initialBarcode: item.code),
+        );
+        if (!mounted || saved != true) return;
+        _replaceItem(
+          item.code,
+          state: _BatchState.completed,
+          name: item.name,
+          quantity: item.quantity,
+          unit: item.unit,
+          destinationLabel: 'Dodano do katalogu produktów',
         );
       }
     } finally {
@@ -236,6 +289,7 @@ class _BatchBarcodeScannerScreenState
     double? quantity,
     String? unit,
     String? message,
+    String? destinationLabel,
   }) {
     setState(() {
       final index = _items.indexWhere((item) => item.code == code);
@@ -247,12 +301,13 @@ class _BatchBarcodeScannerScreenState
         quantity: quantity,
         unit: unit,
         message: message,
+        destinationLabel: destinationLabel,
       );
     });
   }
 
-  int get _addedCount =>
-      _items.where((item) => item.state == _BatchState.added).length;
+  int get _completedCount =>
+      _items.where((item) => item.state == _BatchState.completed).length;
 
   @override
   Widget build(BuildContext context) {
@@ -263,7 +318,7 @@ class _BatchBarcodeScannerScreenState
           TextButton(
             onPressed: _busy
                 ? null
-                : () => Navigator.of(context).pop(_addedCount),
+                : () => Navigator.of(context).pop(_completedCount),
             child: const Text('Zakończ'),
           ),
         ],
@@ -315,7 +370,7 @@ class _BatchBarcodeScannerScreenState
                       child: Text(
                         _busy
                             ? 'Rozpoznaję produkty · oczekuje ${_queue.length + 1}'
-                            : 'Skanuj kolejne produkty. Aparat pozostanie otwarty.',
+                            : 'Skanuj kolejne produkty, potem dotknij wyniku i wybierz miejsce.',
                         textAlign: TextAlign.center,
                         style: const TextStyle(color: Colors.white),
                       ),
@@ -354,9 +409,9 @@ class _BatchBarcodeScannerScreenState
                 child: FilledButton.icon(
                   onPressed: _busy
                       ? null
-                      : () => Navigator.of(context).pop(_addedCount),
+                      : () => Navigator.of(context).pop(_completedCount),
                   icon: const Icon(Icons.check),
-                  label: Text('Zakończ · dodano $_addedCount'),
+                  label: Text('Zakończ · obsłużono $_completedCount'),
                 ),
               ),
             ),
@@ -370,8 +425,12 @@ class _BatchBarcodeScannerScreenState
     final (icon, color, status) = switch (item.state) {
       _BatchState.loading =>
         (Icons.hourglass_top, AppTheme.textSecondary, 'Rozpoznawanie…'),
-      _BatchState.added =>
-        (Icons.check_circle, AppTheme.primaryColor, 'Dodano do spiżarni'),
+      _BatchState.ready =>
+        (Icons.touch_app_outlined, AppTheme.secondaryColor,
+          'Dotknij i wybierz: spiżarnia, katalog albo śledzenie'),
+      _BatchState.completed =>
+        (Icons.check_circle, AppTheme.primaryColor,
+          item.destinationLabel ?? 'Gotowe'),
       _BatchState.missing =>
         (Icons.add_a_photo_outlined, AppTheme.secondaryColor,
           item.message ?? 'Dotknij, aby uzupełnić produkt'),
@@ -388,21 +447,18 @@ class _BatchBarcodeScannerScreenState
           overflow: TextOverflow.ellipsis,
         ),
         subtitle: Text(
-          item.state == _BatchState.added
-              ? '$status · ${item.quantity?.toStringAsFixed(0)} ${item.unit}\n'
-                  'Dotknij, aby dodać też do śledzenia lub bazy produktów.'
-              : status,
+          status,
           maxLines: 3,
           overflow: TextOverflow.ellipsis,
         ),
         trailing: switch (item.state) {
           _BatchState.missing => const Icon(Icons.chevron_right),
-          _BatchState.added => const Icon(Icons.more_horiz),
+          _BatchState.ready => const Icon(Icons.chevron_right),
           _ => null,
         },
         onTap: switch (item.state) {
           _BatchState.missing => () => _completeMissingProduct(item),
-          _BatchState.added => () => _openProductActions(item),
+          _BatchState.ready => () => _openProductActions(item),
           _ => null,
         },
       ),
@@ -410,9 +466,9 @@ class _BatchBarcodeScannerScreenState
   }
 }
 
-enum _BatchState { loading, added, missing, error }
+enum _BatchState { loading, ready, completed, missing, error }
 
-enum _BatchDestination { tracking, productDatabase }
+enum _BatchDestination { pantry, tracking, productDatabase }
 
 class _BatchScanItem {
   final String code;
@@ -421,6 +477,7 @@ class _BatchScanItem {
   final double? quantity;
   final String? unit;
   final String? message;
+  final String? destinationLabel;
 
   const _BatchScanItem({
     required this.code,
@@ -429,5 +486,6 @@ class _BatchScanItem {
     this.quantity,
     this.unit,
     this.message,
+    this.destinationLabel,
   });
 }
