@@ -76,8 +76,9 @@ class _ProductLabelRecognitionSheetState
   }
 
   Future<ImageSource?> _chooseSource() => showModalBottomSheet<ImageSource>(
-        context: context,
-        builder: (context) => SafeArea(
+    context: context,
+    builder:
+        (context) => SafeArea(
           child: Wrap(
             children: [
               ListTile(
@@ -93,7 +94,7 @@ class _ProductLabelRecognitionSheetState
             ],
           ),
         ),
-      );
+  );
 
   Future<void> _pickPhoto({required bool front}) async {
     final source = await _chooseSource();
@@ -143,9 +144,8 @@ class _ProductLabelRecognitionSheetState
       _carbs.text = _format(result.carbsPer100);
       setState(() {
         _recognized = result;
-        _unit = const {'g', 'ml', 'szt'}.contains(result.unit)
-            ? result.unit
-            : 'g';
+        _unit =
+            const {'g', 'ml', 'szt'}.contains(result.unit) ? result.unit : 'g';
       });
     } catch (error) {
       if (mounted) setState(() => _error = friendlyError(error));
@@ -214,119 +214,133 @@ class _ProductLabelRecognitionSheetState
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-          Text('Dodaj brakujący produkt',
-              style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 6),
-          Text(
-            'Kod ${widget.barcode} nie występuje w dostępnych bazach. '
-            'Dwa wyraźne zdjęcia pozwolą odczytać dane bez ręcznego przepisywania.',
-            style: TextStyle(color: AppTheme.textSecondary, height: 1.35),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _photoCard(
-                  title: 'Przód opakowania',
-                  value: _frontBase64,
-                  onTap: () => _pickPhoto(front: true),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _photoCard(
-                  title: 'Tabela wartości',
-                  value: _nutritionBase64,
-                  onTap: () => _pickPhoto(front: false),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          if (_recognized == null)
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: _busy ? null : _recognize,
-                icon: _busy
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.auto_awesome),
-                label: Text(_busy ? 'Odczytywanie etykiety…' : 'Odczytaj dane'),
-              ),
-            )
-          else ...[
-            Text('Sprawdź dane przed zapisaniem',
-                style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 10),
-            _field(_name, 'Nazwa produktu *'),
-            _field(_brand, 'Marka'),
+            Text(
+              'Dodaj brakujący produkt',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Kod ${widget.barcode} nie występuje w dostępnych bazach. '
+              'Dwa wyraźne zdjęcia pozwolą odczytać dane bez ręcznego przepisywania.',
+              style: TextStyle(color: AppTheme.textSecondary, height: 1.35),
+            ),
+            const SizedBox(height: 16),
             Row(
               children: [
-                Expanded(child: _numberField(_serving, 'Porcja/opakowanie')),
+                Expanded(
+                  child: _photoCard(
+                    title: 'Przód opakowania',
+                    value: _frontBase64,
+                    onTap: () => _pickPhoto(front: true),
+                  ),
+                ),
                 const SizedBox(width: 10),
-                SizedBox(
-                  width: 100,
-                  child: DropdownButtonFormField<String>(
-                    value: _unit,
-                    decoration: const InputDecoration(
-                      labelText: 'Jedn.',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: const ['g', 'ml', 'szt']
-                        .map((unit) => DropdownMenuItem(
-                              value: unit,
-                              child: Text(unit),
-                            ))
-                        .toList(),
-                    onChanged: (value) => setState(() => _unit = value ?? 'g'),
+                Expanded(
+                  child: _photoCard(
+                    title: 'Tabela wartości',
+                    value: _nutritionBase64,
+                    onTap: () => _pickPhoto(front: false),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
-            Text('Wartości na 100 ${_unit == 'ml' ? 'ml' : 'g'}',
-                style: TextStyle(color: AppTheme.textSecondary)),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(child: _numberField(_kcal, 'kcal')),
-                const SizedBox(width: 8),
-                Expanded(child: _numberField(_protein, 'Białko')),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(child: _numberField(_fat, 'Tłuszcz')),
-                const SizedBox(width: 8),
-                Expanded(child: _numberField(_carbs, 'Węglowodany')),
-              ],
-            ),
             const SizedBox(height: 14),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: _busy ? null : _confirm,
-                icon: _busy
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.check),
-                label: const Text('Potwierdź i zapisz'),
+            if (_recognized == null)
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: _busy ? null : _recognize,
+                  icon:
+                      _busy
+                          ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                          : const Icon(Icons.auto_awesome),
+                  label: Text(
+                    _busy ? 'Odczytywanie etykiety…' : 'Odczytaj dane',
+                  ),
+                ),
+              )
+            else ...[
+              Text(
+                'Sprawdź dane przed zapisaniem',
+                style: Theme.of(context).textTheme.titleMedium,
               ),
-            ),
-          ],
-          if (_error != null) ...[
-            const SizedBox(height: 10),
-            Text(_error!, style: const TextStyle(color: AppTheme.errorColor)),
-          ],
-          const SizedBox(height: 8),
+              const SizedBox(height: 10),
+              _field(_name, 'Nazwa produktu *'),
+              _field(_brand, 'Marka'),
+              Row(
+                children: [
+                  Expanded(child: _numberField(_serving, 'Porcja/opakowanie')),
+                  const SizedBox(width: 10),
+                  SizedBox(
+                    width: 100,
+                    child: DropdownButtonFormField<String>(
+                      value: _unit,
+                      decoration: const InputDecoration(
+                        labelText: 'Jedn.',
+                        border: OutlineInputBorder(),
+                      ),
+                      items:
+                          const ['g', 'ml', 'szt']
+                              .map(
+                                (unit) => DropdownMenuItem(
+                                  value: unit,
+                                  child: Text(unit),
+                                ),
+                              )
+                              .toList(),
+                      onChanged:
+                          (value) => setState(() => _unit = value ?? 'g'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Wartości na 100 ${_unit == 'ml' ? 'ml' : 'g'}',
+                style: TextStyle(color: AppTheme.textSecondary),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(child: _numberField(_kcal, 'kcal')),
+                  const SizedBox(width: 8),
+                  Expanded(child: _numberField(_protein, 'Białko')),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(child: _numberField(_fat, 'Tłuszcz')),
+                  const SizedBox(width: 8),
+                  Expanded(child: _numberField(_carbs, 'Węglowodany')),
+                ],
+              ),
+              const SizedBox(height: 14),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: _busy ? null : _confirm,
+                  icon:
+                      _busy
+                          ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                          : const Icon(Icons.check),
+                  label: const Text('Potwierdź i zapisz'),
+                ),
+              ),
+            ],
+            if (_error != null) ...[
+              const SizedBox(height: 10),
+              Text(_error!, style: const TextStyle(color: AppTheme.errorColor)),
+            ],
+            const SizedBox(height: 8),
           ],
         ),
       ),
@@ -349,53 +363,62 @@ class _ProductLabelRecognitionSheetState
           border: Border.all(color: AppTheme.primaryColor.withOpacity(0.35)),
         ),
         clipBehavior: Clip.antiAlias,
-        child: bytes == null
-            ? Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.add_a_photo_outlined,
-                      color: AppTheme.primaryColor),
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
-                    child: Text(title,
+        child:
+            bytes == null
+                ? Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.add_a_photo_outlined,
+                      color: AppTheme.primaryColor,
+                    ),
+                    const SizedBox(height: 8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      child: Text(
+                        title,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 12)),
-                  ),
-                ],
-              )
-            : Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.memory(bytes, fit: BoxFit.cover),
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Container(
-                      width: double.infinity,
-                      color: Colors.black54,
-                      padding: const EdgeInsets.all(5),
-                      child: Text(title,
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ],
+                )
+                : Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.memory(bytes, fit: BoxFit.cover),
+                    Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Container(
+                        width: double.infinity,
+                        color: Colors.black54,
+                        padding: const EdgeInsets.all(5),
+                        child: Text(
+                          title,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
-                              color: Colors.white, fontSize: 11)),
+                            color: Colors.white,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
       ),
     );
   }
 
   Widget _field(TextEditingController controller, String label) => Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: label,
-            border: const OutlineInputBorder(),
-          ),
-        ),
-      );
+    padding: const EdgeInsets.only(bottom: 10),
+    child: TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+      ),
+    ),
+  );
 
   Widget _numberField(TextEditingController controller, String label) =>
       TextField(

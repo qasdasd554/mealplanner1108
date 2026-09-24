@@ -50,12 +50,15 @@ class WellnessStatistics {
   });
 
   factory WellnessStatistics.fromJson(Map<String, dynamic> json) {
-    final days = (json['days'] as List? ?? const [])
-        .map((item) => DailyWellnessStatistics.fromJson(
-              item as Map<String, dynamic>,
-            ))
-        .toList()
-      ..sort((first, second) => first.date.compareTo(second.date));
+    final days =
+        (json['days'] as List? ?? const [])
+            .map(
+              (item) => DailyWellnessStatistics.fromJson(
+                item as Map<String, dynamic>,
+              ),
+            )
+            .toList()
+          ..sort((first, second) => first.date.compareTo(second.date));
 
     // Starsza wersja bazy mogła zawierać kilka pomiarów tego samego dnia.
     // Do czasu wykonania migracji po wdrożeniu pokazujemy tylko ostatni wpis,
@@ -63,20 +66,21 @@ class WellnessStatistics {
     final weightsByDate = <String, WeightLogEntry>{};
     for (final item in (json['weights'] as List? ?? const [])) {
       final entry = WeightLogEntry.fromJson(item as Map<String, dynamic>);
-      final key = '${entry.date.year.toString().padLeft(4, '0')}-'
+      final key =
+          '${entry.date.year.toString().padLeft(4, '0')}-'
           '${entry.date.month.toString().padLeft(2, '0')}-'
           '${entry.date.day.toString().padLeft(2, '0')}';
       weightsByDate[key] = entry;
     }
-    final weights = weightsByDate.values.toList()
-      ..sort((first, second) => first.date.compareTo(second.date));
+    final weights =
+        weightsByDate.values.toList()
+          ..sort((first, second) => first.date.compareTo(second.date));
 
     return WellnessStatistics(
       days: days,
       weights: weights,
       favoriteMeal: json['favorite_meal'] as String?,
-      averageCalories:
-          (json['average_calories'] as num?)?.toDouble() ?? 0,
+      averageCalories: (json['average_calories'] as num?)?.toDouble() ?? 0,
       averageProtein: (json['average_protein'] as num?)?.toDouble() ?? 0,
       averageFat: (json['average_fat'] as num?)?.toDouble() ?? 0,
       averageCarbs: (json['average_carbs'] as num?)?.toDouble() ?? 0,

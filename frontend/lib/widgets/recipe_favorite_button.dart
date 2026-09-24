@@ -72,11 +72,13 @@ class _RecipeFavoriteButtonState extends State<RecipeFavoriteButton> {
       setState(() => _isFavorite = previous);
       widget.recipe.isFavorite = previous;
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-            duration: Duration(seconds: 3),content: Text('Nie udało się zaktualizować ulubionych')),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            duration: Duration(seconds: 3),
+            content: Text('Nie udało się zaktualizować ulubionych'),
+          ),
+        );
     } finally {
       if (mounted) setState(() => _isBusy = false);
     }
@@ -88,7 +90,10 @@ class _RecipeFavoriteButtonState extends State<RecipeFavoriteButton> {
       onPressed: _toggle,
       icon: Icon(
         _isFavorite ? Icons.favorite : Icons.favorite_border,
-        color: _isFavorite ? (widget.activeColor ?? Colors.redAccent) : widget.inactiveColor,
+        color:
+            _isFavorite
+                ? (widget.activeColor ?? Colors.redAccent)
+                : widget.inactiveColor,
         size: widget.size,
       ),
       tooltip: _isFavorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych',

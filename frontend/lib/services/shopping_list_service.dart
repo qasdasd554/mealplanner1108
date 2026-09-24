@@ -124,7 +124,11 @@ class ShoppingListService {
     await _client.delete('${ApiConfig.shoppingLists}$listId/items/$itemId');
   }
 
-  Future<void> substituteItem(String listId, String itemId, String substituteProductId) async {
+  Future<void> substituteItem(
+    String listId,
+    String itemId,
+    String substituteProductId,
+  ) async {
     await _client.put(
       '${ApiConfig.shoppingLists}$listId/items/$itemId/substitute',
       body: {'substitute_product_id': substituteProductId},
@@ -132,7 +136,9 @@ class ShoppingListService {
   }
 
   Future<Map<String, dynamic>> getSummary(String listId) async {
-    final response = await _client.get('${ApiConfig.shoppingLists}$listId/summary');
+    final response = await _client.get(
+      '${ApiConfig.shoppingLists}$listId/summary',
+    );
     return response as Map<String, dynamic>;
   }
 
@@ -145,7 +151,10 @@ class ShoppingListService {
     required String storeId,
     String? existingListId,
   }) async {
-    final body = <String, dynamic>{'recipe_ids': recipeIds, 'store_id': storeId};
+    final body = <String, dynamic>{
+      'recipe_ids': recipeIds,
+      'store_id': storeId,
+    };
     if (existingListId != null) body['existing_list_id'] = existingListId;
     final response = await _client.post(
       '${ApiConfig.shoppingLists}from-recipes',
@@ -169,18 +178,28 @@ class ShoppingListService {
 
   /// Zaproszenia oczekujące NA CIEBIE (do zaakceptowania/odrzucenia).
   Future<List<ShoppingListShare>> getPendingShares() async {
-    final response = await _client.get('${ApiConfig.shoppingLists}shares/pending');
-    return (response as List).map((e) => ShoppingListShare.fromJson(e as Map<String, dynamic>)).toList();
+    final response = await _client.get(
+      '${ApiConfig.shoppingLists}shares/pending',
+    );
+    return (response as List)
+        .map((e) => ShoppingListShare.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   /// Listy, które ktoś Ci udostępnił i które już zaakceptowałeś.
   Future<List<ShoppingListShare>> getSharedWithMe() async {
-    final response = await _client.get('${ApiConfig.shoppingLists}shares/shared-with-me');
-    return (response as List).map((e) => ShoppingListShare.fromJson(e as Map<String, dynamic>)).toList();
+    final response = await _client.get(
+      '${ApiConfig.shoppingLists}shares/shared-with-me',
+    );
+    return (response as List)
+        .map((e) => ShoppingListShare.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   Future<ShoppingListShare> acceptShare(String shareId) async {
-    final response = await _client.post('${ApiConfig.shoppingLists}shares/$shareId/accept');
+    final response = await _client.post(
+      '${ApiConfig.shoppingLists}shares/$shareId/accept',
+    );
     return ShoppingListShare.fromJson(response as Map<String, dynamic>);
   }
 

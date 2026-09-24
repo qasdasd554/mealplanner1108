@@ -13,7 +13,8 @@ class RecipeImportJob {
 
   bool get isActive => status == 'queued' || status == 'processing';
 
-  factory RecipeImportJob.fromJson(Map<String, dynamic> json) => RecipeImportJob(
+  factory RecipeImportJob.fromJson(Map<String, dynamic> json) =>
+      RecipeImportJob(
         id: json['id'] as String,
         status: json['status'] as String,
         recipeId: json['recipe_id'] as String?,

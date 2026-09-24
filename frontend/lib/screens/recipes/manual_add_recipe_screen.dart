@@ -16,7 +16,11 @@ class _IngredientRow {
   Product product;
   double quantity;
   String unit;
-  _IngredientRow({required this.product, required this.quantity, required this.unit});
+  _IngredientRow({
+    required this.product,
+    required this.quantity,
+    required this.unit,
+  });
 }
 
 /// Ręczne dodawanie przepisu — pełny formularz (nazwa, składniki, kroki
@@ -35,7 +39,8 @@ class ManualAddRecipeScreen extends StatefulWidget {
 class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
   final _formKey = GlobalKey<FormState>();
   final RecipeService _recipeService = RecipeService();
-  final ProductNameLookupService _productLookupService = ProductNameLookupService();
+  final ProductNameLookupService _productLookupService =
+      ProductNameLookupService();
 
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -49,9 +54,17 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
   bool _isSubmitting = false;
 
   final List<_IngredientRow> _ingredients = [];
-  final List<TextEditingController> _stepControllers = [TextEditingController()];
+  final List<TextEditingController> _stepControllers = [
+    TextEditingController(),
+  ];
 
-  final List<String> _mealTypes = ['śniadanie', 'obiad', 'kolacja', 'przekąska', 'deser'];
+  final List<String> _mealTypes = [
+    'śniadanie',
+    'obiad',
+    'kolacja',
+    'przekąska',
+    'deser',
+  ];
   final List<String> _difficulties = ['łatwy', 'średni', 'trudny'];
 
   @override
@@ -71,6 +84,7 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
     final selected = await showModalBottomSheet<BarcodeLookupResult>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (ctx) => const _ProductPickerSheet(),
     );
     if (selected == null || !mounted) return;
@@ -95,16 +109,20 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
     try {
       final product = await _productLookupService.resolveForRecipe(selected);
       if (!mounted) return;
-      setState(() => _ingredients.add(_IngredientRow(
-        product: product,
-        quantity: quantity * _conversionFactor(selected.unit, product.unit),
-        unit: product.unit,
-      )));
+      setState(
+        () => _ingredients.add(
+          _IngredientRow(
+            product: product,
+            quantity: quantity * _conversionFactor(selected.unit, product.unit),
+            unit: product.unit,
+          ),
+        ),
+      );
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(friendlyError(error))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(friendlyError(error))));
     }
   }
 
@@ -138,74 +156,94 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
     final options = _preciserUnits[baseUnit] ?? [baseUnit];
     String selectedUnit = baseUnit;
 
-    final controller =
-        TextEditingController(text: formatQuantity(product.defaultQuantity, baseUnit));
+    final controller = TextEditingController(
+      text: formatQuantity(product.defaultQuantity, baseUnit),
+    );
 
     final result = await showDialog<double>(
       context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: Text(product.name),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: TextField(
-                      controller: controller,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
-                      autofocus: true,
-                      decoration: const InputDecoration(labelText: 'Ilość'),
-                    ),
-                  ),
-                  if (options.length > 1) ...[
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: DropdownButtonFormField<String>(
-                        value: selectedUnit,
-                        decoration: const InputDecoration(labelText: 'Jedn.'),
-                        items: options
-                            .map((u) =>
-                                DropdownMenuItem(value: u, child: Text(u)))
-                            .toList(),
-                        onChanged: (v) {
-                          if (v == null) return;
-                          setDialogState(() => selectedUnit = v);
-                        },
+      builder:
+          (ctx) => StatefulBuilder(
+            builder:
+                (ctx, setDialogState) => AlertDialog(
+                  title: Text(product.name),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: TextField(
+                              controller: controller,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              autofocus: true,
+                              decoration: const InputDecoration(
+                                labelText: 'Ilość',
+                              ),
+                            ),
+                          ),
+                          if (options.length > 1) ...[
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: DropdownButtonFormField<String>(
+                                value: selectedUnit,
+                                decoration: const InputDecoration(
+                                  labelText: 'Jedn.',
+                                ),
+                                items:
+                                    options
+                                        .map(
+                                          (u) => DropdownMenuItem(
+                                            value: u,
+                                            child: Text(u),
+                                          ),
+                                        )
+                                        .toList(),
+                                onChanged: (v) {
+                                  if (v == null) return;
+                                  setDialogState(() => selectedUnit = v);
+                                },
+                              ),
+                            ),
+                          ] else
+                            Padding(
+                              padding: const EdgeInsets.only(left: 10, top: 14),
+                              child: Text(baseUnit),
+                            ),
+                        ],
                       ),
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('Anuluj'),
                     ),
-                  ] else
-                    Padding(
-                      padding: const EdgeInsets.only(left: 10, top: 14),
-                      child: Text(baseUnit),
+                    FilledButton(
+                      onPressed: () {
+                        final raw = double.tryParse(
+                          controller.text.replaceAll(',', '.'),
+                        );
+                        if (raw == null) {
+                          Navigator.pop(ctx);
+                          return;
+                        }
+                        // Przeliczamy TERAZ, na jednostkę bazową — reszta
+                        // ekranu (i backend) nic o wyborze jednostki w tym
+                        // oknie nie wie, dostaje już gotową liczbę w "l"/"kg".
+                        final converted =
+                            raw * _conversionFactor(selectedUnit, baseUnit);
+                        Navigator.pop(ctx, converted);
+                      },
+                      child: const Text('Dodaj'),
                     ),
-                ],
-              ),
-            ],
+                  ],
+                ),
           ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Anuluj')),
-            FilledButton(
-              onPressed: () {
-                final raw = double.tryParse(controller.text.replaceAll(',', '.'));
-                if (raw == null) {
-                  Navigator.pop(ctx);
-                  return;
-                }
-                // Przeliczamy TERAZ, na jednostkę bazową — reszta
-                // ekranu (i backend) nic o wyborze jednostki w tym
-                // oknie nie wie, dostaje już gotową liczbę w "l"/"kg".
-                final converted = raw * _conversionFactor(selectedUnit, baseUnit);
-                Navigator.pop(ctx, converted);
-              },
-              child: const Text('Dodaj'),
-            ),
-          ],
-        ),
-      ),
     );
     return result;
   }
@@ -225,21 +263,29 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
     if (!_formKey.currentState!.validate()) return;
     if (_ingredients.isEmpty) {
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-            duration: Duration(seconds: 3),content: Text('Dodaj przynajmniej jeden składnik')),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            duration: Duration(seconds: 3),
+            content: Text('Dodaj przynajmniej jeden składnik'),
+          ),
+        );
       return;
     }
-    final steps = _stepControllers.map((c) => c.text.trim()).where((s) => s.isNotEmpty).toList();
+    final steps =
+        _stepControllers
+            .map((c) => c.text.trim())
+            .where((s) => s.isNotEmpty)
+            .toList();
     if (steps.isEmpty) {
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-            duration: Duration(seconds: 3),content: Text('Dodaj przynajmniej jeden krok przygotowania')),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            duration: Duration(seconds: 3),
+            content: Text('Dodaj przynajmniej jeden krok przygotowania'),
+          ),
+        );
       return;
     }
 
@@ -247,16 +293,26 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
     try {
       final recipe = await _recipeService.createRecipeManually(
         name: _nameController.text.trim(),
-        description: _descriptionController.text.trim().isEmpty ? null : _descriptionController.text.trim(),
+        description:
+            _descriptionController.text.trim().isEmpty
+                ? null
+                : _descriptionController.text.trim(),
         mealType: _mealType,
         difficulty: _difficulty,
         prepTimeMin: int.tryParse(_prepTimeController.text),
         cookTimeMin: int.tryParse(_cookTimeController.text),
         servings: int.tryParse(_servingsController.text) ?? 2,
         instructions: steps,
-        ingredients: _ingredients
-            .map((i) => {'product_id': i.product.id, 'quantity': i.quantity, 'unit': i.unit})
-            .toList(),
+        ingredients:
+            _ingredients
+                .map(
+                  (i) => {
+                    'product_id': i.product.id,
+                    'quantity': i.quantity,
+                    'unit': i.unit,
+                  },
+                )
+                .toList(),
         requestPublic: _requestPublic,
       );
       if (!mounted) return;
@@ -269,11 +325,13 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-            duration: const Duration(seconds: 3),content: Text(friendlyError(e))),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(friendlyError(e)),
+          ),
+        );
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -281,11 +339,8 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dodaj przepis ręcznie'),
-      ),
+      appBar: AppBar(title: const Text('Dodaj przepis ręcznie')),
       // UWAGA (naprawa — ten sam wzorzec błędu, w kolejnym miejscu):
       // Form(ListView(...)) bez SafeArea — mimo że to przewijana lista,
       // w trybie edge-to-edge KONIEC przewijania nie uwzględniał
@@ -297,233 +352,292 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
           key: _formKey,
           child: ListView(
             padding: const EdgeInsets.all(20),
-          children: [
-            TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Nazwa przepisu'),
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Podaj nazwę' : null,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _descriptionController,
-              decoration: const InputDecoration(labelText: 'Krótki opis (opcjonalnie)'),
-              maxLines: 2,
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    value: _mealType,
-                    isExpanded: true,
-                    decoration: const InputDecoration(labelText: 'Rodzaj posiłku'),
-                    items: _mealTypes.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
-                    onChanged: (v) => setState(() => _mealType = v!),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    value: _difficulty,
-                    isExpanded: true,
-                    decoration: const InputDecoration(labelText: 'Trudność'),
-                    items: _difficulties.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
-                    onChanged: (v) => setState(() => _difficulty = v!),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final fields = <Widget>[
-                  TextFormField(
-                    controller: _prepTimeController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Przygotowanie (min)'),
-                  ),
-                  TextFormField(
-                    controller: _cookTimeController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Gotowanie (min)'),
-                  ),
-                  TextFormField(
-                    controller: _servingsController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Porcje'),
-                  ),
-                ];
-                if (constraints.maxWidth < 480) {
-                  return Column(
-                    children: [
-                      fields[0],
-                      const SizedBox(height: 12),
-                      fields[1],
-                      const SizedBox(height: 12),
-                      fields[2],
-                    ],
-                  );
-                }
-                return Row(
-                  children: [
-                    Expanded(child: fields[0]),
-                    const SizedBox(width: 12),
-                    Expanded(child: fields[1]),
-                    const SizedBox(width: 12),
-                    Expanded(child: fields[2]),
-                  ],
-                );
-              },
-            ),
-            const SizedBox(height: 28),
-
-            // Składniki
-            Wrap(
-              alignment: WrapAlignment.spaceBetween,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: 8,
-              runSpacing: 4,
-              children: [
-                Text('Składniki', style: Theme.of(context).textTheme.titleMedium),
-                TextButton.icon(
-                  onPressed: _addIngredient,
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Dodaj'),
-                ),
-              ],
-            ),
-            if (_ingredients.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Text('Brak dodanych składników', style: TextStyle(color: AppTheme.textSecondary)),
+            children: [
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(labelText: 'Nazwa przepisu'),
+                validator:
+                    (v) =>
+                        (v == null || v.trim().isEmpty) ? 'Podaj nazwę' : null,
               ),
-            ..._ingredients.asMap().entries.map((entry) {
-              final i = entry.key;
-              final ing = entry.value;
-              return ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(ing.product.name),
-                subtitle: Text('${formatQuantity(ing.quantity, ing.unit)} ${ing.unit}'),
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete_outline, color: AppTheme.errorColor),
-                  onPressed: () => setState(() => _ingredients.removeAt(i)),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _descriptionController,
+                decoration: const InputDecoration(
+                  labelText: 'Krótki opis (opcjonalnie)',
                 ),
-              );
-            }),
-            const SizedBox(height: 20),
-
-            // Kroki przygotowania
-            Wrap(
-              alignment: WrapAlignment.spaceBetween,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: 8,
-              runSpacing: 4,
-              children: [
-                Text('Kroki przygotowania', style: Theme.of(context).textTheme.titleMedium),
-                TextButton.icon(
-                  onPressed: _addStep,
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Dodaj krok'),
-                ),
-              ],
-            ),
-            ..._stepControllers.asMap().entries.map((entry) {
-              final i = entry.key;
-              final controller = entry.value;
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 14, right: 8),
-                      child: CircleAvatar(
-                        radius: 12,
-                        backgroundColor: AppTheme.primaryColor.withOpacity(0.15),
-                        child: Text('${i + 1}', style: TextStyle(fontSize: 12, color: AppTheme.primaryColor)),
-                      ),
-                    ),
-                    Expanded(
-                      child: TextField(
-                        controller: controller,
-                        maxLines: null,
-                        decoration: const InputDecoration(hintText: 'Opisz ten krok...'),
-                      ),
-                    ),
-                    if (_stepControllers.length > 1)
-                      IconButton(
-                        icon: Icon(Icons.close, size: 18, color: AppTheme.textSecondary),
-                        onPressed: () => _removeStep(i),
-                      ),
-                  ],
-                ),
-              );
-            }),
-            const SizedBox(height: 20),
-
-            // Udostępnianie publiczne — tylko Premium
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: AppTheme.surfaceColor,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppTheme.textSecondary.withOpacity(0.15)),
+                maxLines: 2,
               ),
-              child: Row(
+              const SizedBox(height: 16),
+              Row(
                 children: [
-                  const Icon(
-                    Icons.public,
-                    color: AppTheme.secondaryColor,
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _mealType,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Rodzaj posiłku',
+                      ),
+                      items:
+                          _mealTypes
+                              .map(
+                                (t) =>
+                                    DropdownMenuItem(value: t, child: Text(t)),
+                              )
+                              .toList(),
+                      onChanged: (v) => setState(() => _mealType = v!),
+                    ),
                   ),
                   const SizedBox(width: 12),
-                  // NAPRAWA błędu builda: AppTheme.textSecondary jest
-                  // getterem zależnym od trybu jasny/ciemny (nie
-                  // static const), więc ten poddrzewo NIE MOŻE być const
-                  // — inaczej kompilator odrzuca cały widget z błędem
-                  // "invocation is not allowed in a constant expression".
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Zgłoś do wspólnego katalogu',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                        ),
-                        // NAPRAWA: wcześniej dostępne tylko dla kont
-                        // Premium — udział w cotygodniowym konkursie (ranking
-                        // liczy WYŁĄCZNIE publiczne przepisy) miał być
-                        // dostępny dla każdego, nie tylko Premium. Moderacja
-                        // administratora nadal chroni katalog przed spamem.
-                        Text(
-                          'Po akceptacji administratora będzie widoczny dla wszystkich i policzy się do cotygodniowego konkursu.',
-                          style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
-                        ),
-                      ],
+                    child: DropdownButtonFormField<String>(
+                      value: _difficulty,
+                      isExpanded: true,
+                      decoration: const InputDecoration(labelText: 'Trudność'),
+                      items:
+                          _difficulties
+                              .map(
+                                (t) =>
+                                    DropdownMenuItem(value: t, child: Text(t)),
+                              )
+                              .toList(),
+                      onChanged: (v) => setState(() => _difficulty = v!),
                     ),
-                  ),
-                  Switch(
-                    value: _requestPublic,
-                    onChanged: (v) => setState(() => _requestPublic = v),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 28),
-            ElevatedButton(
-              onPressed: _isSubmitting ? null : _submit,
-              child: _isSubmitting
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                    )
-                  : const Text('Zapisz przepis'),
-            ),
-            const SizedBox(height: 20),
-          ],
+              const SizedBox(height: 16),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final fields = <Widget>[
+                    TextFormField(
+                      controller: _prepTimeController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Przygotowanie (min)',
+                      ),
+                    ),
+                    TextFormField(
+                      controller: _cookTimeController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Gotowanie (min)',
+                      ),
+                    ),
+                    TextFormField(
+                      controller: _servingsController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'Porcje'),
+                    ),
+                  ];
+                  if (constraints.maxWidth < 480) {
+                    return Column(
+                      children: [
+                        fields[0],
+                        const SizedBox(height: 12),
+                        fields[1],
+                        const SizedBox(height: 12),
+                        fields[2],
+                      ],
+                    );
+                  }
+                  return Row(
+                    children: [
+                      Expanded(child: fields[0]),
+                      const SizedBox(width: 12),
+                      Expanded(child: fields[1]),
+                      const SizedBox(width: 12),
+                      Expanded(child: fields[2]),
+                    ],
+                  );
+                },
+              ),
+              const SizedBox(height: 28),
+
+              // Składniki
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  Text(
+                    'Składniki',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  TextButton.icon(
+                    onPressed: _addIngredient,
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('Dodaj'),
+                  ),
+                ],
+              ),
+              if (_ingredients.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    'Brak dodanych składników',
+                    style: TextStyle(color: AppTheme.textSecondary),
+                  ),
+                ),
+              ..._ingredients.asMap().entries.map((entry) {
+                final i = entry.key;
+                final ing = entry.value;
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(ing.product.name),
+                  subtitle: Text(
+                    '${formatQuantity(ing.quantity, ing.unit)} ${ing.unit}',
+                  ),
+                  trailing: IconButton(
+                    icon: const Icon(
+                      Icons.delete_outline,
+                      color: AppTheme.errorColor,
+                    ),
+                    onPressed: () => setState(() => _ingredients.removeAt(i)),
+                  ),
+                );
+              }),
+              const SizedBox(height: 20),
+
+              // Kroki przygotowania
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  Text(
+                    'Kroki przygotowania',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  TextButton.icon(
+                    onPressed: _addStep,
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('Dodaj krok'),
+                  ),
+                ],
+              ),
+              ..._stepControllers.asMap().entries.map((entry) {
+                final i = entry.key;
+                final controller = entry.value;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 14, right: 8),
+                        child: CircleAvatar(
+                          radius: 12,
+                          backgroundColor: AppTheme.primaryColor.withOpacity(
+                            0.15,
+                          ),
+                          child: Text(
+                            '${i + 1}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppTheme.primaryColor,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: TextField(
+                          controller: controller,
+                          maxLines: null,
+                          decoration: const InputDecoration(
+                            hintText: 'Opisz ten krok...',
+                          ),
+                        ),
+                      ),
+                      if (_stepControllers.length > 1)
+                        IconButton(
+                          icon: Icon(
+                            Icons.close,
+                            size: 18,
+                            color: AppTheme.textSecondary,
+                          ),
+                          onPressed: () => _removeStep(i),
+                        ),
+                    ],
+                  ),
+                );
+              }),
+              const SizedBox(height: 20),
+
+              // Udostępnianie publiczne — tylko Premium
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceColor,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: AppTheme.textSecondary.withOpacity(0.15),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.public, color: AppTheme.secondaryColor),
+                    const SizedBox(width: 12),
+                    // NAPRAWA błędu builda: AppTheme.textSecondary jest
+                    // getterem zależnym od trybu jasny/ciemny (nie
+                    // static const), więc ten poddrzewo NIE MOŻE być const
+                    // — inaczej kompilator odrzuca cały widget z błędem
+                    // "invocation is not allowed in a constant expression".
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Zgłoś do wspólnego katalogu',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                          // NAPRAWA: wcześniej dostępne tylko dla kont
+                          // Premium — udział w cotygodniowym konkursie (ranking
+                          // liczy WYŁĄCZNIE publiczne przepisy) miał być
+                          // dostępny dla każdego, nie tylko Premium. Moderacja
+                          // administratora nadal chroni katalog przed spamem.
+                          Text(
+                            'Po akceptacji administratora będzie widoczny dla wszystkich i policzy się do cotygodniowego konkursu.',
+                            style: TextStyle(
+                              color: AppTheme.textSecondary,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Switch(
+                      value: _requestPublic,
+                      onChanged: (v) => setState(() => _requestPublic = v),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 28),
+              ElevatedButton(
+                onPressed: _isSubmitting ? null : _submit,
+                child:
+                    _isSubmitting
+                        ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                        : const Text('Zapisz przepis'),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
-    ),
     );
   }
 }
@@ -555,18 +669,32 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
     _debounce?.cancel();
     final generation = ++_generation;
     if (query.trim().length < 2) {
-      setState(() { _results = []; _isSearching = false; _error = null; });
+      setState(() {
+        _results = [];
+        _isSearching = false;
+        _error = null;
+      });
       return;
     }
-    setState(() { _isSearching = true; _error = null; });
+    setState(() {
+      _isSearching = true;
+      _error = null;
+    });
     _debounce = Timer(const Duration(milliseconds: 400), () async {
       try {
         final results = await _service.search(query);
         if (!mounted || generation != _generation) return;
-        setState(() { _results = results; _isSearching = false; });
+        setState(() {
+          _results = results;
+          _isSearching = false;
+        });
       } catch (error) {
         if (!mounted || generation != _generation) return;
-        setState(() { _results = []; _isSearching = false; _error = friendlyError(error); });
+        setState(() {
+          _results = [];
+          _isSearching = false;
+          _error = friendlyError(error);
+        });
       }
     });
   }
@@ -589,7 +717,10 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Wybierz składnik', style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                'Wybierz składnik',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: 12),
               TextField(
                 controller: _searchController,
@@ -602,27 +733,38 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
               ),
               const SizedBox(height: 8),
               Expanded(
-                child: _isSearching
-                    ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor))
-                    : _error != null
-                    ? Center(child: Text(_error!, textAlign: TextAlign.center))
-                    : ListView.builder(
-                        controller: scrollController,
-                        itemCount: _results.length,
-                        itemBuilder: (context, index) {
-                          final product = _results[index];
-                          return ListTile(
-                            title: Text(product.name ?? ''),
-                            subtitle: Text([
-                              if (product.brand?.isNotEmpty == true) product.brand!,
-                              if (product.kcalPer100 != null)
-                                '${product.kcalPer100!.toStringAsFixed(0)} kcal / 100 ${product.unit}',
-                              if (product.source == 'open_food_facts') 'Open Food Facts',
-                            ].join(' · ')),
-                            onTap: () => Navigator.of(context).pop(product),
-                          );
-                        },
-                      ),
+                child:
+                    _isSearching
+                        ? const Center(
+                          child: CircularProgressIndicator(
+                            color: AppTheme.primaryColor,
+                          ),
+                        )
+                        : _error != null
+                        ? Center(
+                          child: Text(_error!, textAlign: TextAlign.center),
+                        )
+                        : ListView.builder(
+                          controller: scrollController,
+                          itemCount: _results.length,
+                          itemBuilder: (context, index) {
+                            final product = _results[index];
+                            return ListTile(
+                              title: Text(product.name ?? ''),
+                              subtitle: Text(
+                                [
+                                  if (product.brand?.isNotEmpty == true)
+                                    product.brand!,
+                                  if (product.kcalPer100 != null)
+                                    '${product.kcalPer100!.toStringAsFixed(0)} kcal / 100 ${product.unit}',
+                                  if (product.source == 'open_food_facts')
+                                    'Open Food Facts',
+                                ].join(' · '),
+                              ),
+                              onTap: () => Navigator.of(context).pop(product),
+                            );
+                          },
+                        ),
               ),
             ],
           ),

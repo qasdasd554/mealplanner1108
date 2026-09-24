@@ -78,14 +78,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Future<void> _finishOnboarding() async {
     if (_selectedStore == null) {
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
             duration: Duration(seconds: 3),
-          content: Text('Wybierz swój preferowany sklep!'),
-          backgroundColor: AppTheme.errorColor,
-        ),
-      );
+            content: Text('Wybierz swój preferowany sklep!'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
       return;
     }
 
@@ -105,21 +105,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         final bonus = authProvider.lastBonusPoints;
         if (bonus > 0) {
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => WelcomeBonusScreen(points: bonus)),
+            MaterialPageRoute(
+              builder: (_) => WelcomeBonusScreen(points: bonus),
+            ),
           );
         } else {
           Navigator.of(context).pushReplacementNamed('/home');
         }
       } else {
         ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-          SnackBar(
-            duration: const Duration(seconds: 3),
-            content: Text(authProvider.errorMessage ?? 'Nie udało się zapisać preferencji'),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              duration: const Duration(seconds: 3),
+              content: Text(
+                authProvider.errorMessage ??
+                    'Nie udało się zapisać preferencji',
+              ),
+              backgroundColor: AppTheme.errorColor,
+            ),
+          );
       }
     }
   }
@@ -132,69 +137,72 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         if (!didPop) _previousPage();
       },
       child: Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Pasek postępu (Kropki)
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(7, (index) => _buildDot(index)),
+        body: SafeArea(
+          child: Column(
+            children: [
+              // Pasek postępu (Kropki)
+              Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(7, (index) => _buildDot(index)),
+                ),
               ),
-            ),
 
-            // Zawartość stron
-            Expanded(
-              child: PageView(
-                controller: _pageController,
-                physics: const NeverScrollableScrollPhysics(),
-                onPageChanged: (page) {
-                  setState(() {
-                    _currentPage = page;
-                  });
-                },
-                children: [
-                  _buildStoreStep(),
-                  _buildAllergensStep(),
-                  _buildDietStep(),
-                  _buildHouseholdStep(),
-                  _buildProfileStep(),
-                  _buildPantryStep(),
-                  _buildAiRecipeStep(),
-                ],
+              // Zawartość stron
+              Expanded(
+                child: PageView(
+                  controller: _pageController,
+                  physics: const NeverScrollableScrollPhysics(),
+                  onPageChanged: (page) {
+                    setState(() {
+                      _currentPage = page;
+                    });
+                  },
+                  children: [
+                    _buildStoreStep(),
+                    _buildAllergensStep(),
+                    _buildDietStep(),
+                    _buildHouseholdStep(),
+                    _buildProfileStep(),
+                    _buildPantryStep(),
+                    _buildAiRecipeStep(),
+                  ],
+                ),
               ),
-            ),
 
-            // Przyciski nawigacyjne na dole
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Przycisk "Wstecz"
-                  if (_currentPage > 0)
-                    TextButton(
-                      onPressed: _previousPage,
-                      child: Text('Wstecz', style: TextStyle(color: AppTheme.textSecondary)),
-                    )
-                  else
-                    const SizedBox.shrink(),
+              // Przyciski nawigacyjne na dole
+              Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Przycisk "Wstecz"
+                    if (_currentPage > 0)
+                      TextButton(
+                        onPressed: _previousPage,
+                        child: Text(
+                          'Wstecz',
+                          style: TextStyle(color: AppTheme.textSecondary),
+                        ),
+                      )
+                    else
+                      const SizedBox.shrink(),
 
-                  // Przycisk "Dalej" / "Gotowe"
-                  ElevatedButton(
-                    onPressed: _nextPage,
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(120, 48),
+                    // Przycisk "Dalej" / "Gotowe"
+                    ElevatedButton(
+                      onPressed: _nextPage,
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(120, 48),
+                      ),
+                      child: Text(_currentPage == 6 ? 'Gotowe!' : 'Dalej'),
                     ),
-                    child: Text(_currentPage == 6 ? 'Gotowe!' : 'Dalej'),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
@@ -235,9 +243,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
           const SizedBox(height: 32),
           if (storeProvider.isLoading)
-            const Expanded(
-              child: Center(child: CircularProgressIndicator()),
-            )
+            const Expanded(child: Center(child: CircularProgressIndicator()))
           else if (storeProvider.errorMessage != null)
             Expanded(
               child: Center(
@@ -267,9 +273,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       padding: const EdgeInsets.all(18),
                       decoration: BoxDecoration(
                         color: AppTheme.surfaceColor,
-                        borderRadius: const BorderRadius.all(Radius.circular(16)),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(16),
+                        ),
                         border: Border.all(
-                          color: isSelected ? AppTheme.primaryColor : Colors.transparent,
+                          color:
+                              isSelected
+                                  ? AppTheme.primaryColor
+                                  : Colors.transparent,
                           width: 2,
                         ),
                       ),
@@ -280,10 +291,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             width: 48,
                             height: 48,
                             decoration: BoxDecoration(
-                              color: isSelected
-                                  ? AppTheme.primaryColor.withOpacity(0.1)
-                                  : AppTheme.backgroundColor,
-                              borderRadius: const BorderRadius.all(Radius.circular(12)),
+                              color:
+                                  isSelected
+                                      ? AppTheme.primaryColor.withOpacity(0.1)
+                                      : AppTheme.backgroundColor,
+                              borderRadius: const BorderRadius.all(
+                                Radius.circular(12),
+                              ),
                             ),
                             child: Center(
                               child: Text(
@@ -303,7 +317,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                           const Spacer(),
                           if (isSelected)
-                            const Icon(Icons.check_circle, color: AppTheme.primaryColor),
+                            const Icon(
+                              Icons.check_circle,
+                              color: AppTheme.primaryColor,
+                            ),
                         ],
                       ),
                     ).animate().fadeIn(delay: (index * 100).ms),
@@ -361,12 +378,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppTheme.primaryColor.withOpacity(0.1)
-                          : AppTheme.surfaceColor,
+                      color:
+                          isSelected
+                              ? AppTheme.primaryColor.withOpacity(0.1)
+                              : AppTheme.surfaceColor,
                       borderRadius: const BorderRadius.all(Radius.circular(16)),
                       border: Border.all(
-                        color: isSelected ? AppTheme.primaryColor : Colors.transparent,
+                        color:
+                            isSelected
+                                ? AppTheme.primaryColor
+                                : Colors.transparent,
                         width: 1.5,
                       ),
                     ),
@@ -376,10 +397,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         Flexible(
                           child: Text(
                             allergen['name']!,
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  fontSize: 16,
-                                  color: isSelected ? AppTheme.primaryColor : AppTheme.textPrimary,
-                                ),
+                            style: Theme.of(
+                              context,
+                            ).textTheme.titleLarge?.copyWith(
+                              fontSize: 16,
+                              color:
+                                  isSelected
+                                      ? AppTheme.primaryColor
+                                      : AppTheme.textPrimary,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -435,7 +461,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       color: AppTheme.surfaceColor,
                       borderRadius: const BorderRadius.all(Radius.circular(16)),
                       border: Border.all(
-                        color: isSelected ? AppTheme.primaryColor : Colors.transparent,
+                        color:
+                            isSelected
+                                ? AppTheme.primaryColor
+                                : Colors.transparent,
                         width: 1.5,
                       ),
                     ),
@@ -458,7 +487,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                         ),
                         if (isSelected)
-                          const Icon(Icons.check_circle, color: AppTheme.primaryColor),
+                          const Icon(
+                            Icons.check_circle,
+                            color: AppTheme.primaryColor,
+                          ),
                       ],
                     ),
                   ),
@@ -549,18 +581,30 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       children: [
-        const Icon(Icons.monitor_weight_outlined, size: 56, color: AppTheme.primaryColor),
+        const Icon(
+          Icons.monitor_weight_outlined,
+          size: 56,
+          color: AppTheme.primaryColor,
+        ),
         const SizedBox(height: 16),
-        Text('Twój profil i cel', style: Theme.of(context).textTheme.displaySmall,
-            textAlign: TextAlign.center),
+        Text(
+          'Twój profil i cel',
+          style: Theme.of(context).textTheme.displaySmall,
+          textAlign: TextAlign.center,
+        ),
         const SizedBox(height: 12),
-        Text('Chcesz teraz obliczyć zapotrzebowanie kaloryczne i uzupełnić wagę, wzrost oraz cel? Możesz też zrobić to później w profilu.',
-            style: Theme.of(context).textTheme.bodyMedium, textAlign: TextAlign.center),
+        Text(
+          'Chcesz teraz obliczyć zapotrzebowanie kaloryczne i uzupełnić wagę, wzrost oraz cel? Możesz też zrobić to później w profilu.',
+          style: Theme.of(context).textTheme.bodyMedium,
+          textAlign: TextAlign.center,
+        ),
         const SizedBox(height: 28),
         FilledButton.icon(
           onPressed: () async {
             await Navigator.of(context).push<bool>(
-              MaterialPageRoute(builder: (_) => const CalorieCalculatorScreen()),
+              MaterialPageRoute(
+                builder: (_) => const CalorieCalculatorScreen(),
+              ),
             );
             if (mounted) setState(() {});
           },
@@ -573,8 +617,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
         ),
         const SizedBox(height: 18),
-        Text('Ten krok jest opcjonalny. Wybierz „Dalej”, aby go pominąć.',
-            style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+        Text(
+          'Ten krok jest opcjonalny. Wybierz „Dalej”, aby go pominąć.',
+          style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+        ),
       ],
     );
   }
@@ -617,9 +663,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           const SizedBox(height: 32),
           FilledButton.icon(
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const PantryScreen()),
-              );
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const PantryScreen()));
             },
             icon: const Icon(Icons.add),
             label: const Text(
@@ -649,13 +695,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         children: [
           Icon(icon, color: AppTheme.primaryColor, size: 25),
           const SizedBox(width: 14),
-          Expanded(child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
-              Text(description, style: TextStyle(color: AppTheme.textSecondary)),
-            ],
-          )),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                Text(
+                  description,
+                  style: TextStyle(color: AppTheme.textSecondary),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -663,12 +717,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
       children: [
-        const Icon(Icons.auto_awesome_outlined,
-            size: 58, color: AppTheme.primaryColor),
+        const Icon(
+          Icons.auto_awesome_outlined,
+          size: 58,
+          color: AppTheme.primaryColor,
+        ),
         const SizedBox(height: 18),
-        Text('Masz przepis? Dodaj go w chwilę',
-            style: Theme.of(context).textTheme.displaySmall,
-            textAlign: TextAlign.center),
+        Text(
+          'Masz przepis? Dodaj go w chwilę',
+          style: Theme.of(context).textTheme.displaySmall,
+          textAlign: TextAlign.center,
+        ),
         const SizedBox(height: 12),
         Text(
           'W zakładce Przepisy wybierz „Dodaj przepis”. AI przygotuje składniki i kroki na podstawie:',
@@ -682,14 +741,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             color: AppTheme.surfaceColor,
             borderRadius: BorderRadius.circular(16),
           ),
-          child: Column(children: [
-            option(Icons.photo_camera_outlined, 'Zdjęcia',
-                'Sfotografuj kartkę z przepisem albo gotowe danie.'),
-            option(Icons.text_snippet_outlined, 'Tekstu',
-                'Wklej opis lub wpisz samą nazwę potrawy.'),
-            option(Icons.link, 'Linku',
-                'Wklej adres strony lub udostępnij go z innej aplikacji.'),
-          ]),
+          child: Column(
+            children: [
+              option(
+                Icons.photo_camera_outlined,
+                'Zdjęcia',
+                'Sfotografuj kartkę z przepisem albo gotowe danie.',
+              ),
+              option(
+                Icons.text_snippet_outlined,
+                'Tekstu',
+                'Wklej opis lub wpisz samą nazwę potrawy.',
+              ),
+              option(
+                Icons.link,
+                'Linku',
+                'Wklej adres strony lub udostępnij go z innej aplikacji.',
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 16),
         Text(
@@ -707,7 +777,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _buildCounterButton({required IconData icon, required VoidCallback onPressed}) {
+  Widget _buildCounterButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) {
     return Container(
       width: 60,
       height: 60,

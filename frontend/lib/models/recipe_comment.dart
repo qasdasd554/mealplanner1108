@@ -47,7 +47,10 @@ class RecipeComment {
   /// Kopia komentarza z podmienionym stanem polubienia — do optymistycznej
   /// aktualizacji UI (nie czekamy na odpowiedź serwera, żeby serce
   /// zareagowało natychmiast po dotknięciu).
-  RecipeComment copyWithLike({required bool likedByMe, required int likeCount}) {
+  RecipeComment copyWithLike({
+    required bool likedByMe,
+    required int likeCount,
+  }) {
     return RecipeComment(
       id: id,
       recipeId: recipeId,

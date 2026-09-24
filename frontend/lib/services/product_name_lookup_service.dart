@@ -8,7 +8,7 @@ class ProductNameLookupService {
   final ApiClient _client;
 
   ProductNameLookupService({ApiClient? client})
-      : _client = client ?? ApiClient();
+    : _client = client ?? ApiClient();
 
   Future<List<BarcodeLookupResult>> search(
     String query, {
@@ -32,17 +32,20 @@ class ProductNameLookupService {
   /// Przepis wymaga ID produktu z katalogu. Wynik Open Food Facts nie ma
   /// takiego ID, więc backend tworzy prywatną kopię dopiero po wyborze ilości.
   Future<Product> resolveForRecipe(BarcodeLookupResult result) async {
-    final response = await _client.post('/products/recipe-ingredient', body: {
-      'name': result.name,
-      'brand': result.brand,
-      'unit': result.unit,
-      'barcode': result.barcode,
-      'existing_product_id': result.existingProductId,
-      'kcal_per_100': result.kcalPer100,
-      'protein_per_100': result.proteinPer100,
-      'fat_per_100': result.fatPer100,
-      'carbs_per_100': result.carbsPer100,
-    });
+    final response = await _client.post(
+      '/products/recipe-ingredient',
+      body: {
+        'name': result.name,
+        'brand': result.brand,
+        'unit': result.unit,
+        'barcode': result.barcode,
+        'existing_product_id': result.existingProductId,
+        'kcal_per_100': result.kcalPer100,
+        'protein_per_100': result.proteinPer100,
+        'fat_per_100': result.fatPer100,
+        'carbs_per_100': result.carbsPer100,
+      },
+    );
     return Product.fromJson(response as Map<String, dynamic>);
   }
 }

@@ -19,8 +19,8 @@ class BarcodeLookupService {
   final http.Client _httpClient;
 
   BarcodeLookupService({ApiClient? apiClient, http.Client? httpClient})
-      : _apiClient = apiClient ?? ApiClient(),
-        _httpClient = httpClient ?? http.Client();
+    : _apiClient = apiClient ?? ApiClient(),
+      _httpClient = httpClient ?? http.Client();
 
   void close() => _httpClient.close();
 
@@ -73,25 +73,35 @@ class BarcodeLookupService {
     required bool isV3,
   }) async {
     try {
-      final response = await _httpClient.get(url, headers: const {
-        'Accept': 'application/json', 'User-Agent': _userAgent,
-      }).timeout(_externalTimeout);
-      if (response.statusCode == 404 || response.statusCode == 429 ||
+      final response = await _httpClient
+          .get(
+            url,
+            headers: const {
+              'Accept': 'application/json',
+              'User-Agent': _userAgent,
+            },
+          )
+          .timeout(_externalTimeout);
+      if (response.statusCode == 404 ||
+          response.statusCode == 429 ||
           response.statusCode == 503) {
         return (result: null, skipFallback: true);
       }
-      if (response.statusCode != 200) return (result: null, skipFallback: false);
+      if (response.statusCode != 200)
+        return (result: null, skipFallback: false);
       final decoded = jsonDecode(response.body);
       if (decoded is! Map<String, dynamic>) {
         return (result: null, skipFallback: false);
       }
       final product = extractOpenFoodFactsProduct(decoded, isV3: isV3);
-      final missing = isV3
-          ? (decoded['result'] is Map<String, dynamic> &&
-              decoded['result']['id'] == 'product_not_found')
-          : decoded['status'].toString() == '0';
+      final missing =
+          isV3
+              ? (decoded['result'] is Map<String, dynamic> &&
+                  decoded['result']['id'] == 'product_not_found')
+              : decoded['status'].toString() == '0';
       return (
-        result: product == null ? null : barcodeResultFromOpenFoodFacts(product),
+        result:
+            product == null ? null : barcodeResultFromOpenFoodFacts(product),
         skipFallback: missing,
       );
     } on TimeoutException {
@@ -191,7 +201,7 @@ Map<String, dynamic>? extractOpenFoodFactsProduct(
   if (isV3) {
     final result = response['result'];
     if ((response['status'] != 'success' &&
-        response['status'] != 'success_with_errors') ||
+            response['status'] != 'success_with_errors') ||
         result is! Map<String, dynamic> ||
         result['id'] != 'product_found') {
       return null;
@@ -216,29 +226,24 @@ BarcodeLookupResult? barcodeResultFromOpenFoodFacts(
   ]);
   if (name == null) return null;
 
-  final nutriments = product['nutriments'] is Map<String, dynamic>
-      ? product['nutriments'] as Map<String, dynamic>
-      : <String, dynamic>{};
+  final nutriments =
+      product['nutriments'] is Map<String, dynamic>
+          ? product['nutriments'] as Map<String, dynamic>
+          : <String, dynamic>{};
   var kcal = _firstNumber(nutriments, const [
     'energy-kcal_100g',
     'energy-kcal',
   ]);
   if (kcal == null) {
-    final energyKj = _firstNumber(nutriments, const [
-      'energy_100g',
-      'energy',
-    ]);
+    final energyKj = _firstNumber(nutriments, const ['energy_100g', 'energy']);
     if (energyKj != null) kcal = energyKj / 4.184;
   }
 
   final rawBrand = product['brands'];
-  final brand = rawBrand is List
-      ? (rawBrand.isEmpty ? null : rawBrand.first.toString().trim())
-      : rawBrand
-          ?.toString()
-          .split(',')
-          .first
-          .trim();
+  final brand =
+      rawBrand is List
+          ? (rawBrand.isEmpty ? null : rawBrand.first.toString().trim())
+          : rawBrand?.toString().split(',').first.trim();
 
   return BarcodeLookupResult(
     found: true,
@@ -267,9 +272,7 @@ BarcodeLookupResult? barcodeResultFromOpenFoodFacts(
 }
 
 String? _barcodeFromProduct(Map<String, dynamic> product) {
-  final digits = product['code']
-      ?.toString()
-      .replaceAll(RegExp(r'[^0-9]'), '');
+  final digits = product['code']?.toString().replaceAll(RegExp(r'[^0-9]'), '');
   return digits != null && digits.length >= 8 && digits.length <= 14
       ? digits
       : null;
@@ -305,7 +308,8 @@ String _unitFromProduct(Map<String, dynamic> product) {
 /// Stałe, szerokie widełki detaliczne. Nie są wyliczane z przypadkowej
 /// gramatury ani pojedynczej obserwacji cenowej.
 (double, double) _fixedPriceRange(Map<String, dynamic> product) {
-  final name = _firstText(product, const [
+  final name =
+      _firstText(product, const [
         'product_name_pl',
         'product_name',
         'abbreviated_product_name',
@@ -313,11 +317,12 @@ String _unitFromProduct(Map<String, dynamic> product) {
         'generic_name',
       ]) ??
       '';
-  final tags = product['categories_tags'] is List
-      ? (product['categories_tags'] as List)
-          .map((tag) => tag.toString().toLowerCase())
-          .join(' ')
-      : '';
+  final tags =
+      product['categories_tags'] is List
+          ? (product['categories_tags'] as List)
+              .map((tag) => tag.toString().toLowerCase())
+              .join(' ')
+          : '';
   final text = '$name $tags'.toLowerCase();
   const ranges = <({List<String> keywords, (double, double) range})>[
     (keywords: ['masło', 'butter'], range: (6, 10)),
@@ -328,11 +333,29 @@ String _unitFromProduct(Map<String, dynamic> product) {
     (keywords: ['pieczywo', 'chleb', 'bread', 'bakery'], range: (3, 9)),
     (keywords: ['ryba', 'fish', 'seafood', 'salmon', 'tuna'], range: (10, 40)),
     (keywords: ['mięso', 'meat', 'poultry', 'beef', 'pork'], range: (10, 35)),
-    (keywords: ['makaron', 'ryż', 'mąka', 'pasta', 'rice', 'flour', 'cereal', 'legume'], range: (3, 12)),
+    (
+      keywords: [
+        'makaron',
+        'ryż',
+        'mąka',
+        'pasta',
+        'rice',
+        'flour',
+        'cereal',
+        'legume',
+      ],
+      range: (3, 12),
+    ),
     (keywords: ['oliwa', 'olej', 'oil', 'vinegar'], range: (7, 30)),
-    (keywords: ['przypraw', 'zioł', 'spice', 'seasoning', 'herb'], range: (2, 10)),
+    (
+      keywords: ['przypraw', 'zioł', 'spice', 'seasoning', 'herb'],
+      range: (2, 10),
+    ),
     (keywords: ['warzyw', 'owoc', 'vegetable', 'fruit'], range: (2, 15)),
-    (keywords: ['sos', 'ketchup', 'mustard', 'pesto', 'condiment'], range: (3, 15)),
+    (
+      keywords: ['sos', 'ketchup', 'mustard', 'pesto', 'condiment'],
+      range: (3, 15),
+    ),
     (keywords: ['napój', 'sok', 'drink', 'soda', 'juice'], range: (3, 12)),
   ];
   for (final item in ranges) {

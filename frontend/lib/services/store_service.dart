@@ -9,7 +9,9 @@ class StoreService {
   Future<List<Store>> getStores() async {
     final response = await _client.get(ApiConfig.stores);
     if (response is List) {
-      return response.map((e) => Store.fromJson(e as Map<String, dynamic>)).toList();
+      return response
+          .map((e) => Store.fromJson(e as Map<String, dynamic>))
+          .toList();
     }
     return [];
   }
@@ -20,7 +22,9 @@ class StoreService {
   }
 
   Future<List<StoreDepartment>> getStoreDepartments(String storeId) async {
-    final response = await _client.get('${ApiConfig.stores}$storeId/departments');
+    final response = await _client.get(
+      '${ApiConfig.stores}$storeId/departments',
+    );
     if (response is List) {
       return response
           .map((e) => StoreDepartment.fromJson(e as Map<String, dynamic>))

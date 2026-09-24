@@ -14,8 +14,11 @@ async def test_pending_review_notifies_and_pushes_to_every_admin() -> None:
     result = MagicMock()
     result.scalars.return_value.all.return_value = admin_ids
 
-    db = AsyncMock()
-    db.execute.return_value = result
+    # AsyncSession.add() jest synchroniczne, a execute()/commit() są
+    # asynchroniczne. AsyncMock dla całej sesji zamieniał add() w coroutine.
+    db = MagicMock()
+    db.execute = AsyncMock(return_value=result)
+    db.commit = AsyncMock()
     push = AsyncMock()
 
     with (
@@ -38,8 +41,9 @@ async def test_pending_review_notifies_and_pushes_to_every_admin() -> None:
 async def test_pending_review_without_admins_is_a_noop() -> None:
     result = MagicMock()
     result.scalars.return_value.all.return_value = []
-    db = AsyncMock()
-    db.execute.return_value = result
+    db = MagicMock()
+    db.execute = AsyncMock(return_value=result)
+    db.commit = AsyncMock()
 
     count = await notify_admins_pending_review(
         db,

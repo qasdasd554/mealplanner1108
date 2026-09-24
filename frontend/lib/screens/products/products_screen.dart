@@ -65,28 +65,29 @@ class _ProductsScreenState extends State<ProductsScreen>
     if (!hasPremium) {
       final showPremium = await showDialog<bool>(
         context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: const Text('Skanowanie seryjne jest w Premium'),
-          content: const Text(
-            'Skanuj wiele produktów bez zamykania aparatu i dodawaj je '
-            'do spiżarni, śledzenia lub bazy produktów.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Nie teraz'),
+        builder:
+            (dialogContext) => AlertDialog(
+              title: const Text('Skanowanie seryjne jest w Premium'),
+              content: const Text(
+                'Skanuj wiele produktów bez zamykania aparatu i dodawaj je '
+                'jednym zatwierdzeniem do spiżarni, śledzenia lub bazy produktów.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext, false),
+                  child: const Text('Nie teraz'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.pop(dialogContext, true),
+                  child: const Text('Zobacz Premium'),
+                ),
+              ],
             ),
-            FilledButton(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('Zobacz Premium'),
-            ),
-          ],
-        ),
       );
       if (showPremium == true && mounted) {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const PremiumScreen()),
-        );
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const PremiumScreen()));
       }
       return;
     }
@@ -116,10 +117,7 @@ class _ProductsScreenState extends State<ProductsScreen>
         ],
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
-            Tab(text: 'Sklep'),
-            Tab(text: 'Moje'),
-          ],
+          tabs: const [Tab(text: 'Sklep'), Tab(text: 'Moje')],
         ),
       ),
       body: Column(
@@ -305,14 +303,15 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
                   prefixIcon: Icon(Icons.storefront_outlined),
                 ),
                 dropdownColor: AppTheme.surfaceColor,
-                items: storeProvider.stores
-                    .map(
-                      (Store s) => DropdownMenuItem(
-                        value: s.id,
-                        child: Text(s.name),
-                      ),
-                    )
-                    .toList(),
+                items:
+                    storeProvider.stores
+                        .map(
+                          (Store s) => DropdownMenuItem(
+                            value: s.id,
+                            child: Text(s.name),
+                          ),
+                        )
+                        .toList(),
                 onChanged: (value) {
                   _searchDebounce?.cancel();
                   setState(() {
@@ -324,9 +323,7 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
             ),
           ),
 
-        Expanded(
-          child: _buildBody(),
-        ),
+        Expanded(child: _buildBody()),
       ],
     );
   }
@@ -386,9 +383,10 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
         color: AppTheme.surfaceColor,
         borderRadius: const BorderRadius.all(Radius.circular(14)),
         border: Border.all(
-          color: sp.isAvailable
-              ? Colors.transparent
-              : AppTheme.errorColor.withOpacity(0.4),
+          color:
+              sp.isAvailable
+                  ? Colors.transparent
+                  : AppTheme.errorColor.withOpacity(0.4),
         ),
       ),
       child: Row(
@@ -400,8 +398,10 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
               color: AppTheme.primaryColor.withOpacity(0.1),
               borderRadius: const BorderRadius.all(Radius.circular(12)),
             ),
-            child: const Icon(Icons.shopping_basket_outlined,
-                color: AppTheme.primaryColor),
+            child: const Icon(
+              Icons.shopping_basket_outlined,
+              color: AppTheme.primaryColor,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -410,9 +410,9 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
               children: [
                 Text(
                   product?.name ?? 'Nieznany produkt',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontSize: 15,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontSize: 15),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -423,14 +423,12 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
                       'Marka w sklepie: ${sp.storeBrandName}'
                     else if (product?.brand != null)
                       'Marka produktu: ${product!.brand}',
-                    if (kcal != null) '${kcal.toInt()} kcal / 100${product?.unit =='ml'|| product?.unit =='l'?'ml':'g'}',
+                    if (kcal != null)
+                      '${kcal.toInt()} kcal / 100${product?.unit == 'ml' || product?.unit == 'l' ? 'ml' : 'g'}',
                     if (sp.lastVerified != null) 'cena sprawdzona',
                     if (!sp.isAvailable) 'niedostępny',
                   ].join(' • '),
-                  style: TextStyle(
-                    color: AppTheme.textSecondary,
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                 ),
               ],
             ),
@@ -448,11 +446,8 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
                 ),
               ),
               Text(
-                '/ ${product?.defaultQuantity ?? 1} ${product?.unit ??''}',
-                style: TextStyle(
-                  color: AppTheme.textSecondary,
-                  fontSize: 10,
-                ),
+                '/ ${product?.defaultQuantity ?? 1} ${product?.unit ?? ''}',
+                style: TextStyle(color: AppTheme.textSecondary, fontSize: 10),
               ),
             ],
           ),
@@ -486,10 +481,7 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
               style: TextStyle(color: AppTheme.textSecondary),
               textAlign: TextAlign.center,
             ),
-            if (action != null) ...[
-              const SizedBox(height: 20),
-              action,
-            ],
+            if (action != null) ...[const SizedBox(height: 20), action],
           ],
         ),
       ),
@@ -527,9 +519,10 @@ class _MyProductsTabState extends State<_MyProductsTab> {
       final response = await _client.get('/products/mine');
       if (!mounted) return;
       setState(() {
-        _products = (response as List)
-            .map((e) => Product.fromJson(e as Map<String, dynamic>))
-            .toList();
+        _products =
+            (response as List)
+                .map((e) => Product.fromJson(e as Map<String, dynamic>))
+                .toList();
       });
     } catch (e) {
       if (!mounted) return;
@@ -546,6 +539,7 @@ class _MyProductsTabState extends State<_MyProductsTab> {
     final added = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       backgroundColor: AppTheme.surfaceColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -559,6 +553,7 @@ class _MyProductsTabState extends State<_MyProductsTab> {
     final edited = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       backgroundColor: AppTheme.surfaceColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -571,17 +566,26 @@ class _MyProductsTabState extends State<_MyProductsTab> {
   Future<void> _deleteProduct(Product p) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Usunąć produkt?'),
-        content: Text('Usuniesz "${p.name}" ze swoich zgłoszeń. Tej operacji nie da się cofnąć.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Anuluj')),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text('Usuń', style: TextStyle(color: AppTheme.errorColor)),
+      builder:
+          (ctx) => AlertDialog(
+            title: const Text('Usunąć produkt?'),
+            content: Text(
+              'Usuniesz "${p.name}" ze swoich zgłoszeń. Tej operacji nie da się cofnąć.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Anuluj'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(
+                  'Usuń',
+                  style: TextStyle(color: AppTheme.errorColor),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
     );
     if (confirmed != true || !mounted) return;
 
@@ -592,11 +596,13 @@ class _MyProductsTabState extends State<_MyProductsTab> {
     } catch (e) {
       messenger
         ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(
-          duration: const Duration(seconds: 3),
-          content: Text(friendlyError(e)),
-          backgroundColor: AppTheme.errorColor,
-        ));
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(friendlyError(e)),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
     }
   }
 
@@ -609,63 +615,75 @@ class _MyProductsTabState extends State<_MyProductsTab> {
         icon: const Icon(Icons.add),
         label: const Text('Dodaj produkt'),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _error != null
               ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.error_outline,
-                            size: 56, color: AppTheme.textSecondary),
-                        const SizedBox(height: 16),
-                        Text(_error!,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: AppTheme.textSecondary)),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                            onPressed: _load, child: const Text('Spróbuj ponownie')),
-                      ],
-                    ),
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 56,
+                        color: AppTheme.textSecondary,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        _error!,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: AppTheme.textSecondary),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _load,
+                        child: const Text('Spróbuj ponownie'),
+                      ),
+                    ],
                   ),
-                )
+                ),
+              )
               : _products.isEmpty
-                  ? Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(32),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.inventory_2_outlined,
-                                size: 56, color: AppTheme.textSecondary),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Nie zgłosiłeś/aś jeszcze żadnego produktu.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(color: AppTheme.textSecondary),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Dotknij „Dodaj produkt” poniżej, żeby zgłosić coś,\nczego nie ma w katalogu.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                  color: AppTheme.textSecondary, fontSize: 12),
-                            ),
-                          ],
+              ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.inventory_2_outlined,
+                        size: 56,
+                        color: AppTheme.textSecondary,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Nie zgłosiłeś/aś jeszcze żadnego produktu.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: AppTheme.textSecondary),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Dotknij „Dodaj produkt” poniżej, żeby zgłosić coś,\nczego nie ma w katalogu.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: AppTheme.textSecondary,
+                          fontSize: 12,
                         ),
                       ),
-                    )
-                  : RefreshIndicator(
-                      onRefresh: _load,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
-                        itemCount: _products.length,
-                        itemBuilder: (context, index) =>
-                            _buildTile(_products[index]),
-                      ),
-                    ),
+                    ],
+                  ),
+                ),
+              )
+              : RefreshIndicator(
+                onRefresh: _load,
+                child: ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
+                  itemCount: _products.length,
+                  itemBuilder: (context, index) => _buildTile(_products[index]),
+                ),
+              ),
     );
   }
 
@@ -692,7 +710,10 @@ class _MyProductsTabState extends State<_MyProductsTab> {
               children: [
                 Text(
                   p.name,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -707,7 +728,10 @@ class _MyProductsTabState extends State<_MyProductsTab> {
                 ),
                 const SizedBox(height: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: color.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(20),
@@ -715,7 +739,10 @@ class _MyProductsTabState extends State<_MyProductsTab> {
                   child: Text(
                     label,
                     style: TextStyle(
-                        fontSize: 11, color: color, fontWeight: FontWeight.w600),
+                      fontSize: 11,
+                      color: color,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
@@ -732,7 +759,11 @@ class _MyProductsTabState extends State<_MyProductsTab> {
                 onPressed: () => _editProduct(p),
               ),
               IconButton(
-                icon: Icon(Icons.delete_outline, size: 20, color: AppTheme.errorColor),
+                icon: Icon(
+                  Icons.delete_outline,
+                  size: 20,
+                  color: AppTheme.errorColor,
+                ),
                 tooltip: 'Usuń',
                 visualDensity: VisualDensity.compact,
                 onPressed: () => _deleteProduct(p),

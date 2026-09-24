@@ -27,10 +27,16 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<FoodLogProvider>(context, listen: false).fetchLogsForDate(DateTime.now());
+      Provider.of<FoodLogProvider>(
+        context,
+        listen: false,
+      ).fetchLogsForDate(DateTime.now());
       // Nawodnienie i aktywności ładujemy dla tego samego dnia — osobny
       // provider, bo to dane uzupełniające (patrz WellnessProvider).
-      Provider.of<WellnessProvider>(context, listen: false).loadForDate(DateTime.now());
+      Provider.of<WellnessProvider>(
+        context,
+        listen: false,
+      ).loadForDate(DateTime.now());
     });
   }
 
@@ -50,9 +56,9 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
-                  primary: AppTheme.primaryColor,
-                ),
+            colorScheme: Theme.of(
+              context,
+            ).colorScheme.copyWith(primary: AppTheme.primaryColor),
           ),
           child: child!,
         );
@@ -63,14 +69,20 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
       // Nawodnienie i aktywności muszą podążać za wybraną datą —
       // inaczej pokazywałyby dane innego dnia niż reszta ekranu.
       if (mounted) {
-        Provider.of<WellnessProvider>(context, listen: false).loadForDate(picked);
+        Provider.of<WellnessProvider>(
+          context,
+          listen: false,
+        ).loadForDate(picked);
       }
     }
   }
 
   void _goToPreviousDay() {
     final provider = Provider.of<FoodLogProvider>(context, listen: false);
-    _changeDate(provider, provider.currentDate.subtract(const Duration(days: 1)));
+    _changeDate(
+      provider,
+      provider.currentDate.subtract(const Duration(days: 1)),
+    );
   }
 
   void _goToNextDay() {
@@ -89,7 +101,9 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
 
   bool _isToday(DateTime date) {
     final now = DateTime.now();
-    return date.year == now.year && date.month == now.month && date.day == now.day;
+    return date.year == now.year &&
+        date.month == now.month &&
+        date.day == now.day;
   }
 
   @override
@@ -114,36 +128,40 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
         children: [
           const DecorativeCircles(),
           provider.isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor))
-          : provider.error != null
+              ? const Center(
+                child: CircularProgressIndicator(color: AppTheme.primaryColor),
+              )
+              : provider.error != null
               ? _buildErrorState(context, provider)
               : RefreshIndicator(
-                  onRefresh: () async {
-                    await provider.fetchLogsForDate(provider.currentDate);
-                    await Provider.of<WellnessProvider>(context, listen: false)
-                        .loadForDate(provider.currentDate);
-                  },
-                  color: AppTheme.primaryColor,
-                  child: ListView(
-                    padding: const EdgeInsets.all(24.0),
-                    children: [
-                      _buildDateNavigation(provider.currentDate),
-                      const SizedBox(height: 24),
-                      _buildProgressSection(provider.summary),
-                      const SizedBox(height: 16),
-                      // Przycisk aktywności TUŻ pod licznikiem — spalone
-                      // kalorie powiększają dzienny limit, więc naturalne
-                      // miejsce jest przy liczbie, na którą wpływają.
-                      _buildActivitySection(context),
-                      const SizedBox(height: 24),
-                      _buildWaterSection(context),
-                      const SizedBox(height: 32),
-                      _buildMacrosSection(provider.summary),
-                      const SizedBox(height: 32),
-                      _buildLogsList(context, provider.logs),
-                    ],
-                  ),
+                onRefresh: () async {
+                  await provider.fetchLogsForDate(provider.currentDate);
+                  await Provider.of<WellnessProvider>(
+                    context,
+                    listen: false,
+                  ).loadForDate(provider.currentDate);
+                },
+                color: AppTheme.primaryColor,
+                child: ListView(
+                  padding: const EdgeInsets.all(24.0),
+                  children: [
+                    _buildDateNavigation(provider.currentDate),
+                    const SizedBox(height: 24),
+                    _buildProgressSection(provider.summary),
+                    const SizedBox(height: 16),
+                    // Przycisk aktywności TUŻ pod licznikiem — spalone
+                    // kalorie powiększają dzienny limit, więc naturalne
+                    // miejsce jest przy liczbie, na którą wpływają.
+                    _buildActivitySection(context),
+                    const SizedBox(height: 24),
+                    _buildWaterSection(context),
+                    const SizedBox(height: 32),
+                    _buildMacrosSection(provider.summary),
+                    const SizedBox(height: 32),
+                    _buildLogsList(context, provider.logs),
+                  ],
                 ),
+              ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -163,7 +181,11 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.cloud_off_outlined, size: 48, color: AppTheme.textSecondary),
+            Icon(
+              Icons.cloud_off_outlined,
+              size: 48,
+              color: AppTheme.textSecondary,
+            ),
             const SizedBox(height: 16),
             Text(
               provider.error ?? 'Nie udało się załadować dziennika.',
@@ -205,17 +227,24 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                   const SizedBox(height: 4),
                   TextButton(
                     onPressed: () {
-                      Provider.of<FoodLogProvider>(context, listen: false)
-                          .setDate(DateTime.now());
-                      Provider.of<WellnessProvider>(context, listen: false)
-                          .loadForDate(DateTime.now());
+                      Provider.of<FoodLogProvider>(
+                        context,
+                        listen: false,
+                      ).setDate(DateTime.now());
+                      Provider.of<WellnessProvider>(
+                        context,
+                        listen: false,
+                      ).loadForDate(DateTime.now());
                     },
                     style: TextButton.styleFrom(
                       padding: EdgeInsets.zero,
                       minimumSize: const Size(0, 0),
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    child: const Text('Wróć do dziś', style: TextStyle(fontSize: 12)),
+                    child: const Text(
+                      'Wróć do dziś',
+                      style: TextStyle(fontSize: 12),
+                    ),
                   ),
                 ],
               ],
@@ -245,7 +274,9 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
     } catch (_) {
       formattedDate = DateFormat('dd.MM.yyyy').format(date);
     }
-    if (date.year == DateTime.now().year && date.month == DateTime.now().month && date.day == DateTime.now().day) {
+    if (date.year == DateTime.now().year &&
+        date.month == DateTime.now().month &&
+        date.day == DateTime.now().day) {
       formattedDate = 'Dzisiaj, $formattedDate';
     }
 
@@ -302,10 +333,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
               ),
               Text(
                 'kcal pozostało',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppTheme.textSecondary,
-                ),
+                style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
               ),
               if (burned > 0) ...[
                 const SizedBox(height: 2),
@@ -338,8 +366,11 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
             padding: const EdgeInsets.only(bottom: 6),
             child: Row(
               children: [
-                Icon(Icons.local_fire_department_outlined,
-                    size: 18, color: AppTheme.primaryColor),
+                Icon(
+                  Icons.local_fire_department_outlined,
+                  size: 18,
+                  color: AppTheme.primaryColor,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -359,9 +390,17 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.close, size: 16, color: AppTheme.textSecondary),
+                  icon: Icon(
+                    Icons.close,
+                    size: 16,
+                    color: AppTheme.textSecondary,
+                  ),
                   visualDensity: VisualDensity.compact,
-                  onPressed: () => _runWellness(wellness, () => wellness.deleteActivity(a.id)),
+                  onPressed:
+                      () => _runWellness(
+                        wellness,
+                        () => wellness.deleteActivity(a.id),
+                      ),
                 ),
               ],
             ),
@@ -380,63 +419,66 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
   }
 
   Future<void> _showAddActivityDialog(
-      BuildContext context, WellnessProvider wellness) async {
+    BuildContext context,
+    WellnessProvider wellness,
+  ) async {
     final nameController = TextEditingController();
     final kcalController = TextEditingController();
     final minutesController = TextEditingController();
 
     final saved = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Dodaj aktywność'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                autofocus: true,
-                maxLength: 100,
-                decoration: const InputDecoration(
-                  labelText: 'Co robiłeś/aś?',
-                  hintText: 'np. bieganie, rower, siłownia',
-                  border: OutlineInputBorder(),
-                ),
+      builder:
+          (dialogContext) => AlertDialog(
+            title: const Text('Dodaj aktywność'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: nameController,
+                    autofocus: true,
+                    maxLength: 100,
+                    decoration: const InputDecoration(
+                      labelText: 'Co robiłeś/aś?',
+                      hintText: 'np. bieganie, rower, siłownia',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: kcalController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Spalone kalorie',
+                      suffixText: 'kcal',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: minutesController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Czas (opcjonalnie)',
+                      suffixText: 'min',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: kcalController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Spalone kalorie',
-                  suffixText: 'kcal',
-                  border: OutlineInputBorder(),
-                ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('Anuluj'),
               ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: minutesController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Czas (opcjonalnie)',
-                  suffixText: 'min',
-                  border: OutlineInputBorder(),
-                ),
+              FilledButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: const Text('Dodaj'),
               ),
             ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Anuluj'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Dodaj'),
-          ),
-        ],
-      ),
     );
 
     final name = nameController.text.trim();
@@ -453,7 +495,9 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
           ..hideCurrentSnackBar()
           ..showSnackBar(
             const SnackBar(
-            duration: Duration(seconds: 3),content: Text('Podaj nazwę i liczbę spalonych kalorii.')),
+              duration: Duration(seconds: 3),
+              content: Text('Podaj nazwę i liczbę spalonych kalorii.'),
+            ),
           );
       }
       return;
@@ -475,7 +519,9 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
   /// Bez tego provider zapisywał błąd, ale nic go nie wyświetlało —
   /// dotknięcie przycisku wyglądało, jakby aplikacja je zignorowała.
   Future<void> _runWellness(
-      WellnessProvider wellness, Future<dynamic> Function() action) async {
+    WellnessProvider wellness,
+    Future<dynamic> Function() action,
+  ) async {
     await action();
     if (!mounted) return;
     final error = wellness.consumeError();
@@ -484,7 +530,10 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
-            duration: const Duration(seconds: 3),content: Text(error), backgroundColor: AppTheme.errorColor),
+            duration: const Duration(seconds: 3),
+            content: Text(error),
+            backgroundColor: AppTheme.errorColor,
+          ),
         );
     }
   }
@@ -509,10 +558,12 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
       if (!mounted) return;
       messenger
         ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(
-          duration: const Duration(seconds: 3),
-          content: Text(friendlyError(e)),
-        ));
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(friendlyError(e)),
+          ),
+        );
       return;
     }
     if (!mounted) return;
@@ -520,33 +571,40 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
     if (recipe.ingredients.isEmpty) {
       messenger
         ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(
-          duration: Duration(seconds: 3),
-          content: Text('Ten przepis nie ma listy składników do edycji.'),
-        ));
+        ..showSnackBar(
+          const SnackBar(
+            duration: Duration(seconds: 3),
+            content: Text('Ten przepis nie ma listy składników do edycji.'),
+          ),
+        );
       return;
     }
 
     final edited = await showModalBottomSheet<EditedNutrition>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       backgroundColor: AppTheme.surfaceColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (_) => EditIngredientsSheet(
-        recipe: recipe,
-        // Wpis mógł zostać dodany z inną liczbą porcji niż cały przepis —
-        // przeliczamy proporcjonalnie, żeby liczby odpowiadały temu,
-        // co użytkownik faktycznie zapisał.
-        servingsFraction: (item.servings as double) /
-            (recipe.servings > 0 ? recipe.servings : 1),
-      ),
+      builder:
+          (_) => EditIngredientsSheet(
+            recipe: recipe,
+            // Wpis mógł zostać dodany z inną liczbą porcji niż cały przepis —
+            // przeliczamy proporcjonalnie, żeby liczby odpowiadały temu,
+            // co użytkownik faktycznie zapisał.
+            servingsFraction:
+                (item.servings as double) /
+                (recipe.servings > 0 ? recipe.servings : 1),
+          ),
     );
     if (edited == null || !mounted || !edited.wasEdited) return;
 
-    final ok = await Provider.of<FoodLogProvider>(context, listen: false)
-        .updateEntryNutrition(
+    final ok = await Provider.of<FoodLogProvider>(
+      context,
+      listen: false,
+    ).updateEntryNutrition(
       item.id as String,
       calories: edited.kcal,
       protein: edited.protein,
@@ -556,12 +614,16 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
     if (!mounted) return;
     messenger
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(
-        duration: const Duration(seconds: 3),
-        content: Text(ok
-            ? 'Zaktualizowano kaloryczność wpisu'
-            : 'Nie udało się zapisać zmian'),
-      ));
+      ..showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 3),
+          content: Text(
+            ok
+                ? 'Zaktualizowano kaloryczność wpisu'
+                : 'Nie udało się zapisać zmian',
+          ),
+        ),
+      );
   }
 
   Widget _buildWaterSection(BuildContext context) {
@@ -602,14 +664,16 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
           children: [
             const Icon(Icons.cloud_off_outlined, color: waterBlue),
             const SizedBox(width: 12),
-            const Expanded(
-              child: Text('Nie udało się wczytać nawodnienia.'),
-            ),
+            const Expanded(child: Text('Nie udało się wczytać nawodnienia.')),
             IconButton(
               tooltip: 'Spróbuj ponownie',
-              onPressed: () => wellness.loadForDate(
-                Provider.of<FoodLogProvider>(context, listen: false).currentDate,
-              ),
+              onPressed:
+                  () => wellness.loadForDate(
+                    Provider.of<FoodLogProvider>(
+                      context,
+                      listen: false,
+                    ).currentDate,
+                  ),
               icon: const Icon(Icons.refresh),
             ),
           ],
@@ -646,13 +710,21 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('Nawodnienie',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                    const Text(
+                      'Nawodnienie',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
                     const SizedBox(height: 3),
                     Text(
                       '$ml z $goal ml',
                       style: TextStyle(
-                          fontSize: 11, color: AppTheme.textSecondary, height: 1.3),
+                        fontSize: 11,
+                        color: AppTheme.textSecondary,
+                        height: 1.3,
+                      ),
                     ),
                   ],
                 ),
@@ -676,7 +748,10 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                     Text(
                       '${(progress * 100).round()}',
                       style: const TextStyle(
-                          fontSize: 10, fontWeight: FontWeight.bold, color: waterBlue),
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: waterBlue,
+                      ),
                     ),
                   ],
                 ),
@@ -699,16 +774,24 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 6),
                     visualDensity: VisualDensity.compact,
                   ),
-                  child: const Text('Inna ilość', style: TextStyle(fontSize: 12)),
+                  child: const Text(
+                    'Inna ilość',
+                    style: TextStyle(fontSize: 12),
+                  ),
                 ),
               ),
               if (ml > 0)
                 IconButton(
-                  icon: Icon(Icons.undo, size: 17, color: AppTheme.textSecondary),
+                  icon: Icon(
+                    Icons.undo,
+                    size: 17,
+                    color: AppTheme.textSecondary,
+                  ),
                   visualDensity: VisualDensity.compact,
                   tooltip: 'Cofnij szklankę',
-                  onPressed: () =>
-                      _runWellness(wellness, () => wellness.addWater(-250)),
+                  onPressed:
+                      () =>
+                          _runWellness(wellness, () => wellness.addWater(-250)),
                 ),
             ],
           ),
@@ -719,34 +802,37 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
 
   /// Wpisanie dowolnej liczby mililitrów.
   Future<void> _showCustomWaterDialog(
-      BuildContext context, WellnessProvider wellness) async {
+    BuildContext context,
+    WellnessProvider wellness,
+  ) async {
     final controller = TextEditingController();
     final ok = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Ile wypiłeś/aś?'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: 'Ilość',
-            suffixText: 'ml',
-            hintText: 'np. 300',
-            border: OutlineInputBorder(),
+      builder:
+          (dialogContext) => AlertDialog(
+            title: const Text('Ile wypiłeś/aś?'),
+            content: TextField(
+              controller: controller,
+              autofocus: true,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Ilość',
+                suffixText: 'ml',
+                hintText: 'np. 300',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('Anuluj'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: const Text('Dodaj'),
+              ),
+            ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Anuluj'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Dodaj'),
-          ),
-        ],
-      ),
     );
     final value = int.tryParse(controller.text.trim());
     controller.dispose();
@@ -756,8 +842,12 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
       if (context.mounted) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(const SnackBar(
-            duration: Duration(seconds: 3),content: Text('Podaj liczbę mililitrów.')));
+          ..showSnackBar(
+            const SnackBar(
+              duration: Duration(seconds: 3),
+              content: Text('Podaj liczbę mililitrów.'),
+            ),
+          );
       }
       return;
     }
@@ -783,8 +873,11 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
           padding: const EdgeInsets.symmetric(vertical: 6),
           visualDensity: VisualDensity.compact,
         ),
-        child: Text('+$label',
-            style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis),
+        child: Text(
+          '+$label',
+          style: const TextStyle(fontSize: 12),
+          overflow: TextOverflow.ellipsis,
+        ),
       ),
     );
   }
@@ -806,21 +899,44 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _buildMacroItem('Białko', summary?.totalProtein ?? 0, AppTheme.accentColor, target: targetProtein),
-            _buildMacroItem('Węgle', summary?.totalCarbs ?? 0, Colors.orange, target: targetCarbs),
-            _buildMacroItem('Tłuszcze', summary?.totalFat ?? 0, Colors.redAccent, target: targetFat),
+            _buildMacroItem(
+              'Białko',
+              summary?.totalProtein ?? 0,
+              AppTheme.accentColor,
+              target: targetProtein,
+            ),
+            _buildMacroItem(
+              'Węgle',
+              summary?.totalCarbs ?? 0,
+              Colors.orange,
+              target: targetCarbs,
+            ),
+            _buildMacroItem(
+              'Tłuszcze',
+              summary?.totalFat ?? 0,
+              Colors.redAccent,
+              target: targetFat,
+            ),
           ],
         ),
         const SizedBox(height: 4),
         Text(
           'Optymalny podział dla Twojego celu kcal',
-          style: TextStyle(fontSize: 11, color: AppTheme.textSecondary.withOpacity(0.7)),
+          style: TextStyle(
+            fontSize: 11,
+            color: AppTheme.textSecondary.withOpacity(0.7),
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildMacroItem(String label, double amount, Color color, {required double target}) {
+  Widget _buildMacroItem(
+    String label,
+    double amount,
+    Color color, {
+    required double target,
+  }) {
     return Column(
       children: [
         Text(
@@ -867,74 +983,86 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
     }
 
     final orderedMealTypes = ['Śniadanie', 'Obiad', 'Kolacja', 'Przekąska'];
-    final existingTypes = groupedLogs.keys.toList()
-      ..sort((a, b) {
-        int indexA = orderedMealTypes.indexOf(a);
-        int indexB = orderedMealTypes.indexOf(b);
-        if (indexA == -1) indexA = 99;
-        if (indexB == -1) indexB = 99;
-        return indexA.compareTo(indexB);
-      });
+    final existingTypes =
+        groupedLogs.keys.toList()..sort((a, b) {
+          int indexA = orderedMealTypes.indexOf(a);
+          int indexB = orderedMealTypes.indexOf(b);
+          if (indexA == -1) indexA = 99;
+          if (indexB == -1) indexB = 99;
+          return indexA.compareTo(indexB);
+        });
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: existingTypes.map((type) {
-        final items = groupedLogs[type]!;
-        double totalCal = items.fold(0, (sum, item) => sum + item.calories);
+      children:
+          existingTypes.map((type) {
+            final items = groupedLogs[type]!;
+            double totalCal = items.fold(0, (sum, item) => sum + item.calories);
 
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    type,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.textPrimary,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          type,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${totalCal.toInt()} kcal',
+                        maxLines: 2,
+                        textAlign: TextAlign.end,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryColor,
+                        ),
+                      ),
+                    ],
                   ),
-                  Text(
-                    '${totalCal.toInt()} kcal',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.primaryColor,
-                    ),
-                  ),
+                  const SizedBox(height: 12),
+                  ...items.map((item) => _buildLogItem(context, item)).toList(),
                 ],
               ),
-              const SizedBox(height: 12),
-              ...items.map((item) => _buildLogItem(context, item)).toList(),
-            ],
-          ),
-        );
-      }).toList(),
+            );
+          }).toList(),
     );
   }
 
   Future<bool> _confirmDeleteEntry(FoodLogEntry item) async {
     return await showDialog<bool>(
           context: context,
-          builder: (dialogContext) => AlertDialog(
-            title: const Text('Usunąć posiłek?'),
-            content: Text('„${item.displayName}” zostanie usunięty ze śledzenia.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext, false),
-                child: const Text('Anuluj'),
+          builder:
+              (dialogContext) => AlertDialog(
+                title: const Text('Usunąć posiłek?'),
+                content: Text(
+                  '„${item.displayName}” zostanie usunięty ze śledzenia.',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(dialogContext, false),
+                    child: const Text('Anuluj'),
+                  ),
+                  FilledButton(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppTheme.errorColor,
+                    ),
+                    onPressed: () => Navigator.pop(dialogContext, true),
+                    child: const Text('Usuń'),
+                  ),
+                ],
               ),
-              FilledButton(
-                style: FilledButton.styleFrom(backgroundColor: AppTheme.errorColor),
-                onPressed: () => Navigator.pop(dialogContext, true),
-                child: const Text('Usuń'),
-              ),
-            ],
-          ),
         ) ??
         false;
   }
@@ -955,7 +1083,10 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
       ),
       confirmDismiss: (_) => _confirmDeleteEntry(item),
       onDismissed: (_) {
-        Provider.of<FoodLogProvider>(context, listen: false).deleteEntry(item.id);
+        Provider.of<FoodLogProvider>(
+          context,
+          listen: false,
+        ).deleteEntry(item.id);
       },
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -973,72 +1104,94 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
             borderRadius: BorderRadius.circular(16),
           ),
           child: Row(
+            children: [
+              Icon(
+                item.recipeId != null
+                    ? Icons.menu_book_outlined
+                    : Icons.restaurant_menu,
+                color: AppTheme.textSecondary,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      item.recipeId != null ? Icons.menu_book_outlined : Icons.restaurant_menu,
-                      color: AppTheme.textSecondary,
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.displayName,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.textPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            item.servings == 1
-                                ? '1 porcja'
-                                : '${item.servings.toStringAsFixed(item.servings.truncateToDouble() == item.servings ? 0 : 1)} porcji',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: AppTheme.textSecondary,
-                            ),
-                          ),
-                        ],
+                    Text(
+                      item.displayName,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimary,
                       ),
                     ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          '${item.calories.toInt()} kcal',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Text('B:${item.protein.toInt()}', style: const TextStyle(fontSize: 12, color: AppTheme.accentColor)),
-                            const SizedBox(width: 4),
-                            Text('W:${item.carbs.toInt()}', style: const TextStyle(fontSize: 12, color: Colors.orange)),
-                            const SizedBox(width: 4),
-                            Text('T:${item.fat.toInt()}', style: const TextStyle(fontSize: 12, color: Colors.redAccent)),
-                          ],
-                        ),
-                      ],
-                    ),
-                    IconButton(
-                      tooltip: 'Usuń ze śledzenia',
-                      icon: Icon(Icons.delete_outline, color: AppTheme.errorColor),
-                      onPressed: () async {
-                        if (await _confirmDeleteEntry(item) && mounted) {
-                          await Provider.of<FoodLogProvider>(context, listen: false)
-                              .deleteEntry(item.id);
-                        }
-                      },
+                    const SizedBox(height: 4),
+                    Text(
+                      item.servings == 1
+                          ? '1 porcja'
+                          : '${item.servings.toStringAsFixed(item.servings.truncateToDouble() == item.servings ? 0 : 1)} porcji',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppTheme.textSecondary,
+                      ),
                     ),
                   ],
                 ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '${item.calories.toInt()} kcal',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(
+                        'B:${item.protein.toInt()}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.accentColor,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'W:${item.carbs.toInt()}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.orange,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'T:${item.fat.toInt()}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.redAccent,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              IconButton(
+                tooltip: 'Usuń ze śledzenia',
+                icon: Icon(Icons.delete_outline, color: AppTheme.errorColor),
+                onPressed: () async {
+                  if (await _confirmDeleteEntry(item) && mounted) {
+                    await Provider.of<FoodLogProvider>(
+                      context,
+                      listen: false,
+                    ).deleteEntry(item.id);
+                  }
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );

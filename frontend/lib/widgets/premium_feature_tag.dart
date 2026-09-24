@@ -17,7 +17,10 @@ class PremiumFeatureTag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: fontSize * 0.6, vertical: fontSize * 0.15),
+      padding: EdgeInsets.symmetric(
+        horizontal: fontSize * 0.6,
+        vertical: fontSize * 0.15,
+      ),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [Color(0xFFF5C24D), Color(0xFFE0A62E)],

@@ -13,7 +13,6 @@ import '../../widgets/submit_product_sheet.dart';
 import '../../widgets/pick_product_from_catalog_sheet.dart';
 import '../../widgets/product_name_autocomplete_field.dart';
 
-
 class AddFoodEntryScreen extends StatefulWidget {
   final String? initialBarcode;
 
@@ -23,7 +22,8 @@ class AddFoodEntryScreen extends StatefulWidget {
   State<AddFoodEntryScreen> createState() => _AddFoodEntryScreenState();
 }
 
-class _AddFoodEntryScreenState extends State<AddFoodEntryScreen> with SingleTickerProviderStateMixin {
+class _AddFoodEntryScreenState extends State<AddFoodEntryScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -96,56 +96,93 @@ class _PlanTabState extends State<_PlanTab> {
   /// posiłku z planu — wcześniej "+" logował ZAWSZE dokładnie tyle porcji,
   /// ile było zapisane w planie, bez możliwości powiedzenia "zjadłem
   /// tylko połowę" albo "dołożyłem sobie".
-  Future<void> _pickServingsAndLog(BuildContext context, FoodLogProvider provider, MealPlanEntry entry) async {
+  Future<void> _pickServingsAndLog(
+    BuildContext context,
+    FoodLogProvider provider,
+    MealPlanEntry entry,
+  ) async {
     double servings = 1.0;
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: Text(entry.recipe.name),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Ile porcji zjadłeś/-aś?'),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.remove_circle_outline),
-                    onPressed: servings > 0.5
-                        ? () => setDialogState(() => servings = (servings - 0.5).clamp(0.5, 10))
-                        : null,
+      builder:
+          (ctx) => StatefulBuilder(
+            builder:
+                (ctx, setDialogState) => AlertDialog(
+                  title: Text(entry.recipe.name),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('Ile porcji zjadłeś/-aś?'),
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.remove_circle_outline),
+                            onPressed:
+                                servings > 0.5
+                                    ? () => setDialogState(
+                                      () =>
+                                          servings = (servings - 0.5).clamp(
+                                            0.5,
+                                            10,
+                                          ),
+                                    )
+                                    : null,
+                          ),
+                          Text(
+                            servings.toStringAsFixed(1),
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.add_circle_outline),
+                            onPressed:
+                                () => setDialogState(
+                                  () =>
+                                      servings = (servings + 0.5).clamp(
+                                        0.5,
+                                        10,
+                                      ),
+                                ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  Text(servings.toStringAsFixed(1), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  IconButton(
-                    icon: const Icon(Icons.add_circle_outline),
-                    onPressed: () => setDialogState(() => servings = (servings + 0.5).clamp(0.5, 10)),
-                  ),
-                ],
-              ),
-            ],
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: const Text('Anuluj'),
+                    ),
+                    FilledButton(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      child: const Text('Dodaj'),
+                    ),
+                  ],
+                ),
           ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Anuluj')),
-            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Dodaj')),
-          ],
-        ),
-      ),
     );
     if (confirmed != true || !context.mounted) return;
 
-    final success = await provider.addFromMealPlanEntry(entry.id, servings: servings);
+    final success = await provider.addFromMealPlanEntry(
+      entry.id,
+      servings: servings,
+    );
     if (context.mounted) {
       if (success) {
         Navigator.pop(context);
       } else {
         ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-          SnackBar(
-            duration: const Duration(seconds: 3),content: Text(provider.error ?? 'Nie udało się dodać posiłku')),
-        );
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              duration: const Duration(seconds: 3),
+              content: Text(provider.error ?? 'Nie udało się dodać posiłku'),
+            ),
+          );
       }
     }
   }
@@ -157,6 +194,7 @@ class _PlanTabState extends State<_PlanTab> {
     final picked = await showModalBottomSheet<PickedCatalogProduct>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       backgroundColor: AppTheme.surfaceColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -168,48 +206,55 @@ class _PlanTabState extends State<_PlanTab> {
     var mealType = 'Przekąska';
     final selectedType = await showDialog<String>(
       context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (dialogContext, setDialogState) => AlertDialog(
-          title: Text(picked.name),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${picked.grams.toStringAsFixed(0)} g · '
-                '${picked.kcal.round()} kcal',
-                style: TextStyle(color: AppTheme.textSecondary),
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: mealType,
-                decoration: const InputDecoration(labelText: 'Rodzaj posiłku'),
-                items: _mealTypes
-                    .map((type) => DropdownMenuItem(
-                          value: type,
-                          child: Text(type),
-                        ))
-                    .toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    setDialogState(() => mealType = value);
-                  }
-                },
-              ),
-            ],
+      builder:
+          (dialogContext) => StatefulBuilder(
+            builder:
+                (dialogContext, setDialogState) => AlertDialog(
+                  title: Text(picked.name),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${picked.grams.toStringAsFixed(0)} g · '
+                        '${picked.kcal.round()} kcal',
+                        style: TextStyle(color: AppTheme.textSecondary),
+                      ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        value: mealType,
+                        decoration: const InputDecoration(
+                          labelText: 'Rodzaj posiłku',
+                        ),
+                        items:
+                            _mealTypes
+                                .map(
+                                  (type) => DropdownMenuItem(
+                                    value: type,
+                                    child: Text(type),
+                                  ),
+                                )
+                                .toList(),
+                        onChanged: (value) {
+                          if (value != null) {
+                            setDialogState(() => mealType = value);
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(dialogContext),
+                      child: const Text('Anuluj'),
+                    ),
+                    FilledButton(
+                      onPressed: () => Navigator.pop(dialogContext, mealType),
+                      child: const Text('Dodaj do dziennika'),
+                    ),
+                  ],
+                ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Anuluj'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(dialogContext, mealType),
-              child: const Text('Dodaj do dziennika'),
-            ),
-          ],
-        ),
-      ),
     );
     if (selectedType == null || !mounted) return;
 
@@ -227,10 +272,12 @@ class _PlanTabState extends State<_PlanTab> {
     } else {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(
-          duration: const Duration(seconds: 3),
-          content: Text(provider.error ?? 'Nie udało się dodać produktu'),
-        ));
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(provider.error ?? 'Nie udało się dodać produktu'),
+          ),
+        );
     }
   }
 
@@ -287,12 +334,20 @@ class _PlanTabState extends State<_PlanTab> {
   /// się strzałkami na inny dzień — a zalogowanie takiego posiłku i tak
   /// zapisywało się pod dzisiejszą datą (bo tyle właśnie wynikało z dnia
   /// planu, który został pokazany).
-  int? _dayNumberFor(DateTime targetDate, String? startDateStr, int durationDays) {
+  int? _dayNumberFor(
+    DateTime targetDate,
+    String? startDateStr,
+    int durationDays,
+  ) {
     if (startDateStr == null) return null;
     final start = DateTime.tryParse(startDateStr);
     if (start == null) return null;
     final startDay = DateTime(start.year, start.month, start.day);
-    final targetDay = DateTime(targetDate.year, targetDate.month, targetDate.day);
+    final targetDay = DateTime(
+      targetDate.year,
+      targetDate.month,
+      targetDate.day,
+    );
     final diff = targetDay.difference(startDay).inDays + 1;
     if (diff < 1 || diff > durationDays) return null;
     return diff;
@@ -321,19 +376,25 @@ class _PlanTabState extends State<_PlanTab> {
         foodLogProvider,
         const _EmptyHint(
           icon: Icons.calendar_today_outlined,
-          text: 'Nie masz jeszcze aktywnego planu posiłków.\nUtwórz plan w zakładce "Start", żeby móc\nlogować z niego posiłki jednym dotknięciem.',
+          text:
+              'Nie masz jeszcze aktywnego planu posiłków.\nUtwórz plan w zakładce "Start", żeby móc\nlogować z niego posiłki jednym dotknięciem.',
         ),
       );
     }
 
-    final dayNumber = _dayNumberFor(targetDate, plan.startDate, plan.durationDays);
+    final dayNumber = _dayNumberFor(
+      targetDate,
+      plan.startDate,
+      plan.durationDays,
+    );
     if (dayNumber == null) {
       return _withBarcodeButton(
         context,
         foodLogProvider,
         _EmptyHint(
           icon: Icons.event_busy_outlined,
-          text: 'Twój aktywny plan nie obejmuje wybranej daty '
+          text:
+              'Twój aktywny plan nie obejmuje wybranej daty '
               '(${targetDate.day.toString().padLeft(2, '0')}.${targetDate.month.toString().padLeft(2, '0')}).',
         ),
       );
@@ -393,26 +454,27 @@ class _PlanTabState extends State<_PlanTab> {
                 ),
                 foodLogProvider.isLoading
                     ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: AppTheme.primaryColor,
-                        ),
-                      )
-                    : IconButton(
-                        icon: const Icon(
-                          Icons.add_circle,
-                          color: AppTheme.primaryColor,
-                          size: 28,
-                        ),
-                        tooltip: 'Dodaj do dziennika',
-                        onPressed: () => _pickServingsAndLog(
-                          context,
-                          foodLogProvider,
-                          entry,
-                        ),
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppTheme.primaryColor,
                       ),
+                    )
+                    : IconButton(
+                      icon: const Icon(
+                        Icons.add_circle,
+                        color: AppTheme.primaryColor,
+                        size: 28,
+                      ),
+                      tooltip: 'Dodaj do dziennika',
+                      onPressed:
+                          () => _pickServingsAndLog(
+                            context,
+                            foodLogProvider,
+                            entry,
+                          ),
+                    ),
               ],
             ),
           );
@@ -461,7 +523,9 @@ class _RecipesTabState extends State<_RecipesTab> {
   Future<void> _search(String query) async {
     setState(() => _loading = true);
     try {
-      final results = await _service.getRecipes(search: query.isEmpty ? null : query);
+      final results = await _service.getRecipes(
+        search: query.isEmpty ? null : query,
+      );
       if (!mounted) return;
       setState(() {
         _results = results;
@@ -480,6 +544,7 @@ class _RecipesTabState extends State<_RecipesTab> {
   Future<void> _pickAndLog(Recipe recipe) async {
     final result = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
+      useSafeArea: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -489,7 +554,10 @@ class _RecipesTabState extends State<_RecipesTab> {
 
     final servings = result['servings'] as double;
     final mealType = result['mealType'] as String;
-    final foodLogProvider = Provider.of<FoodLogProvider>(context, listen: false);
+    final foodLogProvider = Provider.of<FoodLogProvider>(
+      context,
+      listen: false,
+    );
 
     // Użytkownik wybrał "Dopasuj składniki" — otwieramy edycję i zapisujemy
     // WYLICZONE wartości zamiast tych z przepisu. Zmiana dotyczy tylko tego
@@ -511,14 +579,17 @@ class _RecipesTabState extends State<_RecipesTab> {
         final edited = await showModalBottomSheet<EditedNutrition>(
           context: context,
           isScrollControlled: true,
+          useSafeArea: true,
           backgroundColor: AppTheme.surfaceColor,
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
-          builder: (_) => EditIngredientsSheet(
-            recipe: full,
-            servingsFraction: servings / (full.servings > 0 ? full.servings : 1),
-          ),
+          builder:
+              (_) => EditIngredientsSheet(
+                recipe: full,
+                servingsFraction:
+                    servings / (full.servings > 0 ? full.servings : 1),
+              ),
         );
         if (edited == null || !mounted) return;
 
@@ -541,10 +612,14 @@ class _RecipesTabState extends State<_RecipesTab> {
           } else {
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()
-              ..showSnackBar(SnackBar(
-                duration: const Duration(seconds: 3),
-                content: Text(foodLogProvider.error ?? 'Nie udało się dodać posiłku'),
-              ));
+              ..showSnackBar(
+                SnackBar(
+                  duration: const Duration(seconds: 3),
+                  content: Text(
+                    foodLogProvider.error ?? 'Nie udało się dodać posiłku',
+                  ),
+                ),
+              );
           }
           return;
         }
@@ -563,11 +638,15 @@ class _RecipesTabState extends State<_RecipesTab> {
       Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-            duration: const Duration(seconds: 3),content: Text(foodLogProvider.error ?? 'Nie udało się dodać posiłku')),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(
+              foodLogProvider.error ?? 'Nie udało się dodać posiłku',
+            ),
+          ),
+        );
     }
   }
 
@@ -595,58 +674,76 @@ class _RecipesTabState extends State<_RecipesTab> {
           ),
         ),
         Expanded(
-          child: _loading
-              ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor))
-              : _error != null
+          child:
+              _loading
+                  ? const Center(
+                    child: CircularProgressIndicator(
+                      color: AppTheme.primaryColor,
+                    ),
+                  )
+                  : _error != null
                   ? _EmptyHint(icon: Icons.error_outline, text: _error!)
                   : _results.isEmpty
-                      ? const _EmptyHint(icon: Icons.search_off, text: 'Brak wyników.')
-                      : ListView.separated(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          itemCount: _results.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 8),
-                          itemBuilder: (context, index) {
-                            final recipe = _results[index];
-                            return Material(
-                              color: AppTheme.surfaceColor,
-                              borderRadius: BorderRadius.circular(16),
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(16),
-                                onTap: () => _pickAndLog(recipe),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Row(
+                  ? const _EmptyHint(
+                    icon: Icons.search_off,
+                    text: 'Brak wyników.',
+                  )
+                  : ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: _results.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemBuilder: (context, index) {
+                      final recipe = _results[index];
+                      return Material(
+                        color: AppTheme.surfaceColor,
+                        borderRadius: BorderRadius.circular(16),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () => _pickAndLog(recipe),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              recipe.name,
-                                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                                            ),
-                                            const SizedBox(height: 2),
-                                            Text(
-                                              // UWAGA (naprawa): recipe.nutritionTotal to
-                                              // wartości dla CAŁEGO przepisu, nie na porcję —
-                                              // trzeba podzielić przez recipe.servings, inaczej
-                                              // dosłowny podpis "/ porcja" pokazywał wartość
-                                              // 2-4x za wysoką. Zabezpieczenie przed servings=0
-                                              // (Infinity.round() rzuca wyjątkiem w Dart).
-                                              '${(recipe.nutritionTotal.kcal / (recipe.servings > 0 ? recipe.servings : 1)).round()} kcal / porcja',
-                                              style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
-                                            ),
-                                          ],
+                                      Text(
+                                        recipe.name,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
                                         ),
                                       ),
-                                      const Icon(Icons.add_circle_outline, color: AppTheme.primaryColor),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        // UWAGA (naprawa): recipe.nutritionTotal to
+                                        // wartości dla CAŁEGO przepisu, nie na porcję —
+                                        // trzeba podzielić przez recipe.servings, inaczej
+                                        // dosłowny podpis "/ porcja" pokazywał wartość
+                                        // 2-4x za wysoką. Zabezpieczenie przed servings=0
+                                        // (Infinity.round() rzuca wyjątkiem w Dart).
+                                        '${(recipe.nutritionTotal.kcal / (recipe.servings > 0 ? recipe.servings : 1)).round()} kcal / porcja',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: AppTheme.textSecondary,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),
-                              ),
-                            );
-                          },
+                                const Icon(
+                                  Icons.add_circle_outline,
+                                  color: AppTheme.primaryColor,
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
+                      );
+                    },
+                  ),
         ),
       ],
     );
@@ -662,7 +759,13 @@ class _LogRecipeSheet extends StatefulWidget {
 }
 
 class _LogRecipeSheetState extends State<_LogRecipeSheet> {
-  final List<String> _mealTypes = ['Śniadanie', 'Obiad', 'Kolacja', 'Przekąska', 'Deser'];
+  final List<String> _mealTypes = [
+    'Śniadanie',
+    'Obiad',
+    'Kolacja',
+    'Przekąska',
+    'Deser',
+  ];
   late String _mealType;
   double _servings = 1.0;
 
@@ -689,41 +792,67 @@ class _LogRecipeSheetState extends State<_LogRecipeSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.recipe.name, style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              widget.recipe.name,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 20),
-            Text('Rodzaj posiłku', style: Theme.of(context).textTheme.bodyMedium),
+            Text(
+              'Rodzaj posiłku',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
-              children: _mealTypes.map((t) {
-                return ChoiceChip(
-                  label: Text(t),
-                  selected: _mealType == t,
-                  selectedColor: AppTheme.primaryTintColor,
-                  onSelected: (_) => setState(() => _mealType = t),
-                );
-              }).toList(),
+              children:
+                  _mealTypes.map((t) {
+                    return ChoiceChip(
+                      label: Text(t),
+                      selected: _mealType == t,
+                      selectedColor: AppTheme.primaryTintColor,
+                      onSelected: (_) => setState(() => _mealType = t),
+                    );
+                  }).toList(),
             ),
             const SizedBox(height: 20),
-            Text('Liczba porcji', style: Theme.of(context).textTheme.bodyMedium),
+            Text(
+              'Liczba porcji',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
             Row(
               children: [
                 IconButton(
                   icon: const Icon(Icons.remove_circle_outline),
-                  onPressed: _servings > 0.5
-                      ? () => setState(() => _servings = (_servings - 0.5).clamp(0.5, 10))
-                      : null,
+                  onPressed:
+                      _servings > 0.5
+                          ? () => setState(
+                            () => _servings = (_servings - 0.5).clamp(0.5, 10),
+                          )
+                          : null,
                 ),
-                Text(_servings.toStringAsFixed(1), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(
+                  _servings.toStringAsFixed(1),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 IconButton(
                   icon: const Icon(Icons.add_circle_outline),
-                  onPressed: () => setState(() => _servings = (_servings + 0.5).clamp(0.5, 10)),
+                  onPressed:
+                      () => setState(
+                        () => _servings = (_servings + 0.5).clamp(0.5, 10),
+                      ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
             ElevatedButton(
-              onPressed: () => Navigator.pop(context, {'mealType': _mealType, 'servings': _servings}),
+              onPressed:
+                  () => Navigator.pop(context, {
+                    'mealType': _mealType,
+                    'servings': _servings,
+                  }),
               child: const Text('Dodaj do dziennika'),
             ),
             const SizedBox(height: 6),
@@ -734,11 +863,12 @@ class _LogRecipeSheetState extends State<_LogRecipeSheet> {
             SizedBox(
               width: double.infinity,
               child: TextButton.icon(
-                onPressed: () => Navigator.pop(context, {
-                  'mealType': _mealType,
-                  'servings': _servings,
-                  'editIngredients': true,
-                }),
+                onPressed:
+                    () => Navigator.pop(context, {
+                      'mealType': _mealType,
+                      'servings': _servings,
+                      'editIngredients': true,
+                    }),
                 icon: const Icon(Icons.tune, size: 18),
                 label: const Text('Dopasuj składniki'),
               ),
@@ -765,7 +895,11 @@ class _EmptyHint extends StatelessWidget {
           children: [
             Icon(icon, size: 48, color: AppTheme.textSecondary),
             const SizedBox(height: 16),
-            Text(text, textAlign: TextAlign.center, style: TextStyle(color: AppTheme.textSecondary)),
+            Text(
+              text,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppTheme.textSecondary),
+            ),
           ],
         ),
       ),
@@ -798,48 +932,55 @@ class _ProductsTabState extends State<_ProductsTab> {
     var mealType = 'Przekąska';
     final selectedType = await showDialog<String>(
       context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (dialogContext, setDialogState) => AlertDialog(
-          title: Text(picked.name),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${picked.grams.toStringAsFixed(0)} g · '
-                '${picked.kcal.round()} kcal',
-                style: TextStyle(color: AppTheme.textSecondary),
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: mealType,
-                decoration: const InputDecoration(labelText: 'Rodzaj posiłku'),
-                items: _mealTypes
-                    .map((type) => DropdownMenuItem(
-                          value: type,
-                          child: Text(type),
-                        ))
-                    .toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    setDialogState(() => mealType = value);
-                  }
-                },
-              ),
-            ],
+      builder:
+          (dialogContext) => StatefulBuilder(
+            builder:
+                (dialogContext, setDialogState) => AlertDialog(
+                  title: Text(picked.name),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${picked.grams.toStringAsFixed(0)} g · '
+                        '${picked.kcal.round()} kcal',
+                        style: TextStyle(color: AppTheme.textSecondary),
+                      ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        value: mealType,
+                        decoration: const InputDecoration(
+                          labelText: 'Rodzaj posiłku',
+                        ),
+                        items:
+                            _mealTypes
+                                .map(
+                                  (type) => DropdownMenuItem(
+                                    value: type,
+                                    child: Text(type),
+                                  ),
+                                )
+                                .toList(),
+                        onChanged: (value) {
+                          if (value != null) {
+                            setDialogState(() => mealType = value);
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(dialogContext),
+                      child: const Text('Anuluj'),
+                    ),
+                    FilledButton(
+                      onPressed: () => Navigator.pop(dialogContext, mealType),
+                      child: const Text('Dodaj do dziennika'),
+                    ),
+                  ],
+                ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Anuluj'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(dialogContext, mealType),
-              child: const Text('Dodaj do dziennika'),
-            ),
-          ],
-        ),
-      ),
     );
     if (selectedType == null || !mounted) return;
 
@@ -860,9 +1001,11 @@ class _ProductsTabState extends State<_ProductsTab> {
     } else {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(
-          content: Text(provider.error ?? 'Nie udało się dodać produktu'),
-        ));
+        ..showSnackBar(
+          SnackBar(
+            content: Text(provider.error ?? 'Nie udało się dodać produktu'),
+          ),
+        );
     }
   }
 
@@ -886,17 +1029,19 @@ class _ProductsTabState extends State<_ProductsTab> {
                 child: SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
-                    onPressed: () => showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      backgroundColor: AppTheme.surfaceColor,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(20),
+                    onPressed:
+                        () => showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          useSafeArea: true,
+                          backgroundColor: AppTheme.surfaceColor,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(20),
+                            ),
+                          ),
+                          builder: (_) => const SubmitProductSheet(),
                         ),
-                      ),
-                      builder: (_) => const SubmitProductSheet(),
-                    ),
                     icon: const Icon(Icons.add_box_outlined, size: 18),
                     label: const Text(
                       'Nie ma produktu? Dodaj go do bazy',
@@ -938,7 +1083,13 @@ class _ManualEntryFormState extends State<ManualEntryForm> {
   final _carbsController = TextEditingController();
   final _fatController = TextEditingController();
 
-  final List<String> _mealTypes = ['Śniadanie', 'Obiad', 'Kolacja', 'Przekąska', 'Deser'];
+  final List<String> _mealTypes = [
+    'Śniadanie',
+    'Obiad',
+    'Kolacja',
+    'Przekąska',
+    'Deser',
+  ];
 
   void _applySuggestedProduct(BarcodeLookupResult result) {
     setState(() {
@@ -978,9 +1129,10 @@ class _ManualEntryFormState extends State<ManualEntryForm> {
     // Porcja (g/ml) nie ma osobnej kolumny w backendzie — dopisujemy ją do
     // nazwy, żeby informacja nie ginęła (np. "Owsianka (300g)").
     final portionText = _portionController.text.trim();
-    final name = portionText.isEmpty
-        ? _nameController.text.trim()
-        : '${_nameController.text.trim()} (${portionText}g)';
+    final name =
+        portionText.isEmpty
+            ? _nameController.text.trim()
+            : '${_nameController.text.trim()} (${portionText}g)';
 
     final success = await provider.addManualEntry(
       mealType: _mealType,
@@ -998,11 +1150,13 @@ class _ManualEntryFormState extends State<ManualEntryForm> {
       Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-            duration: const Duration(seconds: 3),content: Text(provider.error ?? 'Nie udało się dodać wpisu')),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(provider.error ?? 'Nie udało się dodać wpisu'),
+          ),
+        );
     }
   }
 
@@ -1016,9 +1170,10 @@ class _ManualEntryFormState extends State<ManualEntryForm> {
           DropdownButtonFormField<String>(
             value: _mealType,
             decoration: const InputDecoration(labelText: 'Rodzaj posiłku'),
-            items: _mealTypes.map((type) {
-              return DropdownMenuItem(value: type, child: Text(type));
-            }).toList(),
+            items:
+                _mealTypes.map((type) {
+                  return DropdownMenuItem(value: type, child: Text(type));
+                }).toList(),
             onChanged: (val) {
               if (val != null) setState(() => _mealType = val);
             },
@@ -1037,9 +1192,12 @@ class _ManualEntryFormState extends State<ManualEntryForm> {
                 final picked = await showModalBottomSheet<PickedCatalogProduct>(
                   context: context,
                   isScrollControlled: true,
+                  useSafeArea: true,
                   backgroundColor: AppTheme.surfaceColor,
                   shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
                   ),
                   builder: (_) => const PickProductFromCatalogSheet(),
                 );
@@ -1063,7 +1221,8 @@ class _ManualEntryFormState extends State<ManualEntryForm> {
             labelText: 'Nazwa produktu / dania',
             hintText: 'Wpisz nazwę lub wybierz podpowiedź',
             onSelected: _applySuggestedProduct,
-            validator: (val) => val == null || val.isEmpty ? 'Podaj nazwę' : null,
+            validator:
+                (val) => val == null || val.isEmpty ? 'Podaj nazwę' : null,
           ),
           const SizedBox(height: 16),
           Row(
@@ -1072,7 +1231,9 @@ class _ManualEntryFormState extends State<ManualEntryForm> {
                 child: TextFormField(
                   controller: _portionController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Porcja (g/ml, opcjonalnie)'),
+                  decoration: const InputDecoration(
+                    labelText: 'Porcja (g/ml, opcjonalnie)',
+                  ),
                 ),
               ),
               const SizedBox(width: 16),
@@ -1080,8 +1241,11 @@ class _ManualEntryFormState extends State<ManualEntryForm> {
                 child: TextFormField(
                   controller: _caloriesController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Kalorie (kcal)'),
-                  validator: (val) => val == null || val.isEmpty ? 'Wymagane' : null,
+                  decoration: const InputDecoration(
+                    labelText: 'Kalorie (kcal)',
+                  ),
+                  validator:
+                      (val) => val == null || val.isEmpty ? 'Wymagane' : null,
                 ),
               ),
             ],
@@ -1117,13 +1281,17 @@ class _ManualEntryFormState extends State<ManualEntryForm> {
           const SizedBox(height: 32),
           ElevatedButton(
             onPressed: _isSubmitting ? null : _submit,
-            child: _isSubmitting
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                  )
-                : const Text('Zapisz do dziennika'),
+            child:
+                _isSubmitting
+                    ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                    : const Text('Zapisz do dziennika'),
           ),
         ],
       ),

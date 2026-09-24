@@ -61,7 +61,9 @@ class RecipeService {
     path += params.join('&');
     final response = await _client.get(path);
     if (response is List) {
-      return response.map((e) => Recipe.fromJson(e as Map<String, dynamic>)).toList();
+      return response
+          .map((e) => Recipe.fromJson(e as Map<String, dynamic>))
+          .toList();
     }
     return [];
   }
@@ -72,9 +74,13 @@ class RecipeService {
   }
 
   Future<List<Recipe>> getAvailableRecipes(String storeId) async {
-    final response = await _client.get('${ApiConfig.recipesAvailable}?store_id=$storeId');
+    final response = await _client.get(
+      '${ApiConfig.recipesAvailable}?store_id=$storeId',
+    );
     if (response is List) {
-      return response.map((e) => Recipe.fromJson(e as Map<String, dynamic>)).toList();
+      return response
+          .map((e) => Recipe.fromJson(e as Map<String, dynamic>))
+          .toList();
     }
     return [];
   }
@@ -110,14 +116,20 @@ class RecipeService {
     if (favoritesOnly) params.add('favorites_only=true');
     if (newOnly) params.add('new_only=true');
     if (communityOnly) params.add('community_only=true');
-    if (search != null && search.isNotEmpty) params.add('search=${Uri.encodeComponent(search)}');
-    if (mealType != null && mealType.isNotEmpty) params.add('meal_type=${Uri.encodeComponent(mealType)}');
-    if (difficulty != null && difficulty.isNotEmpty) params.add('difficulty=${Uri.encodeComponent(difficulty)}');
-    if (tag != null && tag.isNotEmpty) params.add('tags=${Uri.encodeComponent(tag)}');
+    if (search != null && search.isNotEmpty)
+      params.add('search=${Uri.encodeComponent(search)}');
+    if (mealType != null && mealType.isNotEmpty)
+      params.add('meal_type=${Uri.encodeComponent(mealType)}');
+    if (difficulty != null && difficulty.isNotEmpty)
+      params.add('difficulty=${Uri.encodeComponent(difficulty)}');
+    if (tag != null && tag.isNotEmpty)
+      params.add('tags=${Uri.encodeComponent(tag)}');
     final path = '${ApiConfig.recipes}mine?${params.join('&')}';
     final response = await _client.get(path);
     if (response is List) {
-      return response.map((e) => Recipe.fromJson(e as Map<String, dynamic>)).toList();
+      return response
+          .map((e) => Recipe.fromJson(e as Map<String, dynamic>))
+          .toList();
     }
     return [];
   }
@@ -144,8 +156,8 @@ class RecipeService {
       // kolejki /jobs. To właśnie dawało użytkownikowi surowe „Not Found”
       // dla tekstu, zdjęcia i linku. 404 z nieistniejącej trasy jest
       // bezpieczne do ponowienia: żadna praca ani opłata nie powstały.
-      if (error.statusCode != 404 ||
-          error.message.toLowerCase() != 'not found') rethrow;
+      if (error.statusCode != 404 || error.message.toLowerCase() != 'not found')
+        rethrow;
       final response = await _client.post(
         '${ApiConfig.recipes}ai-import',
         body: body,
@@ -172,12 +184,16 @@ class RecipeService {
   }
 
   Future<RecipeImportJob> getRecipeImportJob(String jobId) async {
-    final response = await _client.get('${ApiConfig.recipes}ai-import/jobs/$jobId');
+    final response = await _client.get(
+      '${ApiConfig.recipes}ai-import/jobs/$jobId',
+    );
     return RecipeImportJob.fromJson(response as Map<String, dynamic>);
   }
 
   Future<List<RecipeImportJob>> getRecentRecipeImportJobs() async {
-    final response = await _client.get('${ApiConfig.recipes}ai-import/jobs/recent');
+    final response = await _client.get(
+      '${ApiConfig.recipes}ai-import/jobs/recent',
+    );
     if (response is! List) return [];
     return response
         .map((item) => RecipeImportJob.fromJson(item as Map<String, dynamic>))
@@ -254,14 +270,17 @@ class RecipeService {
     final response = await _client.post(
       '${ApiConfig.recipes}$sourceRecipeId/variants',
       body: {
-        'ingredients': ingredients
-            .map((ingredient) => {
-                  'product_id': ingredient.productId,
-                  'quantity': ingredient.quantity,
-                  'unit': ingredient.unit,
-                  'is_optional': ingredient.isOptional,
-                })
-            .toList(),
+        'ingredients':
+            ingredients
+                .map(
+                  (ingredient) => {
+                    'product_id': ingredient.productId,
+                    'quantity': ingredient.quantity,
+                    'unit': ingredient.unit,
+                    'is_optional': ingredient.isOptional,
+                  },
+                )
+                .toList(),
       },
     );
     return Recipe.fromJson(response as Map<String, dynamic>);
@@ -286,7 +305,9 @@ class RecipeService {
   Future<List<Recipe>> getPendingRecipes() async {
     final response = await _client.get('${ApiConfig.recipes}pending/review');
     if (response is List) {
-      return response.map((e) => Recipe.fromJson(e as Map<String, dynamic>)).toList();
+      return response
+          .map((e) => Recipe.fromJson(e as Map<String, dynamic>))
+          .toList();
     }
     return [];
   }
@@ -309,7 +330,9 @@ class RecipeService {
   /// katalogu — zmienia jego widoczność na "pending" (czeka na
   /// przegląd administratora).
   Future<Recipe> requestPublish(String recipeId) async {
-    final response = await _client.put('${ApiConfig.recipes}$recipeId/request-publish');
+    final response = await _client.put(
+      '${ApiConfig.recipes}$recipeId/request-publish',
+    );
     return Recipe.fromJson(response as Map<String, dynamic>);
   }
 
@@ -358,9 +381,10 @@ class RecipeMatch {
       recipe: Recipe.fromJson(json['recipe'] as Map<String, dynamic>),
       matchedCount: json['matched_count'] as int,
       totalRequired: json['total_required'] as int,
-      missingIngredientNames: (json['missing_ingredient_names'] as List<dynamic>)
-          .map((e) => e as String)
-          .toList(),
+      missingIngredientNames:
+          (json['missing_ingredient_names'] as List<dynamic>)
+              .map((e) => e as String)
+              .toList(),
     );
   }
 }

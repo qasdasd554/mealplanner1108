@@ -26,8 +26,12 @@ class MealPlanEntry {
       recipeId: json['recipe_id'] as String? ?? '',
       recipe: Recipe.fromJson(json['recipe'] as Map<String, dynamic>),
       dayNumber: json['day_number'] as int? ?? 1,
-      mealSlot: json['meal_slot'] as String? ?? json['meal_type'] as String? ?? 'obiad',
-      servingsMultiplier: (json['servings_multiplier'] as num? ?? 1.0).toDouble(),
+      mealSlot:
+          json['meal_slot'] as String? ??
+          json['meal_type'] as String? ??
+          'obiad',
+      servingsMultiplier:
+          (json['servings_multiplier'] as num? ?? 1.0).toDouble(),
     );
   }
 }
@@ -69,8 +73,10 @@ class MealPlan {
       mealsPerDay: json['meals_per_day'] as int? ?? 3,
       status: json['status'] as String? ?? 'draft',
       estimatedMinBudget: (json['estimated_min_budget'] as num?)?.toDouble(),
-      shoppingListLimitReached: json['shopping_list_limit_reached'] as bool? ?? false,
-      entries: (json['entries'] as List<dynamic>?)
+      shoppingListLimitReached:
+          json['shopping_list_limit_reached'] as bool? ?? false,
+      entries:
+          (json['entries'] as List<dynamic>?)
               ?.map((e) => MealPlanEntry.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
@@ -81,7 +87,13 @@ class MealPlan {
   List<MealPlanEntry> entriesForDay(int day) {
     final list = entries.where((e) => e.dayNumber == day).toList();
     // Sortujemy posiłki według standardowego porządku dnia
-    final order = {'śniadanie': 0, 'obiad': 1, 'kolacja': 2, 'przekąska': 3, 'deser': 4};
+    final order = {
+      'śniadanie': 0,
+      'obiad': 1,
+      'kolacja': 2,
+      'przekąska': 3,
+      'deser': 4,
+    };
     list.sort((a, b) {
       final oa = order[a.mealSlot.toLowerCase()] ?? 99;
       final ob = order[b.mealSlot.toLowerCase()] ?? 99;
@@ -111,12 +123,12 @@ class MealPlanGenerateRequest {
   });
 
   Map<String, dynamic> toJson() => {
-        'store_id': storeId,
-        'duration_days': durationDays,
-        'meals_per_day': mealsPerDay,
-        'max_budget': maxBudget,
-        'target_kcal': targetKcal,
-        'household_size': householdSize,
-        'preferences': preferences,
-      };
+    'store_id': storeId,
+    'duration_days': durationDays,
+    'meals_per_day': mealsPerDay,
+    'max_budget': maxBudget,
+    'target_kcal': targetKcal,
+    'household_size': householdSize,
+    'preferences': preferences,
+  };
 }

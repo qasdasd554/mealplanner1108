@@ -106,15 +106,17 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.of(context).pushReplacementNamed(authProvider.postLoginRoute);
       } else {
         ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-          SnackBar(
-            duration: const Duration(seconds: 3),
-            content: Text(authProvider.errorMessage ?? 'Logowanie nie powiodło się'),
-            backgroundColor: AppTheme.errorColor,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              duration: const Duration(seconds: 3),
+              content: Text(
+                authProvider.errorMessage ?? 'Logowanie nie powiodło się',
+              ),
+              backgroundColor: AppTheme.errorColor,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
       }
     }
   }
@@ -122,7 +124,9 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _submitGoogle() async {
     if (!_requireCaptcha()) return;
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final success = await authProvider.loginWithGoogle(captchaToken: _captchaToken);
+    final success = await authProvider.loginWithGoogle(
+      captchaToken: _captchaToken,
+    );
 
     if (!mounted) return;
 
@@ -133,22 +137,24 @@ class _LoginScreenState extends State<LoginScreen> {
       // `success == false` bez komunikatu błędu oznacza, że użytkownik po
       // prostu anulował okno logowania Google — wtedy nic nie pokazujemy.
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
             duration: const Duration(seconds: 3),
-          content: Text(authProvider.errorMessage!),
-          backgroundColor: AppTheme.errorColor,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+            content: Text(authProvider.errorMessage!),
+            backgroundColor: AppTheme.errorColor,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
     }
   }
 
   Future<void> _submitApple() async {
     if (!_requireCaptcha()) return;
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final success = await authProvider.loginWithApple(captchaToken: _captchaToken);
+    final success = await authProvider.loginWithApple(
+      captchaToken: _captchaToken,
+    );
 
     if (!mounted) return;
 
@@ -163,7 +169,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ..hideCurrentSnackBar()
           ..showSnackBar(
             SnackBar(
-            duration: const Duration(seconds: 3),
+              duration: const Duration(seconds: 3),
               content: Text(authProvider.errorMessage!),
               backgroundColor: AppTheme.errorColor,
               behavior: SnackBarBehavior.floating,
@@ -202,37 +208,46 @@ class _LoginScreenState extends State<LoginScreen> {
             bottom: -120,
             left: -80,
             child: Container(
-              width: 260,
-              height: 260,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppTheme.primaryColor.withOpacity(0.12),
-              ),
-            ).animate(delay: 200.ms).fadeIn(duration: 1000.ms).scale(duration: 1000.ms),
+                  width: 260,
+                  height: 260,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppTheme.primaryColor.withOpacity(0.12),
+                  ),
+                )
+                .animate(delay: 200.ms)
+                .fadeIn(duration: 1000.ms)
+                .scale(duration: 1000.ms),
           ),
           Positioned(
             top: 160,
             left: -60,
             child: Container(
-              width: 140,
-              height: 140,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppTheme.accentColor.withOpacity(0.12),
-              ),
-            ).animate(delay: 400.ms).fadeIn(duration: 1000.ms).scale(duration: 1000.ms),
+                  width: 140,
+                  height: 140,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppTheme.accentColor.withOpacity(0.12),
+                  ),
+                )
+                .animate(delay: 400.ms)
+                .fadeIn(duration: 1000.ms)
+                .scale(duration: 1000.ms),
           ),
           Positioned(
             bottom: 80,
             right: -50,
             child: Container(
-              width: 170,
-              height: 170,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppTheme.secondaryColor.withOpacity(0.08),
-              ),
-            ).animate(delay: 600.ms).fadeIn(duration: 1000.ms).scale(duration: 1000.ms),
+                  width: 170,
+                  height: 170,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppTheme.secondaryColor.withOpacity(0.08),
+                  ),
+                )
+                .animate(delay: 600.ms)
+                .fadeIn(duration: 1000.ms)
+                .scale(duration: 1000.ms),
           ),
           SafeArea(
             child: Center(
@@ -259,24 +274,32 @@ class _LoginScreenState extends State<LoginScreen> {
                             color: AppTheme.primaryColor,
                           ),
                         ),
-                      ).animate().scale(duration: 500.ms, curve: Curves.easeOutBack),
+                      ).animate().scale(
+                        duration: 500.ms,
+                        curve: Curves.easeOutBack,
+                      ),
                       const SizedBox(height: 24),
                       // Tytuł powitalny
                       Text(
-                        'Witaj ponownie!',
-                        style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                        textAlign: TextAlign.center,
-                      ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2, end: 0),
+                            'Witaj ponownie!',
+                            style: Theme.of(context).textTheme.displaySmall
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
+                          )
+                          .animate()
+                          .fadeIn(delay: 200.ms)
+                          .slideY(begin: 0.2, end: 0),
                       const SizedBox(height: 8),
                       Text(
-                        'Zaloguj się do swojego konta',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                        textAlign: TextAlign.center,
-                      ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.2, end: 0),
+                            'Zaloguj się do swojego konta',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                            textAlign: TextAlign.center,
+                          )
+                          .animate()
+                          .fadeIn(delay: 300.ms)
+                          .slideY(begin: 0.2, end: 0),
                       const SizedBox(height: 32),
-                      
+
                       // Email Input
                       TextFormField(
                         controller: _emailController,
@@ -289,14 +312,16 @@ class _LoginScreenState extends State<LoginScreen> {
                           if (value == null || value.isEmpty) {
                             return 'Wprowadź adres e-mail';
                           }
-                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                          if (!RegExp(
+                            r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                          ).hasMatch(value)) {
                             return 'Wprowadź poprawny adres e-mail';
                           }
                           return null;
                         },
                       ).animate().fadeIn(delay: 400.ms),
                       const SizedBox(height: 16),
-                      
+
                       // Password Input
                       TextFormField(
                         controller: _passwordController,
@@ -328,7 +353,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         },
                       ).animate().fadeIn(delay: 500.ms),
                       const SizedBox(height: 24),
-                      
+
                       // Login Button
                       // Bramka CAPTCHA — przycisk pozostaje nieaktywny, dopóki
                       // weryfikacja się nie powiedzie (patrz _captchaToken).
@@ -339,9 +364,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                            color: _captchaHighlighted
-                                ? AppTheme.errorColor
-                                : Colors.transparent,
+                            color:
+                                _captchaHighlighted
+                                    ? AppTheme.errorColor
+                                    : Colors.transparent,
                             width: 2,
                           ),
                         ),
@@ -353,23 +379,28 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (TurnstileWidget.isEnabled) const SizedBox(height: 8),
                       ElevatedButton(
                         onPressed: authProvider.isLoading ? null : _submit,
-                        child: authProvider.isLoading
-                            ? const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.5,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                ),
-                              )
-                            : const Text('Zaloguj się'),
+                        child:
+                            authProvider.isLoading
+                                ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                  ),
+                                )
+                                : const Text('Zaloguj się'),
                       ).animate().fadeIn(delay: 600.ms),
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
                           onPressed: () {
                             Navigator.of(context).push(
-                              MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
+                              MaterialPageRoute(
+                                builder: (_) => const ForgotPasswordScreen(),
+                              ),
                             );
                           },
                           child: const Text('Zapomniałeś hasła?'),
@@ -398,7 +429,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       // logowanie Google, dlatego jest WYŻEJ, nie niżej).
                       if (Platform.isIOS) ...[
                         OutlinedButton.icon(
-                          onPressed: authProvider.isLoading ? null : _submitApple,
+                          onPressed:
+                              authProvider.isLoading ? null : _submitApple,
                           icon: const Icon(Icons.apple, size: 22),
                           label: const Text('Kontynuuj z Apple'),
                         ).animate().fadeIn(delay: 680.ms),
@@ -423,14 +455,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       // Google także na iOS — patrz komentarz przy
                       // googleIosClientId w lib/config/api_config.dart.
                       // Po uzupełnieniu przycisk pojawi się na iOS sam.
-                      if (!Platform.isIOS || ApiConfig.googleIosClientId.isNotEmpty)
+                      if (!Platform.isIOS ||
+                          ApiConfig.googleIosClientId.isNotEmpty)
                         OutlinedButton.icon(
-                          onPressed: authProvider.isLoading ? null : _submitGoogle,
+                          onPressed:
+                              authProvider.isLoading ? null : _submitGoogle,
                           icon: const Icon(Icons.g_mobiledata, size: 28),
                           label: const Text('Kontynuuj z Google'),
                         ).animate().fadeIn(delay: 700.ms),
                       const SizedBox(height: 16),
-                      
+
                       // Register Button
                       TextButton(
                         onPressed: () {

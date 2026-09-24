@@ -52,14 +52,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _termsHighlighted = false;
 
   /// Przewija do wskazanego elementu i podświetla go na chwilę.
-  void _pointAt(GlobalKey key, VoidCallback highlight, VoidCallback unhighlight,
-      String message) {
+  void _pointAt(
+    GlobalKey key,
+    VoidCallback highlight,
+    VoidCallback unhighlight,
+    String message,
+  ) {
     final ctx = key.currentContext;
     if (ctx != null) {
-      Scrollable.ensureVisible(ctx,
-          duration: const Duration(milliseconds: 350),
-          curve: Curves.easeOut,
-          alignment: 0.3);
+      Scrollable.ensureVisible(
+        ctx,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOut,
+        alignment: 0.3,
+      );
     }
     setState(highlight);
     Future.delayed(const Duration(milliseconds: 1800), () {
@@ -67,10 +73,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 3),
-      ));
+      ..showSnackBar(
+        SnackBar(content: Text(message), duration: const Duration(seconds: 3)),
+      );
   }
 
   /// Otwiera dokument prawny. Bez sprawdzania canLaunchUrl — ta metoda
@@ -83,8 +88,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(
-            duration: const Duration(seconds: 3),content: Text('Nie udało się otworzyć: $url')));
+          ..showSnackBar(
+            SnackBar(
+              duration: const Duration(seconds: 3),
+              content: Text('Nie udało się otworzyć: $url'),
+            ),
+          );
       }
     }
   }
@@ -96,15 +105,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
     // regulamin, potem weryfikacja) — inaczej użytkownik byłby odesłany
     // najpierw w dół, a potem z powrotem w górę.
     if (!_termsAccepted) {
-      _pointAt(_termsKey, () => _termsHighlighted = true,
-          () => _termsHighlighted = false,
-          'Zaakceptuj regulamin, aby założyć konto.');
+      _pointAt(
+        _termsKey,
+        () => _termsHighlighted = true,
+        () => _termsHighlighted = false,
+        'Zaakceptuj regulamin, aby założyć konto.',
+      );
       return;
     }
     if (_captchaToken == null) {
-      _pointAt(_captchaKey, () => _captchaHighlighted = true,
-          () => _captchaHighlighted = false,
-          'Najpierw potwierdź, że nie jesteś robotem.');
+      _pointAt(
+        _captchaKey,
+        () => _captchaHighlighted = true,
+        () => _captchaHighlighted = false,
+        'Najpierw potwierdź, że nie jesteś robotem.',
+      );
       return;
     }
 
@@ -135,15 +150,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
         });
 
         ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-          SnackBar(
-            duration: const Duration(seconds: 3),
-            content: Text(authProvider.errorMessage ?? 'Rejestracja nie powiodła się'),
-            backgroundColor: AppTheme.errorColor,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              duration: const Duration(seconds: 3),
+              content: Text(
+                authProvider.errorMessage ?? 'Rejestracja nie powiodła się',
+              ),
+              backgroundColor: AppTheme.errorColor,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
       }
     }
   }
@@ -187,19 +204,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       // Tytuł powitalny
                       Text(
                         'Utwórz konto',
-                        style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style: Theme.of(context).textTheme.displaySmall
+                            ?.copyWith(fontWeight: FontWeight.bold),
                         textAlign: TextAlign.center,
                       ).animate().fadeIn().slideY(begin: 0.2, end: 0),
                       const SizedBox(height: 8),
                       Text(
-                        'Dołącz do Meal Planner i planuj sprytnie',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                        textAlign: TextAlign.center,
-                      ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.2, end: 0),
+                            'Dołącz do Meal Planner i planuj sprytnie',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                            textAlign: TextAlign.center,
+                          )
+                          .animate()
+                          .fadeIn(delay: 100.ms)
+                          .slideY(begin: 0.2, end: 0),
                       const SizedBox(height: 32),
-                      
+
                       // Name Input
                       TextFormField(
                         controller: _nameController,
@@ -215,7 +234,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         },
                       ).animate().fadeIn(delay: 200.ms),
                       const SizedBox(height: 16),
-                      
+
                       // Email Input
                       TextFormField(
                         controller: _emailController,
@@ -228,14 +247,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           if (value == null || value.isEmpty) {
                             return 'Wprowadź adres e-mail';
                           }
-                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                          if (!RegExp(
+                            r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                          ).hasMatch(value)) {
                             return 'Wprowadź poprawny adres e-mail';
                           }
                           return null;
                         },
                       ).animate().fadeIn(delay: 300.ms),
                       const SizedBox(height: 16),
-                      
+
                       // Password Input
                       TextFormField(
                         controller: _passwordController,
@@ -255,7 +276,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         },
                       ).animate().fadeIn(delay: 400.ms),
                       const SizedBox(height: 16),
-                      
+
                       // Confirm Password Input
                       TextFormField(
                         controller: _confirmPasswordController,
@@ -287,64 +308,84 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                            color: _termsHighlighted
-                                ? AppTheme.errorColor
-                                : Colors.transparent,
+                            color:
+                                _termsHighlighted
+                                    ? AppTheme.errorColor
+                                    : Colors.transparent,
                             width: 2,
                           ),
                         ),
                         child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: Checkbox(
-                              value: _termsAccepted,
-                              onChanged: (v) => setState(() => _termsAccepted = v ?? false),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.only(top: 2),
-                              child: Wrap(
-                                crossAxisAlignment: WrapCrossAlignment.center,
-                                children: [
-                                  Text('Akceptuję ',
-                                      style: TextStyle(
-                                          fontSize: 12, color: AppTheme.textSecondary)),
-                                  GestureDetector(
-                                    onTap: () => _openLegal(
-                                        'https://qasdasd554.github.io/mealplanner1108/terms-of-use.html'),
-                                    child: Text('regulamin',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: AppTheme.primaryColor,
-                                          fontWeight: FontWeight.w600,
-                                          decoration: TextDecoration.underline,
-                                        )),
-                                  ),
-                                  Text(' oraz ',
-                                      style: TextStyle(
-                                          fontSize: 12, color: AppTheme.textSecondary)),
-                                  GestureDetector(
-                                    onTap: () => _openLegal(
-                                        'https://qasdasd554.github.io/mealplanner1108/privacy-policy.html'),
-                                    child: Text('politykę prywatności',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: AppTheme.primaryColor,
-                                          fontWeight: FontWeight.w600,
-                                          decoration: TextDecoration.underline,
-                                        )),
-                                  ),
-                                ],
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: Checkbox(
+                                value: _termsAccepted,
+                                onChanged:
+                                    (v) => setState(
+                                      () => _termsAccepted = v ?? false,
+                                    ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.only(top: 2),
+                                child: Wrap(
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  children: [
+                                    Text(
+                                      'Akceptuję ',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: AppTheme.textSecondary,
+                                      ),
+                                    ),
+                                    GestureDetector(
+                                      onTap:
+                                          () => _openLegal(
+                                            'https://qasdasd554.github.io/mealplanner1108/terms-of-use.html',
+                                          ),
+                                      child: Text(
+                                        'regulamin',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: AppTheme.primaryColor,
+                                          fontWeight: FontWeight.w600,
+                                          decoration: TextDecoration.underline,
+                                        ),
+                                      ),
+                                    ),
+                                    Text(
+                                      ' oraz ',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: AppTheme.textSecondary,
+                                      ),
+                                    ),
+                                    GestureDetector(
+                                      onTap:
+                                          () => _openLegal(
+                                            'https://qasdasd554.github.io/mealplanner1108/privacy-policy.html',
+                                          ),
+                                      child: Text(
+                                        'politykę prywatności',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: AppTheme.primaryColor,
+                                          fontWeight: FontWeight.w600,
+                                          decoration: TextDecoration.underline,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ).animate().fadeIn(delay: 550.ms),
                       const SizedBox(height: 16),
 
@@ -357,9 +398,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                            color: _captchaHighlighted
-                                ? AppTheme.errorColor
-                                : Colors.transparent,
+                            color:
+                                _captchaHighlighted
+                                    ? AppTheme.errorColor
+                                    : Colors.transparent,
                             width: 2,
                           ),
                         ),
@@ -375,19 +417,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         // Przycisk AKTYWNY — brakujące zgody sygnalizuje
                         // _submit, przewijając do nich i podświetlając.
                         onPressed: authProvider.isLoading ? null : _submit,
-                        child: authProvider.isLoading
-                            ? const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.5,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                ),
-                              )
-                            : const Text('Zarejestruj się'),
+                        child:
+                            authProvider.isLoading
+                                ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                  ),
+                                )
+                                : const Text('Zarejestruj się'),
                       ).animate().fadeIn(delay: 600.ms),
                       const SizedBox(height: 16),
-                      
+
                       // Login Link
                       TextButton(
                         onPressed: () {

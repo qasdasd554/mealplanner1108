@@ -66,7 +66,9 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ten aparat nie obsługuje przybliżenia.')),
+          const SnackBar(
+            content: Text('Ten aparat nie obsługuje przybliżenia.'),
+          ),
         );
       }
     }
@@ -90,10 +92,14 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
       final supported = await _scanner.getSupportedLenses(
         facing: CameraFacing.back,
       );
-      if (best == null || best == CameraLensType.normal || !supported.contains(best)) {
+      if (best == null ||
+          best == CameraLensType.normal ||
+          !supported.contains(best)) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Przybliż kod przyciskiem 2× lub odsuń telefon.')),
+            const SnackBar(
+              content: Text('Przybliż kod przyciskiem 2× lub odsuń telefon.'),
+            ),
           );
         }
         return;
@@ -115,28 +121,29 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     final controller = TextEditingController();
     final value = await showDialog<String>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Wpisz kod kreskowy'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: 'EAN/UPC',
-            hintText: '8–14 cyfr',
+      builder:
+          (dialogContext) => AlertDialog(
+            title: const Text('Wpisz kod kreskowy'),
+            content: TextField(
+              controller: controller,
+              autofocus: true,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'EAN/UPC',
+                hintText: '8–14 cyfr',
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Anuluj'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(dialogContext, controller.text),
+                child: const Text('Wyszukaj'),
+              ),
+            ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Anuluj'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, controller.text),
-            child: const Text('Wyszukaj'),
-          ),
-        ],
-      ),
     );
     controller.dispose();
     if (!mounted || value == null) return;
@@ -163,15 +170,16 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
             controller: _scanner,
             onDetect: _onScan,
             tapToFocus: true,
-            errorBuilder: (context, error) => Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text(
-                  'Nie można uruchomić aparatu. Sprawdź uprawnienie do kamery albo wpisz kod ręcznie.\n$error',
-                  textAlign: TextAlign.center,
+            errorBuilder:
+                (context, error) => Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(
+                      'Nie można uruchomić aparatu. Sprawdź uprawnienie do kamery albo wpisz kod ręcznie.\n$error',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
                 ),
-              ),
-            ),
           ),
           IgnorePointer(
             child: Center(
@@ -210,21 +218,36 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                         children: [
                           TextButton.icon(
                             onPressed: () => _setZoom(_zoom == 1 ? 2 : 1),
-                            icon: const Icon(Icons.zoom_in, color: Colors.white),
-                            label: Text(_zoom == 1 ? '2×' : '1×',
-                                style: const TextStyle(color: Colors.white)),
+                            icon: const Icon(
+                              Icons.zoom_in,
+                              color: Colors.white,
+                            ),
+                            label: Text(
+                              _zoom == 1 ? '2×' : '1×',
+                              style: const TextStyle(color: Colors.white),
+                            ),
                           ),
                           TextButton.icon(
                             onPressed: _toggleCloseRange,
-                            icon: const Icon(Icons.center_focus_strong, color: Colors.white),
-                            label: Text(_closeRange ? 'Zwykły' : 'Z bliska',
-                                style: const TextStyle(color: Colors.white)),
+                            icon: const Icon(
+                              Icons.center_focus_strong,
+                              color: Colors.white,
+                            ),
+                            label: Text(
+                              _closeRange ? 'Zwykły' : 'Z bliska',
+                              style: const TextStyle(color: Colors.white),
+                            ),
                           ),
                           TextButton.icon(
                             onPressed: () => _scanner.toggleTorch(),
-                            icon: const Icon(Icons.flashlight_on, color: Colors.white),
-                            label: const Text('Latarka',
-                                style: TextStyle(color: Colors.white)),
+                            icon: const Icon(
+                              Icons.flashlight_on,
+                              color: Colors.white,
+                            ),
+                            label: const Text(
+                              'Latarka',
+                              style: TextStyle(color: Colors.white),
+                            ),
                           ),
                         ],
                       ),

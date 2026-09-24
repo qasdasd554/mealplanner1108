@@ -45,7 +45,13 @@ class CampaignIcon extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: const Color(0xFF9F1749),
                       borderRadius: BorderRadius.circular(3),
-                      boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 3, offset: Offset(0, 2))],
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 3,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: Text(
                       'RABAT -$discount%',

@@ -41,21 +41,25 @@ class AppTheme {
   static const Color _lightTextPrimary = Color(0xFF16181D);
   static const Color _lightTextSecondary = Color(0xFF6B7280);
 
-  static Color get backgroundColor => _isDark ? _darkBackground : _lightBackground;
+  static Color get backgroundColor =>
+      _isDark ? _darkBackground : _lightBackground;
   static Color get surfaceColor => _isDark ? _darkSurface : _lightSurface;
-  static Color get textPrimary => _isDark ? _darkTextPrimary : _lightTextPrimary;
-  static Color get textSecondary => _isDark ? _darkTextSecondary : _lightTextSecondary;
-  static Color get controlFillColor => _isDark ? _darkSurfaceRaised : _lightSurface;
-  static Color get outlineColor => _isDark ? _darkOutline : const Color(0xFFD1D5DB);
+  static Color get textPrimary =>
+      _isDark ? _darkTextPrimary : _lightTextPrimary;
+  static Color get textSecondary =>
+      _isDark ? _darkTextSecondary : _lightTextSecondary;
+  static Color get controlFillColor =>
+      _isDark ? _darkSurfaceRaised : _lightSurface;
+  static Color get outlineColor =>
+      _isDark ? _darkOutline : const Color(0xFFD1D5DB);
   static Color get actionPrimaryColor => _isDark ? _darkPrimary : primaryColor;
-  static Color get actionSecondaryColor => _isDark ? _darkSecondary : secondaryColor;
+  static Color get actionSecondaryColor =>
+      _isDark ? _darkSecondary : secondaryColor;
   static Color get actionAccentColor => _isDark ? _darkAccent : accentColor;
-  static Color get primaryTintColor => _isDark
-      ? _darkPrimary.withOpacity(0.18)
-      : primaryColor.withOpacity(0.10);
-  static Color get accentTintColor => _isDark
-      ? _darkAccent.withOpacity(0.18)
-      : accentColor.withOpacity(0.10);
+  static Color get primaryTintColor =>
+      _isDark ? _darkPrimary.withOpacity(0.18) : primaryColor.withOpacity(0.10);
+  static Color get accentTintColor =>
+      _isDark ? _darkAccent.withOpacity(0.18) : accentColor.withOpacity(0.10);
 
   static ThemeData get lightTheme => _buildTheme(Brightness.light);
   static ThemeData get darkTheme => _buildTheme(Brightness.dark);
@@ -71,34 +75,33 @@ class AppTheme {
     final interactiveAccent = isDarkMode ? _darkAccent : accentColor;
     final onPrimary = isDarkMode ? const Color(0xFF052E24) : Colors.white;
     final outline = isDarkMode ? _darkOutline : const Color(0xFFD1D5DB);
-    final disabledBackground = isDarkMode
-        ? const Color(0xFF293149)
-        : const Color(0xFFE5E7EB);
-    final disabledForeground = isDarkMode
-        ? const Color(0xFF9AA8BD)
-        : const Color(0xFF6B7280);
+    final disabledBackground =
+        isDarkMode ? const Color(0xFF293149) : const Color(0xFFE5E7EB);
+    final disabledForeground =
+        isDarkMode ? const Color(0xFF9AA8BD) : const Color(0xFF6B7280);
 
-    final colorScheme = isDarkMode
-        ? ColorScheme.dark(
-            surface: surface,
-            primary: interactivePrimary,
-            onPrimary: onPrimary,
-            secondary: interactiveSecondary,
-            onSecondary: const Color(0xFF1E103F),
-            error: errorColor,
-            onError: Colors.white,
-            onSurface: txtPrimary,
-          )
-        : ColorScheme.light(
-            surface: surface,
-            primary: interactivePrimary,
-            onPrimary: onPrimary,
-            secondary: interactiveSecondary,
-            onSecondary: Colors.white,
-            error: errorColor,
-            onError: Colors.white,
-            onSurface: txtPrimary,
-          );
+    final colorScheme =
+        isDarkMode
+            ? ColorScheme.dark(
+              surface: surface,
+              primary: interactivePrimary,
+              onPrimary: onPrimary,
+              secondary: interactiveSecondary,
+              onSecondary: const Color(0xFF1E103F),
+              error: errorColor,
+              onError: Colors.white,
+              onSurface: txtPrimary,
+            )
+            : ColorScheme.light(
+              surface: surface,
+              primary: interactivePrimary,
+              onPrimary: onPrimary,
+              secondary: interactiveSecondary,
+              onSecondary: Colors.white,
+              error: errorColor,
+              onError: Colors.white,
+              onSurface: txtPrimary,
+            );
 
     return ThemeData(
       useMaterial3: true,
@@ -108,14 +111,46 @@ class AppTheme {
 
       // Typografia
       textTheme: TextTheme(
-        displayLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: txtPrimary),
-        displayMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: txtPrimary),
-        displaySmall: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: txtPrimary),
-        headlineMedium: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: txtPrimary),
-        titleLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: txtPrimary),
-        bodyLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: txtPrimary),
-        bodyMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: txtSecondary),
-        labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: txtPrimary),
+        displayLarge: TextStyle(
+          fontSize: 32,
+          fontWeight: FontWeight.bold,
+          color: txtPrimary,
+        ),
+        displayMedium: TextStyle(
+          fontSize: 28,
+          fontWeight: FontWeight.bold,
+          color: txtPrimary,
+        ),
+        displaySmall: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: txtPrimary,
+        ),
+        headlineMedium: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          color: txtPrimary,
+        ),
+        titleLarge: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: txtPrimary,
+        ),
+        bodyLarge: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.normal,
+          color: txtPrimary,
+        ),
+        bodyMedium: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.normal,
+          color: txtSecondary,
+        ),
+        labelLarge: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: txtPrimary,
+        ),
       ),
 
       // Kafelki i karty
@@ -140,9 +175,10 @@ class AppTheme {
           disabledForegroundColor: disabledForeground,
           elevation: 0,
           minimumSize: const Size.fromHeight(52),
-          side: isDarkMode
-              ? BorderSide(color: _darkPrimary.withOpacity(0.85), width: 1)
-              : BorderSide.none,
+          side:
+              isDarkMode
+                  ? BorderSide(color: _darkPrimary.withOpacity(0.85), width: 1)
+                  : BorderSide.none,
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(12)),
           ),
@@ -168,10 +204,14 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: interactivePrimary,
           disabledForegroundColor: disabledForeground,
-          backgroundColor: isDarkMode
-              ? interactivePrimary.withOpacity(0.08)
-              : Colors.transparent,
-          side: BorderSide(color: interactivePrimary, width: isDarkMode ? 1.8 : 1.5),
+          backgroundColor:
+              isDarkMode
+                  ? interactivePrimary.withOpacity(0.08)
+                  : Colors.transparent,
+          side: BorderSide(
+            color: interactivePrimary,
+            width: isDarkMode ? 1.8 : 1.5,
+          ),
           minimumSize: const Size.fromHeight(52),
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(12)),
@@ -184,6 +224,8 @@ class AppTheme {
         style: TextButton.styleFrom(
           foregroundColor: interactivePrimary,
           disabledForegroundColor: disabledForeground,
+          minimumSize: const Size(44, 44),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           textStyle: const TextStyle(fontWeight: FontWeight.w700),
         ),
       ),
@@ -192,6 +234,7 @@ class AppTheme {
         style: IconButton.styleFrom(
           foregroundColor: isDarkMode ? txtPrimary : primaryColor,
           disabledForegroundColor: disabledForeground,
+          minimumSize: const Size(44, 44),
           highlightColor: interactivePrimary.withOpacity(0.18),
         ),
       ),
@@ -204,11 +247,15 @@ class AppTheme {
       ),
 
       chipTheme: ChipThemeData(
-        backgroundColor: isDarkMode ? _darkSurfaceRaised : const Color(0xFFF3F4F6),
+        backgroundColor:
+            isDarkMode ? _darkSurfaceRaised : const Color(0xFFF3F4F6),
         selectedColor: interactivePrimary.withOpacity(isDarkMode ? 0.28 : 0.18),
         disabledColor: disabledBackground,
         labelStyle: TextStyle(color: txtPrimary, fontWeight: FontWeight.w600),
-        secondaryLabelStyle: TextStyle(color: txtPrimary, fontWeight: FontWeight.w700),
+        secondaryLabelStyle: TextStyle(
+          color: txtPrimary,
+          fontWeight: FontWeight.w700,
+        ),
         checkmarkColor: interactivePrimary,
         side: BorderSide(color: outline, width: isDarkMode ? 1.2 : 1),
         shape: const RoundedRectangleBorder(
@@ -247,8 +294,37 @@ class AppTheme {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        titleTextStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: txtPrimary),
+        titleTextStyle: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: txtPrimary,
+        ),
         iconTheme: IconThemeData(color: txtPrimary),
+      ),
+
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: surface,
+        modalBackgroundColor: surface,
+        surfaceTintColor: Colors.transparent,
+        showDragHandle: true,
+        dragHandleColor: outline,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor:
+            isDarkMode ? _darkSurfaceRaised : const Color(0xFF20242B),
+        contentTextStyle: const TextStyle(color: Colors.white),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: surface,
+        surfaceTintColor: Colors.transparent,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(20)),
+        ),
       ),
 
       // Dolny pasek nawigacyjny

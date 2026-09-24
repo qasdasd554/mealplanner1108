@@ -31,7 +31,8 @@ class SmartMealPlannerApp extends StatefulWidget {
   // otworzyć ekran rozpoznawania przepisu z linku POZA drzewem widgetów
   // (udostępnienie z innej aplikacji może przyjść w dowolnym momencie,
   // nie tylko wtedy, gdy mamy pod ręką zwykły BuildContext).
-  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
 
   @override
   State<SmartMealPlannerApp> createState() => _SmartMealPlannerAppState();
@@ -94,10 +95,11 @@ class _SmartMealPlannerAppState extends State<SmartMealPlannerApp>
             '/register': (context) => const RegisterScreen(),
             '/verify-email': (context) => const EmailVerificationScreen(),
             '/onboarding': (context) => const OnboardingScreen(),
-            '/home': (context) => HomeScreen(
-              initialIndex:
-                  (ModalRoute.of(context)?.settings.arguments as int?) ?? 0,
-            ),
+            '/home':
+                (context) => HomeScreen(
+                  initialIndex:
+                      (ModalRoute.of(context)?.settings.arguments as int?) ?? 0,
+                ),
             '/plan/config': (context) => const PlanConfigScreen(),
             '/plan/view': (context) => const PlanViewScreen(),
             '/shopping': (context) => const ShoppingListScreen(),

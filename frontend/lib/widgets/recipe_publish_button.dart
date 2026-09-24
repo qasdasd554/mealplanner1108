@@ -14,7 +14,11 @@ class RecipePublishButton extends StatefulWidget {
   final Recipe recipe;
   final ValueChanged<Recipe>? onPublished;
 
-  const RecipePublishButton({super.key, required this.recipe, this.onPublished});
+  const RecipePublishButton({
+    super.key,
+    required this.recipe,
+    this.onPublished,
+  });
 
   @override
   State<RecipePublishButton> createState() => _RecipePublishButtonState();
@@ -27,20 +31,24 @@ class _RecipePublishButtonState extends State<RecipePublishButton> {
   Future<void> _confirmAndPublish() async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Opublikować przepis?'),
-        content: const Text(
-          'Przepis trafi do kolejki oczekującej na akceptację administratora. '
-          'Po zatwierdzeniu będzie widoczny dla wszystkich użytkowników aplikacji.',
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Anuluj')),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Opublikuj'),
+      builder:
+          (ctx) => AlertDialog(
+            title: const Text('Opublikować przepis?'),
+            content: const Text(
+              'Przepis trafi do kolejki oczekującej na akceptację administratora. '
+              'Po zatwierdzeniu będzie widoczny dla wszystkich użytkowników aplikacji.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Anuluj'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Opublikuj'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
     if (confirmed != true || !mounted) return;
 
@@ -55,21 +63,27 @@ class _RecipePublishButtonState extends State<RecipePublishButton> {
       // ta i tak odświeża się przy powrocie i pokaże already-aktualny
       // stan (podobnie jak przy usuwaniu przepisu).
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-            duration: Duration(seconds: 3),content: Text('Przepis zgłoszony — czeka na akceptację administratora.')),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            duration: Duration(seconds: 3),
+            content: Text(
+              'Przepis zgłoszony — czeka na akceptację administratora.',
+            ),
+          ),
+        );
       Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;
       setState(() => _isPublishing = false);
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-            duration: Duration(seconds: 3),content: Text('Nie udało się opublikować przepisu.')),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            duration: Duration(seconds: 3),
+            content: Text('Nie udało się opublikować przepisu.'),
+          ),
+        );
     }
   }
 
@@ -86,13 +100,17 @@ class _RecipePublishButtonState extends State<RecipePublishButton> {
         child: FilledButton.icon(
           onPressed: _isPublishing ? null : _confirmAndPublish,
           style: FilledButton.styleFrom(backgroundColor: AppTheme.primaryColor),
-          icon: _isPublishing
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                )
-              : const Icon(Icons.public, size: 18),
+          icon:
+              _isPublishing
+                  ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                  : const Icon(Icons.public, size: 18),
           label: const Text('Opublikuj przepis'),
         ),
       ),

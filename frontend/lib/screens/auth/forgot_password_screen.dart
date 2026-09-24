@@ -34,11 +34,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     final email = _emailController.text.trim();
     if (email.isEmpty || !email.contains('@')) {
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-            duration: Duration(seconds: 3),content: Text('Podaj prawidłowy adres e-mail.')),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            duration: Duration(seconds: 3),
+            content: Text('Podaj prawidłowy adres e-mail.'),
+          ),
+        );
       return;
     }
 
@@ -60,11 +62,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       // nie przy "nie znaleziono takiego e-maila" (tego backend celowo
       // nigdy nie mówi wprost).
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-            duration: const Duration(seconds: 3),content: Text(authProvider.errorMessage!)),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(authProvider.errorMessage!),
+          ),
+        );
     }
   }
 
@@ -74,20 +78,24 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     if (code.length != 6) {
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-            duration: Duration(seconds: 3),content: Text('Kod musi mieć dokładnie 6 cyfr.')),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            duration: Duration(seconds: 3),
+            content: Text('Kod musi mieć dokładnie 6 cyfr.'),
+          ),
+        );
       return;
     }
     if (newPassword.length < 8) {
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-            duration: Duration(seconds: 3),content: Text('Nowe hasło musi mieć co najmniej 8 znaków.')),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            duration: Duration(seconds: 3),
+            content: Text('Nowe hasło musi mieć co najmniej 8 znaków.'),
+          ),
+        );
       return;
     }
 
@@ -103,22 +111,24 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     if (success) {
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-            duration: Duration(seconds: 3),content: Text('Hasło zostało zmienione. Zaloguj się nowym hasłem.')),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            duration: Duration(seconds: 3),
+            content: Text('Hasło zostało zmienione. Zaloguj się nowym hasłem.'),
+          ),
+        );
       Navigator.of(context).pop();
     } else if (authProvider.errorMessage != null) {
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
             duration: const Duration(seconds: 3),
-          content: Text(authProvider.errorMessage!),
-          backgroundColor: AppTheme.errorColor,
-        ),
-      );
+            content: Text(authProvider.errorMessage!),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
     }
   }
 
@@ -148,20 +158,27 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       TextField(
         controller: _emailController,
         keyboardType: TextInputType.emailAddress,
-        decoration: const InputDecoration(labelText: 'Adres e-mail', border: OutlineInputBorder()),
+        decoration: const InputDecoration(
+          labelText: 'Adres e-mail',
+          border: OutlineInputBorder(),
+        ),
       ),
       const SizedBox(height: 20),
       SizedBox(
         width: double.infinity,
         child: FilledButton(
           onPressed: _isSubmitting ? null : _requestCode,
-          child: _isSubmitting
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                )
-              : const Text('Wyślij kod'),
+          child:
+              _isSubmitting
+                  ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                  : const Text('Wyślij kod'),
         ),
       ),
     ];
@@ -180,7 +197,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         keyboardType: TextInputType.number,
         maxLength: 6,
         textAlign: TextAlign.center,
-        style: const TextStyle(fontSize: 24, letterSpacing: 8, fontWeight: FontWeight.bold),
+        style: const TextStyle(
+          fontSize: 24,
+          letterSpacing: 8,
+          fontWeight: FontWeight.bold,
+        ),
         decoration: const InputDecoration(
           labelText: 'Kod',
           counterText: '',
@@ -191,25 +212,33 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       TextField(
         controller: _newPasswordController,
         obscureText: true,
-        decoration: const InputDecoration(labelText: 'Nowe hasło', border: OutlineInputBorder()),
+        decoration: const InputDecoration(
+          labelText: 'Nowe hasło',
+          border: OutlineInputBorder(),
+        ),
       ),
       const SizedBox(height: 20),
       SizedBox(
         width: double.infinity,
         child: FilledButton(
           onPressed: _isSubmitting ? null : _submitNewPassword,
-          child: _isSubmitting
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                )
-              : const Text('Zmień hasło'),
+          child:
+              _isSubmitting
+                  ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                  : const Text('Zmień hasło'),
         ),
       ),
       const SizedBox(height: 8),
       TextButton(
-        onPressed: _isSubmitting ? null : () => setState(() => _codeSent = false),
+        onPressed:
+            _isSubmitting ? null : () => setState(() => _codeSent = false),
         child: const Text('Podaj inny e-mail'),
       ),
     ];

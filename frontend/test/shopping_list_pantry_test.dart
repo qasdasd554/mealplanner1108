@@ -14,17 +14,23 @@ void main() {
       'items_by_department': {
         'Nabiał': [
           {
-            'id': '1', 'product_name': 'Mleko',
-            'required_quantity': 1, 'unit': 'l',
-            'estimated_price': 6, 'is_checked': false,
+            'id': '1',
+            'product_name': 'Mleko',
+            'required_quantity': 1,
+            'unit': 'l',
+            'estimated_price': 6,
+            'is_checked': false,
             'is_from_pantry': false,
           },
         ],
         'W spiżarni': [
           {
-            'id': '2', 'product_name': 'Mąka',
-            'required_quantity': 150, 'unit': 'g',
-            'estimated_price': 0, 'is_checked': true,
+            'id': '2',
+            'product_name': 'Mąka',
+            'required_quantity': 150,
+            'unit': 'g',
+            'estimated_price': 0,
+            'is_checked': true,
             'is_from_pantry': true,
           },
         ],

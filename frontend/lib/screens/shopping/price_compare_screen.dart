@@ -7,7 +7,8 @@ import '../../widgets/price_source_info.dart';
 class PriceCompareScreen extends StatefulWidget {
   final String mealPlanId;
 
-  const PriceCompareScreen({Key? key, required this.mealPlanId}) : super(key: key);
+  const PriceCompareScreen({Key? key, required this.mealPlanId})
+    : super(key: key);
 
   @override
   _PriceCompareScreenState createState() => _PriceCompareScreenState();
@@ -23,24 +24,33 @@ class _PriceCompareScreenState extends State<PriceCompareScreen> {
   Future<void> _switchToStore(PriceComparisonResult result) async {
     setState(() => _isSwitchingStore = true);
     final provider = Provider.of<MealPlanProvider>(context, listen: false);
-    final success = await provider.updateStore(widget.mealPlanId, result.storeId);
+    final success = await provider.updateStore(
+      widget.mealPlanId,
+      result.storeId,
+    );
     if (!mounted) return;
     setState(() => _isSwitchingStore = false);
     if (success) {
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-            duration: const Duration(seconds: 3),content: Text('Plan przełączony na ${result.storeName}')),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text('Plan przełączony na ${result.storeName}'),
+          ),
+        );
       Navigator.of(context).pop();
     } else {
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-            duration: const Duration(seconds: 3),content: Text(provider.errorMessage ?? 'Nie udało się przełączyć sklepu')),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(
+              provider.errorMessage ?? 'Nie udało się przełączyć sklepu',
+            ),
+          ),
+        );
     }
   }
 
@@ -57,7 +67,9 @@ class _PriceCompareScreenState extends State<PriceCompareScreen> {
     });
 
     try {
-      final results = await _priceCompareService.comparePrices(widget.mealPlanId);
+      final results = await _priceCompareService.comparePrices(
+        widget.mealPlanId,
+      );
       // Sort by price ascending
       results.sort((a, b) => a.totalPrice.compareTo(b.totalPrice));
 
@@ -124,13 +136,16 @@ class _PriceCompareScreenState extends State<PriceCompareScreen> {
       itemBuilder: (context, index) {
         final result = _results[index];
         final isCheapest = index == 0;
-        
+
         return Card(
           elevation: isCheapest ? 4.0 : 1.0,
           color: isCheapest ? Colors.green.shade50 : null,
           margin: const EdgeInsets.only(bottom: 12.0),
           child: ExpansionTile(
-            tilePadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            tilePadding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
+            ),
             leading: const Icon(Icons.store, size: 40, color: Colors.grey),
             title: Text(
               result.storeName,
@@ -151,7 +166,10 @@ class _PriceCompareScreenState extends State<PriceCompareScreen> {
               children: [
                 if (isCheapest)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.green,
                       borderRadius: BorderRadius.circular(12),
@@ -177,14 +195,20 @@ class _PriceCompareScreenState extends State<PriceCompareScreen> {
               ...result.items.map((item) {
                 return ListTile(
                   dense: true,
-                  title: Text(item.displayName, style: const TextStyle(fontSize: 14)),
+                  title: Text(
+                    item.displayName,
+                    style: const TextStyle(fontSize: 14),
+                  ),
                   subtitle: Text(
                     '${item.quantityNeeded.toStringAsFixed(item.quantityNeeded == item.quantityNeeded.roundToDouble() ? 0 : 1)} ${item.unit}',
                     style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                   ),
                   trailing: Text(
                     '${item.priceInStore.toStringAsFixed(2)} zł',
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 );
               }),
@@ -194,18 +218,23 @@ class _PriceCompareScreenState extends State<PriceCompareScreen> {
               // się nic z tym zrobić. Backend do tego już istniał (patrz
               // PUT /meal-plans/{id}/store), brakowało tylko przycisku.
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
                 child: SizedBox(
                   width: double.infinity,
                   child: OutlinedButton(
-                    onPressed: _isSwitchingStore ? null : () => _switchToStore(result),
-                    child: _isSwitchingStore
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text('Przełącz plan na ten sklep'),
+                    onPressed:
+                        _isSwitchingStore ? null : () => _switchToStore(result),
+                    child:
+                        _isSwitchingStore
+                            ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                            : const Text('Przełącz plan na ten sklep'),
                   ),
                 ),
               ),

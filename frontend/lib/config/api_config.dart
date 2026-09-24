@@ -7,7 +7,8 @@ class ApiConfig {
   // adresem działającym WYŁĄCZNIE wewnątrz emulatora Android Studio.
   // Efekt: każde żądanie sieciowe w zainstalowanej aplikacji kończyło się
   // błędem połączenia.
-  static const String _productionBaseUrl = 'https://mealplanner1108.onrender.com';
+  static const String _productionBaseUrl =
+      'https://mealplanner1108.onrender.com';
 
   // Dynamiczne dopasowanie adresu URL w zależności od platformy
   static String get baseUrl {
@@ -16,7 +17,10 @@ class ApiConfig {
       // Jeśli działamy w GitHub Codespaces (web)
       if (uri.host.contains('app.github.dev')) {
         // Zamieniamy końcowy numer portu w subdomenie Codespaces na -8000 (backend)
-        final newHost = uri.host.replaceFirst(RegExp(r'-\d+(?=\.app\.github\.dev$)'), '-8000');
+        final newHost = uri.host.replaceFirst(
+          RegExp(r'-\d+(?=\.app\.github\.dev$)'),
+          '-8000',
+        );
         return '${uri.scheme}://$newHost';
       }
       // Jeśli to lokalny serwer webowy na komputerze
@@ -128,7 +132,8 @@ class ApiConfig {
   static const String usersAllergens = '/users/me/allergens';
   static const String usersCalorieCalculator = '/users/me/calorie-calculator';
   static const String usersRecipeLeaderboard = '/users/leaderboard/recipes';
-  static const String usersRecipeLeaderboardWeekly = '/users/leaderboard/recipes/weekly';
+  static const String usersRecipeLeaderboardWeekly =
+      '/users/leaderboard/recipes/weekly';
   static const String billingVerify = '/billing/verify-purchase';
   static const String billingRestore = '/billing/restore';
   static const String billingVerifyPoints = '/billing/verify-points-purchase';

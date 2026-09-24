@@ -12,7 +12,8 @@ class EmailVerificationScreen extends StatefulWidget {
   const EmailVerificationScreen({super.key});
 
   @override
-  State<EmailVerificationScreen> createState() => _EmailVerificationScreenState();
+  State<EmailVerificationScreen> createState() =>
+      _EmailVerificationScreenState();
 }
 
 class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
@@ -30,11 +31,13 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     final code = _codeController.text.trim();
     if (code.length != 6) {
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-            duration: Duration(seconds: 3),content: Text('Kod musi mieć dokładnie 6 cyfr.')),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            duration: Duration(seconds: 3),
+            content: Text('Kod musi mieć dokładnie 6 cyfr.'),
+          ),
+        );
       return;
     }
 
@@ -48,14 +51,14 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       Navigator.of(context).pushReplacementNamed('/onboarding');
     } else if (authProvider.errorMessage != null) {
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
             duration: const Duration(seconds: 3),
-          content: Text(authProvider.errorMessage!),
-          backgroundColor: AppTheme.errorColor,
-        ),
-      );
+            content: Text(authProvider.errorMessage!),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
     }
   }
 
@@ -69,14 +72,17 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-      SnackBar(
-            duration: const Duration(seconds: 3),
-        content: Text(
-          success ? 'Nowy kod został wysłany.' : (authProvider.errorMessage ?? 'Nie udało się wysłać kodu.'),
+        SnackBar(
+          duration: const Duration(seconds: 3),
+          content: Text(
+            success
+                ? 'Nowy kod został wysłany.'
+                : (authProvider.errorMessage ?? 'Nie udało się wysłać kodu.'),
+          ),
+          backgroundColor:
+              success ? AppTheme.primaryColor : AppTheme.errorColor,
         ),
-        backgroundColor: success ? AppTheme.primaryColor : AppTheme.errorColor,
-      ),
-    );
+      );
   }
 
   @override
@@ -97,12 +103,18 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                   color: AppTheme.primaryColor.withOpacity(0.12),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.mark_email_read_outlined, size: 48, color: AppTheme.primaryColor),
+                child: const Icon(
+                  Icons.mark_email_read_outlined,
+                  size: 48,
+                  color: AppTheme.primaryColor,
+                ),
               ),
               const SizedBox(height: 24),
               Text(
                 'Potwierdź swój e-mail',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
@@ -117,7 +129,11 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                 keyboardType: TextInputType.number,
                 textAlign: TextAlign.center,
                 maxLength: 6,
-                style: const TextStyle(fontSize: 28, letterSpacing: 12, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 28,
+                  letterSpacing: 12,
+                  fontWeight: FontWeight.bold,
+                ),
                 decoration: const InputDecoration(
                   counterText: '',
                   hintText: '000000',
@@ -129,25 +145,30 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                 width: double.infinity,
                 child: FilledButton(
                   onPressed: _isVerifying ? null : _verify,
-                  child: _isVerifying
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                        )
-                      : const Text('Potwierdź'),
+                  child:
+                      _isVerifying
+                          ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                          : const Text('Potwierdź'),
                 ),
               ),
               const SizedBox(height: 12),
               TextButton(
                 onPressed: _isResending ? null : _resend,
-                child: _isResending
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Wyślij kod ponownie'),
+                child:
+                    _isResending
+                        ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                        : const Text('Wyślij kod ponownie'),
               ),
             ],
           ),

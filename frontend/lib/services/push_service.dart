@@ -124,10 +124,11 @@ class PushService {
           )
           .timeout(const Duration(seconds: 10));
 
-      final androidNotifications = _localNotifications
-          .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin
-          >();
+      final androidNotifications =
+          _localNotifications
+              .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin
+              >();
       if (androidNotifications != null) {
         await androidNotifications
             .createNotificationChannel(androidChannel)
@@ -143,7 +144,9 @@ class PushService {
     // musimy zrobić to ręcznie, inaczej powiadomienie przepadnie
     // niezauważone.
     FirebaseMessaging.onMessage.listen(_showForegroundNotification);
-    FirebaseMessaging.onMessageOpenedApp.listen((_) => _handleNotificationTap());
+    FirebaseMessaging.onMessageOpenedApp.listen(
+      (_) => _handleNotificationTap(),
+    );
 
     // Powiadomienie, które uruchomiło całkowicie zamkniętą aplikację,
     // nie emituje onMessageOpenedApp. Odbierze je SplashScreen, gdy

@@ -83,11 +83,14 @@ class _PantryScreenState extends State<PantryScreen> {
       if (!mounted) return;
       setState(() => _items.insert(removedIndex, item));
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-            duration: const Duration(seconds: 3),content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(friendlyError(e)),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
     }
   }
 
@@ -96,49 +99,61 @@ class _PantryScreenState extends State<PantryScreen> {
   /// "szt"), użytkownik wpisuje samą liczbę.
   Future<void> _editQuantity(PantryItem item) async {
     final controller = TextEditingController(
-      text: item.quantity != null ? formatQuantity(item.quantity!, item.unit ?? item.product.unit) : '',
+      text:
+          item.quantity != null
+              ? formatQuantity(item.quantity!, item.unit ?? item.product.unit)
+              : '',
     );
     final unit = item.unit ?? item.product.unit;
 
     final newQuantity = await showDialog<double>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(item.product.name),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: InputDecoration(
-            labelText: 'Ile masz? ($unit)',
-            border: const OutlineInputBorder(),
+      builder:
+          (ctx) => AlertDialog(
+            title: Text(item.product.name),
+            content: TextField(
+              controller: controller,
+              autofocus: true,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: InputDecoration(
+                labelText: 'Ile masz? ($unit)',
+                border: const OutlineInputBorder(),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Anuluj'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  // UWAGA: polska klawiatura zwykle wpisuje przecinek jako
+                  // separator dziesiętny — double.tryParse w Dart rozumie
+                  // tylko kropkę, stąd zamiana przed parsowaniem (ten sam
+                  // wzorzec, który już wcześniej naprawił podobny problem
+                  // w formularzu ręcznego dodawania przepisu).
+                  final value = double.tryParse(
+                    controller.text.trim().replaceAll(',', '.'),
+                  );
+                  Navigator.pop(ctx, value);
+                },
+                child: const Text('Zapisz'),
+              ),
+            ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Anuluj'),
-          ),
-          FilledButton(
-            onPressed: () {
-              // UWAGA: polska klawiatura zwykle wpisuje przecinek jako
-              // separator dziesiętny — double.tryParse w Dart rozumie
-              // tylko kropkę, stąd zamiana przed parsowaniem (ten sam
-              // wzorzec, który już wcześniej naprawił podobny problem
-              // w formularzu ręcznego dodawania przepisu).
-              final value = double.tryParse(controller.text.trim().replaceAll(',', '.'));
-              Navigator.pop(ctx, value);
-            },
-            child: const Text('Zapisz'),
-          ),
-        ],
-      ),
     );
 
     controller.dispose();
     if (newQuantity == null) return;
 
     try {
-      final updated = await _pantryService.updateQuantity(item.id, quantity: newQuantity, unit: unit);
+      final updated = await _pantryService.updateQuantity(
+        item.id,
+        quantity: newQuantity,
+        unit: unit,
+      );
       if (!mounted) return;
       setState(() {
         final index = _items.indexWhere((i) => i.id == item.id);
@@ -148,11 +163,14 @@ class _PantryScreenState extends State<PantryScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-            duration: const Duration(seconds: 3),content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(friendlyError(e)),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
     }
   }
 
@@ -160,6 +178,7 @@ class _PantryScreenState extends State<PantryScreen> {
     final added = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -183,74 +202,98 @@ class _PantryScreenState extends State<PantryScreen> {
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _load,
-          child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : _errorMessage != null
+          child:
+              _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _errorMessage != null
                   ? Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(32.0),
+                    child: Padding(
+                      padding: const EdgeInsets.all(32.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.cloud_off_outlined,
+                            size: 48,
+                            color: AppTheme.textSecondary,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(_errorMessage!, textAlign: TextAlign.center),
+                          const SizedBox(height: 16),
+                          OutlinedButton(
+                            onPressed: _load,
+                            child: const Text('Spróbuj ponownie'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                  : _items.isEmpty
+                  ? ListView(
+                    // ListView (nie Center) — żeby RefreshIndicator
+                    // działał nawet przy pustej spiżarni.
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 80,
+                          horizontal: 32,
+                        ),
                         child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.cloud_off_outlined, size: 48, color: AppTheme.textSecondary),
+                            Icon(
+                              Icons.kitchen_outlined,
+                              size: 56,
+                              color: AppTheme.textSecondary,
+                            ),
                             const SizedBox(height: 16),
-                            Text(_errorMessage!, textAlign: TextAlign.center),
-                            const SizedBox(height: 16),
-                            OutlinedButton(onPressed: _load, child: const Text('Spróbuj ponownie')),
+                            Text(
+                              'Spiżarnia jest pusta. Dodaj produkty, które masz w domu, żeby móc szybko sprawdzić, co z nich ugotować.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: AppTheme.textSecondary),
+                            ),
                           ],
                         ),
                       ),
-                    )
-                  : _items.isEmpty
-                      ? ListView(
-                          // ListView (nie Center) — żeby RefreshIndicator
-                          // działał nawet przy pustej spiżarni.
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 32),
-                              child: Column(
-                                children: [
-                                  Icon(Icons.kitchen_outlined, size: 56, color: AppTheme.textSecondary),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'Spiżarnia jest pusta. Dodaj produkty, które masz w domu, żeby móc szybko sprawdzić, co z nich ugotować.',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(color: AppTheme.textSecondary),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-                          itemCount: _items.length,
-                          itemBuilder: (context, index) {
-                            final item = _items[index];
-                            return Card(
-                              margin: const EdgeInsets.only(bottom: 8),
-                              child: ListTile(
-                                leading: Icon(Icons.check_circle, color: AppTheme.primaryColor),
-                                title: Text(item.product.name),
-                                subtitle: Text(
+                    ],
+                  )
+                  : ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+                    itemCount: _items.length,
+                    itemBuilder: (context, index) {
+                      final item = _items[index];
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: ListTile(
+                          leading: Icon(
+                            Icons.check_circle,
+                            color: AppTheme.primaryColor,
+                          ),
+                          title: Text(item.product.name),
+                          subtitle: Text(
+                            item.quantity != null
+                                ? '${formatQuantity(item.quantity!, item.unit ?? item.product.unit)} ${item.unit ?? item.product.unit}'
+                                : 'Dotknij, aby wpisać ilość',
+                            style: TextStyle(
+                              color:
                                   item.quantity != null
-                                      ? '${formatQuantity(item.quantity!, item.unit ?? item.product.unit)} ${item.unit ?? item.product.unit}'
-                                      : 'Dotknij, aby wpisać ilość',
-                                  style: TextStyle(
-                                    color: item.quantity != null ? AppTheme.textSecondary : AppTheme.primaryColor,
-                                    fontStyle: item.quantity != null ? FontStyle.normal : FontStyle.italic,
-                                  ),
-                                ),
-                                onTap: () => _editQuantity(item),
-                                trailing: IconButton(
-                                  icon: const Icon(Icons.close),
-                                  onPressed: () => _delete(item),
-                                  tooltip: 'Usuń ze spiżarni',
-                                ),
-                              ),
-                            );
-                          },
+                                      ? AppTheme.textSecondary
+                                      : AppTheme.primaryColor,
+                              fontStyle:
+                                  item.quantity != null
+                                      ? FontStyle.normal
+                                      : FontStyle.italic,
+                            ),
+                          ),
+                          onTap: () => _editQuantity(item),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => _delete(item),
+                            tooltip: 'Usuń ze spiżarni',
+                          ),
                         ),
+                      );
+                    },
+                  ),
         ),
       ),
     );
@@ -285,58 +328,75 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
   }) async {
     const units = ['g', 'kg', 'ml', 'l', 'szt'];
     var unit = units.contains(suggestedUnit) ? suggestedUnit : 'g';
-    final double initial = suggestedQuantity != null && suggestedQuantity > 0
-        ? suggestedQuantity
-        : (unit == 'kg' || unit == 'l' || unit == 'szt' ? 1.0 : 100.0);
-    final controller = TextEditingController(text: formatQuantity(initial, unit));
+    final double initial =
+        suggestedQuantity != null && suggestedQuantity > 0
+            ? suggestedQuantity
+            : (unit == 'kg' || unit == 'l' || unit == 'szt' ? 1.0 : 100.0);
+    final controller = TextEditingController(
+      text: formatQuantity(initial, unit),
+    );
     final result = await showDialog<({double quantity, String unit})>(
       context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: Text(productName),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextField(
-                controller: controller,
-                autofocus: true,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(labelText: 'Ilość'),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                value: unit,
-                isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Jednostka'),
-                items: units.map((value) => DropdownMenuItem(
-                  value: value,
-                  child: Text(value),
-                )).toList(),
-                onChanged: (value) {
-                  if (value != null) setDialogState(() => unit = value);
-                },
-              ),
-            ],
+      builder:
+          (dialogContext) => StatefulBuilder(
+            builder:
+                (context, setDialogState) => AlertDialog(
+                  title: Text(productName),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      TextField(
+                        controller: controller,
+                        autofocus: true,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: const InputDecoration(labelText: 'Ilość'),
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        value: unit,
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Jednostka',
+                        ),
+                        items:
+                            units
+                                .map(
+                                  (value) => DropdownMenuItem(
+                                    value: value,
+                                    child: Text(value),
+                                  ),
+                                )
+                                .toList(),
+                        onChanged: (value) {
+                          if (value != null) setDialogState(() => unit = value);
+                        },
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(dialogContext),
+                      child: const Text('Anuluj'),
+                    ),
+                    FilledButton(
+                      onPressed: () {
+                        final quantity = double.tryParse(
+                          controller.text.trim().replaceAll(',', '.'),
+                        );
+                        if (quantity == null || quantity <= 0) return;
+                        Navigator.pop(dialogContext, (
+                          quantity: quantity,
+                          unit: unit,
+                        ));
+                      },
+                      child: const Text('Dodaj'),
+                    ),
+                  ],
+                ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Anuluj'),
-            ),
-            FilledButton(
-              onPressed: () {
-                final quantity = double.tryParse(
-                  controller.text.trim().replaceAll(',', '.'),
-                );
-                if (quantity == null || quantity <= 0) return;
-                Navigator.pop(dialogContext, (quantity: quantity, unit: unit));
-              },
-              child: const Text('Dodaj'),
-            ),
-          ],
-        ),
-      ),
     );
     controller.dispose();
     return result;
@@ -355,11 +415,14 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-            duration: const Duration(seconds: 3),content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(friendlyError(e)),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
     } finally {
       if (mounted) setState(() => _isSearching = false);
     }
@@ -381,21 +444,26 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-            duration: const Duration(seconds: 3),content: Text('Dodano "${product.name}" do spiżarni.')),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text('Dodano "${product.name}" do spiżarni.'),
+          ),
+        );
       Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;
       setState(() => _isSaving = false);
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-            duration: const Duration(seconds: 3),content: Text(friendlyError(e)), backgroundColor: AppTheme.errorColor),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(friendlyError(e)),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
     }
   }
 
@@ -435,11 +503,13 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
       setState(() => _isSaving = false);
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(
-          duration: const Duration(seconds: 3),
-          content: Text(friendlyError(e)),
-          backgroundColor: AppTheme.errorColor,
-        ));
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(friendlyError(e)),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
     }
   }
 
@@ -449,23 +519,24 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
     if (!hasPremium) {
       final showPremium = await showDialog<bool>(
         context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: const Text('Skanowanie seryjne jest w Premium'),
-          content: const Text(
-            'Skanuj kolejne produkty bez zamykania aparatu, a potem wybierz '
-            'dla każdego spiżarnię, katalog albo śledzenie.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Nie teraz'),
+        builder:
+            (dialogContext) => AlertDialog(
+              title: const Text('Skanowanie seryjne jest w Premium'),
+              content: const Text(
+                'Skanuj kolejne produkty bez zamykania aparatu, wybierz jedno '
+                'miejsce dla całej serii i zatwierdź wszystko jednym przyciskiem.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext, false),
+                  child: const Text('Nie teraz'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.pop(dialogContext, true),
+                  child: const Text('Zobacz Premium'),
+                ),
+              ],
             ),
-            FilledButton(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('Zobacz Premium'),
-            ),
-          ],
-        ),
       );
       if (showPremium == true && mounted) {
         await Navigator.of(context).pushNamed('/premium');
@@ -501,7 +572,10 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Dodaj do spiżarni', style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              'Dodaj do spiżarni',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
@@ -543,40 +617,46 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
               decoration: InputDecoration(
                 hintText: 'Szukaj produktu...',
                 prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
             const SizedBox(height: 8),
             SizedBox(
               height: 280,
-              child: _isSearching
-                  ? const Center(child: CircularProgressIndicator())
-                  : _results.isEmpty
+              child:
+                  _isSearching
+                      ? const Center(child: CircularProgressIndicator())
+                      : _results.isEmpty
                       ? Center(
-                          child: Text(
-                            _controller.text.trim().length < 2
-                                ? 'Wpisz nazwę produktu.'
-                                : 'Brak wyników.',
-                            style: TextStyle(color: AppTheme.textSecondary),
-                          ),
-                        )
+                        child: Text(
+                          _controller.text.trim().length < 2
+                              ? 'Wpisz nazwę produktu.'
+                              : 'Brak wyników.',
+                          style: TextStyle(color: AppTheme.textSecondary),
+                        ),
+                      )
                       : ListView.builder(
-                          itemCount: _results.length,
-                          itemBuilder: (context, index) {
-                            final product = _results[index];
-                            return ListTile(
-                              title: Text(product.name),
-                              trailing: _isSaving
-                                  ? const SizedBox(
+                        itemCount: _results.length,
+                        itemBuilder: (context, index) {
+                          final product = _results[index];
+                          return ListTile(
+                            title: Text(product.name),
+                            trailing:
+                                _isSaving
+                                    ? const SizedBox(
                                       width: 18,
                                       height: 18,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
                                     )
-                                  : const Icon(Icons.add_circle_outline),
-                              onTap: _isSaving ? null : () => _add(product),
-                            );
-                          },
-                        ),
+                                    : const Icon(Icons.add_circle_outline),
+                            onTap: _isSaving ? null : () => _add(product),
+                          );
+                        },
+                      ),
             ),
           ],
         ),

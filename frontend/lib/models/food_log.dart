@@ -55,7 +55,8 @@ class FoodLogEntry {
 
   Map<String, dynamic> toCreateJson() {
     return {
-      'date': '${date.year.toString().padLeft(4, '0')}-'
+      'date':
+          '${date.year.toString().padLeft(4, '0')}-'
           '${date.month.toString().padLeft(2, '0')}-'
           '${date.day.toString().padLeft(2, '0')}',
       'meal_type': mealType,

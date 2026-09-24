@@ -60,9 +60,8 @@ class MealPlanProvider with ChangeNotifier {
       if (_plans.isNotEmpty) {
         final selectedId = _currentPlan?.id;
         final stillAvailable = _plans.where((plan) => plan.id == selectedId);
-        _currentPlan = stillAvailable.isNotEmpty
-            ? stillAvailable.first
-            : activePlan;
+        _currentPlan =
+            stillAvailable.isNotEmpty ? stillAvailable.first : activePlan;
       } else {
         _currentPlan = null;
       }
@@ -132,7 +131,11 @@ class MealPlanProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      final updatedPlan = await _mealPlanService.swapRecipe(planId, entryId, newRecipeId);
+      final updatedPlan = await _mealPlanService.swapRecipe(
+        planId,
+        entryId,
+        newRecipeId,
+      );
       _currentPlan = updatedPlan;
       // Zaktualizuj na liście planów
       final index = _plans.indexWhere((p) => p.id == planId);

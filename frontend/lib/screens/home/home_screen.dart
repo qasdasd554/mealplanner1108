@@ -52,16 +52,24 @@ class _HomeScreenState extends State<HomeScreen> {
       // Podsumowanie dnia (kcal/makro) na ekranie głównym — bez tego
       // FoodLogProvider.summary zostawałby null, dopóki użytkownik nie
       // odwiedziłby osobno ekranu Śledzenia.
-      Provider.of<FoodLogProvider>(context, listen: false).fetchLogsForDate(DateTime.now());
+      Provider.of<FoodLogProvider>(
+        context,
+        listen: false,
+      ).fetchLogsForDate(DateTime.now());
       // Nawodnienie na pasku ekranu startowego — z tego samego powodu co
       // wyżej: bez tego pasek pokazywałby 0 ml, dopóki użytkownik nie
       // wszedłby osobno w zakładkę Śledzenie.
-      Provider.of<WellnessProvider>(context, listen: false).loadForDate(DateTime.now());
+      Provider.of<WellnessProvider>(
+        context,
+        listen: false,
+      ).loadForDate(DateTime.now());
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
     // Podział na taby
     // UWAGA (zmiana): kolejność "Śledzenie" i "Profil" zamieniona miejscami
     // na życzenie — Śledzenie (częściej używana funkcja) jest teraz na
@@ -89,120 +97,145 @@ class _HomeScreenState extends State<HomeScreen> {
         // pojawianie jest dokładnym odwróceniem znikania.
         floatingActionButton: SizedBox(
           width: 116,
-          height: 34,
+          height: 40,
           child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 220),
-            reverseDuration: const Duration(milliseconds: 220),
+            duration:
+                reduceMotion
+                    ? Duration.zero
+                    : const Duration(milliseconds: 220),
+            reverseDuration:
+                reduceMotion
+                    ? Duration.zero
+                    : const Duration(milliseconds: 220),
             switchInCurve: Curves.easeInOut,
             switchOutCurve: Curves.easeInOut,
-            transitionBuilder: (child, animation) => FadeTransition(
-              opacity: animation,
-              child: ScaleTransition(
-                scale: Tween<double>(begin: .88, end: 1).animate(animation),
-                child: child,
-              ),
-            ),
-            child: (_currentIndex == 0 || _currentIndex == 4)
-                ? FilledButton.tonalIcon(
-                    key: const ValueKey('quick-add-visible'),
-                    onPressed: _showQuickAddSheet,
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      minimumSize: const Size(116, 34),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      visualDensity: VisualDensity.compact,
-                      shape: const StadiumBorder(),
-                    ),
-                    icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Dodaj'),
-                  )
-                : const SizedBox.shrink(
-                    key: ValueKey('quick-add-hidden'),
+            transitionBuilder:
+                (child, animation) => FadeTransition(
+                  opacity: animation,
+                  child: ScaleTransition(
+                    scale: Tween<double>(begin: .88, end: 1).animate(animation),
+                    child: child,
                   ),
+                ),
+            child:
+                (_currentIndex == 0 || _currentIndex == 4)
+                    ? FilledButton.tonalIcon(
+                      key: const ValueKey('quick-add-visible'),
+                      onPressed: _showQuickAddSheet,
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        minimumSize: const Size(116, 40),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        visualDensity: VisualDensity.compact,
+                        shape: const StadiumBorder(),
+                      ),
+                      icon: const Icon(Icons.add, size: 18),
+                      label: const Text('Dodaj'),
+                    )
+                    : const SizedBox.shrink(key: ValueKey('quick-add-hidden')),
           ),
         ),
         floatingActionButtonLocation: const _QuickAddFabLocation(),
         bottomNavigationBar: Material(
-          color: Theme.of(context).bottomNavigationBarTheme.backgroundColor ??
+          color:
+              Theme.of(context).bottomNavigationBarTheme.backgroundColor ??
               Theme.of(context).colorScheme.surface,
           elevation: 8,
           child: BottomNavigationBar(
-                elevation: 0,
-        // 5 zakladek wymaga trybu 'fixed' — bez tego Flutter przechodzi
-        // w tryb 'shifting' i rzuca wyjatek, co wywalalo aplikacje
-        // zaraz po zakonczeniu onboardingu.
-                type: BottomNavigationBarType.fixed,
-                currentIndex: _currentIndex,
-                onTap: (index) async {
-          // UWAGA (nowe): "Śledzenie" (indeks 3) wymaga bramki reklamowej
-          // dla kont bez Premium — patrz AdGateService (limit 2 reklamy
-          // na 8 godzin, potem wolny dostęp aż do wygaśnięcia okna).
-          // Premium pomija to całkowicie.
-          // UWAGA (NAPRAWA AWARYJNA — TYMCZASOWE WYŁĄCZENIE): patrz
-          // identyczny komentarz w main.dart. Cała bramka reklamowa
-          // jest tymczasowo pominięta — Śledzenie wpuszcza teraz
-          // wszystkich normalnie, bez żadnego kodu SDK reklam w grze,
-          // dopóki nie zdiagnozujemy prawdziwej przyczyny awarii przy
-          // starcie na podstawie logów.
-          //
-          // if (index == 3) {
-          //   final hasPremium = Provider.of<AuthProvider>(context, listen: false)
-          //       .currentUser
-          //       ?.hasPremiumAccess ??
-          //       false;
-          //   if (!hasPremium) {
-          //     final needsAd = await AdGateService().needsAd();
-          //     if (needsAd) {
-          //       if (!context.mounted) return;
-          //       final watched = await Navigator.of(context).push<bool>(
-          //         MaterialPageRoute(builder: (_) => const AdGateScreen()),
-          //       );
-          //       if (watched != true) {
-          //         return;
-          //       }
-          //     }
-          //   }
-          // }
-          if (!mounted) return;
-          setState(() {
-            _currentIndex = index;
-          });
-                },
-                items: [
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Start',
-          ),
-          // "Przepisy" ma teraz tę samą kolorową plakietkę co "Zakupy" i
-          // "Śledzenie" — spójne wizualne wyróżnienie głównych funkcji.
-          BottomNavigationBarItem(
-            icon: _buildHighlightedIcon(Icons.restaurant_outlined, active: false),
-            activeIcon: _buildHighlightedIcon(Icons.restaurant, active: true),
-            label: 'Przepisy',
-          ),
-          BottomNavigationBarItem(
-            icon: _buildHighlightedIcon(Icons.shopping_cart_outlined, active: false),
-            activeIcon: _buildHighlightedIcon(Icons.shopping_cart, active: true),
-            label: 'Zakupy',
-          ),
-          BottomNavigationBarItem(
-            icon: _buildHighlightedIcon(Icons.local_fire_department_outlined, active: false),
-            activeIcon: _buildHighlightedIcon(Icons.local_fire_department, active: true),
-            label: 'Śledzenie',
-          ),
-          // Zakładka Premium — bezpośredni dostęp do porównania planów i
-          // zakupu subskrypcji, bez konieczności wchodzenia przez Profil.
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.workspace_premium_outlined),
-            activeIcon: Icon(Icons.workspace_premium),
-            label: 'Premium',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profil',
-          ),
+            elevation: 0,
+            // 5 zakladek wymaga trybu 'fixed' — bez tego Flutter przechodzi
+            // w tryb 'shifting' i rzuca wyjatek, co wywalalo aplikacje
+            // zaraz po zakonczeniu onboardingu.
+            type: BottomNavigationBarType.fixed,
+            currentIndex: _currentIndex,
+            onTap: (index) async {
+              // UWAGA (nowe): "Śledzenie" (indeks 3) wymaga bramki reklamowej
+              // dla kont bez Premium — patrz AdGateService (limit 2 reklamy
+              // na 8 godzin, potem wolny dostęp aż do wygaśnięcia okna).
+              // Premium pomija to całkowicie.
+              // UWAGA (NAPRAWA AWARYJNA — TYMCZASOWE WYŁĄCZENIE): patrz
+              // identyczny komentarz w main.dart. Cała bramka reklamowa
+              // jest tymczasowo pominięta — Śledzenie wpuszcza teraz
+              // wszystkich normalnie, bez żadnego kodu SDK reklam w grze,
+              // dopóki nie zdiagnozujemy prawdziwej przyczyny awarii przy
+              // starcie na podstawie logów.
+              //
+              // if (index == 3) {
+              //   final hasPremium = Provider.of<AuthProvider>(context, listen: false)
+              //       .currentUser
+              //       ?.hasPremiumAccess ??
+              //       false;
+              //   if (!hasPremium) {
+              //     final needsAd = await AdGateService().needsAd();
+              //     if (needsAd) {
+              //       if (!context.mounted) return;
+              //       final watched = await Navigator.of(context).push<bool>(
+              //         MaterialPageRoute(builder: (_) => const AdGateScreen()),
+              //       );
+              //       if (watched != true) {
+              //         return;
+              //       }
+              //     }
+              //   }
+              // }
+              if (!mounted) return;
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            items: [
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.home_outlined),
+                activeIcon: Icon(Icons.home),
+                label: 'Start',
+              ),
+              // "Przepisy" ma teraz tę samą kolorową plakietkę co "Zakupy" i
+              // "Śledzenie" — spójne wizualne wyróżnienie głównych funkcji.
+              BottomNavigationBarItem(
+                icon: _buildHighlightedIcon(
+                  Icons.restaurant_outlined,
+                  active: false,
+                ),
+                activeIcon: _buildHighlightedIcon(
+                  Icons.restaurant,
+                  active: true,
+                ),
+                label: 'Przepisy',
+              ),
+              BottomNavigationBarItem(
+                icon: _buildHighlightedIcon(
+                  Icons.shopping_cart_outlined,
+                  active: false,
+                ),
+                activeIcon: _buildHighlightedIcon(
+                  Icons.shopping_cart,
+                  active: true,
+                ),
+                label: 'Zakupy',
+              ),
+              BottomNavigationBarItem(
+                icon: _buildHighlightedIcon(
+                  Icons.local_fire_department_outlined,
+                  active: false,
+                ),
+                activeIcon: _buildHighlightedIcon(
+                  Icons.local_fire_department,
+                  active: true,
+                ),
+                label: 'Śledzenie',
+              ),
+              // Zakładka Premium — bezpośredni dostęp do porównania planów i
+              // zakupu subskrypcji, bez konieczności wchodzenia przez Profil.
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.workspace_premium_outlined),
+                activeIcon: Icon(Icons.workspace_premium),
+                label: 'Premium',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.person_outline),
+                activeIcon: Icon(Icons.person),
+                label: 'Profil',
+              ),
             ],
           ),
         ),
@@ -215,24 +248,25 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!(user?.hasPremiumAccess ?? false)) {
       final openPremium = await showDialog<bool>(
         context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: const Text('Skanowanie seryjne jest w Premium'),
-          content: const Text(
-            'Aparat pozostaje otwarty, a kolejne produkty są automatycznie '
-            'rozpoznawane. Dla każdego wyniku wybierzesz spiżarnię, '
-            'śledzenie albo katalog produktów.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Nie teraz'),
+        builder:
+            (dialogContext) => AlertDialog(
+              title: const Text('Skanowanie seryjne jest w Premium'),
+              content: const Text(
+                'Aparat pozostaje otwarty, a kolejne produkty są automatycznie '
+                'rozpoznawane. Raz wybierzesz spiżarnię, śledzenie albo katalog '
+                'i dodasz tam całą serię jednym przyciskiem.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext, false),
+                  child: const Text('Nie teraz'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.pop(dialogContext, true),
+                  child: const Text('Zobacz Premium'),
+                ),
+              ],
             ),
-            FilledButton(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('Zobacz Premium'),
-            ),
-          ],
-        ),
       );
       if (openPremium == true && mounted) {
         setState(() => _currentIndex = 4);
@@ -246,86 +280,136 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!mounted || completed == null || completed == 0) return;
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(
-        content: Text('Obsłużono: $completed produktów.'),
-      ));
+      ..showSnackBar(
+        SnackBar(content: Text('Obsłużono: $completed produktów.')),
+      );
   }
 
   void _showQuickAddSheet() {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
       ),
-      builder: (sheetContext) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Co chcesz dodać?',
-                style: Theme.of(sheetContext).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 10),
-              ListTile(
-                leading: const Icon(Icons.barcode_reader),
-                title: const Text('Zeskanuj produkt'),
-                subtitle: const Text(
-                  'Dodaj do śledzenia, bazy produktów albo spiżarni',
+      builder:
+          (sheetContext) => SafeArea(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Co chcesz dodać?',
+                      style: Theme.of(sheetContext).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 10),
+                    _quickAddOption(
+                      sheetContext,
+                      icon: Icons.barcode_reader,
+                      title: 'Zeskanuj produkt',
+                      subtitle:
+                          'Dodaj do śledzenia, bazy produktów albo spiżarni',
+                      onTap: () async {
+                        Navigator.pop(sheetContext);
+                        await scanProductWithDestination(context);
+                      },
+                    ),
+                    _quickAddOption(
+                      sheetContext,
+                      icon: Icons.qr_code_2,
+                      title: 'Skanuj wiele produktów',
+                      subtitle:
+                          'Jeden cel i jedno zatwierdzenie dla całej serii',
+                      trailing: const PremiumFeatureTag(),
+                      onTap: () {
+                        Navigator.pop(sheetContext);
+                        _openBatchScanner();
+                      },
+                    ),
+                    _quickAddOption(
+                      sheetContext,
+                      icon: Icons.auto_awesome,
+                      title: 'Dodaj przepis z AI',
+                      subtitle: 'Ze zdjęcia, tekstu albo linku',
+                      trailing: const PremiumFeatureTag(
+                        label: 'PREMIUM / 2 PKT',
+                      ),
+                      onTap: () {
+                        Navigator.pop(sheetContext);
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const AiAddRecipeScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    _quickAddOption(
+                      sheetContext,
+                      icon: Icons.restaurant_menu,
+                      title: 'Dodaj posiłek',
+                      subtitle: 'Zapisz kalorie i makroskładniki',
+                      onTap: () {
+                        Navigator.pop(sheetContext);
+                        Navigator.of(context).pushNamed('/tracker/add');
+                      },
+                    ),
+                    _quickAddOption(
+                      sheetContext,
+                      icon: Icons.inventory_2_outlined,
+                      title: 'Dodaj do spiżarni',
+                      onTap: () {
+                        Navigator.pop(sheetContext);
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder:
+                                (_) => const PantryScreen(openAddOnStart: true),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
-                onTap: () async {
-                  Navigator.pop(sheetContext);
-                  await scanProductWithDestination(context);
-                },
               ),
-              ListTile(
-                leading: const Icon(Icons.qr_code_2),
-                title: const Text('Skanuj wiele produktów'),
-                subtitle: const Text(
-                  'Wybierz dla każdego: spiżarnia, śledzenie lub katalog',
-                ),
-                trailing: const PremiumFeatureTag(),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _openBatchScanner();
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.auto_awesome),
-                title: const Text('Dodaj przepis z AI'),
-                subtitle: const Text('Ze zdjęcia, tekstu albo linku'),
-                trailing: const PremiumFeatureTag(label: 'PREMIUM / 2 PKT'),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => const AiAddRecipeScreen(),
-                  ));
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.restaurant_menu),
-                title: const Text('Dodaj posiłek'),
-                subtitle: const Text('Zapisz kalorie i makroskładniki'),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  Navigator.of(context).pushNamed('/tracker/add');
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.inventory_2_outlined),
-                title: const Text('Dodaj do spiżarni'),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => const PantryScreen(openAddOnStart: true),
-                  ));
-                },
-              ),
-            ],
+            ),
           ),
+    );
+  }
+
+  Widget _quickAddOption(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    String? subtitle,
+    Widget? trailing,
+    required VoidCallback onTap,
+  }) {
+    final colors = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Material(
+        color: colors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: colors.outlineVariant),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: ListTile(
+          leading: Icon(icon),
+          title: Text(title, maxLines: 2, overflow: TextOverflow.ellipsis),
+          subtitle:
+              subtitle == null
+                  ? null
+                  : Text(
+                    subtitle,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+          trailing: trailing,
+          onTap: onTap,
         ),
       ),
     );
@@ -338,9 +422,10 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: active
-            ? AppTheme.primaryColor.withOpacity(0.15)
-            : AppTheme.primaryColor.withOpacity(0.08),
+        color:
+            active
+                ? AppTheme.primaryColor.withOpacity(0.15)
+                : AppTheme.primaryColor.withOpacity(0.08),
         shape: BoxShape.circle,
       ),
       child: Icon(icon, size: active ? 26 : 24),
@@ -360,16 +445,15 @@ class _QuickAddFabLocation extends FloatingActionButtonLocation {
     final x = (scaffoldGeometry.scaffoldSize.width - buttonSize.width) / 2;
     const navigationGap = 12.0;
     const notificationGap = 10.0;
-    final regularY = scaffoldGeometry.contentBottom -
-        buttonSize.height -
-        navigationGap;
-    final notificationY = scaffoldGeometry.contentBottom -
+    final regularY =
+        scaffoldGeometry.contentBottom - buttonSize.height - navigationGap;
+    final notificationY =
+        scaffoldGeometry.contentBottom -
         scaffoldGeometry.snackBarSize.height -
         buttonSize.height -
         notificationGap;
-    final y = scaffoldGeometry.snackBarSize.height > 0
-        ? notificationY
-        : regularY;
+    final y =
+        scaffoldGeometry.snackBarSize.height > 0 ? notificationY : regularY;
     return Offset(x, y);
   }
 }
@@ -405,7 +489,8 @@ class HomeTab extends StatelessWidget {
     // MealPlanProvider.selectPlan) — activePlan zawsze zwraca pierwszy
     // znaleziony, co uniemożliwiłoby przełączanie się między kilkoma
     // aktywnymi planami.
-    final activePlan = mealPlanProvider.currentPlan ?? mealPlanProvider.activePlan;
+    final activePlan =
+        mealPlanProvider.currentPlan ?? mealPlanProvider.activePlan;
     final currentDay = activePlan != null ? _getCurrentPlanDay(activePlan) : 1;
 
     // Pobierz nazwę sklepu z ID
@@ -427,8 +512,10 @@ class HomeTab extends StatelessWidget {
                 await Future.wait([
                   mealPlanProvider.loadPlans(),
                   foodLogProvider.fetchLogsForDate(DateTime.now()),
-                  Provider.of<WellnessProvider>(context, listen: false)
-                      .loadForDate(DateTime.now()),
+                  Provider.of<WellnessProvider>(
+                    context,
+                    listen: false,
+                  ).loadForDate(DateTime.now()),
                 ]);
               },
               child: SingleChildScrollView(
@@ -439,219 +526,242 @@ class HomeTab extends StatelessWidget {
                   children: [
                     // Powitanie
                     Row(
-                  children: [
-                    Image.asset(
-                      'assets/branding/logo.png',
-                      width: 44,
-                      height: 44,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // UWAGA (naprawa): wcześniej odznaka Premium
-                          // dzieliła jeden, wąski rząd z nickiem (obok
-                          // logo, dzwoneczka i awatara po drugiej stronie)
-                          // — przy dłuższym imieniu odznaka "wygryzała"
-                          // większość tekstu powitania, sprawiając wrażenie,
-                          // że nick jest przez nią zasłonięty. Teraz
-                          // powitanie ma pełną szerokość dla siebie, a
-                          // odznaka jest na osobnej linii pod spodem.
-                          Text(
-                            'Cześć, ${user?.displayName ?? 'użytkowniku'}!',
-                            style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                      children: [
+                        Image.asset(
+                          'assets/branding/logo.png',
+                          width: 44,
+                          height: 44,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // UWAGA (naprawa): wcześniej odznaka Premium
+                              // dzieliła jeden, wąski rząd z nickiem (obok
+                              // logo, dzwoneczka i awatara po drugiej stronie)
+                              // — przy dłuższym imieniu odznaka "wygryzała"
+                              // większość tekstu powitania, sprawiając wrażenie,
+                              // że nick jest przez nią zasłonięty. Teraz
+                              // powitanie ma pełną szerokość dla siebie, a
+                              // odznaka jest na osobnej linii pod spodem.
+                              Text(
+                                'Cześć, ${user?.displayName ?? 'użytkowniku'}!',
+                                style: Theme.of(context).textTheme.displaySmall
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              if (user?.hasPremiumAccess ?? false) ...[
+                                const SizedBox(height: 4),
+                                const PremiumBadge(fontSize: 9),
+                              ],
+                              const SizedBox(height: 4),
+                              Text(
+                                'Co dziś gotujemy?',
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ],
                           ),
-                          if (user?.hasPremiumAccess ?? false) ...[
-                            const SizedBox(height: 4),
-                            const PremiumBadge(fontSize: 9),
-                          ],
-                          const SizedBox(height: 4),
-                          Text(
-                            'Co dziś gotujemy?',
-                            style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        // Dzwoneczek powiadomień — z odznaką liczby
+                        // nieprzeczytanych. Na razie tylko wewnątrz aplikacji
+                        // (bez powiadomień systemowych/push, które wymagają
+                        // Firebase Cloud Messaging).
+                        const NotificationBell(),
+                        const SizedBox(width: 4),
+                        // Szybki skrót do profilu
+                        GestureDetector(
+                          onTap:
+                              () => Navigator.of(context).pushNamed('/profile'),
+                          child: UserAvatar(
+                            avatar: user?.avatar,
+                            avatarPhotoBase64: user?.avatarPhotoBase64,
+                            size: 48,
+                          ),
+                        ),
+                      ],
+                    ).animate().fadeIn().slideY(begin: -0.1, end: 0),
+                    const SizedBox(height: 24),
+
+                    // Najczęstsze wejścia są pierwsze i mieszczą się w równej
+                    // siatce 2x2. Przepisy są już w dolnym menu, więc nie
+                    // dublujemy tutaj tego samego odnośnika.
+                    Text(
+                      'Szybkie akcje',
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 12),
+                    GridView.count(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      // Nie ściskamy kafelków do jednego wiersza. Na węższych
+                      // telefonach i przy większym rozmiarze tekstu tytuły
+                      // (np. „Baza produktów”) mogą dzięki temu ułożyć się w
+                      // dwóch pełnych wierszach zamiast kończyć wielokropkiem.
+                      childAspectRatio:
+                          MediaQuery.sizeOf(context).width < 370 ? 1.55 : 1.75,
+                      children: [
+                        _buildQuickActionCard(
+                          context,
+                          title: 'Nowy plan',
+                          subtitle: 'Zaplanuj posiłki',
+                          icon: Icons.calendar_today_outlined,
+                          color: AppTheme.primaryColor,
+                          onTap:
+                              () => Navigator.of(
+                                context,
+                              ).pushNamed('/plan/config'),
+                        ),
+                        _buildQuickActionCard(
+                          context,
+                          title: 'Baza produktów',
+                          subtitle: 'Sprawdź ceny',
+                          icon: Icons.storefront_outlined,
+                          color: AppTheme.accentColor,
+                          onTap:
+                              () =>
+                                  Navigator.of(context).pushNamed('/products'),
+                        ),
+                        _buildQuickActionCard(
+                          context,
+                          title: 'Promocje',
+                          subtitle: 'Aktualne okazje',
+                          icon: Icons.local_offer_outlined,
+                          color: Colors.red,
+                          onTap:
+                              () => Navigator.of(
+                                context,
+                              ).pushNamed('/promotions'),
+                        ),
+                        _buildQuickActionCard(
+                          context,
+                          title: 'Spiżarnia',
+                          subtitle: 'Co masz w domu',
+                          icon: Icons.inventory_2_outlined,
+                          color: AppTheme.secondaryColor,
+                          onTap:
+                              () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const PantryScreen(),
+                                ),
+                              ),
+                        ),
+                      ],
+                    ).animate().fadeIn(delay: 100.ms),
+                    const SizedBox(height: 24),
+
+                    // Dopiero po skrótach pokazujemy postęp bieżącego dnia.
+                    _buildDailySummaryCard(context, foodLogProvider),
+                    const SizedBox(height: 24),
+
+                    // Aktywny Plan Posiłków
+                    if ((!mealPlanProvider.hasLoaded ||
+                            mealPlanProvider.isLoading) &&
+                        mealPlanProvider.plans.isEmpty)
+                      _buildDataStateCard(
+                        context,
+                        message: 'Wczytywanie planu posiłków…',
+                        loading: true,
+                      )
+                    else if (mealPlanProvider.errorMessage != null &&
+                        mealPlanProvider.plans.isEmpty)
+                      _buildDataStateCard(
+                        context,
+                        message: 'Nie udało się wczytać planu posiłków.',
+                        onRetry: mealPlanProvider.loadPlans,
+                      )
+                    else if (activePlan != null) ...[
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Twój aktywny plan',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.headlineMedium
+                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pushNamed('/plan/view');
+                            },
+                            child: const Text('Szczegóły'),
                           ),
                         ],
                       ),
-                    ),
-                    // Dzwoneczek powiadomień — z odznaką liczby
-                    // nieprzeczytanych. Na razie tylko wewnątrz aplikacji
-                    // (bez powiadomień systemowych/push, które wymagają
-                    // Firebase Cloud Messaging).
-                    const NotificationBell(),
-                    const SizedBox(width: 4),
-                    // Szybki skrót do profilu
-                    GestureDetector(
-                      onTap: () => Navigator.of(context).pushNamed('/profile'),
-                      child: UserAvatar(avatar: user?.avatar, avatarPhotoBase64: user?.avatarPhotoBase64, size: 48),
-                    ),
-                  ],
-                ).animate().fadeIn().slideY(begin: -0.1, end: 0),
-                const SizedBox(height: 24),
-
-                // Najczęstsze wejścia są pierwsze i mieszczą się w równej
-                // siatce 2x2. Przepisy są już w dolnym menu, więc nie
-                // dublujemy tutaj tego samego odnośnika.
-                Text(
-                  'Szybkie akcje',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-                const SizedBox(height: 12),
-                GridView.count(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  // Nie ściskamy kafelków do jednego wiersza. Na węższych
-                  // telefonach i przy większym rozmiarze tekstu tytuły
-                  // (np. „Baza produktów”) mogą dzięki temu ułożyć się w
-                  // dwóch pełnych wierszach zamiast kończyć wielokropkiem.
-                  childAspectRatio:
-                      MediaQuery.sizeOf(context).width < 370 ? 1.55 : 1.75,
-                  children: [
-                    _buildQuickActionCard(
-                      context,
-                      title: 'Nowy plan',
-                      subtitle: 'Zaplanuj posiłki',
-                      icon: Icons.calendar_today_outlined,
-                      color: AppTheme.primaryColor,
-                      onTap: () => Navigator.of(context).pushNamed('/plan/config'),
-                    ),
-                    _buildQuickActionCard(
-                      context,
-                      title: 'Baza produktów',
-                      subtitle: 'Sprawdź ceny',
-                      icon: Icons.storefront_outlined,
-                      color: AppTheme.accentColor,
-                      onTap: () => Navigator.of(context).pushNamed('/products'),
-                    ),
-                    _buildQuickActionCard(
-                      context,
-                      title: 'Promocje',
-                      subtitle: 'Aktualne okazje',
-                      icon: Icons.local_offer_outlined,
-                      color: Colors.red,
-                      onTap: () => Navigator.of(context).pushNamed('/promotions'),
-                    ),
-                    _buildQuickActionCard(
-                      context,
-                      title: 'Spiżarnia',
-                      subtitle: 'Co masz w domu',
-                      icon: Icons.inventory_2_outlined,
-                      color: AppTheme.secondaryColor,
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const PantryScreen()),
-                      ),
-                    ),
-                  ],
-                ).animate().fadeIn(delay: 100.ms),
-                const SizedBox(height: 24),
-
-                // Dopiero po skrótach pokazujemy postęp bieżącego dnia.
-                _buildDailySummaryCard(context, foodLogProvider),
-                const SizedBox(height: 24),
-
-                // Aktywny Plan Posiłków
-                if ((!mealPlanProvider.hasLoaded || mealPlanProvider.isLoading) &&
-                    mealPlanProvider.plans.isEmpty)
-                  _buildDataStateCard(
-                    context,
-                    message: 'Wczytywanie planu posiłków…',
-                    loading: true,
-                  )
-                else if (mealPlanProvider.errorMessage != null &&
-                    mealPlanProvider.plans.isEmpty)
-                  _buildDataStateCard(
-                    context,
-                    message: 'Nie udało się wczytać planu posiłków.',
-                    onRetry: mealPlanProvider.loadPlans,
-                  )
-                else if (activePlan != null) ...[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Twój aktywny plan',
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pushNamed('/plan/view');
-                        },
-                        child: const Text('Szczegóły'),
-                      ),
+                      // Plany z różnych tygodni mogą współistnieć również
+                      // na koncie standardowym. Przełącznik pojawia się,
+                      // gdy użytkownik ma więcej niż jeden aktywny plan.
+                      if (mealPlanProvider.activePlans.length > 1) ...[
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          height: 44,
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: mealPlanProvider.activePlans.length,
+                            separatorBuilder:
+                                (_, __) => const SizedBox(width: 8),
+                            itemBuilder: (context, index) {
+                              final plan = mealPlanProvider.activePlans[index];
+                              final isSelected = plan.id == activePlan.id;
+                              return ChoiceChip(
+                                label: Text(
+                                  'Plan ${plan.createdAt.toLocal().day}.${plan.createdAt.toLocal().month} '
+                                  '· ${plan.durationDays} dni',
+                                ),
+                                selected: isSelected,
+                                onSelected:
+                                    (_) => mealPlanProvider.selectPlan(plan),
+                                selectedColor: AppTheme.actionPrimaryColor,
+                                labelStyle: TextStyle(
+                                  color:
+                                      isSelected
+                                          ? Theme.of(
+                                            context,
+                                          ).colorScheme.onPrimary
+                                          : AppTheme.textPrimary,
+                                  fontSize: 12,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 12),
+                      _buildActivePlanCard(
+                        context,
+                        plan: activePlan,
+                        storeName: getStoreName(activePlan.storeId),
+                        currentDay: currentDay,
+                      ).animate().fadeIn(delay: 200.ms),
+                      const SizedBox(height: 12),
+                      ...activePlan.entriesForDay(currentDay).map((entry) {
+                        return _buildMealItem(context, entry);
+                      }).toList(),
+                    ] else ...[
+                      // Brak aktywnego planu - pusta sekcja zachęcająca do stworzenia
+                      _buildNoPlanCard(context).animate().fadeIn(delay: 200.ms),
                     ],
-                  ),
-                  // Plany z różnych tygodni mogą współistnieć również
-                  // na koncie standardowym. Przełącznik pojawia się,
-                  // gdy użytkownik ma więcej niż jeden aktywny plan.
-                  if (mealPlanProvider.activePlans.length > 1) ...[
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      height: 36,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: mealPlanProvider.activePlans.length,
-                        separatorBuilder: (_, __) => const SizedBox(width: 8),
-                        itemBuilder: (context, index) {
-                          final plan = mealPlanProvider.activePlans[index];
-                          final isSelected = plan.id == activePlan.id;
-                          return ChoiceChip(
-                            label: Text(
-                              'Plan ${plan.createdAt.toLocal().day}.${plan.createdAt.toLocal().month} '
-                              '· ${plan.durationDays} dni',
-                            ),
-                            selected: isSelected,
-                            onSelected: (_) => mealPlanProvider.selectPlan(plan),
-                            selectedColor: AppTheme.actionPrimaryColor,
-                            labelStyle: TextStyle(
-                              color: isSelected
-                                  ? Theme.of(context).colorScheme.onPrimary
-                                  : AppTheme.textPrimary,
-                              fontSize: 12,
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 12),
-                  _buildActivePlanCard(
-                    context,
-                    plan: activePlan,
-                    storeName: getStoreName(activePlan.storeId),
-                    currentDay: currentDay,
-                  ).animate().fadeIn(delay: 200.ms),
-                  const SizedBox(height: 12),
-                  ...activePlan.entriesForDay(currentDay).map((entry) {
-                    return _buildMealItem(context, entry);
-                  }).toList(),
-                ] else ...[
-                  // Brak aktywnego planu - pusta sekcja zachęcająca do stworzenia
-                  _buildNoPlanCard(context).animate().fadeIn(delay: 200.ms),
-                ],
-                const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-                // Treści dodatkowe są na końcu — nie odsuwają planu ani
-                // dzisiejszych posiłków od początku ekranu.
-                _buildContestBanner(context),
-                const SizedBox(height: 12),
-                _buildTipOfTheDayCard(context),
-                const SizedBox(height: 32),
-              ],
+                    // Treści dodatkowe są na końcu — nie odsuwają planu ani
+                    // dzisiejszych posiłków od początku ekranu.
+                    _buildContestBanner(context),
+                    const SizedBox(height: 12),
+                    _buildTipOfTheDayCard(context),
+                    const SizedBox(height: 32),
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
-      ),
         ],
       ),
     );
@@ -662,7 +772,10 @@ class HomeTab extends StatelessWidget {
   /// standardowym podziałem co w kalkulatorze kalorii (25% białko /
   /// 30% tłuszcz / 45% węglowodany) z targetCalories — spójne z tym,
   /// co użytkownik widzi w kalkulatorze.
-  Widget _buildDailySummaryCard(BuildContext context, FoodLogProvider foodLogProvider) {
+  Widget _buildDailySummaryCard(
+    BuildContext context,
+    FoodLogProvider foodLogProvider,
+  ) {
     final summary = foodLogProvider.summary;
 
     if (foodLogProvider.isLoading ||
@@ -703,25 +816,70 @@ class HomeTab extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Dziś zjedzono', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-              Text(
-                '${consumedKcal.round()} / ${targetKcal.round()} kcal',
-                style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryColor),
+              Expanded(
+                child: Text(
+                  'Dziś zjedzono',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  '${consumedKcal.round()} / ${targetKcal.round()} kcal',
+                  maxLines: 2,
+                  textAlign: TextAlign.end,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.primaryColor,
+                  ),
+                ),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          _buildProgressBar(consumedKcal, targetKcal, AppTheme.primaryColor, height: 10),
+          _buildProgressBar(
+            consumedKcal,
+            targetKcal,
+            AppTheme.primaryColor,
+            height: 10,
+          ),
           const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(child: _buildMacroBar(context, 'Białko', consumedProtein, targetProtein, AppTheme.secondaryColor)),
+              Expanded(
+                child: _buildMacroBar(
+                  context,
+                  'Białko',
+                  consumedProtein,
+                  targetProtein,
+                  AppTheme.secondaryColor,
+                ),
+              ),
               const SizedBox(width: 12),
-              Expanded(child: _buildMacroBar(context, 'Tłuszcz', consumedFat, targetFat, const Color(0xFFE0A62E))),
+              Expanded(
+                child: _buildMacroBar(
+                  context,
+                  'Tłuszcz',
+                  consumedFat,
+                  targetFat,
+                  const Color(0xFFE0A62E),
+                ),
+              ),
               const SizedBox(width: 12),
-              Expanded(child: _buildMacroBar(context, 'Węgl.', consumedCarbs, targetCarbs, const Color(0xFF3B82F6))),
+              Expanded(
+                child: _buildMacroBar(
+                  context,
+                  'Węgl.',
+                  consumedCarbs,
+                  targetCarbs,
+                  const Color(0xFF3B82F6),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 14),
@@ -813,39 +971,69 @@ class HomeTab extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(title,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
                   const SizedBox(height: 3),
                   Text(
                     subtitle,
                     style: TextStyle(
-                        fontSize: 11, color: AppTheme.textSecondary, height: 1.3),
+                      fontSize: 11,
+                      color: AppTheme.textSecondary,
+                      height: 1.3,
+                    ),
                   ),
                 ],
               ),
             ),
             const SizedBox(width: 8),
-            trailing ?? Icon(Icons.chevron_right, color: AppTheme.textSecondary),
+            trailing ??
+                Icon(Icons.chevron_right, color: AppTheme.textSecondary),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildMacroBar(BuildContext context, String label, double consumed, double target, Color color) {
+  Widget _buildMacroBar(
+    BuildContext context,
+    String label,
+    double consumed,
+    double target,
+    Color color,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+        Text(
+          label,
+          style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+        ),
         const SizedBox(height: 4),
-        Text('${consumed.round()}g', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: color)),
+        Text(
+          '${consumed.round()}g',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+            color: color,
+          ),
+        ),
         const SizedBox(height: 4),
         _buildProgressBar(consumed, target, color, height: 6),
       ],
     );
   }
 
-  Widget _buildProgressBar(double consumed, double target, Color color, {double height = 8}) {
+  Widget _buildProgressBar(
+    double consumed,
+    double target,
+    Color color, {
+    double height = 8,
+  }) {
     final ratio = target > 0 ? (consumed / target).clamp(0.0, 1.0) : 0.0;
     return ClipRRect(
       borderRadius: BorderRadius.circular(height / 2),
@@ -872,11 +1060,12 @@ class HomeTab extends StatelessWidget {
       // a nie na początku. Dotąd użytkownik czytał poradę na ekranie
       // głównym, dotykał jej i lądował na górze listy kilkudziesięciu
       // pozycji, gdzie musiał jej szukać.
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => CookingTipsScreen(highlightIndex: tipIndex),
-        ),
-      ),
+      onTap:
+          () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => CookingTipsScreen(highlightIndex: tipIndex),
+            ),
+          ),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -892,7 +1081,11 @@ class HomeTab extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Icon(Icons.lightbulb_outline, color: AppTheme.secondaryColor, size: 28),
+            const Icon(
+              Icons.lightbulb_outline,
+              color: AppTheme.secondaryColor,
+              size: 28,
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -908,13 +1101,22 @@ class HomeTab extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Text(tip.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  Text(
+                    tip.title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
                   const SizedBox(height: 2),
                   Text(
                     tip.tip,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.textSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -980,9 +1182,10 @@ class HomeTab extends StatelessWidget {
       color: waterBlue,
       title: 'Nawodnienie',
       subtitle: '$ml z $goal ml · ${(progress * 100).round()}% celu',
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const CalorieTrackerScreen()),
-      ),
+      onTap:
+          () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const CalorieTrackerScreen()),
+          ),
       trailing: SizedBox(
         width: 34,
         height: 34,
@@ -998,7 +1201,10 @@ class HomeTab extends StatelessWidget {
             Text(
               '${(progress * 100).round()}',
               style: const TextStyle(
-                  fontSize: 9, fontWeight: FontWeight.bold, color: waterBlue),
+                fontSize: 9,
+                fontWeight: FontWeight.bold,
+                color: waterBlue,
+              ),
             ),
           ],
         ),
@@ -1010,9 +1216,10 @@ class HomeTab extends StatelessWidget {
     const gold = Color(0xFFE0A62E);
     return InkWell(
       borderRadius: BorderRadius.circular(16),
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const RecipeLeaderboardScreen()),
-      ),
+      onTap:
+          () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const RecipeLeaderboardScreen()),
+          ),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(16),
@@ -1105,14 +1312,20 @@ class HomeTab extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
                     maxLines: 2,
                     softWrap: true,
                     overflow: TextOverflow.fade,
                   ),
                   Text(
                     subtitle,
-                    style: TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: AppTheme.textSecondary,
+                    ),
                     maxLines: 2,
                     softWrap: true,
                     overflow: TextOverflow.fade,
@@ -1144,22 +1357,34 @@ class HomeTab extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Icon(Icons.shopping_bag_outlined, color: AppTheme.primaryColor),
-                  const SizedBox(width: 8),
-                  Text(
-                    storeName,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.shopping_bag_outlined,
+                      color: AppTheme.primaryColor,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        storeName,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
-                  ),
-                ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: AppTheme.primaryColor.withOpacity(0.1),
                   borderRadius: const BorderRadius.all(Radius.circular(12)),
@@ -1178,9 +1403,9 @@ class HomeTab extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             'Dzień $currentDay z ${plan.durationDays}',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           ClipRRect(
@@ -1189,7 +1414,9 @@ class HomeTab extends StatelessWidget {
               value: progress,
               minHeight: 6,
               backgroundColor: AppTheme.backgroundColor,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                AppTheme.primaryColor,
+              ),
             ),
           ),
           const SizedBox(height: 18),
@@ -1223,10 +1450,9 @@ class HomeTab extends StatelessWidget {
   Widget _buildMealItem(BuildContext context, MealPlanEntry entry) {
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).pushNamed(
-          '/recipe/detail',
-          arguments: entry.recipe,
-        );
+        Navigator.of(
+          context,
+        ).pushNamed('/recipe/detail', arguments: entry.recipe);
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
@@ -1263,9 +1489,9 @@ class HomeTab extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     entry.recipe.name,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontSize: 16,
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleLarge?.copyWith(fontSize: 16),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -1296,9 +1522,9 @@ class HomeTab extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             'Brak aktywnego planu posiłków',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),

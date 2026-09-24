@@ -110,9 +110,10 @@ class _PickProductFromCatalogSheetState
       final response = await _client.get(
         '$endpoint?skip=$skip&limit=$pageSize$queryPart',
       );
-      final page = (response as List)
-          .map((item) => Product.fromJson(item as Map<String, dynamic>))
-          .toList();
+      final page =
+          (response as List)
+              .map((item) => Product.fromJson(item as Map<String, dynamic>))
+              .toList();
       products.addAll(page);
       if (page.length < pageSize) break;
     }
@@ -141,7 +142,8 @@ class _PickProductFromCatalogSheetState
       final merged = <String, Product>{};
       for (final response in responses) {
         for (final product in response) {
-          final key = '${product.name.trim().toLowerCase()}|'
+          final key =
+              '${product.name.trim().toLowerCase()}|'
               '${(product.brand ?? '').trim().toLowerCase()}';
           // Katalog oficjalny jest pobierany pierwszy i ma pierwszeństwo
           // przed takim samym rekordem z cache skanera.
@@ -149,8 +151,8 @@ class _PickProductFromCatalogSheetState
         }
       }
       setState(() {
-        _results = merged.values.toList()
-          ..sort((a, b) => a.name.compareTo(b.name));
+        _results =
+            merged.values.toList()..sort((a, b) => a.name.compareTo(b.name));
       });
     } catch (e) {
       if (!mounted || generation != _requestGeneration) return;
@@ -203,49 +205,57 @@ class _PickProductFromCatalogSheetState
       // wyszukiwaniem tekstowym, czy skanowaniem.
       final suggested = result.servingQuantity ?? 100;
       final controller = TextEditingController(
-        text: suggested == suggested.roundToDouble()
-            ? suggested.toStringAsFixed(0)
-            : suggested.toStringAsFixed(1),
+        text:
+            suggested == suggested.roundToDouble()
+                ? suggested.toStringAsFixed(0)
+                : suggested.toStringAsFixed(1),
       );
       final grams = await showDialog<double>(
         context: context,
-        builder: (ctx) => AlertDialog(
-            title: Text(result.name!),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (result.brand?.trim().isNotEmpty == true)
-                  Text('Marka: ${result.brand}'),
-                if (result.priceMin != null && result.priceMax != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4, bottom: 12),
-                    child: Text(
-                      'Typowy zakres cen: ${result.priceMin!.toStringAsFixed(0)}–${result.priceMax!.toStringAsFixed(0)} zł',
+        builder:
+            (ctx) => AlertDialog(
+              title: Text(result.name!),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (result.brand?.trim().isNotEmpty == true)
+                    Text('Marka: ${result.brand}'),
+                  if (result.priceMin != null && result.priceMax != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4, bottom: 12),
+                      child: Text(
+                        'Typowy zakres cen: ${result.priceMin!.toStringAsFixed(0)}–${result.priceMax!.toStringAsFixed(0)} zł',
+                      ),
+                    ),
+                  TextField(
+                    controller: controller,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      labelText: 'Ilość (${result.unit})',
                     ),
                   ),
-                TextField(
-                  controller: controller,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  autofocus: true,
-                  decoration: InputDecoration(
-                    labelText: 'Ilość (${result.unit})',
-                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Anuluj'),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    final val = double.tryParse(
+                      controller.text.replaceAll(',', '.'),
+                    );
+                    Navigator.pop(ctx, val);
+                  },
+                  child: const Text('Dalej'),
                 ),
               ],
             ),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Anuluj')),
-              FilledButton(
-                onPressed: () {
-                  final val = double.tryParse(controller.text.replaceAll(',', '.'));
-                  Navigator.pop(ctx, val);
-                },
-                child: const Text('Dalej'),
-              ),
-            ],
-          ),
       );
       controller.dispose();
       if (grams == null || grams <= 0 || !mounted) return;
@@ -266,46 +276,54 @@ class _PickProductFromCatalogSheetState
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(
-          duration: const Duration(seconds: 3),
-          content: Text(friendlyError(e)),
-        ));
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(friendlyError(e)),
+          ),
+        );
     }
   }
 
   Future<void> _pickProduct(Product product) async {
     final controller = TextEditingController(
-      text: product.defaultQuantity > 0
-          ? product.defaultQuantity.toStringAsFixed(0)
-          : '100',
+      text:
+          product.defaultQuantity > 0
+              ? product.defaultQuantity.toStringAsFixed(0)
+              : '100',
     );
     final grams = await showDialog<double>(
       context: context,
-      builder: (ctx) => AlertDialog(
-          title: Text(product.name),
-          content: TextField(
-            controller: controller,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            autofocus: true,
-            decoration: InputDecoration(
-              labelText:
-                  'Ilość (${product.unit == 'ml' || product.unit == 'l' ? 'ml' : 'g'})',
+      builder:
+          (ctx) => AlertDialog(
+            title: Text(product.name),
+            content: TextField(
+              controller: controller,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              autofocus: true,
+              decoration: InputDecoration(
+                labelText:
+                    'Ilość (${product.unit == 'ml' || product.unit == 'l' ? 'ml' : 'g'})',
+              ),
             ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Anuluj'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  final val = double.tryParse(
+                    controller.text.replaceAll(',', '.'),
+                  );
+                  Navigator.pop(ctx, val);
+                },
+                child: const Text('Dalej'),
+              ),
+            ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Anuluj'),
-            ),
-            FilledButton(
-              onPressed: () {
-                final val = double.tryParse(controller.text.replaceAll(',', '.'));
-                Navigator.pop(ctx, val);
-              },
-              child: const Text('Dalej'),
-            ),
-          ],
-        ),
     );
     controller.dispose();
     if (grams == null || grams <= 0 || !mounted) return;
@@ -353,68 +371,70 @@ class _PickProductFromCatalogSheetState
       children: [
         if (showHandle) ...[
           const SizedBox(height: 10),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppTheme.textSecondary.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(2),
-              ),
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: AppTheme.textSecondary.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(2),
             ),
+          ),
         ],
         Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
-              child: TextField(
-                controller: _searchController,
-                autofocus:
-                    widget.initialBarcode == null && !widget.scanOnOpen,
-                onChanged: _onQueryChanged,
-                decoration: InputDecoration(
-                  hintText: 'Szukaj produktu...',
-                  prefixIcon: const Icon(Icons.search),
-                  // Skanowanie tuż obok pola wyszukiwania — szybsza
-                  // alternatywa dla wpisywania nazwy, gdy opakowanie
-                  // jest pod ręką.
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.barcode_reader),
-                    tooltip: 'Skanuj kod kreskowy',
-                    onPressed: _scanBarcode,
-                  ),
-                ),
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+          child: TextField(
+            controller: _searchController,
+            autofocus: widget.initialBarcode == null && !widget.scanOnOpen,
+            onChanged: _onQueryChanged,
+            decoration: InputDecoration(
+              hintText: 'Szukaj produktu...',
+              prefixIcon: const Icon(Icons.search),
+              // Skanowanie tuż obok pola wyszukiwania — szybsza
+              // alternatywa dla wpisywania nazwy, gdy opakowanie
+              // jest pod ręką.
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.barcode_reader),
+                tooltip: 'Skanuj kod kreskowy',
+                onPressed: _scanBarcode,
               ),
             ),
-            Expanded(
-              child: _isLoading && _results.isEmpty
+          ),
+        ),
+        Expanded(
+          child:
+              _isLoading && _results.isEmpty
                   ? const Center(child: CircularProgressIndicator())
                   : _error != null
-                      ? Center(
-                          child: Text(_error!,
-                              style: TextStyle(color: AppTheme.textSecondary)),
-                        )
-                      : _results.isEmpty
-                          ? Center(
-                              child: Text(
-                                'Brak produktów pasujących do wyszukiwania.',
-                                style: TextStyle(color: AppTheme.textSecondary),
-                              ),
-                            )
-                          : ListView.builder(
-                              controller: scrollController,
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                              itemCount: _results.length,
-                              itemBuilder: (context, index) {
-                                final p = _results[index];
-                                return ListTile(
-                                  title: Text(p.name),
-                                  subtitle: Text(
-                                    '${p.nutritionPer100.kcal.round()} kcal / 100${p.unit == 'ml' || p.unit == 'l' ? 'ml' : 'g'}'
-                                    '${p.brand != null && p.brand!.isNotEmpty ? ' · ${p.brand}' : ''}'
-                                    '${p.source == 'scan' ? ' · zeskanowany' : ''}',
-                                  ),
-                                  onTap: () => _pickProduct(p),
-                                );
-                              },
-                            ),
+                  ? Center(
+                    child: Text(
+                      _error!,
+                      style: TextStyle(color: AppTheme.textSecondary),
+                    ),
+                  )
+                  : _results.isEmpty
+                  ? Center(
+                    child: Text(
+                      'Brak produktów pasujących do wyszukiwania.',
+                      style: TextStyle(color: AppTheme.textSecondary),
+                    ),
+                  )
+                  : ListView.builder(
+                    controller: scrollController,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: _results.length,
+                    itemBuilder: (context, index) {
+                      final p = _results[index];
+                      return ListTile(
+                        title: Text(p.name),
+                        subtitle: Text(
+                          '${p.nutritionPer100.kcal.round()} kcal / 100${p.unit == 'ml' || p.unit == 'l' ? 'ml' : 'g'}'
+                          '${p.brand != null && p.brand!.isNotEmpty ? ' · ${p.brand}' : ''}'
+                          '${p.source == 'scan' ? ' · zeskanowany' : ''}',
+                        ),
+                        onTap: () => _pickProduct(p),
+                      );
+                    },
+                  ),
         ),
       ],
     );

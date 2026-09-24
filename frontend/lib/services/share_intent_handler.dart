@@ -29,7 +29,9 @@ import '../screens/recipes/ai_add_recipe_screen.dart';
 /// pushReplacementNamed('/home'). Scalenie decyzji o trasie w JEDNYM
 /// miejscu (SplashScreen) eliminuje ten problem u źródła.
 class ShareIntentHandler {
-  static const MethodChannel _channel = MethodChannel('com.meal_planner_polska_v1/share_intent');
+  static const MethodChannel _channel = MethodChannel(
+    'com.meal_planner_polska_v1/share_intent',
+  );
   static final RegExp _urlPattern = RegExp(r'https?://\S+');
 
   static String? extractUrl(String? sharedText) {
@@ -38,8 +40,10 @@ class ShareIntentHandler {
     if (raw == null) return null;
     final url = raw.replaceFirst(RegExp(r'[.,;!?\)\]\}]+$'), '');
     final uri = Uri.tryParse(url);
-    if (uri == null || !uri.hasAuthority ||
-        (uri.scheme != 'https' && uri.scheme != 'http')) return null;
+    if (uri == null ||
+        !uri.hasAuthority ||
+        (uri.scheme != 'https' && uri.scheme != 'http'))
+      return null;
     return url;
   }
 
@@ -54,7 +58,10 @@ class ShareIntentHandler {
     _channel.invokeMethod<void>('shareChannelReady').catchError((_) {});
   }
 
-  static void _handleSharedText(String? sharedText, GlobalKey<NavigatorState> navigatorKey) {
+  static void _handleSharedText(
+    String? sharedText,
+    GlobalKey<NavigatorState> navigatorKey,
+  ) {
     if (sharedText == null || sharedText.isEmpty) return;
 
     final url = extractUrl(sharedText);
@@ -64,10 +71,10 @@ class ShareIntentHandler {
       final navigator = navigatorKey.currentState;
       if (navigator == null) return;
       navigator.push(
-        MaterialPageRoute(builder: (_) => AiAddRecipeScreen(
-          initialUrl: url,
-          autoStartImport: true,
-        )),
+        MaterialPageRoute(
+          builder:
+              (_) => AiAddRecipeScreen(initialUrl: url, autoStartImport: true),
+        ),
       );
     });
   }

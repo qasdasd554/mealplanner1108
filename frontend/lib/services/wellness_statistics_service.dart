@@ -5,12 +5,11 @@ class WellnessStatisticsService {
   final ApiClient _client;
 
   WellnessStatisticsService({ApiClient? client})
-      : _client = client ?? ApiClient();
+    : _client = client ?? ApiClient();
 
   Future<WellnessStatistics> getStatistics({int days = 30}) async {
     try {
-      final response =
-          await _client.get('/wellness/stats/overview?days=$days');
+      final response = await _client.get('/wellness/stats/overview?days=$days');
       return WellnessStatistics.fromJson(response as Map<String, dynamic>);
     } on ApiException catch (error) {
       // Alias pozostaje obsługiwany przez backend. Dzięki temu ekran nie

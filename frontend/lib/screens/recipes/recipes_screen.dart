@@ -95,7 +95,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
       _importPollTimer?.cancel();
       if (active != null) {
         _importPollTimer = Timer.periodic(
-          const Duration(seconds: 10), (_) => _loadImportStatus(),
+          const Duration(seconds: 10),
+          (_) => _loadImportStatus(),
         );
       } else if (wasActive) {
         _loadRecipes();
@@ -120,29 +121,36 @@ class _RecipesScreenState extends State<RecipesScreen> {
       // "Moje" to osobny endpoint (GET /recipes/mine) — istniał już w
       // backendzie i w serwisie, tylko nigdy nie był podłączony pod
       // żaden przełącznik w interfejsie.
-      final list = _myRecipesOnly
-          ? await _recipeService.getMyRecipes(
-              sortBy: _sortBy == 'name' ? 'newest' : _sortBy,
-              favoritesOnly: _favoritesOnly,
-              newOnly: _newOnly,
-              communityOnly: _communityOnly,
-              search: _searchQuery,
-              mealType: _selectedMealType,
-              difficulty: _selectedDifficulty,
-              tag: _selectedDietTag != null ? kDietNameToTag[_selectedDietTag] : null,
-              limit: _pageSize,
-            )
-          : await _recipeService.getRecipes(
-              search: _searchQuery,
-              mealType: _selectedMealType,
-              difficulty: _selectedDifficulty,
-              tag: _selectedDietTag != null ? kDietNameToTag[_selectedDietTag] : null,
-              favoritesOnly: _favoritesOnly,
-              newOnly: _newOnly,
-              communityOnly: _communityOnly,
-              sortBy: _sortBy,
-              limit: _pageSize,
-            );
+      final list =
+          _myRecipesOnly
+              ? await _recipeService.getMyRecipes(
+                sortBy: _sortBy == 'name' ? 'newest' : _sortBy,
+                favoritesOnly: _favoritesOnly,
+                newOnly: _newOnly,
+                communityOnly: _communityOnly,
+                search: _searchQuery,
+                mealType: _selectedMealType,
+                difficulty: _selectedDifficulty,
+                tag:
+                    _selectedDietTag != null
+                        ? kDietNameToTag[_selectedDietTag]
+                        : null,
+                limit: _pageSize,
+              )
+              : await _recipeService.getRecipes(
+                search: _searchQuery,
+                mealType: _selectedMealType,
+                difficulty: _selectedDifficulty,
+                tag:
+                    _selectedDietTag != null
+                        ? kDietNameToTag[_selectedDietTag]
+                        : null,
+                favoritesOnly: _favoritesOnly,
+                newOnly: _newOnly,
+                communityOnly: _communityOnly,
+                sortBy: _sortBy,
+                limit: _pageSize,
+              );
       if (!mounted || requestVersion != _requestVersion) return;
       setState(() {
         _recipes = list;
@@ -153,7 +161,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
       if (!mounted || requestVersion != _requestVersion) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            duration: const Duration(seconds: 3),
+          duration: const Duration(seconds: 3),
           content: Text('Błąd podczas pobierania przepisów: $e'),
           backgroundColor: AppTheme.errorColor,
         ),
@@ -173,31 +181,38 @@ class _RecipesScreenState extends State<RecipesScreen> {
     final skip = _nextSkip;
     setState(() => _isLoadingMore = true);
     try {
-      final list = _myRecipesOnly
-          ? await _recipeService.getMyRecipes(
-              sortBy: _sortBy == 'name' ? 'newest' : _sortBy,
-              favoritesOnly: _favoritesOnly,
-              newOnly: _newOnly,
-              communityOnly: _communityOnly,
-              search: _searchQuery,
-              mealType: _selectedMealType,
-              difficulty: _selectedDifficulty,
-              tag: _selectedDietTag != null ? kDietNameToTag[_selectedDietTag] : null,
-              limit: _pageSize,
-              skip: skip,
-            )
-          : await _recipeService.getRecipes(
-              search: _searchQuery,
-              mealType: _selectedMealType,
-              difficulty: _selectedDifficulty,
-              tag: _selectedDietTag != null ? kDietNameToTag[_selectedDietTag] : null,
-              favoritesOnly: _favoritesOnly,
-              newOnly: _newOnly,
-              communityOnly: _communityOnly,
-              sortBy: _sortBy,
-              limit: _pageSize,
-              skip: skip,
-            );
+      final list =
+          _myRecipesOnly
+              ? await _recipeService.getMyRecipes(
+                sortBy: _sortBy == 'name' ? 'newest' : _sortBy,
+                favoritesOnly: _favoritesOnly,
+                newOnly: _newOnly,
+                communityOnly: _communityOnly,
+                search: _searchQuery,
+                mealType: _selectedMealType,
+                difficulty: _selectedDifficulty,
+                tag:
+                    _selectedDietTag != null
+                        ? kDietNameToTag[_selectedDietTag]
+                        : null,
+                limit: _pageSize,
+                skip: skip,
+              )
+              : await _recipeService.getRecipes(
+                search: _searchQuery,
+                mealType: _selectedMealType,
+                difficulty: _selectedDifficulty,
+                tag:
+                    _selectedDietTag != null
+                        ? kDietNameToTag[_selectedDietTag]
+                        : null,
+                favoritesOnly: _favoritesOnly,
+                newOnly: _newOnly,
+                communityOnly: _communityOnly,
+                sortBy: _sortBy,
+                limit: _pageSize,
+                skip: skip,
+              );
       if (!mounted || requestVersion != _requestVersion) return;
       final seen = _recipes.map((r) => r.id).toSet();
       setState(() {
@@ -207,10 +222,12 @@ class _RecipesScreenState extends State<RecipesScreen> {
       });
     } catch (e) {
       if (mounted && requestVersion == _requestVersion) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Nie udało się wczytać kolejnych przepisów: $e'),
-          backgroundColor: AppTheme.errorColor,
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Nie udało się wczytać kolejnych przepisów: $e'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
       }
     } finally {
       if (mounted && requestVersion == _requestVersion) {
@@ -240,9 +257,9 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 ),
               ),
               onPressed: () async {
-                await Navigator.of(context).push(MaterialPageRoute(
-                  builder: (_) => const AiAddRecipeScreen(),
-                ));
+                await Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const AiAddRecipeScreen()),
+                );
                 _loadImportStatus();
               },
             ),
@@ -252,26 +269,35 @@ class _RecipesScreenState extends State<RecipesScreen> {
           // żeby wyraźnie zachęcała do sprawdzenia cotygodniowego
           // konkursu, nie ginęła obok innych, zwykłych ikon.
           Container(
-            // Odstęp zwiększony z 4 na 14 px — jedyna ikona w tym pasku
-            // siedziała praktycznie przyklejona do prawej krawędzi
-            // ekranu, bez żadnego oddechu.
-            margin: const EdgeInsets.only(right: 14),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: const Color(0xFFE0A62E).withOpacity(0.15),
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.emoji_events, color: Color(0xFFE0A62E)),
-              tooltip: 'Ranking autorów przepisów',
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const RecipeLeaderboardScreen()),
-                );
-              },
-            ),
-          )
+                // Odstęp zwiększony z 4 na 14 px — jedyna ikona w tym pasku
+                // siedziała praktycznie przyklejona do prawej krawędzi
+                // ekranu, bez żadnego oddechu.
+                margin: const EdgeInsets.only(right: 14),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFFE0A62E).withOpacity(0.15),
+                ),
+                child: IconButton(
+                  icon: const Icon(
+                    Icons.emoji_events,
+                    color: Color(0xFFE0A62E),
+                  ),
+                  tooltip: 'Ranking autorów przepisów',
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const RecipeLeaderboardScreen(),
+                      ),
+                    );
+                  },
+                ),
+              )
               .animate(onPlay: (controller) => controller.repeat(reverse: true))
-              .scale(duration: 1200.ms, begin: const Offset(1, 1), end: const Offset(1.08, 1.08)),
+              .scale(
+                duration: 1200.ms,
+                begin: const Offset(1, 1),
+                end: const Offset(1.08, 1.08),
+              ),
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
@@ -283,16 +309,17 @@ class _RecipesScreenState extends State<RecipesScreen> {
               decoration: InputDecoration(
                 hintText: 'Szukaj przepisu...',
                 prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchQuery.isEmpty
-                    ? null
-                    : IconButton(
-                        tooltip: 'Wyczyść wyszukiwanie',
-                        icon: const Icon(Icons.close),
-                        onPressed: () {
-                          _searchController.clear();
-                          _setSearchQuery('');
-                        },
-                      ),
+                suffixIcon:
+                    _searchQuery.isEmpty
+                        ? null
+                        : IconButton(
+                          tooltip: 'Wyczyść wyszukiwanie',
+                          icon: const Icon(Icons.close),
+                          onPressed: () {
+                            _searchController.clear();
+                            _setSearchQuery('');
+                          },
+                        ),
                 contentPadding: const EdgeInsets.symmetric(vertical: 12),
                 fillColor: AppTheme.surfaceColor.withOpacity(0.5),
               ),
@@ -304,192 +331,230 @@ class _RecipesScreenState extends State<RecipesScreen> {
         children: [
           const DecorativeCircles(),
           NestedScrollView(
-        // UWAGA (naprawa): pasek filtrów przebudowany na SliverAppBar
-        // (floating+snap) zamiast zwykłego Column — to standardowy
-        // wzorzec Fluttera "chowaj przy przewijaniu w dół, pokaż od razu
-        // przy najmniejszym przewinięciu w górę". Daje więcej miejsca na
-        // siatkę przepisów, gdy użytkownik przegląda listę.
-        headerSliverBuilder: (context, innerBoxIsScrolled) {
-          return [
-            SliverAppBar(
-              automaticallyImplyLeading: false,
-              toolbarHeight: 0,
-              floating: true,
-              snap: true,
-              expandedHeight: 80,
-              backgroundColor: AppTheme.backgroundColor,
-              elevation: 0,
-              // UWAGA (przebudowa #2): teraz WSZYSTKIE 4 szybkie filtry
-              // (Ulubione/Moje/Nowość/Społeczność) widoczne naraz w jednym
-              // rzędzie — gwarancja mieszczenia się na KAŻDYM ekranie
-              // wynika z użycia Expanded (5 równych segmentów: 4 filtry +
-              // "Więcej filtrów"), więc fizycznie nie da się przewinąć w
-              // bok — nie ma czego przewijać, cała szerokość jest już
-              // wykorzystana. Reszta (typ posiłku, trudność, dieta)
-              // przeniesiona do panelu "Więcej filtrów".
-              flexibleSpace: FlexibleSpaceBar(
-                background: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  child: Row(
-                    children: [
-                      _buildQuickToggle(
-                        icon: Icons.favorite_border,
-                        activeIcon: Icons.favorite,
-                        label: 'Ulubione',
-                        isActive: _favoritesOnly,
-                        activeColor: Colors.redAccent,
-                        onTap: () {
-                          setState(() => _favoritesOnly = !_favoritesOnly);
-                          _loadRecipes();
-                        },
+            // UWAGA (naprawa): pasek filtrów przebudowany na SliverAppBar
+            // (floating+snap) zamiast zwykłego Column — to standardowy
+            // wzorzec Fluttera "chowaj przy przewijaniu w dół, pokaż od razu
+            // przy najmniejszym przewinięciu w górę". Daje więcej miejsca na
+            // siatkę przepisów, gdy użytkownik przegląda listę.
+            headerSliverBuilder: (context, innerBoxIsScrolled) {
+              return [
+                SliverAppBar(
+                  automaticallyImplyLeading: false,
+                  toolbarHeight: 0,
+                  floating: true,
+                  snap: true,
+                  expandedHeight: 80,
+                  backgroundColor: AppTheme.backgroundColor,
+                  elevation: 0,
+                  // UWAGA (przebudowa #2): teraz WSZYSTKIE 4 szybkie filtry
+                  // (Ulubione/Moje/Nowość/Społeczność) widoczne naraz w jednym
+                  // rzędzie — gwarancja mieszczenia się na KAŻDYM ekranie
+                  // wynika z użycia Expanded (5 równych segmentów: 4 filtry +
+                  // "Więcej filtrów"), więc fizycznie nie da się przewinąć w
+                  // bok — nie ma czego przewijać, cała szerokość jest już
+                  // wykorzystana. Reszta (typ posiłku, trudność, dieta)
+                  // przeniesiona do panelu "Więcej filtrów".
+                  flexibleSpace: FlexibleSpaceBar(
+                    background: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
                       ),
-                      _buildQuickToggle(
-                        icon: Icons.person_outline,
-                        activeIcon: Icons.person,
-                        label: 'Moje',
-                        isActive: _myRecipesOnly,
-                        activeColor: AppTheme.primaryColor,
-                        onTap: () {
-                          setState(() => _myRecipesOnly = !_myRecipesOnly);
-                          _loadRecipes();
-                        },
-                      ),
-                      _buildQuickToggle(
-                        icon: Icons.fiber_new_outlined,
-                        activeIcon: Icons.fiber_new,
-                        label: 'Nowość',
-                        isActive: _newOnly,
-                        activeColor: AppTheme.accentColor,
-                        onTap: () {
-                          setState(() => _newOnly = !_newOnly);
-                          _loadRecipes();
-                        },
-                      ),
-                      _buildQuickToggle(
-                        icon: Icons.groups_outlined,
-                        activeIcon: Icons.groups,
-                        label: 'Społeczność',
-                        isActive: _communityOnly,
-                        activeColor: AppTheme.secondaryColor,
-                        onTap: () {
-                          setState(() => _communityOnly = !_communityOnly);
-                          _loadRecipes();
-                        },
-                      ),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => _showFilterSheet(context),
-                          child: Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 3),
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            decoration: BoxDecoration(
-                              color: _moreFiltersActiveCount > 0
-                                  ? AppTheme.primaryColor.withOpacity(0.12)
-                                  : AppTheme.surfaceColor,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: _moreFiltersActiveCount > 0
-                                    ? AppTheme.primaryColor
-                                    : AppTheme.textSecondary.withOpacity(0.2),
-                              ),
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Stack(
-                                  clipBehavior: Clip.none,
-                                  children: [
-                                    Icon(
-                                      Icons.tune,
-                                      size: 18,
-                                      color: _moreFiltersActiveCount > 0
-                                          ? AppTheme.primaryColor
-                                          : AppTheme.textSecondary,
-                                    ),
-                                    if (_moreFiltersActiveCount > 0)
-                                      Positioned(
-                                        right: -6,
-                                        top: -4,
-                                        child: Container(
-                                          padding: const EdgeInsets.all(2),
-                                          decoration: const BoxDecoration(
-                                            color: AppTheme.primaryColor,
-                                            shape: BoxShape.circle,
-                                          ),
-                                          constraints: const BoxConstraints(minWidth: 13, minHeight: 13),
-                                          child: Text(
-                                            '$_moreFiltersActiveCount',
-                                            textAlign: TextAlign.center,
-                                            style: const TextStyle(fontSize: 8, color: Colors.white),
-                                          ),
-                                        ),
-                                      ),
-                                  ],
+                      child: Row(
+                        children: [
+                          _buildQuickToggle(
+                            icon: Icons.favorite_border,
+                            activeIcon: Icons.favorite,
+                            label: 'Ulubione',
+                            isActive: _favoritesOnly,
+                            activeColor: Colors.redAccent,
+                            onTap: () {
+                              setState(() => _favoritesOnly = !_favoritesOnly);
+                              _loadRecipes();
+                            },
+                          ),
+                          _buildQuickToggle(
+                            icon: Icons.person_outline,
+                            activeIcon: Icons.person,
+                            label: 'Moje',
+                            isActive: _myRecipesOnly,
+                            activeColor: AppTheme.primaryColor,
+                            onTap: () {
+                              setState(() => _myRecipesOnly = !_myRecipesOnly);
+                              _loadRecipes();
+                            },
+                          ),
+                          _buildQuickToggle(
+                            icon: Icons.fiber_new_outlined,
+                            activeIcon: Icons.fiber_new,
+                            label: 'Nowość',
+                            isActive: _newOnly,
+                            activeColor: AppTheme.accentColor,
+                            onTap: () {
+                              setState(() => _newOnly = !_newOnly);
+                              _loadRecipes();
+                            },
+                          ),
+                          _buildQuickToggle(
+                            icon: Icons.groups_outlined,
+                            activeIcon: Icons.groups,
+                            label: 'Społeczność',
+                            isActive: _communityOnly,
+                            activeColor: AppTheme.secondaryColor,
+                            onTap: () {
+                              setState(() => _communityOnly = !_communityOnly);
+                              _loadRecipes();
+                            },
+                          ),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => _showFilterSheet(context),
+                              child: Container(
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 3,
                                 ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'Więcej',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 9,
-                                    color: _moreFiltersActiveCount > 0
-                                        ? AppTheme.primaryColor
-                                        : AppTheme.textSecondary,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color:
+                                      _moreFiltersActiveCount > 0
+                                          ? AppTheme.primaryColor.withOpacity(
+                                            0.12,
+                                          )
+                                          : AppTheme.surfaceColor,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color:
+                                        _moreFiltersActiveCount > 0
+                                            ? AppTheme.primaryColor
+                                            : AppTheme.textSecondary
+                                                .withOpacity(0.2),
                                   ),
                                 ),
-                              ],
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Stack(
+                                      clipBehavior: Clip.none,
+                                      children: [
+                                        Icon(
+                                          Icons.tune,
+                                          size: 18,
+                                          color:
+                                              _moreFiltersActiveCount > 0
+                                                  ? AppTheme.primaryColor
+                                                  : AppTheme.textSecondary,
+                                        ),
+                                        if (_moreFiltersActiveCount > 0)
+                                          Positioned(
+                                            right: -6,
+                                            top: -4,
+                                            child: Container(
+                                              padding: const EdgeInsets.all(2),
+                                              decoration: const BoxDecoration(
+                                                color: AppTheme.primaryColor,
+                                                shape: BoxShape.circle,
+                                              ),
+                                              constraints: const BoxConstraints(
+                                                minWidth: 13,
+                                                minHeight: 13,
+                                              ),
+                                              child: Text(
+                                                '$_moreFiltersActiveCount',
+                                                textAlign: TextAlign.center,
+                                                style: const TextStyle(
+                                                  fontSize: 8,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Więcej',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 9,
+                                        color:
+                                            _moreFiltersActiveCount > 0
+                                                ? AppTheme.primaryColor
+                                                : AppTheme.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            ),
-          ];
-        },
-        body: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : _recipes.isEmpty
-                ? _buildEmptyState()
-                : CustomScrollView(
-                    slivers: [
-                      SliverPadding(
-                        padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
-                        sliver: SliverGrid(
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 16,
-                            mainAxisSpacing: 16,
-                            childAspectRatio: 0.82,
-                          ),
-                          delegate: SliverChildBuilderDelegate(
-                            (context, index) => _buildRecipeCard(_recipes[index]),
-                            childCount: _recipes.length,
-                          ),
-                        ),
-                      ),
-                      if (_hasMore)
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(24, 12, 24, 96),
-                            child: OutlinedButton.icon(
-                              onPressed: _isLoadingMore ? null : _loadMore,
-                              icon: _isLoadingMore
-                                  ? const SizedBox(width: 18, height: 18,
-                                      child: CircularProgressIndicator(strokeWidth: 2))
-                                  : const Icon(Icons.expand_more),
-                              label: Text(_isLoadingMore ? 'Wczytywanie…' : 'Pokaż więcej przepisów'),
+              ];
+            },
+            body:
+                _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _recipes.isEmpty
+                    ? _buildEmptyState()
+                    : CustomScrollView(
+                      slivers: [
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+                          sliver: SliverGrid(
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 16,
+                                  mainAxisSpacing: 16,
+                                  childAspectRatio: 0.82,
+                                ),
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) =>
+                                  _buildRecipeCard(_recipes[index]),
+                              childCount: _recipes.length,
                             ),
                           ),
-                        )
-                      else
-                        const SliverToBoxAdapter(child: SizedBox(height: 96)),
-                    ],
-                  ),
-      ),
+                        ),
+                        if (_hasMore)
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(
+                                24,
+                                12,
+                                24,
+                                96,
+                              ),
+                              child: OutlinedButton.icon(
+                                onPressed: _isLoadingMore ? null : _loadMore,
+                                icon:
+                                    _isLoadingMore
+                                        ? const SizedBox(
+                                          width: 18,
+                                          height: 18,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                        : const Icon(Icons.expand_more),
+                                label: Text(
+                                  _isLoadingMore
+                                      ? 'Wczytywanie…'
+                                      : 'Pokaż więcej przepisów',
+                                ),
+                              ),
+                            ),
+                          )
+                        else
+                          const SliverToBoxAdapter(child: SizedBox(height: 96)),
+                      ],
+                    ),
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -544,74 +609,109 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                Text('Dodaj przepis', style: Theme.of(sheetContext).textTheme.titleLarge),
-                const SizedBox(height: 16),
-                Text('Z pomocą AI', style: Theme.of(sheetContext).textTheme.titleMedium),
-                optionTile(
-                  icon: Icons.photo_camera_outlined,
-                  title: 'Zrób zdjęcie',
-                  subtitle: 'Przepisu albo gotowego dania',
-                  trailing: const PremiumFeatureTag(
-                    label: 'PREMIUM / 2 PKT',
-                    fontSize: 8,
+                  Text(
+                    'Dodaj przepis',
+                    style: Theme.of(sheetContext).textTheme.titleLarge,
                   ),
-                  onTap: () {
-                    Navigator.of(sheetContext).pop();
-                    Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => const AiAddRecipeScreen(initialTabIndex: 1),
-                    )).then((_) { if (mounted) _loadImportStatus(); });
-                  },
-                ),
-                optionTile(
-                  icon: Icons.text_snippet_outlined,
-                  title: 'Wklej tekst',
-                  trailing: const PremiumFeatureTag(
-                    label: 'PREMIUM / 2 PKT',
-                    fontSize: 8,
+                  const SizedBox(height: 16),
+                  Text(
+                    'Z pomocą AI',
+                    style: Theme.of(sheetContext).textTheme.titleMedium,
                   ),
-                  onTap: () {
-                    Navigator.of(sheetContext).pop();
-                    Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => const AiAddRecipeScreen(initialTabIndex: 0),
-                    )).then((_) { if (mounted) _loadImportStatus(); });
-                  },
-                ),
-                optionTile(
-                  icon: Icons.link,
-                  title: 'Wklej link',
-                  trailing: const PremiumFeatureTag(
-                    label: 'PREMIUM / 2 PKT',
-                    fontSize: 8,
-                  ),
-                  onTap: () {
-                    Navigator.of(sheetContext).pop();
-                    Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => const AiAddRecipeScreen(initialTabIndex: 2),
-                    )).then((_) { if (mounted) _loadImportStatus(); });
-                  },
-                ),
-                const SizedBox(height: 8),
-                // Mniejsza, drugorzędna opcja ręczna.
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () {
+                  optionTile(
+                    icon: Icons.photo_camera_outlined,
+                    title: 'Zrób zdjęcie',
+                    subtitle: 'Przepisu albo gotowego dania',
+                    trailing: const PremiumFeatureTag(
+                      label: 'PREMIUM / 2 PKT',
+                      fontSize: 8,
+                    ),
+                    onTap: () {
                       Navigator.of(sheetContext).pop();
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const ManualAddRecipeScreen()),
-                      );
+                      Navigator.of(context)
+                          .push(
+                            MaterialPageRoute(
+                              builder:
+                                  (_) => const AiAddRecipeScreen(
+                                    initialTabIndex: 1,
+                                  ),
+                            ),
+                          )
+                          .then((_) {
+                            if (mounted) _loadImportStatus();
+                          });
                     },
-                    icon: const Icon(Icons.edit_outlined, size: 18),
-                    label: const Text('Dodaj ręcznie'),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      side: BorderSide(color: colorScheme.outlineVariant),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  ),
+                  optionTile(
+                    icon: Icons.text_snippet_outlined,
+                    title: 'Wklej tekst',
+                    trailing: const PremiumFeatureTag(
+                      label: 'PREMIUM / 2 PKT',
+                      fontSize: 8,
+                    ),
+                    onTap: () {
+                      Navigator.of(sheetContext).pop();
+                      Navigator.of(context)
+                          .push(
+                            MaterialPageRoute(
+                              builder:
+                                  (_) => const AiAddRecipeScreen(
+                                    initialTabIndex: 0,
+                                  ),
+                            ),
+                          )
+                          .then((_) {
+                            if (mounted) _loadImportStatus();
+                          });
+                    },
+                  ),
+                  optionTile(
+                    icon: Icons.link,
+                    title: 'Wklej link',
+                    trailing: const PremiumFeatureTag(
+                      label: 'PREMIUM / 2 PKT',
+                      fontSize: 8,
+                    ),
+                    onTap: () {
+                      Navigator.of(sheetContext).pop();
+                      Navigator.of(context)
+                          .push(
+                            MaterialPageRoute(
+                              builder:
+                                  (_) => const AiAddRecipeScreen(
+                                    initialTabIndex: 2,
+                                  ),
+                            ),
+                          )
+                          .then((_) {
+                            if (mounted) _loadImportStatus();
+                          });
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  // Mniejsza, drugorzędna opcja ręczna.
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.of(sheetContext).pop();
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const ManualAddRecipeScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.edit_outlined, size: 18),
+                      label: const Text('Dodaj ręcznie'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        side: BorderSide(color: colorScheme.outlineVariant),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                   ),
-                ),
                 ],
               ),
             ),
@@ -660,16 +760,26 @@ class _RecipesScreenState extends State<RecipesScreen> {
           margin: const EdgeInsets.symmetric(horizontal: 3),
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: isActive ? activeColor.withOpacity(0.12) : AppTheme.surfaceColor,
+            color:
+                isActive
+                    ? activeColor.withOpacity(0.12)
+                    : AppTheme.surfaceColor,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isActive ? activeColor : AppTheme.textSecondary.withOpacity(0.2),
+              color:
+                  isActive
+                      ? activeColor
+                      : AppTheme.textSecondary.withOpacity(0.2),
             ),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(isActive ? activeIcon : icon, size: 18, color: isActive ? activeColor : AppTheme.textSecondary),
+              Icon(
+                isActive ? activeIcon : icon,
+                size: 18,
+                color: isActive ? activeColor : AppTheme.textSecondary,
+              ),
               const SizedBox(height: 2),
               Text(
                 label,
@@ -726,7 +836,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
                         spacing: 8,
                         runSpacing: 4,
                         children: [
-                          Text('Filtry', style: Theme.of(sheetContext).textTheme.titleLarge),
+                          Text(
+                            'Filtry',
+                            style: Theme.of(sheetContext).textTheme.titleLarge,
+                          ),
                           if (_moreFiltersActiveCount > 0)
                             TextButton(
                               onPressed: () {
@@ -744,30 +857,41 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       const SizedBox(height: 16),
                       Text(
                         'Sortowanie',
-                        style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textSecondary, fontSize: 13),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textSecondary,
+                          fontSize: 13,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
                         children: [
-                          for (final entry in const {
-                            'name': 'Alfabetycznie',
-                            'kcal_asc': 'Kalorie: mniej',
-                            'kcal_desc': 'Kalorie: więcej',
-                            'prep_time': 'Czas: najszybsze',
-                          }.entries)
+                          for (final entry
+                              in const {
+                                'name': 'Alfabetycznie',
+                                'kcal_asc': 'Kalorie: mniej',
+                                'kcal_desc': 'Kalorie: więcej',
+                                'prep_time': 'Czas: najszybsze',
+                              }.entries)
                             ChoiceChip(
                               label: Text(entry.value),
                               selected: _sortBy == entry.key,
-                              onSelected: (_) => setSheetState(() => _sortBy = entry.key),
+                              onSelected:
+                                  (_) =>
+                                      setSheetState(() => _sortBy = entry.key),
                             ),
                         ],
                       ),
                       const SizedBox(height: 20),
                       Text(
                         'Dieta',
-                        style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textSecondary, fontSize: 13),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textSecondary,
+                          fontSize: 13,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Wrap(
@@ -777,7 +901,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
                           ChoiceChip(
                             label: const Text('Wszystkie'),
                             selected: _selectedDietTag == null,
-                            onSelected: (_) => setSheetState(() => _selectedDietTag = null),
+                            onSelected:
+                                (_) => setSheetState(
+                                  () => _selectedDietTag = null,
+                                ),
                           ),
                           // Pomijamy "Bez ograniczeń" z kDietOptions — tutaj
                           // odpowiednikiem "braku filtra" jest opcja
@@ -786,14 +913,21 @@ class _RecipesScreenState extends State<RecipesScreen> {
                             ChoiceChip(
                               label: Text(diet['name']!),
                               selected: _selectedDietTag == diet['name'],
-                              onSelected: (_) => setSheetState(() => _selectedDietTag = diet['name']),
+                              onSelected:
+                                  (_) => setSheetState(
+                                    () => _selectedDietTag = diet['name'],
+                                  ),
                             ),
                         ],
                       ),
                       const SizedBox(height: 20),
                       Text(
                         'Typ posiłku',
-                        style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textSecondary, fontSize: 13),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textSecondary,
+                          fontSize: 13,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Wrap(
@@ -803,39 +937,61 @@ class _RecipesScreenState extends State<RecipesScreen> {
                           ChoiceChip(
                             label: const Text('Wszystkie'),
                             selected: _selectedMealType == null,
-                            onSelected: (_) => setSheetState(() => _selectedMealType = null),
+                            onSelected:
+                                (_) => setSheetState(
+                                  () => _selectedMealType = null,
+                                ),
                           ),
                           ChoiceChip(
                             label: const Text('Śniadania'),
                             selected: _selectedMealType == 'śniadanie',
-                            onSelected: (_) => setSheetState(() => _selectedMealType = 'śniadanie'),
+                            onSelected:
+                                (_) => setSheetState(
+                                  () => _selectedMealType = 'śniadanie',
+                                ),
                           ),
                           ChoiceChip(
                             label: const Text('Obiady'),
                             selected: _selectedMealType == 'obiad',
-                            onSelected: (_) => setSheetState(() => _selectedMealType = 'obiad'),
+                            onSelected:
+                                (_) => setSheetState(
+                                  () => _selectedMealType = 'obiad',
+                                ),
                           ),
                           ChoiceChip(
                             label: const Text('Kolacje'),
                             selected: _selectedMealType == 'kolacja',
-                            onSelected: (_) => setSheetState(() => _selectedMealType = 'kolacja'),
+                            onSelected:
+                                (_) => setSheetState(
+                                  () => _selectedMealType = 'kolacja',
+                                ),
                           ),
                           ChoiceChip(
                             label: const Text('Przekąski'),
                             selected: _selectedMealType == 'przekąska',
-                            onSelected: (_) => setSheetState(() => _selectedMealType = 'przekąska'),
+                            onSelected:
+                                (_) => setSheetState(
+                                  () => _selectedMealType = 'przekąska',
+                                ),
                           ),
                           ChoiceChip(
                             label: const Text('Desery'),
                             selected: _selectedMealType == 'deser',
-                            onSelected: (_) => setSheetState(() => _selectedMealType = 'deser'),
+                            onSelected:
+                                (_) => setSheetState(
+                                  () => _selectedMealType = 'deser',
+                                ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 20),
                       Text(
                         'Trudność',
-                        style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textSecondary, fontSize: 13),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textSecondary,
+                          fontSize: 13,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Wrap(
@@ -845,22 +1001,34 @@ class _RecipesScreenState extends State<RecipesScreen> {
                           ChoiceChip(
                             label: const Text('Każda'),
                             selected: _selectedDifficulty == null,
-                            onSelected: (_) => setSheetState(() => _selectedDifficulty = null),
+                            onSelected:
+                                (_) => setSheetState(
+                                  () => _selectedDifficulty = null,
+                                ),
                           ),
                           ChoiceChip(
                             label: const Text('Łatwe'),
                             selected: _selectedDifficulty == 'łatwy',
-                            onSelected: (_) => setSheetState(() => _selectedDifficulty = 'łatwy'),
+                            onSelected:
+                                (_) => setSheetState(
+                                  () => _selectedDifficulty = 'łatwy',
+                                ),
                           ),
                           ChoiceChip(
                             label: const Text('Średnie'),
                             selected: _selectedDifficulty == 'średni',
-                            onSelected: (_) => setSheetState(() => _selectedDifficulty = 'średni'),
+                            onSelected:
+                                (_) => setSheetState(
+                                  () => _selectedDifficulty = 'średni',
+                                ),
                           ),
                           ChoiceChip(
                             label: const Text('Trudne'),
                             selected: _selectedDifficulty == 'trudny',
-                            onSelected: (_) => setSheetState(() => _selectedDifficulty = 'trudny'),
+                            onSelected:
+                                (_) => setSheetState(
+                                  () => _selectedDifficulty = 'trudny',
+                                ),
                           ),
                         ],
                       ),
@@ -897,10 +1065,9 @@ class _RecipesScreenState extends State<RecipesScreen> {
         // po powrocie — inaczej usunięty przepis zostawałby widoczny
         // jako "widmowy" wpis, dopóki coś innego nie wymusiłoby
         // ponownego pobrania.
-        await Navigator.of(context).pushNamed(
-          '/recipe/detail',
-          arguments: recipe,
-        );
+        await Navigator.of(
+          context,
+        ).pushNamed('/recipe/detail', arguments: recipe);
         if (mounted) _loadRecipes();
       },
       child: Container(
@@ -957,14 +1124,21 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       top: 6,
                       left: 6,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: AppTheme.secondaryColor,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Text(
                           'Nowość',
-                          style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
@@ -995,9 +1169,9 @@ class _RecipesScreenState extends State<RecipesScreen> {
                         const SizedBox(height: 4),
                         Text(
                           recipe.name,
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                fontSize: 14,
-                              ),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleLarge?.copyWith(fontSize: 14),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -1015,12 +1189,19 @@ class _RecipesScreenState extends State<RecipesScreen> {
                             // servings kiedyś było 0 (błędne dane), Dart rzuca
                             // wyjątkiem przy .round() na Infinity i wywala ekran.
                             children: [
-                              Icon(Icons.schedule, size: 13, color: AppTheme.textSecondary),
+                              Icon(
+                                Icons.schedule,
+                                size: 13,
+                                color: AppTheme.textSecondary,
+                              ),
                               const SizedBox(width: 3),
                               Flexible(
                                 child: Text(
                                   '${recipe.totalTimeMin} min • ${(recipe.nutritionTotal.kcal / (recipe.servings > 0 ? recipe.servings : 1)).round()} kcal/porcję',
-                                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
+                                  style: TextStyle(
+                                    color: AppTheme.textSecondary,
+                                    fontSize: 11,
+                                  ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -1030,14 +1211,22 @@ class _RecipesScreenState extends State<RecipesScreen> {
                         ),
                         const SizedBox(width: 4),
                         Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: AppTheme.backgroundColor,
-                            borderRadius: const BorderRadius.all(Radius.circular(6)),
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(6),
+                            ),
                           ),
                           child: Text(
                             recipe.difficulty,
-                            style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ],

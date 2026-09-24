@@ -30,7 +30,10 @@ class PremiumComparisonTable extends StatelessWidget {
       return Icon(
         value ? Icons.check : Icons.remove,
         size: 18,
-        color: value ? AppTheme.primaryColor : AppTheme.textSecondary.withOpacity(0.4),
+        color:
+            value
+                ? AppTheme.primaryColor
+                : AppTheme.textSecondary.withOpacity(0.4),
       );
     }
     return Text(
@@ -59,7 +62,11 @@ class PremiumComparisonTable extends StatelessWidget {
                   child: Text(
                     'Premium',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.secondaryColor, fontSize: 13),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.secondaryColor,
+                      fontSize: 13,
+                    ),
                   ),
                 ),
                 Expanded(
@@ -67,7 +74,10 @@ class PremiumComparisonTable extends StatelessWidget {
                   child: Text(
                     'Standard',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                    style: TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 13,
+                    ),
                   ),
                 ),
               ],
@@ -79,7 +89,10 @@ class PremiumComparisonTable extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               child: Row(
                 children: [
-                  Expanded(flex: 3, child: Text(row.$1, style: const TextStyle(fontSize: 13))),
+                  Expanded(
+                    flex: 3,
+                    child: Text(row.$1, style: const TextStyle(fontSize: 13)),
+                  ),
                   Expanded(flex: 2, child: Center(child: _buildCell(row.$2))),
                   Expanded(flex: 2, child: Center(child: _buildCell(row.$3))),
                 ],

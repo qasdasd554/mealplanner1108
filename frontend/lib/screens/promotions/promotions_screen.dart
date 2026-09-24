@@ -31,11 +31,12 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
     final promotionProvider = Provider.of<PromotionProvider>(context);
     final storeProvider = Provider.of<StoreProvider>(context);
 
-    final filtered = _selectedStore == null
-        ? promotionProvider.promotions
-        : promotionProvider.promotions
-            .where((p) => p.storeName == _selectedStore)
-            .toList();
+    final filtered =
+        _selectedStore == null
+            ? promotionProvider.promotions
+            : promotionProvider.promotions
+                .where((p) => p.storeName == _selectedStore)
+                .toList();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Promocje')),
@@ -57,35 +58,45 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
                       onSelected: (_) => setState(() => _selectedStore = null),
                     ),
                   ),
-                  ...storeProvider.stores.map((store) => Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: ChoiceChip(
-                          label: Text(store.name),
-                          selected: _selectedStore == store.name,
-                          selectedColor: AppTheme.primaryTintColor,
-                          onSelected: (_) => setState(() => _selectedStore = store.name),
-                        ),
-                      )),
+                  ...storeProvider.stores.map(
+                    (store) => Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ChoiceChip(
+                        label: Text(store.name),
+                        selected: _selectedStore == store.name,
+                        selectedColor: AppTheme.primaryTintColor,
+                        onSelected:
+                            (_) => setState(() => _selectedStore = store.name),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
           const SizedBox(height: 8),
           Expanded(
-            child: promotionProvider.isLoading
-                ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor))
-                : promotionProvider.error != null
+            child:
+                promotionProvider.isLoading
+                    ? const Center(
+                      child: CircularProgressIndicator(
+                        color: AppTheme.primaryColor,
+                      ),
+                    )
+                    : promotionProvider.error != null
                     ? _buildErrorState(promotionProvider)
                     : filtered.isEmpty
-                        ? const _EmptyState()
-                        : RefreshIndicator(
-                            onRefresh: () => promotionProvider.loadPromotions(),
-                            color: AppTheme.primaryColor,
-                            child: ListView.builder(
-                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                              itemCount: filtered.length,
-                              itemBuilder: (context, index) => _PromotionTile(promo: filtered[index]),
-                            ),
-                          ),
+                    ? const _EmptyState()
+                    : RefreshIndicator(
+                      onRefresh: () => promotionProvider.loadPromotions(),
+                      color: AppTheme.primaryColor,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                        itemCount: filtered.length,
+                        itemBuilder:
+                            (context, index) =>
+                                _PromotionTile(promo: filtered[index]),
+                      ),
+                    ),
           ),
         ],
       ),
@@ -99,7 +110,11 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.cloud_off_outlined, size: 48, color: AppTheme.textSecondary),
+            Icon(
+              Icons.cloud_off_outlined,
+              size: 48,
+              color: AppTheme.textSecondary,
+            ),
             const SizedBox(height: 16),
             Text(
               provider.error ?? 'Nie udało się załadować promocji.',
@@ -123,12 +138,12 @@ class _PromotionTile extends StatelessWidget {
   const _PromotionTile({required this.promo});
 
   IconData get _typeIcon => switch (promo.promoType) {
-        'multipack' => Icons.inventory_2_outlined,
-        'loyalty_card' => Icons.credit_card,
-        'weekend' => Icons.event_outlined,
-        'clearance' => Icons.local_fire_department_outlined,
-        _ => Icons.sell_outlined,
-      };
+    'multipack' => Icons.inventory_2_outlined,
+    'loyalty_card' => Icons.credit_card,
+    'weekend' => Icons.event_outlined,
+    'clearance' => Icons.local_fire_department_outlined,
+    _ => Icons.sell_outlined,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -157,7 +172,10 @@ class _PromotionTile extends StatelessWidget {
               children: [
                 Text(
                   promo.productName,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -175,7 +193,11 @@ class _PromotionTile extends StatelessWidget {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.info_outline, size: 14, color: AppTheme.secondaryColor),
+                      Icon(
+                        Icons.info_outline,
+                        size: 14,
+                        color: AppTheme.secondaryColor,
+                      ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
@@ -194,11 +216,18 @@ class _PromotionTile extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(Icons.credit_card, size: 12, color: AppTheme.accentColor),
+                      Icon(
+                        Icons.credit_card,
+                        size: 12,
+                        color: AppTheme.accentColor,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         'Wymaga karty lojalnościowej',
-                        style: TextStyle(color: AppTheme.accentColor, fontSize: 11),
+                        style: TextStyle(
+                          color: AppTheme.accentColor,
+                          fontSize: 11,
+                        ),
                       ),
                     ],
                   ),
@@ -211,7 +240,11 @@ class _PromotionTile extends StatelessWidget {
             children: [
               Text(
                 '${promo.promoPrice.toStringAsFixed(2)} zł',
-                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red, fontSize: 16),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                  fontSize: 16,
+                ),
               ),
               Text(
                 '${promo.regularPrice.toStringAsFixed(2)} zł',
@@ -230,7 +263,11 @@ class _PromotionTile extends StatelessWidget {
                 ),
                 child: Text(
                   '-${promo.savingsPercent}%',
-                  style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
@@ -252,7 +289,11 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.local_offer_outlined, size: 48, color: AppTheme.textSecondary),
+            Icon(
+              Icons.local_offer_outlined,
+              size: 48,
+              color: AppTheme.textSecondary,
+            ),
             const SizedBox(height: 16),
             Text(
               'Brak aktywnych promocji w tej chwili.',

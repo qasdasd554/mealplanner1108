@@ -57,7 +57,8 @@ class PriceComparisonResult {
       isCheapest: json['is_cheapest'] as bool? ?? false,
       savingsVsMostExpensive:
           (json['savings_vs_most_expensive'] as num?)?.toDouble() ?? 0.0,
-      items: (json['items'] as List<dynamic>?)
+      items:
+          (json['items'] as List<dynamic>?)
               ?.map((e) => PriceCompareItem.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
@@ -75,7 +76,10 @@ class PriceCompareService {
     final response = await _apiClient.get('/price-compare/$mealPlanId');
     if (response is List) {
       return response
-          .map((item) => PriceComparisonResult.fromJson(item as Map<String, dynamic>))
+          .map(
+            (item) =>
+                PriceComparisonResult.fromJson(item as Map<String, dynamic>),
+          )
           .toList();
     }
     return [];

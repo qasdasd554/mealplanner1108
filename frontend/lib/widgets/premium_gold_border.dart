@@ -29,7 +29,10 @@ class PremiumGoldBorder extends StatelessWidget {
     this.backgroundColor,
   });
 
-  static const List<Color> goldGradient = [Color(0xFFF5C24D), Color(0xFFE0A62E)];
+  static const List<Color> goldGradient = [
+    Color(0xFFF5C24D),
+    Color(0xFFE0A62E),
+  ];
 
   @override
   Widget build(BuildContext context) {

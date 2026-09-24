@@ -46,7 +46,10 @@ class _AiRecipeEditSheetState extends State<_AiRecipeEditSheet> {
       _error = null;
     });
     try {
-      final updated = await RecipeService().editRecipeWithAi(widget.recipe.id, prompt);
+      final updated = await RecipeService().editRecipeWithAi(
+        widget.recipe.id,
+        prompt,
+      );
       if (!mounted) return;
       await context.read<AuthProvider>().loadProfile();
       if (!mounted) return;
@@ -60,7 +63,8 @@ class _AiRecipeEditSheetState extends State<_AiRecipeEditSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final points = context.watch<AuthProvider>().currentUser?.premiumPoints ?? 0;
+    final points =
+        context.watch<AuthProvider>().currentUser?.premiumPoints ?? 0;
     return AnimatedPadding(
       duration: const Duration(milliseconds: 200),
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
@@ -70,12 +74,19 @@ class _AiRecipeEditSheetState extends State<_AiRecipeEditSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Dostosuj przepis z AI', style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              'Dostosuj przepis z AI',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 8),
-            Text('Napisz, co zmienić w „${widget.recipe.name}”. Możesz np. poprosić o wersję bez mleka albo dodać konkretny składnik.'),
+            Text(
+              'Napisz, co zmienić w „${widget.recipe.name}”. Możesz np. poprosić o wersję bez mleka albo dodać konkretny składnik.',
+            ),
             const SizedBox(height: 12),
-            Text('Udana zmiana kosztuje 1 punkt premium. Masz: $points pkt.',
-                style: TextStyle(color: AppTheme.textSecondary)),
+            Text(
+              'Udana zmiana kosztuje 1 punkt premium. Masz: $points pkt.',
+              style: TextStyle(color: AppTheme.textSecondary),
+            ),
             const SizedBox(height: 16),
             TextField(
               controller: _controller,
@@ -86,7 +97,8 @@ class _AiRecipeEditSheetState extends State<_AiRecipeEditSheet> {
               maxLength: 1000,
               decoration: const InputDecoration(
                 labelText: 'Co zmienić lub dodać?',
-                hintText: 'Np. zamień kurczaka na tofu i zmień kroki przygotowania',
+                hintText:
+                    'Np. zamień kurczaka na tofu i zmień kroki przygotowania',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -100,9 +112,9 @@ class _AiRecipeEditSheetState extends State<_AiRecipeEditSheet> {
                 onPressed: () {
                   final navigator = Navigator.of(context);
                   navigator.pop();
-                  navigator.push(MaterialPageRoute(
-                    builder: (_) => const PremiumScreen(),
-                  ));
+                  navigator.push(
+                    MaterialPageRoute(builder: (_) => const PremiumScreen()),
+                  );
                 },
                 icon: const Icon(Icons.workspace_premium_outlined),
                 label: const Text('Kup punkty'),
@@ -111,10 +123,14 @@ class _AiRecipeEditSheetState extends State<_AiRecipeEditSheet> {
               width: double.infinity,
               child: FilledButton(
                 onPressed: _saving || points < 1 ? null : _submit,
-                child: _saving
-                    ? const SizedBox(height: 20, width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Text('Zmień przepis · 1 pkt'),
+                child:
+                    _saving
+                        ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                        : const Text('Zmień przepis · 1 pkt'),
               ),
             ),
           ],

@@ -6,13 +6,18 @@ class ModerationService {
   final ApiClient _client = ApiClient();
 
   /// `status`: "pending" (domyślnie), "resolved", "dismissed", albo "all".
-  Future<List<Map<String, dynamic>>> getReports({String status = 'pending'}) async {
+  Future<List<Map<String, dynamic>>> getReports({
+    String status = 'pending',
+  }) async {
     final response = await _client.get('/users/admin/reports?status=$status');
     return (response as List).cast<Map<String, dynamic>>();
   }
 
   Future<void> updateReportStatus(String reportId, String status) async {
-    await _client.patch('/users/admin/reports/$reportId', body: {'status': status});
+    await _client.patch(
+      '/users/admin/reports/$reportId',
+      body: {'status': status},
+    );
   }
 
   /// Usuwa treść, której dotyczy zgłoszenie, i zamyka zgłoszenie.

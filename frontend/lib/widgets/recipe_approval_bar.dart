@@ -34,19 +34,25 @@ class _RecipeApprovalBarState extends State<RecipeApprovalBar> {
       if (!mounted) return;
       setState(() => _resolvedAs = approve ? 'public' : 'rejected');
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-            duration: const Duration(seconds: 3),content: Text(approve ? 'Przepis zaakceptowany' : 'Przepis odrzucony')),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(
+              approve ? 'Przepis zaakceptowany' : 'Przepis odrzucony',
+            ),
+          ),
+        );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-            duration: Duration(seconds: 3),content: Text('Nie udało się wykonać akcji')),
-      );
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            duration: Duration(seconds: 3),
+            content: Text('Nie udało się wykonać akcji'),
+          ),
+        );
     } finally {
       if (mounted) setState(() => _isBusy = false);
     }
@@ -54,7 +60,8 @@ class _RecipeApprovalBarState extends State<RecipeApprovalBar> {
 
   @override
   Widget build(BuildContext context) {
-    final isAdmin = Provider.of<AuthProvider>(context).currentUser?.isAdmin ?? false;
+    final isAdmin =
+        Provider.of<AuthProvider>(context).currentUser?.isAdmin ?? false;
     final currentVisibility = _resolvedAs ?? widget.recipe.visibility;
 
     if (!isAdmin || currentVisibility != 'pending') {
@@ -74,7 +81,11 @@ class _RecipeApprovalBarState extends State<RecipeApprovalBar> {
         children: [
           Row(
             children: [
-              const Icon(Icons.pending_actions, color: AppTheme.secondaryColor, size: 20),
+              const Icon(
+                Icons.pending_actions,
+                color: AppTheme.secondaryColor,
+                size: 20,
+              ),
               const SizedBox(width: 8),
               const Expanded(
                 child: Text(
@@ -101,13 +112,17 @@ class _RecipeApprovalBarState extends State<RecipeApprovalBar> {
               Expanded(
                 child: ElevatedButton(
                   onPressed: _isBusy ? null : () => _act(true),
-                  child: _isBusy
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                        )
-                      : const Text('Zaakceptuj'),
+                  child:
+                      _isBusy
+                          ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                          : const Text('Zaakceptuj'),
                 ),
               ),
             ],

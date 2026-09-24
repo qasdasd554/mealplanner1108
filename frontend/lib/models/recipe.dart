@@ -42,9 +42,10 @@ class RecipeIngredient {
       protein: (json['protein'] as num?)?.toDouble(),
       fat: (json['fat'] as num?)?.toDouble(),
       carbs: (json['carbs'] as num?)?.toDouble(),
-      product: json['product'] != null
-          ? Product.fromJson(json['product'] as Map<String, dynamic>)
-          : null,
+      product:
+          json['product'] != null
+              ? Product.fromJson(json['product'] as Map<String, dynamic>)
+              : null,
     );
   }
 }
@@ -54,7 +55,8 @@ class Recipe {
   final String name;
   final String? description;
   final String? cuisine;
-  final String mealType; // 'śniadanie', 'obiad', 'kolacja', 'przekąska', 'deser'
+  final String
+  mealType; // 'śniadanie', 'obiad', 'kolacja', 'przekąska', 'deser'
   final int? prepTimeMin;
   final int? cookTimeMin;
   final int servings;
@@ -132,16 +134,21 @@ class Recipe {
       ),
       imageUrl: json['image_url'] as String?,
       isActive: json['is_active'] as bool? ?? true,
-      tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
-      ingredients: (json['ingredients'] as List<dynamic>?)
+      tags:
+          (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+          [],
+      ingredients:
+          (json['ingredients'] as List<dynamic>?)
               ?.map((e) => RecipeIngredient.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      instructions: (json['instructions'] as List<dynamic>?)
+      instructions:
+          (json['instructions'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           [],
-      suggestedSeasonings: (json['suggested_seasonings'] as List<dynamic>?)
+      suggestedSeasonings:
+          (json['suggested_seasonings'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           [],
@@ -149,9 +156,10 @@ class Recipe {
       isOwnRecipe: json['is_own_recipe'] as bool? ?? false,
       photoBase64: json['photo_base64'] as String?,
       visibility: json['visibility'] as String? ?? 'private',
-      createdAt: json['created_at'] != null
-          ? DateTime.tryParse(json['created_at'] as String)
-          : null,
+      createdAt:
+          json['created_at'] != null
+              ? DateTime.tryParse(json['created_at'] as String)
+              : null,
       createdByUserId: json['created_by_user_id'] as String?,
       createdByName: json['created_by_name'] as String?,
       createdByAvatar: json['created_by_avatar'] as String?,
@@ -172,8 +180,9 @@ class Recipe {
   /// podpowiedzi z odmierzaniem porcji bez wagi kuchennej. Działa dla
   /// KAŻDEGO przepisu z makaronem (obecnego i przyszłego, w tym dodanego
   /// przez AI), bo sprawdza nazwę składnika, a nie konkretny przepis.
-  bool get containsPasta =>
-      ingredients.any((i) => (i.productName ?? '').toLowerCase().contains('makaron'));
+  bool get containsPasta => ingredients.any(
+    (i) => (i.productName ?? '').toLowerCase().contains('makaron'),
+  );
 
   /// Ścieżka do lokalnej ilustracji kategorii dania (bez zależności od
   /// sieci — nie hotlinkujemy zdjęć z zewnętrznych serwisów, więc nic nie
@@ -201,7 +210,15 @@ class Recipe {
     if (has(['kanapk', 'tost', 'bułk', 'bulka', 'quesadilla', 'tacos'])) {
       return 'assets/recipe_categories/sandwich.svg';
     }
-    if (has(['łosoś', 'losos', 'ryba', 'ryby', 'dorsz', 'tuńczyk', 'tunczyk'])) {
+    if (has([
+      'łosoś',
+      'losos',
+      'ryba',
+      'ryby',
+      'dorsz',
+      'tuńczyk',
+      'tunczyk',
+    ])) {
       return 'assets/recipe_categories/fish.svg';
     }
     if (has(['pad thai', 'curry', 'sushi', 'wok', 'azjatyck'])) {
@@ -225,18 +242,27 @@ class Recipe {
       return 'assets/recipe_categories/meat.svg';
     }
     if (has([
-      'owsiank',
-      'jajecznic',
-      'naleśnik',
-      'nalesnik',
-      'jogurt',
-      'granola',
-      'omlet',
-    ]) ||
+          'owsiank',
+          'jajecznic',
+          'naleśnik',
+          'nalesnik',
+          'jogurt',
+          'granola',
+          'omlet',
+        ]) ||
         mealType.toLowerCase() == 'śniadanie') {
       return 'assets/recipe_categories/breakfast.svg';
     }
-    if (has(['deser', 'ciast', 'mus', 'owoc', 'jabłk', 'jablk', 'malin', 'banan']) ||
+    if (has([
+          'deser',
+          'ciast',
+          'mus',
+          'owoc',
+          'jabłk',
+          'jablk',
+          'malin',
+          'banan',
+        ]) ||
         mealType.toLowerCase() == 'przekąska' ||
         mealType.toLowerCase() == 'deser') {
       return 'assets/recipe_categories/sweet_snack.svg';

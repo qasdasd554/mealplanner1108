@@ -14,4 +14,3 @@ void main() {
     expect(entry.weightKg, 72.4);
   });
 }
-

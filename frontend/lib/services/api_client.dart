@@ -96,7 +96,8 @@ class ApiClient {
     await prefs.remove(_legacyPrefsKey);
   }
 
-  bool _canRefresh(String path) => !{
+  bool _canRefresh(String path) =>
+      !{
         ApiConfig.authLogin,
         ApiConfig.authRegister,
         ApiConfig.authGoogle,
@@ -109,11 +110,13 @@ class ApiClient {
     final refreshToken = await _secureStorage.read(key: _refreshTokenKey);
     if (refreshToken == null || refreshToken.isEmpty) return false;
     try {
-      final response = await http.post(
-        Uri.parse('${ApiConfig.apiUrl}${ApiConfig.authRefresh}'),
-        headers: _headers(null),
-        body: jsonEncode({'refresh_token': refreshToken}),
-      ).timeout(_timeout);
+      final response = await http
+          .post(
+            Uri.parse('${ApiConfig.apiUrl}${ApiConfig.authRefresh}'),
+            headers: _headers(null),
+            body: jsonEncode({'refresh_token': refreshToken}),
+          )
+          .timeout(_timeout);
       if (response.statusCode < 200 || response.statusCode >= 300) return false;
       final decoded = jsonDecode(response.body);
       if (decoded is! Map || decoded['access_token'] is! String) return false;
@@ -132,7 +135,9 @@ class ApiClient {
     Future<http.Response> Function(Map<String, String> headers) send,
   ) async {
     var response = await send(_headers(await getToken()));
-    if (response.statusCode == 401 && _canRefresh(path) && await _refreshSession()) {
+    if (response.statusCode == 401 &&
+        _canRefresh(path) &&
+        await _refreshSession()) {
       response = await send(_headers(await getToken()));
     }
     return response;
@@ -160,7 +165,8 @@ class ApiClient {
     try {
       final response = await _sendWithRefresh(
         path,
-        (headers) => http.get(url, headers: headers).timeout(timeout ?? _timeout),
+        (headers) =>
+            http.get(url, headers: headers).timeout(timeout ?? _timeout),
       );
       return _handleResponse(response);
     } catch (e) {
@@ -174,11 +180,13 @@ class ApiClient {
     try {
       final response = await _sendWithRefresh(
         path,
-        (headers) => http.post(
-          url,
-          headers: headers,
-          body: body != null ? jsonEncode(body) : null,
-        ).timeout(timeout ?? _timeout),
+        (headers) => http
+            .post(
+              url,
+              headers: headers,
+              body: body != null ? jsonEncode(body) : null,
+            )
+            .timeout(timeout ?? _timeout),
       );
       return _handleResponse(response);
     } catch (e) {
@@ -192,9 +200,13 @@ class ApiClient {
     try {
       final response = await _sendWithRefresh(
         path,
-        (headers) => http.put(
-          url, headers: headers, body: body != null ? jsonEncode(body) : null,
-        ).timeout(_timeout),
+        (headers) => http
+            .put(
+              url,
+              headers: headers,
+              body: body != null ? jsonEncode(body) : null,
+            )
+            .timeout(_timeout),
       );
       return _handleResponse(response);
     } catch (e) {
@@ -208,9 +220,13 @@ class ApiClient {
     try {
       final response = await _sendWithRefresh(
         path,
-        (headers) => http.patch(
-          url, headers: headers, body: body != null ? jsonEncode(body) : null,
-        ).timeout(_timeout),
+        (headers) => http
+            .patch(
+              url,
+              headers: headers,
+              body: body != null ? jsonEncode(body) : null,
+            )
+            .timeout(_timeout),
       );
       return _handleResponse(response);
     } catch (e) {
@@ -270,7 +286,10 @@ class ApiClient {
         'Serwer nie odpowiedział na czas. Spróbuj ponownie za chwilę.',
       );
     } else if (error is SocketException) {
-      throw ApiException(503, 'Brak połączenia z serwerem. Sprawdź swoje połączenie internetowe.');
+      throw ApiException(
+        503,
+        'Brak połączenia z serwerem. Sprawdź swoje połączenie internetowe.',
+      );
     } else {
       throw ApiException(500, 'Błąd połączenia sieciowego: $error');
     }

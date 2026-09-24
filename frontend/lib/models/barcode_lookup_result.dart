@@ -62,5 +62,4 @@ class BarcodeLookupResult {
       servingQuantity: _asDouble(json['serving_quantity']),
     );
   }
-
 }

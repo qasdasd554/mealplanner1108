@@ -47,9 +47,9 @@ class _NotificationBellState extends State<NotificationBell> {
   }
 
   Future<void> _openNotifications() async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const NotificationsScreen()),
-    );
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const NotificationsScreen()));
     // Po powrocie z listy odśwież odznakę (mogły zostać oznaczone jako
     // przeczytane).
     _refresh();
@@ -78,7 +78,11 @@ class _NotificationBellState extends State<NotificationBell> {
               constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
               child: Text(
                 _unreadCount > 99 ? '99+' : '$_unreadCount',
-                style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),

@@ -37,9 +37,10 @@ class ShoppingListItem {
       departmentSortOrder: json['department_sort_order'] as int? ?? 99,
       requiredQuantity: (json['required_quantity'] as num? ?? 0.0).toDouble(),
       unit: json['unit'] as String? ?? 'szt',
-      estimatedPrice: json['estimated_price'] != null
-          ? (json['estimated_price'] as num).toDouble()
-          : null,
+      estimatedPrice:
+          json['estimated_price'] != null
+              ? (json['estimated_price'] as num).toDouble()
+              : null,
       isChecked: json['is_checked'] as bool? ?? false,
       isFromPantry: json['is_from_pantry'] as bool? ?? false,
       substitutedForName: json['substituted_for_name'] as String?,
@@ -69,14 +70,19 @@ class ShoppingList {
   });
 
   factory ShoppingList.fromJson(Map<String, dynamic> json) {
-    final rawGrouped = json['items_by_department'] as Map<String, dynamic>? ?? {};
+    final rawGrouped =
+        json['items_by_department'] as Map<String, dynamic>? ?? {};
     final parsedGrouped = <String, List<ShoppingListItem>>{};
 
     rawGrouped.forEach((key, value) {
       if (value is List) {
-        parsedGrouped[key] = value
-            .map((item) => ShoppingListItem.fromJson(item as Map<String, dynamic>))
-            .toList();
+        parsedGrouped[key] =
+            value
+                .map(
+                  (item) =>
+                      ShoppingListItem.fromJson(item as Map<String, dynamic>),
+                )
+                .toList();
       }
     });
 
@@ -86,7 +92,8 @@ class ShoppingList {
       storeId: json['store_id'] as String,
       storeName: json['store_name'] as String? ?? '',
       status: json['status'] as String? ?? 'pending',
-      totalEstimatedPrice: (json['total_estimated_price'] as num? ?? 0.0).toDouble(),
+      totalEstimatedPrice:
+          (json['total_estimated_price'] as num? ?? 0.0).toDouble(),
       itemsByDepartment: parsedGrouped,
       createdAt: DateTime.parse(json['created_at'] as String),
     );
@@ -94,7 +101,8 @@ class ShoppingList {
 
   int get totalItems {
     return itemsByDepartment.values.fold(
-      0, (sum, list) => sum + list.where((item) => !item.isFromPantry).length,
+      0,
+      (sum, list) => sum + list.where((item) => !item.isFromPantry).length,
     );
   }
 
@@ -119,8 +127,10 @@ class ShoppingList {
   }
 
   bool get hasUnknownPrices => itemsByDepartment.values.any(
-    (items) => items.any((item) =>
-        !item.isFromPantry && !item.isChecked && item.estimatedPrice == null),
+    (items) => items.any(
+      (item) =>
+          !item.isFromPantry && !item.isChecked && item.estimatedPrice == null,
+    ),
   );
 
   /// Czy wszystko na liście jest już odhaczone (i lista nie jest pusta).
@@ -129,7 +139,9 @@ class ShoppingList {
   int get checkedItems {
     return itemsByDepartment.values.fold(
       0,
-      (sum, list) => sum + list.where((item) => !item.isFromPantry && item.isChecked).length,
+      (sum, list) =>
+          sum +
+          list.where((item) => !item.isFromPantry && item.isChecked).length,
     );
   }
 
