@@ -84,34 +84,30 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       child: Scaffold(
         body: tabs[_currentIndex],
-        bottomNavigationBar: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (_currentIndex == 0 || _currentIndex == 4)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 2),
-                child: SizedBox(
-                  width: 116,
-                  height: 34,
-                  child: FilledButton.tonalIcon(
-                    onPressed: _showQuickAddSheet,
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      minimumSize: const Size(116, 34),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      visualDensity: VisualDensity.compact,
-                      shape: const StadiumBorder(),
-                    ),
-                    icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Dodaj'),
+        floatingActionButton: (_currentIndex == 0 || _currentIndex == 4)
+            ? SizedBox(
+                width: 116,
+                height: 34,
+                child: FilledButton.tonalIcon(
+                  onPressed: _showQuickAddSheet,
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    minimumSize: const Size(116, 34),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    visualDensity: VisualDensity.compact,
+                    shape: const StadiumBorder(),
                   ),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Dodaj'),
                 ),
-              ),
-            Material(
-              color: Theme.of(context).bottomNavigationBarTheme.backgroundColor ??
-                  Theme.of(context).colorScheme.surface,
-              elevation: 8,
-              child: BottomNavigationBar(
+              )
+            : null,
+        floatingActionButtonLocation: const _QuickAddFabLocation(),
+        bottomNavigationBar: Material(
+          color: Theme.of(context).bottomNavigationBarTheme.backgroundColor ??
+              Theme.of(context).colorScheme.surface,
+          elevation: 8,
+          child: BottomNavigationBar(
                 elevation: 0,
         // 5 zakladek wymaga trybu 'fixed' — bez tego Flutter przechodzi
         // w tryb 'shifting' i rzuca wyjatek, co wywalalo aplikacje
@@ -188,10 +184,8 @@ class _HomeScreenState extends State<HomeScreen> {
             activeIcon: Icon(Icons.person),
             label: 'Profil',
           ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -332,6 +326,21 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Icon(icon, size: active ? 26 : 24),
     );
+  }
+}
+
+/// Umieszcza wąski przycisk tuż nad dolną nawigacją bez tworzenia pod nim
+/// pełnoszerokiego kontenera. Dzięki temu po bokach przycisku pozostaje
+/// rzeczywista zawartość ekranu, a nie jasny pas.
+class _QuickAddFabLocation extends FloatingActionButtonLocation {
+  const _QuickAddFabLocation();
+
+  @override
+  Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
+    final buttonSize = scaffoldGeometry.floatingActionButtonSize;
+    final x = (scaffoldGeometry.scaffoldSize.width - buttonSize.width) / 2;
+    final y = scaffoldGeometry.contentBottom - buttonSize.height - 2;
+    return Offset(x, y);
   }
 }
 

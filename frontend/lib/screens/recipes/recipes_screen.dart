@@ -507,6 +507,35 @@ class _RecipesScreenState extends State<RecipesScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (sheetContext) {
+        final colorScheme = Theme.of(sheetContext).colorScheme;
+
+        Widget optionTile({
+          required IconData icon,
+          required String title,
+          String? subtitle,
+          Widget? trailing,
+          required VoidCallback onTap,
+        }) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Material(
+              color: colorScheme.surface,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: colorScheme.outlineVariant),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: ListTile(
+                leading: Icon(icon),
+                title: Text(title),
+                subtitle: subtitle == null ? null : Text(subtitle),
+                trailing: trailing,
+                onTap: onTap,
+              ),
+            ),
+          );
+        }
+
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(20.0),
@@ -518,10 +547,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 Text('Dodaj przepis', style: Theme.of(sheetContext).textTheme.titleLarge),
                 const SizedBox(height: 16),
                 Text('Z pomocą AI', style: Theme.of(sheetContext).textTheme.titleMedium),
-                ListTile(
-                  leading: const Icon(Icons.photo_camera_outlined),
-                  title: const Text('Zrób zdjęcie'),
-                  subtitle: const Text('Przepisu albo gotowego dania'),
+                optionTile(
+                  icon: Icons.photo_camera_outlined,
+                  title: 'Zrób zdjęcie',
+                  subtitle: 'Przepisu albo gotowego dania',
                   trailing: const PremiumFeatureTag(
                     label: 'PREMIUM / 2 PKT',
                     fontSize: 8,
@@ -533,9 +562,9 @@ class _RecipesScreenState extends State<RecipesScreen> {
                     )).then((_) { if (mounted) _loadImportStatus(); });
                   },
                 ),
-                ListTile(
-                  leading: const Icon(Icons.text_snippet_outlined),
-                  title: const Text('Wklej tekst'),
+                optionTile(
+                  icon: Icons.text_snippet_outlined,
+                  title: 'Wklej tekst',
                   trailing: const PremiumFeatureTag(
                     label: 'PREMIUM / 2 PKT',
                     fontSize: 8,
@@ -547,9 +576,9 @@ class _RecipesScreenState extends State<RecipesScreen> {
                     )).then((_) { if (mounted) _loadImportStatus(); });
                   },
                 ),
-                ListTile(
-                  leading: const Icon(Icons.link),
-                  title: const Text('Wklej link'),
+                optionTile(
+                  icon: Icons.link,
+                  title: 'Wklej link',
                   trailing: const PremiumFeatureTag(
                     label: 'PREMIUM / 2 PKT',
                     fontSize: 8,
@@ -574,7 +603,13 @@ class _RecipesScreenState extends State<RecipesScreen> {
                     },
                     icon: const Icon(Icons.edit_outlined, size: 18),
                     label: const Text('Dodaj ręcznie'),
-                    style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      side: BorderSide(color: colorScheme.outlineVariant),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                   ),
                 ),
                 ],
