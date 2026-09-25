@@ -419,9 +419,14 @@ class _HomeScreenState extends State<HomeScreen> {
   /// bieżącą sekcję także w trybie ciemnym.
   Widget _buildNavIcon(IconData icon, {required bool active}) {
     final colors = Theme.of(context).colorScheme;
-    final inactiveBackground = Color.alphaBlend(
+    final iconColor =
+        Theme.of(context).bottomNavigationBarTheme.unselectedItemColor ??
+        colors.onSurfaceVariant;
+    final background = Color.alphaBlend(
       colors.primary.withOpacity(
-        Theme.of(context).brightness == Brightness.dark ? 0.16 : 0.08,
+        active
+            ? (Theme.of(context).brightness == Brightness.dark ? 0.20 : 0.13)
+            : (Theme.of(context).brightness == Brightness.dark ? 0.12 : 0.07),
       ),
       colors.surface,
     );
@@ -430,18 +435,8 @@ class _HomeScreenState extends State<HomeScreen> {
       width: 32,
       height: 32,
       alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: active ? colors.primary : inactiveBackground,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: active ? colors.primary : colors.outlineVariant,
-        ),
-      ),
-      child: Icon(
-        icon,
-        size: 19,
-        color: active ? colors.onPrimary : colors.onSurfaceVariant,
-      ),
+      decoration: BoxDecoration(color: background, shape: BoxShape.circle),
+      child: Icon(icon, size: 19, color: iconColor),
     );
   }
 }
