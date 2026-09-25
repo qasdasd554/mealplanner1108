@@ -108,6 +108,23 @@ async def compare_prices(
     # ── Policz cenę w każdym sklepie — identyczna logika co lista zakupów ──
     store_results = []
 
+    # Pobierz ceny jednym zapytaniem zamiast wykonywać osobny SELECT dla
+    # każdej pary sklep–produkt. Przy większej liście usuwa to setki rund
+    # komunikacji z bazą bez zmiany sposobu liczenia ceny.
+    store_product_by_pair: dict[tuple[uuid.UUID, uuid.UUID], StoreProduct] = {}
+    if product_requirements:
+        store_products = (
+            await db.execute(
+                select(StoreProduct).where(
+                    StoreProduct.store_id.in_([store.id for store in stores]),
+                    StoreProduct.product_id.in_(list(product_requirements)),
+                )
+            )
+        ).scalars().all()
+        store_product_by_pair = {
+            (row.store_id, row.product_id): row for row in store_products
+        }
+
     for store in stores:
         total_price = 0.0
         items = []
@@ -116,14 +133,7 @@ async def compare_prices(
             product = req["product"]
             total_grams = req["grams"]
 
-            store_product = (
-                await db.execute(
-                    select(StoreProduct).where(
-                        StoreProduct.store_id == store.id,
-                        StoreProduct.product_id == prod_id,
-                    )
-                )
-            ).scalars().first()
+            store_product = store_product_by_pair.get((store.id, prod_id))
 
             if not store_product:
                 # Produkt niedostępny w tym sklepie — pomijamy w tej cenie,

@@ -36,6 +36,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   bool _checkingImport = false;
   List<Recipe> _recipes = [];
   bool _isLoading = false;
+  bool _isBackgroundRefreshing = false;
   bool _isLoadingMore = false;
   bool _hasMore = false;
   int _nextSkip = 0;
@@ -108,10 +109,11 @@ class _RecipesScreenState extends State<RecipesScreen> {
     }
   }
 
-  Future<void> _loadRecipes() async {
+  Future<void> _loadRecipes({bool preserveCurrent = false}) async {
     final requestVersion = ++_requestVersion;
     setState(() {
       _isLoading = true;
+      _isBackgroundRefreshing = preserveCurrent && _recipes.isNotEmpty;
       _isLoadingMore = false;
       _hasMore = false;
       _nextSkip = 0;
@@ -170,6 +172,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
       if (mounted && requestVersion == _requestVersion) {
         setState(() {
           _isLoading = false;
+          _isBackgroundRefreshing = false;
         });
       }
     }
@@ -498,12 +501,16 @@ class _RecipesScreenState extends State<RecipesScreen> {
               ];
             },
             body:
-                _isLoading
+                _isLoading && !_isBackgroundRefreshing
                     ? const Center(child: CircularProgressIndicator())
                     : _recipes.isEmpty
                     ? _buildEmptyState()
                     : CustomScrollView(
                       slivers: [
+                        if (_isBackgroundRefreshing)
+                          const SliverToBoxAdapter(
+                            child: LinearProgressIndicator(minHeight: 2),
+                          ),
                         SliverPadding(
                           padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
                           sliver: SliverGrid(
@@ -1068,7 +1075,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
         await Navigator.of(
           context,
         ).pushNamed('/recipe/detail', arguments: recipe);
-        if (mounted) _loadRecipes();
+        if (mounted) _loadRecipes(preserveCurrent: true);
       },
       child: Container(
         decoration: BoxDecoration(

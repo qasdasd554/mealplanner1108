@@ -8,6 +8,7 @@ from typing import AsyncGenerator
 from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from starlette.middleware.gzip import GZipMiddleware
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -559,6 +560,10 @@ app = FastAPI(
 # ---------------------------------------------------------------------------
 # Middleware
 # ---------------------------------------------------------------------------
+
+# Kompresuj większe odpowiedzi JSON, w tym listy przepisów ze zdjęciami.
+# Flutter rozpakowuje gzip automatycznie, więc format API się nie zmienia.
+app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=5)
 
 # CORS
 #

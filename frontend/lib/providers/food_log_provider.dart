@@ -56,8 +56,12 @@ class FoodLogProvider with ChangeNotifier {
     // użytkownik widział fałszywy dziennik i nie wiedział, że coś nie
     // działa. Teraz błąd jest pokazywany wprost, a dziennik zostaje pusty.
     try {
-      _logs = await _service.getLogsForDate(date, token);
-      _summary = await _service.getDailySummary(date, token);
+      final results = await Future.wait<Object>([
+        _service.getLogsForDate(date, token),
+        _service.getDailySummary(date, token),
+      ]);
+      _logs = results[0] as List<FoodLogEntry>;
+      _summary = results[1] as DailySummary;
     } catch (e) {
       _error = e.toString().replaceAll('Exception: ', '');
       _logs = [];

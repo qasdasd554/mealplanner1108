@@ -33,6 +33,11 @@ class ApiClient {
   factory ApiClient() => _instance;
   ApiClient._internal();
 
+  // Jeden klient utrzymuje pulę połączeń przez całą sesję aplikacji.
+  // Wywołania statyczne http.get/post tworzyły nowy Client dla każdego
+  // żądania i wymuszały ponowne zestawianie połączenia.
+  final http.Client _httpClient = http.Client();
+
   String? _token;
 
   // Token JWT trzymany w zaszyfrowanym magazynie systemowym (Android
@@ -110,7 +115,7 @@ class ApiClient {
     final refreshToken = await _secureStorage.read(key: _refreshTokenKey);
     if (refreshToken == null || refreshToken.isEmpty) return false;
     try {
-      final response = await http
+      final response = await _httpClient
           .post(
             Uri.parse('${ApiConfig.apiUrl}${ApiConfig.authRefresh}'),
             headers: _headers(null),
@@ -166,7 +171,7 @@ class ApiClient {
       final response = await _sendWithRefresh(
         path,
         (headers) =>
-            http.get(url, headers: headers).timeout(timeout ?? _timeout),
+            _httpClient.get(url, headers: headers).timeout(timeout ?? _timeout),
       );
       return _handleResponse(response);
     } catch (e) {
@@ -180,7 +185,7 @@ class ApiClient {
     try {
       final response = await _sendWithRefresh(
         path,
-        (headers) => http
+        (headers) => _httpClient
             .post(
               url,
               headers: headers,
@@ -200,7 +205,7 @@ class ApiClient {
     try {
       final response = await _sendWithRefresh(
         path,
-        (headers) => http
+        (headers) => _httpClient
             .put(
               url,
               headers: headers,
@@ -220,7 +225,7 @@ class ApiClient {
     try {
       final response = await _sendWithRefresh(
         path,
-        (headers) => http
+        (headers) => _httpClient
             .patch(
               url,
               headers: headers,
@@ -240,7 +245,8 @@ class ApiClient {
     try {
       final response = await _sendWithRefresh(
         path,
-        (headers) => http.delete(url, headers: headers).timeout(_timeout),
+        (headers) =>
+            _httpClient.delete(url, headers: headers).timeout(_timeout),
       );
       return _handleResponse(response);
     } catch (e) {

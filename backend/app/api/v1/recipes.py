@@ -8,7 +8,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, ConfigDict, field_validator
-from sqlalchemy import and_, delete, func, nullslast, or_, select, update
+from sqlalchemy import and_, delete, exists, func, nullslast, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -39,13 +39,20 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-async def _get_favorite_recipe_ids(db: AsyncSession, user_id: UUID) -> set[UUID]:
+async def _get_favorite_recipe_ids(
+    db: AsyncSession,
+    user_id: UUID,
+    recipe_ids: set[UUID] | None = None,
+) -> set[UUID]:
     """Zwraca zbiór ID przepisów, które użytkownik ma w ulubionych."""
     from app.models import RecipeFavorite
 
-    result = await db.execute(
-        select(RecipeFavorite.recipe_id).where(RecipeFavorite.user_id == user_id)
-    )
+    query = select(RecipeFavorite.recipe_id).where(RecipeFavorite.user_id == user_id)
+    if recipe_ids is not None:
+        if not recipe_ids:
+            return set()
+        query = query.where(RecipeFavorite.recipe_id.in_(recipe_ids))
+    result = await db.execute(query)
     return set(result.scalars().all())
 
 
@@ -168,8 +175,9 @@ async def list_recipes(
     if new_only:
         query = query.where(Recipe.created_at >= datetime.now(timezone.utc) - timedelta(days=14))
 
-    favorite_ids = await _get_favorite_recipe_ids(db, current_user.id)
+    favorite_ids: set[UUID] = set()
     if favorites_only:
+        favorite_ids = await _get_favorite_recipe_ids(db, current_user.id)
         if not favorite_ids:
             return []
         query = query.where(Recipe.id.in_(favorite_ids))
@@ -178,6 +186,13 @@ async def list_recipes(
 
     result = await db.execute(query)
     recipes = list(result.unique().scalars().all())
+
+    if not favorites_only:
+        favorite_ids = await _get_favorite_recipe_ids(
+            db,
+            current_user.id,
+            {recipe.id for recipe in recipes},
+        )
 
     for recipe in recipes:
         recipe.is_favorite = recipe.id in favorite_ids
@@ -203,16 +218,27 @@ async def list_available_recipes(
     Dla każdego przepisu sprawdza, czy każdy wymagany produkt
     jest oznaczony jako dostępny (``is_available=True``) w wybranym sklepie.
     """
-    # Pobierz ID produktów dostępnych w sklepie
-    available_result = await db.execute(
-        select(StoreProduct.product_id).where(
+    # Dostępność i paginację obsługuje baza. Wcześniej endpoint pobierał
+    # wszystkie przepisy wraz ze składnikami, filtrował je w Pythonie i
+    # dopiero potem wybierał stronę.
+    available_product_ids = select(StoreProduct.product_id).where(
             StoreProduct.store_id == store_id,
             StoreProduct.is_available == True,  # noqa: E712
         )
+    has_product_ingredient = exists(
+        select(1).where(
+            RecipeIngredient.recipe_id == Recipe.id,
+            RecipeIngredient.product_id.is_not(None),
+        )
     )
-    available_product_ids = set(available_result.scalars().all())
+    has_unavailable_ingredient = exists(
+        select(1).where(
+            RecipeIngredient.recipe_id == Recipe.id,
+            RecipeIngredient.product_id.is_not(None),
+            RecipeIngredient.product_id.not_in(available_product_ids),
+        )
+    )
 
-    # Pobierz wszystkie przepisy z ich składnikami
     blocked_ids = await get_blocked_user_ids(db, current_user.id)
     recipes_result = await db.execute(
         select(Recipe)
@@ -220,28 +246,28 @@ async def list_available_recipes(
             selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product),
             selectinload(Recipe.tags),
         )
-        .where(_visibility_filter(current_user.id, blocked_ids))
+        .where(
+            _visibility_filter(current_user.id, blocked_ids),
+            has_product_ingredient,
+            ~has_unavailable_ingredient,
+        )
         .order_by(Recipe.name)
+        .offset(skip)
+        .limit(limit)
     )
-    all_recipes = recipes_result.unique().scalars().all()
+    available_recipes = list(recipes_result.unique().scalars().all())
 
-    favorite_ids = await _get_favorite_recipe_ids(db, current_user.id)
+    favorite_ids = await _get_favorite_recipe_ids(
+        db,
+        current_user.id,
+        {recipe.id for recipe in available_recipes},
+    )
 
-    # Filtruj przepisy — wszystkie składniki muszą być dostępne
-    available_recipes: list[Recipe] = []
-    for recipe in all_recipes:
-        if not recipe.ingredients:
-            continue
-        ingredient_product_ids = {
-            ing.product_id for ing in recipe.ingredients if ing.product_id is not None
-        }
-        if ingredient_product_ids and ingredient_product_ids.issubset(available_product_ids):
-            recipe.is_favorite = recipe.id in favorite_ids
-            recipe.is_own_recipe = recipe.created_by_user_id == current_user.id
-            available_recipes.append(recipe)
+    for recipe in available_recipes:
+        recipe.is_favorite = recipe.id in favorite_ids
+        recipe.is_own_recipe = recipe.created_by_user_id == current_user.id
 
-    # Paginacja w pamięci (po filtracji)
-    return available_recipes[skip : skip + limit]
+    return available_recipes
 
 
 @router.get(

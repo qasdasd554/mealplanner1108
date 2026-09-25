@@ -143,10 +143,14 @@ class _HomeScreenState extends State<HomeScreen> {
           elevation: 8,
           child: BottomNavigationBar(
             elevation: 0,
-            // 5 zakladek wymaga trybu 'fixed' — bez tego Flutter przechodzi
+            // Sześć zakładek wymaga trybu 'fixed' — bez tego Flutter przechodzi
             // w tryb 'shifting' i rzuca wyjatek, co wywalalo aplikacje
             // zaraz po zakonczeniu onboardingu.
             type: BottomNavigationBarType.fixed,
+            selectedFontSize: 10,
+            unselectedFontSize: 10,
+            selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700),
+            unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500),
             currentIndex: _currentIndex,
             onTap: (index) async {
               // UWAGA (nowe): "Śledzenie" (indeks 3) wymaga bramki reklamowej
@@ -184,41 +188,30 @@ class _HomeScreenState extends State<HomeScreen> {
               });
             },
             items: [
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.home_outlined),
-                activeIcon: Icon(Icons.home),
+              BottomNavigationBarItem(
+                icon: _buildNavIcon(Icons.home_outlined, active: false),
+                activeIcon: _buildNavIcon(Icons.home, active: true),
                 label: 'Start',
               ),
-              // "Przepisy" ma teraz tę samą kolorową plakietkę co "Zakupy" i
-              // "Śledzenie" — spójne wizualne wyróżnienie głównych funkcji.
               BottomNavigationBarItem(
-                icon: _buildHighlightedIcon(
-                  Icons.restaurant_outlined,
-                  active: false,
-                ),
-                activeIcon: _buildHighlightedIcon(
-                  Icons.restaurant,
-                  active: true,
-                ),
+                icon: _buildNavIcon(Icons.restaurant_outlined, active: false),
+                activeIcon: _buildNavIcon(Icons.restaurant, active: true),
                 label: 'Przepisy',
               ),
               BottomNavigationBarItem(
-                icon: _buildHighlightedIcon(
+                icon: _buildNavIcon(
                   Icons.shopping_cart_outlined,
                   active: false,
                 ),
-                activeIcon: _buildHighlightedIcon(
-                  Icons.shopping_cart,
-                  active: true,
-                ),
+                activeIcon: _buildNavIcon(Icons.shopping_cart, active: true),
                 label: 'Zakupy',
               ),
               BottomNavigationBarItem(
-                icon: _buildHighlightedIcon(
+                icon: _buildNavIcon(
                   Icons.local_fire_department_outlined,
                   active: false,
                 ),
-                activeIcon: _buildHighlightedIcon(
+                activeIcon: _buildNavIcon(
                   Icons.local_fire_department,
                   active: true,
                 ),
@@ -226,14 +219,20 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               // Zakładka Premium — bezpośredni dostęp do porównania planów i
               // zakupu subskrypcji, bez konieczności wchodzenia przez Profil.
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.workspace_premium_outlined),
-                activeIcon: Icon(Icons.workspace_premium),
+              BottomNavigationBarItem(
+                icon: _buildNavIcon(
+                  Icons.workspace_premium_outlined,
+                  active: false,
+                ),
+                activeIcon: _buildNavIcon(
+                  Icons.workspace_premium,
+                  active: true,
+                ),
                 label: 'Premium',
               ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.person_outline),
-                activeIcon: Icon(Icons.person),
+              BottomNavigationBarItem(
+                icon: _buildNavIcon(Icons.person_outline, active: false),
+                activeIcon: _buildNavIcon(Icons.person, active: true),
                 label: 'Profil',
               ),
             ],
@@ -415,20 +414,34 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Ikona z kolorową plakietką w tle — używana dla \"Zakupy\" i \"Śledzenie\",
-  /// dwóch najważniejszych funkcji aplikacji, żeby wizualnie wyróżniały się
-  /// na tle pozostałych, zwykłych zakładek nawigacji.
-  Widget _buildHighlightedIcon(IconData icon, {required bool active}) {
-    return Container(
-      padding: const EdgeInsets.all(6),
-      decoration: BoxDecoration(
-        color:
-            active
-                ? AppTheme.primaryColor.withOpacity(0.15)
-                : AppTheme.primaryColor.withOpacity(0.08),
-        shape: BoxShape.circle,
+  /// Jednolita plakietka każdej pozycji dolnej nawigacji. Stały rozmiar
+  /// zapobiega podskakiwaniu etykiet, a wypełnione koło jasno pokazuje
+  /// bieżącą sekcję także w trybie ciemnym.
+  Widget _buildNavIcon(IconData icon, {required bool active}) {
+    final colors = Theme.of(context).colorScheme;
+    final inactiveBackground = Color.alphaBlend(
+      colors.primary.withOpacity(
+        Theme.of(context).brightness == Brightness.dark ? 0.16 : 0.08,
       ),
-      child: Icon(icon, size: active ? 26 : 24),
+      colors.surface,
+    );
+
+    return Container(
+      width: 32,
+      height: 32,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: active ? colors.primary : inactiveBackground,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: active ? colors.primary : colors.outlineVariant,
+        ),
+      ),
+      child: Icon(
+        icon,
+        size: 19,
+        color: active ? colors.onPrimary : colors.onSurfaceVariant,
+      ),
     );
   }
 }
