@@ -36,7 +36,20 @@ class BarcodeLookupResult {
   /// Czy dane pochodzą z Waszego własnego katalogu (a nie z zewnętrznej
   /// bazy) — wtedy zwykle najbardziej wiarygodne, bo ktoś już to
   /// zweryfikował wcześniej.
-  bool get isFromOwnCatalog => source == 'catalog';
+  bool get isFromOwnCatalog =>
+      source == 'catalog' || source == 'catalog_enriched';
+
+  /// Pełny zestaw wartości potrzebny do zapisania produktu w Śledzeniu.
+  /// Stare rekordy katalogu/cache mogły zapisać brakujące dane jako cztery
+  /// zera. Traktujemy je jak brak, dopóki nie zostaną wzbogacone ze źródła
+  /// zewnętrznego. Prawdziwy produkt zerokaloryczny z OFF ma inne źródło
+  /// (albo sufiks `_enriched`) i pozostaje poprawnym wynikiem.
+  bool get hasCompleteNutrition {
+    final values = [kcalPer100, proteinPer100, fatPer100, carbsPer100];
+    if (values.any((value) => value == null)) return false;
+    if (values.any((value) => value != 0)) return true;
+    return source != 'catalog' && source != 'neon_cache';
+  }
 
   static double? _asDouble(dynamic value) {
     if (value is num) return value.toDouble();

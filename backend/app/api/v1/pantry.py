@@ -3,7 +3,7 @@
 import uuid
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -45,6 +45,12 @@ class AddPantryBarcodeRequest(BaseModel):
     quantity: float
     unit: str
     batch: bool = False
+    name: str | None = Field(None, min_length=2, max_length=300)
+    brand: str | None = Field(None, max_length=200)
+    kcal_per_100: float | None = Field(None, ge=0, le=2_000)
+    protein_per_100: float | None = Field(None, ge=0, le=200)
+    fat_per_100: float | None = Field(None, ge=0, le=200)
+    carbs_per_100: float | None = Field(None, ge=0, le=200)
 
 
 class UpdatePantryItemQuantityRequest(BaseModel):
@@ -55,6 +61,32 @@ class UpdatePantryItemQuantityRequest(BaseModel):
 
     quantity: float | None = None
     unit: str | None = None
+
+
+def merge_scanned_nutrition(
+    current: dict | None,
+    scanned: dict[str, float | None],
+) -> tuple[dict, bool]:
+    """Uzupełnia makro ze skanera bez nadpisywania poprawnych danych.
+
+    W starszych wersjach brakujące wartości były materializowane jako cztery
+    zera. Taki komplet jest traktowany jako placeholder i może zostać
+    zastąpiony rozpoznanymi wartościami z etykiety/Open Food Facts.
+    """
+    merged = dict(current or {})
+    keys = ("kcal", "protein", "fat", "carbs")
+    stored_values = [merged.get(key) for key in keys]
+    placeholder_zeros = all(
+        value is None or float(value) == 0 for value in stored_values
+    )
+    changed = False
+    for key, value in scanned.items():
+        if value is not None and (merged.get(key) is None or placeholder_zeros):
+            merged[key] = value
+            changed = True
+    if changed:
+        merged.setdefault("fiber", 0)
+    return merged, changed
 
 
 @router.get("/", response_model=list[PantryItemResponse], summary="Twoja spiżarnia")
@@ -185,6 +217,24 @@ async def add_pantry_item_from_barcode(
     if not lookup.found or not lookup.name:
         raise NotFoundException(detail="Nie znaleziono produktu o tym kodzie kreskowym.")
 
+    # Skaner seryjny może uzupełnić starszy, niepełny rekord Neon danymi
+    # pobranymi bezpośrednio z Open Food Facts. Nie tracimy ich podczas
+    # drugiego żądania wykonywanego przy zapisie do spiżarni.
+    resolved_nutrition = {
+        "kcal": payload.kcal_per_100 if payload.kcal_per_100 is not None else lookup.kcal_per_100,
+        "protein": (
+            payload.protein_per_100
+            if payload.protein_per_100 is not None
+            else lookup.protein_per_100
+        ),
+        "fat": payload.fat_per_100 if payload.fat_per_100 is not None else lookup.fat_per_100,
+        "carbs": (
+            payload.carbs_per_100
+            if payload.carbs_per_100 is not None
+            else lookup.carbs_per_100
+        ),
+    }
+
     item_quantity = payload.quantity
     item_unit = payload.unit
     if payload.batch:
@@ -206,15 +256,15 @@ async def add_pantry_item_from_barcode(
         product = product_result.scalar_one_or_none()
     if product is None:
         nutrition = {
-            "kcal": lookup.kcal_per_100 or 0,
-            "protein": lookup.protein_per_100 or 0,
-            "fat": lookup.fat_per_100 or 0,
-            "carbs": lookup.carbs_per_100 or 0,
+            "kcal": resolved_nutrition["kcal"] or 0,
+            "protein": resolved_nutrition["protein"] or 0,
+            "fat": resolved_nutrition["fat"] or 0,
+            "carbs": resolved_nutrition["carbs"] or 0,
             "fiber": 0,
         }
         product = Product(
-            name=lookup.name,
-            brand=lookup.brand,
+            name=payload.name or lookup.name,
+            brand=payload.brand or lookup.brand,
             unit=lookup.unit or payload.unit,
             default_quantity=100,
             barcode=barcode,
@@ -227,6 +277,13 @@ async def add_pantry_item_from_barcode(
         )
         db.add(product)
         await db.flush()
+    else:
+        current_nutrition, nutrition_changed = merge_scanned_nutrition(
+            product.nutrition_per_100,
+            resolved_nutrition,
+        )
+        if nutrition_changed:
+            product.nutrition_per_100 = current_nutrition
 
     pantry_result = await db.execute(
         select(PantryItem).where(

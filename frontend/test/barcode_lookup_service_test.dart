@@ -105,5 +105,44 @@ void main() {
     expect(result.carbsPer100, 6.1);
     expect(result.priceMin, 2);
     expect(result.priceMax, 7);
+    expect(result.hasCompleteNutrition, isTrue);
+  });
+
+  test('nie uznaje samej nazwy produktu za pełne dane żywieniowe', () {
+    const result = BarcodeLookupResult(
+      found: true,
+      source: 'neon_cache',
+      name: 'Produkt bez makro',
+    );
+
+    expect(result.hasCompleteNutrition, isFalse);
+  });
+
+  test('stare cztery zera w Neon wymagają ponownego uzupełnienia', () {
+    const cached = BarcodeLookupResult(
+      found: true,
+      source: 'neon_cache',
+      name: 'Stary produkt',
+      kcalPer100: 0,
+      proteinPer100: 0,
+      fatPer100: 0,
+      carbsPer100: 0,
+    );
+
+    expect(cached.hasCompleteNutrition, isFalse);
+  });
+
+  test('potwierdzone zewnętrzne zera są prawidłowym makro', () {
+    const external = BarcodeLookupResult(
+      found: true,
+      source: 'open_food_facts_direct',
+      name: 'Woda',
+      kcalPer100: 0,
+      proteinPer100: 0,
+      fatPer100: 0,
+      carbsPer100: 0,
+    );
+
+    expect(external.hasCompleteNutrition, isTrue);
   });
 }

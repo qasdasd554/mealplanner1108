@@ -112,6 +112,17 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
         );
         return;
       }
+      if (!result.hasCompleteNutrition) {
+        _replaceItem(
+          scannedCode,
+          state: _BatchState.missing,
+          result: result,
+          message:
+              'Znaleziono produkt, ale brakuje kcal lub makro. '
+              'Dotknij, aby uzupełnić dane ze zdjęć etykiety.',
+        );
+        return;
+      }
       _replaceItem(scannedCode, state: _BatchState.ready, result: result);
     } catch (error) {
       if (!mounted) return;
@@ -186,6 +197,7 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
           quantity: _defaultQuantity(result),
           unit: _supportedUnit(result),
           batch: true,
+          lookupResult: result,
         );
         return 'Dodano do spiżarni';
       case _BatchDestination.tracking:
@@ -617,6 +629,7 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
         item.message ?? 'Błąd. Dotknij, aby ponowić.',
       ),
     };
+    final nutrition = _nutritionSummary(item.result);
     return Card(
       child: ListTile(
         minVerticalPadding: 10,
@@ -636,7 +649,24 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
-        subtitle: Text(status, maxLines: 3, overflow: TextOverflow.ellipsis),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(status, maxLines: 3, overflow: TextOverflow.ellipsis),
+            if (nutrition != null) ...[
+              const SizedBox(height: 3),
+              Text(
+                nutrition,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppTheme.textSecondary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ],
+        ),
         trailing: switch (item.state) {
           _BatchState.missing => const Icon(Icons.chevron_right),
           _BatchState.error => const Icon(Icons.refresh),
@@ -650,6 +680,27 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
       ),
     );
   }
+
+  String? _nutritionSummary(BarcodeLookupResult? result) {
+    if (result == null) return null;
+    final values = <String>[
+      if (result.kcalPer100 != null) '${result.kcalPer100!.round()} kcal',
+      if (result.proteinPer100 != null)
+        'B ${_formatMacro(result.proteinPer100!)} g',
+      if (result.fatPer100 != null) 'T ${_formatMacro(result.fatPer100!)} g',
+      if (result.carbsPer100 != null)
+        'W ${_formatMacro(result.carbsPer100!)} g',
+    ];
+    if (values.isEmpty) return null;
+    final basis =
+        result.unit == 'ml' || result.unit == 'l' ? '100 ml' : '100 g';
+    return '$basis: ${values.join(' · ')}';
+  }
+
+  String _formatMacro(double value) =>
+      value == value.roundToDouble()
+          ? value.toStringAsFixed(0)
+          : value.toStringAsFixed(1);
 }
 
 enum _BatchState { loading, ready, saving, completed, missing, error }

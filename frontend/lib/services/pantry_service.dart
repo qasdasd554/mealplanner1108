@@ -1,4 +1,5 @@
 import '../models/product.dart';
+import '../models/barcode_lookup_result.dart';
 import 'api_client.dart';
 import '../config/api_config.dart';
 
@@ -62,6 +63,7 @@ class PantryService {
     required double quantity,
     required String unit,
     bool batch = false,
+    BarcodeLookupResult? lookupResult,
   }) async {
     final response = await _client.post(
       '${ApiConfig.pantry}from-barcode',
@@ -70,6 +72,18 @@ class PantryService {
         'quantity': quantity,
         'unit': unit,
         if (batch) 'batch': true,
+        if (lookupResult?.name?.trim().isNotEmpty == true)
+          'name': lookupResult!.name,
+        if (lookupResult?.brand?.trim().isNotEmpty == true)
+          'brand': lookupResult!.brand,
+        if (lookupResult?.kcalPer100 != null)
+          'kcal_per_100': lookupResult!.kcalPer100,
+        if (lookupResult?.proteinPer100 != null)
+          'protein_per_100': lookupResult!.proteinPer100,
+        if (lookupResult?.fatPer100 != null)
+          'fat_per_100': lookupResult!.fatPer100,
+        if (lookupResult?.carbsPer100 != null)
+          'carbs_per_100': lookupResult!.carbsPer100,
       },
       timeout: const Duration(seconds: 15),
     );

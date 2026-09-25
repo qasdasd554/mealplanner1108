@@ -415,8 +415,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /// Jednolita plakietka każdej pozycji dolnej nawigacji. Stały rozmiar
-  /// zapobiega podskakiwaniu etykiet, a wypełnione koło jasno pokazuje
-  /// bieżącą sekcję także w trybie ciemnym.
+  /// zapobiega podskakiwaniu etykiet, a delikatne tło pokazuje bieżącą
+  /// sekcję bez zmiany neutralnego, szarego koloru ikon.
   Widget _buildNavIcon(IconData icon, {required bool active}) {
     final colors = Theme.of(context).colorScheme;
     final iconColor =
@@ -431,12 +431,15 @@ class _HomeScreenState extends State<HomeScreen> {
       colors.surface,
     );
 
-    return Container(
-      width: 32,
-      height: 32,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(color: background, shape: BoxShape.circle),
-      child: Icon(icon, size: 19, color: iconColor),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 2),
+      child: Container(
+        width: 34,
+        height: 34,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(color: background, shape: BoxShape.circle),
+        child: Icon(icon, size: 21, color: iconColor),
+      ),
     );
   }
 }

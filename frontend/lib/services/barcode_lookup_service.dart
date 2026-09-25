@@ -25,14 +25,32 @@ class BarcodeLookupService {
   void close() => _httpClient.close();
 
   Future<BarcodeLookupResult> lookup(String barcode) async {
+    late final BarcodeLookupResult backend;
     try {
-      return await _lookupBackend(barcode);
+      backend = await _lookupBackend(barcode);
     } catch (_) {
       // Tylko awaria/timeout backendu. Odpowiedź „found: false” NIE trafia
       // tutaj, bo serwer sprawdził już OFF i USDA.
       final direct = await _lookupOpenFoodFacts(barcode);
       if (direct != null) return direct;
       rethrow;
+    }
+
+    if (!backend.found || backend.hasCompleteNutrition) return backend;
+
+    // Starsze rekordy w Neon i część produktów katalogowych mają samą
+    // nazwę/markę. Skan seryjny uznawał je za gotowe, a potem zapisywał
+    // do Śledzenia cztery zera. Dociągamy wyłącznie brakujące makro;
+    // pełne trafienia nadal kończą się jednym szybkim żądaniem do Neon.
+    try {
+      final direct = await _lookupOpenFoodFacts(barcode);
+      return direct == null
+          ? backend
+          : mergeBarcodeLookupResults(backend, direct);
+    } catch (_) {
+      // Nazwa z Neon pozostaje użyteczna. Ekran seryjny poprosi wtedy o
+      // zdjęcie etykiety zamiast zapisać fałszywe wartości zerowe.
+      return backend;
     }
   }
 
@@ -170,7 +188,8 @@ BarcodeLookupResult mergeBarcodeLookupResults(
 ) {
   return BarcodeLookupResult(
     found: true,
-    source: catalog.source,
+    source:
+        catalog.source == null ? external.source : '${catalog.source}_enriched',
     name: _nonEmpty(catalog.name) ?? external.name,
     brand: _nonEmpty(catalog.brand) ?? external.brand,
     unit: catalog.unit,
