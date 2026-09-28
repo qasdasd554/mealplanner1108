@@ -157,4 +157,32 @@ void main() {
 
     expect(external.hasCompleteNutrition, isFalse);
   });
+
+  test('zastępuje cztery stare zera makro z zewnętrznej bazy', () {
+    const cached = BarcodeLookupResult(
+      found: true,
+      source: 'neon_cache',
+      name: 'Jogurt z cache',
+      kcalPer100: 0,
+      proteinPer100: 0,
+      fatPer100: 0,
+      carbsPer100: 0,
+    );
+    const external = BarcodeLookupResult(
+      found: true,
+      source: 'open_food_facts_direct',
+      name: 'Jogurt z OFF',
+      kcalPer100: 62,
+      proteinPer100: 4.2,
+      fatPer100: 2,
+      carbsPer100: 6.1,
+    );
+
+    final result = mergeBarcodeLookupResults(cached, external);
+    expect(result.kcalPer100, 62);
+    expect(result.proteinPer100, 4.2);
+    expect(result.fatPer100, 2);
+    expect(result.carbsPer100, 6.1);
+    expect(result.hasCompleteNutrition, isTrue);
+  });
 }

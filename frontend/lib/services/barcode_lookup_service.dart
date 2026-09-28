@@ -186,6 +186,25 @@ BarcodeLookupResult mergeBarcodeLookupResults(
   BarcodeLookupResult catalog,
   BarcodeLookupResult external,
 ) {
+  final catalogNutrition = [
+    catalog.kcalPer100,
+    catalog.proteinPer100,
+    catalog.fatPer100,
+    catalog.carbsPer100,
+  ];
+  // Older Neon/catalog records stored missing values as four zeros. A
+  // null-coalescing merge would keep those placeholders and discard the
+  // real values fetched from Open Food Facts/USDA.
+  final catalogHasPlaceholderNutrition =
+      catalogNutrition.every((value) => value == 0);
+
+  double? mergeNutrition(double? catalogValue, double? externalValue) {
+    if (catalogHasPlaceholderNutrition && externalValue != null) {
+      return externalValue;
+    }
+    return catalogValue ?? externalValue;
+  }
+
   return BarcodeLookupResult(
     found: true,
     source:
@@ -193,10 +212,13 @@ BarcodeLookupResult mergeBarcodeLookupResults(
     name: _nonEmpty(catalog.name) ?? external.name,
     brand: _nonEmpty(catalog.brand) ?? external.brand,
     unit: catalog.unit,
-    kcalPer100: catalog.kcalPer100 ?? external.kcalPer100,
-    proteinPer100: catalog.proteinPer100 ?? external.proteinPer100,
-    fatPer100: catalog.fatPer100 ?? external.fatPer100,
-    carbsPer100: catalog.carbsPer100 ?? external.carbsPer100,
+    kcalPer100: mergeNutrition(catalog.kcalPer100, external.kcalPer100),
+    proteinPer100: mergeNutrition(
+      catalog.proteinPer100,
+      external.proteinPer100,
+    ),
+    fatPer100: mergeNutrition(catalog.fatPer100, external.fatPer100),
+    carbsPer100: mergeNutrition(catalog.carbsPer100, external.carbsPer100),
     existingProductId: catalog.existingProductId,
     barcode: catalog.barcode ?? external.barcode,
     priceMin: catalog.priceMin ?? external.priceMin,
