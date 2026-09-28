@@ -173,7 +173,7 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
       var result = await _barcodeLookupService.lookup(code);
       if (!mounted) return;
 
-      if (!result.found) {
+      if (!result.found || !result.hasCompleteNutrition) {
         final recognized = await showProductLabelRecognitionSheet(
           context,
           barcode: code,

@@ -144,7 +144,7 @@ void main() {
     expect(unknown.hasCompleteNutrition, isFalse);
   });
 
-  test('potwierdzone zewnętrzne zera są prawidłowym makro', () {
+  test('nawet zewnętrzne cztery zera wymagają uzupełnienia', () {
     const external = BarcodeLookupResult(
       found: true,
       source: 'open_food_facts_direct',
@@ -155,6 +155,6 @@ void main() {
       carbsPer100: 0,
     );
 
-    expect(external.hasCompleteNutrition, isTrue);
+    expect(external.hasCompleteNutrition, isFalse);
   });
 }

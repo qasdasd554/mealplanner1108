@@ -188,7 +188,9 @@ class _PickProductFromCatalogSheetState
       var result = await _barcodeLookupService.lookup(code);
       if (!mounted) return;
 
-      if (!result.found || result.name == null) {
+      if (!result.found ||
+          result.name == null ||
+          !result.hasCompleteNutrition) {
         setState(() => _isLoading = false);
         final recognized = await showProductLabelRecognitionSheet(
           context,

@@ -41,20 +41,14 @@ class BarcodeLookupResult {
 
   /// Pełny zestaw wartości potrzebny do zapisania produktu w Śledzeniu.
   /// Stare rekordy katalogu/cache mogły zapisać brakujące dane jako cztery
-  /// zera. Traktujemy je jak brak, dopóki nie zostaną wzbogacone ze źródła
-  /// zewnętrznego. Prawdziwy produkt zerokaloryczny z OFF ma inne źródło
-  /// (albo sufiks `_enriched`) i pozostaje poprawnym wynikiem.
+  /// zera. Traktujemy taki wynik jak brak danych niezależnie od źródła —
+  /// aplikacja nie może pokazać użytkownikowi fałszywego "0 kcal / 0 g".
+  /// Pojedyncze zero jest prawidłowe (np. 0 g tłuszczu), ale cały zestaw
+  /// zer wymaga uzupełnienia z etykiety produktu.
   bool get hasCompleteNutrition {
     final values = [kcalPer100, proteinPer100, fatPer100, carbsPer100];
     if (values.any((value) => value == null)) return false;
-    if (values.any((value) => value != 0)) return true;
-    final normalizedSource = source?.toLowerCase();
-    return normalizedSource == 'open_food_facts_direct' ||
-        normalizedSource == 'open_food_facts' ||
-        normalizedSource == 'usda_fooddata_central' ||
-        normalizedSource == 'product_label_ai' ||
-        normalizedSource == 'product_label_ai_confirmed' ||
-        (normalizedSource?.endsWith('_enriched') ?? false);
+    return values.any((value) => value! > 0);
   }
 
   static double? _asDouble(dynamic value) {

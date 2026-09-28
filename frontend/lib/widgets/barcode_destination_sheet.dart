@@ -136,7 +136,7 @@ Future<bool> scanProductWithDestination(
 }
 
 String? _nutritionSummary(BarcodeLookupResult? result) {
-  if (result == null) return null;
+  if (result == null || !result.hasCompleteNutrition) return null;
   final values = <String>[
     if (result.kcalPer100 != null) '${result.kcalPer100!.round()} kcal/100 g',
     if (result.proteinPer100 != null)
@@ -157,7 +157,9 @@ Future<void> _addBarcodeToPantry(
   try {
     var result = initialResult ?? await lookupService.lookup(barcode);
     if (!context.mounted) return;
-    if (!result.found || (result.name?.trim().isEmpty ?? true)) {
+    if (!result.found ||
+        (result.name?.trim().isEmpty ?? true) ||
+        !result.hasCompleteNutrition) {
       final recognized = await showProductLabelRecognitionSheet(
         context,
         barcode: barcode,
