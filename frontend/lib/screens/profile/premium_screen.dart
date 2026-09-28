@@ -782,7 +782,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   context,
                   icon: Icons.qr_code_2,
                   title: 'Skanuj wiele produktów po kolei',
-                  subtitle: 'Wybierz jeden cel i zatwierdź całą serię',
+                  subtitle: 'Wybierz kilka miejsc i zatwierdź całą serię',
                   isPremium: isPremium,
                   onTap: () async {
                     if (!isPremium) {

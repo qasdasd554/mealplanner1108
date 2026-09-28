@@ -252,8 +252,8 @@ class _HomeScreenState extends State<HomeScreen> {
               title: const Text('Skanowanie seryjne jest w Premium'),
               content: const Text(
                 'Aparat pozostaje otwarty, a kolejne produkty są automatycznie '
-                'rozpoznawane. Raz wybierzesz spiżarnię, śledzenie albo katalog '
-                'i dodasz tam całą serię jednym przyciskiem.',
+                'rozpoznawane. Raz wybierzesz spiżarnię, śledzenie, katalog '
+                'lub kilka miejsc naraz i dodasz całą serię jednym przyciskiem.',
               ),
               actions: [
                 TextButton(

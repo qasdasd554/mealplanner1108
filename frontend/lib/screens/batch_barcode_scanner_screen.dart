@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:provider/provider.dart';
 
 import '../models/barcode_lookup_result.dart';
+import '../providers/food_log_provider.dart';
 import '../services/api_client.dart';
 import '../services/barcode_lookup_service.dart';
 import '../services/pantry_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/barcode_utils.dart';
+import '../utils/batch_tracking_payload.dart';
 import '../utils/error_utils.dart';
 import '../widgets/product_label_recognition_sheet.dart';
 
 /// Seryjne skanowanie Premium. Aparat pozostaje otwarty, a użytkownik
-/// wybiera jeden cel dla całej sesji i zatwierdza wszystkie rozpoznane
+/// wybiera jedno lub kilka miejsc dla całej sesji i zatwierdza wszystkie
 /// produkty jednym przyciskiem.
 class BatchBarcodeScannerScreen extends StatefulWidget {
   const BatchBarcodeScannerScreen({super.key});
@@ -44,7 +47,7 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
   bool _processing = false;
   bool _itemActionBusy = false;
   bool _submitting = false;
-  _BatchDestination? _destination;
+  final Set<_BatchDestination> _destinations = {};
   String _mealType = 'Przekąska';
 
   bool get _lookupBusy => _processing || _queue.isNotEmpty;
@@ -176,112 +179,102 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
     }
   }
 
-  double _defaultQuantity(BarcodeLookupResult result) {
-    final known = result.servingQuantity;
-    if (known != null && known > 0) return known;
-    return _supportedUnit(result) == 'szt' ? 1 : 100;
-  }
-
-  String _supportedUnit(BarcodeLookupResult result) {
-    const supported = {'g', 'kg', 'ml', 'l', 'szt'};
-    return supported.contains(result.unit) ? result.unit : 'szt';
-  }
-
-  String _formatDate(DateTime date) =>
-      '${date.year.toString().padLeft(4, '0')}-'
-      '${date.month.toString().padLeft(2, '0')}-'
-      '${date.day.toString().padLeft(2, '0')}';
-
-  Future<String> _saveItem(_BatchScanItem item) async {
+  Future<String> _saveItem(
+    _BatchScanItem item,
+    _BatchDestination destination,
+  ) async {
     final result = item.result!;
-    switch (_destination!) {
+    switch (destination) {
       case _BatchDestination.pantry:
         await _pantry.addFromBarcode(
           item.code,
-          quantity: _defaultQuantity(result),
-          unit: _supportedUnit(result),
+          quantity: defaultBarcodeQuantity(result),
+          unit: supportedBarcodeUnit(result),
           batch: true,
           lookupResult: result,
         );
         return 'Dodano do spiżarni';
       case _BatchDestination.tracking:
-        final amount = _defaultQuantity(result);
-        final unit = _supportedUnit(result);
-        final nutritionFactor =
-            unit == 'szt' && result.servingQuantity == null
-                ? 1.0
-                : amount / 100;
-        await _api.post(
-          '/food-log/',
-          body: {
-            'date': _formatDate(DateTime.now()),
-            'meal_type': _mealType,
-            'custom_name': result.name,
-            'servings': 1,
-            'calories': (result.kcalPer100 ?? 0) * nutritionFactor,
-            'protein': (result.proteinPer100 ?? 0) * nutritionFactor,
-            'fat': (result.fatPer100 ?? 0) * nutritionFactor,
-            'carbs': (result.carbsPer100 ?? 0) * nutritionFactor,
-          },
+        final payload = buildBatchTrackingPayload(
+          result: result,
+          mealType: _mealType,
+          date: DateTime.now(),
         );
+        final response = await _api.post('/food-log/', body: payload);
+        if (response is! Map<String, dynamic> ||
+            response['calories'] == null ||
+            response['protein'] == null ||
+            response['fat'] == null ||
+            response['carbs'] == null) {
+          throw ApiException(
+            502,
+            'Serwer nie potwierdził wartości odżywczych produktu.',
+          );
+        }
         return 'Dodano do śledzenia';
       case _BatchDestination.productDatabase:
         if (result.existingProductId != null) return 'Już jest w katalogu';
-        await _api.post(
-          '/products/submit',
-          body: {
-            'name': result.name,
-            'unit': _supportedUnit(result),
-            if (result.brand?.trim().isNotEmpty == true) 'brand': result.brand,
-            if (result.kcalPer100 != null) 'kcal_per_100': result.kcalPer100,
-            if (result.proteinPer100 != null)
-              'protein_per_100': result.proteinPer100,
-            if (result.fatPer100 != null) 'fat_per_100': result.fatPer100,
-            if (result.carbsPer100 != null) 'carbs_per_100': result.carbsPer100,
-            'store_ids': <String>[],
-            'barcode': item.code,
-          },
-        );
+        try {
+          await _api.post(
+            '/products/submit',
+            body: {
+              'name': result.name,
+              'unit': supportedBarcodeUnit(result),
+              if (result.brand?.trim().isNotEmpty == true)
+                'brand': result.brand,
+              if (result.kcalPer100 != null) 'kcal_per_100': result.kcalPer100,
+              if (result.proteinPer100 != null)
+                'protein_per_100': result.proteinPer100,
+              if (result.fatPer100 != null) 'fat_per_100': result.fatPer100,
+              if (result.carbsPer100 != null)
+                'carbs_per_100': result.carbsPer100,
+              'store_ids': <String>[],
+              'barcode': item.code,
+            },
+          );
+        } on ApiException catch (error) {
+          if (error.statusCode == 409) return 'Produkt jest już zgłoszony';
+          rethrow;
+        }
         return 'Dodano do katalogu';
     }
   }
 
   Future<bool> _saveAndUpdate(_BatchScanItem item) async {
+    final completed = Set<_BatchDestination>.of(item.completedDestinations);
     try {
-      final label = await _saveItem(item);
+      final labels = <String>[];
+      for (final destination in _destinations) {
+        if (completed.contains(destination)) continue;
+        labels.add(await _saveItem(item, destination));
+        completed.add(destination);
+      }
       if (!mounted) return false;
       _replaceItem(
         item.code,
         state: _BatchState.completed,
         result: item.result,
-        destinationLabel: label,
+        destinationLabel: labels.join(' · '),
+        completedDestinations: completed,
       );
       return true;
     } catch (error) {
       if (!mounted) return false;
-      if (_destination == _BatchDestination.productDatabase &&
-          error is ApiException &&
-          error.statusCode == 409) {
-        _replaceItem(
-          item.code,
-          state: _BatchState.completed,
-          result: item.result,
-          destinationLabel: 'Produkt jest już zgłoszony',
-        );
-        return true;
-      }
       _replaceItem(
         item.code,
         state: _BatchState.error,
         result: item.result,
-        message: '${friendlyError(error)} Dotknij, aby ponowić.',
+        message:
+            '${friendlyError(error)} Zapisane miejsca nie zostaną dodane '
+            'ponownie. Dotknij, aby ponowić.',
+        completedDestinations: completed,
       );
       return false;
     }
   }
 
   Future<void> _applyToAll() async {
-    if (_destination == null || _readyCount == 0 || _busy) return;
+    if (_destinations.isEmpty || _readyCount == 0 || _busy) return;
     final pending = _items
         .where((item) => item.state == _BatchState.ready)
         .toList(growable: false);
@@ -307,6 +300,15 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
           pending.sublist(start, end).map(_saveAndUpdate),
         );
         savedCount += results.where((saved) => saved).length;
+      }
+      if (mounted && _destinations.contains(_BatchDestination.tracking)) {
+        final provider = context.read<FoodLogProvider>();
+        final today = DateTime.now();
+        if (provider.currentDate.year == today.year &&
+            provider.currentDate.month == today.month &&
+            provider.currentDate.day == today.day) {
+          await provider.fetchLogsForDate(today);
+        }
       }
       if (mounted) {
         final failedCount = pending.length - savedCount;
@@ -343,6 +345,7 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
     BarcodeLookupResult? result,
     String? message,
     String? destinationLabel,
+    Set<_BatchDestination>? completedDestinations,
   }) {
     setState(() {
       final index = _items.indexWhere((item) => item.code == code);
@@ -353,6 +356,7 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
         result: result,
         message: message,
         destinationLabel: destinationLabel,
+        completedDestinations: completedDestinations,
       );
     });
   }
@@ -363,7 +367,9 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
     if (_readyCount == 0 && _completedCount == 0) {
       return 'Uzupełnij lub ponów nierozpoznane produkty.';
     }
-    if (_destination == null) return 'Wybierz jedno miejsce dla całej serii.';
+    if (_destinations.isEmpty) {
+      return 'Wybierz co najmniej jedno miejsce dla całej serii.';
+    }
     return '';
   }
 
@@ -434,7 +440,7 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
                         _lookupBusy
                             ? 'Rozpoznaję produkty · oczekuje '
                                 '${_queue.length + (_processing ? 1 : 0)}'
-                            : 'Skanuj kolejne produkty. Miejsce wybierzesz '
+                            : 'Skanuj kolejne produkty. Miejsca wybierzesz '
                                 'raz dla całej serii.',
                         textAlign: TextAlign.center,
                         style: const TextStyle(color: Colors.white),
@@ -486,7 +492,7 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
   }
 
   Widget _buildBatchActions() {
-    final canApply = !_busy && _readyCount > 0 && _destination != null;
+    final canApply = !_busy && _readyCount > 0 && _destinations.isNotEmpty;
     final canFinish = !_busy && _readyCount == 0 && _completedCount > 0;
     return Material(
       color: Theme.of(context).colorScheme.surface,
@@ -512,21 +518,25 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
                 children:
                     _BatchDestination.values
                         .map(
-                          (destination) => ChoiceChip(
+                          (destination) => FilterChip(
                             avatar: Icon(destination.icon, size: 18),
                             label: Text(destination.label),
-                            selected: _destination == destination,
+                            selected: _destinations.contains(destination),
                             onSelected:
                                 _submitting
                                     ? null
-                                    : (_) => setState(() {
-                                      _destination = destination;
+                                    : (selected) => setState(() {
+                                      if (selected) {
+                                        _destinations.add(destination);
+                                      } else {
+                                        _destinations.remove(destination);
+                                      }
                                     }),
                           ),
                         )
                         .toList(),
               ),
-              if (_destination == _BatchDestination.tracking) ...[
+              if (_destinations.contains(_BatchDestination.tracking)) ...[
                 const SizedBox(height: 10),
                 DropdownButtonFormField<String>(
                   value: _mealType,
@@ -726,6 +736,7 @@ class _BatchScanItem {
   final BarcodeLookupResult? result;
   final String? message;
   final String? destinationLabel;
+  final Set<_BatchDestination> completedDestinations;
 
   const _BatchScanItem({
     required this.code,
@@ -733,6 +744,7 @@ class _BatchScanItem {
     this.result,
     this.message,
     this.destinationLabel,
+    this.completedDestinations = const {},
   });
 
   _BatchScanItem copyWith({
@@ -740,6 +752,7 @@ class _BatchScanItem {
     BarcodeLookupResult? result,
     String? message,
     String? destinationLabel,
+    Set<_BatchDestination>? completedDestinations,
   }) {
     return _BatchScanItem(
       code: code,
@@ -747,6 +760,8 @@ class _BatchScanItem {
       result: result ?? this.result,
       message: message,
       destinationLabel: destinationLabel,
+      completedDestinations:
+          completedDestinations ?? this.completedDestinations,
     );
   }
 }
