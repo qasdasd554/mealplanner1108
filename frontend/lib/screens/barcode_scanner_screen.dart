@@ -23,17 +23,16 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   final MobileScannerController _scanner = MobileScannerController(
     facing: CameraFacing.back,
     lensType: CameraLensType.normal,
-    detectionSpeed: DetectionSpeed.noDuplicates,
+    detectionSpeed: DetectionSpeed.normal,
     autoZoom: true, // Obsługiwane na Androidzie; iOS ma tryb zbliżeń poniżej.
     formats: [
       BarcodeFormat.ean8,
       BarcodeFormat.ean13,
       BarcodeFormat.upcA,
       BarcodeFormat.upcE,
-      BarcodeFormat.code128,
-      BarcodeFormat.itf,
     ],
   );
+  final BarcodeScanConfirmation _confirmation = BarcodeScanConfirmation();
   bool _resultHandled = false;
   bool _closeRange = false;
   double _zoom = 1;
@@ -46,13 +45,19 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
 
   void _onScan(BarcodeCapture capture) {
     if (_resultHandled || !mounted) return;
+    final candidates = <String>{};
     for (final result in capture.barcodes) {
       final barcode = normalizeScannedBarcode(result.rawValue);
-      if (barcode == null) continue;
-      _resultHandled = true;
-      Navigator.of(context).pop(barcode);
+      if (barcode != null) candidates.add(barcode);
+    }
+    if (candidates.length != 1) {
+      _confirmation.reset();
       return;
     }
+    final barcode = candidates.single;
+    if (!_confirmation.confirm(barcode, DateTime.now())) return;
+    _resultHandled = true;
+    Navigator.of(context).pop(barcode);
   }
 
   Future<void> _setZoom(double zoom) async {

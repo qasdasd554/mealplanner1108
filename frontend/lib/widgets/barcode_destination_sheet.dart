@@ -4,6 +4,7 @@ import '../screens/barcode_scanner_screen.dart';
 import '../screens/tracker/add_food_entry_screen.dart';
 import '../services/barcode_lookup_service.dart';
 import '../services/pantry_service.dart';
+import '../models/barcode_lookup_result.dart';
 import '../theme/app_theme.dart';
 import '../utils/error_utils.dart';
 import '../utils/quantity_formatter.dart';
@@ -14,9 +15,24 @@ enum _BarcodeDestination { tracking, productDatabase, pantry }
 
 /// Skanuje kod tylko raz, a potem pozwala zdecydować, do czego wykorzystać
 /// wynik. Zwraca true wyłącznie wtedy, gdy produkt został zapisany w bazie.
-Future<bool> scanProductWithDestination(BuildContext context) async {
+Future<bool> scanProductWithDestination(
+  BuildContext context, {
+  VoidCallback? onPantryAdded,
+}) async {
   final barcode = await scanBarcode(context);
   if (barcode == null || !context.mounted) return false;
+
+  final lookupService = BarcodeLookupService();
+  BarcodeLookupResult? lookup;
+  try {
+    lookup = await lookupService.lookup(barcode);
+  } catch (_) {
+    // Poszczególne miejsca docelowe pokażą własny komunikat i pozwolą
+    // uzupełnić produkt ze zdjęcia, jeśli zewnętrzna baza jest chwilowo
+    // niedostępna.
+  } finally {
+    lookupService.close();
+  }
 
   final destination = await showModalBottomSheet<_BarcodeDestination>(
     context: context,
@@ -37,7 +53,20 @@ Future<bool> scanProductWithDestination(BuildContext context) async {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Kod: $barcode',
+                  lookup?.name == null ? 'Kod: $barcode' : lookup!.name!,
+                  style: Theme.of(sheetContext).textTheme.titleMedium,
+                ),
+                if (lookup?.brand?.trim().isNotEmpty == true)
+                  Text(
+                    lookup!.brand!,
+                    style: TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                const SizedBox(height: 4),
+                Text(
+                  _nutritionSummary(lookup) ?? 'Makroskładniki: brak danych',
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                 ),
                 const SizedBox(height: 10),
@@ -88,7 +117,8 @@ Future<bool> scanProductWithDestination(BuildContext context) async {
   }
 
   if (destination == _BarcodeDestination.pantry) {
-    await _addBarcodeToPantry(context, barcode);
+    await _addBarcodeToPantry(context, barcode, initialResult: lookup);
+    onPantryAdded?.call();
     return false;
   }
 
@@ -105,10 +135,27 @@ Future<bool> scanProductWithDestination(BuildContext context) async {
   return saved == true;
 }
 
-Future<void> _addBarcodeToPantry(BuildContext context, String barcode) async {
+String? _nutritionSummary(BarcodeLookupResult? result) {
+  if (result == null) return null;
+  final values = <String>[
+    if (result.kcalPer100 != null) '${result.kcalPer100!.round()} kcal/100 g',
+    if (result.proteinPer100 != null)
+      'B ${result.proteinPer100!.toStringAsFixed(1)} g',
+    if (result.fatPer100 != null) 'T ${result.fatPer100!.toStringAsFixed(1)} g',
+    if (result.carbsPer100 != null)
+      'W ${result.carbsPer100!.toStringAsFixed(1)} g',
+  ];
+  return values.isEmpty ? null : values.join(' · ');
+}
+
+Future<void> _addBarcodeToPantry(
+  BuildContext context,
+  String barcode, {
+  BarcodeLookupResult? initialResult,
+}) async {
   final lookupService = BarcodeLookupService();
   try {
-    var result = await lookupService.lookup(barcode);
+    var result = initialResult ?? await lookupService.lookup(barcode);
     if (!context.mounted) return;
     if (!result.found || (result.name?.trim().isEmpty ?? true)) {
       final recognized = await showProductLabelRecognitionSheet(

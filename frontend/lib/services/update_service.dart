@@ -147,6 +147,23 @@ class UpdateAvailableScreen extends StatelessWidget {
                     ),
                     textAlign: TextAlign.center,
                   ),
+                  const SizedBox(height: 20),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Najważniejsze zmiany:\n'
+                      '• Naprawiono standardowe skanowanie kodów kreskowych.\n'
+                      '• Naprawiono seryjne skanowanie Premium.\n'
+                      '• Po skanowaniu wyświetlają się kcal i makroskładniki.\n'
+                      '• Dodano wybór: Spiżarnia, Śledzenie lub Baza produktów.\n'
+                      '• Poprawiono stabilność zaznaczania produktów na liście zakupów.',
+                      style: TextStyle(
+                        color: AppTheme.textSecondary,
+                        height: 1.55,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 32),
                   SizedBox(
                     width: double.infinity,

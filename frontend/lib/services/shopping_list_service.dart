@@ -60,8 +60,11 @@ class ShoppingListService {
     await _client.delete('${ApiConfig.shoppingLists}$listId');
   }
 
-  Future<void> toggleItemCheck(String listId, String itemId) async {
-    await _client.put('${ApiConfig.shoppingLists}$listId/items/$itemId/check');
+  Future<bool> toggleItemCheck(String listId, String itemId) async {
+    final response = await _client.put(
+      '${ApiConfig.shoppingLists}$listId/items/$itemId/check',
+    );
+    return (response as Map<String, dynamic>)['is_checked'] as bool? ?? false;
   }
 
   /// Dopisuje pojedynczy produkt (spoza przepisu) do listy.

@@ -132,6 +132,18 @@ void main() {
     expect(cached.hasCompleteNutrition, isFalse);
   });
 
+  test('zera bez potwierdzonego źródła nie są pełnym makro', () {
+    const unknown = BarcodeLookupResult(
+      found: true,
+      name: 'Niezweryfikowany produkt',
+      kcalPer100: 0,
+      proteinPer100: 0,
+      fatPer100: 0,
+      carbsPer100: 0,
+    );
+    expect(unknown.hasCompleteNutrition, isFalse);
+  });
+
   test('potwierdzone zewnętrzne zera są prawidłowym makro', () {
     const external = BarcodeLookupResult(
       found: true,

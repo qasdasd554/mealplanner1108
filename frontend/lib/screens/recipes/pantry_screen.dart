@@ -6,10 +6,8 @@ import '../../providers/auth_provider.dart';
 import '../../models/product.dart';
 import '../../services/pantry_service.dart';
 import '../../services/product_search_service.dart';
-import '../../services/barcode_lookup_service.dart';
-import '../../widgets/product_label_recognition_sheet.dart';
+import '../../widgets/barcode_destination_sheet.dart';
 import '../../widgets/premium_feature_tag.dart';
-import '../barcode_scanner_screen.dart';
 import '../batch_barcode_scanner_screen.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
@@ -315,7 +313,6 @@ class _AddToPantrySheet extends StatefulWidget {
 
 class _AddToPantrySheetState extends State<_AddToPantrySheet> {
   final ProductSearchService _searchService = ProductSearchService();
-  final BarcodeLookupService _barcodeService = BarcodeLookupService();
   final TextEditingController _controller = TextEditingController();
   List<Product> _results = [];
   bool _isSearching = false;
@@ -468,49 +465,12 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
   }
 
   Future<void> _scanAndAdd() async {
-    final barcode = await scanBarcode(context);
-    if (barcode == null || !mounted) return;
-    setState(() => _isSaving = true);
-    try {
-      var lookup = await _barcodeService.lookup(barcode);
-      if (!mounted) return;
-      if (!lookup.found || lookup.name == null) {
-        setState(() => _isSaving = false);
-        final recognized = await showProductLabelRecognitionSheet(
-          context,
-          barcode: barcode,
-        );
-        if (!mounted || recognized == null) return;
-        lookup = recognized;
-      }
-      setState(() => _isSaving = false);
-      final amount = await _askQuantity(
-        lookup.name!,
-        lookup.unit,
-        suggestedQuantity: lookup.servingQuantity,
-      );
-      if (amount == null || !mounted) return;
-      setState(() => _isSaving = true);
-      await widget.pantryService.addFromBarcode(
-        barcode,
-        quantity: amount.quantity,
-        unit: amount.unit,
-      );
-      if (!mounted) return;
-      Navigator.of(context).pop(true);
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _isSaving = false);
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
-    }
+    await scanProductWithDestination(
+      context,
+      onPantryAdded: () {
+        if (context.mounted) Navigator.of(context).pop(true);
+      },
+    );
   }
 
   Future<void> _scanBatch() async {
@@ -553,7 +513,6 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
 
   @override
   void dispose() {
-    _barcodeService.close();
     _controller.dispose();
     super.dispose();
   }

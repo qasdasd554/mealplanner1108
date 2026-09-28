@@ -24,15 +24,13 @@ class BatchBarcodeScannerScreen extends StatefulWidget {
 class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
   final MobileScannerController _scanner = MobileScannerController(
     facing: CameraFacing.back,
-    detectionSpeed: DetectionSpeed.noDuplicates,
+    detectionSpeed: DetectionSpeed.normal,
     autoZoom: true,
     formats: const [
       BarcodeFormat.ean8,
       BarcodeFormat.ean13,
       BarcodeFormat.upcA,
       BarcodeFormat.upcE,
-      BarcodeFormat.code128,
-      BarcodeFormat.itf,
     ],
   );
   final PantryService _pantry = PantryService();
@@ -41,6 +39,7 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
   final Set<String> _seen = {};
   final List<_BatchScanItem> _items = [];
   final List<String> _queue = [];
+  final BarcodeScanConfirmation _confirmation = BarcodeScanConfirmation();
 
   bool _processing = false;
   bool _itemActionBusy = false;
@@ -66,15 +65,20 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
 
   Future<void> _onScan(BarcodeCapture capture) async {
     if (!mounted || _submitting || _itemActionBusy) return;
-    String? code;
+    final candidates = <String>{};
     for (final candidate in capture.barcodes) {
       final normalized = normalizeScannedBarcode(candidate.rawValue);
       if (normalized != null && !_seen.contains(normalized)) {
-        code = normalized;
-        break;
+        candidates.add(normalized);
       }
     }
-    if (code == null) return;
+    if (candidates.length != 1) {
+      _confirmation.reset();
+      return;
+    }
+
+    final code = candidates.single;
+    if (!_confirmation.confirm(code, DateTime.now())) return;
 
     final scannedCode = code;
     _seen.add(scannedCode);

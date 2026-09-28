@@ -48,7 +48,13 @@ class BarcodeLookupResult {
     final values = [kcalPer100, proteinPer100, fatPer100, carbsPer100];
     if (values.any((value) => value == null)) return false;
     if (values.any((value) => value != 0)) return true;
-    return source != 'catalog' && source != 'neon_cache';
+    final normalizedSource = source?.toLowerCase();
+    return normalizedSource == 'open_food_facts_direct' ||
+        normalizedSource == 'open_food_facts' ||
+        normalizedSource == 'usda_fooddata_central' ||
+        normalizedSource == 'product_label_ai' ||
+        normalizedSource == 'product_label_ai_confirmed' ||
+        (normalizedSource?.endsWith('_enriched') ?? false);
   }
 
   static double? _asDouble(dynamic value) {

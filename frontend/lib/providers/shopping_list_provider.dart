@@ -18,6 +18,7 @@ class ShoppingListProvider with ChangeNotifier {
   // przełączać.
   List<ShoppingList> _allLists = [];
   String? _selectedListId;
+  final Set<String> _pendingToggleIds = <String>{};
 
   ShoppingList? get currentList => _currentList;
   List<ShoppingList> get allLists => _allLists;
@@ -228,6 +229,7 @@ class ShoppingListProvider with ChangeNotifier {
 
   Future<void> toggleItem(String itemId) async {
     if (_currentList == null) return;
+    if (_pendingToggleIds.contains(itemId)) return;
 
     // Znajdź przedmiot w strukturze słownika
     ShoppingListItem? targetItem;
@@ -245,16 +247,22 @@ class ShoppingListProvider with ChangeNotifier {
     if (targetItem == null || targetDept == null) return;
 
     // Zmień stan lokalnie (Optymistyczna aktualizacja)
-    targetItem.isChecked = !targetItem.isChecked;
+    final previousValue = targetItem.isChecked;
+    _pendingToggleIds.add(itemId);
+    targetItem.isChecked = !previousValue;
     notifyListeners();
 
     try {
-      // Wyślij na serwer
-      await _shoppingListService.toggleItemCheck(_currentList!.id, itemId);
+      // Serwer jest źródłem prawdy. Nie wykonujemy drugiego lokalnego toggle.
+      targetItem.isChecked = await _shoppingListService.toggleItemCheck(
+        _currentList!.id,
+        itemId,
+      );
     } catch (e) {
-      // Cofnij zmianę w razie błędu
-      targetItem.isChecked = !targetItem.isChecked;
+      targetItem.isChecked = previousValue;
       _errorMessage = friendlyError(e);
+    } finally {
+      _pendingToggleIds.remove(itemId);
       notifyListeners();
     }
   }
