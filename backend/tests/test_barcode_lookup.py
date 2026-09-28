@@ -16,6 +16,11 @@ from app.services.barcode_lookup import (
     normalize_barcode,
     price_range_for_product,
 )
+from app.api.v1.products import (
+    BarcodeLookupResponse,
+    _merge_local_barcode_response,
+    _response_has_complete_nutrition,
+)
 
 
 def test_normalize_barcode_removes_scanner_formatting() -> None:
@@ -229,6 +234,68 @@ def test_partial_off_product_can_take_macros_from_second_source() -> None:
     assert merged.brand == "Polska marka"
     assert merged.kcal_per_100 == 62
     assert merged.protein_per_100 == 4.2
+
+
+def test_four_placeholder_zeros_are_not_complete_nutrition() -> None:
+    result = barcode_lookup.BarcodeLookupResult(
+        name="Stary rekord", brand=None, unit="g",
+        kcal_per_100=0, protein_per_100=0,
+        fat_per_100=0, carbs_per_100=0,
+        price_min=2, price_max=7, source="neon_cache",
+    )
+    assert barcode_lookup._has_complete_nutrition(result) is False
+
+
+def test_four_placeholder_zeros_take_real_macros_from_second_source() -> None:
+    cached = barcode_lookup.BarcodeLookupResult(
+        name="Jogurt z cache", brand="Polska marka", unit="g",
+        kcal_per_100=0, protein_per_100=0,
+        fat_per_100=0, carbs_per_100=0,
+        price_min=2, price_max=7, source="neon_cache",
+    )
+    usda = barcode_lookup.BarcodeLookupResult(
+        name="Natural yogurt", brand=None, unit="g",
+        kcal_per_100=62, protein_per_100=4.2,
+        fat_per_100=2, carbs_per_100=6.1,
+        price_min=2, price_max=7, source="usda_fooddata_central",
+    )
+
+    merged = barcode_lookup._merge_lookup_results(cached, usda)
+    assert merged.name == "Jogurt z cache"
+    assert merged.kcal_per_100 == 62
+    assert merged.protein_per_100 == 4.2
+    assert merged.fat_per_100 == 2
+    assert merged.carbs_per_100 == 6.1
+    assert barcode_lookup._has_complete_nutrition(merged) is True
+
+
+def test_old_neon_response_is_enriched_without_losing_local_identity() -> None:
+    local = BarcodeLookupResponse(
+        found=True,
+        source="neon_cache",
+        name="Polska nazwa",
+        brand="Polska marka",
+        unit="g",
+        kcal_per_100=0,
+        protein_per_100=0,
+        fat_per_100=0,
+        carbs_per_100=0,
+        barcode="5901234123457",
+    )
+    external = barcode_lookup.BarcodeLookupResult(
+        name="External name", brand=None, unit="g",
+        kcal_per_100=62, protein_per_100=4.2,
+        fat_per_100=2, carbs_per_100=6.1,
+        price_min=2, price_max=7, source="open_food_facts",
+        barcode="5901234123457",
+    )
+
+    merged = _merge_local_barcode_response(local, external)
+    assert merged.name == "Polska nazwa"
+    assert merged.brand == "Polska marka"
+    assert merged.kcal_per_100 == 62
+    assert merged.protein_per_100 == 4.2
+    assert _response_has_complete_nutrition(merged) is True
 
 
 def test_off_reads_serving_quantity_for_quick_amount_prompt() -> None:

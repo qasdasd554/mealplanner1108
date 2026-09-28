@@ -4,7 +4,10 @@ import '../services/shopping_list_service.dart';
 import '../utils/error_utils.dart';
 
 class ShoppingListProvider with ChangeNotifier {
-  final ShoppingListService _shoppingListService = ShoppingListService();
+  final ShoppingListService _shoppingListService;
+
+  ShoppingListProvider({ShoppingListService? shoppingListService})
+    : _shoppingListService = shoppingListService ?? ShoppingListService();
 
   ShoppingList? _currentList;
   bool _isLoading = false;
@@ -25,6 +28,16 @@ class ShoppingListProvider with ChangeNotifier {
   String? get selectedListId => _selectedListId;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  bool isTogglePending(String itemId) => _pendingToggleIds.contains(itemId);
+
+  ShoppingListItem? _findItem(ShoppingList list, String itemId) {
+    for (final items in list.itemsByDepartment.values) {
+      for (final item in items) {
+        if (item.id == itemId) return item;
+      }
+    }
+    return null;
+  }
 
   /// Pobiera wszystkie listy użytkownika i ustawia aktywną.
   ///
@@ -227,40 +240,39 @@ class ShoppingListProvider with ChangeNotifier {
     }
   }
 
-  Future<void> toggleItem(String itemId) async {
-    if (_currentList == null) return;
-    if (_pendingToggleIds.contains(itemId)) return;
-
-    // Znajdź przedmiot w strukturze słownika
-    ShoppingListItem? targetItem;
-    String? targetDept;
-
-    for (final entry in _currentList!.itemsByDepartment.entries) {
-      final index = entry.value.indexWhere((item) => item.id == itemId);
-      if (index != -1) {
-        targetItem = entry.value[index];
-        targetDept = entry.key;
-        break;
-      }
+  Future<bool> toggleItem(String itemId) async {
+    final listAtRequest = _currentList;
+    if (listAtRequest == null || _pendingToggleIds.contains(itemId)) {
+      return false;
     }
 
-    if (targetItem == null || targetDept == null) return;
+    final targetItem = _findItem(listAtRequest, itemId);
+    if (targetItem == null) return false;
 
     // Zmień stan lokalnie (Optymistyczna aktualizacja)
     final previousValue = targetItem.isChecked;
+    _errorMessage = null;
     _pendingToggleIds.add(itemId);
     targetItem.isChecked = !previousValue;
     notifyListeners();
 
     try {
-      // Serwer jest źródłem prawdy. Nie wykonujemy drugiego lokalnego toggle.
-      targetItem.isChecked = await _shoppingListService.toggleItemCheck(
-        _currentList!.id,
+      final confirmedValue = await _shoppingListService.toggleItemCheck(
+        listAtRequest.id,
         itemId,
       );
+      // Lista mogła zostać odświeżona w trakcie żądania. Aktualizujemy
+      // obiekt, który jest faktycznie widoczny, a nie stary odłączony model.
+      if (_currentList?.id == listAtRequest.id) {
+        _findItem(_currentList!, itemId)?.isChecked = confirmedValue;
+      }
+      return true;
     } catch (e) {
-      targetItem.isChecked = previousValue;
+      if (_currentList?.id == listAtRequest.id) {
+        _findItem(_currentList!, itemId)?.isChecked = previousValue;
+      }
       _errorMessage = friendlyError(e);
+      return false;
     } finally {
       _pendingToggleIds.remove(itemId);
       notifyListeners();
@@ -294,6 +306,7 @@ class ShoppingListProvider with ChangeNotifier {
     _currentList = null;
     _isLoading = false;
     _errorMessage = null;
+    _pendingToggleIds.clear();
     notifyListeners();
   }
 }

@@ -195,11 +195,12 @@ BarcodeLookupResult mergeBarcodeLookupResults(
   // Older Neon/catalog records stored missing values as four zeros. A
   // null-coalescing merge would keep those placeholders and discard the
   // real values fetched from Open Food Facts/USDA.
-  final catalogHasPlaceholderNutrition =
-      catalogNutrition.every((value) => value == 0);
+  final catalogHasPlaceholderNutrition = catalogNutrition.every(
+    (value) => value == 0,
+  );
 
   double? mergeNutrition(double? catalogValue, double? externalValue) {
-    if (catalogHasPlaceholderNutrition && externalValue != null) {
+    if (catalogHasPlaceholderNutrition) {
       return externalValue;
     }
     return catalogValue ?? externalValue;

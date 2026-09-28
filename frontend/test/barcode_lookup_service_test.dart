@@ -185,4 +185,30 @@ void main() {
     expect(result.carbsPer100, 6.1);
     expect(result.hasCompleteNutrition, isTrue);
   });
+
+  test('nie zachowuje fałszywych zer, gdy zewnętrzna baza jest częściowa', () {
+    const cached = BarcodeLookupResult(
+      found: true,
+      source: 'neon_cache',
+      name: 'Produkt z cache',
+      kcalPer100: 0,
+      proteinPer100: 0,
+      fatPer100: 0,
+      carbsPer100: 0,
+    );
+    const external = BarcodeLookupResult(
+      found: true,
+      source: 'open_food_facts_direct',
+      name: 'Produkt z OFF',
+      kcalPer100: 120,
+      proteinPer100: 3,
+    );
+
+    final result = mergeBarcodeLookupResults(cached, external);
+    expect(result.kcalPer100, 120);
+    expect(result.proteinPer100, 3);
+    expect(result.fatPer100, isNull);
+    expect(result.carbsPer100, isNull);
+    expect(result.hasCompleteNutrition, isFalse);
+  });
 }

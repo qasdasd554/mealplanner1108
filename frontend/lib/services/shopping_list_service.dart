@@ -64,7 +64,13 @@ class ShoppingListService {
     final response = await _client.put(
       '${ApiConfig.shoppingLists}$listId/items/$itemId/check',
     );
-    return (response as Map<String, dynamic>)['is_checked'] as bool? ?? false;
+    if (response is Map<String, dynamic> && response['is_checked'] is bool) {
+      return response['is_checked'] as bool;
+    }
+    throw ApiException(
+      502,
+      'Serwer nie potwierdził stanu pozycji na liście zakupów.',
+    );
   }
 
   /// Dopisuje pojedynczy produkt (spoza przepisu) do listy.

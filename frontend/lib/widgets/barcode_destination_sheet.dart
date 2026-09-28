@@ -34,105 +34,199 @@ Future<bool> scanProductWithDestination(
     lookupService.close();
   }
 
-  final destination = await showModalBottomSheet<_BarcodeDestination>(
+  final selectedDestinations = <_BarcodeDestination>{};
+  final destinations = await showModalBottomSheet<Set<_BarcodeDestination>>(
     context: context,
+    isScrollControlled: true,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
     ),
     builder:
-        (sheetContext) => SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Co zrobić z produktem?',
-                  style: Theme.of(sheetContext).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  lookup?.name == null ? 'Kod: $barcode' : lookup!.name!,
-                  style: Theme.of(sheetContext).textTheme.titleMedium,
-                ),
-                if (lookup?.brand?.trim().isNotEmpty == true)
-                  Text(
-                    lookup!.brand!,
-                    style: TextStyle(
-                      color: AppTheme.textSecondary,
-                      fontSize: 12,
+        (sheetContext) => StatefulBuilder(
+          builder:
+              (sheetContext, setSheetState) => SafeArea(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Gdzie dodać produkt?',
+                          style: Theme.of(sheetContext).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Możesz zaznaczyć kilka miejsc jednocześnie.',
+                          style: TextStyle(
+                            color: AppTheme.textSecondary,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          lookup?.name == null
+                              ? 'Kod: $barcode'
+                              : lookup!.name!,
+                          style: Theme.of(sheetContext).textTheme.titleMedium,
+                        ),
+                        if (lookup?.brand?.trim().isNotEmpty == true)
+                          Text(
+                            lookup!.brand!,
+                            style: TextStyle(
+                              color: AppTheme.textSecondary,
+                              fontSize: 12,
+                            ),
+                          ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _nutritionSummary(lookup) ??
+                              'Makroskładniki: brak danych',
+                          style: TextStyle(
+                            color: AppTheme.textSecondary,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        CheckboxListTile(
+                          value: selectedDestinations.contains(
+                            _BarcodeDestination.tracking,
+                          ),
+                          secondary: const Icon(
+                            Icons.local_fire_department_outlined,
+                          ),
+                          title: const Text('Dodaj do śledzenia'),
+                          subtitle: const Text(
+                            'Wybierz ilość i rodzaj posiłku',
+                          ),
+                          controlAffinity: ListTileControlAffinity.trailing,
+                          onChanged:
+                              (selected) => setSheetState(() {
+                                if (selected == true) {
+                                  selectedDestinations.add(
+                                    _BarcodeDestination.tracking,
+                                  );
+                                } else {
+                                  selectedDestinations.remove(
+                                    _BarcodeDestination.tracking,
+                                  );
+                                }
+                              }),
+                        ),
+                        CheckboxListTile(
+                          value: selectedDestinations.contains(
+                            _BarcodeDestination.productDatabase,
+                          ),
+                          secondary: const Icon(Icons.inventory_2_outlined),
+                          title: const Text('Dodaj do bazy produktów'),
+                          subtitle: const Text(
+                            'Sprawdź nazwę, markę i makroskładniki',
+                          ),
+                          controlAffinity: ListTileControlAffinity.trailing,
+                          onChanged:
+                              (selected) => setSheetState(() {
+                                if (selected == true) {
+                                  selectedDestinations.add(
+                                    _BarcodeDestination.productDatabase,
+                                  );
+                                } else {
+                                  selectedDestinations.remove(
+                                    _BarcodeDestination.productDatabase,
+                                  );
+                                }
+                              }),
+                        ),
+                        CheckboxListTile(
+                          value: selectedDestinations.contains(
+                            _BarcodeDestination.pantry,
+                          ),
+                          secondary: const Icon(Icons.kitchen_outlined),
+                          title: const Text('Dodaj do spiżarni'),
+                          subtitle: const Text(
+                            'Podaj ilość i jednostkę produktu',
+                          ),
+                          controlAffinity: ListTileControlAffinity.trailing,
+                          onChanged:
+                              (selected) => setSheetState(() {
+                                if (selected == true) {
+                                  selectedDestinations.add(
+                                    _BarcodeDestination.pantry,
+                                  );
+                                } else {
+                                  selectedDestinations.remove(
+                                    _BarcodeDestination.pantry,
+                                  );
+                                }
+                              }),
+                        ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton.icon(
+                            onPressed:
+                                selectedDestinations.isEmpty
+                                    ? null
+                                    : () => Navigator.pop(
+                                      sheetContext,
+                                      Set<_BarcodeDestination>.of(
+                                        selectedDestinations,
+                                      ),
+                                    ),
+                            icon: const Icon(Icons.check),
+                            label: Text(
+                              selectedDestinations.length > 1
+                                  ? 'Dodaj do ${selectedDestinations.length} miejsc'
+                                  : 'Dalej',
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                const SizedBox(height: 4),
-                Text(
-                  _nutritionSummary(lookup) ?? 'Makroskładniki: brak danych',
-                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                 ),
-                const SizedBox(height: 10),
-                ListTile(
-                  leading: const Icon(Icons.local_fire_department_outlined),
-                  title: const Text('Dodaj do śledzenia'),
-                  subtitle: const Text('Wybierz ilość i rodzaj posiłku'),
-                  onTap:
-                      () => Navigator.pop(
-                        sheetContext,
-                        _BarcodeDestination.tracking,
-                      ),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.inventory_2_outlined),
-                  title: const Text('Dodaj do bazy produktów'),
-                  subtitle: const Text('Sprawdź nazwę, markę i makroskładniki'),
-                  onTap:
-                      () => Navigator.pop(
-                        sheetContext,
-                        _BarcodeDestination.productDatabase,
-                      ),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.kitchen_outlined),
-                  title: const Text('Dodaj do spiżarni'),
-                  subtitle: const Text('Podaj ilość i jednostkę produktu'),
-                  onTap:
-                      () => Navigator.pop(
-                        sheetContext,
-                        _BarcodeDestination.pantry,
-                      ),
-                ),
-              ],
-            ),
-          ),
+              ),
         ),
   );
-  if (destination == null || !context.mounted) return false;
+  if (destinations == null || destinations.isEmpty || !context.mounted) {
+    return false;
+  }
 
-  if (destination == _BarcodeDestination.tracking) {
+  if (destinations.contains(_BarcodeDestination.pantry)) {
+    final pantryAdded = await _addBarcodeToPantry(
+      context,
+      barcode,
+      initialResult: lookup,
+    );
+    if (pantryAdded) onPantryAdded?.call();
+    if (!context.mounted) return false;
+  }
+
+  var savedToDatabase = false;
+  if (destinations.contains(_BarcodeDestination.productDatabase)) {
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: AppTheme.surfaceColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => SubmitProductSheet(initialBarcode: barcode),
+    );
+    savedToDatabase = saved == true;
+    if (!context.mounted) return savedToDatabase;
+  }
+
+  if (destinations.contains(_BarcodeDestination.tracking)) {
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => AddFoodEntryScreen(initialBarcode: barcode),
       ),
     );
-    return false;
   }
 
-  if (destination == _BarcodeDestination.pantry) {
-    await _addBarcodeToPantry(context, barcode, initialResult: lookup);
-    onPantryAdded?.call();
-    return false;
-  }
-
-  final saved = await showModalBottomSheet<bool>(
-    context: context,
-    isScrollControlled: true,
-    useSafeArea: true,
-    backgroundColor: AppTheme.surfaceColor,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-    ),
-    builder: (_) => SubmitProductSheet(initialBarcode: barcode),
-  );
-  return saved == true;
+  return savedToDatabase;
 }
 
 String? _nutritionSummary(BarcodeLookupResult? result) {
@@ -148,7 +242,7 @@ String? _nutritionSummary(BarcodeLookupResult? result) {
   return values.isEmpty ? null : values.join(' · ');
 }
 
-Future<void> _addBarcodeToPantry(
+Future<bool> _addBarcodeToPantry(
   BuildContext context,
   String barcode, {
   BarcodeLookupResult? initialResult,
@@ -156,7 +250,7 @@ Future<void> _addBarcodeToPantry(
   final lookupService = BarcodeLookupService();
   try {
     var result = initialResult ?? await lookupService.lookup(barcode);
-    if (!context.mounted) return;
+    if (!context.mounted) return false;
     if (!result.found ||
         (result.name?.trim().isEmpty ?? true) ||
         !result.hasCompleteNutrition) {
@@ -164,7 +258,7 @@ Future<void> _addBarcodeToPantry(
         context,
         barcode: barcode,
       );
-      if (!context.mounted || recognized == null) return;
+      if (!context.mounted || recognized == null) return false;
       result = recognized;
     }
 
@@ -241,24 +335,27 @@ Future<void> _addBarcodeToPantry(
           ),
     );
     controller.dispose();
-    if (!context.mounted || amount == null) return;
+    if (!context.mounted || amount == null) return false;
 
     final added = await PantryService().addFromBarcode(
       barcode,
       quantity: amount.quantity,
       unit: amount.unit,
     );
-    if (!context.mounted) return;
+    if (!context.mounted) return true;
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(content: Text('${added.product.name} dodano do spiżarni.')),
       );
+    return true;
   } catch (error) {
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(friendlyError(error))));
+    if (context.mounted) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(friendlyError(error))));
+    }
+    return false;
   } finally {
     lookupService.close();
   }

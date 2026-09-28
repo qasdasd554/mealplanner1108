@@ -152,11 +152,10 @@ class UpdateAvailableScreen extends StatelessWidget {
                     alignment: Alignment.centerLeft,
                     child: Text(
                       'Najważniejsze zmiany:\n'
-                      '• Naprawiono standardowe skanowanie kodów kreskowych.\n'
-                      '• Naprawiono seryjne skanowanie Premium.\n'
-                      '• Po skanowaniu wyświetlają się kcal i makroskładniki.\n'
-                      '• Dodano wybór: Spiżarnia, Śledzenie lub Baza produktów.\n'
-                      '• Poprawiono stabilność zaznaczania produktów na liście zakupów.',
+                      '• Naprawiono standardowe skanowanie kodów kreskowych — produkt pokazuje kcal, białko, tłuszcze i węglowodany.\n'
+                      '• Naprawiono seryjne skanowanie kodów kreskowych Premium — zeskanowane produkty również pokazują kcal i makroskładniki.\n'
+                      '• Po jednym skanie można dodać produkt jednocześnie do Spiżarni, Śledzenia i Bazy produktów.\n'
+                      '• Zaznaczone produkty na liście zakupów pozostają oznaczone jako kupione.',
                       style: TextStyle(
                         color: AppTheme.textSecondary,
                         height: 1.55,

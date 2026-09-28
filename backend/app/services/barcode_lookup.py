@@ -59,28 +59,55 @@ class BarcodeLookupResult:
 
 
 def _has_complete_nutrition(result: BarcodeLookupResult) -> bool:
-    return all(value is not None for value in (
+    values = (
         result.kcal_per_100, result.protein_per_100,
         result.fat_per_100, result.carbs_per_100,
-    ))
+    )
+    # Stare rekordy i niektóre niepełne odpowiedzi zewnętrzne zapisują
+    # brak makro jako cztery zera. Nie wolno uznać takiego zestawu za
+    # kompletne dane, bo wtedy wynik trafia do Neon i blokuje USDA/OCR.
+    return all(value is not None for value in values) and any(
+        value > 0 for value in values if value is not None
+    )
 
 
 def _merge_lookup_results(
     primary: BarcodeLookupResult, supplementary: BarcodeLookupResult,
 ) -> BarcodeLookupResult:
     """Zachowuje polską nazwę z OFF, uzupełniając brakujące makro."""
+    primary_nutrition = (
+        primary.kcal_per_100,
+        primary.protein_per_100,
+        primary.fat_per_100,
+        primary.carbs_per_100,
+    )
+    primary_has_placeholder_nutrition = all(
+        value == 0 for value in primary_nutrition
+    )
+
+    def merge_nutrition(
+        primary_value: float | None, supplementary_value: float | None,
+    ) -> float | None:
+        if primary_has_placeholder_nutrition:
+            return supplementary_value
+        return primary_value if primary_value is not None else supplementary_value
+
     return BarcodeLookupResult(
         name=primary.name,
         brand=primary.brand or supplementary.brand,
         unit=primary.unit,
-        kcal_per_100=primary.kcal_per_100 if primary.kcal_per_100 is not None
-        else supplementary.kcal_per_100,
-        protein_per_100=primary.protein_per_100 if primary.protein_per_100 is not None
-        else supplementary.protein_per_100,
-        fat_per_100=primary.fat_per_100 if primary.fat_per_100 is not None
-        else supplementary.fat_per_100,
-        carbs_per_100=primary.carbs_per_100 if primary.carbs_per_100 is not None
-        else supplementary.carbs_per_100,
+        kcal_per_100=merge_nutrition(
+            primary.kcal_per_100, supplementary.kcal_per_100,
+        ),
+        protein_per_100=merge_nutrition(
+            primary.protein_per_100, supplementary.protein_per_100,
+        ),
+        fat_per_100=merge_nutrition(
+            primary.fat_per_100, supplementary.fat_per_100,
+        ),
+        carbs_per_100=merge_nutrition(
+            primary.carbs_per_100, supplementary.carbs_per_100,
+        ),
         price_min=primary.price_min,
         price_max=primary.price_max,
         source=primary.source,

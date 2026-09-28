@@ -20,7 +20,11 @@ from app.models import BarcodeProductCache, Product, ProductSubstitute, StorePro
 from app.models.user import User
 from app.schemas.product import ProductResponse, StoreProductResponse, SubstituteResponse
 from app.services import ProductSubstitutionService
-from app.services.barcode_lookup import price_range_for_product
+from app.services.barcode_lookup import (
+    BarcodeLookupResult,
+    lookup_barcode_external,
+    price_range_for_product,
+)
 
 
 # UWAGA (naprawa bezpieczeństwa): endpointy w tym pliku były CAŁKOWICIE
@@ -67,6 +71,63 @@ class BarcodeLookupResponse(BaseModel):
     price_max: float | None = None
     barcode: str | None = None
     serving_quantity: float | None = None
+
+
+def _response_has_complete_nutrition(response: BarcodeLookupResponse) -> bool:
+    values = (
+        response.kcal_per_100,
+        response.protein_per_100,
+        response.fat_per_100,
+        response.carbs_per_100,
+    )
+    return all(value is not None for value in values) and any(
+        value > 0 for value in values if value is not None
+    )
+
+
+def _merge_local_barcode_response(
+    local: BarcodeLookupResponse,
+    external: BarcodeLookupResult,
+) -> BarcodeLookupResponse:
+    """Zachowuje zweryfikowaną nazwę lokalną, ale wymienia stare 0/0/0/0."""
+    local_nutrition = (
+        local.kcal_per_100,
+        local.protein_per_100,
+        local.fat_per_100,
+        local.carbs_per_100,
+    )
+    placeholders = all(value == 0 for value in local_nutrition)
+
+    def nutrition(
+        local_value: float | None,
+        external_value: float | None,
+    ) -> float | None:
+        if placeholders:
+            return external_value
+        return local_value if local_value is not None else external_value
+
+    return BarcodeLookupResponse(
+        found=True,
+        source=f"{local.source}_enriched" if local.source else external.source,
+        name=local.name or external.name,
+        brand=local.brand or external.brand,
+        unit=local.unit or external.unit,
+        kcal_per_100=nutrition(local.kcal_per_100, external.kcal_per_100),
+        protein_per_100=nutrition(
+            local.protein_per_100, external.protein_per_100,
+        ),
+        fat_per_100=nutrition(local.fat_per_100, external.fat_per_100),
+        carbs_per_100=nutrition(local.carbs_per_100, external.carbs_per_100),
+        existing_product_id=local.existing_product_id,
+        price_min=local.price_min if local.price_min is not None else external.price_min,
+        price_max=local.price_max if local.price_max is not None else external.price_max,
+        barcode=local.barcode or external.barcode,
+        serving_quantity=(
+            local.serving_quantity
+            if local.serving_quantity is not None
+            else external.serving_quantity
+        ),
+    )
 
 
 class ProductNameSuggestion(BaseModel):
@@ -217,6 +278,7 @@ async def lookup_barcode(
     # 1. Własny katalog — widoczne to, co widziałby zwykły GET /products
     # (zaakceptowane PLUS własne zgłoszenia), żeby nie pokazywać komuś
     # cudzego jeszcze niezatwierdzonego zgłoszenia jako "gotowy produkt".
+    local_response: BarcodeLookupResponse | None = None
     result = await db.execute(
         select(Product).where(
             Product.barcode.in_(barcode_variants(normalized_barcode)),
@@ -229,7 +291,7 @@ async def lookup_barcode(
     existing = result.scalar_one_or_none()
     if existing is not None:
         price_min, price_max = price_range_for_product(existing.name)
-        return BarcodeLookupResponse(
+        local_response = BarcodeLookupResponse(
             found=True,
             source="catalog",
             name=existing.name,
@@ -246,70 +308,86 @@ async def lookup_barcode(
             serving_quantity=float(existing.default_quantity or 0) or None,
         )
 
+    if local_response is not None and _response_has_complete_nutrition(
+        local_response
+    ):
+        return local_response
+
     # 2. Cache Neon — wspólny dla wszystkich użytkowników.
-    cached_result = await db.execute(
-        select(BarcodeProductCache).where(
-            BarcodeProductCache.barcode.in_(barcode_variants(normalized_barcode))
-        ).limit(1)
-    )
-    cached = cached_result.scalar_one_or_none()
-    if cached is not None:
-        nutrition = cached.nutrition_per_100 or {}
-        return BarcodeLookupResponse(
-            found=True,
-            source="neon_cache",
-            name=cached.name,
-            brand=cached.brand,
-            unit=cached.unit,
-            kcal_per_100=nutrition.get("kcal"),
-            protein_per_100=nutrition.get("protein"),
-            fat_per_100=nutrition.get("fat"),
-            carbs_per_100=nutrition.get("carbs"),
-            price_min=cached.price_min,
-            price_max=cached.price_max,
-            barcode=cached.barcode,
-            serving_quantity=cached.serving_quantity,
+    if local_response is None:
+        cached_result = await db.execute(
+            select(BarcodeProductCache).where(
+                BarcodeProductCache.barcode.in_(
+                    barcode_variants(normalized_barcode)
+                )
+            ).limit(1)
         )
+        cached = cached_result.scalar_one_or_none()
+        if cached is not None:
+            nutrition = cached.nutrition_per_100 or {}
+            local_response = BarcodeLookupResponse(
+                found=True,
+                source="neon_cache",
+                name=cached.name,
+                brand=cached.brand,
+                unit=cached.unit,
+                kcal_per_100=nutrition.get("kcal"),
+                protein_per_100=nutrition.get("protein"),
+                fat_per_100=nutrition.get("fat"),
+                carbs_per_100=nutrition.get("carbs"),
+                price_min=cached.price_min,
+                price_max=cached.price_max,
+                barcode=cached.barcode,
+                serving_quantity=cached.serving_quantity,
+            )
+            if _response_has_complete_nutrition(local_response):
+                return local_response
 
     # 3. Open Food Facts v3.6 oraz USDA FoodData Central. UPCitemdb zostało
     # usunięte z aktywnej ścieżki: często zwracało 429 i nie zawiera makro.
-    from app.services.barcode_lookup import lookup_barcode_external
-
     external = await lookup_barcode_external(normalized_barcode)
     if external is not None:
+        response = (
+            _merge_local_barcode_response(local_response, external)
+            if local_response is not None
+            else BarcodeLookupResponse(
+                found=True,
+                source=external.source,
+                name=external.name,
+                brand=external.brand,
+                unit=external.unit,
+                kcal_per_100=external.kcal_per_100,
+                protein_per_100=external.protein_per_100,
+                fat_per_100=external.fat_per_100,
+                carbs_per_100=external.carbs_per_100,
+                existing_product_id=None,
+                price_min=external.price_min,
+                price_max=external.price_max,
+                barcode=normalized_barcode,
+                serving_quantity=external.serving_quantity,
+            )
+        )
         # Zapis nie blokuje odpowiedzi. Po zakończeniu tego żądania FastAPI
         # otwiera osobną sesję i utrwala wynik dla kolejnych użytkowników.
         background_tasks.add_task(
             _persist_barcode_cache_in_background,
             barcode=normalized_barcode,
-            name=external.name,
-            brand=external.brand,
-            unit=external.unit,
-            kcal_per_100=external.kcal_per_100,
-            protein_per_100=external.protein_per_100,
-            fat_per_100=external.fat_per_100,
-            carbs_per_100=external.carbs_per_100,
-            price_min=external.price_min,
-            price_max=external.price_max,
-            source=external.source,
-            serving_quantity=external.serving_quantity,
+            name=response.name or external.name,
+            brand=response.brand,
+            unit=response.unit,
+            kcal_per_100=response.kcal_per_100,
+            protein_per_100=response.protein_per_100,
+            fat_per_100=response.fat_per_100,
+            carbs_per_100=response.carbs_per_100,
+            price_min=response.price_min or external.price_min,
+            price_max=response.price_max or external.price_max,
+            source=response.source or external.source,
+            serving_quantity=response.serving_quantity,
         )
-        return BarcodeLookupResponse(
-            found=True,
-            source=external.source,
-            name=external.name,
-            brand=external.brand,
-            unit=external.unit,
-            kcal_per_100=external.kcal_per_100,
-            protein_per_100=external.protein_per_100,
-            fat_per_100=external.fat_per_100,
-            carbs_per_100=external.carbs_per_100,
-            existing_product_id=None,
-            price_min=external.price_min,
-            price_max=external.price_max,
-            barcode=normalized_barcode,
-            serving_quantity=external.serving_quantity,
-        )
+        return response
+
+    if local_response is not None:
+        return local_response
 
     return BarcodeLookupResponse(found=False, source=None, name=None)
 
