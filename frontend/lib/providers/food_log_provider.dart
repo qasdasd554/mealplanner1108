@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+
 import '../models/food_log.dart';
 import '../services/api_client.dart';
 import '../services/food_log_service.dart';
@@ -182,6 +183,7 @@ class FoodLogProvider with ChangeNotifier {
     required double protein,
     required double fat,
     required double carbs,
+    double? servings,
   }) async {
     final token = await _resolveToken();
     if (token == null) return false;
@@ -194,6 +196,7 @@ class FoodLogProvider with ChangeNotifier {
         protein: protein,
         fat: fat,
         carbs: carbs,
+        servings: servings,
       );
       // Przeładowanie dnia, żeby odświeżyło się też podsumowanie kalorii
       // i makroskładników u góry ekranu — sama lista by nie wystarczyła.

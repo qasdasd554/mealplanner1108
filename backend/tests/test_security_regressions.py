@@ -8,7 +8,8 @@ from uuid import uuid4
 import pytest
 
 from app.api.v1.shopping_lists import ShareShoppingListRequest, share_shopping_list
-from app.api.v1.recipes import get_recipe
+from app.api.v1.food_log import FoodLogNutritionUpdate, update_food_log_entry_nutrition
+from app.api.v1.recipes import get_recipe, list_all_user_recipes
 from app.api.v1.users import block_user
 
 
@@ -21,6 +22,12 @@ def _result(value):
 def _scalars_result(values):
     result = MagicMock()
     result.scalars.return_value.all.return_value = values
+    return result
+
+
+def _unique_scalars_result(values):
+    result = MagicMock()
+    result.unique.return_value.scalars.return_value.all.return_value = values
     return result
 
 
@@ -75,11 +82,14 @@ async def test_repeated_block_still_revokes_friendship_and_list_shares() -> None
 
 
 @pytest.mark.asyncio
-async def test_admin_can_review_a_pending_recipe_without_being_the_author_or_friend() -> None:
+@pytest.mark.parametrize("visibility", ["private", "pending", "rejected"])
+async def test_admin_can_review_non_public_recipe_without_being_author_or_friend(
+    visibility: str,
+) -> None:
     recipe = SimpleNamespace(
         id=uuid4(),
         created_by_user_id=uuid4(),
-        visibility="pending",
+        visibility=visibility,
     )
     recipe_result = _result(recipe)
     favorites_result = MagicMock()
@@ -94,3 +104,61 @@ async def test_admin_can_review_a_pending_recipe_without_being_the_author_or_fri
     assert response.is_own_recipe is False
     # Zapytanie o znajomość nie powinno być potrzebne administratorowi.
     assert db.execute.await_count == 2
+
+
+@pytest.mark.asyncio
+async def test_admin_recipe_list_applies_requested_page() -> None:
+    recipes = [SimpleNamespace(id=uuid4())]
+    db = AsyncMock()
+    db.execute.return_value = _unique_scalars_result(recipes)
+    admin = SimpleNamespace(id=uuid4(), role="admin")
+
+    response = await list_all_user_recipes(
+        skip=30,
+        limit=31,
+        current_user=admin,
+        db=db,
+    )
+
+    assert response == recipes
+    statement = db.execute.await_args.args[0]
+    assert statement._offset_clause.value == 30
+    assert statement._limit_clause.value == 31
+
+
+@pytest.mark.asyncio
+async def test_food_log_amount_update_persists_servings_and_scaled_nutrition() -> None:
+    user_id = uuid4()
+    entry = SimpleNamespace(
+        id=uuid4(),
+        user_id=user_id,
+        servings=1.0,
+        calories=500.0,
+        protein=20.0,
+        fat=15.0,
+        carbs=60.0,
+    )
+    db = AsyncMock()
+    db.get.return_value = entry
+    db.add = MagicMock()
+    user = SimpleNamespace(id=user_id)
+
+    await update_food_log_entry_nutrition(
+        entry.id,
+        FoodLogNutritionUpdate(
+            calories=250,
+            protein=10,
+            fat=7.5,
+            carbs=30,
+            servings=0.5,
+        ),
+        db=db,
+        current_user=user,
+    )
+
+    assert entry.servings == 0.5
+    assert entry.calories == 250
+    assert entry.protein == 10
+    assert entry.fat == 7.5
+    assert entry.carbs == 30
+    db.commit.assert_awaited_once()

@@ -20,10 +20,40 @@ void main() {
       date: DateTime(2026, 9, 28),
     );
     expect(payload['date'], '2026-09-28');
+    expect(payload['custom_name'], 'Testowy produkt (1 opakowanie)');
     expect(payload['calories'], 120);
     expect(payload['protein'], 5);
     expect(payload['fat'], 4);
     expect(payload['carbs'], 15);
+  });
+
+  test('produkt bez gramatury nadal zapisuje jedno opakowanie', () {
+    const result = BarcodeLookupResult(
+      found: true,
+      name: 'Produkt bez gramatury',
+      kcalPer100: 100,
+      proteinPer100: 5,
+      fatPer100: 2,
+      carbsPer100: 12,
+    );
+
+    expect(defaultBarcodeQuantity(result), 1);
+    expect(barcodePackageNutritionFactor(result), 1);
+  });
+
+  test('liczby sztuk nie traktuje jako gramów opakowania', () {
+    const result = BarcodeLookupResult(
+      found: true,
+      name: 'Produkt na sztuki',
+      unit: 'szt',
+      servingQuantity: 1,
+      kcalPer100: 100,
+      proteinPer100: 5,
+      fatPer100: 2,
+      carbsPer100: 12,
+    );
+
+    expect(barcodePackageNutritionFactor(result), 1);
   });
 
   test('nie pozwala zapisać produktu bez kompletnego makro', () {

@@ -218,6 +218,7 @@ class FoodLogNutritionUpdate(BaseModel):
     protein: float = Field(0.0, ge=0, le=2_000)
     fat: float = Field(0.0, ge=0, le=2_000)
     carbs: float = Field(0.0, ge=0, le=2_000)
+    servings: float | None = Field(None, ge=0.1, le=20)
 
 
 @router.patch("/{entry_id}", response_model=FoodLogEntryResponse)
@@ -243,6 +244,8 @@ async def update_food_log_entry_nutrition(
     entry.protein = payload.protein
     entry.fat = payload.fat
     entry.carbs = payload.carbs
+    if payload.servings is not None:
+        entry.servings = payload.servings
     db.add(entry)
     await db.commit()
     await db.refresh(entry)

@@ -6,9 +6,21 @@ String supportedBarcodeUnit(BarcodeLookupResult result) {
 }
 
 double defaultBarcodeQuantity(BarcodeLookupResult result) {
-  final known = result.servingQuantity;
-  if (known != null && known > 0) return known;
-  return supportedBarcodeUnit(result) == 'szt' ? 1 : 100;
+  return 1;
+}
+
+const String barcodePackageUnit = 'opak';
+
+double barcodePackageNutritionFactor(BarcodeLookupResult result) {
+  final packageSize = result.servingQuantity;
+  if (packageSize != null &&
+      packageSize > 0 &&
+      const {'g', 'ml'}.contains(result.unit)) {
+    return packageSize / 100;
+  }
+  // Jeżeli baza nie zna masy opakowania, nie udajemy, że „1 opakowanie”
+  // to 1 gram. Pokazujemy wartości na znaną bazę 100 g/ml.
+  return 1;
 }
 
 Map<String, dynamic> buildBatchTrackingPayload({
@@ -21,10 +33,7 @@ Map<String, dynamic> buildBatchTrackingPayload({
       'Produkt nie ma kompletnego zestawu wartości odżywczych.',
     );
   }
-  final amount = defaultBarcodeQuantity(result);
-  final unit = supportedBarcodeUnit(result);
-  final nutritionFactor =
-      unit == 'szt' && result.servingQuantity == null ? 1.0 : amount / 100;
+  final nutritionFactor = barcodePackageNutritionFactor(result);
   final formattedDate =
       '${date.year.toString().padLeft(4, '0')}-'
       '${date.month.toString().padLeft(2, '0')}-'
@@ -32,7 +41,7 @@ Map<String, dynamic> buildBatchTrackingPayload({
   return {
     'date': formattedDate,
     'meal_type': mealType,
-    'custom_name': result.name,
+    'custom_name': '${result.name} (1 opakowanie)',
     'servings': 1,
     'calories': result.kcalPer100! * nutritionFactor,
     'protein': result.proteinPer100! * nutritionFactor,

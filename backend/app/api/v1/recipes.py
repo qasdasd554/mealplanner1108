@@ -773,6 +773,8 @@ async def list_pending_recipes(
     summary="Wszystkie przepisy użytkowników, z autorem (admin)",
 )
 async def list_all_user_recipes(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(30, ge=1, le=100),
     current_user: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ) -> list[Recipe]:
@@ -792,6 +794,8 @@ async def list_all_user_recipes(
         )
         .where(Recipe.created_by_user_id.is_not(None))
         .order_by(Recipe.created_at.desc())
+        .offset(skip)
+        .limit(limit)
     )
     recipes = list(result.unique().scalars().all())
     for recipe in recipes:

@@ -38,6 +38,7 @@ class Product {
   final String? brand;
   final String unit;
   final double defaultQuantity;
+  final double? servingQuantity;
   final String? barcode;
   final NutritionInfo nutritionPer100;
   final String? imageUrl;
@@ -54,6 +55,7 @@ class Product {
     this.brand,
     required this.unit,
     required this.defaultQuantity,
+    this.servingQuantity,
     this.barcode,
     required this.nutritionPer100,
     this.imageUrl,
@@ -70,6 +72,7 @@ class Product {
       brand: json['brand'] as String?,
       unit: json['unit'] as String? ?? 'szt',
       defaultQuantity: (json['default_quantity'] as num? ?? 1.0).toDouble(),
+      servingQuantity: (json['serving_quantity'] as num?)?.toDouble(),
       barcode: json['barcode'] as String?,
       nutritionPer100: NutritionInfo.fromJson(
         json['nutrition_per_100'] as Map<String, dynamic>? ?? {},
@@ -118,14 +121,12 @@ class StoreProduct {
       price: (json['price'] as num? ?? 0.0).toDouble(),
       storeBrandName: json['store_brand_name'] as String?,
       isAvailable: json['is_available'] as bool? ?? true,
-      lastVerified:
-          json['last_verified'] == null
-              ? null
-              : DateTime.tryParse(json['last_verified'] as String),
-      product:
-          json['product'] != null
-              ? Product.fromJson(json['product'] as Map<String, dynamic>)
-              : null,
+      lastVerified: json['last_verified'] == null
+          ? null
+          : DateTime.tryParse(json['last_verified'] as String),
+      product: json['product'] != null
+          ? Product.fromJson(json['product'] as Map<String, dynamic>)
+          : null,
     );
   }
 }

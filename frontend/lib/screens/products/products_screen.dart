@@ -71,7 +71,7 @@ class _ProductsScreenState extends State<ProductsScreen>
               content: const Text(
                 'Skanuj wiele produktów bez zamykania aparatu i dodawaj je '
                 'jednym zatwierdzeniem do jednego lub kilku miejsc: spiżarni, '
-                'śledzenia i bazy produktów.',
+                'Dziennika i bazy produktów.',
               ),
               actions: [
                 TextButton(

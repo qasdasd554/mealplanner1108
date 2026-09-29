@@ -26,6 +26,10 @@ class ProductBase(BaseModel):
     brand: str | None = None
     unit: str
     default_quantity: float | None = None
+    # Fizyczna masa/objętość opakowania rozpoznana z etykiety. Sam produkt
+    # katalogowy jest prezentowany jako 1 opakowanie, ale ta wartość pozwala
+    # policzyć makro całego opakowania na podstawie danych „na 100 g/ml”.
+    serving_quantity: float | None = None
     barcode: str | None = None
     nutrition_per_100: NutritionInfo | None = None
 

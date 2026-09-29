@@ -677,7 +677,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
     ),
     _PremiumFeature(
       icon: Icons.history,
-      title: 'Pełna historia śledzenia',
+      title: 'Pełna historia Dziennika',
       description:
           'Przeglądaj całą historię kalorii, bez limitu 30 dni wstecz.',
     ),

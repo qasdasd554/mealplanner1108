@@ -215,7 +215,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Icons.local_fire_department,
                   active: true,
                 ),
-                label: 'Śledzenie',
+                label: 'Dziennik',
               ),
               // Zakładka Premium — bezpośredni dostęp do porównania planów i
               // zakupu subskrypcji, bez konieczności wchodzenia przez Profil.
@@ -252,7 +252,7 @@ class _HomeScreenState extends State<HomeScreen> {
               title: const Text('Skanowanie seryjne jest w Premium'),
               content: const Text(
                 'Aparat pozostaje otwarty, a kolejne produkty są automatycznie '
-                'rozpoznawane. Raz wybierzesz spiżarnię, śledzenie, katalog '
+                'rozpoznawane. Raz wybierzesz spiżarnię, dziennik, katalog '
                 'lub kilka miejsc naraz i dodasz całą serię jednym przyciskiem.',
               ),
               actions: [
@@ -311,7 +311,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: Icons.barcode_reader,
                       title: 'Zeskanuj produkt',
                       subtitle:
-                          'Dodaj do śledzenia, bazy produktów albo spiżarni',
+                          'Dodaj do Dziennika, bazy produktów albo spiżarni',
                       onTap: () async {
                         Navigator.pop(sheetContext);
                         await scanProductWithDestination(context);

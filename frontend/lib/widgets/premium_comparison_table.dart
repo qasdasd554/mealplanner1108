@@ -19,7 +19,7 @@ class PremiumComparisonTable extends StatelessWidget {
     ('Publikacja przepisów we wspólnym katalogu', true, false),
     ('Listy zakupów z wybranych przepisów', '5', '1'),
     ('Generowanie planu posiłków', true, true),
-    ('Śledzenie kalorii i makroskładników', true, true),
+    ('Dziennik kalorii i makroskładników', true, true),
     ('Kalkulator zapotrzebowania kalorycznego', true, true),
     ('Baza przepisów i produktów', true, true),
     ('Porównywarka cen produktów', true, true),

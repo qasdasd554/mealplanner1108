@@ -346,6 +346,38 @@ async def _create_tables() -> None:
     logger.info("Tabele bazy danych zostały utworzone/zweryfikowane.")
 
 
+async def _normalize_barcode_products_as_packages() -> None:
+    """Migruje zeskanowane produkty do reprezentacji „1 opakowanie”.
+
+    Przed zmianą zachowuje dotychczasową gramaturę w cache kodów, aby
+    nadal dało się policzyć wartości odżywcze całego opakowania.
+    Operacja jest idempotentna i bezpieczna przy każdym starcie Rendera.
+    """
+    from app.db.session import engine
+    from sqlalchemy import text
+
+    async with engine.begin() as conn:
+        await conn.execute(text(
+            "INSERT INTO barcode_product_cache "
+            "(id, barcode, name, brand, unit, serving_quantity, "
+            "nutrition_per_100, source, created_at, updated_at) "
+            "SELECT gen_random_uuid(), barcode, name, brand, "
+            "CASE WHEN unit = 'kg' THEN 'g' WHEN unit = 'l' THEN 'ml' ELSE unit END, "
+            "CASE WHEN unit IN ('kg', 'l') THEN default_quantity * 1000 "
+            "ELSE default_quantity END, nutrition_per_100, "
+            "'catalog_package_migration', NOW(), NOW() FROM products "
+            "WHERE barcode IS NOT NULL AND barcode <> '' AND length(barcode) <= 14 "
+            "ON CONFLICT (barcode) DO UPDATE SET serving_quantity = "
+            "COALESCE(barcode_product_cache.serving_quantity, "
+            "EXCLUDED.serving_quantity)"
+        ))
+        await conn.execute(text(
+            "UPDATE products SET unit = 'opak', default_quantity = 1 "
+            "WHERE barcode IS NOT NULL AND barcode <> '' "
+            "AND (unit <> 'opak' OR default_quantity IS DISTINCT FROM 1)"
+        ))
+
+
 async def _seed_database_if_empty() -> None:
     """Synchronizuje dane początkowe (sklepy, produkty, przepisy).
 
@@ -534,6 +566,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("Uruchamianie Smart Meal Planner PL API...")
     await _create_tables()
     await _seed_database_if_empty()
+    await _normalize_barcode_products_as_packages()
     await _backfill_missing_nutrition_totals()
     scraper_task = asyncio.create_task(_price_scraper_background_loop())
     weekly_contest_task = asyncio.create_task(_weekly_contest_background_loop())

@@ -308,3 +308,32 @@ def test_off_reads_serving_quantity_for_quick_amount_prompt() -> None:
     })
     assert result is not None
     assert result.serving_quantity == 200
+
+
+def test_name_search_can_fill_missing_barcode_nutrition(monkeypatch) -> None:
+    matching = barcode_lookup.BarcodeLookupResult(
+        name="Jogurt naturalny",
+        brand="Polska marka",
+        unit="g",
+        kcal_per_100=62,
+        protein_per_100=4.2,
+        fat_per_100=2,
+        carbs_per_100=6.1,
+        price_min=2,
+        price_max=7,
+        source="open_food_facts_name_search",
+    )
+
+    async def fake_search(query: str, *, limit: int = 10):
+        assert "Jogurt naturalny" in query
+        return [matching]
+
+    monkeypatch.setattr(barcode_lookup, "search_products_external", fake_search)
+    result = asyncio.run(
+        barcode_lookup.find_nutrition_by_name(
+            "Jogurt naturalny",
+            "Polska marka",
+        )
+    )
+
+    assert result is matching

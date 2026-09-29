@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../services/barcode_lookup_service.dart';
 import '../models/product.dart';
 import '../models/barcode_lookup_result.dart';
@@ -65,6 +66,8 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
   }
 
   late String _unit = widget.editing?.unit ?? 'szt';
+  double? _servingQuantity;
+  String _servingUnit = 'g';
   late bool _showNutrition = (widget.editing?.nutritionPer100.kcal ?? 0) > 0;
   bool _isSaving = false;
 
@@ -127,6 +130,11 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
         _brand.text = result.brand!;
       }
       if (supportedUnits.contains(result.unit)) _unit = result.unit;
+      if (result.barcode != null) _unit = 'opak';
+      _servingQuantity = result.servingQuantity;
+      _servingUnit = const {'g', 'ml', 'szt'}.contains(result.unit)
+          ? result.unit
+          : 'g';
       _barcode = result.barcode ?? _barcode;
       _priceMin = result.priceMin;
       _priceMax = result.priceMax;
@@ -199,6 +207,11 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
       // użytkownik już zdążył wpisać ręcznie przed skanowaniem.
       setState(() {
         _existingProductId = _isEditing ? null : result.existingProductId;
+        _unit = 'opak';
+        _servingQuantity = result.servingQuantity;
+        _servingUnit = const {'g', 'ml', 'szt'}.contains(result.unit)
+            ? result.unit
+            : 'g';
         if (_name.text.trim().isEmpty && result.name != null) {
           _name.text = result.name!;
         }
@@ -274,6 +287,8 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
         if (_parse(_carbs) != null) 'carbs_per_100': _parse(_carbs),
         'store_ids': _selectedStoreIds.toList(),
         if (_barcode != null) 'barcode': _barcode,
+        if (_servingQuantity != null) 'serving_quantity': _servingQuantity,
+        if (_servingQuantity != null) 'serving_unit': _servingUnit,
       };
       if (_isEditing) {
         await ApiClient().put('/products/${widget.editing!.id}', body: body);
@@ -291,7 +306,7 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
               _isEditing
                   ? 'Zapisano. Zmiany trafiają ponownie do sprawdzenia przez administratora.'
                   : 'Produkt dodany. Możesz go już używać — pozostali zobaczą go '
-                      'po zatwierdzeniu przez administratora.',
+                        'po zatwierdzeniu przez administratora.',
             ),
           ),
         );
@@ -375,14 +390,13 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                   width: double.infinity,
                   child: OutlinedButton.icon(
                     onPressed: _isScanning ? null : _scanBarcode,
-                    icon:
-                        _isScanning
-                            ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                            : const Icon(Icons.barcode_reader, size: 18),
+                    icon: _isScanning
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.barcode_reader, size: 18),
                     label: Text(
                       _barcode == null
                           ? 'Skanuj kod kreskowy'
@@ -428,11 +442,9 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                   labelText: 'Nazwa produktu *',
                   hintText: 'Wpisz nazwę lub wybierz podpowiedź',
                   onSelected: _applyNameSuggestion,
-                  validator:
-                      (v) =>
-                          (v == null || v.trim().length < 2)
-                              ? 'Podaj nazwę produktu'
-                              : null,
+                  validator: (v) => (v == null || v.trim().length < 2)
+                      ? 'Podaj nazwę produktu'
+                      : null,
                 ),
                 TextFormField(
                   controller: _brand,
@@ -487,15 +499,11 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                           labelText: 'Jedn.',
                           border: OutlineInputBorder(),
                         ),
-                        items:
-                            const ['szt', 'g', 'kg', 'ml', 'l', 'opak']
-                                .map(
-                                  (u) => DropdownMenuItem(
-                                    value: u,
-                                    child: Text(u),
-                                  ),
-                                )
-                                .toList(),
+                        items: const ['szt', 'g', 'kg', 'ml', 'l', 'opak']
+                            .map(
+                              (u) => DropdownMenuItem(value: u, child: Text(u)),
+                            )
+                            .toList(),
                         onChanged: (v) => setState(() => _unit = v ?? 'szt'),
                       ),
                     ),
@@ -604,24 +612,22 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                         Wrap(
                           spacing: 8,
                           runSpacing: 4,
-                          children:
-                              storeProvider.stores.map((store) {
-                                final selected = _selectedStoreIds.contains(
-                                  store.id,
-                                );
-                                return FilterChip(
-                                  label: Text(store.name),
-                                  selected: selected,
-                                  onSelected:
-                                      (v) => setState(() {
-                                        if (v) {
-                                          _selectedStoreIds.add(store.id);
-                                        } else {
-                                          _selectedStoreIds.remove(store.id);
-                                        }
-                                      }),
-                                );
-                              }).toList(),
+                          children: storeProvider.stores.map((store) {
+                            final selected = _selectedStoreIds.contains(
+                              store.id,
+                            );
+                            return FilterChip(
+                              label: Text(store.name),
+                              selected: selected,
+                              onSelected: (v) => setState(() {
+                                if (v) {
+                                  _selectedStoreIds.add(store.id);
+                                } else {
+                                  _selectedStoreIds.remove(store.id);
+                                }
+                              }),
+                            );
+                          }).toList(),
                         ),
                       ],
                     );
@@ -631,29 +637,27 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                 SizedBox(
                   height: 48,
                   child: FilledButton(
-                    onPressed:
-                        _isSaving
-                            ? null
-                            : (_existingProductId != null
-                                ? () => Navigator.of(context).pop(false)
-                                : _submit),
-                    child:
-                        _isSaving
-                            ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                            : Text(
-                              _existingProductId != null
-                                  ? 'Zamknij — produkt jest już w bazie'
-                                  : (_isEditing
+                    onPressed: _isSaving
+                        ? null
+                        : (_existingProductId != null
+                              ? () => Navigator.of(context).pop(false)
+                              : _submit),
+                    child: _isSaving
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Text(
+                            _existingProductId != null
+                                ? 'Zamknij — produkt jest już w bazie'
+                                : (_isEditing
                                       ? 'Zapisz zmiany'
                                       : 'Dodaj produkt'),
-                            ),
+                          ),
                   ),
                 ),
                 const SizedBox(height: 12),

@@ -22,7 +22,10 @@ from app.schemas.product import ProductResponse, StoreProductResponse, Substitut
 from app.services import ProductSubstitutionService
 from app.services.barcode_lookup import (
     BarcodeLookupResult,
+    has_complete_nutrition,
     lookup_barcode_external,
+    find_nutrition_by_name,
+    merge_lookup_results,
     price_range_for_product,
 )
 
@@ -305,12 +308,31 @@ async def lookup_barcode(
             price_min=price_min,
             price_max=price_max,
             barcode=normalized_barcode,
-            serving_quantity=float(existing.default_quantity or 0) or None,
+            # Dla produktu zapisanego jako „1 opakowanie” fizycznej masy
+            # szukamy niżej w cache skanera. Wartość 1 nie oznacza 1 grama.
+            serving_quantity=(
+                None
+                if existing.unit == "opak"
+                else (float(existing.default_quantity or 0) or None)
+            ),
         )
 
     if local_response is not None and _response_has_complete_nutrition(
         local_response
     ):
+        cached_result = await db.execute(
+            select(BarcodeProductCache).where(
+                BarcodeProductCache.barcode.in_(
+                    barcode_variants(normalized_barcode)
+                )
+            ).limit(1)
+        )
+        cached = cached_result.scalar_one_or_none()
+        if cached is not None and cached.serving_quantity is not None:
+            local_response.serving_quantity = cached.serving_quantity
+            # Jednostka opisuje podstawę masy opakowania, podczas gdy sam
+            # zapis do katalogu/spiżarni pozostaje zawsze „1 opakowanie”.
+            local_response.unit = cached.unit
         return local_response
 
     # 2. Cache Neon — wspólny dla wszystkich użytkowników.
@@ -347,6 +369,13 @@ async def lookup_barcode(
     # usunięte z aktywnej ścieżki: często zwracało 429 i nie zawiera makro.
     external = await lookup_barcode_external(normalized_barcode)
     if external is not None:
+        if not has_complete_nutrition(external):
+            internet_nutrition = await find_nutrition_by_name(
+                external.name,
+                external.brand,
+            )
+            if internet_nutrition is not None:
+                external = merge_lookup_results(external, internet_nutrition)
         response = (
             _merge_local_barcode_response(local_response, external)
             if local_response is not None
@@ -367,6 +396,15 @@ async def lookup_barcode(
                 serving_quantity=external.serving_quantity,
             )
         )
+        if existing is not None and _response_has_complete_nutrition(response):
+            existing.nutrition_per_100 = {
+                "kcal": response.kcal_per_100,
+                "protein": response.protein_per_100,
+                "fat": response.fat_per_100,
+                "carbs": response.carbs_per_100,
+                "fiber": (existing.nutrition_per_100 or {}).get("fiber", 0),
+            }
+            await db.commit()
         # Zapis nie blokuje odpowiedzi. Po zakończeniu tego żądania FastAPI
         # otwiera osobną sesję i utrwala wynik dla kolejnych użytkowników.
         background_tasks.add_task(
@@ -387,6 +425,41 @@ async def lookup_barcode(
         return response
 
     if local_response is not None:
+        internet_nutrition = await find_nutrition_by_name(
+            local_response.name or "",
+            local_response.brand,
+        )
+        if internet_nutrition is not None:
+            local_response = _merge_local_barcode_response(
+                local_response,
+                internet_nutrition,
+            )
+            if existing is not None and _response_has_complete_nutrition(
+                local_response
+            ):
+                existing.nutrition_per_100 = {
+                    "kcal": local_response.kcal_per_100,
+                    "protein": local_response.protein_per_100,
+                    "fat": local_response.fat_per_100,
+                    "carbs": local_response.carbs_per_100,
+                    "fiber": (existing.nutrition_per_100 or {}).get("fiber", 0),
+                }
+                await db.commit()
+            background_tasks.add_task(
+                _persist_barcode_cache_in_background,
+                barcode=normalized_barcode,
+                name=local_response.name or internet_nutrition.name,
+                brand=local_response.brand,
+                unit=internet_nutrition.unit,
+                kcal_per_100=local_response.kcal_per_100,
+                protein_per_100=local_response.protein_per_100,
+                fat_per_100=local_response.fat_per_100,
+                carbs_per_100=local_response.carbs_per_100,
+                price_min=local_response.price_min or internet_nutrition.price_min,
+                price_max=local_response.price_max or internet_nutrition.price_max,
+                source="name_search_enriched",
+                serving_quantity=local_response.serving_quantity,
+            )
         return local_response
 
     return BarcodeLookupResponse(found=False, source=None, name=None)
@@ -543,8 +616,9 @@ async def list_scanned_products(
             "id": entry.id,
             "name": entry.name,
             "brand": entry.brand,
-            "unit": entry.unit,
-            "default_quantity": entry.serving_quantity or 100,
+            "unit": "opak",
+            "default_quantity": 1,
+            "serving_quantity": entry.serving_quantity,
             "barcode": entry.barcode,
             "nutrition_per_100": entry.nutrition_per_100 or {},
             "image_url": None,
@@ -962,6 +1036,8 @@ class ProductSubmission(BaseModel):
     # trafiało od razu w "własny katalog" (najszybsza, pierwsza gałąź
     # w lookup_barcode), zamiast za każdym razem pytać Open Food Facts.
     barcode: str | None = Field(None, max_length=50)
+    serving_quantity: float | None = Field(None, gt=0, le=100_000)
+    serving_unit: str | None = Field(None, pattern="^(g|ml|szt)$")
 
 
 @router.post(
@@ -1021,7 +1097,7 @@ async def submit_product(
     product = Product(
         name=payload.name.strip(),
         brand=(payload.brand or "").strip() or None,
-        unit=payload.unit.strip() or "szt",
+        unit="opak" if normalized_barcode else (payload.unit.strip() or "szt"),
         default_quantity=Decimal(1),
         nutrition_per_100=nutrition,
         created_by_user_id=current_user.id,
@@ -1043,6 +1119,24 @@ async def submit_product(
             detail="Produkt z tym kodem kreskowym został już zgłoszony przez kogoś innego.",
         )
     await db.refresh(product)
+
+    if normalized_barcode and payload.serving_quantity is not None:
+        price_min, price_max = price_range_for_product(product.name)
+        await _upsert_barcode_cache(
+            db,
+            barcode=normalized_barcode,
+            name=product.name,
+            brand=product.brand,
+            unit=payload.serving_unit or "g",
+            kcal_per_100=payload.kcal_per_100,
+            protein_per_100=payload.protein_per_100,
+            fat_per_100=payload.fat_per_100,
+            carbs_per_100=payload.carbs_per_100,
+            price_min=price_min,
+            price_max=price_max,
+            source="user_confirmed_package",
+            serving_quantity=payload.serving_quantity,
+        )
 
     from app.services.admin_notifications import notify_admins_pending_review
 

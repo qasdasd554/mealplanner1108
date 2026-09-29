@@ -133,7 +133,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           child:
               !hasCalories
                   ? const _EmptyText(
-                    'Dodaj posiłki w Śledzeniu, aby zobaczyć wykres.',
+                    'Dodaj posiłki w Dzienniku, aby zobaczyć wykres.',
                   )
                   : _TrendChart(
                     labels: chartLabels,
@@ -185,7 +185,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           child:
               !hasWater
                   ? const _EmptyText(
-                    'Zapisuj wodę w Śledzeniu, aby zobaczyć wykres.',
+                    'Zapisuj wodę w Dzienniku, aby zobaczyć wykres.',
                   )
                   : _TrendChart(
                     labels: chartLabels,

@@ -1,6 +1,10 @@
 """Regresje zapisu makro po seryjnym skanowaniu kodów kreskowych."""
 
-from app.api.v1.pantry import AddPantryBarcodeRequest, merge_scanned_nutrition
+from app.api.v1.pantry import (
+    AddPantryBarcodeRequest,
+    barcode_package_amount,
+    merge_scanned_nutrition,
+)
 
 
 def test_batch_request_keeps_nutrition_recognized_on_phone() -> None:
@@ -21,6 +25,10 @@ def test_batch_request_keeps_nutrition_recognized_on_phone() -> None:
     assert payload.protein_per_100 == 4.2
     assert payload.fat_per_100 == 2
     assert payload.carbs_per_100 == 6.1
+
+
+def test_barcode_is_saved_as_one_package() -> None:
+    assert barcode_package_amount() == (1.0, "opak")
 
 
 def test_scanned_nutrition_replaces_legacy_zero_placeholder() -> None:

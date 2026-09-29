@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import asyncio
 import time
+from difflib import SequenceMatcher
 
 import httpx
 
@@ -114,6 +115,19 @@ def _merge_lookup_results(
         barcode=primary.barcode or supplementary.barcode,
         serving_quantity=primary.serving_quantity or supplementary.serving_quantity,
     )
+
+
+def has_complete_nutrition(result: BarcodeLookupResult) -> bool:
+    """Publiczny odpowiednik walidacji używany przez endpoint API."""
+    return _has_complete_nutrition(result)
+
+
+def merge_lookup_results(
+    primary: BarcodeLookupResult,
+    supplementary: BarcodeLookupResult,
+) -> BarcodeLookupResult:
+    """Publiczne, bezpieczne scalenie wyniku kodu z wynikiem po nazwie."""
+    return _merge_lookup_results(primary, supplementary)
 
 
 def normalize_barcode(value: str) -> str | None:
@@ -316,6 +330,45 @@ async def search_products_external(
         _text_search_cache.pop(oldest_key, None)
     _text_search_cache[cache_key] = (now, list(results))
     return results
+
+
+async def find_nutrition_by_name(
+    name: str,
+    brand: str | None = None,
+) -> BarcodeLookupResult | None:
+    """Uzupełnia makro przez wyszukiwanie internetowe po nazwie.
+
+    Ta ścieżka uruchamia się tylko wtedy, gdy wyszukiwanie po kodzie dało
+    nazwę, ale nie wartości odżywcze. Wymagamy bliskiego dopasowania nazwy
+    (lub zgodnej marki), aby nie przypisać makro podobnego produktu.
+    """
+    clean_name = " ".join(name.strip().split())
+    clean_brand = " ".join((brand or "").strip().split())
+    if len(clean_name) < 2:
+        return None
+    query = " ".join(part for part in (clean_brand, clean_name) if part)
+    results = await search_products_external(query, limit=10)
+    if not results and clean_brand:
+        results = await search_products_external(clean_name, limit=10)
+
+    best: BarcodeLookupResult | None = None
+    best_score = 0.0
+    for candidate in results:
+        if not _has_complete_nutrition(candidate):
+            continue
+        name_score = SequenceMatcher(
+            None, clean_name.casefold(), candidate.name.casefold()
+        ).ratio()
+        brand_matches = bool(
+            clean_brand
+            and candidate.brand
+            and clean_brand.casefold() in candidate.brand.casefold()
+        )
+        score = name_score + (0.2 if brand_matches else 0.0)
+        if name_score >= 0.72 and score > best_score:
+            best = candidate
+            best_score = score
+    return best
 
 
 def _results_from_off_search_response(

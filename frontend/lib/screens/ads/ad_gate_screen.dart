@@ -78,8 +78,8 @@ class _AdGateScreenState extends State<AdGateScreen> {
               ),
               const SizedBox(height: 12),
               Text(
-                'Żeby przejść do Śledzenia, obejrzyj krótką reklamę wideo do końca. '
-                'To ogranicznie nie dotyczy kont Premium — tam Śledzenie jest zawsze bez reklam.',
+                'Żeby przejść do Dziennika, obejrzyj krótką reklamę wideo do końca. '
+                'To ograniczenie nie dotyczy kont Premium — tam Dziennik jest zawsze bez reklam.',
                 style: TextStyle(color: AppTheme.textSecondary),
                 textAlign: TextAlign.center,
               ),
