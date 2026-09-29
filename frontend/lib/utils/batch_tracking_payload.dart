@@ -47,5 +47,15 @@ Map<String, dynamic> buildBatchTrackingPayload({
     'protein': result.proteinPer100! * nutritionFactor,
     'fat': result.fatPer100! * nutritionFactor,
     'carbs': result.carbsPer100! * nutritionFactor,
+    if (result.servingQuantity != null && result.servingQuantity! > 0)
+      'amount_value': result.servingQuantity,
+    if (result.servingQuantity != null &&
+        result.servingQuantity! > 0 &&
+        const {'g', 'ml'}.contains(result.unit))
+      'amount_unit': result.unit
+    else
+      'amount_unit': barcodePackageUnit,
+    if (result.servingQuantity != null && result.servingQuantity! > 0)
+      'portion_size': result.servingQuantity,
   };
 }

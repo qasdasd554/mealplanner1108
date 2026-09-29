@@ -16,6 +16,9 @@ class FoodLogEntry {
   final double protein;
   final double carbs;
   final double fat;
+  final double? amountValue;
+  final String? amountUnit;
+  final double? portionSize;
 
   FoodLogEntry({
     required this.id,
@@ -30,6 +33,9 @@ class FoodLogEntry {
     required this.protein,
     required this.carbs,
     required this.fat,
+    this.amountValue,
+    this.amountUnit,
+    this.portionSize,
   });
 
   /// Nazwa do wyświetlenia — przepis (jeśli wpis z przepisu) albo własna
@@ -50,6 +56,9 @@ class FoodLogEntry {
       protein: (json['protein'] as num?)?.toDouble() ?? 0.0,
       carbs: (json['carbs'] as num?)?.toDouble() ?? 0.0,
       fat: (json['fat'] as num?)?.toDouble() ?? 0.0,
+      amountValue: (json['amount_value'] as num?)?.toDouble(),
+      amountUnit: json['amount_unit'] as String?,
+      portionSize: (json['portion_size'] as num?)?.toDouble(),
     );
   }
 
@@ -67,6 +76,9 @@ class FoodLogEntry {
       'protein': protein,
       'carbs': carbs,
       'fat': fat,
+      if (amountValue != null) 'amount_value': amountValue,
+      if (amountUnit != null) 'amount_unit': amountUnit,
+      if (portionSize != null) 'portion_size': portionSize,
     };
   }
 }

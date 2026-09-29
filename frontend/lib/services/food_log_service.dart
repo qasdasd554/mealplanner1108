@@ -37,9 +37,11 @@ class FoodLogService {
         )
         .timeout(
           _timeout,
-          onTimeout: () => throw Exception(
-            'Serwer nie odpowiedział na czas. Spróbuj ponownie za chwilę.',
-          ),
+          onTimeout:
+              () =>
+                  throw Exception(
+                    'Serwer nie odpowiedział na czas. Spróbuj ponownie za chwilę.',
+                  ),
         );
 
     if (response.statusCode == 200) {
@@ -64,9 +66,11 @@ class FoodLogService {
         )
         .timeout(
           _timeout,
-          onTimeout: () => throw Exception(
-            'Serwer nie odpowiedział na czas. Spróbuj ponownie za chwilę.',
-          ),
+          onTimeout:
+              () =>
+                  throw Exception(
+                    'Serwer nie odpowiedział na czas. Spróbuj ponownie za chwilę.',
+                  ),
         );
 
     if (response.statusCode == 200) {
@@ -95,9 +99,11 @@ class FoodLogService {
         )
         .timeout(
           _timeout,
-          onTimeout: () => throw Exception(
-            'Serwer nie odpowiedział na czas. Spróbuj ponownie za chwilę.',
-          ),
+          onTimeout:
+              () =>
+                  throw Exception(
+                    'Serwer nie odpowiedział na czas. Spróbuj ponownie za chwilę.',
+                  ),
         );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
@@ -143,9 +149,11 @@ class FoodLogService {
         )
         .timeout(
           _timeout,
-          onTimeout: () => throw Exception(
-            'Serwer nie odpowiedział na czas. Spróbuj ponownie za chwilę.',
-          ),
+          onTimeout:
+              () =>
+                  throw Exception(
+                    'Serwer nie odpowiedział na czas. Spróbuj ponownie za chwilę.',
+                  ),
         );
     if (response.statusCode == 200 || response.statusCode == 201) {
       return FoodLogEntry.fromJson(
@@ -168,6 +176,9 @@ class FoodLogService {
     required double fat,
     required double carbs,
     double? servings,
+    double? amountValue,
+    String? amountUnit,
+    double? portionSize,
   }) async {
     final response = await _client
         .patch(
@@ -179,13 +190,18 @@ class FoodLogService {
             'fat': fat,
             'carbs': carbs,
             if (servings != null) 'servings': servings,
+            if (amountValue != null) 'amount_value': amountValue,
+            if (amountUnit != null) 'amount_unit': amountUnit,
+            if (portionSize != null) 'portion_size': portionSize,
           }),
         )
         .timeout(
           _timeout,
-          onTimeout: () => throw Exception(
-            'Serwer nie odpowiedział na czas. Spróbuj ponownie za chwilę.',
-          ),
+          onTimeout:
+              () =>
+                  throw Exception(
+                    'Serwer nie odpowiedział na czas. Spróbuj ponownie za chwilę.',
+                  ),
         );
 
     if (response.statusCode != 200) {
@@ -201,9 +217,11 @@ class FoodLogService {
         .delete(Uri.parse('$baseUrl/food-log/$logId'), headers: _headers(token))
         .timeout(
           _timeout,
-          onTimeout: () => throw Exception(
-            'Serwer nie odpowiedział na czas. Spróbuj ponownie za chwilę.',
-          ),
+          onTimeout:
+              () =>
+                  throw Exception(
+                    'Serwer nie odpowiedział na czas. Spróbuj ponownie za chwilę.',
+                  ),
         );
 
     if (response.statusCode != 200 && response.statusCode != 204) {

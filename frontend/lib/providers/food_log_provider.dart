@@ -83,6 +83,9 @@ class FoodLogProvider with ChangeNotifier {
     required double protein,
     required double carbs,
     required double fat,
+    double? amountValue,
+    String? amountUnit,
+    double? portionSize,
   }) async {
     final token = await _resolveToken();
     if (token == null) {
@@ -103,6 +106,9 @@ class FoodLogProvider with ChangeNotifier {
         protein: protein,
         carbs: carbs,
         fat: fat,
+        amountValue: amountValue,
+        amountUnit: amountUnit,
+        portionSize: portionSize,
       );
       await _service.addFoodLog(entry.toCreateJson(), token);
       await fetchLogsForDate(_currentDate);
@@ -184,6 +190,9 @@ class FoodLogProvider with ChangeNotifier {
     required double fat,
     required double carbs,
     double? servings,
+    double? amountValue,
+    String? amountUnit,
+    double? portionSize,
   }) async {
     final token = await _resolveToken();
     if (token == null) return false;
@@ -197,6 +206,9 @@ class FoodLogProvider with ChangeNotifier {
         fat: fat,
         carbs: carbs,
         servings: servings,
+        amountValue: amountValue,
+        amountUnit: amountUnit,
+        portionSize: portionSize,
       );
       // Przeładowanie dnia, żeby odświeżyło się też podsumowanie kalorii
       // i makroskładników u góry ekranu — sama lista by nie wystarczyła.

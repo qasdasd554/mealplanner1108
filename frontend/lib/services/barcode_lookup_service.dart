@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import '../models/barcode_lookup_result.dart';
 import 'api_client.dart';
 
-/// Wyszukuje produkt najpierw w Neon, potem w OFF v3.6 i USDA na backendzie.
+/// Wyszukuje produkt najpierw w Neon, potem w OFF v3 i USDA na backendzie.
 /// Bezpośrednie OFF jest wyłącznie zabezpieczeniem na awarię serwera — nie
 /// startuje równolegle, więc nie dubluje żądań ani nie zużywa limitu API.
 class BarcodeLookupService {
@@ -64,7 +64,7 @@ class BarcodeLookupService {
 
   Future<BarcodeLookupResult?> _lookupOpenFoodFacts(String barcode) async {
     final urls = [
-      Uri.https('world.openfoodfacts.org', '/api/v3.6/product/$barcode.json', {
+      Uri.https('world.openfoodfacts.org', '/api/v3/product/$barcode.json', {
         'cc': 'pl',
         'lc': 'pl',
         'fields': _fields,

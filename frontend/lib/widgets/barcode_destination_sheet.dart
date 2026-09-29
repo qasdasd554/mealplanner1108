@@ -40,119 +40,151 @@ Future<bool> scanProductWithDestination(
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
     ),
-    builder: (sheetContext) => StatefulBuilder(
-      builder: (sheetContext, setSheetState) => SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Gdzie dodać produkt?',
-                  style: Theme.of(sheetContext).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Możesz zaznaczyć kilka miejsc jednocześnie.',
-                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  lookup?.name == null ? 'Kod: $barcode' : lookup!.name!,
-                  style: Theme.of(sheetContext).textTheme.titleMedium,
-                ),
-                if (lookup?.brand?.trim().isNotEmpty == true)
-                  Text(
-                    lookup!.brand!,
-                    style: TextStyle(
-                      color: AppTheme.textSecondary,
-                      fontSize: 12,
-                    ),
-                  ),
-                const SizedBox(height: 4),
-                Text(
-                  _nutritionSummary(lookup) ?? 'Makroskładniki: brak danych',
-                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
-                ),
-                const SizedBox(height: 10),
-                CheckboxListTile(
-                  value: selectedDestinations.contains(
-                    _BarcodeDestination.tracking,
-                  ),
-                  secondary: const Icon(Icons.local_fire_department_outlined),
-                  title: const Text('Dodaj do Dziennika'),
-                  subtitle: const Text('Wybierz ilość i rodzaj posiłku'),
-                  controlAffinity: ListTileControlAffinity.trailing,
-                  onChanged: (selected) => setSheetState(() {
-                    if (selected == true) {
-                      selectedDestinations.add(_BarcodeDestination.tracking);
-                    } else {
-                      selectedDestinations.remove(_BarcodeDestination.tracking);
-                    }
-                  }),
-                ),
-                CheckboxListTile(
-                  value: selectedDestinations.contains(
-                    _BarcodeDestination.productDatabase,
-                  ),
-                  secondary: const Icon(Icons.inventory_2_outlined),
-                  title: const Text('Dodaj do bazy produktów'),
-                  subtitle: const Text('Sprawdź nazwę, markę i makroskładniki'),
-                  controlAffinity: ListTileControlAffinity.trailing,
-                  onChanged: (selected) => setSheetState(() {
-                    if (selected == true) {
-                      selectedDestinations.add(
-                        _BarcodeDestination.productDatabase,
-                      );
-                    } else {
-                      selectedDestinations.remove(
-                        _BarcodeDestination.productDatabase,
-                      );
-                    }
-                  }),
-                ),
-                CheckboxListTile(
-                  value: selectedDestinations.contains(
-                    _BarcodeDestination.pantry,
-                  ),
-                  secondary: const Icon(Icons.kitchen_outlined),
-                  title: const Text('Dodaj do spiżarni'),
-                  subtitle: const Text('Zapisz jako 1 całe opakowanie'),
-                  controlAffinity: ListTileControlAffinity.trailing,
-                  onChanged: (selected) => setSheetState(() {
-                    if (selected == true) {
-                      selectedDestinations.add(_BarcodeDestination.pantry);
-                    } else {
-                      selectedDestinations.remove(_BarcodeDestination.pantry);
-                    }
-                  }),
-                ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    onPressed: selectedDestinations.isEmpty
-                        ? null
-                        : () => Navigator.pop(
-                            sheetContext,
-                            Set<_BarcodeDestination>.of(selectedDestinations),
+    builder:
+        (sheetContext) => StatefulBuilder(
+          builder:
+              (sheetContext, setSheetState) => SafeArea(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Gdzie dodać produkt?',
+                          style: Theme.of(sheetContext).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Możesz zaznaczyć kilka miejsc jednocześnie.',
+                          style: TextStyle(
+                            color: AppTheme.textSecondary,
+                            fontSize: 12,
                           ),
-                    icon: const Icon(Icons.check),
-                    label: Text(
-                      selectedDestinations.length > 1
-                          ? 'Dodaj do ${selectedDestinations.length} miejsc'
-                          : 'Dalej',
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          lookup?.name == null
+                              ? 'Kod: $barcode'
+                              : lookup!.name!,
+                          style: Theme.of(sheetContext).textTheme.titleMedium,
+                        ),
+                        if (lookup?.brand?.trim().isNotEmpty == true)
+                          Text(
+                            lookup!.brand!,
+                            style: TextStyle(
+                              color: AppTheme.textSecondary,
+                              fontSize: 12,
+                            ),
+                          ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _nutritionSummary(lookup) ??
+                              'Nie odnaleziono kompletnych makroskładników. '
+                                  'Po wybraniu miejsca uzupełnisz dane ze zdjęć opakowania.',
+                          style: TextStyle(
+                            color: AppTheme.textSecondary,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        CheckboxListTile(
+                          value: selectedDestinations.contains(
+                            _BarcodeDestination.tracking,
+                          ),
+                          secondary: const Icon(
+                            Icons.local_fire_department_outlined,
+                          ),
+                          title: const Text('Dodaj do Dziennika'),
+                          subtitle: const Text(
+                            'Wybierz ilość i rodzaj posiłku',
+                          ),
+                          controlAffinity: ListTileControlAffinity.trailing,
+                          onChanged:
+                              (selected) => setSheetState(() {
+                                if (selected == true) {
+                                  selectedDestinations.add(
+                                    _BarcodeDestination.tracking,
+                                  );
+                                } else {
+                                  selectedDestinations.remove(
+                                    _BarcodeDestination.tracking,
+                                  );
+                                }
+                              }),
+                        ),
+                        CheckboxListTile(
+                          value: selectedDestinations.contains(
+                            _BarcodeDestination.productDatabase,
+                          ),
+                          secondary: const Icon(Icons.inventory_2_outlined),
+                          title: const Text('Dodaj do bazy produktów'),
+                          subtitle: const Text(
+                            'Sprawdź nazwę, markę i makroskładniki',
+                          ),
+                          controlAffinity: ListTileControlAffinity.trailing,
+                          onChanged:
+                              (selected) => setSheetState(() {
+                                if (selected == true) {
+                                  selectedDestinations.add(
+                                    _BarcodeDestination.productDatabase,
+                                  );
+                                } else {
+                                  selectedDestinations.remove(
+                                    _BarcodeDestination.productDatabase,
+                                  );
+                                }
+                              }),
+                        ),
+                        CheckboxListTile(
+                          value: selectedDestinations.contains(
+                            _BarcodeDestination.pantry,
+                          ),
+                          secondary: const Icon(Icons.kitchen_outlined),
+                          title: const Text('Dodaj do spiżarni'),
+                          subtitle: const Text('Zapisz jako 1 całe opakowanie'),
+                          controlAffinity: ListTileControlAffinity.trailing,
+                          onChanged:
+                              (selected) => setSheetState(() {
+                                if (selected == true) {
+                                  selectedDestinations.add(
+                                    _BarcodeDestination.pantry,
+                                  );
+                                } else {
+                                  selectedDestinations.remove(
+                                    _BarcodeDestination.pantry,
+                                  );
+                                }
+                              }),
+                        ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton.icon(
+                            onPressed:
+                                selectedDestinations.isEmpty
+                                    ? null
+                                    : () => Navigator.pop(
+                                      sheetContext,
+                                      Set<_BarcodeDestination>.of(
+                                        selectedDestinations,
+                                      ),
+                                    ),
+                            icon: const Icon(Icons.check),
+                            label: Text(
+                              selectedDestinations.length > 1
+                                  ? 'Dodaj do ${selectedDestinations.length} miejsc'
+                                  : 'Dalej',
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ],
-            ),
-          ),
+              ),
         ),
-      ),
-    ),
   );
   if (destinations == null || destinations.isEmpty || !context.mounted) {
     return false;

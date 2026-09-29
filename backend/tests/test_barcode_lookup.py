@@ -196,7 +196,51 @@ def test_off_not_found_does_not_repeat_lookup_in_second_api_version() -> None:
     result = asyncio.run(barcode_lookup._fetch_off(client, "5901234123457"))
     assert result is None
     assert len(client.calls) == 1
-    assert "/api/v3.6/product/" in client.calls[0]
+    assert "/api/v3/product/" in client.calls[0]
+
+
+def test_stable_v3_endpoint_returns_projected_nutrition() -> None:
+    """Regresja: v3.6 zwracało nazwę produktu, lecz puste `nutriments`."""
+    class ProductClient:
+        def __init__(self):
+            self.calls = []
+
+        async def get(self, url, *, params):
+            self.calls.append((url, params))
+            request = httpx.Request("GET", url)
+            return httpx.Response(
+                200,
+                request=request,
+                json={
+                    "status": "success",
+                    "result": {"id": "product_found"},
+                    "product": {
+                        "code": "4002334117481",
+                        "product_name": "Mövenpick Feinjoghurt, Erdbeere",
+                        "brands": "Movenpick",
+                        "product_quantity": 150,
+                        "product_quantity_unit": "g",
+                        "nutriments": {
+                            "energy-kcal_100g": 152,
+                            "proteins_100g": 2.4,
+                            "fat_100g": 9.6,
+                            "carbohydrates_100g": 13.9,
+                        },
+                    },
+                },
+            )
+
+    client = ProductClient()
+    result = asyncio.run(barcode_lookup._fetch_off(client, "4002334117481"))
+
+    assert result is not None
+    assert result.kcal_per_100 == 152
+    assert result.protein_per_100 == 2.4
+    assert result.fat_per_100 == 9.6
+    assert result.carbs_per_100 == 13.9
+    assert result.serving_quantity == 150
+    assert len(client.calls) == 1
+    assert "/api/v3/product/" in client.calls[0][0]
 
 
 def test_off_rate_limit_does_not_repeat_lookup_in_second_api_version() -> None:

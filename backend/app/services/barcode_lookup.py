@@ -11,11 +11,14 @@ import httpx
 
 from app.core.config import settings
 
-# Jedno, aktualne API całej światowej bazy. Nie pytamy kolejno v2 i v3 o
+# Jedno, stabilne API całej światowej bazy. Nie pytamy kolejno v2 i v3 o
 # ten sam kod, ponieważ obie wersje korzystają z tych samych danych, a każde
 # dodatkowe żądanie tylko zużywa limit Open Food Facts i wydłuża skan.
+# Endpoint /api/v3.6 ma obecnie błąd projekcji pola `nutriments`: dla części
+# produktów zwraca nazwę, markę i gramaturę, ale pusty słownik wartości
+# odżywczych. /api/v3 zwraca dla tych samych kodów pełne makro.
 OFF_API_URLS = (
-    ("v3", "https://world.openfoodfacts.org/api/v3.6/product/{barcode}.json"),
+    ("v3", "https://world.openfoodfacts.org/api/v3/product/{barcode}.json"),
 )
 USDA_SEARCH_URL = "https://api.nal.usda.gov/fdc/v1/foods/search"
 UPCITEMDB_LOOKUP_URL = "https://api.upcitemdb.com/prod/trial/lookup"

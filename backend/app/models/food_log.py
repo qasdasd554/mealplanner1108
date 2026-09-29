@@ -31,18 +31,23 @@ class FoodLogEntry(Base):
     )
     date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
     meal_type: Mapped[str] = mapped_column(String(50), nullable=False)  # e.g., breakfast, lunch, dinner, snack
-    
+
     recipe_id: Mapped[Optional[uuid.UUID]] = mapped_column(
         UUID(as_uuid=True), ForeignKey("recipes.id", ondelete="SET NULL"), nullable=True
     )
     custom_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    
+
     calories: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
     protein: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
     fat: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
     carbs: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
     servings: Mapped[float] = mapped_column(Float, default=1.0, nullable=False)
-    
+    # Fizyczna ilość produktu oraz wielkość jednej porcji. `servings`
+    # pozostaje mnożnikiem makro i liczbą porcji dla przepisów.
+    amount_value: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    amount_unit: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)
+    portion_size: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=datetime.utcnow, nullable=False
     )

@@ -57,8 +57,9 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme
-                .copyWith(primary: AppTheme.primaryColor),
+            colorScheme: Theme.of(
+              context,
+            ).colorScheme.copyWith(primary: AppTheme.primaryColor),
           ),
           child: child!,
         );
@@ -129,41 +130,39 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
           const DecorativeCircles(),
           provider.isLoading
               ? const Center(
-                  child: CircularProgressIndicator(
-                    color: AppTheme.primaryColor,
-                  ),
-                )
+                child: CircularProgressIndicator(color: AppTheme.primaryColor),
+              )
               : provider.error != null
               ? _buildErrorState(context, provider)
               : RefreshIndicator(
-                  onRefresh: () async {
-                    await provider.fetchLogsForDate(provider.currentDate);
-                    await Provider.of<WellnessProvider>(
-                      context,
-                      listen: false,
-                    ).loadForDate(provider.currentDate);
-                  },
-                  color: AppTheme.primaryColor,
-                  child: ListView(
-                    padding: const EdgeInsets.all(24.0),
-                    children: [
-                      _buildDateNavigation(provider.currentDate),
-                      const SizedBox(height: 24),
-                      _buildProgressSection(provider.summary),
-                      const SizedBox(height: 16),
-                      // Przycisk aktywności TUŻ pod licznikiem — spalone
-                      // kalorie powiększają dzienny limit, więc naturalne
-                      // miejsce jest przy liczbie, na którą wpływają.
-                      _buildActivitySection(context),
-                      const SizedBox(height: 24),
-                      _buildWaterSection(context),
-                      const SizedBox(height: 32),
-                      _buildMacrosSection(provider.summary),
-                      const SizedBox(height: 32),
-                      _buildLogsList(context, provider.logs),
-                    ],
-                  ),
+                onRefresh: () async {
+                  await provider.fetchLogsForDate(provider.currentDate);
+                  await Provider.of<WellnessProvider>(
+                    context,
+                    listen: false,
+                  ).loadForDate(provider.currentDate);
+                },
+                color: AppTheme.primaryColor,
+                child: ListView(
+                  padding: const EdgeInsets.all(24.0),
+                  children: [
+                    _buildDateNavigation(provider.currentDate),
+                    const SizedBox(height: 24),
+                    _buildProgressSection(provider.summary),
+                    const SizedBox(height: 16),
+                    // Przycisk aktywności TUŻ pod licznikiem — spalone
+                    // kalorie powiększają dzienny limit, więc naturalne
+                    // miejsce jest przy liczbie, na którą wpływają.
+                    _buildActivitySection(context),
+                    const SizedBox(height: 24),
+                    _buildWaterSection(context),
+                    const SizedBox(height: 32),
+                    _buildMacrosSection(provider.summary),
+                    const SizedBox(height: 32),
+                    _buildLogsList(context, provider.logs),
+                  ],
                 ),
+              ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -398,10 +397,11 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                     color: AppTheme.textSecondary,
                   ),
                   visualDensity: VisualDensity.compact,
-                  onPressed: () => _runWellness(
-                    wellness,
-                    () => wellness.deleteActivity(a.id),
-                  ),
+                  onPressed:
+                      () => _runWellness(
+                        wellness,
+                        () => wellness.deleteActivity(a.id),
+                      ),
                 ),
               ],
             ),
@@ -429,56 +429,57 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
 
     final saved = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Dodaj aktywność'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                autofocus: true,
-                maxLength: 100,
-                decoration: const InputDecoration(
-                  labelText: 'Co robiłeś/aś?',
-                  hintText: 'np. bieganie, rower, siłownia',
-                  border: OutlineInputBorder(),
-                ),
+      builder:
+          (dialogContext) => AlertDialog(
+            title: const Text('Dodaj aktywność'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: nameController,
+                    autofocus: true,
+                    maxLength: 100,
+                    decoration: const InputDecoration(
+                      labelText: 'Co robiłeś/aś?',
+                      hintText: 'np. bieganie, rower, siłownia',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: kcalController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Spalone kalorie',
+                      suffixText: 'kcal',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: minutesController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Czas (opcjonalnie)',
+                      suffixText: 'min',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: kcalController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Spalone kalorie',
-                  suffixText: 'kcal',
-                  border: OutlineInputBorder(),
-                ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('Anuluj'),
               ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: minutesController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Czas (opcjonalnie)',
-                  suffixText: 'min',
-                  border: OutlineInputBorder(),
-                ),
+              FilledButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: const Text('Dodaj'),
               ),
             ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Anuluj'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Dodaj'),
-          ),
-        ],
-      ),
     );
 
     final name = nameController.text.trim();
@@ -588,26 +589,29 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (_) => EditIngredientsSheet(
-        recipe: recipe,
-        // Wpis mógł zostać dodany z inną liczbą porcji niż cały przepis —
-        // przeliczamy proporcjonalnie, żeby liczby odpowiadały temu,
-        // co użytkownik faktycznie zapisał.
-        servingsFraction:
-            (item.servings as double) /
-            (recipe.servings > 0 ? recipe.servings : 1),
-      ),
+      builder:
+          (_) => EditIngredientsSheet(
+            recipe: recipe,
+            // Wpis mógł zostać dodany z inną liczbą porcji niż cały przepis —
+            // przeliczamy proporcjonalnie, żeby liczby odpowiadały temu,
+            // co użytkownik faktycznie zapisał.
+            servingsFraction:
+                (item.servings as double) /
+                (recipe.servings > 0 ? recipe.servings : 1),
+          ),
     );
     if (edited == null || !mounted || !edited.wasEdited) return;
 
-    final ok = await Provider.of<FoodLogProvider>(context, listen: false)
-        .updateEntryNutrition(
-          item.id as String,
-          calories: edited.kcal,
-          protein: edited.protein,
-          fat: edited.fat,
-          carbs: edited.carbs,
-        );
+    final ok = await Provider.of<FoodLogProvider>(
+      context,
+      listen: false,
+    ).updateEntryNutrition(
+      item.id as String,
+      calories: edited.kcal,
+      protein: edited.protein,
+      fat: edited.fat,
+      carbs: edited.carbs,
+    );
     if (!mounted) return;
     messenger
       ..hideCurrentSnackBar()
@@ -624,80 +628,184 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
   }
 
   Future<void> _editProductAmount(FoodLogEntry item) async {
+    var unit =
+        const {'g', 'ml'}.contains(item.amountUnit)
+            ? item.amountUnit!
+            : 'porcja';
+    final inferredPortion =
+        item.portionSize ??
+        ((item.amountValue != null && item.servings > 0)
+            ? item.amountValue! / item.servings
+            : null);
     final controller = TextEditingController(
-      text: item.servings.toStringAsFixed(
-        item.servings.truncateToDouble() == item.servings ? 0 : 2,
+      text: _formatAmount(
+        unit == 'porcja'
+            ? item.servings
+            : (item.amountValue ?? item.servings * (inferredPortion ?? 100)),
       ),
+    );
+    final portionController = TextEditingController(
+      text: inferredPortion == null ? '' : _formatAmount(inferredPortion),
     );
     final formKey = GlobalKey<FormState>();
-    final newAmount = await showDialog<double>(
+    final edited = await showDialog<
+      ({double amount, String unit, double? portionSize})
+    >(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Edytuj ilość'),
-        content: Form(
-          key: formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                item.displayName,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '1 oznacza ilość dodaną pierwotnie, np. całe opakowanie.',
-                style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
-              ),
-              const SizedBox(height: 14),
-              TextFormField(
-                controller: controller,
-                autofocus: true,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
+      builder:
+          (dialogContext) => StatefulBuilder(
+            builder:
+                (dialogContext, setDialogState) => AlertDialog(
+                  title: const Text('Edytuj ilość'),
+                  content: Form(
+                    key: formKey,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.displayName,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 14),
+                          DropdownButtonFormField<String>(
+                            value: unit,
+                            isExpanded: true,
+                            decoration: const InputDecoration(
+                              labelText: 'Jednostka',
+                            ),
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'porcja',
+                                child: Text('porcja'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'g',
+                                child: Text('gramy (g)'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'ml',
+                                child: Text('mililitry (ml)'),
+                              ),
+                            ],
+                            onChanged: (value) {
+                              if (value == null || value == unit) return;
+                              setDialogState(() {
+                                unit = value;
+                                controller.text = _formatAmount(
+                                  value == 'porcja'
+                                      ? item.servings
+                                      : (item.amountValue ??
+                                          item.servings *
+                                              (inferredPortion ?? 100)),
+                                );
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: controller,
+                            autofocus: true,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            decoration: InputDecoration(
+                              labelText: 'Ilość',
+                              suffixText: unit == 'porcja' ? 'porcji' : unit,
+                            ),
+                            validator: (value) {
+                              final parsed = _parseAmount(value);
+                              if (parsed == null ||
+                                  parsed <= 0 ||
+                                  parsed > 1000000) {
+                                return 'Podaj prawidłową ilość';
+                              }
+                              return null;
+                            },
+                          ),
+                          if (unit != 'porcja') ...[
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: portionController,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              decoration: InputDecoration(
+                                labelText: '1 porcja to',
+                                suffixText: unit,
+                                helperText:
+                                    'Na tej podstawie przeliczamy kcal i makro',
+                              ),
+                              validator: (value) {
+                                final parsed = _parseAmount(value);
+                                if (parsed == null || parsed <= 0) {
+                                  return 'Podaj wielkość jednej porcji';
+                                }
+                                return null;
+                              },
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(dialogContext),
+                      child: const Text('Anuluj'),
+                    ),
+                    FilledButton(
+                      onPressed: () {
+                        if (formKey.currentState?.validate() != true) return;
+                        Navigator.pop(dialogContext, (
+                          amount: _parseAmount(controller.text)!,
+                          unit: unit,
+                          portionSize:
+                              unit == 'porcja'
+                                  ? inferredPortion
+                                  : _parseAmount(portionController.text),
+                        ));
+                      },
+                      child: const Text('Zapisz'),
+                    ),
+                  ],
                 ),
-                decoration: const InputDecoration(
-                  labelText: 'Ilość',
-                  suffixText: '×',
-                ),
-                validator: (value) {
-                  final parsed = double.tryParse(
-                    (value ?? '').trim().replaceAll(',', '.'),
-                  );
-                  if (parsed == null || parsed < 0.1 || parsed > 20) {
-                    return 'Podaj wartość od 0,1 do 20';
-                  }
-                  return null;
-                },
-              ),
-            ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Anuluj'),
-          ),
-          FilledButton(
-            onPressed: () {
-              if (formKey.currentState?.validate() != true) return;
-              Navigator.pop(
-                dialogContext,
-                double.parse(controller.text.trim().replaceAll(',', '.')),
-              );
-            },
-            child: const Text('Zapisz'),
-          ),
-        ],
-      ),
     );
     controller.dispose();
-    if (newAmount == null || !mounted) return;
+    portionController.dispose();
+    if (edited == null || !mounted) return;
 
-    final previousAmount = item.servings > 0 ? item.servings : 1.0;
-    final factor = newAmount / previousAmount;
+    final previousServings = item.servings > 0 ? item.servings : 1.0;
+    late final double newServings;
+    late final double factor;
+    double? amountValue;
+    String? amountUnit;
+    final portionSize = edited.portionSize;
+    if (edited.unit == 'porcja') {
+      newServings = edited.amount;
+      factor = newServings / previousServings;
+      if (portionSize != null && const {'g', 'ml'}.contains(item.amountUnit)) {
+        amountValue = newServings * portionSize;
+        amountUnit = item.amountUnit;
+      } else {
+        amountValue = edited.amount;
+        amountUnit = 'porcja';
+      }
+    } else {
+      final previousPhysicalAmount =
+          item.amountUnit == edited.unit && item.amountValue != null
+              ? item.amountValue!
+              : previousServings * portionSize!;
+      factor = edited.amount / previousPhysicalAmount;
+      newServings = edited.amount / portionSize!;
+      amountValue = edited.amount;
+      amountUnit = edited.unit;
+    }
     final provider = Provider.of<FoodLogProvider>(context, listen: false);
     final ok = await provider.updateEntryNutrition(
       item.id,
@@ -705,7 +813,10 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
       protein: item.protein * factor,
       fat: item.fat * factor,
       carbs: item.carbs * factor,
-      servings: newAmount,
+      servings: newServings,
+      amountValue: amountValue,
+      amountUnit: amountUnit,
+      portionSize: portionSize,
     );
     if (!mounted) return;
     ScaffoldMessenger.of(context)
@@ -764,12 +875,13 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
             const Expanded(child: Text('Nie udało się wczytać nawodnienia.')),
             IconButton(
               tooltip: 'Spróbuj ponownie',
-              onPressed: () => wellness.loadForDate(
-                Provider.of<FoodLogProvider>(
-                  context,
-                  listen: false,
-                ).currentDate,
-              ),
+              onPressed:
+                  () => wellness.loadForDate(
+                    Provider.of<FoodLogProvider>(
+                      context,
+                      listen: false,
+                    ).currentDate,
+                  ),
               icon: const Icon(Icons.refresh),
             ),
           ],
@@ -885,8 +997,9 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                   ),
                   visualDensity: VisualDensity.compact,
                   tooltip: 'Cofnij szklankę',
-                  onPressed: () =>
-                      _runWellness(wellness, () => wellness.addWater(-250)),
+                  onPressed:
+                      () =>
+                          _runWellness(wellness, () => wellness.addWater(-250)),
                 ),
             ],
           ),
@@ -903,30 +1016,31 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
     final controller = TextEditingController();
     final ok = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Ile wypiłeś/aś?'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: 'Ilość',
-            suffixText: 'ml',
-            hintText: 'np. 300',
-            border: OutlineInputBorder(),
+      builder:
+          (dialogContext) => AlertDialog(
+            title: const Text('Ile wypiłeś/aś?'),
+            content: TextField(
+              controller: controller,
+              autofocus: true,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Ilość',
+                suffixText: 'ml',
+                hintText: 'np. 300',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('Anuluj'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: const Text('Dodaj'),
+              ),
+            ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Anuluj'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Dodaj'),
-          ),
-        ],
-      ),
     );
     final value = int.tryParse(controller.text.trim());
     controller.dispose();
@@ -1077,89 +1191,100 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
     }
 
     final orderedMealTypes = ['Śniadanie', 'Obiad', 'Kolacja', 'Przekąska'];
-    final existingTypes = groupedLogs.keys.toList()
-      ..sort((a, b) {
-        int indexA = orderedMealTypes.indexOf(a);
-        int indexB = orderedMealTypes.indexOf(b);
-        if (indexA == -1) indexA = 99;
-        if (indexB == -1) indexB = 99;
-        return indexA.compareTo(indexB);
-      });
+    final existingTypes =
+        groupedLogs.keys.toList()..sort((a, b) {
+          int indexA = orderedMealTypes.indexOf(a);
+          int indexB = orderedMealTypes.indexOf(b);
+          if (indexA == -1) indexA = 99;
+          if (indexB == -1) indexB = 99;
+          return indexA.compareTo(indexB);
+        });
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: existingTypes.map((type) {
-        final items = groupedLogs[type]!;
-        double totalCal = items.fold(0, (sum, item) => sum + item.calories);
+      children:
+          existingTypes.map((type) {
+            final items = groupedLogs[type]!;
+            double totalCal = items.fold(0, (sum, item) => sum + item.calories);
 
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Text(
-                      type,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.textPrimary,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          type,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${totalCal.toInt()} kcal',
+                        maxLines: 2,
+                        textAlign: TextAlign.end,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryColor,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    '${totalCal.toInt()} kcal',
-                    maxLines: 2,
-                    textAlign: TextAlign.end,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.primaryColor,
-                    ),
-                  ),
+                  const SizedBox(height: 12),
+                  ...items.map((item) => _buildLogItem(context, item)).toList(),
                 ],
               ),
-              const SizedBox(height: 12),
-              ...items.map((item) => _buildLogItem(context, item)).toList(),
-            ],
-          ),
-        );
-      }).toList(),
+            );
+          }).toList(),
     );
   }
 
   Future<bool> _confirmDeleteEntry(FoodLogEntry item) async {
     return await showDialog<bool>(
           context: context,
-          builder: (dialogContext) => AlertDialog(
-            title: const Text('Usunąć posiłek?'),
-            content: Text(
-              '„${item.displayName}” zostanie usunięty z Dziennika.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext, false),
-                child: const Text('Anuluj'),
-              ),
-              FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppTheme.errorColor,
+          builder:
+              (dialogContext) => AlertDialog(
+                title: const Text('Usunąć posiłek?'),
+                content: Text(
+                  '„${item.displayName}” zostanie usunięty z Dziennika.',
                 ),
-                onPressed: () => Navigator.pop(dialogContext, true),
-                child: const Text('Usuń'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(dialogContext, false),
+                    child: const Text('Anuluj'),
+                  ),
+                  FilledButton(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppTheme.errorColor,
+                    ),
+                    onPressed: () => Navigator.pop(dialogContext, true),
+                    child: const Text('Usuń'),
+                  ),
+                ],
               ),
-            ],
-          ),
         ) ??
         false;
   }
 
   String _entryAmountLabel(FoodLogEntry item) {
+    if (item.amountValue != null && item.amountUnit != null) {
+      final amount = '${_formatAmount(item.amountValue!)} ${item.amountUnit}';
+      if (item.portionSize != null &&
+          const {'g', 'ml'}.contains(item.amountUnit)) {
+        return '$amount · 1 porcja = '
+            '${_formatAmount(item.portionSize!)} ${item.amountUnit}';
+      }
+      return amount;
+    }
     final value = item.servings.toStringAsFixed(
       item.servings.truncateToDouble() == item.servings ? 0 : 1,
     );
@@ -1171,6 +1296,14 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
     }
     return item.servings == 1 ? '1 porcja' : '$value porcji';
   }
+
+  double? _parseAmount(String? value) =>
+      double.tryParse((value ?? '').trim().replaceAll(',', '.'));
+
+  String _formatAmount(double value) =>
+      value == value.roundToDouble()
+          ? value.toStringAsFixed(0)
+          : value.toStringAsFixed(1);
 
   Widget _buildLogItem(BuildContext context, FoodLogEntry item) {
     return Dismissible(

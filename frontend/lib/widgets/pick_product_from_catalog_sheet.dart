@@ -22,6 +22,8 @@ class PickedCatalogProduct {
   final double protein;
   final double fat;
   final double carbs;
+  final double? portionSize;
+  final String? portionUnit;
 
   const PickedCatalogProduct({
     required this.name,
@@ -31,13 +33,21 @@ class PickedCatalogProduct {
     required this.protein,
     required this.fat,
     required this.carbs,
+    this.portionSize,
+    this.portionUnit,
   });
 
   String get amountLabel {
     if (unit == 'opak') {
-      return quantity == 1
-          ? '1 opakowanie'
-          : '${quantity.toStringAsFixed(1)} opak.';
+      final package =
+          quantity == 1
+              ? '1 opakowanie'
+              : '${quantity.toStringAsFixed(1)} opak.';
+      if (portionSize != null && portionUnit != null) {
+        final digits = portionSize == portionSize!.roundToDouble() ? 0 : 1;
+        return '$package (${portionSize!.toStringAsFixed(digits)} $portionUnit)';
+      }
+      return package;
     }
     final digits = quantity == quantity.roundToDouble() ? 0 : 1;
     return '${quantity.toStringAsFixed(digits)} $unit';
@@ -206,6 +216,17 @@ class _PickProductFromCatalogSheetState
           result.name == null ||
           !result.hasCompleteNutrition) {
         setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(
+              duration: Duration(seconds: 4),
+              content: Text(
+                'Nie odnaleziono kompletnych makroskładników w internecie. '
+                'Uzupełnij dane ze zdjęć opakowania.',
+              ),
+            ),
+          );
         final recognized = await showProductLabelRecognitionSheet(
           context,
           barcode: code,
@@ -337,6 +358,9 @@ class _PickProductFromCatalogSheetState
         protein: (result.proteinPer100 ?? 0) * factor,
         fat: (result.fatPer100 ?? 0) * factor,
         carbs: (result.carbsPer100 ?? 0) * factor,
+        portionSize: result.servingQuantity,
+        portionUnit:
+            const {'g', 'ml'}.contains(result.unit) ? result.unit : null,
       ),
     );
   }
@@ -437,6 +461,9 @@ class _PickProductFromCatalogSheetState
         protein: n.protein * factor,
         fat: n.fat * factor,
         carbs: n.carbs * factor,
+        portionSize:
+            product.defaultQuantity > 0 ? product.defaultQuantity : null,
+        portionUnit: product.unit == 'ml' || product.unit == 'l' ? 'ml' : 'g',
       ),
     );
   }

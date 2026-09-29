@@ -25,6 +25,9 @@ void main() {
     expect(payload['protein'], 5);
     expect(payload['fat'], 4);
     expect(payload['carbs'], 15);
+    expect(payload['amount_value'], 50);
+    expect(payload['amount_unit'], 'g');
+    expect(payload['portion_size'], 50);
   });
 
   test('produkt bez gramatury nadal zapisuje jedno opakowanie', () {
@@ -39,6 +42,13 @@ void main() {
 
     expect(defaultBarcodeQuantity(result), 1);
     expect(barcodePackageNutritionFactor(result), 1);
+    final payload = buildBatchTrackingPayload(
+      result: result,
+      mealType: 'Przekąska',
+      date: DateTime(2026, 9, 28),
+    );
+    expect(payload['amount_unit'], 'opak');
+    expect(payload.containsKey('amount_value'), isFalse);
   });
 
   test('liczby sztuk nie traktuje jako gramów opakowania', () {

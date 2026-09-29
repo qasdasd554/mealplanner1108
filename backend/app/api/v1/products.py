@@ -365,7 +365,7 @@ async def lookup_barcode(
             if _response_has_complete_nutrition(local_response):
                 return local_response
 
-    # 3. Open Food Facts v3.6 oraz USDA FoodData Central. UPCitemdb zostało
+    # 3. Open Food Facts v3 oraz USDA FoodData Central. UPCitemdb zostało
     # usunięte z aktywnej ścieżki: często zwracało 429 i nie zawiera makro.
     external = await lookup_barcode_external(normalized_barcode)
     if external is not None:
