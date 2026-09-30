@@ -7,6 +7,7 @@ import '../models/barcode_lookup_result.dart';
 import '../providers/store_provider.dart';
 import '../providers/auth_provider.dart';
 import '../screens/barcode_scanner_screen.dart';
+import 'product_contribution_reward_banner.dart';
 import '../services/api_client.dart';
 import '../theme/app_theme.dart';
 import '../utils/error_utils.dart';
@@ -289,17 +290,24 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
         if (_servingQuantity != null) 'serving_quantity': _servingQuantity,
         if (_servingQuantity != null) 'serving_unit': _servingUnit,
       };
+      var pointsAwarded = 0;
+      int? premiumPoints;
       if (_isEditing) {
         await ApiClient().put('/products/${widget.editing!.id}', body: body);
       } else {
-        await ApiClient().post('/products/submit', body: body);
+        final response = await ApiClient().post('/products/submit', body: body);
+        if (response is Map<String, dynamic>) {
+          pointsAwarded = (response['points_awarded'] as num?)?.toInt() ?? 0;
+          premiumPoints = (response['premium_points'] as num?)?.toInt();
+        }
         if (mounted) {
           await context.read<AuthProvider>().loadProfile();
         }
       }
       if (!mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
       Navigator.of(context).pop(true);
-      ScaffoldMessenger.of(context)
+      messenger
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
@@ -307,9 +315,11 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
             content: Text(
               _isEditing
                   ? 'Zapisano. Zmiany trafiają ponownie do sprawdzenia przez administratora.'
-                  : 'Produkt dodany — otrzymujesz 1 punkt premium. Możesz go '
-                      'już używać; pozostali zobaczą go po zatwierdzeniu przez '
-                      'administratora.',
+                  : pointsAwarded > 0
+                  ? 'Produkt dodany • +$pointsAwarded punkt Premium'
+                      '${premiumPoints == null ? '' : ' • saldo: $premiumPoints'}'
+                  : 'Produkt dodany. Możesz go już używać; pozostali zobaczą '
+                      'go po zatwierdzeniu przez administratora.',
             ),
           ),
         );
@@ -384,6 +394,10 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                     height: 1.35,
                   ),
                 ),
+                if (!_isEditing) ...[
+                  const SizedBox(height: 12),
+                  const ProductContributionRewardBanner(compact: true),
+                ],
                 const SizedBox(height: 20),
                 // Skanowanie kodu kreskowego — OPCJONALNE, ale znacznie
                 // przyspiesza wypełnienie: jeśli produkt jest w Waszym

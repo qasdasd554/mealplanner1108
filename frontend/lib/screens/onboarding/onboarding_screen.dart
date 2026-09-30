@@ -6,6 +6,7 @@ import '../../providers/store_provider.dart';
 import '../../models/store.dart';
 import '../../config/constants.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/premium_feature_tag.dart';
 import 'welcome_bonus_screen.dart';
 import '../recipes/pantry_screen.dart';
 import '../tracker/calorie_calculator_screen.dart';
@@ -722,6 +723,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           size: 58,
           color: AppTheme.primaryColor,
         ),
+        const SizedBox(height: 10),
+        const Center(
+          child: PremiumFeatureTag(label: 'PREMIUM • LUB PUNKTY', fontSize: 10),
+        ),
         const SizedBox(height: 18),
         Text(
           'Masz przepis? Dodaj go w chwilę',
@@ -738,11 +743,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: AppTheme.surfaceColor,
+            color: AppTheme.accentTintColor.withOpacity(0.45),
             borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: AppTheme.actionAccentColor.withOpacity(0.45),
+            ),
           ),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              Text(
+                'Import przepisu z AI',
+                style: TextStyle(
+                  color: AppTheme.actionAccentColor,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(height: 6),
               option(
                 Icons.photo_camera_outlined,
                 'Zdjęcia',

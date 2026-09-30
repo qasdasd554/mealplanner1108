@@ -14,6 +14,7 @@ import '../../utils/error_utils.dart';
 import '../../widgets/submit_product_sheet.dart';
 import '../../widgets/price_source_info.dart';
 import '../../widgets/premium_feature_tag.dart';
+import '../../widgets/product_contribution_reward_banner.dart';
 import '../../widgets/barcode_destination_sheet.dart';
 import '../batch_barcode_scanner_screen.dart';
 import '../profile/premium_screen.dart';
@@ -128,6 +129,8 @@ class _ProductsScreenState extends State<ProductsScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                const ProductContributionRewardBanner(),
+                const SizedBox(height: 10),
                 FilledButton.icon(
                   onPressed: _scanBarcode,
                   icon: const Icon(Icons.barcode_reader),
