@@ -71,9 +71,8 @@ class _RecipePhotoState extends State<RecipePhoto> {
         final cacheWidth =
             logicalWidth.isFinite && logicalWidth > 0
                 ? (logicalWidth * MediaQuery.devicePixelRatioOf(context))
-                        .ceil()
-                        .clamp(1, 1600)
-                    as int
+                    .ceil()
+                    .clamp(1, 1600)
                 : null;
 
         Widget fallback() => Center(

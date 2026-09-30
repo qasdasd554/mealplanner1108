@@ -196,6 +196,8 @@ _TITLES: dict[str, str] = {
     "admin_broadcast": "Meal Planner Polska",
     "friend_invitation": "Nowe zaproszenie do znajomych",
     "friend_accepted": "Zaproszenie przyjęte",
+    "weekly_plan_ready": "Twój plan na tydzień jest gotowy",
+    "weekly_plan_failed": "Automatyczny tydzień wymaga uwagi",
 }
 
 

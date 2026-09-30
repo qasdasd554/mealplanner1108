@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.v1 import router as v1_router
 from app.core.config import settings
 from app.core.exceptions import AppException
+from app.core.release_version import APP_VERSION
 from app.db.session import Base, get_db
 
 logger = logging.getLogger(__name__)
@@ -184,6 +185,9 @@ async def _create_tables() -> None:
         # X-Platform w app/api/deps.py.
         await conn.execute(
             text("ALTER TABLE users ADD COLUMN IF NOT EXISTS platform VARCHAR(10)")
+        )
+        await conn.execute(
+            text("ALTER TABLE users ADD COLUMN IF NOT EXISTS app_version VARCHAR(32)")
         )
         # Blokada konta przez administratora — patrz app/models/user.py.
         await conn.execute(
@@ -574,6 +578,23 @@ async def _promotion_expiry_background_loop() -> None:
         await asyncio.sleep(60 * 60)  # 1 godzina
 
 
+async def _weekly_plan_automation_loop() -> None:
+    """Co 10 minut uruchamia należne automatyczne plany Premium."""
+    await asyncio.sleep(60)
+    while True:
+        try:
+            from app.db.session import async_session_factory
+            from app.services.weekly_plan_automation import process_due_weekly_plans
+
+            async with async_session_factory() as db:
+                completed = await process_due_weekly_plans(db)
+                if completed:
+                    logger.info("Automatyczny tydzień: utworzono %d planów", completed)
+        except Exception:
+            logger.exception("Błąd zadania Automatyczny tydzień")
+        await asyncio.sleep(10 * 60)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Zarządza cyklem życia aplikacji — startup i shutdown."""
@@ -585,6 +606,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     scraper_task = asyncio.create_task(_price_scraper_background_loop())
     weekly_contest_task = asyncio.create_task(_weekly_contest_background_loop())
     promotion_expiry_task = asyncio.create_task(_promotion_expiry_background_loop())
+    weekly_plan_task = asyncio.create_task(_weekly_plan_automation_loop())
     from app.services.recipe_import_worker import recipe_import_worker_loop
 
     recipe_import_task = asyncio.create_task(recipe_import_worker_loop())
@@ -594,13 +616,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     scraper_task.cancel()
     weekly_contest_task.cancel()
     promotion_expiry_task.cancel()
+    weekly_plan_task.cancel()
     recipe_import_task.cancel()
 
 
 app = FastAPI(
     title="Smart Meal Planner PL API",
     description="API do planowania posiłków z integracją z polskimi sieciami handlowymi",
-    version="1.0.32",
+    version=APP_VERSION,
     lifespan=lifespan,
 )
 
@@ -637,7 +660,13 @@ app.add_middleware(
     allow_origins=_cors_origins,
     allow_credentials=False,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "Accept"],
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+        "Accept",
+        "X-Platform",
+        "X-App-Version",
+    ],
 )
 
 # ---------------------------------------------------------------------------

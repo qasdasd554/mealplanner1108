@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../../models/recipe.dart';
 import '../../models/recipe_import_job.dart';
 import '../../config/constants.dart';
@@ -630,7 +629,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                     title: 'Zrób zdjęcie',
                     subtitle: 'Przepisu albo gotowego dania',
                     trailing: const PremiumFeatureTag(
-                      label: 'PREMIUM / 2 PKT',
+                      label: 'PREMIUM · 2 PKT',
                       fontSize: 8,
                     ),
                     onTap: () {
@@ -653,7 +652,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                     icon: Icons.text_snippet_outlined,
                     title: 'Wklej tekst',
                     trailing: const PremiumFeatureTag(
-                      label: 'PREMIUM / 2 PKT',
+                      label: 'PREMIUM · 2 PKT',
                       fontSize: 8,
                     ),
                     onTap: () {
@@ -676,7 +675,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                     icon: Icons.link,
                     title: 'Wklej link',
                     trailing: const PremiumFeatureTag(
-                      label: 'PREMIUM / 2 PKT',
+                      label: 'PREMIUM · 2 PKT',
                       fontSize: 8,
                     ),
                     onTap: () {

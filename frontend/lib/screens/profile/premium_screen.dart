@@ -17,6 +17,7 @@ import '../recipes/ai_add_recipe_screen.dart';
 import '../recipes/ingredient_match_select_screen.dart';
 import '../recipes/pantry_screen.dart';
 import '../batch_barcode_scanner_screen.dart';
+import '../meal_plan/weekly_plan_automation_screen.dart';
 
 /// Ekran prezentacji subskrypcji Premium — lista korzyści + przyciski
 /// zakupu, w pełni podłączone pod Google Play Billing. Backend (nie ta
@@ -660,6 +661,12 @@ class _PremiumScreenState extends State<PremiumScreen> {
 
   static const List<_PremiumFeature> _features = [
     _PremiumFeature(
+      icon: Icons.auto_mode_outlined,
+      title: 'Automatyczny tydzień',
+      description:
+          'W wybranym dniu przygotujemy plan i opcjonalną listę zakupów.',
+    ),
+    _PremiumFeature(
       icon: Icons.qr_code_2,
       title: 'Skanowanie seryjne',
       description:
@@ -700,7 +707,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            expandedHeight: 220,
+            expandedHeight: 250,
             pinned: true,
             iconTheme: const IconThemeData(color: Colors.white),
             flexibleSpace: FlexibleSpaceBar(
@@ -741,11 +748,16 @@ class _PremiumScreenState extends State<PremiumScreen> {
                         ),
                       ).animate().fadeIn(delay: 150.ms),
                       const SizedBox(height: 4),
-                      Text(
-                        'Więcej możliwości dla Twojej kuchni',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.85),
-                          fontSize: 13,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 28),
+                        child: Text(
+                          'Zaplanuj cały tydzień, zeskanuj zakupy i przygotuj listę w kilka minut.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.85),
+                            fontSize: 13,
+                            height: 1.35,
+                          ),
                         ),
                       ).animate().fadeIn(delay: 250.ms),
                     ],
@@ -763,6 +775,33 @@ class _PremiumScreenState extends State<PremiumScreen> {
                 // prowadzi do tego samego miejsca, gdzie wbudowana
                 // bramka Premium (już istniejąca w tych ekranach) sama
                 // pokaże zachętę do zakupu we właściwym kontekście.
+                _buildQuickAction(
+                  context,
+                  icon: Icons.auto_mode_outlined,
+                  title: 'Automatyczny tydzień',
+                  subtitle: 'Plan i opcjonalna lista zakupów gotowe co tydzień',
+                  isPremium: isPremium,
+                  onTap: () {
+                    if (!isPremium) {
+                      ScaffoldMessenger.of(context)
+                        ..hideCurrentSnackBar()
+                        ..showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Automatyczny tydzień jest dostępny w Premium.',
+                            ),
+                          ),
+                        );
+                      return;
+                    }
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const WeeklyPlanAutomationScreen(),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 10),
                 _buildQuickAction(
                   context,
                   icon: Icons.auto_awesome,
@@ -833,7 +872,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   context,
                   icon: Icons.shopping_cart,
                   title: 'Listy zakupów z przepisów',
-                  subtitle: 'Do 5 zapisanych list (standard: 1)',
+                  subtitle: 'Bez limitu (standard: 1 tygodniowo)',
                   isPremium: isPremium,
                   onTap:
                       () => Navigator.of(context).push(
@@ -1216,7 +1255,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
       ),
       const SizedBox(height: 4),
       Text(
-        '2 punkty = jedno zapytanie do AI (przepis z tekstu, zdjęcia albo linku) — bez subskrypcji.',
+        'Import przepisu ze zdjęcia, tekstu lub linku kosztuje 2 punkty, a edycja AI 1 punkt — bez subskrypcji.',
         style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
       ),
       const SizedBox(height: 12),
@@ -1356,6 +1395,16 @@ class _PremiumScreenState extends State<PremiumScreen> {
               discountPercent == null ? price : 'Cena promocyjna: $price',
               textAlign: TextAlign.center,
               style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '${points ~/ 2} importów AI\nlub $points edycji AI',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 10,
+                height: 1.25,
+              ),
             ),
             if (discountPercent != null)
               Text(

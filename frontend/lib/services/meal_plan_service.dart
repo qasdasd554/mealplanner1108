@@ -1,4 +1,5 @@
 import '../models/meal_plan.dart';
+import '../models/weekly_plan_automation.dart';
 import 'api_client.dart';
 import '../config/api_config.dart';
 
@@ -59,5 +60,36 @@ class MealPlanService {
 
   Future<void> deletePlan(String planId) async {
     await _client.delete('${ApiConfig.mealPlans}$planId');
+  }
+
+  Future<WeeklyPlanAutomation> getWeeklyAutomation() async {
+    final response = await _client.get('${ApiConfig.mealPlans}automation');
+    return WeeklyPlanAutomation.fromJson(response as Map<String, dynamic>);
+  }
+
+  Future<WeeklyPlanAutomation> saveWeeklyAutomation({
+    required bool enabled,
+    required int weekday,
+    required int hour,
+    required bool createShoppingList,
+  }) async {
+    final response = await _client.put(
+      '${ApiConfig.mealPlans}automation',
+      body: {
+        'enabled': enabled,
+        'weekday': weekday,
+        'hour': hour,
+        'create_shopping_list': createShoppingList,
+      },
+    );
+    return WeeklyPlanAutomation.fromJson(response as Map<String, dynamic>);
+  }
+
+  Future<WeeklyPlanAutomation> runWeeklyAutomationNow() async {
+    final response = await _client.post(
+      '${ApiConfig.mealPlans}automation/run-now',
+      timeout: const Duration(minutes: 3),
+    );
+    return WeeklyPlanAutomation.fromJson(response as Map<String, dynamic>);
   }
 }

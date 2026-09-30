@@ -16,6 +16,7 @@ import logging
 import re
 import unicodedata
 from collections import defaultdict
+from datetime import date
 from typing import Any, Sequence
 from uuid import UUID
 
@@ -219,6 +220,8 @@ class MealPlanGenerator:
         preferences: dict[str, Any] | None = None,
         household_size: int | None = None,
         target_kcal: float | None = None,
+        create_shopping_list: bool = True,
+        start_date: date | None = None,
     ) -> MealPlan:
         """Generuje kompletny plan posiłków.
 
@@ -281,7 +284,9 @@ class MealPlanGenerator:
         # tygodniu został wykorzystany. Blokada jest wspólna z tworzeniem
         # listy, więc równoległe żądanie nie ominie limitu.
         from app.services.shopping_list_quota import can_create_shopping_list
-        can_create_list = await can_create_shopping_list(self.db, user=user)
+        can_create_list = create_shopping_list and await can_create_shopping_list(
+            self.db, user=user
+        )
 
         # Krok 5 — zapis do bazy
         meal_plan = await self._persist_plan(
@@ -290,6 +295,7 @@ class MealPlanGenerator:
             duration_days=duration_days,
             meals_per_day=meals_per_day,
             entries_data=entries_data,
+            start_date=start_date,
         )
         # Historia powstaje przed commitem buildera listy. Dzięki temu
         # plan, wpis limitu i lista są atomowe, a usunięcie planu nie
@@ -330,7 +336,9 @@ class MealPlanGenerator:
             .where(MealPlan.id == meal_plan.id)
         )
         meal_plan_reloaded = result.scalar_one()
-        meal_plan_reloaded.shopping_list_limit_reached = not can_create_list
+        meal_plan_reloaded.shopping_list_limit_reached = (
+            create_shopping_list and not can_create_list
+        )
 
         return meal_plan_reloaded
 
@@ -1039,9 +1047,9 @@ class MealPlanGenerator:
         duration_days: int,
         meals_per_day: int,
         entries_data: list[dict[str, Any]],
+        start_date: date | None = None,
     ) -> MealPlan:
         """Tworzy MealPlan i MealPlanEntry w bazie."""
-        from datetime import date
         from sqlalchemy import select
         from sqlalchemy.orm import selectinload
         from app.models import MealPlanEntry, Recipe, RecipeIngredient
@@ -1049,7 +1057,7 @@ class MealPlanGenerator:
         meal_plan = MealPlan(
             user_id=user_id,
             store_id=store_id,
-            start_date=date.today(),
+            start_date=start_date or date.today(),
             duration_days=duration_days,
             meals_per_day=meals_per_day,
             status="draft",

@@ -6,9 +6,7 @@ Apple wysyła JWT (JWS) podpisany kluczem RS256, którego publiczne klucze
 trzeba pobrać z https://appleid.apple.com/auth/keys (JWKS, format
 identyczny jak większość dostawców OIDC). W przeciwieństwie do logowania
 Google (gdzie mamy gotową bibliotekę `google-auth`), tu weryfikujemy
-ręcznie przez `python-jose` — ten sam pakiet, którego backend już używa
-do własnych tokenów JWT (patrz app/api/deps.py), więc żadna nowa
-zależność nie jest potrzebna.
+token przez PyJWT i kryptograficzny klucz RSA pobrany z JWKS Apple.
 
 Ważne dla przepływu natywnego (nie webowego): przy logowaniu z aplikacji
 mobilnej `aud` (audience) w tokenie to Bundle ID aplikacji, NIE
@@ -22,9 +20,9 @@ import logging
 import time
 
 import httpx
-from jose import jwk, jwt
-from jose.exceptions import JWTError
-from jose.utils import base64url_decode
+import jwt
+from jwt import PyJWTError
+from jwt.algorithms import RSAAlgorithm
 
 from app.core.config import settings
 
@@ -75,7 +73,7 @@ async def verify_apple_identity_token(identity_token: str) -> dict:
     """
     try:
         unverified_header = jwt.get_unverified_header(identity_token)
-    except JWTError as exc:
+    except PyJWTError as exc:
         raise AppleSignInError("Nieprawidłowy token Apple (zły nagłówek).") from exc
 
     kid = unverified_header.get("kid")
@@ -94,23 +92,17 @@ async def verify_apple_identity_token(identity_token: str) -> dict:
         raise AppleSignInError("Token Apple podpisany nieznanym kluczem.")
 
     try:
-        public_key = jwk.construct(matching_key, algorithm="RS256")
-        message, encoded_signature = identity_token.rsplit(".", 1)
-        decoded_signature = base64url_decode(encoded_signature.encode("utf-8"))
-        if not public_key.verify(message.encode("utf-8"), decoded_signature):
-            raise AppleSignInError("Nieprawidłowy podpis tokenu Apple.")
-
-        payload = jwt.get_unverified_claims(identity_token)
-    except JWTError as exc:
-        raise AppleSignInError("Nie udało się zdekodować tokenu Apple.") from exc
-
-    if payload.get("iss") != _APPLE_ISSUER:
-        raise AppleSignInError("Token Apple ma nieprawidłowego wystawcę.")
-
-    if payload.get("aud") != settings.APPLE_BUNDLE_ID:
-        raise AppleSignInError("Token Apple wystawiony dla innej aplikacji.")
-
-    if payload.get("exp") is not None and time.time() > float(payload["exp"]):
-        raise AppleSignInError("Token Apple wygasł.")
+        public_key = RSAAlgorithm.from_jwk(matching_key)
+        payload = jwt.decode(
+            identity_token,
+            public_key,
+            algorithms=["RS256"],
+            audience=settings.APPLE_BUNDLE_ID,
+            issuer=_APPLE_ISSUER,
+        )
+    except (PyJWTError, ValueError, TypeError) as exc:
+        raise AppleSignInError(
+            "Token Apple jest nieprawidłowy, wygasł albo dotyczy innej aplikacji."
+        ) from exc
 
     return payload

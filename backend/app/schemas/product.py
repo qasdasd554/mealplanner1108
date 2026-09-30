@@ -65,6 +65,13 @@ class ProductResponse(ProductBase):
     source: str | None = None
 
 
+class ProductSubmissionResponse(ProductResponse):
+    """Produkt wraz z nagrodą przyznaną za nowe zgłoszenie."""
+
+    points_awarded: int
+    premium_points: int
+
+
 class StoreProductResponse(BaseModel):
     """Odpowiedź API — produkt w kontekście sklepu (z ceną i dostępnością)."""
 

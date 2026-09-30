@@ -3,6 +3,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
 
 import '../models/barcode_lookup_result.dart';
+import '../providers/auth_provider.dart';
 import '../providers/food_log_provider.dart';
 import '../services/api_client.dart';
 import '../services/barcode_lookup_service.dart';
@@ -137,9 +138,10 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
       _replaceItem(
         scannedCode,
         state: missing ? _BatchState.missing : _BatchState.error,
-        message: missing
-            ? 'Nie znaleziono. Dotknij, aby dodać produkt ze zdjęć.'
-            : '${friendlyError(error)} Dotknij, aby spróbować ponownie.',
+        message:
+            missing
+                ? 'Nie znaleziono. Dotknij, aby dodać produkt ze zdjęć.'
+                : '${friendlyError(error)} Dotknij, aby spróbować ponownie.',
       );
     }
   }
@@ -214,16 +216,17 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
       case _BatchDestination.productDatabase:
         if (result.existingProductId != null) return 'Już jest w katalogu';
         try {
-          await _api.post(
+          final response = await _api.post(
             '/products/submit',
             body: {
               'name': result.name,
               'unit': barcodePackageUnit,
               if (result.servingQuantity != null)
                 'serving_quantity': result.servingQuantity,
-              'serving_unit': const {'g', 'ml', 'szt'}.contains(result.unit)
-                  ? result.unit
-                  : 'g',
+              'serving_unit':
+                  const {'g', 'ml', 'szt'}.contains(result.unit)
+                      ? result.unit
+                      : 'g',
               if (result.brand?.trim().isNotEmpty == true)
                 'brand': result.brand,
               if (result.kcalPer100 != null) 'kcal_per_100': result.kcalPer100,
@@ -236,11 +239,17 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
               'barcode': item.code,
             },
           );
+          final awarded =
+              response is Map<String, dynamic>
+                  ? (response['points_awarded'] as num?)?.toInt() ?? 0
+                  : 0;
+          return awarded > 0
+              ? 'Dodano do katalogu (+$awarded pkt)'
+              : 'Dodano do katalogu';
         } on ApiException catch (error) {
           if (error.statusCode == 409) return 'Produkt jest już zgłoszony';
           rethrow;
         }
-        return 'Dodano do katalogu';
     }
   }
 
@@ -314,6 +323,11 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
           await provider.fetchLogsForDate(today);
         }
       }
+      if (mounted &&
+          _destinations.contains(_BatchDestination.productDatabase) &&
+          savedCount > 0) {
+        await context.read<AuthProvider>().loadProfile();
+      }
       if (mounted) {
         final failedCount = pending.length - savedCount;
         ScaffoldMessenger.of(context)
@@ -324,7 +338,7 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
                 failedCount == 0
                     ? 'Dodano ${pending.length} produktów.'
                     : 'Dodano $savedCount z ${pending.length}. '
-                          'Dotknij błędnych pozycji i spróbuj ponownie.',
+                        'Dotknij błędnych pozycji i spróbuj ponownie.',
               ),
             ),
           );
@@ -386,9 +400,10 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
         title: const Text('Skanowanie seryjne'),
         actions: [
           TextButton(
-            onPressed: _submitting
-                ? null
-                : () => Navigator.of(context).pop(_completedCount),
+            onPressed:
+                _submitting
+                    ? null
+                    : () => Navigator.of(context).pop(_completedCount),
             child: const Text('Zakończ'),
           ),
         ],
@@ -404,16 +419,17 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
                   controller: _scanner,
                   onDetect: _onScan,
                   tapToFocus: true,
-                  errorBuilder: (context, error) => Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Text(
-                        'Nie można uruchomić aparatu. Sprawdź uprawnienie '
-                        'do kamery.\n$error',
-                        textAlign: TextAlign.center,
+                  errorBuilder:
+                      (context, error) => Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Text(
+                            'Nie można uruchomić aparatu. Sprawdź uprawnienie '
+                            'do kamery.\n$error',
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
                 ),
                 IgnorePointer(
                   child: Center(
@@ -441,9 +457,9 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
                       child: Text(
                         _lookupBusy
                             ? 'Rozpoznaję produkty · oczekuje '
-                                  '${_queue.length + (_processing ? 1 : 0)}'
+                                '${_queue.length + (_processing ? 1 : 0)}'
                             : 'Skanuj kolejne produkty. Miejsca wybierzesz '
-                                  'raz dla całej serii.',
+                                'raz dla całej serii.',
                         textAlign: TextAlign.center,
                         style: const TextStyle(color: Colors.white),
                       ),
@@ -456,34 +472,35 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
           Expanded(
             child: Container(
               color: AppTheme.backgroundColor,
-              child: _items.isEmpty
-                  ? Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.qr_code_scanner,
-                              size: 44,
-                              color: AppTheme.textSecondary,
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              'Zeskanowane produkty pojawią się tutaj.',
-                              style: TextStyle(color: AppTheme.textSecondary),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
+              child:
+                  _items.isEmpty
+                      ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.qr_code_scanner,
+                                size: 44,
+                                color: AppTheme.textSecondary,
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                'Zeskanowane produkty pojawią się tutaj.',
+                                style: TextStyle(color: AppTheme.textSecondary),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
                         ),
+                      )
+                      : ListView.separated(
+                        padding: const EdgeInsets.all(12),
+                        itemCount: _items.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 6),
+                        itemBuilder: (_, index) => _buildItem(_items[index]),
                       ),
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.all(12),
-                      itemCount: _items.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 6),
-                      itemBuilder: (_, index) => _buildItem(_items[index]),
-                    ),
             ),
           ),
           _buildBatchActions(),
@@ -508,31 +525,34 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
             children: [
               Text(
                 'Dodaj wszystkie do',
-                style: Theme.of(context).textTheme.titleSmall
-                    ?.copyWith(fontWeight: FontWeight.w700),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: _BatchDestination.values
-                    .map(
-                      (destination) => FilterChip(
-                        avatar: Icon(destination.icon, size: 18),
-                        label: Text(destination.label),
-                        selected: _destinations.contains(destination),
-                        onSelected: _submitting
-                            ? null
-                            : (selected) => setState(() {
-                                if (selected) {
-                                  _destinations.add(destination);
-                                } else {
-                                  _destinations.remove(destination);
-                                }
-                              }),
-                      ),
-                    )
-                    .toList(),
+                children:
+                    _BatchDestination.values
+                        .map(
+                          (destination) => FilterChip(
+                            avatar: Icon(destination.icon, size: 18),
+                            label: Text(destination.label),
+                            selected: _destinations.contains(destination),
+                            onSelected:
+                                _submitting
+                                    ? null
+                                    : (selected) => setState(() {
+                                      if (selected) {
+                                        _destinations.add(destination);
+                                      } else {
+                                        _destinations.remove(destination);
+                                      }
+                                    }),
+                          ),
+                        )
+                        .toList(),
               ),
               if (_destinations.contains(_BatchDestination.tracking)) ...[
                 const SizedBox(height: 10),
@@ -558,11 +578,12 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
                             ),
                           )
                           .toList(),
-                  onChanged: _submitting
-                      ? null
-                      : (value) => setState(() {
-                          if (value != null) _mealType = value;
-                        }),
+                  onChanged:
+                      _submitting
+                          ? null
+                          : (value) => setState(() {
+                            if (value != null) _mealType = value;
+                          }),
                 ),
               ],
               const SizedBox(height: 8),
@@ -571,27 +592,30 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Text(
                     _disabledReason,
-                    style: Theme.of(context).textTheme.bodySmall
-                        ?.copyWith(color: AppTheme.textSecondary),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppTheme.textSecondary,
+                    ),
                   ),
                 ),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
-                  onPressed: canApply
-                      ? _applyToAll
-                      : canFinish
-                      ? () => Navigator.of(context).pop(_completedCount)
-                      : null,
-                  icon: _submitting
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Icon(
-                          canFinish ? Icons.check : Icons.playlist_add_check,
-                        ),
+                  onPressed:
+                      canApply
+                          ? _applyToAll
+                          : canFinish
+                          ? () => Navigator.of(context).pop(_completedCount)
+                          : null,
+                  icon:
+                      _submitting
+                          ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                          : Icon(
+                            canFinish ? Icons.check : Icons.playlist_add_check,
+                          ),
                   label: Text(
                     _submitting
                         ? 'Dodaję produkty…'
@@ -641,13 +665,17 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
     return Card(
       child: ListTile(
         minVerticalPadding: 10,
-        leading: item.state == _BatchState.saving
-            ? SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2, color: color),
-              )
-            : Icon(icon, color: color),
+        leading:
+            item.state == _BatchState.saving
+                ? SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: color,
+                  ),
+                )
+                : Icon(icon, color: color),
         title: Text(
           item.result?.name ?? item.code,
           maxLines: 2,
@@ -696,15 +724,15 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
         'W ${_formatMacro(result.carbsPer100!)} g',
     ];
     if (values.isEmpty) return null;
-    final basis = result.unit == 'ml' || result.unit == 'l'
-        ? '100 ml'
-        : '100 g';
+    final basis =
+        result.unit == 'ml' || result.unit == 'l' ? '100 ml' : '100 g';
     return '$basis: ${values.join(' · ')}';
   }
 
-  String _formatMacro(double value) => value == value.roundToDouble()
-      ? value.toStringAsFixed(0)
-      : value.toStringAsFixed(1);
+  String _formatMacro(double value) =>
+      value == value.roundToDouble()
+          ? value.toStringAsFixed(0)
+          : value.toStringAsFixed(1);
 }
 
 enum _BatchState { loading, ready, saving, completed, missing, error }

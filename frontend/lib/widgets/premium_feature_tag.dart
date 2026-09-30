@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 
 /// Mały, złoty znacznik "Premium" do umieszczania OBOK przycisków/funkcji,
 /// które wymagają subskrypcji — w odróżnieniu od [PremiumBadge] (który
@@ -18,25 +19,33 @@ class PremiumFeatureTag extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: fontSize * 0.6,
-        vertical: fontSize * 0.15,
+        horizontal: fontSize * 0.65,
+        vertical: fontSize * 0.28,
       ),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFF5C24D), Color(0xFFE0A62E)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppTheme.accentTintColor,
+        border: Border.all(color: AppTheme.actionAccentColor.withOpacity(0.55)),
         borderRadius: BorderRadius.circular(fontSize),
       ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: fontSize,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 0.4,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.auto_awesome,
+            size: fontSize * 0.9,
+            color: AppTheme.actionAccentColor,
+          ),
+          SizedBox(width: fontSize * 0.3),
+          Text(
+            label,
+            style: TextStyle(
+              color: AppTheme.actionAccentColor,
+              fontSize: fontSize,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.35,
+            ),
+          ),
+        ],
       ),
     );
   }

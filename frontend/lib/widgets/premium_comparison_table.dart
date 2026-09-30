@@ -14,10 +14,11 @@ class PremiumComparisonTable extends StatelessWidget {
   const PremiumComparisonTable({super.key});
 
   static const List<(String, Object, Object)> _comparisonRows = [
+    ('Automatyczny plan i lista co tydzień', true, false),
     ('Import przepisu przez AI (zdjęcie, tekst, link)', true, false),
     ('Seryjne skanowanie produktów bez zamykania aparatu', true, false),
     ('Publikacja przepisów we wspólnym katalogu', true, false),
-    ('Listy zakupów z wybranych przepisów', '5', '1'),
+    ('Listy zakupów z wybranych przepisów', 'Bez limitu', '1 / tydzień'),
     ('Generowanie planu posiłków', true, true),
     ('Dziennik kalorii i makroskładników', true, true),
     ('Kalkulator zapotrzebowania kalorycznego', true, true),

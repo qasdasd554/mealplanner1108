@@ -1,10 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../../models/barcode_lookup_result.dart';
 import '../../models/product.dart';
-import '../../providers/auth_provider.dart';
 import '../../services/product_name_lookup_service.dart';
 import '../../utils/quantity_formatter.dart';
 import '../../services/recipe_service.dart';

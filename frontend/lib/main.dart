@@ -15,6 +15,7 @@ import 'providers/theme_provider.dart';
 import 'providers/promotion_provider.dart';
 import 'services/share_intent_handler.dart';
 import 'services/push_service.dart';
+import 'services/api_client.dart';
 import 'providers/wellness_provider.dart';
 
 void main() async {
@@ -89,6 +90,14 @@ Future<void> _bootstrap() async {
   } catch (error) {
     debugPrint('Nie udało się zainicjalizować polskich dat: $error');
   }
+
+  // Techniczna wersja klienta trafia do każdego żądania. Timeout chroni
+  // pierwszy ekran przed zawieszeniem natywnego pluginu.
+  try {
+    await ApiClient().initializeAppMetadata().timeout(
+      const Duration(seconds: 2),
+    );
+  } catch (_) {}
 
   // UWAGA (NAPRAWA AWARYJNA — TYMCZASOWE WYŁĄCZENIE): po skoku wersji
   // google_mobile_ads (5→9) aplikacja zaczęła crashować NATYCHMIAST po

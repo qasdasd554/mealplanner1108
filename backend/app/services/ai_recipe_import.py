@@ -534,14 +534,14 @@ async def _fetch_url_text(url: str) -> tuple[str, dict | None]:
     filmikiem — zadziała. Jeśli przepis pada wyłącznie w mowie w
     nagraniu — rozpoznawanie może się nie udać.
     """
+    from urllib.parse import urljoin
+
     import httpx
     from bs4 import BeautifulSoup
 
-    async with httpx.AsyncClient(timeout=12.0, follow_redirects=True) as client:
-        try:
-            response = await client.get(
-                url,
-                headers={
+    from app.core.safe_url import UnsafeUrlError, validate_public_http_url
+
+    headers = {
                     # UWAGA (naprawa): nagłówki tylko z User-Agent są łatwym
                     # sygnałem "to nie jest prawdziwa przeglądarka" dla stron
                     # z ochroną przed botami (a TikTok jest pod tym względem
@@ -561,17 +561,64 @@ async def _fetch_url_text(url: str) -> tuple[str, dict | None]:
                     "Sec-Fetch-Dest": "document",
                     "Sec-Fetch-Site": "none",
                     "Upgrade-Insecure-Requests": "1",
-                },
-            )
-        except httpx.HTTPError as exc:
-            raise AIRecipeImportError(f"Nie udało się otworzyć podanego linku: {exc}")
+    }
+    current_url = url
+    page_bytes: bytes | None = None
+    response_encoding = "utf-8"
+    status_code = 0
+    try:
+        async with httpx.AsyncClient(timeout=12.0, follow_redirects=False) as client:
+            for _ in range(6):
+                current_url = await validate_public_http_url(current_url)
+                async with client.stream("GET", current_url, headers=headers) as response:
+                    status_code = response.status_code
+                    if status_code in {301, 302, 303, 307, 308}:
+                        location = response.headers.get("location")
+                        if not location:
+                            raise AIRecipeImportError(
+                                "Strona zwróciła nieprawidłowe przekierowanie."
+                            )
+                        current_url = urljoin(current_url, location)
+                        continue
+                    if status_code != 200:
+                        raise AIRecipeImportError(
+                            f"Podana strona zwróciła błąd ({status_code}). "
+                            "Sprawdź, czy link jest poprawny."
+                        )
 
-    if response.status_code != 200:
+                    content_type = response.headers.get("content-type", "").lower()
+                    if content_type and not any(
+                        allowed in content_type
+                        for allowed in ("text/html", "application/xhtml+xml", "text/plain")
+                    ):
+                        raise AIRecipeImportError(
+                            "Podany link nie prowadzi do obsługiwanej strony tekstowej."
+                        )
+
+                    body = bytearray()
+                    async for chunk in response.aiter_bytes():
+                        body.extend(chunk)
+                        if len(body) > 2 * 1024 * 1024:
+                            raise AIRecipeImportError(
+                                "Podana strona jest zbyt duża do bezpiecznego przetworzenia."
+                            )
+                    page_bytes = bytes(body)
+                    response_encoding = response.charset_encoding or "utf-8"
+                    break
+            else:
+                raise AIRecipeImportError("Podany link ma zbyt wiele przekierowań.")
+    except UnsafeUrlError as exc:
+        raise AIRecipeImportError(str(exc)) from exc
+    except httpx.HTTPError as exc:
+        raise AIRecipeImportError(f"Nie udało się otworzyć podanego linku: {exc}") from exc
+
+    if page_bytes is None:
         raise AIRecipeImportError(
-            f"Podana strona zwróciła błąd ({response.status_code}). Sprawdź, czy link jest poprawny."
+            f"Nie udało się pobrać podanej strony (status {status_code})."
         )
+    page_text = page_bytes.decode(response_encoding, errors="replace")
 
-    soup = BeautifulSoup(response.text, "html.parser")
+    soup = BeautifulSoup(page_text, "html.parser")
     structured_recipe = _jsonld_recipe_from_soup(soup)
 
     parts: list[str] = []

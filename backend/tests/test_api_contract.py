@@ -1,6 +1,12 @@
 """Regresje kontraktu tras używanych bezpośrednio przez aplikację."""
 
+from pathlib import Path
+
 from app.api.v1.users import AdminUserEntry
+from app.core.release_version import (
+    BACKEND_ONLY_FALLBACK_VERSION,
+    parse_pubspec_version,
+)
 from app.main import app
 
 
@@ -37,8 +43,30 @@ def test_openapi_operation_ids_are_unique() -> None:
 
 
 def test_backend_release_matches_mobile_build() -> None:
-    assert app.version == "1.0.32"
+    pubspec = Path(__file__).resolve().parents[2] / "frontend" / "pubspec.yaml"
+    mobile_version = parse_pubspec_version(pubspec.read_text(encoding="utf-8"))
+    assert app.version == mobile_version
+    assert BACKEND_ONLY_FALLBACK_VERSION == mobile_version
+
+
+def test_mobile_version_parser_rejects_invalid_value() -> None:
+    try:
+        parse_pubspec_version("version: latest")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("Nieprawidłowa wersja nie może zostać zaakceptowana")
 
 
 def test_admin_user_contract_contains_both_avatar_variants() -> None:
     assert {"avatar", "avatar_photo_base64"} <= AdminUserEntry.model_fields.keys()
+
+
+def test_weekly_automation_routes_are_exposed() -> None:
+    paths = app.openapi()["paths"]
+    assert "/api/v1/meal-plans/automation" in paths
+    assert "/api/v1/meal-plans/automation/run-now" in paths
+
+
+def test_admin_user_contract_contains_client_version() -> None:
+    assert {"platform", "app_version"} <= AdminUserEntry.model_fields.keys()

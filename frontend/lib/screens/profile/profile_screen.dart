@@ -267,7 +267,7 @@ class ProfileScreen extends StatelessWidget {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      'Plany bez limitu, przepisy AI i więcej',
+                                      'Automatyczny plan tygodnia, seryjne skanowanie i listy bez limitu',
                                       style: TextStyle(
                                         color: Colors.white.withOpacity(0.85),
                                         fontSize: 12,

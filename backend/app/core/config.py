@@ -220,6 +220,12 @@ class Settings(BaseSettings):
                 "Wklej connection string z panelu Neon."
             )
 
+        if not self.APPLE_BUNDLE_ID:
+            problems.append(
+                "APPLE_BUNDLE_ID nie został ustawiony. Jest wymagany do "
+                "bezpiecznej walidacji logowania i zakupów Apple."
+            )
+
         if problems:
             raise RuntimeError(
                 "Nie można uruchomić aplikacji w trybie produkcyjnym — "

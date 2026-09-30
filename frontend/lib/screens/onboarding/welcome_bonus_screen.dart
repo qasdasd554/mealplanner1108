@@ -131,7 +131,7 @@ class WelcomeBonusScreen extends StatelessWidget {
                         ),
                         SizedBox(width: 8),
                         PremiumFeatureTag(
-                          label: 'PREMIUM / 2 PKT',
+                          label: 'PREMIUM · 2 PKT',
                           fontSize: 8,
                         ),
                       ],

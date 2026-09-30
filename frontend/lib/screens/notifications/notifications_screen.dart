@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../models/notification.dart';
-import '../../models/recipe.dart';
 import '../../services/notification_service.dart';
 import '../../services/push_service.dart';
 import '../../services/recipe_service.dart';

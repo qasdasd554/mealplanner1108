@@ -1,0 +1,25 @@
+name: Sprawdzenie zgodności wersji
+
+on:
+  pull_request:
+    paths:
+      - "frontend/pubspec.yaml"
+      - "backend/app/core/release_version.py"
+      - "scripts/check_release_version.py"
+  push:
+    branches: [main]
+    paths:
+      - "frontend/pubspec.yaml"
+      - "backend/app/core/release_version.py"
+      - "scripts/check_release_version.py"
+
+jobs:
+  version-consistency:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Porównaj wersję Fluttera i backendu
+        run: python scripts/check_release_version.py

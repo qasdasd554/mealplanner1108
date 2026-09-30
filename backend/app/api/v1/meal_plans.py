@@ -3,7 +3,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -11,7 +11,15 @@ from sqlalchemy.orm import selectinload
 from app.api.deps import get_current_user
 from app.core.exceptions import NotFoundException
 from app.db.session import get_db
-from app.models import MealPlan, MealPlanEntry, ShoppingList, User, Recipe, RecipeIngredient
+from app.models import (
+    MealPlan,
+    MealPlanEntry,
+    ShoppingList,
+    User,
+    Recipe,
+    RecipeIngredient,
+    WeeklyPlanAutomation,
+)
 from app.schemas.meal_plan import (
     MealPlanGenerateRequest,
     MealPlanResponse,
@@ -43,6 +51,47 @@ class RecipeSwap(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     recipe_id: UUID
+
+
+class WeeklyAutomationUpdate(BaseModel):
+    enabled: bool
+    weekday: int = Field(default=6, ge=0, le=6)
+    hour: int = Field(default=18, ge=0, le=23)
+    create_shopping_list: bool = True
+
+
+class WeeklyAutomationResponse(BaseModel):
+    enabled: bool
+    weekday: int
+    hour: int
+    create_shopping_list: bool
+    last_success_at: str | None = None
+    last_error: str | None = None
+    last_plan_id: str | None = None
+
+
+def _automation_response(
+    automation: WeeklyPlanAutomation | None,
+) -> WeeklyAutomationResponse:
+    return WeeklyAutomationResponse(
+        enabled=automation.enabled if automation else False,
+        weekday=automation.weekday if automation else 6,
+        hour=automation.hour if automation else 18,
+        create_shopping_list=(
+            automation.create_shopping_list if automation else True
+        ),
+        last_success_at=(
+            automation.last_success_at.isoformat()
+            if automation and automation.last_success_at
+            else None
+        ),
+        last_error=automation.last_error if automation else None,
+        last_plan_id=(
+            str(automation.last_plan_id)
+            if automation and automation.last_plan_id
+            else None
+        ),
+    )
 
 
 @router.post(
@@ -118,6 +167,94 @@ async def list_meal_plans(
         .order_by(MealPlan.created_at.desc())
     )
     return list(result.unique().scalars().all())
+
+
+@router.get(
+    "/automation",
+    response_model=WeeklyAutomationResponse,
+    summary="Ustawienia automatycznego tygodnia Premium",
+)
+async def get_weekly_automation(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> WeeklyAutomationResponse:
+    result = await db.execute(
+        select(WeeklyPlanAutomation).where(
+            WeeklyPlanAutomation.user_id == current_user.id
+        )
+    )
+    return _automation_response(result.scalar_one_or_none())
+
+
+@router.put(
+    "/automation",
+    response_model=WeeklyAutomationResponse,
+    summary="Zapisz automatyczny tydzień Premium",
+)
+async def update_weekly_automation(
+    payload: WeeklyAutomationUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> WeeklyAutomationResponse:
+    from app.core.premium import is_premium_active
+
+    if payload.enabled and not is_premium_active(current_user):
+        raise HTTPException(
+            status_code=403,
+            detail="Automatyczny tydzień jest dostępny w Premium.",
+        )
+    result = await db.execute(
+        select(WeeklyPlanAutomation).where(
+            WeeklyPlanAutomation.user_id == current_user.id
+        )
+    )
+    automation = result.scalar_one_or_none()
+    if automation is None:
+        automation = WeeklyPlanAutomation(user_id=current_user.id)
+    automation.enabled = payload.enabled
+    automation.weekday = payload.weekday
+    automation.hour = payload.hour
+    automation.create_shopping_list = payload.create_shopping_list
+    db.add(automation)
+    await db.commit()
+    await db.refresh(automation)
+    return _automation_response(automation)
+
+
+@router.post(
+    "/automation/run-now",
+    response_model=WeeklyAutomationResponse,
+    summary="Utwórz automatyczny plan teraz",
+)
+async def run_weekly_automation_now(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> WeeklyAutomationResponse:
+    from app.core.premium import is_premium_active
+    from app.core.rate_limit import enforce_user_rate_limit, meal_plan_generation_limiter
+    from app.services.weekly_plan_automation import generate_for_user
+
+    if not is_premium_active(current_user):
+        raise HTTPException(status_code=403, detail="Ta funkcja wymaga Premium.")
+    enforce_user_rate_limit(
+        meal_plan_generation_limiter,
+        current_user.id,
+        "automatyczne generowanie planu",
+    )
+    result = await db.execute(
+        select(WeeklyPlanAutomation).where(
+            WeeklyPlanAutomation.user_id == current_user.id
+        )
+    )
+    automation = result.scalar_one_or_none()
+    if automation is None:
+        automation = WeeklyPlanAutomation(user_id=current_user.id, enabled=True)
+        db.add(automation)
+        await db.commit()
+        await db.refresh(automation)
+    await generate_for_user(db, automation, current_user)
+    await db.refresh(automation)
+    return _automation_response(automation)
 
 
 @router.get(

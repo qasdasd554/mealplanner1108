@@ -2,11 +2,13 @@
 
 from datetime import datetime, timedelta, timezone
 from uuid import UUID
+import re
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import Request
-from jose import JWTError, jwt
+import jwt
+from jwt import PyJWTError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -24,6 +26,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 # w zupełności wystarczająca precyzja do celu, jakim jest orientacyjne
 # monitorowanie zaangażowania użytkowników, nie rozliczanie co do sekundy.
 _ACTIVITY_UPDATE_THROTTLE = timedelta(minutes=5)
+_APP_VERSION_RE = re.compile(r"^\d+\.\d+\.\d+(?:\+\d+)?$")
 
 
 async def get_current_user_allow_unverified(
@@ -64,7 +67,7 @@ async def get_current_user_allow_unverified(
         if payload.get("type") not in (None, "access"):
             raise credentials_exception
         user_id = UUID(user_id_str)
-    except (JWTError, ValueError):
+    except (PyJWTError, ValueError):
         raise credentials_exception
 
     result = await db.execute(select(User).where(User.id == user_id))
@@ -95,16 +98,25 @@ async def get_current_user_allow_unverified(
     incoming_platform = request.headers.get("x-platform")
     if incoming_platform not in ("ios", "android"):
         incoming_platform = None
+    incoming_app_version = request.headers.get("x-app-version", "").strip()
+    if not _APP_VERSION_RE.fullmatch(incoming_app_version):
+        incoming_app_version = None
 
     should_update_activity = (
         user.last_active_at is None or (now - user.last_active_at) > _ACTIVITY_UPDATE_THROTTLE
     )
     platform_changed = incoming_platform is not None and incoming_platform != user.platform
+    version_changed = (
+        incoming_app_version is not None
+        and incoming_app_version != user.app_version
+    )
 
-    if should_update_activity or platform_changed:
+    if should_update_activity or platform_changed or version_changed:
         user.last_active_at = now
         if incoming_platform is not None:
             user.platform = incoming_platform
+        if incoming_app_version is not None:
+            user.app_version = incoming_app_version
         db.add(user)
         await db.commit()
         await db.refresh(user)

@@ -44,7 +44,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   /// który tę informację faktycznie zwraca. Ekran szczegółów MUSI
   /// pobierać dane niezależnie, nie tylko wyświetlać to, co dostał.
   Recipe? _freshRecipe;
-  bool _isRefreshing = true;
   List<RecipeIngredient>? _temporaryIngredients;
   bool _isSavingVariant = false;
 
@@ -67,14 +66,13 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       if (_initialRecipe?.id != requestedRecipeId) return;
       setState(() {
         _freshRecipe = fresh;
-        _isRefreshing = false;
       });
     } catch (_) {
       // Cicha awaria — użytkownik i tak widzi przekazany przepis
       // (bez autora, ale w pełni funkcjonalny). Brak sensu przerywać
       // przeglądania komunikatem o błędzie dla danych, które są
       // dodatkiem, nie koniecznością.
-      if (mounted) setState(() => _isRefreshing = false);
+      // Dane przekazane podczas nawigacji pozostają dostępne.
     }
   }
 
@@ -767,17 +765,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   }
 
   Widget _buildNutritionGrid(Recipe recipe) {
-    if (recipe.nutritionTotal == null) {
-      return Padding(
-        padding: EdgeInsets.symmetric(vertical: 8.0),
-        child: Text(
-          'Brak danych o wartościach odżywczych.',
-          style: TextStyle(color: AppTheme.textSecondary),
-        ),
-      );
-    }
-
-    final nut = recipe.nutritionTotal!;
+    final nut = recipe.nutritionTotal;
     // Wartości odżywcze przeliczone NA PORCJĘ — recipe.nutritionTotal
     // przechowuje sumę dla całego przepisu (wszystkich porcji razem),
     // a to nie jest to, czego ktoś się spodziewa patrząc na "Kalorie"

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../screens/barcode_scanner_screen.dart';
 import '../screens/tracker/add_food_entry_screen.dart';
@@ -20,6 +21,12 @@ Future<bool> scanProductWithDestination(
 }) async {
   final barcode = await scanBarcode(context);
   if (barcode == null || !context.mounted) return false;
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setInt(
+    'successful_barcode_scans',
+    (prefs.getInt('successful_barcode_scans') ?? 0) + 1,
+  );
+  if (!context.mounted) return false;
 
   final lookupService = BarcodeLookupService();
   BarcodeLookupResult? lookup;

@@ -1,6 +1,9 @@
 """Endpointy produktów i zamienników."""
 
+import hashlib
 import logging
+import re
+import unicodedata
 import uuid
 from decimal import Decimal
 from uuid import UUID
@@ -16,9 +19,20 @@ from sqlalchemy.orm import selectinload
 from app.api.deps import get_current_admin, get_current_user
 from app.core.exceptions import NotFoundException
 from app.db.session import get_db
-from app.models import BarcodeProductCache, Product, ProductSubstitute, StoreProduct
+from app.models import (
+    BarcodeProductCache,
+    Product,
+    ProductContributionReward,
+    ProductSubstitute,
+    StoreProduct,
+)
 from app.models.user import User
-from app.schemas.product import ProductResponse, StoreProductResponse, SubstituteResponse
+from app.schemas.product import (
+    ProductResponse,
+    ProductSubmissionResponse,
+    StoreProductResponse,
+    SubstituteResponse,
+)
 from app.services import ProductSubstitutionService
 from app.services.barcode_lookup import (
     BarcodeLookupResult,
@@ -1040,9 +1054,28 @@ class ProductSubmission(BaseModel):
     serving_unit: str | None = Field(None, pattern="^(g|ml|szt)$")
 
 
+def _normalized_contribution_text(value: str | None) -> str:
+    """Normalizuje tekst używany wyłącznie do ochrony przed duplikatami."""
+    normalized = unicodedata.normalize("NFKC", value or "").casefold().strip()
+    return re.sub(r"\s+", " ", normalized)
+
+
+def _product_contribution_key(
+    *, barcode: str | None, name: str, brand: str | None,
+) -> str:
+    """Stabilny, nieujawniający nazwy klucz jednorazowej nagrody."""
+    if barcode:
+        return f"barcode:{barcode}"
+    identity = (
+        f"{_normalized_contribution_text(name)}|"
+        f"{_normalized_contribution_text(brand)}"
+    )
+    return f"manual:{hashlib.sha256(identity.encode('utf-8')).hexdigest()}"
+
+
 @router.post(
     "/submit",
-    response_model=ProductResponse,
+    response_model=ProductSubmissionResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Zgłoś własny produkt do katalogu",
 )
@@ -1050,7 +1083,7 @@ async def submit_product(
     payload: ProductSubmission,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
-) -> Product:
+) -> ProductSubmissionResponse:
     """Dodaje produkt oczekujący na akceptację administratora.
 
     Produkt jest od razu widoczny dla ZGŁASZAJĄCEGO (patrz filtr
@@ -1075,6 +1108,23 @@ async def submit_product(
         normalized_barcode = normalize_barcode(payload.barcode)
         if normalized_barcode is None:
             raise HTTPException(status_code=400, detail="Nieprawidłowy kod EAN/UPC")
+
+    contribution_key = _product_contribution_key(
+        barcode=normalized_barcode,
+        name=payload.name,
+        brand=payload.brand,
+    )
+    previous_reward = await db.scalar(
+        select(ProductContributionReward.id).where(
+            ProductContributionReward.user_id == current_user.id,
+            ProductContributionReward.contribution_key == contribution_key,
+        )
+    )
+    if previous_reward is not None:
+        raise HTTPException(
+            status_code=409,
+            detail="Ten produkt został już przez Ciebie dodany i nagrodzony.",
+        )
 
     nutrition = None
     if any(
@@ -1108,6 +1158,24 @@ async def submit_product(
     )
     db.add(product)
     try:
+        # Flush nadaje produktowi UUID, ale niczego jeszcze nie zatwierdza.
+        # Produkt, zapis nagrody i zwiększenie salda są dzięki temu jedną
+        # niepodzielną transakcją.
+        await db.flush()
+        locked_user = await db.scalar(
+            select(User).where(User.id == current_user.id).with_for_update()
+        )
+        if locked_user is None:
+            raise HTTPException(status_code=401, detail="Użytkownik nie istnieje")
+        db.add(
+            ProductContributionReward(
+                user_id=locked_user.id,
+                product_id=product.id,
+                contribution_key=contribution_key,
+                points_awarded=1,
+            )
+        )
+        locked_user.premium_points = (locked_user.premium_points or 0) + 1
         await db.commit()
     except IntegrityError:
         # Ktoś inny zdążył zgłosić produkt z tym samym kodem kreskowym
@@ -1116,9 +1184,13 @@ async def submit_product(
         await db.rollback()
         raise HTTPException(
             status_code=409,
-            detail="Produkt z tym kodem kreskowym został już zgłoszony przez kogoś innego.",
+            detail=(
+                "Produkt z tym kodem kreskowym został już zgłoszony przez kogoś "
+                "innego albo ten produkt został już przez Ciebie nagrodzony."
+            ),
         )
     await db.refresh(product)
+    await db.refresh(locked_user)
 
     if normalized_barcode and payload.serving_quantity is not None:
         price_min, price_max = price_range_for_product(product.name)
@@ -1148,7 +1220,12 @@ async def submit_product(
             f'"{product.name}" — wymaga akceptacji.'
         ),
     )
-    return product
+    product_response = ProductResponse.model_validate(product)
+    return ProductSubmissionResponse(
+        **product_response.model_dump(),
+        points_awarded=1,
+        premium_points=locked_user.premium_points,
+    )
 
 
 @router.put(

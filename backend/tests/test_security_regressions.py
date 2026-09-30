@@ -11,6 +11,7 @@ from app.api.v1.shopping_lists import ShareShoppingListRequest, share_shopping_l
 from app.api.v1.food_log import FoodLogNutritionUpdate, update_food_log_entry_nutrition
 from app.api.v1.recipes import get_recipe, list_all_user_recipes
 from app.api.v1.users import block_user
+from app.main import app
 
 
 def _result(value):
@@ -162,3 +163,24 @@ async def test_food_log_amount_update_persists_servings_and_scaled_nutrition() -
     assert entry.fat == 7.5
     assert entry.carbs == 30
     db.commit.assert_awaited_once()
+
+
+def test_every_nonpublic_api_route_requires_oauth() -> None:
+    public_routes = {
+        ("POST", "/api/v1/auth/apple"),
+        ("POST", "/api/v1/auth/forgot-password"),
+        ("POST", "/api/v1/auth/google"),
+        ("POST", "/api/v1/auth/login"),
+        ("POST", "/api/v1/auth/refresh"),
+        ("POST", "/api/v1/auth/register"),
+        ("POST", "/api/v1/auth/reset-password"),
+        ("GET", "/app/version-info"),
+        ("GET", "/health"),
+    }
+    for path, operations in app.openapi()["paths"].items():
+        for method, operation in operations.items():
+            if not isinstance(operation, dict):
+                continue
+            key = (method.upper(), path)
+            if key not in public_routes:
+                assert operation.get("security"), f"Brak ochrony OAuth: {key}"

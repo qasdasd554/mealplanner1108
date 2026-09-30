@@ -255,6 +255,15 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                                     u['email'] as String? ?? '',
                                     style: const TextStyle(fontSize: 12),
                                   ),
+                                  if (u['app_version'] != null)
+                                    Text(
+                                      'Wersja: ${u['app_version']}'
+                                      '${u['platform'] == null ? '' : ' • ${u['platform']}'}',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: AppTheme.textSecondary,
+                                      ),
+                                    ),
                                   if (isBanned && u['ban_reason'] != null)
                                     Text(
                                       'Powód: ${u['ban_reason']}',

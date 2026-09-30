@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../config/api_config.dart';
 
 class ApiException implements Exception {
@@ -39,6 +40,18 @@ class ApiClient {
   final http.Client _httpClient = http.Client();
 
   String? _token;
+  String? _appVersion;
+
+  /// Pobierane raz przy starcie. Brak tej informacji nigdy nie blokuje
+  /// uruchomienia ani żądania sieciowego.
+  Future<void> initializeAppMetadata() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      _appVersion = '${info.version}+${info.buildNumber}';
+    } catch (_) {
+      _appVersion = null;
+    }
+  }
 
   // Token JWT trzymany w zaszyfrowanym magazynie systemowym (Android
   // Keystore / iOS Keychain), NIE w SharedPreferences — to zwykły,
@@ -157,6 +170,7 @@ class ApiClient {
       // bazy poza istniejącym mechanizmem throttlingu. Wyłącznie nazwa
       // systemu operacyjnego, NIE identyfikator urządzenia.
       'X-Platform': Platform.isIOS ? 'ios' : 'android',
+      if (_appVersion != null) 'X-App-Version': _appVersion!,
     };
     if (token != null) {
       headers['Authorization'] = 'Bearer $token';

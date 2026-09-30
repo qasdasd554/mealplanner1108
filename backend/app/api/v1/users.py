@@ -808,6 +808,8 @@ class AdminUserEntry(BaseModel):
     # reszta aplikacji: własnym zdjęciem, a w jego braku wybraną ikoną.
     avatar: str | None = None
     avatar_photo_base64: str | None = None
+    platform: str | None = None
+    app_version: str | None = None
 
 
 @router.get(

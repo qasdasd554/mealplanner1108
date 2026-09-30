@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/food_log_provider.dart';
 import '../../providers/wellness_provider.dart';
@@ -24,8 +25,6 @@ import '../shopping/shopping_list_screen.dart';
 import '../profile/profile_screen.dart';
 import '../profile/premium_screen.dart';
 import '../tracker/calorie_tracker_screen.dart';
-import '../ads/ad_gate_screen.dart';
-import '../../services/ad_gate_service.dart';
 import '../../data/cooking_tips.dart';
 import 'cooking_tips_screen.dart';
 
@@ -44,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _currentIndex = widget.initialIndex.clamp(0, 5) as int;
+    _currentIndex = widget.initialIndex.clamp(0, 5);
     // Pobierz plany posiłków na start
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<MealPlanProvider>(context, listen: false).loadPlans();
@@ -335,7 +334,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       title: 'Dodaj przepis z AI',
                       subtitle: 'Ze zdjęcia, tekstu albo linku',
                       trailing: const PremiumFeatureTag(
-                        label: 'PREMIUM / 2 PKT',
+                        label: 'PREMIUM · 2 PKT',
                       ),
                       onTap: () {
                         Navigator.pop(sheetContext);
@@ -664,6 +663,7 @@ class HomeTab extends StatelessWidget {
                         ),
                       ],
                     ).animate().fadeIn(delay: 100.ms),
+                    const _ContextualPremiumCard(),
                     const SizedBox(height: 24),
 
                     // Dopiero po skrótach pokazujemy postęp bieżącego dnia.
@@ -1550,6 +1550,144 @@ class HomeTab extends StatelessWidget {
             child: const Text('Stwórz nowy plan posiłków'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ContextualPremiumCard extends StatefulWidget {
+  const _ContextualPremiumCard();
+
+  @override
+  State<_ContextualPremiumCard> createState() => _ContextualPremiumCardState();
+}
+
+class _ContextualPremiumCardState extends State<_ContextualPremiumCard> {
+  int _scanCount = 0;
+  Set<String> _dismissed = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() {
+      _scanCount = prefs.getInt('successful_barcode_scans') ?? 0;
+      _dismissed =
+          prefs.getStringList('dismissed_premium_hints')?.toSet() ?? {};
+    });
+  }
+
+  Future<void> _dismiss(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    _dismissed.add(key);
+    await prefs.setStringList('dismissed_premium_hints', _dismissed.toList());
+    if (mounted) setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final user = context.watch<AuthProvider>().currentUser;
+    final plans = context.watch<MealPlanProvider>().plans;
+    if (user == null || user.hasPremiumAccess) return const SizedBox.shrink();
+
+    late final String key;
+    late final IconData icon;
+    late final String title;
+    late final String text;
+    late final String action;
+    late final VoidCallback onTap;
+
+    if (user.premiumPoints >= 2 && !_dismissed.contains('free_ai')) {
+      key = 'free_ai';
+      icon = Icons.auto_awesome;
+      title = 'Masz punkty na import przepisu AI';
+      text = 'Dodaj przepis ze zdjęcia, tekstu albo linku — bez subskrypcji.';
+      action = 'Wypróbuj';
+      onTap =
+          () => Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (_) => const AiAddRecipeScreen()));
+    } else if (_scanCount >= 2 && !_dismissed.contains('batch_scan')) {
+      key = 'batch_scan';
+      icon = Icons.qr_code_scanner;
+      title = 'Skanujesz kilka produktów?';
+      text = 'W Premium zeskanujesz całą serię bez zamykania aparatu.';
+      action = 'Zobacz Premium';
+      onTap =
+          () => Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (_) => const PremiumScreen()));
+    } else if (plans.isNotEmpty && !_dismissed.contains('auto_week')) {
+      key = 'auto_week';
+      icon = Icons.auto_mode_outlined;
+      title = 'Następny tydzień może zrobić się sam';
+      text = 'Premium przygotuje co tydzień plan i opcjonalną listę zakupów.';
+      action = 'Sprawdź';
+      onTap =
+          () => Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (_) => const PremiumScreen()));
+    } else {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 14),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
+        decoration: BoxDecoration(
+          color: AppTheme.secondaryColor.withOpacity(0.10),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppTheme.secondaryColor.withOpacity(0.24)),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 3),
+              child: Icon(icon, color: AppTheme.actionSecondaryColor),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    text,
+                    style: TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  TextButton(
+                    onPressed: onTap,
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      minimumSize: const Size(0, 34),
+                    ),
+                    child: Text(action),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              tooltip: 'Ukryj',
+              onPressed: () => _dismiss(key),
+              icon: const Icon(Icons.close, size: 18),
+            ),
+          ],
+        ),
       ),
     );
   }

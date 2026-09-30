@@ -80,8 +80,8 @@ async def test_apple_uses_latest_renewal_and_grace_expiry(monkeypatch) -> None:
         ),
     )
     monkeypatch.setattr(
-        apple_app_store.jose_jwt,
-        "get_unverified_claims",
+        apple_app_store,
+        "_decode_unverified_jws",
         lambda value: mapping[value],
     )
 

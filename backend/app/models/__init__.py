@@ -14,6 +14,7 @@ from app.models.product import (
     ProductSubstitute,
     StoreProduct,
 )
+from app.models.product_contribution_reward import ProductContributionReward
 from app.models.recipe import Recipe, RecipeIngredient, RecipeTag
 from app.models.recipe_import_job import RecipeImportJob
 from app.models.recipe_comment import RecipeComment, RecipeCommentLike
@@ -26,6 +27,7 @@ from app.models.processed_apple_purchase import ProcessedApplePurchase
 from app.models.store import Store, StoreDepartment
 from app.models.user import User, UserAllergen
 from app.models.weekly_contest_payout import WeeklyContestPayout
+from app.models.weekly_plan_automation import WeeklyPlanAutomation
 from app.models.food_log import FoodLogEntry
 from app.models.notification import Notification
 from app.models.friendship import Friendship
@@ -43,6 +45,7 @@ __all__ = [
     "Allergen",
     "ProductAllergen",
     "BarcodeProductCache",
+    "ProductContributionReward",
     # Recipe
     "Recipe",
     "RecipeImportJob",
@@ -54,6 +57,7 @@ __all__ = [
     # User
     "User",
     "WeeklyContestPayout",
+    "WeeklyPlanAutomation",
     "UserAllergen",
     # Meal Plan
     "MealPlan",

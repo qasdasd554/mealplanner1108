@@ -25,7 +25,8 @@ import time
 from datetime import datetime, timezone
 
 import httpx
-from jose import jwt as jose_jwt
+import jwt as jose_jwt
+from jwt import PyJWTError
 
 from app.core.config import settings
 
@@ -43,6 +44,24 @@ _JWT_LIFETIME_SECONDS = 300
 class PurchaseVerificationError(Exception):
     """Weryfikacja zakupu nie powiodła się — nieprawidłowa/nieznana
     transakcja, brak konfiguracji, albo błąd komunikacji z Apple."""
+
+
+def _decode_unverified_jws(token: str) -> dict:
+    """Dekoduje JWS zwrócony przez uwierzytelnione HTTPS API Apple.
+
+    Podpis żądania do Apple i TLS potwierdzają źródło odpowiedzi. Nadal
+    walidujemy format tokenu oraz później bundle ID, produkt i cofnięcie
+    zakupu; wadliwy JWS nie może przejść jako pusty słownik.
+    """
+    try:
+        return jose_jwt.decode(
+            token,
+            options={"verify_signature": False, "verify_aud": False},
+        )
+    except PyJWTError as exc:
+        raise PurchaseVerificationError(
+            "Apple zwróciło nieprawidłowe dane podpisanej transakcji."
+        ) from exc
 
 
 def _generate_apple_jwt() -> str:
@@ -100,7 +119,7 @@ async def _fetch_transaction_info(transaction_id: str) -> dict:
                 # ale znacząco bardziej złożona — do rozważenia w
                 # przyszłości, jeśli skala/wymogi bezpieczeństwa tego
                 # zażądają.
-                claims = jose_jwt.get_unverified_claims(signed_info)
+                claims = _decode_unverified_jws(signed_info)
                 return claims
 
             if response.status_code == 404:
@@ -174,13 +193,13 @@ async def verify_apple_subscription(transaction_id: str, expected_product_id: st
             signed_transaction = item.get("signedTransactionInfo")
             if not signed_transaction:
                 continue
-            claims = jose_jwt.get_unverified_claims(signed_transaction)
+            claims = _decode_unverified_jws(signed_transaction)
             if claims.get("productId") != expected_product_id:
                 continue
 
             renewal_claims: dict = {}
             if item.get("signedRenewalInfo"):
-                renewal_claims = jose_jwt.get_unverified_claims(
+                renewal_claims = _decode_unverified_jws(
                     item["signedRenewalInfo"]
                 )
 
@@ -252,6 +271,12 @@ async def verify_apple_consumable(transaction_id: str, expected_product_id: str)
     transakcję) zapewnia ProcessedApplePurchase w warstwie endpointu,
     nie tutaj."""
     claims = await _fetch_transaction_info(transaction_id)
+
+    bundle_id = claims.get("bundleId")
+    if settings.APPLE_BUNDLE_ID and bundle_id != settings.APPLE_BUNDLE_ID:
+        raise PurchaseVerificationError(
+            "Transakcja Apple należy do innej aplikacji."
+        )
 
     product_id = claims.get("productId")
     if product_id != expected_product_id:

@@ -171,6 +171,10 @@ class User(Base):
     # platformę). Nullable — konta, które jeszcze nie wysłały żadnego
     # zapytania po dodaniu tej kolumny, mają NULL.
     platform: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    # Numer wersji aplikacji wysyłany przez oficjalnego klienta, np.
+    # "1.0.48+245". To techniczna informacja do zgodności i diagnostyki,
+    # bez identyfikatora urządzenia i bez wykorzystania reklamowego.
+    app_version: Mapped[str | None] = mapped_column(String(32), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

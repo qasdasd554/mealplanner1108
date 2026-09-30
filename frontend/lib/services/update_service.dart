@@ -129,17 +129,18 @@ class UpdateAvailableScreen extends StatelessWidget {
                   const SizedBox(height: 28),
                   Text(
                     'Dostępna nowa wersja',
-                    style: Theme.of(context).textTheme.headlineSmall
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 12),
                   Text(
                     forceUpdate
                         ? 'Ta wersja aplikacji nie jest już obsługiwana. '
-                              'Zaktualizuj ją, aby korzystać dalej.'
+                            'Zaktualizuj ją, aby korzystać dalej.'
                         : 'Zaktualizuj aplikację, aby korzystać z najnowszych '
-                              'funkcji i poprawek.',
+                            'funkcji i poprawek.',
                     style: TextStyle(
                       color: AppTheme.textSecondary,
                       height: 1.5,

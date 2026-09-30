@@ -587,10 +587,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                               _buildActionTile(
                                 icon: Icons.person_add_alt_outlined,
                                 label: 'Udostępnij',
-                                onTap:
-                                    list == null
-                                        ? null
-                                        : () => _showShareDialog(list.id),
+                                onTap: () => _showShareDialog(list.id),
                               ),
                               _buildActionTile(
                                 icon: Icons.refresh,
@@ -601,24 +598,19 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                                 icon: Icons.delete_outline,
                                 label: 'Usuń listę',
                                 color: AppTheme.errorColor,
-                                onTap:
-                                    list == null
-                                        ? null
-                                        : () {
-                                          final idx = shoppingListProvider
-                                              .allLists
-                                              .indexWhere(
-                                                (l) =>
-                                                    l.mealPlanId ==
-                                                    shoppingListProvider
-                                                        .selectedListId,
-                                              );
-                                          _confirmDeleteList(
-                                            shoppingListProvider,
-                                            list,
-                                            idx >= 0 ? idx + 1 : 1,
-                                          );
-                                        },
+                                onTap: () {
+                                  final idx = shoppingListProvider.allLists
+                                      .indexWhere(
+                                        (l) =>
+                                            l.mealPlanId ==
+                                            shoppingListProvider.selectedListId,
+                                      );
+                                  _confirmDeleteList(
+                                    shoppingListProvider,
+                                    list,
+                                    idx >= 0 ? idx + 1 : 1,
+                                  );
+                                },
                               ),
                             ],
                           ),

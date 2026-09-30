@@ -9,7 +9,8 @@ import uuid
 from datetime import datetime, timedelta, timezone
 
 from google.auth.exceptions import GoogleAuthError
-from jose import JWTError, jwt
+import jwt
+from jwt import PyJWTError
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token as google_id_token
 
@@ -228,9 +229,9 @@ async def refresh_session(request: Request, db: AsyncSession = Depends(get_db)):
             refresh_token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
         )
         if payload.get("type") != "refresh":
-            raise JWTError("wrong token type")
+            raise PyJWTError("wrong token type")
         user_id = uuid.UUID(str(payload.get("sub")))
-    except (JWTError, ValueError, TypeError, AttributeError):
+    except (PyJWTError, ValueError, TypeError, AttributeError):
         raise HTTPException(status_code=401, detail="Sesja wygasła. Zaloguj się ponownie.")
 
     user = await db.get(User, user_id)
