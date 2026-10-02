@@ -39,6 +39,7 @@ Future<bool> scanProductWithDestination(
   } finally {
     lookupService.close();
   }
+  if (!context.mounted) return false;
 
   final selectedDestinations = <_BarcodeDestination>{};
   final destinations = await showModalBottomSheet<Set<_BarcodeDestination>>(
@@ -197,17 +198,11 @@ Future<bool> scanProductWithDestination(
     return false;
   }
 
-  if (destinations.contains(_BarcodeDestination.pantry)) {
-    final pantryAdded = await _addBarcodeToPantry(
-      context,
-      barcode,
-      initialResult: lookup,
-    );
-    if (pantryAdded) onPantryAdded?.call();
-    if (!context.mounted) return false;
-  }
-
   var savedToDatabase = false;
+  // Katalog zapisujemy przed spiżarnią. Spiżarnia materializuje trafienie
+  // skanera jako produkt techniczny; gdy robiliśmy to w odwrotnej kolejności,
+  // użytkownik wybierający oba miejsca dostawał potem fałszywy błąd duplikatu
+  // i tracił należny punkt za własne zgłoszenie produktu.
   if (destinations.contains(_BarcodeDestination.productDatabase)) {
     final saved = await showModalBottomSheet<bool>(
       context: context,
@@ -220,6 +215,16 @@ Future<bool> scanProductWithDestination(
       builder: (_) => SubmitProductSheet(initialBarcode: barcode),
     );
     savedToDatabase = saved == true;
+    if (!context.mounted) return savedToDatabase;
+  }
+
+  if (destinations.contains(_BarcodeDestination.pantry)) {
+    final pantryAdded = await _addBarcodeToPantry(
+      context,
+      barcode,
+      initialResult: lookup,
+    );
+    if (pantryAdded) onPantryAdded?.call();
     if (!context.mounted) return savedToDatabase;
   }
 
@@ -236,8 +241,9 @@ Future<bool> scanProductWithDestination(
 
 String? _nutritionSummary(BarcodeLookupResult? result) {
   if (result == null || !result.hasCompleteNutrition) return null;
+  final basis = result.unit == 'ml' ? '100 ml' : '100 g';
   final values = <String>[
-    if (result.kcalPer100 != null) '${result.kcalPer100!.round()} kcal/100 g',
+    if (result.kcalPer100 != null) '${result.kcalPer100!.round()} kcal/$basis',
     if (result.proteinPer100 != null)
       'B ${result.proteinPer100!.toStringAsFixed(1)} g',
     if (result.fatPer100 != null) 'T ${result.fatPer100!.toStringAsFixed(1)} g',

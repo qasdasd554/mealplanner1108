@@ -219,24 +219,40 @@ async def add_pantry_item_from_barcode(
         current_user=current_user,
         db=db,
     )
-    if not lookup.found or not lookup.name:
+    lookup_found = bool(lookup.found and lookup.name)
+    client_values = (
+        payload.kcal_per_100,
+        payload.protein_per_100,
+        payload.fat_per_100,
+        payload.carbs_per_100,
+    )
+    client_fallback = bool(
+        payload.name
+        and all(value is not None for value in client_values)
+        and any((value or 0) > 0 for value in client_values)
+    )
+    if not lookup_found and not client_fallback:
         raise NotFoundException(detail="Nie znaleziono produktu o tym kodzie kreskowym.")
 
     # Skaner seryjny może uzupełnić starszy, niepełny rekord Neon danymi
     # pobranymi bezpośrednio z Open Food Facts. Nie tracimy ich podczas
     # drugiego żądania wykonywanego przy zapisie do spiżarni.
+    # Dane zweryfikowane przez backend mają pierwszeństwo. Wartości z
+    # telefonu tylko uzupełniają braki (np. gdy telefon zdążył pobrać OFF
+    # bezpośrednio po limicie 429 na wspólnym adresie Rendera). Zapobiega to
+    # nadpisaniu poprawnego makro dowolnymi wartościami przesłanymi ręcznie.
     resolved_nutrition = {
-        "kcal": payload.kcal_per_100 if payload.kcal_per_100 is not None else lookup.kcal_per_100,
+        "kcal": lookup.kcal_per_100 if lookup_found and lookup.kcal_per_100 is not None else payload.kcal_per_100,
         "protein": (
-            payload.protein_per_100
-            if payload.protein_per_100 is not None
-            else lookup.protein_per_100
+            lookup.protein_per_100
+            if lookup_found and lookup.protein_per_100 is not None
+            else payload.protein_per_100
         ),
-        "fat": payload.fat_per_100 if payload.fat_per_100 is not None else lookup.fat_per_100,
+        "fat": lookup.fat_per_100 if lookup_found and lookup.fat_per_100 is not None else payload.fat_per_100,
         "carbs": (
-            payload.carbs_per_100
-            if payload.carbs_per_100 is not None
-            else lookup.carbs_per_100
+            lookup.carbs_per_100
+            if lookup_found and lookup.carbs_per_100 is not None
+            else payload.carbs_per_100
         ),
     }
 
@@ -246,7 +262,7 @@ async def add_pantry_item_from_barcode(
     item_quantity, item_unit = barcode_package_amount()
 
     product = None
-    if lookup.existing_product_id is not None:
+    if lookup_found and lookup.existing_product_id is not None:
         product = await db.get(Product, lookup.existing_product_id)
     if product is None:
         product_result = await db.execute(
@@ -262,8 +278,8 @@ async def add_pantry_item_from_barcode(
             "fiber": 0,
         }
         product = Product(
-            name=payload.name or lookup.name,
-            brand=payload.brand or lookup.brand,
+            name=(lookup.name if lookup_found else None) or payload.name,
+            brand=(lookup.brand if lookup_found else None) or payload.brand,
             unit="opak",
             default_quantity=1,
             barcode=barcode,
@@ -271,8 +287,8 @@ async def add_pantry_item_from_barcode(
             # Dane zostały już rozpoznane przez ten sam zweryfikowany
             # mechanizm skanera (katalog/Neon/OFF), więc nie wrzucamy ich
             # ponownie do kolejki ręcznych zgłoszeń administratora.
-            created_by_user_id=None,
-            review_status="approved",
+            created_by_user_id=None if lookup_found else current_user.id,
+            review_status="approved" if lookup_found else "pending",
         )
         db.add(product)
         await db.flush()

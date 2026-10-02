@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import asyncio
 import time
+import re
 from difflib import SequenceMatcher
 
 import httpx
@@ -116,7 +117,9 @@ def _merge_lookup_results(
         price_max=primary.price_max,
         source=primary.source,
         barcode=primary.barcode or supplementary.barcode,
-        serving_quantity=primary.serving_quantity or supplementary.serving_quantity,
+        # Wyszukiwanie po nazwie może trafić na inną gramaturę tego samego
+        # produktu. Uzupełniamy nim makro, ale nigdy rozmiar opakowania.
+        serving_quantity=primary.serving_quantity,
     )
 
 
@@ -144,7 +147,25 @@ def normalize_barcode(value: str) -> str | None:
     ):
         cleaned = cleaned[3:]
     digits = "".join(char for char in cleaned if char.isdigit())
-    return digits if 8 <= len(digits) <= 14 else None
+    if len(digits) not in {8, 12, 13, 14}:
+        return None
+    return digits if _has_valid_gtin_checksum(digits) else None
+
+
+def _has_valid_gtin_checksum(code: str) -> bool:
+    """Waliduje cyfrę kontrolną tak samo jak skaner mobilny.
+
+    Chroni też wywołania API i importy omijające aparat przed tworzeniem
+    rekordów dla przypadkowych, ale poprawnie wyglądających ciągów cyfr.
+    """
+    if not code.isdigit() or len(code) < 2:
+        return False
+    total = 0
+    for index in range(len(code) - 2, -1, -1):
+        distance = len(code) - 1 - index
+        total += int(code[index]) * (3 if distance % 2 else 1)
+    expected = (10 - total % 10) % 10
+    return expected == int(code[-1])
 
 
 def barcode_variants(barcode: str) -> tuple[str, ...]:
@@ -205,12 +226,63 @@ def price_range_for_product(name: str, categories: object = None) -> tuple[float
 
 
 def _unit_from_product(product: dict) -> str:
-    unit = str(product.get("product_quantity_unit") or "").lower()
+    unit = str(
+        product.get("product_quantity_unit")
+        or product.get("serving_quantity_unit")
+        or ""
+    ).lower()
+    if not unit:
+        match = re.search(
+            r"\b(kg|mg|g|ml|cl|dl|l)\b",
+            str(product.get("quantity") or "").strip().lower(),
+        )
+        unit = match.group(1) if match else ""
     if unit in {"ml", "cl", "dl", "l"}:
         return "ml"
     if unit in {"piece", "pieces", "szt", "szt."}:
         return "szt"
     return "g"
+
+
+def _quantity_in_base_unit(value: float, unit: object) -> float:
+    normalized_unit = str(unit or "").strip().lower()
+    if normalized_unit in {"kg", "l"}:
+        return value * 1000
+    if normalized_unit == "cl":
+        return value * 10
+    if normalized_unit == "dl":
+        return value * 100
+    if normalized_unit == "mg":
+        return value / 1000
+    return value
+
+
+def _package_quantity_in_base_unit(product: dict) -> float | None:
+    """Zwraca masę/objętość CAŁEGO produktu w g/ml.
+
+    OFF rozróżnia pełne `product_quantity` i zalecaną porcję
+    `serving_quantity`. Skaner dodaje jedno opakowanie, więc porcja jest
+    wyłącznie zapasem, gdy pełnej gramatury naprawdę brakuje.
+    """
+    package_quantity = _number(product, "product_quantity")
+    if package_quantity is not None and package_quantity > 0:
+        return _quantity_in_base_unit(
+            package_quantity, product.get("product_quantity_unit")
+        )
+    quantity_text = str(product.get("quantity") or "").strip().lower()
+    if quantity_text:
+        # Przykłady spotykane w OFF: "150 g", "1,5 l", "6 x 100 g".
+        match = re.search(
+            r"(?:(\d+(?:[.,]\d+)?)\s*[x×]\s*)?"
+            r"(\d+(?:[.,]\d+)?)\s*(kg|mg|g|ml|cl|dl|l)\b",
+            quantity_text,
+        )
+        if match:
+            multiplier = float((match.group(1) or "1").replace(",", "."))
+            amount = float(match.group(2).replace(",", "."))
+            return multiplier * _quantity_in_base_unit(amount, match.group(3))
+    # `serving_quantity` oznacza porcję, nie całe opakowanie.
+    return None
 
 
 def _product_from_off_response(data: object, api_version: str) -> dict | None:
@@ -267,7 +339,7 @@ def _result_from_off_product(product: dict) -> BarcodeLookupResult | None:
         price_max=price_max,
         source="open_food_facts",
         barcode=normalize_barcode(str(product.get("code") or "")),
-        serving_quantity=_number(product, "serving_quantity", "product_quantity"),
+        serving_quantity=_package_quantity_in_base_unit(product),
     )
 
 
@@ -296,7 +368,8 @@ async def search_products_external(
         "code,product_name_pl,product_name,product_name_en,"
         "generic_name_pl,generic_name,generic_name_en,"
         "abbreviated_product_name,brands,nutriments,categories_tags,"
-        "product_quantity,product_quantity_unit,serving_quantity"
+        "quantity,product_quantity,product_quantity_unit,serving_quantity,"
+        "serving_quantity_unit"
     )
     params = {
         "search_terms": normalized_query,
@@ -408,7 +481,8 @@ async def _fetch_off(client: httpx.AsyncClient, barcode: str) -> BarcodeLookupRe
             "code,product_name_pl,product_name,product_name_en,"
             "generic_name_pl,generic_name,generic_name_en,"
             "abbreviated_product_name,brands,nutriments,categories_tags,"
-            "product_quantity,product_quantity_unit,serving_quantity"
+            "quantity,product_quantity,product_quantity_unit,serving_quantity,"
+            "serving_quantity_unit"
         ),
     }
     # UPC-A jest czasem zapisany w OFF jako EAN-13 z początkowym zerem.

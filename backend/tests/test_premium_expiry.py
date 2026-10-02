@@ -28,9 +28,7 @@ def _user(**overrides) -> User:
 
 
 def test_paid_premium_expires_even_when_flag_stays_true() -> None:
-    user = _user(
-        premium_expires_at=datetime.now(timezone.utc) - timedelta(seconds=1)
-    )
+    user = _user(premium_expires_at=datetime.now(timezone.utc) - timedelta(seconds=1))
     assert is_premium_active(user) is False
 
 
@@ -110,6 +108,7 @@ async def test_sync_updates_renewed_period(monkeypatch) -> None:
     monkeypatch.setattr(
         "app.services.apple_app_store.verify_apple_subscription", verify
     )
+
     class FakeDb:
         def __init__(self) -> None:
             self.commit = AsyncMock()
@@ -120,9 +119,7 @@ async def test_sync_updates_renewed_period(monkeypatch) -> None:
             self.added.append(value)
 
     db = FakeDb()
-    user = _user(
-        premium_expires_at=datetime.now(timezone.utc) - timedelta(minutes=1)
-    )
+    user = _user(premium_expires_at=datetime.now(timezone.utc) - timedelta(minutes=1))
 
     changed = await refresh_subscription_if_needed(db, user)
 
@@ -131,6 +128,40 @@ async def test_sync_updates_renewed_period(monkeypatch) -> None:
     assert user.premium_expires_at == expiry
     assert user.premium_purchase_token == "original-1"
     db.commit.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_sync_revokes_premium_when_store_confirms_no_renewal(
+    monkeypatch,
+) -> None:
+    expired_at = datetime.now(timezone.utc) - timedelta(minutes=1)
+    verify = AsyncMock(
+        return_value={
+            "is_active": False,
+            "expiry_time": expired_at,
+            "product_id": "premium_monthly",
+            "purchase_token": "original-1",
+        }
+    )
+    monkeypatch.setattr(
+        "app.services.apple_app_store.verify_apple_subscription", verify
+    )
+
+    class FakeDb:
+        def __init__(self) -> None:
+            self.commit = AsyncMock()
+            self.refresh = AsyncMock()
+
+        def add(self, _value) -> None:
+            pass
+
+    user = _user(premium_expires_at=expired_at)
+
+    changed = await refresh_subscription_if_needed(FakeDb(), user)
+
+    assert changed is True
+    assert user.is_premium is False
+    assert is_premium_active(user) is False
 
 
 @pytest.mark.asyncio

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../models/food_log.dart';
 import '../services/api_client.dart';
 import '../services/food_log_service.dart';
+import '../utils/error_utils.dart';
 
 class FoodLogProvider with ChangeNotifier {
   final FoodLogService _service = FoodLogService();
@@ -64,7 +65,7 @@ class FoodLogProvider with ChangeNotifier {
       _logs = results[0] as List<FoodLogEntry>;
       _summary = results[1] as DailySummary;
     } catch (e) {
-      _error = e.toString().replaceAll('Exception: ', '');
+      _error = friendlyError(e);
       _logs = [];
       _summary = null;
     } finally {
@@ -114,7 +115,7 @@ class FoodLogProvider with ChangeNotifier {
       await fetchLogsForDate(_currentDate);
       return true;
     } catch (e) {
-      _error = e.toString().replaceAll('Exception: ', '');
+      _error = friendlyError(e);
       notifyListeners();
       return false;
     }
@@ -147,7 +148,7 @@ class FoodLogProvider with ChangeNotifier {
       await fetchLogsForDate(_currentDate);
       return true;
     } catch (e) {
-      _error = e.toString().replaceAll('Exception: ', '');
+      _error = friendlyError(e);
       notifyListeners();
       return false;
     }
@@ -176,7 +177,7 @@ class FoodLogProvider with ChangeNotifier {
       await fetchLogsForDate(_currentDate);
       return true;
     } catch (e) {
-      _error = e.toString().replaceAll('Exception: ', '');
+      _error = friendlyError(e);
       notifyListeners();
       return false;
     }
@@ -215,7 +216,7 @@ class FoodLogProvider with ChangeNotifier {
       await fetchLogsForDate(_currentDate);
       return true;
     } catch (e) {
-      _error = e.toString().replaceAll('Exception: ', '');
+      _error = friendlyError(e);
       notifyListeners();
       return false;
     }
@@ -229,7 +230,7 @@ class FoodLogProvider with ChangeNotifier {
       await _service.deleteFoodLog(logId, token);
       await fetchLogsForDate(_currentDate);
     } catch (e) {
-      _error = e.toString().replaceAll('Exception: ', '');
+      _error = friendlyError(e);
       notifyListeners();
     }
   }

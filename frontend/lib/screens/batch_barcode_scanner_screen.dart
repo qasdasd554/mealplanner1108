@@ -28,6 +28,7 @@ class BatchBarcodeScannerScreen extends StatefulWidget {
 class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
   final MobileScannerController _scanner = MobileScannerController(
     facing: CameraFacing.back,
+    lensType: CameraLensType.normal,
     detectionSpeed: DetectionSpeed.normal,
     autoZoom: true,
     formats: const [
@@ -48,6 +49,8 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
   bool _processing = false;
   bool _itemActionBusy = false;
   bool _submitting = false;
+  bool _closeRange = false;
+  double _zoom = 1;
   final Set<_BatchDestination> _destinations = {};
   String _mealType = 'Przekąska';
 
@@ -84,7 +87,12 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
     final code = candidates.single;
     if (!_confirmation.confirm(code, DateTime.now())) return;
 
-    final scannedCode = code;
+    _enqueueCode(code);
+    await _processQueue();
+  }
+
+  void _enqueueCode(String scannedCode) {
+    if (_seen.contains(scannedCode)) return;
     _seen.add(scannedCode);
     setState(() {
       _queue.add(scannedCode);
@@ -93,6 +101,115 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
         _BatchScanItem(code: scannedCode, state: _BatchState.loading),
       );
     });
+  }
+
+  Future<void> _setZoom(double zoom) async {
+    try {
+      if (zoom == 1) {
+        await _scanner.resetZoomScale();
+      } else {
+        await _scanner.setZoomScale(zoom);
+      }
+      if (mounted) setState(() => _zoom = zoom);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Ten aparat nie obsługuje przybliżenia.'),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _toggleCloseRange() async {
+    try {
+      if (_closeRange) {
+        await _scanner.switchCamera(
+          const SelectCamera(
+            facingDirection: CameraFacing.back,
+            lensType: CameraLensType.normal,
+          ),
+        );
+        if (mounted) setState(() => _closeRange = false);
+        return;
+      }
+      final best = await _scanner.getBestCloseRangeScanningLens(
+        facing: CameraFacing.back,
+      );
+      final supported = await _scanner.getSupportedLenses(
+        facing: CameraFacing.back,
+      );
+      if (best == null ||
+          best == CameraLensType.normal ||
+          !supported.contains(best)) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Przybliż kod przyciskiem 2× lub odsuń telefon.'),
+            ),
+          );
+        }
+        return;
+      }
+      await _scanner.switchCamera(
+        SelectCamera(facingDirection: CameraFacing.back, lensType: best),
+      );
+      if (mounted) setState(() => _closeRange = true);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Nie udało się przełączyć obiektywu.')),
+        );
+      }
+    }
+  }
+
+  Future<void> _enterManually() async {
+    if (_busy) return;
+    final controller = TextEditingController();
+    final value = await showDialog<String>(
+      context: context,
+      builder:
+          (dialogContext) => AlertDialog(
+            title: const Text('Wpisz kod kreskowy'),
+            content: TextField(
+              controller: controller,
+              autofocus: true,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'EAN/UPC',
+                hintText: '8, 12, 13 lub 14 cyfr',
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Anuluj'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(dialogContext, controller.text),
+                child: const Text('Dodaj'),
+              ),
+            ],
+          ),
+    );
+    controller.dispose();
+    if (!mounted || value == null) return;
+    final barcode = normalizeScannedBarcode(value);
+    if (barcode == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Kod jest nieprawidłowy. Sprawdź cyfry.')),
+      );
+      return;
+    }
+    if (_seen.contains(barcode)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Ten produkt jest już w tej serii.')),
+      );
+      return;
+    }
+    _enqueueCode(barcode);
     await _processQueue();
   }
 
@@ -167,6 +284,15 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
         barcode: item.code,
       );
       if (!mounted || recognized == null) return;
+      if (!recognized.hasCompleteNutrition) {
+        _replaceItem(
+          item.code,
+          state: _BatchState.missing,
+          result: recognized,
+          message: 'Brakuje kcal lub makro. Dotknij, aby poprawić dane.',
+        );
+        return;
+      }
       _replaceItem(item.code, state: _BatchState.ready, result: recognized);
     } finally {
       if (mounted) {
@@ -257,7 +383,16 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
     final completed = Set<_BatchDestination>.of(item.completedDestinations);
     try {
       final labels = <String>[];
-      for (final destination in _destinations) {
+      // Stała kolejność zapobiega konfliktowi: dodanie do spiżarni tworzy
+      // techniczny produkt, więc zgłoszenie do katalogu wykonane później
+      // wyglądałoby jak duplikat i nie przyznałoby punktu użytkownikowi.
+      const saveOrder = [
+        _BatchDestination.productDatabase,
+        _BatchDestination.pantry,
+        _BatchDestination.tracking,
+      ];
+      for (final destination in saveOrder) {
+        if (!_destinations.contains(destination)) continue;
         if (completed.contains(destination)) continue;
         labels.add(await _saveItem(item, destination));
         completed.add(destination);
@@ -463,6 +598,49 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
                         textAlign: TextAlign.center,
                         style: const TextStyle(color: Colors.white),
                       ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: 12,
+                  right: 12,
+                  bottom: 8,
+                  child: Card(
+                    color: Colors.black.withOpacity(.72),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          tooltip: _zoom == 1 ? 'Przybliż 2×' : 'Przybliż 1×',
+                          onPressed: () => _setZoom(_zoom == 1 ? 2 : 1),
+                          icon: Icon(
+                            _zoom == 1 ? Icons.zoom_in : Icons.zoom_out,
+                            color: Colors.white,
+                          ),
+                        ),
+                        IconButton(
+                          tooltip:
+                              _closeRange ? 'Zwykły obiektyw' : 'Tryb z bliska',
+                          onPressed: _toggleCloseRange,
+                          icon: const Icon(
+                            Icons.center_focus_strong,
+                            color: Colors.white,
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: 'Latarka',
+                          onPressed: _scanner.toggleTorch,
+                          icon: const Icon(
+                            Icons.flashlight_on,
+                            color: Colors.white,
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: 'Wpisz kod ręcznie',
+                          onPressed: _enterManually,
+                          icon: const Icon(Icons.keyboard, color: Colors.white),
+                        ),
+                      ],
                     ),
                   ),
                 ),

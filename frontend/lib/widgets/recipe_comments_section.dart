@@ -7,6 +7,7 @@ import '../models/recipe_comment.dart';
 import '../providers/auth_provider.dart';
 import '../services/recipe_comment_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/error_utils.dart';
 import 'report_block_menu.dart';
 import 'user_avatar.dart';
 
@@ -149,7 +150,7 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(e.toString().replaceAll('Exception: ', '')),
+            content: Text(friendlyError(e)),
           ),
         );
     } finally {

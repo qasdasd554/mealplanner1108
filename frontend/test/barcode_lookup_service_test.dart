@@ -64,6 +64,53 @@ void main() {
     expect(result?.kcalPer100, 310);
   });
 
+  test('dla skanu wybiera całe opakowanie zamiast pojedynczej porcji', () {
+    final result = barcodeResultFromOpenFoodFacts({
+      'product_name': 'Jogurt',
+      'serving_quantity': 30,
+      'serving_quantity_unit': 'g',
+      'product_quantity': 150,
+      'product_quantity_unit': 'g',
+      'nutriments': product['nutriments'],
+    });
+
+    expect(result?.servingQuantity, 150);
+    expect(result?.unit, 'g');
+  });
+
+  test('przelicza litry i kilogramy na ml i g', () {
+    final drink = barcodeResultFromOpenFoodFacts({
+      'product_name': 'Napój',
+      'product_quantity': 1.5,
+      'product_quantity_unit': 'l',
+    });
+    final flour = barcodeResultFromOpenFoodFacts({
+      'product_name': 'Mąka',
+      'product_quantity': 1,
+      'product_quantity_unit': 'kg',
+    });
+
+    expect(drink?.unit, 'ml');
+    expect(drink?.servingQuantity, 1500);
+    expect(flour?.unit, 'g');
+    expect(flour?.servingQuantity, 1000);
+  });
+
+  test('odczytuje tekstową gramaturę i wielopak', () {
+    final multipack = barcodeResultFromOpenFoodFacts({
+      'product_name': 'Jogurty',
+      'quantity': '6 x 100 g',
+    });
+    final drink = barcodeResultFromOpenFoodFacts({
+      'product_name': 'Napój',
+      'quantity': '1,5 l',
+    });
+
+    expect(multipack?.servingQuantity, 600);
+    expect(drink?.servingQuantity, 1500);
+    expect(drink?.unit, 'ml');
+  });
+
   test('nie uznaje pustej odpowiedzi za produkt', () {
     expect(
       extractOpenFoodFactsProduct({
@@ -184,6 +231,34 @@ void main() {
     expect(result.fatPer100, 2);
     expect(result.carbsPer100, 6.1);
     expect(result.hasCompleteNutrition, isTrue);
+  });
+
+  test('wzbogacony produkt opakowaniowy zachowuje gramaturę OFF', () {
+    const cached = BarcodeLookupResult(
+      found: true,
+      source: 'neon_cache',
+      name: 'Jogurt',
+      unit: 'opak',
+      kcalPer100: 0,
+      proteinPer100: 0,
+      fatPer100: 0,
+      carbsPer100: 0,
+    );
+    const external = BarcodeLookupResult(
+      found: true,
+      source: 'open_food_facts_direct',
+      name: 'Jogurt',
+      unit: 'g',
+      servingQuantity: 150,
+      kcalPer100: 100,
+      proteinPer100: 4,
+      fatPer100: 3,
+      carbsPer100: 12,
+    );
+
+    final result = mergeBarcodeLookupResults(cached, external);
+    expect(result.unit, 'g');
+    expect(result.servingQuantity, 150);
   });
 
   test('nie zachowuje fałszywych zer, gdy zewnętrzna baza jest częściowa', () {

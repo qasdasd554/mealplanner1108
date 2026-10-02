@@ -25,8 +25,8 @@ void main() {
     expect(payload['protein'], 5);
     expect(payload['fat'], 4);
     expect(payload['carbs'], 15);
-    expect(payload['amount_value'], 50);
-    expect(payload['amount_unit'], 'g');
+    expect(payload['amount_value'], 1);
+    expect(payload['amount_unit'], 'opak');
     expect(payload['portion_size'], 50);
   });
 
@@ -48,7 +48,7 @@ void main() {
       date: DateTime(2026, 9, 28),
     );
     expect(payload['amount_unit'], 'opak');
-    expect(payload.containsKey('amount_value'), isFalse);
+    expect(payload['amount_value'], 1);
   });
 
   test('liczby sztuk nie traktuje jako gramów opakowania', () {

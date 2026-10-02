@@ -343,11 +343,12 @@ class _PickProductFromCatalogSheetState
 
     final factor =
         selection.unit == 'opak'
-            ? ((result.servingQuantity != null &&
-                    result.servingQuantity! > 0 &&
-                    const {'g', 'ml'}.contains(result.unit))
-                ? result.servingQuantity! / 100
-                : 1.0)
+            ? selection.quantity *
+                ((result.servingQuantity != null &&
+                        result.servingQuantity! > 0 &&
+                        const {'g', 'ml'}.contains(result.unit))
+                    ? result.servingQuantity! / 100
+                    : 1.0)
             : selection.quantity / 100;
     _complete(
       PickedCatalogProduct(

@@ -50,6 +50,15 @@ void main() async {
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.grey),
               ),
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                onPressed: () {
+                  SmartMealPlannerApp.navigatorKey.currentState
+                      ?.pushNamedAndRemoveUntil('/', (route) => false);
+                },
+                icon: const Icon(Icons.home_outlined),
+                label: const Text('Wróć do startu'),
+              ),
             ],
           ),
         ),

@@ -166,6 +166,21 @@ class _ProductLabelRecognitionSheetState
       setState(() => _error = 'Sprawdź i uzupełnij nazwę produktu.');
       return;
     }
+    final nutrition = [
+      _number(_kcal),
+      _number(_protein),
+      _number(_fat),
+      _number(_carbs),
+    ];
+    if (nutrition.any((value) => value == null) ||
+        !nutrition.any((value) => value! > 0)) {
+      setState(
+        () =>
+            _error =
+                'Uzupełnij kcal, białko, tłuszcz i węglowodany na 100 g/ml.',
+      );
+      return;
+    }
     setState(() {
       _busy = true;
       _error = null;

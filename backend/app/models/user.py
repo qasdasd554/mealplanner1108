@@ -172,7 +172,8 @@ class User(Base):
     # zapytania po dodaniu tej kolumny, mają NULL.
     platform: Mapped[str | None] = mapped_column(String(10), nullable=True)
     # Numer wersji aplikacji wysyłany przez oficjalnego klienta, np.
-    # "1.0.48+245". To techniczna informacja do zgodności i diagnostyki,
+    # Pełny numer z pubspec.yaml (np. "1.2.3+456"). To techniczna informacja
+    # do zgodności i diagnostyki,
     # bez identyfikatora urządzenia i bez wykorzystania reklamowego.
     app_version: Mapped[str | None] = mapped_column(String(32), nullable=True)
     created_at: Mapped[datetime] = mapped_column(

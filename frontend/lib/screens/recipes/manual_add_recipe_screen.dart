@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../models/barcode_lookup_result.dart';
 import '../../models/product.dart';
@@ -46,6 +47,22 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
   final _cookTimeController = TextEditingController();
   final _servingsController = TextEditingController(text: '2');
 
+  // Stałe węzły fokusu są celowe. Na części urządzeń z Gboard Flutter
+  // potrafi zgubić fokus po zatwierdzeniu słowa (szczególnie wpisanego
+  // gestem), przez co klawiatura znika mimo że użytkownik nadal edytuje
+  // pole. Bez jawnych FocusNode nie da się bezpiecznie rozpoznać ani
+  // naprawić takiego zdarzenia.
+  final _nameFocus = FocusNode(debugLabel: 'recipeName');
+  final _descriptionFocus = FocusNode(debugLabel: 'recipeDescription');
+  final _prepTimeFocus = FocusNode(debugLabel: 'recipePrepTime');
+  final _cookTimeFocus = FocusNode(debugLabel: 'recipeCookTime');
+  final _servingsFocus = FocusNode(debugLabel: 'recipeServings');
+  final Map<FocusNode, DateTime> _lastEditAt = {};
+  final Set<FocusNode> _disposedFocusNodes = {};
+  Timer? _focusRecoveryTimer;
+  bool _allowPop = false;
+  bool _isConfirmingDiscard = false;
+
   String _mealType = 'obiad';
   String _difficulty = 'łatwy';
   bool _requestPublic = false;
@@ -54,6 +71,9 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
   final List<_IngredientRow> _ingredients = [];
   final List<TextEditingController> _stepControllers = [
     TextEditingController(),
+  ];
+  final List<FocusNode> _stepFocusNodes = [
+    FocusNode(debugLabel: 'recipeStep1'),
   ];
 
   final List<String> _mealTypes = [
@@ -65,8 +85,114 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
   ];
   final List<String> _difficulties = ['łatwy', 'średni', 'trudny'];
 
+  Iterable<FocusNode> get _allFocusNodes sync* {
+    yield _nameFocus;
+    yield _descriptionFocus;
+    yield _prepTimeFocus;
+    yield _cookTimeFocus;
+    yield _servingsFocus;
+    yield* _stepFocusNodes;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    for (final node in _allFocusNodes) {
+      _watchImeFocus(node);
+    }
+  }
+
+  void _watchImeFocus(FocusNode node) {
+    node.addListener(() => _recoverUnexpectedImeFocusLoss(node));
+  }
+
+  void _recordEdit(FocusNode node) {
+    _lastEditAt[node] = DateTime.now();
+  }
+
+  void _recoverUnexpectedImeFocusLoss(FocusNode node) {
+    if (defaultTargetPlatform != TargetPlatform.android ||
+        _disposedFocusNodes.contains(node) ||
+        node.hasFocus) {
+      return;
+    }
+    final editedAt = _lastEditAt[node];
+    if (editedAt == null) return;
+
+    // Po zmianie fokusu Flutter najpierw informuje poprzednie pole, a
+    // dopiero potem ustawia następne. Krótkie opóźnienie pozwala odróżnić
+    // prawidłowe przejście do innego pola od błędu Gboard, po którym żadne
+    // pole nie jest aktywne.
+    _focusRecoveryTimer?.cancel();
+    _focusRecoveryTimer = Timer(const Duration(milliseconds: 80), () {
+      _focusRecoveryTimer = null;
+      if (!mounted ||
+          _allowPop ||
+          _isSubmitting ||
+          _disposedFocusNodes.contains(node) ||
+          node.hasFocus) {
+        return;
+      }
+      if (DateTime.now().difference(editedAt) > const Duration(seconds: 1)) {
+        return;
+      }
+      final route = ModalRoute.of(context);
+      if (route == null || !route.isCurrent) return;
+      final primary = FocusManager.instance.primaryFocus;
+      if (primary != null && primary is! FocusScopeNode) return;
+      node.requestFocus();
+    });
+  }
+
+  bool get _hasUnsavedChanges =>
+      _nameController.text.trim().isNotEmpty ||
+      _descriptionController.text.trim().isNotEmpty ||
+      _prepTimeController.text.trim().isNotEmpty ||
+      _cookTimeController.text.trim().isNotEmpty ||
+      _servingsController.text.trim() != '2' ||
+      _ingredients.isNotEmpty ||
+      _stepControllers.any((controller) => controller.text.trim().isNotEmpty) ||
+      _requestPublic;
+
+  Future<void> _handleBackAttempt() async {
+    if (_allowPop || _isConfirmingDiscard || !mounted) return;
+    _isConfirmingDiscard = true;
+    var discard = !_hasUnsavedChanges;
+    if (!discard) {
+      discard =
+          await showDialog<bool>(
+            context: context,
+            builder:
+                (dialogContext) => AlertDialog(
+                  title: const Text('Odrzucić zmiany?'),
+                  content: const Text(
+                    'Wpisane dane przepisu nie zostały jeszcze zapisane.',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(dialogContext, false),
+                      child: const Text('Zostań'),
+                    ),
+                    FilledButton(
+                      onPressed: () => Navigator.pop(dialogContext, true),
+                      child: const Text('Odrzuć'),
+                    ),
+                  ],
+                ),
+          ) ??
+          false;
+    }
+    _isConfirmingDiscard = false;
+    if (!discard || !mounted) return;
+    setState(() => _allowPop = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) Navigator.of(context).maybePop();
+    });
+  }
+
   @override
   void dispose() {
+    _focusRecoveryTimer?.cancel();
     _nameController.dispose();
     _descriptionController.dispose();
     _prepTimeController.dispose();
@@ -74,6 +200,11 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
     _servingsController.dispose();
     for (final c in _stepControllers) {
       c.dispose();
+    }
+    final focusNodes = _allFocusNodes.toList(growable: false);
+    _disposedFocusNodes.addAll(focusNodes);
+    for (final node in focusNodes) {
+      node.dispose();
     }
     super.dispose();
   }
@@ -247,13 +378,24 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
   }
 
   void _addStep() {
-    setState(() => _stepControllers.add(TextEditingController()));
+    final focusNode = FocusNode(
+      debugLabel: 'recipeStep${_stepFocusNodes.length + 1}',
+    );
+    _watchImeFocus(focusNode);
+    setState(() {
+      _stepControllers.add(TextEditingController());
+      _stepFocusNodes.add(focusNode);
+    });
   }
 
   void _removeStep(int index) {
     setState(() {
       _stepControllers[index].dispose();
       _stepControllers.removeAt(index);
+      _disposedFocusNodes.add(_stepFocusNodes[index]);
+      _lastEditAt.remove(_stepFocusNodes[index]);
+      _stepFocusNodes[index].dispose();
+      _stepFocusNodes.removeAt(index);
     });
   }
 
@@ -314,6 +456,7 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
         requestPublic: _requestPublic,
       );
       if (!mounted) return;
+      _allowPop = true;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (_) => RecipeDetailScreen(),
@@ -337,302 +480,341 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Dodaj przepis ręcznie')),
-      // UWAGA (naprawa — ten sam wzorzec błędu, w kolejnym miejscu):
-      // Form(ListView(...)) bez SafeArea — mimo że to przewijana lista,
-      // w trybie edge-to-edge KONIEC przewijania nie uwzględniał
-      // bezpiecznego marginesu systemowego, więc przycisk "Zapisz
-      // przepis" na samym dole mógł kończyć się częściowo pod paskiem
-      // nawigacji Androida.
-      body: SafeArea(
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.all(20),
-            children: [
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Nazwa przepisu'),
-                validator:
-                    (v) =>
-                        (v == null || v.trim().isEmpty) ? 'Podaj nazwę' : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: const InputDecoration(
-                  labelText: 'Krótki opis (opcjonalnie)',
+    return PopScope(
+      canPop: _allowPop,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) unawaited(_handleBackAttempt());
+      },
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Dodaj przepis ręcznie')),
+        // UWAGA (naprawa — ten sam wzorzec błędu, w kolejnym miejscu):
+        // Form(ListView(...)) bez SafeArea — mimo że to przewijana lista,
+        // w trybie edge-to-edge KONIEC przewijania nie uwzględniał
+        // bezpiecznego marginesu systemowego, więc przycisk "Zapisz
+        // przepis" na samym dole mógł kończyć się częściowo pod paskiem
+        // nawigacji Androida.
+        body: SafeArea(
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                TextFormField(
+                  controller: _nameController,
+                  focusNode: _nameFocus,
+                  textInputAction: TextInputAction.next,
+                  onChanged: (_) => _recordEdit(_nameFocus),
+                  onFieldSubmitted: (_) => _descriptionFocus.requestFocus(),
+                  decoration: const InputDecoration(
+                    labelText: 'Nazwa przepisu',
+                  ),
+                  validator:
+                      (v) =>
+                          (v == null || v.trim().isEmpty)
+                              ? 'Podaj nazwę'
+                              : null,
                 ),
-                maxLines: 2,
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: _mealType,
-                      isExpanded: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Rodzaj posiłku',
-                      ),
-                      items:
-                          _mealTypes
-                              .map(
-                                (t) =>
-                                    DropdownMenuItem(value: t, child: Text(t)),
-                              )
-                              .toList(),
-                      onChanged: (v) => setState(() => _mealType = v!),
-                    ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _descriptionController,
+                  focusNode: _descriptionFocus,
+                  textInputAction: TextInputAction.newline,
+                  onChanged: (_) => _recordEdit(_descriptionFocus),
+                  decoration: const InputDecoration(
+                    labelText: 'Krótki opis (opcjonalnie)',
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: _difficulty,
-                      isExpanded: true,
-                      decoration: const InputDecoration(labelText: 'Trudność'),
-                      items:
-                          _difficulties
-                              .map(
-                                (t) =>
-                                    DropdownMenuItem(value: t, child: Text(t)),
-                              )
-                              .toList(),
-                      onChanged: (v) => setState(() => _difficulty = v!),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final fields = <Widget>[
-                    TextFormField(
-                      controller: _prepTimeController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'Przygotowanie (min)',
-                      ),
-                    ),
-                    TextFormField(
-                      controller: _cookTimeController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'Gotowanie (min)',
-                      ),
-                    ),
-                    TextFormField(
-                      controller: _servingsController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Porcje'),
-                    ),
-                  ];
-                  if (constraints.maxWidth < 480) {
-                    return Column(
-                      children: [
-                        fields[0],
-                        const SizedBox(height: 12),
-                        fields[1],
-                        const SizedBox(height: 12),
-                        fields[2],
-                      ],
-                    );
-                  }
-                  return Row(
-                    children: [
-                      Expanded(child: fields[0]),
-                      const SizedBox(width: 12),
-                      Expanded(child: fields[1]),
-                      const SizedBox(width: 12),
-                      Expanded(child: fields[2]),
-                    ],
-                  );
-                },
-              ),
-              const SizedBox(height: 28),
-
-              // Składniki
-              Wrap(
-                alignment: WrapAlignment.spaceBetween,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 8,
-                runSpacing: 4,
-                children: [
-                  Text(
-                    'Składniki',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  TextButton.icon(
-                    onPressed: _addIngredient,
-                    icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Dodaj'),
-                  ),
-                ],
-              ),
-              if (_ingredients.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Text(
-                    'Brak dodanych składników',
-                    style: TextStyle(color: AppTheme.textSecondary),
-                  ),
+                  maxLines: 2,
                 ),
-              ..._ingredients.asMap().entries.map((entry) {
-                final i = entry.key;
-                final ing = entry.value;
-                return ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(ing.product.name),
-                  subtitle: Text(
-                    '${formatQuantity(ing.quantity, ing.unit)} ${ing.unit}',
-                  ),
-                  trailing: IconButton(
-                    icon: const Icon(
-                      Icons.delete_outline,
-                      color: AppTheme.errorColor,
-                    ),
-                    onPressed: () => setState(() => _ingredients.removeAt(i)),
-                  ),
-                );
-              }),
-              const SizedBox(height: 20),
-
-              // Kroki przygotowania
-              Wrap(
-                alignment: WrapAlignment.spaceBetween,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 8,
-                runSpacing: 4,
-                children: [
-                  Text(
-                    'Kroki przygotowania',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  TextButton.icon(
-                    onPressed: _addStep,
-                    icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Dodaj krok'),
-                  ),
-                ],
-              ),
-              ..._stepControllers.asMap().entries.map((entry) {
-                final i = entry.key;
-                final controller = entry.value;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(top: 14, right: 8),
-                        child: CircleAvatar(
-                          radius: 12,
-                          backgroundColor: AppTheme.primaryColor.withOpacity(
-                            0.15,
-                          ),
-                          child: Text(
-                            '${i + 1}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppTheme.primaryColor,
-                            ),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: TextField(
-                          controller: controller,
-                          maxLines: null,
-                          decoration: const InputDecoration(
-                            hintText: 'Opisz ten krok...',
-                          ),
-                        ),
-                      ),
-                      if (_stepControllers.length > 1)
-                        IconButton(
-                          icon: Icon(
-                            Icons.close,
-                            size: 18,
-                            color: AppTheme.textSecondary,
-                          ),
-                          onPressed: () => _removeStep(i),
-                        ),
-                    ],
-                  ),
-                );
-              }),
-              const SizedBox(height: 20),
-
-              // Udostępnianie publiczne — tylko Premium
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: AppTheme.surfaceColor,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: AppTheme.textSecondary.withOpacity(0.15),
-                  ),
-                ),
-                child: Row(
+                const SizedBox(height: 16),
+                Row(
                   children: [
-                    const Icon(Icons.public, color: AppTheme.secondaryColor),
-                    const SizedBox(width: 12),
-                    // NAPRAWA błędu builda: AppTheme.textSecondary jest
-                    // getterem zależnym od trybu jasny/ciemny (nie
-                    // static const), więc ten poddrzewo NIE MOŻE być const
-                    // — inaczej kompilator odrzuca cały widget z błędem
-                    // "invocation is not allowed in a constant expression".
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Zgłoś do wspólnego katalogu',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                          // NAPRAWA: wcześniej dostępne tylko dla kont
-                          // Premium — udział w cotygodniowym konkursie (ranking
-                          // liczy WYŁĄCZNIE publiczne przepisy) miał być
-                          // dostępny dla każdego, nie tylko Premium. Moderacja
-                          // administratora nadal chroni katalog przed spamem.
-                          Text(
-                            'Po akceptacji administratora będzie widoczny dla wszystkich i policzy się do cotygodniowego konkursu.',
-                            style: TextStyle(
-                              color: AppTheme.textSecondary,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
+                      child: DropdownButtonFormField<String>(
+                        value: _mealType,
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Rodzaj posiłku',
+                        ),
+                        items:
+                            _mealTypes
+                                .map(
+                                  (t) => DropdownMenuItem(
+                                    value: t,
+                                    child: Text(t),
+                                  ),
+                                )
+                                .toList(),
+                        onChanged: (v) => setState(() => _mealType = v!),
                       ),
                     ),
-                    Switch(
-                      value: _requestPublic,
-                      onChanged: (v) => setState(() => _requestPublic = v),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: _difficulty,
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Trudność',
+                        ),
+                        items:
+                            _difficulties
+                                .map(
+                                  (t) => DropdownMenuItem(
+                                    value: t,
+                                    child: Text(t),
+                                  ),
+                                )
+                                .toList(),
+                        onChanged: (v) => setState(() => _difficulty = v!),
+                      ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 28),
-              ElevatedButton(
-                onPressed: _isSubmitting ? null : _submit,
-                child:
-                    _isSubmitting
-                        ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
+                const SizedBox(height: 16),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final fields = <Widget>[
+                      TextFormField(
+                        controller: _prepTimeController,
+                        focusNode: _prepTimeFocus,
+                        keyboardType: TextInputType.number,
+                        textInputAction: TextInputAction.next,
+                        onChanged: (_) => _recordEdit(_prepTimeFocus),
+                        onFieldSubmitted: (_) => _cookTimeFocus.requestFocus(),
+                        decoration: const InputDecoration(
+                          labelText: 'Przygotowanie (min)',
+                        ),
+                      ),
+                      TextFormField(
+                        controller: _cookTimeController,
+                        focusNode: _cookTimeFocus,
+                        keyboardType: TextInputType.number,
+                        textInputAction: TextInputAction.next,
+                        onChanged: (_) => _recordEdit(_cookTimeFocus),
+                        onFieldSubmitted: (_) => _servingsFocus.requestFocus(),
+                        decoration: const InputDecoration(
+                          labelText: 'Gotowanie (min)',
+                        ),
+                      ),
+                      TextFormField(
+                        controller: _servingsController,
+                        focusNode: _servingsFocus,
+                        keyboardType: TextInputType.number,
+                        textInputAction: TextInputAction.next,
+                        onChanged: (_) => _recordEdit(_servingsFocus),
+                        onFieldSubmitted:
+                            (_) => _stepFocusNodes.first.requestFocus(),
+                        decoration: const InputDecoration(labelText: 'Porcje'),
+                      ),
+                    ];
+                    if (constraints.maxWidth < 480) {
+                      return Column(
+                        children: [
+                          fields[0],
+                          const SizedBox(height: 12),
+                          fields[1],
+                          const SizedBox(height: 12),
+                          fields[2],
+                        ],
+                      );
+                    }
+                    return Row(
+                      children: [
+                        Expanded(child: fields[0]),
+                        const SizedBox(width: 12),
+                        Expanded(child: fields[1]),
+                        const SizedBox(width: 12),
+                        Expanded(child: fields[2]),
+                      ],
+                    );
+                  },
+                ),
+                const SizedBox(height: 28),
+
+                // Składniki
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: [
+                    Text(
+                      'Składniki',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    TextButton.icon(
+                      onPressed: _addIngredient,
+                      icon: const Icon(Icons.add, size: 18),
+                      label: const Text('Dodaj'),
+                    ),
+                  ],
+                ),
+                if (_ingredients.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Text(
+                      'Brak dodanych składników',
+                      style: TextStyle(color: AppTheme.textSecondary),
+                    ),
+                  ),
+                ..._ingredients.asMap().entries.map((entry) {
+                  final i = entry.key;
+                  final ing = entry.value;
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(ing.product.name),
+                    subtitle: Text(
+                      '${formatQuantity(ing.quantity, ing.unit)} ${ing.unit}',
+                    ),
+                    trailing: IconButton(
+                      icon: const Icon(
+                        Icons.delete_outline,
+                        color: AppTheme.errorColor,
+                      ),
+                      onPressed: () => setState(() => _ingredients.removeAt(i)),
+                    ),
+                  );
+                }),
+                const SizedBox(height: 20),
+
+                // Kroki przygotowania
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: [
+                    Text(
+                      'Kroki przygotowania',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    TextButton.icon(
+                      onPressed: _addStep,
+                      icon: const Icon(Icons.add, size: 18),
+                      label: const Text('Dodaj krok'),
+                    ),
+                  ],
+                ),
+                ..._stepControllers.asMap().entries.map((entry) {
+                  final i = entry.key;
+                  final controller = entry.value;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 14, right: 8),
+                          child: CircleAvatar(
+                            radius: 12,
+                            backgroundColor: AppTheme.primaryColor.withOpacity(
+                              0.15,
+                            ),
+                            child: Text(
+                              '${i + 1}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.primaryColor,
+                              ),
+                            ),
                           ),
-                        )
-                        : const Text('Zapisz przepis'),
-              ),
-              const SizedBox(height: 20),
-            ],
+                        ),
+                        Expanded(
+                          child: TextField(
+                            controller: controller,
+                            focusNode: _stepFocusNodes[i],
+                            maxLines: null,
+                            textInputAction: TextInputAction.newline,
+                            onChanged: (_) => _recordEdit(_stepFocusNodes[i]),
+                            decoration: const InputDecoration(
+                              hintText: 'Opisz ten krok...',
+                            ),
+                          ),
+                        ),
+                        if (_stepControllers.length > 1)
+                          IconButton(
+                            icon: Icon(
+                              Icons.close,
+                              size: 18,
+                              color: AppTheme.textSecondary,
+                            ),
+                            onPressed: () => _removeStep(i),
+                          ),
+                      ],
+                    ),
+                  );
+                }),
+                const SizedBox(height: 20),
+
+                // Udostępnianie publiczne — tylko Premium
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceColor,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: AppTheme.textSecondary.withOpacity(0.15),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.public, color: AppTheme.secondaryColor),
+                      const SizedBox(width: 12),
+                      // NAPRAWA błędu builda: AppTheme.textSecondary jest
+                      // getterem zależnym od trybu jasny/ciemny (nie
+                      // static const), więc ten poddrzewo NIE MOŻE być const
+                      // — inaczej kompilator odrzuca cały widget z błędem
+                      // "invocation is not allowed in a constant expression".
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Zgłoś do wspólnego katalogu',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                            // NAPRAWA: wcześniej dostępne tylko dla kont
+                            // Premium — udział w cotygodniowym konkursie (ranking
+                            // liczy WYŁĄCZNIE publiczne przepisy) miał być
+                            // dostępny dla każdego, nie tylko Premium. Moderacja
+                            // administratora nadal chroni katalog przed spamem.
+                            Text(
+                              'Po akceptacji administratora będzie widoczny dla wszystkich i policzy się do cotygodniowego konkursu.',
+                              style: TextStyle(
+                                color: AppTheme.textSecondary,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Switch(
+                        value: _requestPublic,
+                        onChanged: (v) => setState(() => _requestPublic = v),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 28),
+                ElevatedButton(
+                  onPressed: _isSubmitting ? null : _submit,
+                  child:
+                      _isSubmitting
+                          ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                          : const Text('Zapisz przepis'),
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
         ),
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../models/promotion.dart';
 import '../services/promotion_service.dart';
+import '../utils/error_utils.dart';
 
 class PromotionProvider with ChangeNotifier {
   final PromotionService _service = PromotionService();
@@ -22,7 +23,7 @@ class PromotionProvider with ChangeNotifier {
       _promotions = await _service.getPromotions(storeName: storeName);
       _loadedForStore = storeName;
     } catch (e) {
-      _error = e.toString().replaceAll('Exception: ', '');
+      _error = friendlyError(e);
       _promotions = [];
     } finally {
       _isLoading = false;

@@ -128,7 +128,13 @@ def _merge_local_barcode_response(
         source=f"{local.source}_enriched" if local.source else external.source,
         name=local.name or external.name,
         brand=local.brand or external.brand,
-        unit=local.unit or external.unit,
+        unit=(
+            external.unit
+            if local.unit == "opak"
+            and external.serving_quantity is not None
+            and external.unit in {"g", "ml"}
+            else local.unit or external.unit
+        ),
         kcal_per_100=nutrition(local.kcal_per_100, external.kcal_per_100),
         protein_per_100=nutrition(
             local.protein_per_100, external.protein_per_100,

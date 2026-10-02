@@ -629,7 +629,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
 
   Future<void> _editProductAmount(FoodLogEntry item) async {
     var unit =
-        const {'g', 'ml'}.contains(item.amountUnit)
+        const {'g', 'ml', 'opak'}.contains(item.amountUnit)
             ? item.amountUnit!
             : 'porcja';
     final inferredPortion =
@@ -639,7 +639,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
             : null);
     final controller = TextEditingController(
       text: _formatAmount(
-        unit == 'porcja'
+        const {'porcja', 'opak'}.contains(unit)
             ? item.servings
             : (item.amountValue ?? item.servings * (inferredPortion ?? 100)),
       ),
@@ -683,6 +683,10 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                                 child: Text('porcja'),
                               ),
                               DropdownMenuItem(
+                                value: 'opak',
+                                child: Text('opakowanie'),
+                              ),
+                              DropdownMenuItem(
                                 value: 'g',
                                 child: Text('gramy (g)'),
                               ),
@@ -696,10 +700,12 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                               setDialogState(() {
                                 unit = value;
                                 controller.text = _formatAmount(
-                                  value == 'porcja'
+                                  const {'porcja', 'opak'}.contains(value)
                                       ? item.servings
-                                      : (item.amountValue ??
-                                          item.servings *
+                                      : (item.amountUnit == value &&
+                                              item.amountValue != null
+                                          ? item.amountValue!
+                                          : item.servings *
                                               (inferredPortion ?? 100)),
                                 );
                               });
@@ -714,7 +720,12 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                             ),
                             decoration: InputDecoration(
                               labelText: 'Ilość',
-                              suffixText: unit == 'porcja' ? 'porcji' : unit,
+                              suffixText:
+                                  unit == 'porcja'
+                                      ? 'porcji'
+                                      : unit == 'opak'
+                                      ? 'opakowań'
+                                      : unit,
                             ),
                             validator: (value) {
                               final parsed = _parseAmount(value);
@@ -726,7 +737,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                               return null;
                             },
                           ),
-                          if (unit != 'porcja') ...[
+                          if (!const {'porcja', 'opak'}.contains(unit)) ...[
                             const SizedBox(height: 12),
                             TextFormField(
                               controller: portionController,
@@ -765,7 +776,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                           amount: _parseAmount(controller.text)!,
                           unit: unit,
                           portionSize:
-                              unit == 'porcja'
+                              const {'porcja', 'opak'}.contains(unit)
                                   ? inferredPortion
                                   : _parseAmount(portionController.text),
                         ));
@@ -786,7 +797,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
     double? amountValue;
     String? amountUnit;
     final portionSize = edited.portionSize;
-    if (edited.unit == 'porcja') {
+    if (const {'porcja', 'opak'}.contains(edited.unit)) {
       newServings = edited.amount;
       factor = newServings / previousServings;
       if (portionSize != null && const {'g', 'ml'}.contains(item.amountUnit)) {
@@ -794,7 +805,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
         amountUnit = item.amountUnit;
       } else {
         amountValue = edited.amount;
-        amountUnit = 'porcja';
+        amountUnit = edited.unit;
       }
     } else {
       final previousPhysicalAmount =

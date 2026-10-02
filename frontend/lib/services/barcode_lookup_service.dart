@@ -36,7 +36,21 @@ class BarcodeLookupService {
       rethrow;
     }
 
-    if (!backend.found || backend.hasCompleteNutrition) return backend;
+    if (backend.hasCompleteNutrition) return backend;
+
+    // Open Food Facts ogranicza odczyty do 15 zapytań/minutę na adres IP.
+    // Backend Render obsługuje wszystkich użytkowników z jednego adresu,
+    // więc przy większym ruchu może dostać 429 i odpowiedzieć `found: false`,
+    // mimo że produkt istnieje. Jedno zapasowe zapytanie z telefonu rozkłada
+    // limit per użytkownik i naprawia ten przypadek bez spowalniania trafień
+    // z Neon (te kończą się powyżej).
+    if (!backend.found) {
+      try {
+        return await _lookupOpenFoodFacts(barcode) ?? backend;
+      } catch (_) {
+        return backend;
+      }
+    }
 
     // Starsze rekordy w Neon i część produktów katalogowych mają samą
     // nazwę/markę. Skan seryjny uznawał je za gotowe, a potem zapisywał
@@ -105,8 +119,9 @@ class BarcodeLookupService {
           response.statusCode == 503) {
         return (result: null, skipFallback: true);
       }
-      if (response.statusCode != 200)
+      if (response.statusCode != 200) {
         return (result: null, skipFallback: false);
+      }
       final decoded = jsonDecode(response.body);
       if (decoded is! Map<String, dynamic>) {
         return (result: null, skipFallback: false);
@@ -177,7 +192,8 @@ class BarcodeLookupService {
       'code,product_name_pl,product_name,product_name_en,'
       'generic_name_pl,generic_name,generic_name_en,'
       'abbreviated_product_name,brands,nutriments,categories_tags,'
-      'product_quantity,product_quantity_unit,serving_quantity';
+      'quantity,product_quantity,product_quantity_unit,serving_quantity,'
+      'serving_quantity_unit';
 }
 
 /// Zachowuje zweryfikowaną nazwę, markę i cenę z katalogu aplikacji, a braki
@@ -212,7 +228,12 @@ BarcodeLookupResult mergeBarcodeLookupResults(
         catalog.source == null ? external.source : '${catalog.source}_enriched',
     name: _nonEmpty(catalog.name) ?? external.name,
     brand: _nonEmpty(catalog.brand) ?? external.brand,
-    unit: catalog.unit,
+    unit:
+        catalog.unit == 'opak' &&
+                external.servingQuantity != null &&
+                const {'g', 'ml'}.contains(external.unit)
+            ? external.unit
+            : catalog.unit,
     kcalPer100: mergeNutrition(catalog.kcalPer100, external.kcalPer100),
     proteinPer100: mergeNutrition(
       catalog.proteinPer100,
@@ -306,11 +327,54 @@ BarcodeLookupResult? barcodeResultFromOpenFoodFacts(
     ]),
     priceMin: _fixedPriceRange(product).$1,
     priceMax: _fixedPriceRange(product).$2,
-    servingQuantity: _firstNumber(product, const [
-      'serving_quantity',
-      'product_quantity',
-    ]),
+    // Skan oznacza całe opakowanie. `serving_quantity` to często tylko
+    // sugerowana porcja (np. 30 g produktu w paczce 300 g), dlatego pełna
+    // gramatura musi mieć pierwszeństwo.
+    servingQuantity: _packageQuantityInBaseUnit(product),
   );
+}
+
+double? _packageQuantityInBaseUnit(Map<String, dynamic> product) {
+  final packageQuantity = _firstNumber(product, const ['product_quantity']);
+  if (packageQuantity != null && packageQuantity > 0) {
+    return _toBaseQuantity(
+      packageQuantity,
+      product['product_quantity_unit']?.toString(),
+    );
+  }
+  final quantityText = product['quantity']?.toString().trim().toLowerCase();
+  if (quantityText != null && quantityText.isNotEmpty) {
+    final match = RegExp(
+      r'(?:(\d+(?:[.,]\d+)?)\s*[x×]\s*)?'
+      r'(\d+(?:[.,]\d+)?)\s*(kg|mg|g|ml|cl|dl|l)\b',
+    ).firstMatch(quantityText);
+    if (match != null) {
+      final multiplier = double.parse(
+        (match.group(1) ?? '1').replaceAll(',', '.'),
+      );
+      final amount = double.parse(match.group(2)!.replaceAll(',', '.'));
+      return multiplier * _toBaseQuantity(amount, match.group(3));
+    }
+  }
+  // Wielkość porcji nie jest gramaturą opakowania. Jeśli OFF nie podaje
+  // pełnej ilości, użytkownik uzupełni ją ręcznie lub ze zdjęcia etykiety.
+  return null;
+}
+
+double _toBaseQuantity(double value, String? rawUnit) {
+  switch (rawUnit?.trim().toLowerCase()) {
+    case 'kg':
+    case 'l':
+      return value * 1000;
+    case 'cl':
+      return value * 10;
+    case 'dl':
+      return value * 100;
+    case 'mg':
+      return value / 1000;
+    default:
+      return value;
+  }
 }
 
 String? _barcodeFromProduct(Map<String, dynamic> product) {
@@ -341,7 +405,15 @@ double? _firstNumber(Map<String, dynamic> values, List<String> keys) {
 }
 
 String _unitFromProduct(Map<String, dynamic> product) {
-  final unit = product['product_quantity_unit']?.toString().toLowerCase();
+  var unit =
+      (product['product_quantity_unit'] ?? product['serving_quantity_unit'])
+          ?.toString()
+          .toLowerCase();
+  if (unit == null || unit.isEmpty) {
+    unit = RegExp(
+      r'\b(kg|mg|g|ml|cl|dl|l)\b',
+    ).firstMatch(product['quantity']?.toString().toLowerCase() ?? '')?.group(1);
+  }
   if (const {'ml', 'cl', 'dl', 'l'}.contains(unit)) return 'ml';
   if (const {'piece', 'pieces', 'szt', 'szt.'}.contains(unit)) return 'szt';
   return 'g';

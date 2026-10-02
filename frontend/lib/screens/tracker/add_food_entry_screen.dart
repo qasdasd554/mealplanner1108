@@ -15,13 +15,9 @@ import '../../widgets/submit_product_sheet.dart';
 import '../../widgets/pick_product_from_catalog_sheet.dart';
 import '../../widgets/product_name_autocomplete_field.dart';
 
-double _pickedAmountValue(PickedCatalogProduct picked) =>
-    picked.unit == 'opak'
-        ? (picked.portionSize ?? picked.quantity)
-        : picked.quantity;
+double _pickedAmountValue(PickedCatalogProduct picked) => picked.quantity;
 
-String _pickedAmountUnit(PickedCatalogProduct picked) =>
-    picked.unit == 'opak' ? (picked.portionUnit ?? 'opak') : picked.unit;
+String _pickedAmountUnit(PickedCatalogProduct picked) => picked.unit;
 
 class AddFoodEntryScreen extends StatefulWidget {
   final String? initialBarcode;

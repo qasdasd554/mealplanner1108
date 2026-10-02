@@ -43,5 +43,18 @@ String friendlyError(Object error) {
   // Nie-ApiException (np. błąd sieci złapany gdzie indziej) — pokaż
   // wiadomość bez żadnego technicznego opakowania Dart/Exception.
   final text = error.toString();
+  final lower = text.toLowerCase();
+  if (lower.contains('timeoutexception') || lower.contains('timed out')) {
+    return 'Operacja trwała zbyt długo. Spróbuj ponownie za chwilę.';
+  }
+  if (lower.contains('socketexception') ||
+      lower.contains('clientexception') ||
+      lower.contains('failed host lookup') ||
+      lower.contains('connection refused')) {
+    return 'Nie udało się połączyć z serwerem. Sprawdź internet i spróbuj ponownie.';
+  }
+  if (lower.contains('formatexception')) {
+    return 'Nie udało się odczytać danych. Odśwież ekran i spróbuj ponownie.';
+  }
   return text.startsWith('Exception: ') ? text.substring(11) : text;
 }

@@ -27,6 +27,10 @@ def test_normalize_barcode_removes_scanner_formatting() -> None:
     assert normalize_barcode("]E0 5449-0000-0099-6") == "5449000000996"
 
 
+def test_normalize_barcode_rejects_invalid_checksum() -> None:
+    assert normalize_barcode("5449000000997") is None
+
+
 def test_upc_and_ean_aliases_match_same_product() -> None:
     assert "00123456789012" in barcode_variants("0123456789012")
     assert "123456789012" in barcode_variants("0123456789012")
@@ -342,7 +346,7 @@ def test_old_neon_response_is_enriched_without_losing_local_identity() -> None:
     assert _response_has_complete_nutrition(merged) is True
 
 
-def test_off_reads_serving_quantity_for_quick_amount_prompt() -> None:
+def test_off_does_not_treat_single_serving_as_whole_package() -> None:
     result = _result_from_off_product({
         "code": "5901234123457",
         "product_name_pl": "Serek wiejski",
@@ -351,7 +355,72 @@ def test_off_reads_serving_quantity_for_quick_amount_prompt() -> None:
         "nutriments": {},
     })
     assert result is not None
-    assert result.serving_quantity == 200
+    assert result.serving_quantity is None
+
+
+def test_name_search_does_not_replace_barcode_package_size() -> None:
+    primary = barcode_lookup.BarcodeLookupResult(
+        name="Napój", brand=None, unit="ml", kcal_per_100=None,
+        protein_per_100=None, fat_per_100=None, carbs_per_100=None,
+        price_min=3, price_max=12, source="barcode", serving_quantity=500,
+    )
+    other_variant = barcode_lookup.BarcodeLookupResult(
+        name="Napój", brand=None, unit="ml", kcal_per_100=40,
+        protein_per_100=0, fat_per_100=0, carbs_per_100=10,
+        price_min=3, price_max=12, source="name", serving_quantity=1500,
+    )
+    merged = barcode_lookup.merge_lookup_results(primary, other_variant)
+    assert merged.serving_quantity == 500
+
+
+def test_off_prefers_whole_package_over_single_serving() -> None:
+    result = _result_from_off_product({
+        "code": "4002334117481",
+        "product_name": "Jogurt",
+        "serving_quantity": 30,
+        "serving_quantity_unit": "g",
+        "product_quantity": 150,
+        "product_quantity_unit": "g",
+        "nutriments": {
+            "energy-kcal_100g": 152,
+            "proteins_100g": 2.4,
+            "fat_100g": 9.6,
+            "carbohydrates_100g": 13.9,
+        },
+    })
+    assert result is not None
+    assert result.serving_quantity == 150
+
+
+def test_off_converts_litres_and_kilograms_to_base_units() -> None:
+    drink = _result_from_off_product({
+        "product_name": "Napój",
+        "product_quantity": 1.5,
+        "product_quantity_unit": "l",
+    })
+    flour = _result_from_off_product({
+        "product_name": "Mąka",
+        "product_quantity": 1,
+        "product_quantity_unit": "kg",
+    })
+    assert drink is not None and drink.unit == "ml"
+    assert drink.serving_quantity == 1500
+    assert flour is not None and flour.unit == "g"
+    assert flour.serving_quantity == 1000
+
+
+def test_off_reads_text_quantity_when_projection_omits_numeric_fields() -> None:
+    multipack = _result_from_off_product({
+        "product_name": "Jogurty",
+        "quantity": "6 x 100 g",
+    })
+    drink = _result_from_off_product({
+        "product_name": "Napój",
+        "quantity": "1,5 l",
+    })
+    assert multipack is not None and multipack.serving_quantity == 600
+    assert drink is not None and drink.serving_quantity == 1500
+    assert drink.unit == "ml"
 
 
 def test_name_search_can_fill_missing_barcode_nutrition(monkeypatch) -> None:

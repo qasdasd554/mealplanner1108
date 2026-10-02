@@ -147,22 +147,6 @@ class UpdateAvailableScreen extends StatelessWidget {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 20),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Najważniejsze zmiany:\n'
-                      '• Skanowanie produktów działa dokładniej, pokazuje makroskładniki i uzupełnia brakujące dane.\n'
-                      '• Zeskanowany produkt można dodać od razu do Spiżarni, Dziennika i Bazy produktów.\n'
-                      '• W Dzienniku można zmienić ilość produktu, a kalorie i makroskładniki przeliczą się automatycznie.\n'
-                      '• Lista zakupów przewija się płynniej i zapamiętuje kupione produkty.',
-                      style: TextStyle(
-                        color: AppTheme.textSecondary,
-                        height: 1.55,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
                   const SizedBox(height: 32),
                   SizedBox(
                     width: double.infinity,

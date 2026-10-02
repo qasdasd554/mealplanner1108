@@ -1,13 +1,9 @@
-"""Pomocnicze funkcje sprawdzania statusu premium.
+"""Jedno źródło prawdy dla aktywnego dostępu Premium.
 
-Fundament pod płatną subskrypcję — samo sprawdzanie statusu jest już w
-pełni gotowe i używane w limitach/funkcjach premium. To, czego na razie
-BRAKUJE, to rzeczywiste POŁĄCZENIE z Google Play Billing (weryfikacja
-zakupu i automatyczne ustawianie is_premium/premium_expires_at po stronie
-serwera) — to osobny, większy kawałek pracy wymagający dodatkowej
-konfiguracji w Google Cloud (podobnej do tego, co omawialiśmy przy
-Firebase), i na razie status premium ustawia się ręcznie w bazie danych,
-dokładnie tak jak rolę administratora.
+Zakupy są weryfikowane po stronie serwera w Apple App Store lub Google
+Play, a zapisany status jest okresowo synchronizowany przez
+``app.services.subscription_sync``. Sama flaga ``is_premium`` nigdy nie
+wystarcza: płatny produkt musi mieć również przyszłą datę wygaśnięcia.
 """
 
 from __future__ import annotations
@@ -15,7 +11,6 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from app.models.user import User
-
 
 PAID_SUBSCRIPTION_PRODUCT_IDS = {
     "premium_weekly_v2",
@@ -53,9 +48,8 @@ def is_premium_active(user: User) -> bool:
         and user.premium_expires_at is None
     ):
         return False
-    if (
-        user.premium_expires_at is not None
-        and user.premium_expires_at <= datetime.now(timezone.utc)
+    if user.premium_expires_at is not None and user.premium_expires_at <= datetime.now(
+        timezone.utc
     ):
         return False
     return True

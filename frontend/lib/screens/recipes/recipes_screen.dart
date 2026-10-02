@@ -14,6 +14,8 @@ import 'recipe_leaderboard_screen.dart';
 import 'manual_add_recipe_screen.dart';
 import 'ai_add_recipe_screen.dart';
 
+enum _AddRecipeChoice { photo, text, link, manual }
+
 class RecipesScreen extends StatefulWidget {
   // Pozwala przejść od razu do filtra "Moje" — używane np. przez skrót w
   // zakładce Premium ("Publikuj przepisy"), żeby nie zmuszać użytkownika
@@ -571,8 +573,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
     );
   }
 
-  void _showAddRecipeChoice(BuildContext context) {
-    showModalBottomSheet(
+  Future<void> _showAddRecipeChoice(BuildContext context) async {
+    final choice = await showModalBottomSheet<_AddRecipeChoice>(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -632,21 +634,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       label: 'PREMIUM · 2 PKT',
                       fontSize: 8,
                     ),
-                    onTap: () {
-                      Navigator.of(sheetContext).pop();
-                      Navigator.of(context)
-                          .push(
-                            MaterialPageRoute(
-                              builder:
-                                  (_) => const AiAddRecipeScreen(
-                                    initialTabIndex: 1,
-                                  ),
-                            ),
-                          )
-                          .then((_) {
-                            if (mounted) _loadImportStatus();
-                          });
-                    },
+                    onTap:
+                        () => Navigator.of(
+                          sheetContext,
+                        ).pop(_AddRecipeChoice.photo),
                   ),
                   optionTile(
                     icon: Icons.text_snippet_outlined,
@@ -655,21 +646,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       label: 'PREMIUM · 2 PKT',
                       fontSize: 8,
                     ),
-                    onTap: () {
-                      Navigator.of(sheetContext).pop();
-                      Navigator.of(context)
-                          .push(
-                            MaterialPageRoute(
-                              builder:
-                                  (_) => const AiAddRecipeScreen(
-                                    initialTabIndex: 0,
-                                  ),
-                            ),
-                          )
-                          .then((_) {
-                            if (mounted) _loadImportStatus();
-                          });
-                    },
+                    onTap:
+                        () => Navigator.of(
+                          sheetContext,
+                        ).pop(_AddRecipeChoice.text),
                   ),
                   optionTile(
                     icon: Icons.link,
@@ -678,35 +658,20 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       label: 'PREMIUM · 2 PKT',
                       fontSize: 8,
                     ),
-                    onTap: () {
-                      Navigator.of(sheetContext).pop();
-                      Navigator.of(context)
-                          .push(
-                            MaterialPageRoute(
-                              builder:
-                                  (_) => const AiAddRecipeScreen(
-                                    initialTabIndex: 2,
-                                  ),
-                            ),
-                          )
-                          .then((_) {
-                            if (mounted) _loadImportStatus();
-                          });
-                    },
+                    onTap:
+                        () => Navigator.of(
+                          sheetContext,
+                        ).pop(_AddRecipeChoice.link),
                   ),
                   const SizedBox(height: 8),
                   // Mniejsza, drugorzędna opcja ręczna.
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
-                      onPressed: () {
-                        Navigator.of(sheetContext).pop();
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const ManualAddRecipeScreen(),
-                          ),
-                        );
-                      },
+                      onPressed:
+                          () => Navigator.of(
+                            sheetContext,
+                          ).pop(_AddRecipeChoice.manual),
                       icon: const Icon(Icons.edit_outlined, size: 18),
                       label: const Text('Dodaj ręcznie'),
                       style: OutlinedButton.styleFrom(
@@ -725,6 +690,30 @@ class _RecipesScreenState extends State<RecipesScreen> {
         );
       },
     );
+
+    // Najpierw czekamy, aż dolny panel całkowicie odda fokus, dopiero
+    // potem otwieramy kolejny ekran. Wcześniejsze jednoczesne pop+push
+    // zostawiało dwa aktywne FocusScope i na Androidzie mogło schować
+    // klawiaturę już podczas wpisywania pierwszego pola.
+    if (!mounted || !context.mounted || choice == null) return;
+    late final Widget page;
+    final isAi = choice != _AddRecipeChoice.manual;
+    switch (choice) {
+      case _AddRecipeChoice.photo:
+        page = const AiAddRecipeScreen(initialTabIndex: 1);
+        break;
+      case _AddRecipeChoice.text:
+        page = const AiAddRecipeScreen(initialTabIndex: 0);
+        break;
+      case _AddRecipeChoice.link:
+        page = const AiAddRecipeScreen(initialTabIndex: 2);
+        break;
+      case _AddRecipeChoice.manual:
+        page = const ManualAddRecipeScreen();
+        break;
+    }
+    await Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
+    if (isAi && mounted) _loadImportStatus();
   }
 
   /// Liczba obecnie aktywnych filtrów (do etykiety na przycisku "Filtry").
