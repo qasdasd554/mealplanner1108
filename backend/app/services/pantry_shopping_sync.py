@@ -24,15 +24,25 @@ def split_required_quantity(
     nie zmniejsza zapotrzebowania po raz drugi.
     """
     unit = rows[0].unit
+    serving_quantity = getattr(product, "serving_quantity", None)
     required_grams = sum(
-        quantity_to_grams(product.name, float(row.required_quantity), row.unit)
+        quantity_to_grams(
+            product.name,
+            float(row.required_quantity),
+            row.unit,
+            serving_quantity,
+        )
         for row in rows
     )
     covered_grams = pantry_coverage_grams(
-        product.name, required_grams, pantry, product.unit
+        product.name, required_grams, pantry, product.unit, serving_quantity
     )
-    covered = Decimal(str(grams_to_quantity(product.name, covered_grams, unit)))
-    required = Decimal(str(grams_to_quantity(product.name, required_grams, unit)))
+    covered = Decimal(str(grams_to_quantity(
+        product.name, covered_grams, unit, serving_quantity,
+    )))
+    required = Decimal(str(grams_to_quantity(
+        product.name, required_grams, unit, serving_quantity,
+    )))
     covered = min(required, max(Decimal(0), covered.quantize(Decimal("0.001"))))
     return covered, required - covered
 
@@ -116,9 +126,17 @@ async def sync_product_in_shopping_lists(
             if store_product is not None:
                 row.department_id = store_product.department_id
                 package_grams = quantity_to_grams(
-                    product.name, float(product.default_quantity or 1), product.unit
+                    product.name,
+                    float(product.default_quantity or 1),
+                    product.unit,
+                    getattr(product, "serving_quantity", None),
                 )
-                needed_grams = quantity_to_grams(product.name, float(purchase), row.unit)
+                needed_grams = quantity_to_grams(
+                    product.name,
+                    float(purchase),
+                    row.unit,
+                    getattr(product, "serving_quantity", None),
+                )
                 packages = math.ceil(needed_grams / package_grams) if package_grams > 0 else 1
                 row.estimated_price = (store_product.price * packages).quantize(Decimal("0.01"))
             else:

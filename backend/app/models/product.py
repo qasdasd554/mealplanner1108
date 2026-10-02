@@ -10,6 +10,7 @@ from sqlalchemy import (
     Boolean,
     Date,
     DateTime,
+    Float,
     ForeignKey,
     Numeric,
     String,
@@ -39,6 +40,11 @@ class Product(Base):
     )
     default_quantity: Mapped[Decimal | None] = mapped_column(
         Numeric(10, 3), nullable=True, comment="Wielkość opakowania"
+    )
+    serving_quantity: Mapped[float | None] = mapped_column(
+        Float,
+        nullable=True,
+        comment="Masa lub objętość jednego opakowania w g/ml",
     )
     barcode: Mapped[str | None] = mapped_column(
         String(50), unique=True, nullable=True

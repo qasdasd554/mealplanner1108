@@ -6,6 +6,7 @@ import '../../models/barcode_lookup_result.dart';
 import '../../models/product.dart';
 import '../../services/product_name_lookup_service.dart';
 import '../../utils/quantity_formatter.dart';
+import '../../utils/recipe_ingredient_defaults.dart';
 import '../../services/recipe_service.dart';
 import '../../theme/app_theme.dart';
 import 'recipe_detail_screen.dart';
@@ -223,7 +224,8 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
       name: selected.name ?? '',
       brand: selected.brand,
       unit: selected.unit,
-      defaultQuantity: {'szt', 'kg', 'l'}.contains(selected.unit) ? 1 : 100,
+      defaultQuantity: defaultRecipeIngredientQuantity(selected.unit),
+      servingQuantity: selected.servingQuantity,
       nutritionPer100: NutritionInfo(
         kcal: selected.kcalPer100 ?? 0,
         protein: selected.proteinPer100 ?? 0,

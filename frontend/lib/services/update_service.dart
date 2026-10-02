@@ -139,8 +139,10 @@ class UpdateAvailableScreen extends StatelessWidget {
                     forceUpdate
                         ? 'Ta wersja aplikacji nie jest już obsługiwana. '
                             'Zaktualizuj ją, aby korzystać dalej.'
-                        : 'Zaktualizuj aplikację, aby korzystać z najnowszych '
-                            'funkcji i poprawek.',
+                        : 'Naprawiono ręczne dodawanie przepisów: składniki '
+                            'w opakowaniach zaczynają od 1 opakowania, a '
+                            'brakujące kcal i makroskładniki są uzupełniane '
+                            'i poprawnie przeliczane.',
                     style: TextStyle(
                       color: AppTheme.textSecondary,
                       height: 1.5,

@@ -106,7 +106,9 @@ def compute_recipe_nutrition_total(ingredients: Sequence["RecipeIngredient"]) ->
             try:
                 qty = float(ing.quantity)
                 unit = getattr(ing, "unit", "g")
-                w = quantity_to_grams(prod.name, qty, unit)
+                w = quantity_to_grams(
+                    prod.name, qty, unit, getattr(prod, "serving_quantity", None)
+                )
                 w = _edible_grams(prod.name, w)
                 for k in total:
                     total[k] += float(prod.nutrition_per_100.get(k, 0) or 0) * (w / 100.0)
@@ -168,7 +170,12 @@ WEIGHT_PER_SZT_G: dict[str, float] = {
 _DEFAULT_SZT_WEIGHT_G = 100.0
 
 
-def grams_to_quantity(product_name: str, grams: float, unit: str) -> float:
+def grams_to_quantity(
+    product_name: str,
+    grams: float,
+    unit: str,
+    serving_quantity: float | None = None,
+) -> float:
     """Przelicza ilość z gramów/mililitrów z powrotem na jednostkę ``unit``.
 
     Odwrotność ``quantity_to_grams`` — używana np. przy wyświetlaniu sumy
@@ -179,10 +186,18 @@ def grams_to_quantity(product_name: str, grams: float, unit: str) -> float:
     if unit == "szt":
         weight = WEIGHT_PER_SZT_G.get(product_name, _DEFAULT_SZT_WEIGHT_G)
         return grams / weight if weight else 0.0
+    if unit == "opak":
+        weight = float(serving_quantity or 100.0)
+        return grams / weight if weight else 0.0
     return grams
 
 
-def quantity_to_grams(product_name: str, quantity: float, unit: str) -> float:
+def quantity_to_grams(
+    product_name: str,
+    quantity: float,
+    unit: str,
+    serving_quantity: float | None = None,
+) -> float:
     """Przelicza ilość składnika na gramy (lub mililitry, traktowane 1:1 z gramami).
 
     Args:
@@ -198,6 +213,10 @@ def quantity_to_grams(product_name: str, quantity: float, unit: str) -> float:
         return qty * 1000.0
     if unit == "szt":
         return qty * WEIGHT_PER_SZT_G.get(product_name, _DEFAULT_SZT_WEIGHT_G)
+    if unit == "opak":
+        # Jedno opakowanie nie może być liczone jak jeden gram. Jeśli baza
+        # nie zna jeszcze gramatury, 100 g jest ostrożnym przybliżeniem.
+        return qty * float(serving_quantity or 100.0)
     # "g", "ml" i inne nieznane jednostki traktujemy jako wartość 1:1
     return qty
 
@@ -238,7 +257,10 @@ class NutritionCalculator:
                 continue
 
             weight_g = quantity_to_grams(
-                product.name, float(ing.quantity or 0.0), ing.unit
+                product.name,
+                float(ing.quantity or 0.0),
+                ing.unit,
+                getattr(product, "serving_quantity", None),
             )
             factor = weight_g / 100.0
 
@@ -436,5 +458,5 @@ def is_ingredient_quantity_reasonable(quantity: float, unit: str) -> bool:
     produktu liczonego w sztukach). Limit MUSI zależeć od jednostki —
     200 sztuk to absurd, ale 200 gramów to normalna ilość.
     """
-    max_allowed = 50.0 if unit == "szt" else 20000.0
+    max_allowed = 50.0 if unit in {"szt", "opak"} else 20000.0
     return 0 < quantity <= max_allowed

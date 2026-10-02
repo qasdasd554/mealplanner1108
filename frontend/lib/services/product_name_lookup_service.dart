@@ -44,6 +44,7 @@ class ProductNameLookupService {
         'protein_per_100': result.proteinPer100,
         'fat_per_100': result.fatPer100,
         'carbs_per_100': result.carbsPer100,
+        'serving_quantity': result.servingQuantity,
       },
     );
     return Product.fromJson(response as Map<String, dynamic>);

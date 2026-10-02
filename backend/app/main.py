@@ -273,6 +273,12 @@ async def _create_tables() -> None:
                 "serving_quantity DOUBLE PRECISION"
             )
         )
+        await conn.execute(
+            text(
+                "ALTER TABLE products ADD COLUMN IF NOT EXISTS "
+                "serving_quantity DOUBLE PRECISION"
+            )
+        )
         # Fizyczna ilość produktu w Dzienniku. Pozwala zmieniać 150 g na
         # 80 g lub ml bez utraty informacji, ile wynosiła jedna porcja.
         await conn.execute(text(
@@ -380,8 +386,10 @@ async def _normalize_barcode_products_as_packages() -> None:
             "(id, barcode, name, brand, unit, serving_quantity, "
             "nutrition_per_100, source, created_at, updated_at) "
             "SELECT gen_random_uuid(), barcode, name, brand, "
-            "CASE WHEN unit = 'kg' THEN 'g' WHEN unit = 'l' THEN 'ml' ELSE unit END, "
+            "CASE WHEN unit = 'kg' THEN 'g' WHEN unit = 'l' THEN 'ml' "
+            "WHEN unit = 'opak' THEN 'g' ELSE unit END, "
             "CASE WHEN unit IN ('kg', 'l') THEN default_quantity * 1000 "
+            "WHEN unit = 'opak' THEN COALESCE(serving_quantity, 100) "
             "ELSE default_quantity END, nutrition_per_100, "
             "'catalog_package_migration', NOW(), NOW() FROM products "
             "WHERE barcode IS NOT NULL AND barcode <> '' AND length(barcode) <= 14 "
@@ -390,9 +398,35 @@ async def _normalize_barcode_products_as_packages() -> None:
             "EXCLUDED.serving_quantity)"
         ))
         await conn.execute(text(
+            "UPDATE barcode_product_cache SET unit = 'g', serving_quantity = 100 "
+            "WHERE source = 'catalog_package_migration' "
+            "AND unit = 'opak' AND serving_quantity = 1"
+        ))
+        await conn.execute(text(
+            "UPDATE products p SET serving_quantity = "
+            "COALESCE(p.serving_quantity, c.serving_quantity) "
+            "FROM barcode_product_cache c "
+            "WHERE p.barcode = c.barcode AND c.serving_quantity IS NOT NULL"
+        ))
+        await conn.execute(text(
+            "UPDATE products p SET nutrition_per_100 = c.nutrition_per_100 "
+            "FROM barcode_product_cache c "
+            "WHERE p.barcode = c.barcode "
+            "AND c.nutrition_per_100 IS NOT NULL "
+            "AND (p.nutrition_per_100 IS NULL OR ("
+            "COALESCE((p.nutrition_per_100->>'kcal')::double precision, 0) = 0 AND "
+            "COALESCE((p.nutrition_per_100->>'protein')::double precision, 0) = 0 AND "
+            "COALESCE((p.nutrition_per_100->>'fat')::double precision, 0) = 0 AND "
+            "COALESCE((p.nutrition_per_100->>'carbs')::double precision, 0) = 0))"
+        ))
+        await conn.execute(text(
             "UPDATE products SET unit = 'opak', default_quantity = 1 "
             "WHERE barcode IS NOT NULL AND barcode <> '' "
             "AND (unit <> 'opak' OR default_quantity IS DISTINCT FROM 1)"
+        ))
+        await conn.execute(text(
+            "UPDATE recipe_ingredients SET quantity = 1 "
+            "WHERE unit = 'opak' AND quantity = 100"
         ))
 
 
@@ -477,12 +511,15 @@ async def _backfill_missing_nutrition_totals() -> None:
             for r in all_recipes:
                 if r.id in already_selected:
                     continue
+                has_package_ingredient = any(
+                    ing.unit == "opak" for ing in r.ingredients
+                )
                 has_frying_fat = any(
                     (ing.product.name or "").strip().lower() in FRYING_FATS
                     for ing in r.ingredients
                     if ing.product is not None
                 )
-                if has_frying_fat:
+                if has_frying_fat or has_package_ingredient:
                     recipes.append(r)
 
             if not recipes:

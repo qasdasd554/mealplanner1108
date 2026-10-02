@@ -243,7 +243,12 @@ class RecipeResponse(RecipeBase):
                     try:
                         qty = float(ing.quantity)
                         unit = getattr(ing, "unit", "g")
-                        w = quantity_to_grams(prod.name, qty, unit)
+                        w = quantity_to_grams(
+                            prod.name,
+                            qty,
+                            unit,
+                            getattr(prod, "serving_quantity", None),
+                        )
                         for k in total:
                             total[k] += float(prod.nutrition_per_100.get(k, 0) or 0) * (w / 100.0)
                     except:
@@ -327,4 +332,3 @@ class AIRecipeImportRequest(BaseModel):
         from app.core.photo_validation import validate_and_check_photo_base64
 
         return validate_and_check_photo_base64(v, 3 * 1024 * 1024)
-

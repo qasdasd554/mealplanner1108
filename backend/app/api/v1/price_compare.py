@@ -98,7 +98,12 @@ async def compare_prices(
             if not product:
                 continue
             req_qty_native = float(ingredient.quantity) * servings_multiplier
-            req_qty_grams = quantity_to_grams(product.name, req_qty_native, ingredient.unit)
+            req_qty_grams = quantity_to_grams(
+                product.name,
+                req_qty_native,
+                ingredient.unit,
+                getattr(product, "serving_quantity", None),
+            )
 
             if product.id not in product_requirements:
                 product_requirements[product.id] = {"product": product, "grams": req_qty_grams}
@@ -142,7 +147,12 @@ async def compare_prices(
 
             product_unit = product.unit or "szt"
             default_qty_native = float(product.default_quantity or 1.0)
-            default_qty_grams = quantity_to_grams(product.name, default_qty_native, product_unit)
+            default_qty_grams = quantity_to_grams(
+                product.name,
+                default_qty_native,
+                product_unit,
+                getattr(product, "serving_quantity", None),
+            )
 
             package_count = (
                 math.ceil(total_grams / default_qty_grams) if default_qty_grams > 0 else 1
@@ -152,7 +162,15 @@ async def compare_prices(
 
             items.append(PriceCompareItem(
                 product_name=product.name,
-                quantity_needed=round(grams_to_quantity(product.name, total_grams, product_unit), 2),
+                quantity_needed=round(
+                    grams_to_quantity(
+                        product.name,
+                        total_grams,
+                        product_unit,
+                        getattr(product, "serving_quantity", None),
+                    ),
+                    2,
+                ),
                 unit=product_unit,
                 price_in_store=item_cost,
                 store_brand_name=store_product.store_brand_name,

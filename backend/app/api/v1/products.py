@@ -182,6 +182,93 @@ class RecipeIngredientProductCreate(BaseModel):
     protein_per_100: float | None = Field(None, ge=0, le=200)
     fat_per_100: float | None = Field(None, ge=0, le=200)
     carbs_per_100: float | None = Field(None, ge=0, le=200)
+    serving_quantity: float | None = Field(None, gt=0, le=100_000)
+
+
+def _nutrition_values_are_complete(nutrition: dict | None) -> bool:
+    values = [
+        (nutrition or {}).get("kcal"),
+        (nutrition or {}).get("protein"),
+        (nutrition or {}).get("fat"),
+        (nutrition or {}).get("carbs"),
+    ]
+    return all(value is not None for value in values) and any(
+        float(value) > 0 for value in values if value is not None
+    )
+
+
+async def _enrich_recipe_ingredient_product(
+    product: Product,
+    payload: RecipeIngredientProductCreate,
+    db: AsyncSession,
+) -> Product:
+    """Uzupełnia makro i gramaturę przed zapisaniem składnika przepisu."""
+    changed = False
+    incoming = {
+        "kcal": payload.kcal_per_100,
+        "protein": payload.protein_per_100,
+        "fat": payload.fat_per_100,
+        "carbs": payload.carbs_per_100,
+        "fiber": (product.nutrition_per_100 or {}).get("fiber"),
+    }
+    if (
+        not _nutrition_values_are_complete(product.nutrition_per_100)
+        and _nutrition_values_are_complete(incoming)
+    ):
+        product.nutrition_per_100 = incoming
+        changed = True
+    if product.serving_quantity is None and payload.serving_quantity is not None:
+        product.serving_quantity = payload.serving_quantity
+        changed = True
+
+    barcode = product.barcode or payload.barcode
+    if barcode:
+        from app.services.barcode_lookup import barcode_variants
+
+        cached = (
+            await db.execute(
+                select(BarcodeProductCache)
+                .where(BarcodeProductCache.barcode.in_(barcode_variants(barcode)))
+                .limit(1)
+            )
+        ).scalar_one_or_none()
+        if cached is not None:
+            if (
+                not _nutrition_values_are_complete(product.nutrition_per_100)
+                and _nutrition_values_are_complete(cached.nutrition_per_100)
+            ):
+                product.nutrition_per_100 = dict(cached.nutrition_per_100 or {})
+                changed = True
+            if product.serving_quantity is None and cached.serving_quantity is not None:
+                product.serving_quantity = cached.serving_quantity
+                changed = True
+
+    if not _nutrition_values_are_complete(product.nutrition_per_100):
+        external = await lookup_barcode_external(barcode) if barcode else None
+        if external is None or not has_complete_nutrition(external):
+            by_name = await find_nutrition_by_name(product.name, product.brand)
+            if by_name is not None:
+                external = (
+                    merge_lookup_results(external, by_name)
+                    if external is not None
+                    else by_name
+                )
+        if external is not None and has_complete_nutrition(external):
+            product.nutrition_per_100 = {
+                "kcal": external.kcal_per_100,
+                "protein": external.protein_per_100,
+                "fat": external.fat_per_100,
+                "carbs": external.carbs_per_100,
+                "fiber": (product.nutrition_per_100 or {}).get("fiber"),
+            }
+            if product.serving_quantity is None and external.serving_quantity is not None:
+                product.serving_quantity = external.serving_quantity
+            changed = True
+
+    if changed:
+        await db.commit()
+        await db.refresh(product)
+    return product
 
 
 async def _upsert_barcode_cache(
@@ -692,12 +779,36 @@ async def search_products_by_name(
     )
 
     suggestions: list[ProductNameSuggestion] = []
-    seen: set[tuple[str, str]] = set()
+    suggestion_indexes: dict[tuple[str, str], int] = {}
+
+    def suggestion_has_nutrition(suggestion: ProductNameSuggestion) -> bool:
+        return _nutrition_values_are_complete({
+            "kcal": suggestion.kcal_per_100,
+            "protein": suggestion.protein_per_100,
+            "fat": suggestion.fat_per_100,
+            "carbs": suggestion.carbs_per_100,
+        })
 
     def add_suggestion(suggestion: ProductNameSuggestion) -> None:
         key = (suggestion.name.casefold(), (suggestion.brand or "").casefold())
-        if key not in seen and len(suggestions) < limit:
-            seen.add(key)
+        existing_index = suggestion_indexes.get(key)
+        if existing_index is not None:
+            existing = suggestions[existing_index]
+            if (
+                not suggestion_has_nutrition(existing)
+                and suggestion_has_nutrition(suggestion)
+            ):
+                existing.kcal_per_100 = suggestion.kcal_per_100
+                existing.protein_per_100 = suggestion.protein_per_100
+                existing.fat_per_100 = suggestion.fat_per_100
+                existing.carbs_per_100 = suggestion.carbs_per_100
+            if existing.serving_quantity is None:
+                existing.serving_quantity = suggestion.serving_quantity
+            if existing.barcode is None:
+                existing.barcode = suggestion.barcode
+            return
+        if len(suggestions) < limit:
+            suggestion_indexes[key] = len(suggestions)
             suggestions.append(suggestion)
 
     catalog_suggestions: list[ProductNameSuggestion] = []
@@ -717,6 +828,7 @@ async def search_products_by_name(
             carbs_per_100=nutrition.get("carbs"),
             price_min=price_min,
             price_max=price_max,
+            serving_quantity=product.serving_quantity,
         ))
 
     cache_suggestions: list[ProductNameSuggestion] = []
@@ -734,6 +846,7 @@ async def search_products_by_name(
             carbs_per_100=nutrition.get("carbs"),
             price_min=cached.price_min,
             price_max=cached.price_max,
+            serving_quantity=cached.serving_quantity,
         ))
 
     # Bez rezerwacji katalog potrafi zapełnić cały limit, więc wyszukiwanie
@@ -765,6 +878,7 @@ async def search_products_by_name(
                 carbs_per_100=external.carbs_per_100,
                 price_min=external.price_min,
                 price_max=external.price_max,
+                serving_quantity=external.serving_quantity,
             ))
 
     # Gdy OFF jest niedostępne albo nie ma dopasowań, wykorzystaj pełny
@@ -801,11 +915,15 @@ async def resolve_recipe_ingredient_product(
         existing = result.scalar_one_or_none()
         if existing is None:
             raise HTTPException(status_code=404, detail="Nie znaleziono produktu")
-        return existing
+        return await _enrich_recipe_ingredient_product(existing, payload, db)
 
     name = " ".join(payload.name.split())
     brand = (payload.brand or "").strip() or None
-    unit = payload.unit.strip() if payload.unit in {"g", "kg", "ml", "l", "szt"} else "g"
+    unit = (
+        payload.unit.strip()
+        if payload.unit in {"g", "kg", "ml", "l", "szt", "opak"}
+        else "g"
+    )
     if payload.barcode:
         from app.services.barcode_lookup import barcode_variants
 
@@ -822,7 +940,7 @@ async def resolve_recipe_ingredient_product(
             )
         )
         if same_dimension:
-            return existing
+            return await _enrich_recipe_ingredient_product(existing, payload, db)
     result = await db.execute(select(Product).where(
         Product.created_by_user_id == current_user.id,
         Product.review_status == "private",
@@ -832,7 +950,7 @@ async def resolve_recipe_ingredient_product(
     ).limit(1))
     existing = result.scalar_one_or_none()
     if existing is not None:
-        return existing
+        return await _enrich_recipe_ingredient_product(existing, payload, db)
 
     from app.core.rate_limit import enforce_user_rate_limit, recipe_ingredient_limiter
 
@@ -853,7 +971,8 @@ async def resolve_recipe_ingredient_product(
         }
     product = Product(
         name=name, brand=brand, unit=unit,
-        default_quantity=Decimal(1 if unit in {"szt", "kg", "l"} else 100),
+        default_quantity=Decimal(1 if unit in {"opak", "szt", "kg", "l"} else 100),
+        serving_quantity=payload.serving_quantity,
         nutrition_per_100=nutrition,
         created_by_user_id=current_user.id, review_status="private",
         barcode=None,

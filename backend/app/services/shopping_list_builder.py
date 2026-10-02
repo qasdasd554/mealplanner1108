@@ -42,6 +42,7 @@ def pantry_coverage_grams(
     required_grams: float,
     pantry: PantryItem | None,
     product_unit: str,
+    serving_quantity: float | None = None,
 ) -> float:
     """Ile z zapotrzebowania pokrywa obecna spiżarnia (bez zużywania stanu)."""
     if pantry is None:
@@ -49,7 +50,10 @@ def pantry_coverage_grams(
     if pantry.quantity is None:
         return required_grams
     available = quantity_to_grams(
-        product_name, float(pantry.quantity), pantry.unit or product_unit,
+        product_name,
+        float(pantry.quantity),
+        pantry.unit or product_unit,
+        serving_quantity,
     )
     return min(required_grams, max(0.0, available))
 
@@ -323,7 +327,10 @@ class ShoppingListBuilder:
                 product = ing.product
                 product_name = product.name if product else ""
                 grams = quantity_to_grams(
-                    product_name, float(ing.quantity or 0.0), ing.unit or "g"
+                    product_name,
+                    float(ing.quantity or 0.0),
+                    ing.unit or "g",
+                    getattr(product, "serving_quantity", None),
                 )
                 aggregated[ing.product_id] += grams * multiplier
 
@@ -400,6 +407,7 @@ class ShoppingListBuilder:
             pantry_grams = pantry_coverage_grams(
                 product_name, total_qty_grams,
                 pantry_by_product.get(product_id), product_unit,
+                getattr(product, "serving_quantity", None),
             )
             purchase_grams = max(0.0, total_qty_grams - pantry_grams)
 
@@ -409,6 +417,7 @@ class ShoppingListBuilder:
                     "custom_name": None if store_product else product_name,
                     "required_quantity": round(grams_to_quantity(
                         product_name, pantry_grams, product_unit,
+                        getattr(product, "serving_quantity", None),
                     ), 3),
                     "unit": product_unit,
                     "estimated_price": 0,
@@ -428,6 +437,7 @@ class ShoppingListBuilder:
                     "custom_name": product_name,
                     "required_quantity": round(grams_to_quantity(
                         product_name, purchase_grams, product_unit,
+                        getattr(product, "serving_quantity", None),
                     ), 3),
                     "unit": product_unit,
                     "estimated_price": None,
@@ -441,14 +451,20 @@ class ShoppingListBuilder:
             # Ilość potrzebna, przeliczona na jednostkę natywną produktu
             # (tę samą, w której podane jest default_quantity opakowania)
             required_in_product_unit = grams_to_quantity(
-                product_name, purchase_grams, product_unit
+                product_name,
+                purchase_grams,
+                product_unit,
+                getattr(product, "serving_quantity", None),
             )
 
             # Rozmiar opakowania — przeliczony na wspólną bazę gramów/ml,
             # żeby dzielenie odbywało się w spójnych jednostkach
             default_qty_native = float(getattr(product, "default_quantity", None) or 1.0)
             default_qty_grams = quantity_to_grams(
-                product_name, default_qty_native, product_unit
+                product_name,
+                default_qty_native,
+                product_unit,
+                getattr(product, "serving_quantity", None),
             )
 
             package_count = (
