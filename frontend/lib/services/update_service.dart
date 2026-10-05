@@ -147,8 +147,9 @@ class UpdateAvailableScreen extends StatelessWidget {
                             'automatycznie otwiera aktualny dzień.\n'
                             '• Premium czytelnie pokazuje 7 dni bezpłatnego '
                             'testu oraz cenę po jego zakończeniu.\n'
-                            '• Przycisk „Dodaj” jest teraz wyraźnie '
-                            'odróżniony od działań aktywnego planu.',
+                            '• Przycisk „Dodaj” ma teraz czytelniejszy '
+                            'zielony styl dopasowany do skrótów na ekranie '
+                            'głównym.',
                     style: TextStyle(
                       color: AppTheme.textSecondary,
                       height: 1.5,
