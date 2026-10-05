@@ -143,13 +143,12 @@ class UpdateAvailableScreen extends StatelessWidget {
                             'opakowania, kcal i makroskładniki.\n'
                             '• Wszystkie 137 przepisów systemowych ma teraz '
                             'własne, dopasowane zdjęcie dania.\n'
-                            '• Informacje o Premium pojawiają się dopiero '
-                            'po skorzystaniu z danej funkcji i nie częściej '
-                            'niż raz na 7 dni.\n'
                             '• Dziennik po powrocie do aplikacji '
                             'automatycznie otwiera aktualny dzień.\n'
-                            '• Korzyści oraz warunki okresu próbnego są '
-                            'teraz przedstawione czytelniej.',
+                            '• Premium czytelnie pokazuje 7 dni bezpłatnego '
+                            'testu oraz cenę po jego zakończeniu.\n'
+                            '• Przycisk „Dodaj” jest teraz wyraźnie '
+                            'odróżniony od działań aktywnego planu.',
                     style: TextStyle(
                       color: AppTheme.textSecondary,
                       height: 1.5,

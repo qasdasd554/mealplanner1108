@@ -118,18 +118,29 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
             child:
                 (_currentIndex == 0 || _currentIndex == 4)
-                    ? FilledButton.tonalIcon(
+                    ? OutlinedButton.icon(
                       key: const ValueKey('quick-add-visible'),
                       onPressed: _showQuickAddSheet,
-                      style: FilledButton.styleFrom(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppTheme.actionSecondaryColor,
+                        backgroundColor: Colors.transparent,
+                        side: BorderSide(
+                          color: AppTheme.actionSecondaryColor.withValues(
+                            alpha: 0.8,
+                          ),
+                          width: 1.4,
+                        ),
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         minimumSize: const Size(116, 40),
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         visualDensity: VisualDensity.compact,
                         shape: const StadiumBorder(),
                       ),
-                      icon: const Icon(Icons.add, size: 18),
-                      label: const Text('Dodaj'),
+                      icon: const Icon(Icons.add_circle_outline, size: 18),
+                      label: const Text(
+                        'Dodaj',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
                     )
                     : const SizedBox.shrink(key: ValueKey('quick-add-hidden')),
           ),

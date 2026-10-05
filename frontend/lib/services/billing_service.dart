@@ -120,10 +120,10 @@ class BillingService {
     return regular ?? fallback;
   }
 
-  /// Cena pokazywana na karcie Androida obejmuje również cenę po trialu,
-  /// zamiast mylącego samego „0 zł”. App Store sam prezentuje uprawnionemu
-  /// użytkownikowi warunki oferty w systemowym arkuszu zakupu.
-  String displaySubscriptionPrice(ProductDetails product) {
+  /// Zwraca cenę regularną po bezpłatnym okresie próbnym. Google Play może
+  /// przekazać jako cenę główną pierwszą, darmową fazę oferty; na karcie
+  /// pokazujemy więc ostatnią płatną fazę. App Store zwraca cenę regularną.
+  String regularSubscriptionPrice(ProductDetails product) {
     if (product is! GooglePlayProductDetails) return product.price;
     final index = product.subscriptionIndex;
     final offers = product.productDetails.subscriptionOfferDetails;
@@ -134,7 +134,7 @@ class BillingService {
     if (phases.length < 2 || phases.first.priceAmountMicros != 0) {
       return product.price;
     }
-    return '0 zł, potem ${phases.last.formattedPrice}';
+    return phases.last.formattedPrice;
   }
 
   /// Przywraca wcześniej kupione, wciąż aktywne subskrypcje — potrzebne

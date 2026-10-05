@@ -1357,7 +1357,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
         _buildPricingCard(
           context: context,
           title: 'Tygodniowo',
-          price: _billing.displaySubscriptionPrice(weekly),
+          price: _billing.regularSubscriptionPrice(weekly),
           period: '',
           highlight: false,
           discountPercent:
@@ -1372,8 +1372,9 @@ class _PremiumScreenState extends State<PremiumScreen> {
         _buildPricingCard(
           context: context,
           title: 'Miesięcznie',
-          price: _billing.displaySubscriptionPrice(monthly),
+          price: _billing.regularSubscriptionPrice(monthly),
           period: '',
+          trialLabel: '7 dni za darmo',
           highlight: false,
           discountPercent:
               _activeOffers[kMonthlyProductId]?['discount_percent'] as int?,
@@ -1387,7 +1388,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
         _buildPricingCard(
           context: context,
           title: 'Rocznie',
-          price: _billing.displaySubscriptionPrice(yearly),
+          price: _billing.regularSubscriptionPrice(yearly),
           period: '',
           badge:
               _activeOffers.containsKey(kYearlyProductId)
@@ -1404,8 +1405,8 @@ class _PremiumScreenState extends State<PremiumScreen> {
       const SizedBox(height: 20),
       Text(
         Platform.isIOS
-            ? 'Subskrypcję można anulować w ustawieniach Apple ID. Cenę po rabacie potwierdza App Store przed zakupem.'
-            : 'Subskrypcję można anulować w dowolnym momencie w ustawieniach Google Play.',
+            ? '7-dniowy okres próbny jest dostępny dla uprawnionych kont. Potem subskrypcja odnawia się za cenę pokazaną powyżej; możesz ją anulować w ustawieniach Apple ID.'
+            : '7-dniowy okres próbny jest dostępny dla uprawnionych kont. Potem subskrypcja odnawia się za cenę pokazaną powyżej; możesz ją anulować w Google Play.',
         textAlign: TextAlign.center,
         style: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
       ),
@@ -1633,6 +1634,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
     required String title,
     required String price,
     required String period,
+    String? trialLabel,
     String? badge,
     int? discountPercent,
     required bool highlight,
@@ -1707,18 +1709,58 @@ class _PremiumScreenState extends State<PremiumScreen> {
                       color: highlight ? Colors.white : null,
                     ),
                   ),
+                  if (trialLabel != null) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.celebration_outlined,
+                            size: 16,
+                            color: AppTheme.primaryColor,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            trialLabel,
+                            style: TextStyle(
+                              color: AppTheme.primaryColor,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                  ],
                   RichText(
                     text: TextSpan(
                       children: [
                         TextSpan(
                           text:
-                              discountPercent == null
+                              trialLabel != null
+                                  ? 'Potem $price miesięcznie'
+                                  : discountPercent == null
                                   ? price
                                   : Platform.isIOS
                                   ? 'Cena przed kodem: $price'
                                   : 'Cena promocyjna: $price',
                           style: TextStyle(
-                            fontSize: discountPercent == null ? 22 : 15,
+                            fontSize:
+                                trialLabel != null
+                                    ? 15
+                                    : discountPercent == null
+                                    ? 22
+                                    : 15,
                             fontWeight: FontWeight.bold,
                             color:
                                 highlight
@@ -1762,7 +1804,9 @@ class _PremiumScreenState extends State<PremiumScreen> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                         : Text(
-                          discountPercent == null
+                          trialLabel != null
+                              ? 'Wypróbuj za 0 zł'
+                              : discountPercent == null
                               ? 'Kup Premium'
                               : Platform.isIOS
                               ? 'Odbierz kod'
