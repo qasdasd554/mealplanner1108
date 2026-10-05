@@ -7,7 +7,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../models/recipe.dart';
 
 /// Pokazuje zdjęcie przepisu:
-/// 1. Prawdziwe zdjęcie z zasobów aplikacji (81 oficjalnych przepisów),
+/// 1. Prawdziwe zdjęcie z zasobów aplikacji (137 oficjalnych przepisów),
 /// 2. w jego braku — zdjęcie przesłane przez użytkownika,
 /// 3. w ostateczności — ilustrację kategorii jako zapasową.
 class RecipePhoto extends StatefulWidget {

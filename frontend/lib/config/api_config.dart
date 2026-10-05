@@ -131,6 +131,7 @@ class ApiConfig {
   static const String usersMe = '/users/me';
   static const String usersAllergens = '/users/me/allergens';
   static const String usersCalorieCalculator = '/users/me/calorie-calculator';
+  static const String usersPremiumOfferClaim = '/users/me/premium-offer/claim';
   static const String usersRecipeLeaderboard = '/users/leaderboard/recipes';
   static const String usersRecipeLeaderboardWeekly =
       '/users/leaderboard/recipes/weekly';

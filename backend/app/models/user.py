@@ -176,6 +176,16 @@ class User(Base):
     # do zgodności i diagnostyki,
     # bez identyfikatora urządzenia i bez wykorzystania reklamowego.
     app_version: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    # Ostatnie pokazanie kontekstowej oferty Premium. Przechowujemy je na
+    # koncie (zamiast wyłącznie lokalnie w telefonie), aby limit jednego
+    # komunikatu na 7 dni działał również po reinstalacji aplikacji i na
+    # drugim urządzeniu tego samego użytkownika.
+    premium_offer_last_shown_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    premium_offer_last_context: Mapped[str | None] = mapped_column(
+        String(32), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

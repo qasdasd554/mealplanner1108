@@ -139,10 +139,17 @@ class UpdateAvailableScreen extends StatelessWidget {
                     forceUpdate
                         ? 'Ta wersja aplikacji nie jest już obsługiwana. '
                             'Zaktualizuj ją, aby korzystać dalej.'
-                        : 'Naprawiono ręczne dodawanie przepisów: składniki '
-                            'w opakowaniach zaczynają od 1 opakowania, a '
-                            'brakujące kcal i makroskładniki są uzupełniane '
-                            'i poprawnie przeliczane.',
+                        : '• Ręcznie dodane przepisy poprawnie liczą '
+                            'opakowania, kcal i makroskładniki.\n'
+                            '• Wszystkie 137 przepisów systemowych ma teraz '
+                            'własne, dopasowane zdjęcie dania.\n'
+                            '• Informacje o Premium pojawiają się dopiero '
+                            'po skorzystaniu z danej funkcji i nie częściej '
+                            'niż raz na 7 dni.\n'
+                            '• Dziennik po powrocie do aplikacji '
+                            'automatycznie otwiera aktualny dzień.\n'
+                            '• Korzyści oraz warunki okresu próbnego są '
+                            'teraz przedstawione czytelniej.',
                     style: TextStyle(
                       color: AppTheme.textSecondary,
                       height: 1.5,

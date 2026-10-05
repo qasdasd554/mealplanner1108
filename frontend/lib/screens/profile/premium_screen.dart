@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+
 import 'dart:io' show Platform;
+
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import 'dart:async';
+
 import '../../theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/billing_service.dart';
 import '../../services/api_client.dart';
+import '../../models/premium_offer.dart';
 import '../../utils/error_utils.dart';
 import '../../widgets/campaign_icon.dart';
 import '../recipes/recipes_screen.dart';
@@ -25,8 +30,13 @@ import '../meal_plan/weekly_plan_automation_screen.dart';
 /// PO zweryfikowaniu tokenu zakupu bezpośrednio u Google.
 class PremiumScreen extends StatefulWidget {
   final bool popAfterSuccess;
+  final PremiumOfferContext? offerContext;
 
-  const PremiumScreen({super.key, this.popAfterSuccess = true});
+  const PremiumScreen({
+    super.key,
+    this.popAfterSuccess = true,
+    this.offerContext,
+  });
 
   @override
   State<PremiumScreen> createState() => _PremiumScreenState();
@@ -34,6 +44,8 @@ class PremiumScreen extends StatefulWidget {
 
 class _PremiumScreenState extends State<PremiumScreen> {
   final BillingService _billing = BillingService();
+  final GlobalKey _pricingSectionKey = GlobalKey();
+  final ScrollController _screenScrollController = ScrollController();
   StreamSubscription<List<PurchaseDetails>>? _purchaseSub;
 
   bool _isLoadingProducts = true;
@@ -54,6 +66,182 @@ class _PremiumScreenState extends State<PremiumScreen> {
   // sekund.
   bool _isProcessingPurchase = false;
   bool _isRestoring = false;
+
+  IconData get _contextIcon => switch (widget.offerContext!) {
+    PremiumOfferContext.recipe => Icons.menu_book_rounded,
+    PremiumOfferContext.mealPlan => Icons.calendar_month_rounded,
+    PremiumOfferContext.barcodeScanner => Icons.qr_code_scanner_rounded,
+    PremiumOfferContext.shoppingList => Icons.shopping_cart_rounded,
+    PremiumOfferContext.pantry => Icons.kitchen_rounded,
+    PremiumOfferContext.journal => Icons.insights_rounded,
+  };
+
+  Widget _buildContextualOfferCard(BuildContext context) {
+    final copy = PremiumOfferCopy.forContext(widget.offerContext!);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFF6D28D9).withValues(alpha: 0.10),
+            const Color(0xFFE0A62E).withValues(alpha: 0.10),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: const Color(0xFF6D28D9).withValues(alpha: 0.22),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF6D28D9).withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(13),
+                ),
+                child: Icon(
+                  _contextIcon,
+                  color: const Color(0xFF6D28D9),
+                  size: 23,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  copy.eyebrow,
+                  style: const TextStyle(
+                    color: Color(0xFF6D28D9),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFE2A1),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: const Text(
+                  '7 DNI ZA 0 ZŁ*',
+                  style: TextStyle(
+                    color: Color(0xFF8A5A00),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Text(
+            copy.title,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w800,
+              height: 1.15,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            copy.description,
+            style: TextStyle(
+              color: AppTheme.textSecondary,
+              fontSize: 14,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ...copy.benefits.map(
+            (benefit) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.check_circle,
+                    size: 19,
+                    color: AppTheme.primaryColor,
+                  ),
+                  const SizedBox(width: 9),
+                  Expanded(
+                    child: Text(
+                      benefit,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: () {
+                final pricingContext = _pricingSectionKey.currentContext;
+                if (pricingContext != null) {
+                  Scrollable.ensureVisible(
+                    pricingContext,
+                    duration: const Duration(milliseconds: 450),
+                    curve: Curves.easeOutCubic,
+                    alignment: 0.05,
+                  );
+                } else if (_screenScrollController.hasClients) {
+                  final target =
+                      (_screenScrollController.offset + 520)
+                          .clamp(
+                            0.0,
+                            _screenScrollController.position.maxScrollExtent,
+                          )
+                          .toDouble();
+                  _screenScrollController.animateTo(
+                    target,
+                    duration: const Duration(milliseconds: 450),
+                    curve: Curves.easeOutCubic,
+                  );
+                }
+              },
+              icon: const Icon(Icons.workspace_premium_outlined),
+              label: const Text('Sprawdź okres próbny'),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '* Dla kont uprawnionych do oferty. Dostępność, cena po '
+            'okresie próbnym i termin odnowienia zostaną pokazane przez '
+            '${Platform.isIOS ? "App Store" : "Google Play"} przed potwierdzeniem.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: AppTheme.textSecondary,
+              fontSize: 10.5,
+              height: 1.35,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Align(
+            alignment: Alignment.center,
+            child: TextButton(
+              onPressed: () => Navigator.of(context).maybePop(),
+              child: const Text('Nie teraz'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -110,7 +298,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
       kMonthlyProductId,
       kYearlyProductId,
     ]) {
-      final regular = _billing.selectRegularSubscriptionOffer(
+      final regular = _billing.selectPreferredSubscriptionOffer(
         _allSubscriptionProducts,
         id,
       );
@@ -184,6 +372,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
   @override
   void dispose() {
     _purchaseSub?.cancel();
+    _screenScrollController.dispose();
     super.dispose();
   }
 
@@ -705,6 +894,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
 
     return Scaffold(
       body: CustomScrollView(
+        controller: _screenScrollController,
         slivers: [
           SliverAppBar(
             expandedHeight: 250,
@@ -770,6 +960,18 @@ class _PremiumScreenState extends State<PremiumScreen> {
             padding: const EdgeInsets.all(20),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
+                if (widget.offerContext != null && !isPremium) ...[
+                  _buildContextualOfferCard(context)
+                      .animate()
+                      .fadeIn(duration: 250.ms)
+                      .slideY(begin: 0.04, end: 0),
+                  const SizedBox(height: 22),
+                  Column(
+                    key: _pricingSectionKey,
+                    children: _buildPricingSection(context),
+                  ),
+                  const SizedBox(height: 26),
+                ],
                 // Skróty do FAKTYCZNYCH funkcji Premium — bezpośrednie
                 // akcje, nie tylko opis. Dla kont bez Premium dotknięcie
                 // prowadzi do tego samego miejsca, gdzie wbudowana
@@ -964,7 +1166,11 @@ class _PremiumScreenState extends State<PremiumScreen> {
                       .slideX(begin: 0.05, end: 0);
                 }),
                 const SizedBox(height: 12),
-                ..._buildPricingSection(context),
+                if (widget.offerContext == null || isPremium)
+                  Column(
+                    key: _pricingSectionKey,
+                    children: _buildPricingSection(context),
+                  ),
                 const SizedBox(height: 24),
                 ..._buildPointsSection(context),
                 const SizedBox(height: 20),
@@ -1151,7 +1357,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
         _buildPricingCard(
           context: context,
           title: 'Tygodniowo',
-          price: weekly.price,
+          price: _billing.displaySubscriptionPrice(weekly),
           period: '',
           highlight: false,
           discountPercent:
@@ -1166,7 +1372,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
         _buildPricingCard(
           context: context,
           title: 'Miesięcznie',
-          price: monthly.price,
+          price: _billing.displaySubscriptionPrice(monthly),
           period: '',
           highlight: false,
           discountPercent:
@@ -1181,7 +1387,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
         _buildPricingCard(
           context: context,
           title: 'Rocznie',
-          price: yearly.price,
+          price: _billing.displaySubscriptionPrice(yearly),
           period: '',
           badge:
               _activeOffers.containsKey(kYearlyProductId)

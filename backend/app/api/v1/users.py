@@ -5,7 +5,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-from sqlalchemy import delete, func, or_, select
+from sqlalchemy import delete, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -27,6 +27,12 @@ from app.models import (
 from app.models.friendship import canonical_friend_ids
 from app.schemas.user import UserResponse
 from app.services.display_name import validate_display_name
+from app.core.premium import is_premium_active
+from app.services.premium_offer import (
+    PREMIUM_OFFER_CONTEXTS,
+    PREMIUM_OFFER_COOLDOWN,
+    premium_offer_next_eligible_at,
+)
 from app.schemas.moderation import (
     BlockedUserResponse,
     ContentReportAdminEntry,
@@ -35,6 +41,83 @@ from app.schemas.moderation import (
 )
 
 router = APIRouter()
+
+
+class PremiumOfferClaimRequest(BaseModel):
+    context: str = Field(min_length=1, max_length=32)
+
+    @field_validator("context")
+    @classmethod
+    def validate_context(cls, value: str) -> str:
+        if value not in PREMIUM_OFFER_CONTEXTS:
+            raise ValueError("Nieznany kontekst oferty Premium")
+        return value
+
+
+class PremiumOfferClaimResponse(BaseModel):
+    allowed: bool
+    next_eligible_at: datetime | None = None
+
+
+@router.post(
+    "/me/premium-offer/claim",
+    response_model=PremiumOfferClaimResponse,
+    summary="Zarezerwuj pokazanie kontekstowej oferty Premium",
+)
+async def claim_contextual_premium_offer(
+    payload: PremiumOfferClaimRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> PremiumOfferClaimResponse:
+    """Atomowo pilnuje limitu jednej oferty na siedem dni na konto.
+
+    Wywołanie jest typu ``claim``: pozytywna odpowiedź od razu zapisuje
+    pokazanie. Dzięki warunkowemu UPDATE dwa równoległe żądania z dwóch
+    ekranów lub urządzeń nie mogą wyświetlić dwóch ofert naraz.
+    """
+
+    if is_premium_active(current_user):
+        return PremiumOfferClaimResponse(allowed=False)
+
+    now = datetime.now(timezone.utc)
+    threshold = now - PREMIUM_OFFER_COOLDOWN
+    statement = (
+        update(User)
+        .where(
+            User.id == current_user.id,
+            or_(
+                User.premium_offer_last_shown_at.is_(None),
+                User.premium_offer_last_shown_at <= threshold,
+            ),
+        )
+        .values(
+            premium_offer_last_shown_at=now,
+            premium_offer_last_context=payload.context,
+        )
+        .returning(User.premium_offer_last_shown_at)
+    )
+    result = await db.execute(statement)
+    claimed_at = result.scalar_one_or_none()
+    if claimed_at is not None:
+        await db.commit()
+        return PremiumOfferClaimResponse(
+            allowed=True,
+            next_eligible_at=premium_offer_next_eligible_at(claimed_at),
+        )
+
+    # Ktoś pokazał ofertę niedawno albo równoległe żądanie wygrało wyścig.
+    await db.rollback()
+    last_shown_at = await db.scalar(
+        select(User.premium_offer_last_shown_at).where(User.id == current_user.id)
+    )
+    return PremiumOfferClaimResponse(
+        allowed=False,
+        next_eligible_at=(
+            premium_offer_next_eligible_at(last_shown_at)
+            if last_shown_at is not None
+            else None
+        ),
+    )
 
 
 class UserProfileUpdate(BaseModel):

@@ -77,7 +77,7 @@ class Recipe {
   final bool isOwnRecipe;
   // Prawdziwe zdjęcie dania (Base64) załączone przez użytkownika — przy
   // ręcznie dodanym przepisie albo rozpoznanym ze zdjęcia przez AI.
-  // Osobne od `realPhotoAsset` (te dotyczą TYLKO 81 oficjalnych przepisów
+  // Osobne od `realPhotoAsset` (te dotyczą TYLKO 137 oficjalnych przepisów
   // dostarczonych z aplikacją jako zasoby, nie danych z bazy).
   final String? photoBase64;
   // "private" / "pending" / "public" / "rejected"
@@ -188,10 +188,11 @@ class Recipe {
   /// sieci — nie hotlinkujemy zdjęć z zewnętrznych serwisów, więc nic nie
   /// może się "zepsuć" ani naruszyć praw autorskich cudzych fotografii).
   /// Dopasowanie na podstawie nazwy, tagów i typu kuchni.
-  /// Prawdziwe zdjęcie dania (wygenerowane przez AI, dostarczone przez
-  /// użytkownika) — jeśli istnieje dla tego przepisu. `null`, jeśli nie ma
-  /// (wtedy UI powinno pokazać [categoryImageAsset] jako zapasową ilustrację).
-  String? get realPhotoAsset => kRecipePhotoAssets[name];
+  /// Lokalne zdjęcie dania dostępne wyłącznie dla oficjalnych przepisów.
+  /// Kontrola autora zapobiega przypadkowemu przypisaniu grafiki systemowej
+  /// do przepisu użytkownika o identycznej nazwie.
+  String? get realPhotoAsset =>
+      createdByUserId == null ? kRecipePhotoAssets[name] : null;
 
   String get categoryImageAsset {
     final haystack = ('$name ${tags.join(' ')} ${cuisine ?? ''}').toLowerCase();

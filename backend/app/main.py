@@ -189,6 +189,18 @@ async def _create_tables() -> None:
         await conn.execute(
             text("ALTER TABLE users ADD COLUMN IF NOT EXISTS app_version VARCHAR(32)")
         )
+        await conn.execute(
+            text(
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS "
+                "premium_offer_last_shown_at TIMESTAMPTZ"
+            )
+        )
+        await conn.execute(
+            text(
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS "
+                "premium_offer_last_context VARCHAR(32)"
+            )
+        )
         # Blokada konta przez administratora — patrz app/models/user.py.
         await conn.execute(
             text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_banned BOOLEAN NOT NULL DEFAULT FALSE")

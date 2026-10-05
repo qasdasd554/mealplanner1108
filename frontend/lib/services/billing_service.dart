@@ -1,7 +1,9 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
+
 import '../config/api_config.dart';
 import 'api_client.dart';
 
@@ -92,27 +94,47 @@ class BillingService {
     return null;
   }
 
-  /// Wariant bez kampanii: wybiera regularny plan (offerId == null), a gdy
-  /// sklep zwróci starszą konfigurację — pierwszy dostępny wariant produktu.
-  ProductDetails? selectRegularSubscriptionOffer(
+  /// Wariant bez kampanii: najpierw wybiera bezpłatny okres próbny, jeśli
+  /// Google zwrócił go jako dostępny dla bieżącego konta. Użytkownik, który
+  /// wykorzystał już trial, dostanie zwykły plan bazowy zamiast błędu zakupu.
+  ProductDetails? selectPreferredSubscriptionOffer(
     Iterable<ProductDetails> products,
     String productId,
   ) {
     ProductDetails? fallback;
+    ProductDetails? regular;
     for (final product in products) {
       if (product.id != productId) continue;
       fallback ??= product;
       if (product is! GooglePlayProductDetails) return product;
       final index = product.subscriptionIndex;
       final offers = product.productDetails.subscriptionOfferDetails;
-      if (index != null &&
-          offers != null &&
-          index < offers.length &&
-          offers[index].offerId == null) {
+      if (index == null || offers == null || index >= offers.length) continue;
+      final offer = offers[index];
+      if (offer.pricingPhases.isNotEmpty &&
+          offer.pricingPhases.first.priceAmountMicros == 0) {
         return product;
       }
+      if (offer.offerId == null) regular ??= product;
     }
-    return fallback;
+    return regular ?? fallback;
+  }
+
+  /// Cena pokazywana na karcie Androida obejmuje również cenę po trialu,
+  /// zamiast mylącego samego „0 zł”. App Store sam prezentuje uprawnionemu
+  /// użytkownikowi warunki oferty w systemowym arkuszu zakupu.
+  String displaySubscriptionPrice(ProductDetails product) {
+    if (product is! GooglePlayProductDetails) return product.price;
+    final index = product.subscriptionIndex;
+    final offers = product.productDetails.subscriptionOfferDetails;
+    if (index == null || offers == null || index >= offers.length) {
+      return product.price;
+    }
+    final phases = offers[index].pricingPhases;
+    if (phases.length < 2 || phases.first.priceAmountMicros != 0) {
+      return product.price;
+    }
+    return '0 zł, potem ${phases.last.formattedPrice}';
   }
 
   /// Przywraca wcześniej kupione, wciąż aktywne subskrypcje — potrzebne

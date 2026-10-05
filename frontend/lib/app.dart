@@ -2,9 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import 'theme/app_theme.dart';
 import 'providers/theme_provider.dart';
 import 'providers/auth_provider.dart';
+import 'providers/food_log_provider.dart';
+import 'providers/wellness_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
@@ -23,6 +26,7 @@ import 'screens/tracker/calorie_tracker_screen.dart';
 import 'screens/tracker/add_food_entry_screen.dart';
 import 'screens/promotions/promotions_screen.dart';
 import 'screens/notifications/notifications_screen.dart';
+import 'utils/calendar_day.dart';
 
 class SmartMealPlannerApp extends StatefulWidget {
   const SmartMealPlannerApp({super.key});
@@ -40,6 +44,8 @@ class SmartMealPlannerApp extends StatefulWidget {
 
 class _SmartMealPlannerAppState extends State<SmartMealPlannerApp>
     with WidgetsBindingObserver {
+  DateTime _lastForegroundDay = DateTime.now();
+
   @override
   void initState() {
     super.initState();
@@ -55,9 +61,21 @@ class _SmartMealPlannerAppState extends State<SmartMealPlannerApp>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      final now = DateTime.now();
+      final dayChanged = !isSameCalendarDay(_lastForegroundDay, now);
+      _lastForegroundDay = now;
       final auth = Provider.of<AuthProvider>(context, listen: false);
       if (auth.isAuthenticated) {
         unawaited(auth.loadProfile());
+        if (dayChanged) {
+          Provider.of<FoodLogProvider>(context, listen: false).setDate(now);
+          unawaited(
+            Provider.of<WellnessProvider>(
+              context,
+              listen: false,
+            ).loadForDate(now),
+          );
+        }
       }
     }
   }

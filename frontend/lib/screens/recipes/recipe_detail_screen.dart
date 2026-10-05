@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+
+import 'dart:async';
+
 import '../../models/recipe.dart';
+import '../../models/premium_offer.dart';
 import '../../services/recipe_service.dart';
+import '../../services/contextual_premium_offer_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/recipe_comments_section.dart';
 import '../../widgets/recipe_favorite_button.dart';
@@ -17,7 +22,9 @@ import '../../widgets/ai_recipe_edit_sheet.dart';
 import '../../utils/quantity_formatter.dart';
 import '../../utils/error_utils.dart';
 import '../../providers/auth_provider.dart';
+
 import 'package:provider/provider.dart';
+
 import '../../widgets/user_avatar.dart';
 
 class RecipeDetailScreen extends StatefulWidget {
@@ -28,6 +35,12 @@ class RecipeDetailScreen extends StatefulWidget {
 }
 
 class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
+  static const double _premiumOfferScrollThreshold = 220;
+  final ScrollController _scrollController = ScrollController();
+  Timer? _premiumOfferTimer;
+  bool _viewedLongEnough = false;
+  bool _premiumOfferAttempted = false;
+
   /// Przepis PRZEKAZANY z ekranu listy/siatki — wyświetlany od razu, bez
   /// czekania na sieć, żeby otwarcie szczegółów nie migało pustym ekranem.
   Recipe? _initialRecipe;
@@ -46,6 +59,45 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   Recipe? _freshRecipe;
   List<RecipeIngredient>? _temporaryIngredients;
   bool _isSavingVariant = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_tryShowContextualPremiumOffer);
+    _premiumOfferTimer = Timer(const Duration(seconds: 5), () {
+      _viewedLongEnough = true;
+      _tryShowContextualPremiumOffer();
+    });
+  }
+
+  void _tryShowContextualPremiumOffer() {
+    if (!mounted || !_scrollController.hasClients) {
+      return;
+    }
+    if (!shouldTriggerRecipePremiumOffer(
+      viewedLongEnough: _viewedLongEnough,
+      scrollOffset: _scrollController.offset,
+      alreadyAttempted: _premiumOfferAttempted,
+      isCurrentRoute: ModalRoute.of(context)?.isCurrent ?? false,
+      scrollThreshold: _premiumOfferScrollThreshold,
+    )) {
+      return;
+    }
+    _premiumOfferAttempted = true;
+    ContextualPremiumOfferService.maybeShow(
+      context,
+      PremiumOfferContext.recipe,
+    );
+  }
+
+  @override
+  void dispose() {
+    _premiumOfferTimer?.cancel();
+    _scrollController
+      ..removeListener(_tryShowContextualPremiumOffer)
+      ..dispose();
+    super.dispose();
+  }
 
   @override
   void didChangeDependencies() {
@@ -144,6 +196,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
     return Scaffold(
       body: CustomScrollView(
+        controller: _scrollController,
         slivers: [
           // 1. Premium Hero AppBar — prawdziwe zdjęcie AI na pełną
           // szerokość, jeśli dostępne; w przeciwnym razie (przepis bez
@@ -287,7 +340,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                   // prośbę: autorstwo ma być pierwszą informacją widoczną
                   // na ekranie przepisu, nie dopiskiem pod nazwą.
                   //
-                  // Puste dla 81 oficjalnych przepisów dostarczonych
+                  // Puste dla 137 oficjalnych przepisów dostarczonych
                   // z aplikacją (createdByName wtedy null) — dla nich ta
                   // sekcja się nie pokazuje wcale.
                   if (recipe.createdByName != null &&

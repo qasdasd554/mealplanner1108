@@ -191,7 +191,6 @@ def grams_to_quantity(
         return grams / weight if weight else 0.0
     return grams
 
-
 def quantity_to_grams(
     product_name: str,
     quantity: float,
