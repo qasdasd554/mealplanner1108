@@ -248,6 +248,7 @@ class RecipeResponse(RecipeBase):
                             qty,
                             unit,
                             getattr(prod, "serving_quantity", None),
+                            getattr(prod, "measure_options", None),
                         )
                         for k in total:
                             total[k] += float(prod.nutrition_per_100.get(k, 0) or 0) * (w / 100.0)

@@ -46,6 +46,14 @@ class Product(Base):
         nullable=True,
         comment="Masa lub objętość jednego opakowania w g/ml",
     )
+    measure_options: Mapped[list | None] = mapped_column(
+        JSON,
+        nullable=True,
+        comment=(
+            "Jednostki użytkowe produktu; każda pozycja zawiera code, label, "
+            "base_quantity i base_unit (g albo ml)"
+        ),
+    )
     barcode: Mapped[str | None] = mapped_column(
         String(50), unique=True, nullable=True
     )

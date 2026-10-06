@@ -6,9 +6,11 @@ import '../screens/tracker/add_food_entry_screen.dart';
 import '../services/barcode_lookup_service.dart';
 import '../services/pantry_service.dart';
 import '../models/barcode_lookup_result.dart';
+import '../models/product.dart';
 import '../theme/app_theme.dart';
 import '../utils/error_utils.dart';
 import 'product_label_recognition_sheet.dart';
+import 'product_amount_picker.dart';
 import 'submit_product_sheet.dart';
 
 enum _BarcodeDestination { tracking, productDatabase, pantry }
@@ -273,10 +275,33 @@ Future<bool> _addBarcodeToPantry(
       result = recognized;
     }
 
+    final amount = await showProductAmountPicker(
+      context,
+      product: Product(
+        id: result.existingProductId ?? '',
+        name: result.name!,
+        brand: result.brand,
+        unit: result.unit,
+        defaultQuantity: result.servingQuantity ?? 100,
+        servingQuantity: result.servingQuantity,
+        barcode: result.barcode,
+        source: result.source,
+        nutritionPer100: NutritionInfo(
+          kcal: result.kcalPer100 ?? 0,
+          protein: result.proteinPer100 ?? 0,
+          fat: result.fatPer100 ?? 0,
+          carbs: result.carbsPer100 ?? 0,
+          fiber: 0,
+        ),
+      ),
+      initialUnit: result.servingQuantity != null ? 'opak' : result.unit,
+    );
+    if (!context.mounted || amount == null) return false;
+
     final added = await PantryService().addFromBarcode(
       barcode,
-      quantity: 1,
-      unit: 'opak',
+      quantity: amount.quantity,
+      unit: amount.measure.code,
       lookupResult: result,
     );
     if (!context.mounted) return true;

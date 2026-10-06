@@ -14,6 +14,8 @@ import '../batch_barcode_scanner_screen.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
 import '../../utils/quantity_formatter.dart';
+import '../../utils/product_measures.dart';
+import '../../widgets/product_amount_picker.dart';
 
 /// Spiżarnia — trwała lista produktów, które użytkownik faktycznie ma w
 /// domu. Źródło dla "Co ugotować z tego, co mam" — zamiast wyszukiwać
@@ -98,61 +100,19 @@ class _PantryScreenState extends State<PantryScreen> {
   /// spiżarni — jednostka domyślnie wypełniona z produktu (np. "kg",
   /// "szt"), użytkownik wpisuje samą liczbę.
   Future<void> _editQuantity(PantryItem item) async {
-    final controller = TextEditingController(
-      text:
-          item.quantity != null
-              ? formatQuantity(item.quantity!, item.unit ?? item.product.unit)
-              : '',
+    final amount = await showProductAmountPicker(
+      context,
+      product: item.product,
+      initialQuantity: item.quantity ?? 1,
+      initialUnit: item.unit,
     );
-    final unit = item.unit ?? item.product.unit;
-
-    final newQuantity = await showDialog<double>(
-      context: context,
-      builder:
-          (ctx) => AlertDialog(
-            title: Text(item.product.name),
-            content: TextField(
-              controller: controller,
-              autofocus: true,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              decoration: InputDecoration(
-                labelText: 'Ile masz? ($unit)',
-                border: const OutlineInputBorder(),
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text('Anuluj'),
-              ),
-              FilledButton(
-                onPressed: () {
-                  // UWAGA: polska klawiatura zwykle wpisuje przecinek jako
-                  // separator dziesiętny — double.tryParse w Dart rozumie
-                  // tylko kropkę, stąd zamiana przed parsowaniem (ten sam
-                  // wzorzec, który już wcześniej naprawił podobny problem
-                  // w formularzu ręcznego dodawania przepisu).
-                  final value = double.tryParse(
-                    controller.text.trim().replaceAll(',', '.'),
-                  );
-                  Navigator.pop(ctx, value);
-                },
-                child: const Text('Zapisz'),
-              ),
-            ],
-          ),
-    );
-
-    controller.dispose();
-    if (newQuantity == null) return;
+    if (amount == null) return;
 
     try {
       final updated = await _pantryService.updateQuantity(
         item.id,
-        quantity: newQuantity,
-        unit: unit,
+        quantity: amount.quantity,
+        unit: amount.measure.code,
       );
       if (!mounted) return;
       setState(() {
@@ -271,7 +231,8 @@ class _PantryScreenState extends State<PantryScreen> {
                           title: Text(item.product.name),
                           subtitle: Text(
                             item.quantity != null
-                                ? '${formatQuantity(item.quantity!, item.unit ?? item.product.unit)} ${item.unit ?? item.product.unit}'
+                                ? '${formatQuantity(item.quantity!, item.unit ?? item.product.unit)} '
+                                    '${productMeasureLabel(item.unit ?? item.product.unit)}'
                                 : 'Dotknij, aby wpisać ilość',
                             style: TextStyle(
                               color:
@@ -320,89 +281,6 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
   bool _isSearching = false;
   bool _isSaving = false;
 
-  Future<({double quantity, String unit})?> _askQuantity(
-    String productName,
-    String suggestedUnit, {
-    double? suggestedQuantity,
-  }) async {
-    const units = ['opak', 'g', 'kg', 'ml', 'l', 'szt'];
-    var unit = units.contains(suggestedUnit) ? suggestedUnit : 'g';
-    final double initial =
-        suggestedQuantity != null && suggestedQuantity > 0
-            ? suggestedQuantity
-            : (unit == 'kg' || unit == 'l' || unit == 'szt' || unit == 'opak'
-                ? 1.0
-                : 100.0);
-    final controller = TextEditingController(
-      text: formatQuantity(initial, unit),
-    );
-    final result = await showDialog<({double quantity, String unit})>(
-      context: context,
-      builder:
-          (dialogContext) => StatefulBuilder(
-            builder:
-                (context, setDialogState) => AlertDialog(
-                  title: Text(productName),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      TextField(
-                        controller: controller,
-                        autofocus: true,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        decoration: const InputDecoration(labelText: 'Ilość'),
-                      ),
-                      const SizedBox(height: 12),
-                      DropdownButtonFormField<String>(
-                        value: unit,
-                        isExpanded: true,
-                        decoration: const InputDecoration(
-                          labelText: 'Jednostka',
-                        ),
-                        items:
-                            units
-                                .map(
-                                  (value) => DropdownMenuItem(
-                                    value: value,
-                                    child: Text(value),
-                                  ),
-                                )
-                                .toList(),
-                        onChanged: (value) {
-                          if (value != null) setDialogState(() => unit = value);
-                        },
-                      ),
-                    ],
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(dialogContext),
-                      child: const Text('Anuluj'),
-                    ),
-                    FilledButton(
-                      onPressed: () {
-                        final quantity = double.tryParse(
-                          controller.text.trim().replaceAll(',', '.'),
-                        );
-                        if (quantity == null || quantity <= 0) return;
-                        Navigator.pop(dialogContext, (
-                          quantity: quantity,
-                          unit: unit,
-                        ));
-                      },
-                      child: const Text('Dodaj'),
-                    ),
-                  ],
-                ),
-          ),
-    );
-    controller.dispose();
-    return result;
-  }
-
   Future<void> _search(String query) async {
     if (query.trim().length < 2) {
       setState(() => _results = []);
@@ -430,10 +308,14 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
   }
 
   Future<void> _add(Product product) async {
-    final amount = await _askQuantity(
-      product.name,
-      product.unit,
-      suggestedQuantity: product.defaultQuantity,
+    final amount = await showProductAmountPicker(
+      context,
+      product: product,
+      initialQuantity: 1,
+      initialUnit:
+          product.servingQuantity != null || product.defaultQuantity > 1
+              ? 'opak'
+              : product.unit,
     );
     if (amount == null || !mounted) return;
     setState(() => _isSaving = true);
@@ -441,7 +323,7 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
       await widget.pantryService.addItems(
         [product.id],
         quantity: amount.quantity,
-        unit: amount.unit,
+        unit: amount.measure.code,
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context)

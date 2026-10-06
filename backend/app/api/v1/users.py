@@ -69,7 +69,7 @@ async def claim_contextual_premium_offer(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> PremiumOfferClaimResponse:
-    """Atomowo pilnuje limitu jednej oferty na siedem dni na konto.
+    """Atomowo pilnuje limitu jednej oferty na dwa dni na konto.
 
     Wywołanie jest typu ``claim``: pozytywna odpowiedź od razu zapisuje
     pokazanie. Dzięki warunkowemu UPDATE dwa równoległe żądania z dwóch

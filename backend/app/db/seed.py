@@ -18,6 +18,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.product import Allergen, Product, ProductAllergen, StoreProduct
 from app.models.recipe import Recipe, RecipeIngredient, RecipeTag
 from app.models.store import Store, StoreDepartment
+from app.db.fast_food_catalog import FAST_FOOD_PRODUCTS
+from app.services.product_measures import build_measure_options
 
 # ──────────────────────────────────────────────────────────────────
 # Przestrzeń nazw UUID5 — gwarantuje powtarzalność seedów
@@ -1424,7 +1426,7 @@ def calculate_nutrition(prod_name: str, qty_val: float, unit_str: str) -> dict[s
         weight_g = float(qty_val)
     elif unit_str == "szt":
         weight_g = float(qty_val) * WEIGHT_PER_SZT.get(prod_name, 100)
-    
+
     return {k: v * (weight_g / 100.0) for k, v in nutr.items()}
 
 # ══════════════════════════════════════════════════════════════════
@@ -5166,6 +5168,21 @@ async def seed_database(session: AsyncSession) -> None:
             brand=PRODUCT_BRANDS[prod_name],
             unit=unit,
             default_quantity=default_qty,
+            serving_quantity=(
+                float(default_qty) * 1000
+                if unit in {"kg", "l"}
+                else float(default_qty) if unit not in {"szt"} else None
+            ),
+            measure_options=build_measure_options(
+                prod_name,
+                unit,
+                float(default_qty),
+                (
+                    float(default_qty) * 1000
+                    if unit in {"kg", "l"}
+                    else float(default_qty) if unit not in {"szt"} else None
+                ),
+            ),
             barcode=None,
             nutrition_per_100=NUTRITION_DATA.get(prod_name),
             image_url=None,
@@ -5208,6 +5225,44 @@ async def seed_database(session: AsyncSession) -> None:
             )
             await session.merge(sp)
 
+    # Gotowe dania restauracyjne są częścią katalogu żywieniowego, ale nie
+    # udajemy, że można je kupić w każdym supermarkecie. Dlatego celowo nie
+    # tworzymy dla nich StoreProduct; są dostępne w wyszukiwaniu Dziennika.
+    for (
+        product_name,
+        brand,
+        serving_grams,
+        kcal,
+        protein,
+        fat,
+        carbs,
+        fiber,
+    ) in FAST_FOOD_PRODUCTS:
+        product = Product(
+            id=_uid(f"fast-food:{brand}:{product_name}"),
+            name=product_name,
+            brand=brand,
+            unit="opak",
+            default_quantity=Decimal("1"),
+            serving_quantity=float(serving_grams),
+            measure_options=build_measure_options(
+                product_name,
+                "g",
+                1,
+                float(serving_grams),
+            ),
+            barcode=None,
+            nutrition_per_100={
+                "kcal": float(kcal),
+                "protein": float(protein),
+                "fat": float(fat),
+                "carbs": float(carbs),
+                "fiber": float(fiber),
+            },
+            image_url=None,
+        )
+        products[f"{brand}: {product_name}"] = await session.merge(product)
+
     # ── 5. Przepisy + Składniki + Tagi ───────────────────────────
     for recipe_data in RECIPES_DATA:
         total_nutrition = {"kcal": 0, "protein": 0, "fat": 0, "carbs": 0, "fiber": 0}
@@ -5215,9 +5270,9 @@ async def seed_database(session: AsyncSession) -> None:
             prod_nutr = calculate_nutrition(prod_name, float(qty), unit)
             for k in total_nutrition:
                 total_nutrition[k] += prod_nutr.get(k, 0)
-        
+
         total_nutrition = {k: round(v, 1) for k, v in total_nutrition.items()}
-        
+
         recipe = Recipe(
             id=_uid(f"recipe:{recipe_data['name']}"),
             name=recipe_data["name"],

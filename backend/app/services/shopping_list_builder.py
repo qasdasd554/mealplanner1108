@@ -43,6 +43,7 @@ def pantry_coverage_grams(
     pantry: PantryItem | None,
     product_unit: str,
     serving_quantity: float | None = None,
+    measure_options: list[dict] | None = None,
 ) -> float:
     """Ile z zapotrzebowania pokrywa obecna spiżarnia (bez zużywania stanu)."""
     if pantry is None:
@@ -54,6 +55,7 @@ def pantry_coverage_grams(
         float(pantry.quantity),
         pantry.unit or product_unit,
         serving_quantity,
+        measure_options,
     )
     return min(required_grams, max(0.0, available))
 
@@ -331,6 +333,7 @@ class ShoppingListBuilder:
                     float(ing.quantity or 0.0),
                     ing.unit or "g",
                     getattr(product, "serving_quantity", None),
+                    getattr(product, "measure_options", None),
                 )
                 aggregated[ing.product_id] += grams * multiplier
 
@@ -408,6 +411,7 @@ class ShoppingListBuilder:
                 product_name, total_qty_grams,
                 pantry_by_product.get(product_id), product_unit,
                 getattr(product, "serving_quantity", None),
+                getattr(product, "measure_options", None),
             )
             purchase_grams = max(0.0, total_qty_grams - pantry_grams)
 
@@ -465,6 +469,7 @@ class ShoppingListBuilder:
                 default_qty_native,
                 product_unit,
                 getattr(product, "serving_quantity", None),
+                getattr(product, "measure_options", None),
             )
 
             package_count = (

@@ -220,7 +220,6 @@ async def _enrich_recipe_ingredient_product(
     if product.serving_quantity is None and payload.serving_quantity is not None:
         product.serving_quantity = payload.serving_quantity
         changed = True
-
     barcode = product.barcode or payload.barcode
     if barcode:
         from app.services.barcode_lookup import barcode_variants
@@ -264,6 +263,19 @@ async def _enrich_recipe_ingredient_product(
             if product.serving_quantity is None and external.serving_quantity is not None:
                 product.serving_quantity = external.serving_quantity
             changed = True
+
+    # Budujemy opcje dopiero po wzbogaceniu produktu, aby świeżo pobrana
+    # gramatura opakowania od razu pojawiła się jako poprawny przelicznik.
+    if not product.measure_options:
+        from app.services.product_measures import build_measure_options
+
+        product.measure_options = build_measure_options(
+            product.name,
+            product.unit,
+            float(product.default_quantity or 0),
+            product.serving_quantity,
+        )
+        changed = True
 
     if changed:
         await db.commit()
@@ -969,10 +981,18 @@ async def resolve_recipe_ingredient_product(
             "carbs": payload.carbs_per_100,
             "fiber": None,
         }
+    from app.services.product_measures import build_measure_options
+
     product = Product(
         name=name, brand=brand, unit=unit,
         default_quantity=Decimal(1 if unit in {"opak", "szt", "kg", "l"} else 100),
         serving_quantity=payload.serving_quantity,
+        measure_options=build_measure_options(
+            name,
+            unit,
+            1 if unit in {"opak", "szt", "kg", "l"} else 100,
+            payload.serving_quantity,
+        ),
         nutrition_per_100=nutrition,
         created_by_user_id=current_user.id, review_status="private",
         barcode=None,
@@ -1269,11 +1289,21 @@ async def submit_product(
             "fiber": 0,
         }
 
+    from app.services.product_measures import build_measure_options
+
+    product_unit = "opak" if normalized_barcode else (payload.unit.strip() or "szt")
     product = Product(
         name=payload.name.strip(),
         brand=(payload.brand or "").strip() or None,
-        unit="opak" if normalized_barcode else (payload.unit.strip() or "szt"),
+        unit=product_unit,
         default_quantity=Decimal(1),
+        serving_quantity=payload.serving_quantity,
+        measure_options=build_measure_options(
+            payload.name,
+            payload.serving_unit or product_unit,
+            1,
+            payload.serving_quantity,
+        ),
         nutrition_per_100=nutrition,
         created_by_user_id=current_user.id,
         review_status="pending",

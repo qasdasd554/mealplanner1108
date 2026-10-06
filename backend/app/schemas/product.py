@@ -19,6 +19,16 @@ class NutritionInfo(BaseModel):
     fiber: float | None = None
 
 
+class ProductMeasureOption(BaseModel):
+    """Jednostka wygodna dla człowieka i jej przelicznik na g/ml."""
+
+    code: str
+    label: str
+    base_quantity: float
+    base_unit: str
+    approximate: bool = False
+
+
 class ProductBase(BaseModel):
     """Wspólne pola produktu."""
 
@@ -30,6 +40,7 @@ class ProductBase(BaseModel):
     # katalogowy jest prezentowany jako 1 opakowanie, ale ta wartość pozwala
     # policzyć makro całego opakowania na podstawie danych „na 100 g/ml”.
     serving_quantity: float | None = None
+    measure_options: list[ProductMeasureOption] | None = None
     barcode: str | None = None
     nutrition_per_100: NutritionInfo | None = None
 

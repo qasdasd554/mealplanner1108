@@ -6,9 +6,9 @@ import '../../models/barcode_lookup_result.dart';
 import '../../models/product.dart';
 import '../../services/product_name_lookup_service.dart';
 import '../../utils/quantity_formatter.dart';
-import '../../utils/recipe_ingredient_defaults.dart';
 import '../../services/recipe_service.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/product_amount_picker.dart';
 import 'recipe_detail_screen.dart';
 import '../../utils/error_utils.dart';
 
@@ -224,7 +224,7 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
       name: selected.name ?? '',
       brand: selected.brand,
       unit: selected.unit,
-      defaultQuantity: defaultRecipeIngredientQuantity(selected.unit),
+      defaultQuantity: selected.servingQuantity ?? 100,
       servingQuantity: selected.servingQuantity,
       nutritionPer100: NutritionInfo(
         kcal: selected.kcalPer100 ?? 0,
@@ -234,8 +234,12 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
         fiber: 0,
       ),
     );
-    final quantity = await _askQuantity(preview);
-    if (quantity == null || !mounted) return;
+    final amount = await showProductAmountPicker(
+      context,
+      product: preview,
+      initialUnit: selected.servingQuantity != null ? 'opak' : selected.unit,
+    );
+    if (amount == null || !mounted) return;
 
     try {
       final product = await _productLookupService.resolveForRecipe(selected);
@@ -244,8 +248,8 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
         () => _ingredients.add(
           _IngredientRow(
             product: product,
-            quantity: quantity * _conversionFactor(selected.unit, product.unit),
-            unit: product.unit,
+            quantity: amount.quantity,
+            unit: amount.measure.code,
           ),
         ),
       );
@@ -255,128 +259,6 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text(friendlyError(error))));
     }
-  }
-
-  /// Jednostki DOKŁADNIEJSZE niż podstawowa jednostka produktu z katalogu.
-  ///
-  /// NAPRAWA BRAKU PRECYZJI: produkt typu olej ma w katalogu jednostkę
-  /// "l", więc pole przyjmowało WYŁĄCZNIE litry — żeby wpisać 50 ml,
-  /// trzeba było policzyć w głowie i wpisać "0.05". Tu dajemy wybór
-  /// jednostki, a wpisaną wartość przeliczamy na jednostkę bazową dopiero
-  /// przy zapisie — backend (quantity_to_grams) i tak rozumie tylko
-  /// "g"/"kg"/"ml"/"l"/"szt", więc konwersja musi się odbyć po stronie
-  /// aplikacji.
-  static const Map<String, List<String>> _preciserUnits = {
-    'l': ['l', 'ml'],
-    'kg': ['kg', 'g'],
-  };
-
-  /// Mnożnik przeliczający wpisaną wartość na jednostkę BAZOWĄ produktu
-  /// (tę z katalogu, którą backend faktycznie rozpoznaje).
-  double _conversionFactor(String fromUnit, String baseUnit) {
-    if (fromUnit == baseUnit) return 1.0;
-    if (fromUnit == 'ml' && baseUnit == 'l') return 0.001;
-    if (fromUnit == 'g' && baseUnit == 'kg') return 0.001;
-    if (fromUnit == 'l' && baseUnit == 'ml') return 1000;
-    if (fromUnit == 'kg' && baseUnit == 'g') return 1000;
-    return 1.0;
-  }
-
-  Future<double?> _askQuantity(Product product) async {
-    final baseUnit = product.unit;
-    final options = _preciserUnits[baseUnit] ?? [baseUnit];
-    String selectedUnit = baseUnit;
-
-    final controller = TextEditingController(
-      text: formatQuantity(product.defaultQuantity, baseUnit),
-    );
-
-    final result = await showDialog<double>(
-      context: context,
-      builder:
-          (ctx) => StatefulBuilder(
-            builder:
-                (ctx, setDialogState) => AlertDialog(
-                  title: Text(product.name),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            flex: 2,
-                            child: TextField(
-                              controller: controller,
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                    decimal: true,
-                                  ),
-                              autofocus: true,
-                              decoration: const InputDecoration(
-                                labelText: 'Ilość',
-                              ),
-                            ),
-                          ),
-                          if (options.length > 1) ...[
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: DropdownButtonFormField<String>(
-                                value: selectedUnit,
-                                decoration: const InputDecoration(
-                                  labelText: 'Jedn.',
-                                ),
-                                items:
-                                    options
-                                        .map(
-                                          (u) => DropdownMenuItem(
-                                            value: u,
-                                            child: Text(u),
-                                          ),
-                                        )
-                                        .toList(),
-                                onChanged: (v) {
-                                  if (v == null) return;
-                                  setDialogState(() => selectedUnit = v);
-                                },
-                              ),
-                            ),
-                          ] else
-                            Padding(
-                              padding: const EdgeInsets.only(left: 10, top: 14),
-                              child: Text(baseUnit),
-                            ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      child: const Text('Anuluj'),
-                    ),
-                    FilledButton(
-                      onPressed: () {
-                        final raw = double.tryParse(
-                          controller.text.replaceAll(',', '.'),
-                        );
-                        if (raw == null) {
-                          Navigator.pop(ctx);
-                          return;
-                        }
-                        // Przeliczamy TERAZ, na jednostkę bazową — reszta
-                        // ekranu (i backend) nic o wyborze jednostki w tym
-                        // oknie nie wie, dostaje już gotową liczbę w "l"/"kg".
-                        final converted =
-                            raw * _conversionFactor(selectedUnit, baseUnit);
-                        Navigator.pop(ctx, converted);
-                      },
-                      child: const Text('Dodaj'),
-                    ),
-                  ],
-                ),
-          ),
-    );
-    return result;
   }
 
   void _addStep() {
@@ -665,7 +547,7 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
                     contentPadding: EdgeInsets.zero,
                     title: Text(ing.product.name),
                     subtitle: Text(
-                      '${formatQuantity(ing.quantity, ing.unit)} ${ing.unit}',
+                      '${formatQuantity(ing.quantity, ing.unit)} ${formatUnitLabel(ing.unit)}',
                     ),
                     trailing: IconButton(
                       icon: const Icon(

@@ -291,6 +291,12 @@ async def _create_tables() -> None:
                 "serving_quantity DOUBLE PRECISION"
             )
         )
+        await conn.execute(
+            text(
+                "ALTER TABLE products ADD COLUMN IF NOT EXISTS "
+                "measure_options JSON"
+            )
+        )
         # Fizyczna ilość produktu w Dzienniku. Pozwala zmieniać 150 g na
         # 80 g lub ml bez utraty informacji, ile wynosiła jedna porcja.
         await conn.execute(text(
@@ -304,6 +310,10 @@ async def _create_tables() -> None:
         await conn.execute(text(
             "ALTER TABLE food_log_entries ADD COLUMN IF NOT EXISTS "
             "portion_size DOUBLE PRECISION"
+        ))
+        await conn.execute(text(
+            "ALTER TABLE food_log_entries ADD COLUMN IF NOT EXISTS "
+            "portion_unit VARCHAR(3)"
         ))
         # Ręcznie wpisane pozycje listy zakupów (np. chemia domowa) nie
         # mają odpowiednika w katalogu spożywczym ani StoreProduct.

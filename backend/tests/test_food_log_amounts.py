@@ -45,6 +45,22 @@ def test_food_log_update_accepts_millilitres() -> None:
     assert update.servings == 0.5
 
 
+def test_food_log_accepts_kitchen_measure_with_physical_conversion() -> None:
+    entry = FoodLogEntryCreate(
+        date=date(2026, 10, 6),
+        meal_type="Śniadanie",
+        custom_name="Miód",
+        amount_value=2,
+        amount_unit="lyzeczka",
+        portion_size=7,
+        portion_unit="g",
+    )
+
+    assert entry.amount_unit == "lyzeczka"
+    assert entry.portion_size == 7
+    assert entry.portion_unit == "g"
+
+
 def test_food_log_rejects_unknown_amount_unit() -> None:
     with pytest.raises(ValidationError):
         FoodLogEntryCreate(

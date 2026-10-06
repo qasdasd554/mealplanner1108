@@ -11,6 +11,7 @@ import '../services/api_client.dart';
 import '../services/barcode_lookup_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/error_utils.dart';
+import 'product_amount_picker.dart';
 
 /// Wynik wyboru produktu z katalogu — nazwa, ilość i wyliczone wartości
 /// odżywcze gotowe do wstawienia w formularz dziennika.
@@ -49,8 +50,15 @@ class PickedCatalogProduct {
       }
       return package;
     }
+    const labels = {
+      'porcja': 'porcja',
+      'szt': 'sztuka',
+      'lyzeczka': 'łyżeczka',
+      'szklanka': 'szklanka',
+    };
     final digits = quantity == quantity.roundToDouble() ? 0 : 1;
-    return '${quantity.toStringAsFixed(digits)} $unit';
+    final label = labels[unit] ?? unit;
+    return '${quantity.toStringAsFixed(digits)} × $label';
   }
 }
 
@@ -253,115 +261,42 @@ class _PickProductFromCatalogSheetState
   }
 
   Future<void> _pickLookupResult(BarcodeLookupResult result) async {
-    var unit = 'opak';
-    final controller = TextEditingController(text: '1');
-    final selection = await showDialog<({double quantity, String unit})>(
-      context: context,
-      builder:
-          (ctx) => StatefulBuilder(
-            builder:
-                (ctx, setDialogState) => AlertDialog(
-                  title: Text(result.name!),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (result.brand?.trim().isNotEmpty == true)
-                        Text('Marka: ${result.brand}'),
-                      if (result.priceMin != null && result.priceMax != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4, bottom: 12),
-                          child: Text(
-                            'Typowy zakres cen: ${result.priceMin!.toStringAsFixed(0)}–${result.priceMax!.toStringAsFixed(0)} zł',
-                          ),
-                        ),
-                      TextField(
-                        controller: controller,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        autofocus: true,
-                        decoration: const InputDecoration(labelText: 'Ilość'),
-                      ),
-                      const SizedBox(height: 12),
-                      DropdownButtonFormField<String>(
-                        value: unit,
-                        isExpanded: true,
-                        decoration: const InputDecoration(
-                          labelText: 'Jednostka',
-                        ),
-                        items: const [
-                          DropdownMenuItem(
-                            value: 'opak',
-                            child: Text('opakowanie'),
-                          ),
-                          DropdownMenuItem(value: 'g', child: Text('g')),
-                          DropdownMenuItem(value: 'ml', child: Text('ml')),
-                        ],
-                        onChanged: (value) {
-                          if (value == null) return;
-                          setDialogState(() {
-                            unit = value;
-                            controller.text = value == 'opak' ? '1' : '100';
-                          });
-                        },
-                      ),
-                      if (unit == 'opak')
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Text(
-                            'Domyślnie zapisujemy cały zeskanowany produkt.',
-                            style: TextStyle(
-                              color: AppTheme.textSecondary,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      child: const Text('Anuluj'),
-                    ),
-                    FilledButton(
-                      onPressed: () {
-                        final val = double.tryParse(
-                          controller.text.replaceAll(',', '.'),
-                        );
-                        if (val == null || val <= 0) return;
-                        Navigator.pop(ctx, (quantity: val, unit: unit));
-                      },
-                      child: const Text('Dalej'),
-                    ),
-                  ],
-                ),
-          ),
+    final product = Product(
+      id: result.existingProductId ?? '',
+      name: result.name!,
+      brand: result.brand,
+      unit: result.unit,
+      defaultQuantity: result.servingQuantity ?? 100,
+      servingQuantity: result.servingQuantity,
+      barcode: result.barcode,
+      source: result.source,
+      nutritionPer100: NutritionInfo(
+        kcal: result.kcalPer100 ?? 0,
+        protein: result.proteinPer100 ?? 0,
+        fat: result.fatPer100 ?? 0,
+        carbs: result.carbsPer100 ?? 0,
+        fiber: 0,
+      ),
     );
-    controller.dispose();
+    final selection = await showProductAmountPicker(
+      context,
+      product: product,
+      initialUnit: result.servingQuantity != null ? 'opak' : result.unit,
+    );
     if (selection == null || !mounted) return;
 
-    final factor =
-        selection.unit == 'opak'
-            ? selection.quantity *
-                ((result.servingQuantity != null &&
-                        result.servingQuantity! > 0 &&
-                        const {'g', 'ml'}.contains(result.unit))
-                    ? result.servingQuantity! / 100
-                    : 1.0)
-            : selection.quantity / 100;
+    final factor = selection.nutritionFactorPer100();
     _complete(
       PickedCatalogProduct(
         name: result.name!,
         quantity: selection.quantity,
-        unit: selection.unit,
+        unit: selection.measure.code,
         kcal: (result.kcalPer100 ?? 0) * factor,
         protein: (result.proteinPer100 ?? 0) * factor,
         fat: (result.fatPer100 ?? 0) * factor,
         carbs: (result.carbsPer100 ?? 0) * factor,
-        portionSize: result.servingQuantity,
-        portionUnit:
-            const {'g', 'ml'}.contains(result.unit) ? result.unit : null,
+        portionSize: selection.measure.baseQuantity,
+        portionUnit: selection.measure.baseUnit,
       ),
     );
   }
@@ -404,67 +339,35 @@ class _PickProductFromCatalogSheetState
       return;
     }
 
-    final controller = TextEditingController(
-      text:
-          product.defaultQuantity > 0
-              ? product.defaultQuantity.toStringAsFixed(0)
-              : '100',
+    final selection = await showProductAmountPicker(
+      context,
+      product: product,
+      initialQuantity: 1,
+      initialUnit:
+          product.servingQuantity != null || product.defaultQuantity > 1
+              ? 'opak'
+              : product.unit,
     );
-    final grams = await showDialog<double>(
-      context: context,
-      builder:
-          (ctx) => AlertDialog(
-            title: Text(product.name),
-            content: TextField(
-              controller: controller,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              autofocus: true,
-              decoration: InputDecoration(
-                labelText:
-                    'Ilość (${product.unit == 'ml' || product.unit == 'l' ? 'ml' : 'g'})',
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text('Anuluj'),
-              ),
-              FilledButton(
-                onPressed: () {
-                  final val = double.tryParse(
-                    controller.text.replaceAll(',', '.'),
-                  );
-                  Navigator.pop(ctx, val);
-                },
-                child: const Text('Dalej'),
-              ),
-            ],
-          ),
-    );
-    controller.dispose();
-    if (grams == null || grams <= 0 || !mounted) return;
+    if (selection == null || !mounted) return;
 
     // Jednostka bazowa produktu bywa "l"/"kg" (duże opakowanie) — okno
     // pyta zawsze o ml/g dla precyzji, więc gdy trzeba, przeliczamy na
     // jednostkę, w której faktycznie podane jest nutritionPer100 (zawsze
     // "na 100 g/ml", niezależnie od jednostki opakowania).
     final n = product.nutritionPer100;
-    final factor = grams / 100.0;
+    final factor = selection.nutritionFactorPer100();
 
     _complete(
       PickedCatalogProduct(
         name: product.name,
-        quantity: grams,
-        unit: product.unit == 'ml' || product.unit == 'l' ? 'ml' : 'g',
+        quantity: selection.quantity,
+        unit: selection.measure.code,
         kcal: n.kcal * factor,
         protein: n.protein * factor,
         fat: n.fat * factor,
         carbs: n.carbs * factor,
-        portionSize:
-            product.defaultQuantity > 0 ? product.defaultQuantity : null,
-        portionUnit: product.unit == 'ml' || product.unit == 'l' ? 'ml' : 'g',
+        portionSize: selection.measure.baseQuantity,
+        portionUnit: selection.measure.baseUnit,
       ),
     );
   }

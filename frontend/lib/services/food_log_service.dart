@@ -179,6 +179,7 @@ class FoodLogService {
     double? amountValue,
     String? amountUnit,
     double? portionSize,
+    String? portionUnit,
   }) async {
     final response = await _client
         .patch(
@@ -193,6 +194,7 @@ class FoodLogService {
             if (amountValue != null) 'amount_value': amountValue,
             if (amountUnit != null) 'amount_unit': amountUnit,
             if (portionSize != null) 'portion_size': portionSize,
+            if (portionUnit != null) 'portion_unit': portionUnit,
           }),
         )
         .timeout(

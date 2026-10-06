@@ -122,13 +122,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       key: const ValueKey('quick-add-visible'),
                       onPressed: _showQuickAddSheet,
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: AppTheme.actionPrimaryColor,
+                        foregroundColor: AppTheme.textSecondary,
                         backgroundColor: AppTheme.primaryTintColor,
                         side: BorderSide(
-                          color: AppTheme.actionPrimaryColor.withValues(
-                            alpha: AppTheme.isDark ? 0.45 : 0.28,
+                          color: AppTheme.textSecondary.withValues(
+                            alpha: AppTheme.isDark ? 0.9 : 0.72,
                           ),
-                          width: 1,
+                          width: 1.4,
                         ),
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         minimumSize: const Size(116, 40),

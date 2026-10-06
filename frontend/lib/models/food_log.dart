@@ -19,6 +19,7 @@ class FoodLogEntry {
   final double? amountValue;
   final String? amountUnit;
   final double? portionSize;
+  final String? portionUnit;
 
   FoodLogEntry({
     required this.id,
@@ -36,6 +37,7 @@ class FoodLogEntry {
     this.amountValue,
     this.amountUnit,
     this.portionSize,
+    this.portionUnit,
   });
 
   /// Nazwa do wyświetlenia — przepis (jeśli wpis z przepisu) albo własna
@@ -59,6 +61,7 @@ class FoodLogEntry {
       amountValue: (json['amount_value'] as num?)?.toDouble(),
       amountUnit: json['amount_unit'] as String?,
       portionSize: (json['portion_size'] as num?)?.toDouble(),
+      portionUnit: json['portion_unit'] as String?,
     );
   }
 
@@ -79,6 +82,7 @@ class FoodLogEntry {
       if (amountValue != null) 'amount_value': amountValue,
       if (amountUnit != null) 'amount_unit': amountUnit,
       if (portionSize != null) 'portion_size': portionSize,
+      if (portionUnit != null) 'portion_unit': portionUnit,
     };
   }
 }

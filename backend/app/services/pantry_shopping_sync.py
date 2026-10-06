@@ -31,11 +31,17 @@ def split_required_quantity(
             float(row.required_quantity),
             row.unit,
             serving_quantity,
+            getattr(product, "measure_options", None),
         )
         for row in rows
     )
     covered_grams = pantry_coverage_grams(
-        product.name, required_grams, pantry, product.unit, serving_quantity
+        product.name,
+        required_grams,
+        pantry,
+        product.unit,
+        serving_quantity,
+        getattr(product, "measure_options", None),
     )
     covered = Decimal(str(grams_to_quantity(
         product.name, covered_grams, unit, serving_quantity,
@@ -130,12 +136,14 @@ async def sync_product_in_shopping_lists(
                     float(product.default_quantity or 1),
                     product.unit,
                     getattr(product, "serving_quantity", None),
+                    getattr(product, "measure_options", None),
                 )
                 needed_grams = quantity_to_grams(
                     product.name,
                     float(purchase),
                     row.unit,
                     getattr(product, "serving_quantity", None),
+                    getattr(product, "measure_options", None),
                 )
                 packages = math.ceil(needed_grams / package_grams) if package_grams > 0 else 1
                 row.estimated_price = (store_product.price * packages).quantize(Decimal("0.01"))

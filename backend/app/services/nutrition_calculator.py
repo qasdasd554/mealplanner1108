@@ -107,7 +107,11 @@ def compute_recipe_nutrition_total(ingredients: Sequence["RecipeIngredient"]) ->
                 qty = float(ing.quantity)
                 unit = getattr(ing, "unit", "g")
                 w = quantity_to_grams(
-                    prod.name, qty, unit, getattr(prod, "serving_quantity", None)
+                    prod.name,
+                    qty,
+                    unit,
+                    getattr(prod, "serving_quantity", None),
+                    getattr(prod, "measure_options", None),
                 )
                 w = _edible_grams(prod.name, w)
                 for k in total:
@@ -170,6 +174,17 @@ WEIGHT_PER_SZT_G: dict[str, float] = {
 _DEFAULT_SZT_WEIGHT_G = 100.0
 
 
+def _piece_weight(product_name: str) -> float:
+    # Nowy katalog jednostek jest źródłem prawdy. Lokalna tabela zostaje jako
+    # zgodność ze starszymi rekordami i testami, których nazwy nie są jeszcze
+    # objęte katalogiem jednostek.
+    from app.services.product_measures import piece_weight_grams
+
+    return piece_weight_grams(product_name) or WEIGHT_PER_SZT_G.get(
+        product_name, _DEFAULT_SZT_WEIGHT_G
+    )
+
+
 def grams_to_quantity(
     product_name: str,
     grams: float,
@@ -184,7 +199,7 @@ def grams_to_quantity(
     if unit in ("kg", "l"):
         return grams / 1000.0
     if unit == "szt":
-        weight = WEIGHT_PER_SZT_G.get(product_name, _DEFAULT_SZT_WEIGHT_G)
+        weight = _piece_weight(product_name)
         return grams / weight if weight else 0.0
     if unit == "opak":
         weight = float(serving_quantity or 100.0)
@@ -196,6 +211,7 @@ def quantity_to_grams(
     quantity: float,
     unit: str,
     serving_quantity: float | None = None,
+    measure_options: list[dict] | None = None,
 ) -> float:
     """Przelicza ilość składnika na gramy (lub mililitry, traktowane 1:1 z gramami).
 
@@ -208,10 +224,16 @@ def quantity_to_grams(
         Ilość przeliczona na gramy/mililitry.
     """
     qty = float(quantity or 0.0)
+    if measure_options:
+        from app.services.product_measures import measure_to_base
+
+        converted = measure_to_base(qty, unit, measure_options)
+        if converted is not None:
+            return converted[0]
     if unit in ("kg", "l"):
         return qty * 1000.0
     if unit == "szt":
-        return qty * WEIGHT_PER_SZT_G.get(product_name, _DEFAULT_SZT_WEIGHT_G)
+        return qty * _piece_weight(product_name)
     if unit == "opak":
         # Jedno opakowanie nie może być liczone jak jeden gram. Jeśli baza
         # nie zna jeszcze gramatury, 100 g jest ostrożnym przybliżeniem.
@@ -260,6 +282,7 @@ class NutritionCalculator:
                 float(ing.quantity or 0.0),
                 ing.unit,
                 getattr(product, "serving_quantity", None),
+                getattr(product, "measure_options", None),
             )
             factor = weight_g / 100.0
 

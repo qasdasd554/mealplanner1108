@@ -103,6 +103,7 @@ async def compare_prices(
                 req_qty_native,
                 ingredient.unit,
                 getattr(product, "serving_quantity", None),
+                getattr(product, "measure_options", None),
             )
 
             if product.id not in product_requirements:
@@ -152,6 +153,7 @@ async def compare_prices(
                 default_qty_native,
                 product_unit,
                 getattr(product, "serving_quantity", None),
+                getattr(product, "measure_options", None),
             )
 
             package_count = (

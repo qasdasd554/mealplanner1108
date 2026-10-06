@@ -597,7 +597,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                           const SizedBox(width: 12),
                           Flexible(
                             child: Text(
-                              '${formatQuantity(ing.quantity, ing.unit)} ${ing.unit}${ing.kcal != null ? ' (${ing.kcal} kcal)' : ''}',
+                              '${formatQuantity(ing.quantity, ing.unit)} ${formatUnitLabel(ing.unit)}${ing.kcal != null ? ' (${ing.kcal} kcal)' : ''}',
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               textAlign: TextAlign.end,

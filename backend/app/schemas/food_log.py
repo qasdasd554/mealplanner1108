@@ -27,6 +27,7 @@ class FoodLogEntryBase(BaseModel):
     amount_value: Optional[float] = None
     amount_unit: Optional[str] = None
     portion_size: Optional[float] = None
+    portion_unit: Optional[str] = None
 
 
 class FoodLogEntryCreate(FoodLogEntryBase):
@@ -51,8 +52,12 @@ class FoodLogEntryCreate(FoodLogEntryBase):
     carbs: float = Field(0.0, ge=0, le=2_000)
     servings: float = Field(1.0, ge=0.001, le=1_000)
     amount_value: Optional[float] = Field(None, gt=0, le=1_000_000)
-    amount_unit: Optional[str] = Field(None, pattern="^(g|ml|opak|porcja)$")
+    amount_unit: Optional[str] = Field(
+        None,
+        pattern="^(g|ml|opak|porcja|szt|lyzeczka|szklanka)$",
+    )
     portion_size: Optional[float] = Field(None, gt=0, le=1_000_000)
+    portion_unit: Optional[str] = Field(None, pattern="^(g|ml)$")
 
 
 class FoodLogEntryResponse(FoodLogEntryBase):

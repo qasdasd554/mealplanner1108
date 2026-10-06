@@ -68,7 +68,9 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
   }
 
   late String _unit = widget.editing?.unit ?? 'szt';
-  double? _servingQuantity;
+  late final _serving = TextEditingController(
+    text: _prefillNum(widget.editing?.servingQuantity, decimals: 1),
+  );
   String _servingUnit = 'g';
   late bool _showNutrition = (widget.editing?.nutritionPer100.kcal ?? 0) > 0;
   bool _isSaving = false;
@@ -113,7 +115,16 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
   @override
   void dispose() {
     _barcodeLookupService.close();
-    for (final c in [_name, _brand, _price, _kcal, _protein, _fat, _carbs]) {
+    for (final c in [
+      _name,
+      _brand,
+      _price,
+      _serving,
+      _kcal,
+      _protein,
+      _fat,
+      _carbs,
+    ]) {
       c.dispose();
     }
     super.dispose();
@@ -133,7 +144,9 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
       }
       if (supportedUnits.contains(result.unit)) _unit = result.unit;
       if (result.barcode != null) _unit = 'opak';
-      _servingQuantity = result.servingQuantity;
+      if (result.servingQuantity != null) {
+        _serving.text = _prefillNum(result.servingQuantity, decimals: 1);
+      }
       _servingUnit =
           const {'g', 'ml', 'szt'}.contains(result.unit) ? result.unit : 'g';
       _barcode = result.barcode ?? _barcode;
@@ -209,7 +222,9 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
       setState(() {
         _existingProductId = _isEditing ? null : result.existingProductId;
         _unit = 'opak';
-        _servingQuantity = result.servingQuantity;
+        if (result.servingQuantity != null) {
+          _serving.text = _prefillNum(result.servingQuantity, decimals: 1);
+        }
         _servingUnit =
             const {'g', 'ml', 'szt'}.contains(result.unit) ? result.unit : 'g';
         if (_name.text.trim().isEmpty && result.name != null) {
@@ -287,8 +302,8 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
         if (_parse(_carbs) != null) 'carbs_per_100': _parse(_carbs),
         'store_ids': _selectedStoreIds.toList(),
         if (_barcode != null) 'barcode': _barcode,
-        if (_servingQuantity != null) 'serving_quantity': _servingQuantity,
-        if (_servingQuantity != null) 'serving_unit': _servingUnit,
+        if (_parse(_serving) != null) 'serving_quantity': _parse(_serving),
+        if (_parse(_serving) != null) 'serving_unit': _servingUnit,
       };
       var pointsAwarded = 0;
       int? premiumPoints;
@@ -532,6 +547,64 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                       ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: TextFormField(
+                        controller: _serving,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: const InputDecoration(
+                          labelText: 'Wielkość opakowania lub porcji',
+                          hintText: 'np. 150',
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty)
+                            return null;
+                          final parsed = _parse(_serving);
+                          return parsed == null || parsed <= 0
+                              ? 'Podaj wartość większą od zera'
+                              : null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: _servingUnit,
+                        decoration: const InputDecoration(
+                          labelText: 'Jedn.',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: const [
+                          DropdownMenuItem(value: 'g', child: Text('g')),
+                          DropdownMenuItem(value: 'ml', child: Text('ml')),
+                        ],
+                        onChanged:
+                            (value) => setState(
+                              () => _servingUnit = value ?? _servingUnit,
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text(
+                    'Dzięki temu aplikacja przeliczy opakowanie, porcję, '
+                    'łyżeczkę lub szklankę na kcal i makroskładniki.',
+                    style: TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 12,
+                      height: 1.3,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 14),
                 // Makroskładniki chowamy domyślnie — to pola opcjonalne,

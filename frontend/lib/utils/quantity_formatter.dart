@@ -24,3 +24,13 @@ String formatQuantity(double quantity, String unit) {
   }
   return formatted;
 }
+
+String formatUnitLabel(String unit) =>
+    const {
+      'opak': 'opak.',
+      'porcja': 'porcja',
+      'szt': 'szt.',
+      'lyzeczka': 'łyżeczka',
+      'szklanka': 'szklanka',
+    }[unit] ??
+    unit;

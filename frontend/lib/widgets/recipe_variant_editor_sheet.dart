@@ -196,7 +196,7 @@ class _RecipeVariantEditorSheetState extends State<RecipeVariantEditorSheet> {
                       child: ListTile(
                         title: Text(ingredient.productName ?? 'Składnik'),
                         subtitle: Text(
-                          '${formatQuantity(ingredient.quantity, ingredient.unit)} ${ingredient.unit}',
+                          '${formatQuantity(ingredient.quantity, ingredient.unit)} ${formatUnitLabel(ingredient.unit)}',
                         ),
                         onTap: () => _editQuantity(index),
                         trailing: IconButton(

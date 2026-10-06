@@ -54,5 +54,7 @@ Map<String, dynamic> buildBatchTrackingPayload({
     'amount_unit': barcodePackageUnit,
     if (result.servingQuantity != null && result.servingQuantity! > 0)
       'portion_size': result.servingQuantity,
+    if (result.servingQuantity != null && result.servingQuantity! > 0)
+      'portion_unit': result.unit == 'ml' ? 'ml' : 'g',
   };
 }

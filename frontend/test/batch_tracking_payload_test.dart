@@ -28,6 +28,7 @@ void main() {
     expect(payload['amount_value'], 1);
     expect(payload['amount_unit'], 'opak');
     expect(payload['portion_size'], 50);
+    expect(payload['portion_unit'], 'g');
   });
 
   test('produkt bez gramatury nadal zapisuje jedno opakowanie', () {

@@ -88,6 +88,7 @@ def _to_response(entry: FoodLogEntry) -> FoodLogEntryResponse:
         amount_value=entry.amount_value,
         amount_unit=entry.amount_unit,
         portion_size=entry.portion_size,
+        portion_unit=entry.portion_unit,
         created_at=entry.created_at,
         recipe_name=entry.recipe.name if entry.recipe_id and entry.recipe else None,
     )
@@ -223,8 +224,11 @@ class FoodLogNutritionUpdate(BaseModel):
     carbs: float = Field(0.0, ge=0, le=2_000)
     servings: float | None = Field(None, ge=0.001, le=1_000)
     amount_value: float | None = Field(None, gt=0, le=1_000_000)
-    amount_unit: str | None = Field(None, pattern="^(g|ml|opak|porcja)$")
+    amount_unit: str | None = Field(
+        None, pattern="^(g|ml|opak|porcja|szt|lyzeczka|szklanka)$"
+    )
     portion_size: float | None = Field(None, gt=0, le=1_000_000)
+    portion_unit: str | None = Field(None, pattern="^(g|ml)$")
 
 
 @router.patch("/{entry_id}", response_model=FoodLogEntryResponse)
@@ -258,6 +262,8 @@ async def update_food_log_entry_nutrition(
         entry.amount_unit = payload.amount_unit
     if payload.portion_size is not None:
         entry.portion_size = payload.portion_size
+    if payload.portion_unit is not None:
+        entry.portion_unit = payload.portion_unit
     db.add(entry)
     await db.commit()
     await db.refresh(entry)

@@ -27,6 +27,7 @@ import 'screens/tracker/add_food_entry_screen.dart';
 import 'screens/promotions/promotions_screen.dart';
 import 'screens/notifications/notifications_screen.dart';
 import 'utils/calendar_day.dart';
+import 'services/update_service.dart';
 
 class SmartMealPlannerApp extends StatefulWidget {
   const SmartMealPlannerApp({super.key});
@@ -45,15 +46,27 @@ class SmartMealPlannerApp extends StatefulWidget {
 class _SmartMealPlannerAppState extends State<SmartMealPlannerApp>
     with WidgetsBindingObserver {
   DateTime _lastForegroundDay = DateTime.now();
+  bool _updateCheckInProgress = false;
+  bool _updatePromptVisible = false;
+  bool _hasLeftForeground = false;
+  Timer? _updateTimer;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // Dłuższa sesja na pierwszym planie też nie wymaga ponownego uruchomienia
+    // aplikacji. Kontrola co 15 minut jest lekka (jeden publiczny endpoint),
+    // a pojedynczy aktywny request chroni flaga poniżej.
+    _updateTimer = Timer.periodic(
+      const Duration(minutes: 15),
+      (_) => unawaited(_checkForUpdateAfterResume()),
+    );
   }
 
   @override
   void dispose() {
+    _updateTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -77,6 +90,41 @@ class _SmartMealPlannerAppState extends State<SmartMealPlannerApp>
           );
         }
       }
+      // Sprawdzamy wersję również po każdym powrocie aplikacji na pierwszy
+      // plan. Wcześniej kontrola była tylko na splash screenie, więc osoba,
+      // która pozostawiała aplikację otwartą w tle, nie widziała komunikatu
+      // aż do pełnego zamknięcia i ponownego uruchomienia.
+      if (_hasLeftForeground) {
+        unawaited(_checkForUpdateAfterResume());
+      }
+      _hasLeftForeground = false;
+    } else {
+      _hasLeftForeground = true;
+    }
+  }
+
+  Future<void> _checkForUpdateAfterResume() async {
+    if (_updateCheckInProgress || _updatePromptVisible) return;
+    _updateCheckInProgress = true;
+    try {
+      final update = await UpdateService().checkForUpdate();
+      final navigator = SmartMealPlannerApp.navigatorKey.currentState;
+      if (!mounted || navigator == null || !update.updateAvailable) return;
+
+      _updatePromptVisible = true;
+      await navigator.push(
+        MaterialPageRoute<void>(
+          fullscreenDialog: true,
+          builder:
+              (_) => UpdateAvailableScreen(
+                storeUrl: update.storeUrl,
+                forceUpdate: update.forceUpdate,
+              ),
+        ),
+      );
+    } finally {
+      _updatePromptVisible = false;
+      _updateCheckInProgress = false;
     }
   }
 

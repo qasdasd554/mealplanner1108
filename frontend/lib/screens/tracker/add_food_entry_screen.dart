@@ -274,6 +274,7 @@ class _PlanTabState extends State<_PlanTab> {
       amountValue: _pickedAmountValue(picked),
       amountUnit: _pickedAmountUnit(picked),
       portionSize: picked.portionSize,
+      portionUnit: picked.portionUnit,
     );
     if (!mounted) return;
     if (success) {
@@ -1005,6 +1006,7 @@ class _ProductsTabState extends State<_ProductsTab> {
       amountValue: _pickedAmountValue(picked),
       amountUnit: _pickedAmountUnit(picked),
       portionSize: picked.portionSize,
+      portionUnit: picked.portionUnit,
     );
     if (!mounted) return;
     setState(() => _isAdding = false);

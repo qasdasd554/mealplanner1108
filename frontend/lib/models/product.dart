@@ -32,6 +32,32 @@ class NutritionInfo {
   };
 }
 
+class ProductMeasureOption {
+  final String code;
+  final String label;
+  final double baseQuantity;
+  final String baseUnit;
+  final bool approximate;
+
+  const ProductMeasureOption({
+    required this.code,
+    required this.label,
+    required this.baseQuantity,
+    required this.baseUnit,
+    this.approximate = false,
+  });
+
+  factory ProductMeasureOption.fromJson(Map<String, dynamic> json) {
+    return ProductMeasureOption(
+      code: json['code'] as String,
+      label: json['label'] as String,
+      baseQuantity: (json['base_quantity'] as num).toDouble(),
+      baseUnit: json['base_unit'] as String,
+      approximate: json['approximate'] as bool? ?? false,
+    );
+  }
+}
+
 class Product {
   final String id;
   final String name;
@@ -39,6 +65,7 @@ class Product {
   final String unit;
   final double defaultQuantity;
   final double? servingQuantity;
+  final List<ProductMeasureOption> measureOptions;
   final String? barcode;
   final NutritionInfo nutritionPer100;
   final String? imageUrl;
@@ -56,6 +83,7 @@ class Product {
     required this.unit,
     required this.defaultQuantity,
     this.servingQuantity,
+    this.measureOptions = const [],
     this.barcode,
     required this.nutritionPer100,
     this.imageUrl,
@@ -73,6 +101,12 @@ class Product {
       unit: json['unit'] as String? ?? 'szt',
       defaultQuantity: (json['default_quantity'] as num? ?? 1.0).toDouble(),
       servingQuantity: (json['serving_quantity'] as num?)?.toDouble(),
+      measureOptions:
+          (json['measure_options'] as List?)
+              ?.whereType<Map<String, dynamic>>()
+              .map(ProductMeasureOption.fromJson)
+              .toList() ??
+          const [],
       barcode: json['barcode'] as String?,
       nutritionPer100: NutritionInfo.fromJson(
         json['nutrition_per_100'] as Map<String, dynamic>? ?? {},

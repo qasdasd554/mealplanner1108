@@ -47,6 +47,7 @@ class FoodLogEntry(Base):
     amount_value: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     amount_unit: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)
     portion_size: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    portion_unit: Mapped[Optional[str]] = mapped_column(String(3), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=datetime.utcnow, nullable=False

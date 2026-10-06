@@ -204,7 +204,9 @@ async def add_pantry_item_from_barcode(
 
     if payload.quantity <= 0:
         raise HTTPException(status_code=400, detail="Ilość musi być większa od zera")
-    if payload.unit not in {"g", "kg", "ml", "l", "szt", "opak"}:
+    if payload.unit not in {
+        "g", "kg", "ml", "l", "szt", "opak", "porcja", "lyzeczka", "szklanka"
+    }:
         raise HTTPException(status_code=400, detail="Nieprawidłowa jednostka")
 
     from app.api.v1.products import lookup_barcode
@@ -256,10 +258,10 @@ async def add_pantry_item_from_barcode(
         ),
     }
 
-    # Niezależnie od tego, czy skan jest pojedynczy czy seryjny, pierwsze
-    # zapisanie oznacza całe opakowanie. Użytkownik może później zmienić
-    # ilość i jednostkę bezpośrednio w spiżarni.
-    item_quantity, item_unit = barcode_package_amount()
+    # Skan seryjny przesyła 1 opakowanie, natomiast po skanie pojedynczym
+    # użytkownik może od razu wybrać opakowanie, g/ml, sztukę, łyżeczkę lub
+    # szklankę. Nie nadpisujemy już świadomego wyboru stałą wartością.
+    item_quantity, item_unit = payload.quantity, payload.unit
 
     product = None
     if lookup_found and lookup.existing_product_id is not None:
@@ -270,6 +272,10 @@ async def add_pantry_item_from_barcode(
         )
         product = product_result.scalar_one_or_none()
     if product is None:
+        from app.services.product_measures import build_measure_options
+
+        lookup_unit = lookup.unit if lookup_found else "g"
+        package_size = lookup.serving_quantity if lookup_found else None
         nutrition = {
             "kcal": resolved_nutrition["kcal"] or 0,
             "protein": resolved_nutrition["protein"] or 0,
@@ -282,6 +288,13 @@ async def add_pantry_item_from_barcode(
             brand=(lookup.brand if lookup_found else None) or payload.brand,
             unit="opak",
             default_quantity=1,
+            serving_quantity=package_size,
+            measure_options=build_measure_options(
+                (lookup.name if lookup_found else None) or payload.name or "Produkt",
+                lookup_unit,
+                1,
+                package_size,
+            ),
             barcode=barcode,
             nutrition_per_100=nutrition,
             # Dane zostały już rozpoznane przez ten sam zweryfikowany
@@ -297,6 +310,15 @@ async def add_pantry_item_from_barcode(
         # 100 g/ml. Normalizujemy je również przy kolejnym użyciu.
         product.unit = "opak"
         product.default_quantity = 1
+        if not product.measure_options:
+            from app.services.product_measures import build_measure_options
+
+            product.measure_options = build_measure_options(
+                product.name,
+                lookup.unit if lookup_found else product.unit,
+                float(product.default_quantity or 1),
+                product.serving_quantity,
+            )
         current_nutrition, nutrition_changed = merge_scanned_nutrition(
             product.nutrition_per_100,
             resolved_nutrition,
@@ -354,7 +376,9 @@ async def update_pantry_item_quantity(
 
     item.quantity = payload.quantity
     if payload.unit is not None:
-        if payload.unit not in {"g", "kg", "ml", "l", "szt", "opak"}:
+        if payload.unit not in {
+            "g", "kg", "ml", "l", "szt", "opak", "porcja", "lyzeczka", "szklanka"
+        }:
             raise HTTPException(status_code=400, detail="Nieprawidłowa jednostka")
         item.unit = payload.unit
     await db.flush()

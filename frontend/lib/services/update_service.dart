@@ -139,17 +139,18 @@ class UpdateAvailableScreen extends StatelessWidget {
                     forceUpdate
                         ? 'Ta wersja aplikacji nie jest już obsługiwana. '
                             'Zaktualizuj ją, aby korzystać dalej.'
-                        : '• Ręcznie dodane przepisy poprawnie liczą '
-                            'opakowania, kcal i makroskładniki.\n'
-                            '• Wszystkie 137 przepisów systemowych ma teraz '
-                            'własne, dopasowane zdjęcie dania.\n'
-                            '• Dziennik po powrocie do aplikacji '
-                            'automatycznie otwiera aktualny dzień.\n'
-                            '• Premium czytelnie pokazuje 7 dni bezpłatnego '
-                            'testu oraz cenę po jego zakończeniu.\n'
-                            '• Przycisk „Dodaj” ma teraz czytelniejszy '
-                            'zielony styl dopasowany do skrótów na ekranie '
-                            'głównym.',
+                        : '• Produkty i składniki możesz dodawać w gramach, '
+                            'mililitrach, opakowaniach, sztukach, '
+                            'łyżeczkach lub szklankach.\n'
+                            '• Aplikacja od razu przelicza wybraną ilość na '
+                            'kcal i makroskładniki.\n'
+                            '• Katalog uzupełniono o popularne dania z '
+                            'McDonald’s, KFC, Burger King, MAX, Żabki i '
+                            'North Fish.\n'
+                            '• W Dzienniku można zmienić ilość oraz wrócić '
+                            'do gramów lub mililitrów bez utraty przeliczeń.\n'
+                            '• Informacja o dostępnej wersji pojawi się także '
+                            'po powrocie do aplikacji — bez jej ponownego uruchamiania.',
                     style: TextStyle(
                       color: AppTheme.textSecondary,
                       height: 1.5,
