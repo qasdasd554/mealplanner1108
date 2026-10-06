@@ -362,8 +362,15 @@ async def list_products(
     """
     query = select(Product).where(_visible_product_filter(current_user.id))
 
-    if search:
-        query = query.where(Product.name.ilike(f"%{search}%"))
+    normalized_search = search.strip() if search else ""
+    if normalized_search:
+        pattern = f"%{normalized_search}%"
+        query = query.where(
+            or_(
+                Product.name.ilike(pattern),
+                Product.brand.ilike(pattern),
+            )
+        )
 
     query = query.order_by(Product.name).offset(skip).limit(limit)
 

@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+
 import '../../models/product.dart';
 import '../../models/store.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/store_provider.dart';
 import '../../services/api_client.dart';
+import '../../services/product_search_service.dart';
 import '../../services/store_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
@@ -19,9 +21,8 @@ import '../../widgets/barcode_destination_sheet.dart';
 import '../batch_barcode_scanner_screen.dart';
 import '../profile/premium_screen.dart';
 
-/// Ekran produktów w dwóch zakładkach: „Sklep” (katalog produktów
-/// wybranego sklepu, z cenami) i „Moje” (własne zgłoszenia użytkownika,
-/// niezależnie od statusu akceptacji).
+/// Ekran produktów w trzech zakładkach: „Sklep” (oferta wybranego sklepu),
+/// „Katalog” (wszystkie produkty żywieniowe) i „Moje” (własne zgłoszenia).
 ///
 /// NAPRAWA BRAKUJĄCEJ FUNKCJI: zgłoszony produkt zapisywał się w bazie,
 /// ale nigdzie w aplikacji nie było miejsca, które by go pokazało —
@@ -43,7 +44,7 @@ class _ProductsScreenState extends State<ProductsScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -56,7 +57,7 @@ class _ProductsScreenState extends State<ProductsScreen>
     final added = await scanProductWithDestination(context);
     if (added && mounted) {
       setState(() => _myProductsRefresh++);
-      _tabController.animateTo(1);
+      _tabController.animateTo(2);
     }
   }
 
@@ -119,7 +120,11 @@ class _ProductsScreenState extends State<ProductsScreen>
         ],
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [Tab(text: 'Sklep'), Tab(text: 'Moje')],
+          tabs: const [
+            Tab(text: 'Sklep'),
+            Tab(text: 'Katalog'),
+            Tab(text: 'Moje'),
+          ],
         ),
       ),
       body: Column(
@@ -169,7 +174,245 @@ class _ProductsScreenState extends State<ProductsScreen>
               controller: _tabController,
               children: [
                 const _StoreProductsTab(),
+                const _CatalogProductsTab(),
                 _MyProductsTab(key: ValueKey(_myProductsRefresh)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Pełny katalog żywieniowy. Trafiają tu także produkty restauracyjne i
+/// składniki niezwiązane z konkretnym supermarketem.
+class _CatalogProductsTab extends StatefulWidget {
+  const _CatalogProductsTab();
+
+  @override
+  State<_CatalogProductsTab> createState() => _CatalogProductsTabState();
+}
+
+class _CatalogProductsTabState extends State<_CatalogProductsTab> {
+  static const int _pageSize = 50;
+
+  final ProductSearchService _service = ProductSearchService();
+  final TextEditingController _searchController = TextEditingController();
+  final List<Product> _products = [];
+  Timer? _searchDebounce;
+  bool _isLoading = false;
+  bool _hasMore = true;
+  String? _error;
+  int _requestGeneration = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _load(reset: true);
+  }
+
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _load({required bool reset}) async {
+    if (_isLoading && !reset) return;
+    final generation = reset ? ++_requestGeneration : _requestGeneration;
+    final skip = reset ? 0 : _products.length;
+    setState(() {
+      _isLoading = true;
+      _error = null;
+      if (reset) {
+        _products.clear();
+        _hasMore = true;
+      }
+    });
+
+    try {
+      final page = await _service.list(
+        query: _searchController.text,
+        skip: skip,
+        limit: _pageSize,
+      );
+      if (!mounted || generation != _requestGeneration) return;
+      setState(() {
+        _products.addAll(page);
+        _hasMore = page.length == _pageSize;
+      });
+    } catch (e) {
+      if (!mounted || generation != _requestGeneration) return;
+      setState(() => _error = friendlyError(e));
+    } finally {
+      if (mounted && generation == _requestGeneration) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _onSearchChanged(String _) {
+    setState(() {});
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(
+      const Duration(milliseconds: 350),
+      () => _load(reset: true),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: TextField(
+            controller: _searchController,
+            onChanged: _onSearchChanged,
+            textInputAction: TextInputAction.search,
+            decoration: InputDecoration(
+              hintText: 'Szukaj produktu lub marki…',
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon:
+                  _searchController.text.isEmpty
+                      ? null
+                      : IconButton(
+                        tooltip: 'Wyczyść',
+                        onPressed: () {
+                          _searchController.clear();
+                          _load(reset: true);
+                        },
+                        icon: const Icon(Icons.close),
+                      ),
+            ),
+          ),
+        ),
+        Expanded(child: _buildBody()),
+      ],
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading && _products.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_error != null && _products.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(_error!, textAlign: TextAlign.center),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: () => _load(reset: true),
+                child: const Text('Spróbuj ponownie'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    if (_products.isEmpty) {
+      return const Center(child: Text('Nie znaleziono produktów.'));
+    }
+
+    return RefreshIndicator(
+      onRefresh: () => _load(reset: true),
+      child: ListView.builder(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        itemCount: _products.length + (_hasMore ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index == _products.length) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: OutlinedButton(
+                onPressed: _isLoading ? null : () => _load(reset: false),
+                child:
+                    _isLoading
+                        ? const SizedBox.square(
+                          dimension: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                        : const Text('Pokaż więcej'),
+              ),
+            );
+          }
+          return _CatalogProductTile(product: _products[index]);
+        },
+      ),
+    );
+  }
+}
+
+class _CatalogProductTile extends StatelessWidget {
+  const _CatalogProductTile({required this.product});
+
+  final Product product;
+
+  @override
+  Widget build(BuildContext context) {
+    final nutrition = product.nutritionPer100;
+    final baseUnit = product.unit == 'ml' || product.unit == 'l' ? 'ml' : 'g';
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: AppTheme.primaryColor.withValues(alpha: 0.14),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.restaurant_menu,
+              color: AppTheme.primaryColor,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  product.name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (product.brand?.isNotEmpty == true) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    product.brand!,
+                    style: TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 4),
+                Text(
+                  '${nutrition.kcal.toStringAsFixed(0)} kcal · '
+                  'B ${nutrition.protein.toStringAsFixed(1)} g · '
+                  'T ${nutrition.fat.toStringAsFixed(1)} g · '
+                  'W ${nutrition.carbs.toStringAsFixed(1)} g / 100$baseUnit',
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
+                ),
               ],
             ),
           ),

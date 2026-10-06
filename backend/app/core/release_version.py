@@ -14,7 +14,7 @@ _VERSION_PATTERN = re.compile(
 # Obraz Rendera może zawierać wyłącznie katalog backend. Test kontraktu
 # porównuje tę wartość z frontend/pubspec.yaml, więc każda zmiana wersji
 # aplikacji bez aktualizacji backendu zatrzyma CI przed wdrożeniem.
-BACKEND_ONLY_FALLBACK_VERSION = "1.0.55"
+BACKEND_ONLY_FALLBACK_VERSION = "1.0.56"
 
 
 def parse_pubspec_version(contents: str) -> str:
