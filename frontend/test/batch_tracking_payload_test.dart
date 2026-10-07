@@ -31,7 +31,7 @@ void main() {
     expect(payload['portion_unit'], 'g');
   });
 
-  test('produkt bez gramatury nadal zapisuje jedno opakowanie', () {
+  test('produkt bez gramatury nie udaje jednego opakowania', () {
     const result = BarcodeLookupResult(
       found: true,
       name: 'Produkt bez gramatury',
@@ -48,8 +48,10 @@ void main() {
       mealType: 'Przekąska',
       date: DateTime(2026, 9, 28),
     );
-    expect(payload['amount_unit'], 'opak');
-    expect(payload['amount_value'], 1);
+    expect(hasKnownBarcodePackageSize(result), isFalse);
+    expect(payload['custom_name'], 'Produkt bez gramatury (100 g)');
+    expect(payload['amount_unit'], 'g');
+    expect(payload['amount_value'], 100);
   });
 
   test('liczby sztuk nie traktuje jako gramów opakowania', () {

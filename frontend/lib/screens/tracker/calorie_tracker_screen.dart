@@ -643,11 +643,18 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
         item.amountValue ??
             (countUnits.contains(unit)
                 ? item.servings
-                : item.servings * (inferredPortion ?? 100)),
+                : inferredPortion != null
+                ? item.servings * inferredPortion
+                : item.servings),
       ),
     );
     final selectableUnits = <String>[unit];
-    if (!selectableUnits.contains(baseUnit)) selectableUnits.add(baseUnit);
+    // Konwersję na g/ml pokazujemy tylko, gdy znamy rzeczywistą wielkość
+    // porcji/opakowania. Wcześniej brak danych był po cichu zastępowany
+    // przez 100 g, co mogło zmienić makro na nieprawidłowe.
+    if (inferredPortion != null && !selectableUnits.contains(baseUnit)) {
+      selectableUnits.add(baseUnit);
+    }
     const unitLabels = {
       'porcja': 'porcja',
       'opak': 'opakowanie',
@@ -708,7 +715,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                                       : value == baseUnit
                                       ? (item.amountValue ?? item.servings) *
                                           (countUnits.contains(previousUnit)
-                                              ? (inferredPortion ?? 100)
+                                              ? inferredPortion!
                                               : 1)
                                       : 1,
                                 );
@@ -790,13 +797,23 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
     final previousBaseAmount =
         const {'g', 'ml'}.contains(item.amountUnit)
             ? previousQuantity
-            : previousQuantity * (item.portionSize ?? 100);
+            : item.portionSize == null
+            ? null
+            : previousQuantity * item.portionSize!;
     final newBaseAmount =
         const {'g', 'ml'}.contains(edited.unit)
             ? edited.amount
-            : edited.amount * (edited.portionSize ?? 100);
+            : edited.portionSize == null
+            ? null
+            : edited.amount * edited.portionSize!;
     final factor =
-        previousBaseAmount > 0 ? newBaseAmount / previousBaseAmount : 1.0;
+        previousBaseAmount != null &&
+                previousBaseAmount > 0 &&
+                newBaseAmount != null
+            ? newBaseAmount / previousBaseAmount
+            : edited.unit == item.amountUnit && previousQuantity > 0
+            ? edited.amount / previousQuantity
+            : 1.0;
     final newServings = previousServings * factor;
     final provider = Provider.of<FoodLogProvider>(context, listen: false);
     final ok = await provider.updateEntryNutrition(

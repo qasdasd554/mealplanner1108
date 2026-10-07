@@ -11,6 +11,17 @@ def test_one_package_uses_physical_package_weight() -> None:
     assert quantity_to_grams("Frytki", 1, "opak", 450) == 450
 
 
+def test_unknown_package_never_falls_back_to_fake_100g() -> None:
+    stale_options = [{
+        "code": "opak",
+        "label": "opakowanie",
+        "base_quantity": 100,
+        "base_unit": "g",
+    }]
+
+    assert quantity_to_grams("Pizza", 1, "opak", None, stale_options) == 0
+
+
 def test_recipe_nutrition_for_package_is_not_zero() -> None:
     product = SimpleNamespace(
         name="Frytki",

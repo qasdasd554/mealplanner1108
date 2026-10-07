@@ -123,7 +123,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       onPressed: _showQuickAddSheet,
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppTheme.textSecondary,
-                        backgroundColor: AppTheme.primaryTintColor,
+                        // Pełne, nieprzezroczyste tło: przycisk nie zlewa się
+                        // z kartami znajdującymi się pod nim podczas przewijania.
+                        backgroundColor:
+                            AppTheme.isDark
+                                ? const Color(0xFF173B35)
+                                : const Color(0xFFE7F8F2),
                         side: BorderSide(
                           color: AppTheme.textSecondary.withValues(
                             alpha: AppTheme.isDark ? 0.9 : 0.72,

@@ -83,4 +83,56 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets(
+    'wpisanie gramów z klawiaturą nie zasłania ani nie blokuje arkusza',
+    (tester) async {
+      tester.view.physicalSize = const Size(320, 568);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder:
+                (context) => Scaffold(
+                  body: ElevatedButton(
+                    onPressed:
+                        () =>
+                            showProductAmountPicker(context, product: product),
+                    child: const Text('Otwórz'),
+                  ),
+                ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Otwórz'));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Własna ilość'),
+        180,
+        scrollable: find.byType(Scrollable).first,
+      );
+      final unitPicker = find.byWidgetPredicate(
+        (widget) => widget is DropdownButtonFormField<ProductMeasureOption>,
+      );
+      expect(unitPicker, findsOneWidget);
+      await tester.tap(unitPicker);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('gramy').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(TextField));
+      await tester.showKeyboard(find.byType(TextField));
+      await tester.enterText(find.byType(TextField), '250');
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Wybierz ilość'), findsOneWidget);
+      await tester.tap(find.text('Wybierz ilość'));
+      await tester.pumpAndSettle();
+      expect(find.text('Otwórz'), findsOneWidget);
+    },
+  );
 }

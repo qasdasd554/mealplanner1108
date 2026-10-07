@@ -140,6 +140,25 @@ def test_reads_exact_usda_gtin_and_macros() -> None:
     assert result.source == "usda_fooddata_central"
 
 
+def test_usda_serving_size_is_not_used_as_whole_package_weight() -> None:
+    response = {
+        "foods": [
+            {
+                "gtinUpc": "085239268179",
+                "description": "YOGURT CUP",
+                "servingSize": 100,
+                "servingSizeUnit": "g",
+                "foodNutrients": [{"nutrientId": 1008, "value": 90}],
+            }
+        ]
+    }
+
+    result = _product_from_usda_response(response, "085239268179")
+
+    assert result is not None
+    assert result.serving_quantity is None
+
+
 def test_usda_rejects_fuzzy_non_matching_code() -> None:
     response = {"foods": [{"gtinUpc": "12345678", "description": "Wrong"}]}
     assert _product_from_usda_response(response, "87654321") is None

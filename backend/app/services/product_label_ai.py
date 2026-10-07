@@ -57,7 +57,7 @@ def _parse_label_json(raw_text: str, barcode: str) -> dict:
         )
     brand = str(payload.get("brand") or "").strip() or None
     unit = str(payload.get("unit") or "g").strip().lower()
-    if unit not in {"g", "ml", "szt"}:
+    if unit not in {"g", "ml"}:
         unit = "g"
 
     return {
@@ -87,7 +87,8 @@ async def recognize_product_label(
 ) -> dict:
     """Odczytuje wyłącznie informacje widoczne na dostarczonych zdjęciach."""
     prompt = """Rozpoznaj produkt spożywczy z dwóch zdjęć.
-Pierwsze zdjęcie pokazuje przód opakowania, drugie tabelę wartości odżywczych.
+Pierwsze zdjęcie pokazuje przód opakowania, drugie tabelę wartości odżywczych
+i może również zawierać masę netto produktu.
 
 ZASADY:
 - Nie zgaduj i nie korzystaj z pamięci o podobnych produktach.
@@ -95,8 +96,13 @@ ZASADY:
 - Makro zwróć zawsze na 100 g albo 100 ml, zgodnie z tabelą.
 - Jeżeli tabela podaje tylko porcję i da się ją jednoznacznie przeliczyć,
   przelicz wartości na 100 g/ml. W przeciwnym razie zwróć null.
-- serving_quantity oznacza widoczną masę/objętość porcji lub opakowania.
-- unit może być wyłącznie: g, ml albo szt.
+- serving_quantity oznacza WYŁĄCZNIE łączną masę lub objętość netto CAŁEGO
+  opakowania (np. 545 g, 1,5 l albo 6 x 100 g = 600 g).
+- Nie wpisuj do serving_quantity wielkości porcji z tabeli żywieniowej.
+- Odczytaj gramaturę z dowolnego z dwóch zdjęć. Jeśli masa całego opakowania
+  nie jest wyraźnie widoczna lub nie da się jej jednoznacznie obliczyć,
+  zwróć null — nigdy nie podstawiaj 100.
+- unit może być wyłącznie: g albo ml.
 - Dla każdej niewidocznej lub niepewnej liczby zwróć null.
 
 Zwróć wyłącznie JSON:
@@ -104,7 +110,7 @@ Zwróć wyłącznie JSON:
   "name": "pełna nazwa produktu",
   "brand": "marka lub null",
   "unit": "g",
-  "serving_quantity": 100,
+  "serving_quantity": 545,
   "kcal_per_100": 123,
   "protein_per_100": 4.5,
   "fat_per_100": 2.1,

@@ -2,6 +2,7 @@ class User {
   final String id;
   final String email;
   final String? displayName;
+  final String? tiktokUsername;
   final String? preferredStoreId;
   final Map<String, dynamic>? dietaryPreferences;
   final int householdSize;
@@ -33,6 +34,7 @@ class User {
     required this.id,
     required this.email,
     this.displayName,
+    this.tiktokUsername,
     this.preferredStoreId,
     this.dietaryPreferences,
     required this.householdSize,
@@ -112,6 +114,7 @@ class User {
       id: json['id'] as String,
       email: json['email'] as String,
       displayName: json['display_name'] as String?,
+      tiktokUsername: json['tiktok_username'] as String?,
       preferredStoreId: json['preferred_store_id'] as String?,
       dietaryPreferences: json['dietary_preferences'] as Map<String, dynamic>?,
       householdSize: json['household_size'] as int? ?? 1,
@@ -141,6 +144,7 @@ class User {
     String? id,
     String? email,
     String? displayName,
+    String? tiktokUsername,
     String? preferredStoreId,
     Map<String, dynamic>? dietaryPreferences,
     int? householdSize,
@@ -162,6 +166,7 @@ class User {
       id: id ?? this.id,
       email: email ?? this.email,
       displayName: displayName ?? this.displayName,
+      tiktokUsername: tiktokUsername ?? this.tiktokUsername,
       preferredStoreId: preferredStoreId ?? this.preferredStoreId,
       dietaryPreferences: dietaryPreferences ?? this.dietaryPreferences,
       householdSize: householdSize ?? this.householdSize,

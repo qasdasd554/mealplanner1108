@@ -261,8 +261,8 @@ def _package_quantity_in_base_unit(product: dict) -> float | None:
     """Zwraca masę/objętość CAŁEGO produktu w g/ml.
 
     OFF rozróżnia pełne `product_quantity` i zalecaną porcję
-    `serving_quantity`. Skaner dodaje jedno opakowanie, więc porcja jest
-    wyłącznie zapasem, gdy pełnej gramatury naprawdę brakuje.
+    `serving_quantity`. Skaner dodaje jedno opakowanie, dlatego porcji nigdy
+    nie używamy jako zastępczej masy całego produktu.
     """
     package_quantity = _number(product, "product_quantity")
     if package_quantity is not None and package_quantity > 0:
@@ -555,7 +555,10 @@ def _product_from_usda_response(data: object, barcode: str) -> BarcodeLookupResu
             price_min=price_min, price_max=price_max,
             source="usda_fooddata_central",
             barcode=normalize_barcode(gtin),
-            serving_quantity=_number(food, "servingSize"),
+            # USDA `servingSize` opisuje porcję żywieniową, a nie masę
+            # całego opakowania. Nie pokazujemy na tej podstawie opcji
+            # „1 opakowanie”, bo prowadziłoby to do błędnych przeliczeń.
+            serving_quantity=None,
         )
     return None
 

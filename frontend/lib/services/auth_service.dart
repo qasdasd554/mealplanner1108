@@ -270,6 +270,7 @@ class AuthService {
 
   Future<User> updateProfile({
     String? displayName,
+    String? tiktokUsername,
     String? preferredStoreId,
     Map<String, dynamic>? dietaryPreferences,
     int? householdSize,
@@ -284,6 +285,7 @@ class AuthService {
   }) async {
     final body = <String, dynamic>{};
     if (displayName != null) body['display_name'] = displayName;
+    if (tiktokUsername != null) body['tiktok_username'] = tiktokUsername;
     if (preferredStoreId != null) body['preferred_store_id'] = preferredStoreId;
     if (dietaryPreferences != null)
       body['dietary_preferences'] = dietaryPreferences;

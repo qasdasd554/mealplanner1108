@@ -117,7 +117,7 @@ class UpdateAvailableScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryColor.withOpacity(0.1),
+                      color: AppTheme.primaryColor.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -139,25 +139,22 @@ class UpdateAvailableScreen extends StatelessWidget {
                     forceUpdate
                         ? 'Ta wersja aplikacji nie jest już obsługiwana. '
                             'Zaktualizuj ją, aby korzystać dalej.'
-                        : '• W Bazie produktów dodano pełny Katalog — '
-                            'znajdziesz w nim także dania z restauracji, '
-                            'wyszukując nazwę lub markę, np. KFC.\n'
-                            '• Wybór opakowania, gramów, łyżeczki lub '
-                            'szklanki ma teraz czytelne kafelki, a przycisk '
-                            'zatwierdzenia pozostaje widoczny nad dolną '
-                            'krawędzią ekranu.\n'
-                            '• Produkty i składniki możesz dodawać w gramach, '
-                            'mililitrach, opakowaniach, sztukach, '
-                            'łyżeczkach lub szklankach.\n'
-                            '• Aplikacja od razu przelicza wybraną ilość na '
-                            'kcal i makroskładniki.\n'
-                            '• Katalog uzupełniono o popularne dania z '
+                        : '• Poprawiono gramatury produktów. Opcja „opakowanie” '
+                            'pojawia się tylko wtedy, gdy znamy prawdziwą masę '
+                            'lub objętość całego produktu.\n'
+                            '• Skaner i zdjęcia etykiety odczytują teraz także '
+                            'masę netto opakowania oraz wartości odżywcze.\n'
+                            '• Usunięto błędne zastępowanie brakującej '
+                            'gramatury wartością 100 g w Dzienniku, spiżarni, '
+                            'przepisach i skanowaniu seryjnym.\n'
+                            '• Poprawiono wybór gramów i mililitrów — arkusz '
+                            'nie zacina aplikacji, a przycisk zatwierdzenia '
+                            'pozostaje widoczny nad klawiaturą.\n'
+                            '• W profilu możesz dodać nazwę TikTok i udostępnić '
+                            'bezpośredni odnośnik do swojego profilu.\n'
+                            '• Katalog zawiera także popularne dania z '
                             'McDonald’s, KFC, Burger King, MAX, Żabki i '
-                            'North Fish.\n'
-                            '• W Dzienniku można zmienić ilość oraz wrócić '
-                            'do gramów lub mililitrów bez utraty przeliczeń.\n'
-                            '• Informacja o dostępnej wersji pojawi się także '
-                            'po powrocie do aplikacji — bez jej ponownego uruchamiania.',
+                            'North Fish.',
                     style: TextStyle(
                       color: AppTheme.textSecondary,
                       height: 1.5,

@@ -1,10 +1,15 @@
 import 'package:image_picker/image_picker.dart';
+
 import '../../utils/error_utils.dart';
+
 import 'dart:io';
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import '../../providers/auth_provider.dart';
 import '../../providers/store_provider.dart';
 import '../../providers/theme_provider.dart';
@@ -42,6 +47,7 @@ class ProfileScreen extends StatelessWidget {
     final themeProvider = Provider.of<ThemeProvider>(context);
 
     final user = authProvider.currentUser;
+    final tiktokUsername = user?.tiktokUsername ?? '';
 
     String getStoreName(String? id) {
       if (id == null) return 'Brak';
@@ -142,6 +148,20 @@ class ProfileScreen extends StatelessWidget {
                           ),
                         ),
                       ),
+                      if (tiktokUsername.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        TextButton.icon(
+                          onPressed:
+                              () => _openTikTokProfile(context, tiktokUsername),
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppTheme.actionPrimaryColor,
+                            minimumSize: const Size(44, 44),
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                          ),
+                          icon: const Icon(Icons.music_note_rounded, size: 18),
+                          label: Text('@$tiktokUsername'),
+                        ),
+                      ],
                       if (user?.hasPremiumAccess ?? false) ...[
                         const SizedBox(height: 8),
                         const PremiumBadge(),
@@ -396,6 +416,19 @@ class ProfileScreen extends StatelessWidget {
                   title: 'Konto i prywatność',
                   icon: Icons.manage_accounts_outlined,
                   children: [
+                    _buildProfileSettingTile(
+                      context,
+                      icon: Icons.music_note_rounded,
+                      title: 'TikTok',
+                      value:
+                          tiktokUsername.isEmpty
+                              ? 'Dodaj nazwę użytkownika'
+                              : '@$tiktokUsername',
+                      onTap:
+                          () =>
+                              _showTikTokUsernameDialog(context, authProvider),
+                    ),
+                    const SizedBox(height: 16),
                     if (user?.isAdmin ?? false) ...[
                       _buildAdminTile(context),
                       const SizedBox(height: 16),
@@ -1307,6 +1340,161 @@ void _showEditNicknameDialog(BuildContext context, AuthProvider authProvider) {
       );
     },
   ).whenComplete(controller.dispose);
+}
+
+Future<void> _openTikTokProfile(BuildContext context, String username) async {
+  final uri = Uri.https('www.tiktok.com', '/@$username');
+  final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+  if (!opened && context.mounted) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(content: Text('Nie udało się otworzyć profilu TikTok.')),
+      );
+  }
+}
+
+void _showTikTokUsernameDialog(
+  BuildContext context,
+  AuthProvider authProvider,
+) {
+  final current = authProvider.currentUser?.tiktokUsername ?? '';
+  final controller = TextEditingController(text: current);
+  String? validationError;
+  var saving = false;
+
+  showDialog<void>(
+    context: context,
+    builder: (dialogContext) {
+      return StatefulBuilder(
+        builder: (_, setDialogState) {
+          return AlertDialog(
+            title: Text(current.isEmpty ? 'Dodaj TikTok' : 'Edytuj TikTok'),
+            content: TextField(
+              controller: controller,
+              autofocus: true,
+              enabled: !saving,
+              maxLength: 100,
+              autocorrect: false,
+              textInputAction: TextInputAction.done,
+              decoration: InputDecoration(
+                labelText: 'Nazwa użytkownika TikTok',
+                hintText: '@twojanazwa',
+                helperText: 'Możesz wkleić także pełny link do profilu.',
+                errorText: validationError,
+                border: const OutlineInputBorder(),
+              ),
+              onSubmitted:
+                  saving
+                      ? null
+                      : (_) => _saveTikTokUsername(
+                        parentContext: context,
+                        dialogContext: dialogContext,
+                        authProvider: authProvider,
+                        controller: controller,
+                        setDialogState: setDialogState,
+                        onSavingChanged: (value) => saving = value,
+                        onValidationChanged: (value) => validationError = value,
+                      ),
+            ),
+            actions: [
+              TextButton(
+                onPressed:
+                    saving ? null : () => Navigator.of(dialogContext).pop(),
+                child: const Text('Anuluj'),
+              ),
+              FilledButton(
+                onPressed:
+                    saving
+                        ? null
+                        : () => _saveTikTokUsername(
+                          parentContext: context,
+                          dialogContext: dialogContext,
+                          authProvider: authProvider,
+                          controller: controller,
+                          setDialogState: setDialogState,
+                          onSavingChanged: (value) => saving = value,
+                          onValidationChanged:
+                              (value) => validationError = value,
+                        ),
+                child:
+                    saving
+                        ? const SizedBox.square(
+                          dimension: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                        : Text(current.isEmpty ? 'Dodaj' : 'Zapisz'),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  ).whenComplete(controller.dispose);
+}
+
+Future<void> _saveTikTokUsername({
+  required BuildContext parentContext,
+  required BuildContext dialogContext,
+  required AuthProvider authProvider,
+  required TextEditingController controller,
+  required StateSetter setDialogState,
+  required ValueChanged<bool> onSavingChanged,
+  required ValueChanged<String?> onValidationChanged,
+}) async {
+  var value = controller.text.trim();
+  final linkMatch = RegExp(
+    r'^https?://(?:www\.)?tiktok\.com/@([A-Za-z0-9._]{2,24})/?$',
+    caseSensitive: false,
+  ).firstMatch(value);
+  if (linkMatch != null) {
+    value = linkMatch.group(1)!;
+  } else if (value.startsWith('@')) {
+    value = value.substring(1).trim();
+  }
+  final valid =
+      value.isEmpty ||
+      (RegExp(r'^[A-Za-z0-9._]{2,24}$').hasMatch(value) &&
+          !value.startsWith('.') &&
+          !value.endsWith('.') &&
+          !value.contains('..'));
+  if (!valid) {
+    setDialogState(() {
+      onValidationChanged(
+        'Wpisz 2–24 znaki: litery, cyfry, kropki lub podkreślenia.',
+      );
+    });
+    return;
+  }
+  setDialogState(() {
+    onValidationChanged(null);
+    onSavingChanged(true);
+  });
+  final success = await authProvider.updateProfile(tiktokUsername: value);
+  if (!dialogContext.mounted) return;
+  if (success) {
+    Navigator.of(dialogContext).pop();
+    if (parentContext.mounted) {
+      ScaffoldMessenger.of(parentContext)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              value.isEmpty
+                  ? 'Usunięto nazwę TikTok.'
+                  : 'Dodano odnośnik do profilu TikTok.',
+            ),
+          ),
+        );
+    }
+  } else {
+    setDialogState(() {
+      onSavingChanged(false);
+      onValidationChanged(
+        authProvider.errorMessage ?? 'Nie udało się zapisać nazwy TikTok.',
+      );
+    });
+  }
 }
 
 /// Usunięcie konta — dwuetapowe potwierdzenie, bo operacja jest

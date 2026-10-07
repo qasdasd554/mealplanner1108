@@ -84,6 +84,11 @@ class PantryService {
           'fat_per_100': lookupResult!.fatPer100,
         if (lookupResult?.carbsPer100 != null)
           'carbs_per_100': lookupResult!.carbsPer100,
+        if (lookupResult?.servingQuantity != null)
+          'serving_quantity': lookupResult!.servingQuantity,
+        if (lookupResult?.servingQuantity != null &&
+            const {'g', 'ml'}.contains(lookupResult!.unit))
+          'serving_unit': lookupResult.unit,
       },
       timeout: const Duration(seconds: 15),
     );

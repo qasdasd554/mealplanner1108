@@ -14,6 +14,19 @@ User _user({required DateTime? expiresAt, bool serverAccess = true}) {
 }
 
 void main() {
+  test('profil odczytuje zweryfikowaną nazwę TikTok', () {
+    final user = User.fromJson({
+      'id': 'user-1',
+      'email': 'user@example.com',
+      'display_name': 'Adam',
+      'tiktok_username': 'meal.planner',
+      'household_size': 1,
+      'created_at': '2026-10-07T08:00:00Z',
+    });
+
+    expect(user.tiktokUsername, 'meal.planner');
+  });
+
   test('wygasła data ma pierwszeństwo przed starą odpowiedzią serwera', () {
     final user = _user(
       expiresAt: DateTime.now().subtract(const Duration(seconds: 1)),

@@ -28,6 +28,7 @@ class UserResponse(BaseModel):
     id: uuid.UUID
     email: str
     display_name: str | None = None
+    tiktok_username: str | None = None
     preferred_store_id: uuid.UUID | None = None
     dietary_preferences: dict | None = None
     household_size: int

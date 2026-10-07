@@ -248,6 +248,17 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
         );
         return;
       }
+      if (!hasKnownBarcodePackageSize(result)) {
+        _replaceItem(
+          scannedCode,
+          state: _BatchState.missing,
+          result: result,
+          message:
+              'Znaleziono produkt, ale brakuje masy całego opakowania. '
+              'Dotknij, aby odczytać gramaturę ze zdjęcia etykiety.',
+        );
+        return;
+      }
       _replaceItem(scannedCode, state: _BatchState.ready, result: result);
     } catch (error) {
       if (!mounted) return;
@@ -290,6 +301,17 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
           state: _BatchState.missing,
           result: recognized,
           message: 'Brakuje kcal lub makro. Dotknij, aby poprawić dane.',
+        );
+        return;
+      }
+      if (!hasKnownBarcodePackageSize(recognized)) {
+        _replaceItem(
+          item.code,
+          state: _BatchState.missing,
+          result: recognized,
+          message:
+              'Nie odczytano masy całego opakowania. Dotknij, aby poprawić '
+              'zdjęcia lub wpisz gramaturę ręcznie.',
         );
         return;
       }

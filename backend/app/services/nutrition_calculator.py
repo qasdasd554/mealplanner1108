@@ -202,7 +202,10 @@ def grams_to_quantity(
         weight = _piece_weight(product_name)
         return grams / weight if weight else 0.0
     if unit == "opak":
-        weight = float(serving_quantity or 100.0)
+        # Bez potwierdzonej masy opakowania nie istnieje poprawne
+        # przeliczenie. Zwrócenie 0 jest bezpieczniejsze niż wcześniejsze
+        # zmyślone 100 g, które fałszowało kcal i listę zakupów.
+        weight = float(serving_quantity or 0.0)
         return grams / weight if weight else 0.0
     return grams
 
@@ -224,6 +227,10 @@ def quantity_to_grams(
         Ilość przeliczona na gramy/mililitry.
     """
     qty = float(quantity or 0.0)
+    if unit == "opak":
+        # serving_quantity jest źródłem prawdy również wtedy, gdy stary
+        # measure_options zawiera błędny przelicznik 100 g.
+        return qty * float(serving_quantity or 0.0)
     if measure_options:
         from app.services.product_measures import measure_to_base
 
@@ -234,10 +241,6 @@ def quantity_to_grams(
         return qty * 1000.0
     if unit == "szt":
         return qty * _piece_weight(product_name)
-    if unit == "opak":
-        # Jedno opakowanie nie może być liczone jak jeden gram. Jeśli baza
-        # nie zna jeszcze gramatury, 100 g jest ostrożnym przybliżeniem.
-        return qty * float(serving_quantity or 100.0)
     # "g", "ml" i inne nieznane jednostki traktujemy jako wartość 1:1
     return qty
 

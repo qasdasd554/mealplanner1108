@@ -1,6 +1,7 @@
 """Endpointy zarządzania profilem użytkownika."""
 
 from datetime import datetime, timedelta, timezone
+import re
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -132,6 +133,7 @@ class UserProfileUpdate(BaseModel):
     # ekstremalne wartości household_size mogłyby psuć przeliczenia porcji
     # w generatorze planów posiłków.
     display_name: str | None = Field(default=None, max_length=200)
+    tiktok_username: str | None = Field(default=None, max_length=100)
     preferred_store_id: UUID | None = None
     dietary_preferences: dict | None = None
     household_size: int | None = Field(default=None, ge=1, le=20)
@@ -157,6 +159,32 @@ class UserProfileUpdate(BaseModel):
         if v is not None and v not in allowed:
             raise ValueError(f"Awatar musi być jednym z: {', '.join(allowed)}.")
         return v
+
+    @field_validator("tiktok_username")
+    @classmethod
+    def validate_tiktok_username(cls, value: str | None) -> str | None:
+        """Przyjmuje nick, @nick lub pełny link i zapisuje sam nick."""
+        if value is None:
+            return None
+        username = value.strip()
+        if not username:
+            return None
+        match = re.fullmatch(
+            r"https?://(?:www\.)?tiktok\.com/@([A-Za-z0-9._]{2,24})/?",
+            username,
+            flags=re.IGNORECASE,
+        )
+        if match:
+            username = match.group(1)
+        else:
+            username = username.removeprefix("@").strip()
+        if not re.fullmatch(r"[A-Za-z0-9._]{2,24}", username):
+            raise ValueError(
+                "Nazwa TikTok musi mieć 2–24 znaki: litery, cyfry, kropki lub podkreślenia."
+            )
+        if username.startswith(".") or username.endswith(".") or ".." in username:
+            raise ValueError("Nazwa TikTok nie może zaczynać ani kończyć się kropką.")
+        return username
 
     @field_validator("avatar_photo_base64")
     @classmethod

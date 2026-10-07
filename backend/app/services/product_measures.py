@@ -116,10 +116,11 @@ def build_measure_options(
 ) -> list[dict[str, Any]]:
     """Buduje bezpieczny zestaw jednostek dla produktu.
 
-    ``serving_quantity`` ma pierwszeństwo jako masa opakowania. Dla produktów
-    katalogowych bez tego pola wykorzystujemy domyślną ilość po przeliczeniu
-    kg/l na g/ml. Łyżeczka i szklanka pojawiają się wyłącznie tam, gdzie mamy
-    sensowny przelicznik, zamiast udawać, że każda żywność ma tę samą gęstość.
+    ``serving_quantity`` jest jedynym źródłem masy całego opakowania.
+    ``default_quantity`` bywa porcją startową formularza (często 100 g), więc
+    nie wolno przedstawiać go użytkownikowi jako gramatury opakowania.
+    Łyżeczka i szklanka pojawiają się wyłącznie tam, gdzie mamy sensowny
+    przelicznik, zamiast udawać, że każda żywność ma tę samą gęstość.
     """
 
     base_unit = base_unit_for_product(name, unit)
@@ -135,15 +136,6 @@ def build_measure_options(
 
     piece_weight = piece_weight_grams(name) if unit == "szt" else None
     package_size = serving_quantity
-    if not package_size and default_quantity and default_quantity > 0:
-        if unit == "szt" and piece_weight and default_quantity > 1:
-            package_size = float(default_quantity) * piece_weight
-        else:
-            package_size = float(default_quantity)
-        if unit in {"kg", "l"}:
-            package_size *= 1000.0
-        elif unit == "szt" and not piece_weight:
-            package_size = None
 
     if package_size and package_size > 0:
         result.insert(

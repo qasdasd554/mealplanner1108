@@ -266,7 +266,7 @@ class _PickProductFromCatalogSheetState
       name: result.name!,
       brand: result.brand,
       unit: result.unit,
-      defaultQuantity: result.servingQuantity ?? 100,
+      defaultQuantity: 1,
       servingQuantity: result.servingQuantity,
       barcode: result.barcode,
       source: result.source,
@@ -343,10 +343,7 @@ class _PickProductFromCatalogSheetState
       context,
       product: product,
       initialQuantity: 1,
-      initialUnit:
-          product.servingQuantity != null || product.defaultQuantity > 1
-              ? 'opak'
-              : product.unit,
+      initialUnit: product.servingQuantity != null ? 'opak' : product.unit,
     );
     if (selection == null || !mounted) return;
 

@@ -60,18 +60,9 @@ String productBaseUnit(String name, String unit) {
 }
 
 List<ProductMeasureOption> effectiveMeasureOptions(Product product) {
-  if (product.measureOptions.isNotEmpty) return product.measureOptions;
-
   final baseUnit = productBaseUnit(product.name, product.unit);
   final result = <ProductMeasureOption>[];
-  double? packageSize = product.servingQuantity;
-  if ((packageSize == null || packageSize <= 0) &&
-      product.defaultQuantity > 0 &&
-      product.unit != 'szt') {
-    packageSize =
-        product.defaultQuantity *
-        ((product.unit == 'kg' || product.unit == 'l') ? 1000 : 1);
-  }
+  final packageSize = product.servingQuantity;
   if (packageSize != null && packageSize > 0) {
     result.add(
       ProductMeasureOption(
@@ -82,28 +73,31 @@ List<ProductMeasureOption> effectiveMeasureOptions(Product product) {
       ),
     );
   }
-  // Nie zakładamy już, że każda sztuka waży 100 g. Opcję „sztuka”
-  // pokazujemy tylko, gdy API podało przelicznik w measure_options.
-  // Bez niego bezpiecznym wyborem pozostają gramy.
-  if (product.unit == 'szt' && product.servingQuantity != null) {
+  // Zachowujemy tylko zweryfikowane dodatkowe miary z API. Stare wersje
+  // zapisywały sztuczne „opakowanie = 100 g”; dlatego opakowanie zawsze
+  // odbudowujemy wyłącznie z servingQuantity, zamiast ufać staremu JSON-owi.
+  for (final option in product.measureOptions) {
+    if (option.code == 'opak' ||
+        option.code == 'g' ||
+        option.code == 'ml' ||
+        result.any((existing) => existing.code == option.code)) {
+      continue;
+    }
+    result.add(option);
+  }
+  // Nie zakładamy, że masa całego opakowania jest masą jednej sztuki.
+  // Opcję „sztuka” zachowujemy tylko wtedy, gdy API podało jej osobny,
+  // zweryfikowany przelicznik w measure_options.
+  if (!result.any((option) => option.code == baseUnit)) {
     result.add(
       ProductMeasureOption(
-        code: 'szt',
-        label: 'sztuka',
-        baseQuantity: product.servingQuantity!,
-        baseUnit: 'g',
-        approximate: true,
+        code: baseUnit,
+        label: baseUnit == 'g' ? 'gramy' : 'mililitry',
+        baseQuantity: 1,
+        baseUnit: baseUnit,
       ),
     );
   }
-  result.add(
-    ProductMeasureOption(
-      code: baseUnit,
-      label: baseUnit == 'g' ? 'gramy' : 'mililitry',
-      baseQuantity: 1,
-      baseUnit: baseUnit,
-    ),
-  );
 
   final lower = product.name.toLowerCase();
   if (baseUnit == 'ml') {

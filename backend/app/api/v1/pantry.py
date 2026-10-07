@@ -51,6 +51,8 @@ class AddPantryBarcodeRequest(BaseModel):
     protein_per_100: float | None = Field(None, ge=0, le=200)
     fat_per_100: float | None = Field(None, ge=0, le=200)
     carbs_per_100: float | None = Field(None, ge=0, le=200)
+    serving_quantity: float | None = Field(None, gt=0, le=100_000)
+    serving_unit: str | None = Field(None, pattern="^(g|ml)$")
 
 
 class UpdatePantryItemQuantityRequest(BaseModel):
@@ -87,11 +89,6 @@ def merge_scanned_nutrition(
     if changed:
         merged.setdefault("fiber", 0)
     return merged, changed
-
-
-def barcode_package_amount() -> tuple[float, str]:
-    """Każdy skan zapisujemy jako jeden cały produkt, nie jako 100 g/ml."""
-    return 1.0, "opak"
 
 
 @router.get("/", response_model=list[PantryItemResponse], summary="Twoja spiżarnia")
@@ -274,8 +271,24 @@ async def add_pantry_item_from_barcode(
     if product is None:
         from app.services.product_measures import build_measure_options
 
-        lookup_unit = lookup.unit if lookup_found else "g"
-        package_size = lookup.serving_quantity if lookup_found else None
+        lookup_unit = (
+            lookup.unit
+            if lookup_found and lookup.unit in {"g", "ml"}
+            else payload.serving_unit or "g"
+        )
+        package_size = (
+            lookup.serving_quantity
+            if lookup_found and lookup.serving_quantity is not None
+            else payload.serving_quantity
+        )
+        if item_unit == "opak" and package_size is None:
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    "Nie znamy masy całego opakowania. Uzupełnij ją ze zdjęcia "
+                    "etykiety albo wybierz gramy lub mililitry."
+                ),
+            )
         nutrition = {
             "kcal": resolved_nutrition["kcal"] or 0,
             "protein": resolved_nutrition["protein"] or 0,
@@ -283,11 +296,12 @@ async def add_pantry_item_from_barcode(
             "carbs": resolved_nutrition["carbs"] or 0,
             "fiber": 0,
         }
+        product_unit = "opak" if package_size is not None else lookup_unit
         product = Product(
             name=(lookup.name if lookup_found else None) or payload.name,
             brand=(lookup.brand if lookup_found else None) or payload.brand,
-            unit="opak",
-            default_quantity=1,
+            unit=product_unit,
+            default_quantity=1 if package_size is not None else 100,
             serving_quantity=package_size,
             measure_options=build_measure_options(
                 (lookup.name if lookup_found else None) or payload.name or "Produkt",
@@ -306,16 +320,42 @@ async def add_pantry_item_from_barcode(
         db.add(product)
         await db.flush()
     else:
-        # Starsze produkty utworzone przez skaner mogły być zapisane jako
-        # 100 g/ml. Normalizujemy je również przy kolejnym użyciu.
-        product.unit = "opak"
-        product.default_quantity = 1
+        package_size = (
+            lookup.serving_quantity
+            if lookup_found and lookup.serving_quantity is not None
+            else payload.serving_quantity
+        )
+        if item_unit == "opak" and package_size is None and product.serving_quantity is None:
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    "Nie znamy masy całego opakowania. Uzupełnij ją ze zdjęcia "
+                    "etykiety albo wybierz gramy lub mililitry."
+                ),
+            )
+        if product.serving_quantity is None and package_size is not None:
+            product.serving_quantity = package_size
+            product.measure_options = None
+        if product.serving_quantity is not None:
+            product.unit = "opak"
+            product.default_quantity = 1
+        elif product.unit == "opak":
+            product.unit = (
+                lookup.unit
+                if lookup_found and lookup.unit in {"g", "ml"}
+                else payload.serving_unit or "g"
+            )
+            product.default_quantity = 100
         if not product.measure_options:
             from app.services.product_measures import build_measure_options
 
             product.measure_options = build_measure_options(
                 product.name,
-                lookup.unit if lookup_found else product.unit,
+                (
+                    lookup.unit
+                    if lookup_found and lookup.unit in {"g", "ml"}
+                    else payload.serving_unit or product.unit
+                ),
                 float(product.default_quantity or 1),
                 product.serving_quantity,
             )

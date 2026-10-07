@@ -1,5 +1,7 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
+
 import '../models/user.dart';
 import '../services/auth_service.dart';
 import '../services/api_client.dart';
@@ -319,6 +321,7 @@ class AuthProvider with ChangeNotifier {
 
   Future<bool> updateProfile({
     String? displayName,
+    String? tiktokUsername,
     String? preferredStoreId,
     Map<String, dynamic>? dietaryPreferences,
     int? householdSize,
@@ -335,6 +338,7 @@ class AuthProvider with ChangeNotifier {
     try {
       final updatedUser = await _authService.updateProfile(
         displayName: displayName,
+        tiktokUsername: tiktokUsername,
         preferredStoreId: preferredStoreId,
         dietaryPreferences: dietaryPreferences,
         householdSize: householdSize,

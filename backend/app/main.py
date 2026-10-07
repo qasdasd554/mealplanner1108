@@ -190,6 +190,9 @@ async def _create_tables() -> None:
             text("ALTER TABLE users ADD COLUMN IF NOT EXISTS app_version VARCHAR(32)")
         )
         await conn.execute(
+            text("ALTER TABLE users ADD COLUMN IF NOT EXISTS tiktok_username VARCHAR(24)")
+        )
+        await conn.execute(
             text(
                 "ALTER TABLE users ADD COLUMN IF NOT EXISTS "
                 "premium_offer_last_shown_at TIMESTAMPTZ"
@@ -411,7 +414,7 @@ async def _normalize_barcode_products_as_packages() -> None:
             "CASE WHEN unit = 'kg' THEN 'g' WHEN unit = 'l' THEN 'ml' "
             "WHEN unit = 'opak' THEN 'g' ELSE unit END, "
             "CASE WHEN unit IN ('kg', 'l') THEN default_quantity * 1000 "
-            "WHEN unit = 'opak' THEN COALESCE(serving_quantity, 100) "
+            "WHEN unit = 'opak' THEN serving_quantity "
             "ELSE default_quantity END, nutrition_per_100, "
             "'catalog_package_migration', NOW(), NOW() FROM products "
             "WHERE barcode IS NOT NULL AND barcode <> '' AND length(barcode) <= 14 "
@@ -419,10 +422,27 @@ async def _normalize_barcode_products_as_packages() -> None:
             "COALESCE(barcode_product_cache.serving_quantity, "
             "EXCLUDED.serving_quantity)"
         ))
+        # Buildy do 258 wpisywały 100 g, gdy rozmiar opakowania był
+        # nieznany. To nie była dana z etykiety. Usuwamy ją zarówno z
+        # katalogu, jak i cache, aby skan ponownie zweryfikował gramaturę w
+        # Open Food Facts albo poprosił użytkownika o zdjęcia.
         await conn.execute(text(
-            "UPDATE barcode_product_cache SET unit = 'g', serving_quantity = 100 "
+            "UPDATE products p SET serving_quantity = NULL, "
+            "measure_options = CASE WHEN p.measure_options IS NULL THEN NULL "
+            "ELSE (SELECT COALESCE(json_agg(option), '[]'::json) "
+            "FROM json_array_elements(p.measure_options) option "
+            "WHERE option->>'code' <> 'opak') END "
+            "FROM barcode_product_cache c WHERE p.barcode = c.barcode "
+            "AND p.unit = 'opak' AND p.serving_quantity = 100 "
+            "AND c.source = 'catalog_package_migration' "
+            "AND c.serving_quantity = 100"
+        ))
+        await conn.execute(text(
+            "UPDATE barcode_product_cache SET unit = 'g', "
+            "serving_quantity = NULL "
             "WHERE source = 'catalog_package_migration' "
-            "AND unit = 'opak' AND serving_quantity = 1"
+            "AND ((unit = 'opak' AND serving_quantity = 1) "
+            "OR serving_quantity = 100)"
         ))
         await conn.execute(text(
             "UPDATE products p SET serving_quantity = "
@@ -441,10 +461,23 @@ async def _normalize_barcode_products_as_packages() -> None:
             "COALESCE((p.nutrition_per_100->>'fat')::double precision, 0) = 0 AND "
             "COALESCE((p.nutrition_per_100->>'carbs')::double precision, 0) = 0))"
         ))
+        # „Opakowanie” wolno pokazać wyłącznie wtedy, gdy znamy jego masę.
+        # W przeciwnym razie produkt pozostaje w g/ml i użytkownik może podać
+        # rzeczywistą ilość bez fałszywego przelicznika 100 g.
         await conn.execute(text(
             "UPDATE products SET unit = 'opak', default_quantity = 1 "
             "WHERE barcode IS NOT NULL AND barcode <> '' "
+            "AND serving_quantity IS NOT NULL AND serving_quantity > 0 "
             "AND (unit <> 'opak' OR default_quantity IS DISTINCT FROM 1)"
+        ))
+        await conn.execute(text(
+            "UPDATE products p SET unit = CASE WHEN EXISTS ("
+            "SELECT 1 FROM barcode_product_cache c "
+            "WHERE c.barcode = p.barcode AND c.unit IN ('ml', 'l')"
+            ") THEN 'ml' ELSE 'g' END, default_quantity = 100 "
+            "WHERE p.barcode IS NOT NULL AND p.barcode <> '' "
+            "AND (p.serving_quantity IS NULL OR p.serving_quantity <= 0) "
+            "AND p.unit = 'opak'"
         ))
         await conn.execute(text(
             "UPDATE recipe_ingredients SET quantity = 1 "

@@ -39,6 +39,21 @@ def test_piece_uses_product_specific_weight_instead_of_100g_fallback() -> None:
     assert measure_to_base(2, "szt", options) == (10.0, "g")
 
 
+def test_unknown_package_size_never_creates_fake_package_option() -> None:
+    options = build_measure_options("Pizza MUALA", "opak", 1, None)
+
+    assert "opak" not in {option["code"] for option in options}
+    assert {option["code"] for option in options} == {"g"}
+
+
+def test_confirmed_package_size_is_the_only_package_conversion() -> None:
+    options = build_measure_options("Pizza MUALA", "opak", 1, 545)
+    package = next(option for option in options if option["code"] == "opak")
+
+    assert package["base_quantity"] == 545
+    assert package["base_unit"] == "g"
+
+
 def test_fast_food_catalog_has_real_portions_and_macros() -> None:
     brands = {row[1] for row in FAST_FOOD_PRODUCTS}
     assert {

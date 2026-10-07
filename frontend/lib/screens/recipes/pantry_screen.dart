@@ -312,10 +312,7 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
       context,
       product: product,
       initialQuantity: 1,
-      initialUnit:
-          product.servingQuantity != null || product.defaultQuantity > 1
-              ? 'opak'
-              : product.unit,
+      initialUnit: product.servingQuantity != null ? 'opak' : product.unit,
     );
     if (amount == null || !mounted) return;
     setState(() => _isSaving = true);

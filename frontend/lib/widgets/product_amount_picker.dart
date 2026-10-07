@@ -47,6 +47,7 @@ class _ProductAmountPickerState extends State<_ProductAmountPicker> {
   late final List<ProductMeasureOption> _options;
   late ProductMeasureOption _selected;
   late final TextEditingController _quantityController;
+  bool _closing = false;
 
   @override
   void initState() {
@@ -101,6 +102,9 @@ class _ProductAmountPickerState extends State<_ProductAmountPicker> {
   }
 
   void _chooseQuickOption(ProductMeasureOption option) {
+    if (_closing) return;
+    _closing = true;
+    FocusManager.instance.primaryFocus?.unfocus();
     Navigator.pop(
       context,
       ProductAmountSelection(quantity: 1, measure: option),
@@ -117,12 +121,22 @@ class _ProductAmountPickerState extends State<_ProductAmountPicker> {
   };
 
   void _submit() {
+    if (_closing) return;
     final quantity = _quantity;
     if (quantity == null || quantity <= 0) return;
+    _closing = true;
+    FocusManager.instance.primaryFocus?.unfocus();
     Navigator.pop(
       context,
       ProductAmountSelection(quantity: quantity, measure: _selected),
     );
+  }
+
+  void _dismiss() {
+    if (_closing) return;
+    _closing = true;
+    FocusManager.instance.primaryFocus?.unfocus();
+    Navigator.pop(context);
   }
 
   @override
@@ -168,7 +182,7 @@ class _ProductAmountPickerState extends State<_ProductAmountPicker> {
                 ),
                 IconButton(
                   tooltip: 'Zamknij',
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: _dismiss,
                   icon: const Icon(Icons.close),
                 ),
               ],

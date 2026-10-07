@@ -136,19 +136,21 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
   }
 
   void _applyNameSuggestion(BarcodeLookupResult result) {
-    const supportedUnits = {'szt', 'g', 'kg', 'ml', 'l', 'opak'};
+    const supportedUnits = {'szt', 'g', 'kg', 'ml', 'l'};
     setState(() {
       if (result.name != null) _name.text = result.name!;
       if (result.brand?.trim().isNotEmpty == true) {
         _brand.text = result.brand!;
       }
       if (supportedUnits.contains(result.unit)) _unit = result.unit;
-      if (result.barcode != null) _unit = 'opak';
+      // Kod kreskowy nie dowodzi gramatury opakowania. Zachowujemy bazową
+      // jednostkę z etykiety/OFF; backend i tak zapisze fizyczny produkt,
+      // a opcja „opakowanie” pojawi się dopiero przy znanej masie netto.
       if (result.servingQuantity != null) {
         _serving.text = _prefillNum(result.servingQuantity, decimals: 1);
       }
       _servingUnit =
-          const {'g', 'ml', 'szt'}.contains(result.unit) ? result.unit : 'g';
+          const {'g', 'ml'}.contains(result.unit) ? result.unit : 'g';
       _barcode = result.barcode ?? _barcode;
       _priceMin = result.priceMin;
       _priceMax = result.priceMax;
@@ -221,12 +223,12 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
       // użytkownik już zdążył wpisać ręcznie przed skanowaniem.
       setState(() {
         _existingProductId = _isEditing ? null : result.existingProductId;
-        _unit = 'opak';
+        _unit = const {'g', 'ml'}.contains(result.unit) ? result.unit : 'g';
         if (result.servingQuantity != null) {
           _serving.text = _prefillNum(result.servingQuantity, decimals: 1);
         }
         _servingUnit =
-            const {'g', 'ml', 'szt'}.contains(result.unit) ? result.unit : 'g';
+            const {'g', 'ml'}.contains(result.unit) ? result.unit : 'g';
         if (_name.text.trim().isEmpty && result.name != null) {
           _name.text = result.name!;
         }
@@ -535,7 +537,14 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                           border: OutlineInputBorder(),
                         ),
                         items:
-                            const ['szt', 'g', 'kg', 'ml', 'l', 'opak']
+                            [
+                                  'szt',
+                                  'g',
+                                  'kg',
+                                  'ml',
+                                  'l',
+                                  if (_isEditing && _unit == 'opak') 'opak',
+                                ]
                                 .map(
                                   (u) => DropdownMenuItem(
                                     value: u,
@@ -560,7 +569,7 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                           decimal: true,
                         ),
                         decoration: const InputDecoration(
-                          labelText: 'Wielkość opakowania lub porcji',
+                          labelText: 'Masa całego opakowania',
                           hintText: 'np. 150',
                           border: OutlineInputBorder(),
                         ),
@@ -597,8 +606,9 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                 Padding(
                   padding: const EdgeInsets.only(top: 6),
                   child: Text(
-                    'Dzięki temu aplikacja przeliczy opakowanie, porcję, '
-                    'łyżeczkę lub szklankę na kcal i makroskładniki.',
+                    'Podaj masę netto całego opakowania, nie wielkość porcji. '
+                    'Jeśli jej nie znasz, zostaw pole puste — aplikacja nie '
+                    'pokaże wtedy opcji „opakowanie”.',
                     style: TextStyle(
                       color: AppTheme.textSecondary,
                       fontSize: 12,

@@ -110,6 +110,13 @@ def test_every_recipe_uses_existing_catalog_products() -> None:
     assert missing == set()
 
 
+def test_every_system_product_has_a_valid_purchase_quantity() -> None:
+    allowed_units = {"g", "kg", "ml", "l", "szt"}
+
+    assert all(row[1] in allowed_units for row in PRODUCTS_DATA)
+    assert all(float(row[2]) > 0 for row in PRODUCTS_DATA)
+
+
 def test_submitted_product_price_is_optional() -> None:
     submission = ProductSubmission(name="Ciasto francuskie")
     assert submission.price is None

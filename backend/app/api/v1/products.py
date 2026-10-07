@@ -434,13 +434,9 @@ async def lookup_barcode(
             price_min=price_min,
             price_max=price_max,
             barcode=normalized_barcode,
-            # Dla produktu zapisanego jako „1 opakowanie” fizycznej masy
-            # szukamy niżej w cache skanera. Wartość 1 nie oznacza 1 grama.
-            serving_quantity=(
-                None
-                if existing.unit == "opak"
-                else (float(existing.default_quantity or 0) or None)
-            ),
+            # serving_quantity jest jedyną wiarygodną masą całego
+            # opakowania. default_quantity może być tylko porcją startową.
+            serving_quantity=existing.serving_quantity,
         )
 
     if local_response is not None and _response_has_complete_nutrition(
@@ -459,7 +455,11 @@ async def lookup_barcode(
             # Jednostka opisuje podstawę masy opakowania, podczas gdy sam
             # zapis do katalogu/spiżarni pozostaje zawsze „1 opakowanie”.
             local_response.unit = cached.unit
-        return local_response
+        if local_response.serving_quantity is not None:
+            return local_response
+        # Nazwa i makro są już lokalne, ale brak gramatury opakowania.
+        # Jedno zapytanie do źródła zewnętrznego może ją zweryfikować;
+        # jeśli jej tam nie ma, wynik nadal wróci bez opcji „opakowanie”.
 
     # 2. Cache Neon — wspólny dla wszystkich użytkowników.
     if local_response is None:
@@ -608,7 +608,7 @@ class ProductLabelConfirmation(BaseModel):
     barcode: str = Field(..., min_length=8, max_length=50)
     name: str = Field(..., min_length=2, max_length=300)
     brand: str | None = Field(None, max_length=200)
-    unit: str = Field("g", pattern="^(g|ml|szt)$")
+    unit: str = Field("g", pattern="^(g|ml)$")
     serving_quantity: float | None = Field(None, gt=0, le=100_000)
     kcal_per_100: float | None = Field(None, ge=0, le=2_000)
     protein_per_100: float | None = Field(None, ge=0, le=200)
@@ -742,8 +742,12 @@ async def list_scanned_products(
             "id": entry.id,
             "name": entry.name,
             "brand": entry.brand,
-            "unit": "opak",
-            "default_quantity": 1,
+            "unit": (
+                "opak"
+                if entry.serving_quantity is not None
+                else (entry.unit if entry.unit in {"g", "ml"} else "g")
+            ),
+            "default_quantity": 1 if entry.serving_quantity is not None else 100,
             "serving_quantity": entry.serving_quantity,
             "barcode": entry.barcode,
             "nutrition_per_100": entry.nutrition_per_100 or {},
@@ -1203,7 +1207,7 @@ class ProductSubmission(BaseModel):
     # w lookup_barcode), zamiast za każdym razem pytać Open Food Facts.
     barcode: str | None = Field(None, max_length=50)
     serving_quantity: float | None = Field(None, gt=0, le=100_000)
-    serving_unit: str | None = Field(None, pattern="^(g|ml|szt)$")
+    serving_unit: str | None = Field(None, pattern="^(g|ml)$")
 
 
 def _normalized_contribution_text(value: str | None) -> str:
@@ -1298,17 +1302,25 @@ async def submit_product(
 
     from app.services.product_measures import build_measure_options
 
-    product_unit = "opak" if normalized_barcode else (payload.unit.strip() or "szt")
+    requested_unit = payload.unit.strip() or "szt"
+    # Sam kod kreskowy nie określa masy opakowania. Produkt staje się
+    # „opakowaniem” dopiero po odczytaniu całkowitej masy/objętości netto.
+    product_unit = (
+        "opak"
+        if normalized_barcode and payload.serving_quantity is not None
+        else requested_unit if requested_unit != "opak" else payload.serving_unit or "g"
+    )
+    default_quantity = 1 if product_unit in {"opak", "szt", "kg", "l"} else 100
     product = Product(
         name=payload.name.strip(),
         brand=(payload.brand or "").strip() or None,
         unit=product_unit,
-        default_quantity=Decimal(1),
+        default_quantity=Decimal(default_quantity),
         serving_quantity=payload.serving_quantity,
         measure_options=build_measure_options(
             payload.name,
             payload.serving_unit or product_unit,
-            1,
+            default_quantity,
             payload.serving_quantity,
         ),
         nutrition_per_100=nutrition,

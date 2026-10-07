@@ -27,6 +27,10 @@ class User(Base):
     )
     password_hash: Mapped[str] = mapped_column(String(500), nullable=False)
     display_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    # Opcjonalna publiczna nazwa użytkownika TikTok. Przechowujemy wyłącznie
+    # zweryfikowany nick, nigdy dowolny URL, dzięki czemu aplikacja może
+    # bezpiecznie zbudować odnośnik https://www.tiktok.com/@nick.
+    tiktok_username: Mapped[str | None] = mapped_column(String(24), nullable=True)
     preferred_store_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("stores.id", ondelete="SET NULL"),

@@ -224,7 +224,7 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
       name: selected.name ?? '',
       brand: selected.brand,
       unit: selected.unit,
-      defaultQuantity: selected.servingQuantity ?? 100,
+      defaultQuantity: 1,
       servingQuantity: selected.servingQuantity,
       nutritionPer100: NutritionInfo(
         kcal: selected.kcalPer100 ?? 0,

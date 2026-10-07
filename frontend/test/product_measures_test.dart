@@ -76,4 +76,57 @@ void main() {
     expect(codes, isNot(contains('szt')));
     expect(codes, contains('g'));
   });
+
+  test('nie pokazuje opakowania bez potwierdzonej gramatury', () {
+    final options = effectiveMeasureOptions(
+      product(name: 'Pizza MUALA', unit: 'opak'),
+    );
+
+    expect(options.map((option) => option.code), isNot(contains('opak')));
+    expect(options.map((option) => option.code), contains('g'));
+  });
+
+  test('masa opakowania nie jest automatycznie masą jednej sztuki', () {
+    final options = effectiveMeasureOptions(
+      product(name: 'Przykładowy produkt', unit: 'szt', servingQuantity: 500),
+    );
+
+    expect(options.map((option) => option.code), contains('opak'));
+    expect(options.map((option) => option.code), isNot(contains('szt')));
+  });
+
+  test('ignoruje zapisany stary przelicznik opakowania bez gramatury', () {
+    final stale = Product(
+      id: 'stale',
+      name: 'Produkt ze starej migracji',
+      unit: 'opak',
+      defaultQuantity: 1,
+      measureOptions: const [
+        ProductMeasureOption(
+          code: 'opak',
+          label: 'opakowanie',
+          baseQuantity: 100,
+          baseUnit: 'g',
+        ),
+        ProductMeasureOption(
+          code: 'g',
+          label: 'gramy',
+          baseQuantity: 1,
+          baseUnit: 'g',
+        ),
+      ],
+      nutritionPer100: NutritionInfo(
+        kcal: 200,
+        protein: 10,
+        fat: 8,
+        carbs: 20,
+        fiber: 1,
+      ),
+    );
+
+    expect(
+      effectiveMeasureOptions(stale).map((option) => option.code),
+      isNot(contains('opak')),
+    );
+  });
 }

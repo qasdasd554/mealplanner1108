@@ -11,12 +11,15 @@ double defaultBarcodeQuantity(BarcodeLookupResult result) {
 
 const String barcodePackageUnit = 'opak';
 
+bool hasKnownBarcodePackageSize(BarcodeLookupResult result) =>
+    result.servingQuantity != null &&
+    result.servingQuantity! > 0 &&
+    const {'g', 'ml'}.contains(result.unit);
+
 double barcodePackageNutritionFactor(BarcodeLookupResult result) {
   final packageSize = result.servingQuantity;
-  if (packageSize != null &&
-      packageSize > 0 &&
-      const {'g', 'ml'}.contains(result.unit)) {
-    return packageSize / 100;
+  if (hasKnownBarcodePackageSize(result)) {
+    return packageSize! / 100;
   }
   // Jeżeli baza nie zna masy opakowania, nie udajemy, że „1 opakowanie”
   // to 1 gram. Pokazujemy wartości na znaną bazę 100 g/ml.
@@ -34,6 +37,8 @@ Map<String, dynamic> buildBatchTrackingPayload({
     );
   }
   final nutritionFactor = barcodePackageNutritionFactor(result);
+  final hasPackage = hasKnownBarcodePackageSize(result);
+  final baseUnit = result.unit == 'ml' ? 'ml' : 'g';
   final formattedDate =
       '${date.year.toString().padLeft(4, '0')}-'
       '${date.month.toString().padLeft(2, '0')}-'
@@ -41,7 +46,10 @@ Map<String, dynamic> buildBatchTrackingPayload({
   return {
     'date': formattedDate,
     'meal_type': mealType,
-    'custom_name': '${result.name} (1 opakowanie)',
+    'custom_name':
+        hasPackage
+            ? '${result.name} (1 opakowanie)'
+            : '${result.name} (100 $baseUnit)',
     'servings': 1,
     'calories': result.kcalPer100! * nutritionFactor,
     'protein': result.proteinPer100! * nutritionFactor,
@@ -50,11 +58,9 @@ Map<String, dynamic> buildBatchTrackingPayload({
     // Pierwszy zapis ma przedstawiać cały produkt, a nie liczbę gramów.
     // Gramatura zostaje w `portion_size`, dzięki czemu późniejsza zmiana
     // na g/ml nadal poprawnie przelicza kcal i makro.
-    'amount_value': 1,
-    'amount_unit': barcodePackageUnit,
-    if (result.servingQuantity != null && result.servingQuantity! > 0)
-      'portion_size': result.servingQuantity,
-    if (result.servingQuantity != null && result.servingQuantity! > 0)
-      'portion_unit': result.unit == 'ml' ? 'ml' : 'g',
+    'amount_value': hasPackage ? 1 : 100,
+    'amount_unit': hasPackage ? barcodePackageUnit : baseUnit,
+    if (hasPackage) 'portion_size': result.servingQuantity,
+    if (hasPackage) 'portion_unit': baseUnit,
   };
 }

@@ -144,8 +144,7 @@ class _ProductLabelRecognitionSheetState
       _carbs.text = _format(result.carbsPer100);
       setState(() {
         _recognized = result;
-        _unit =
-            const {'g', 'ml', 'szt'}.contains(result.unit) ? result.unit : 'g';
+        _unit = const {'g', 'ml'}.contains(result.unit) ? result.unit : 'g';
       });
     } catch (error) {
       if (mounted) setState(() => _error = friendlyError(error));
@@ -288,7 +287,7 @@ class _ProductLabelRecognitionSheetState
               _field(_brand, 'Marka'),
               Row(
                 children: [
-                  Expanded(child: _numberField(_serving, 'Porcja/opakowanie')),
+                  Expanded(child: _numberField(_serving, 'Całe opakowanie')),
                   const SizedBox(width: 10),
                   SizedBox(
                     width: 100,
@@ -299,7 +298,7 @@ class _ProductLabelRecognitionSheetState
                         border: OutlineInputBorder(),
                       ),
                       items:
-                          const ['g', 'ml', 'szt']
+                          const ['g', 'ml']
                               .map(
                                 (unit) => DropdownMenuItem(
                                   value: unit,
@@ -312,6 +311,17 @@ class _ProductLabelRecognitionSheetState
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Podaj masę netto całego opakowania. Zostaw puste, jeśli '
+                'nie ma jej na etykiecie — wtedy opcja „opakowanie” nie '
+                'będzie wyświetlana.',
+                style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 12,
+                  height: 1.3,
+                ),
               ),
               const SizedBox(height: 10),
               Text(

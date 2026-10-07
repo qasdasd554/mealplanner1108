@@ -282,7 +282,7 @@ Future<bool> _addBarcodeToPantry(
         name: result.name!,
         brand: result.brand,
         unit: result.unit,
-        defaultQuantity: result.servingQuantity ?? 100,
+        defaultQuantity: 1,
         servingQuantity: result.servingQuantity,
         barcode: result.barcode,
         source: result.source,
