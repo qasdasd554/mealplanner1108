@@ -139,22 +139,11 @@ class UpdateAvailableScreen extends StatelessWidget {
                     forceUpdate
                         ? 'Ta wersja aplikacji nie jest już obsługiwana. '
                             'Zaktualizuj ją, aby korzystać dalej.'
-                        : '• Poprawiono gramatury produktów. Opcja „opakowanie” '
-                            'pojawia się tylko wtedy, gdy znamy prawdziwą masę '
-                            'lub objętość całego produktu.\n'
-                            '• Skaner i zdjęcia etykiety odczytują teraz także '
-                            'masę netto opakowania oraz wartości odżywcze.\n'
-                            '• Usunięto błędne zastępowanie brakującej '
-                            'gramatury wartością 100 g w Dzienniku, spiżarni, '
-                            'przepisach i skanowaniu seryjnym.\n'
-                            '• Poprawiono wybór gramów i mililitrów — arkusz '
-                            'nie zacina aplikacji, a przycisk zatwierdzenia '
-                            'pozostaje widoczny nad klawiaturą.\n'
-                            '• W profilu możesz dodać nazwę TikTok i udostępnić '
-                            'bezpośredni odnośnik do swojego profilu.\n'
-                            '• Katalog zawiera także popularne dania z '
-                            'McDonald’s, KFC, Burger King, MAX, Żabki i '
-                            'North Fish.',
+                        : '• Przy każdym przepisie dodanym przez użytkownika '
+                            'wyświetlamy teraz jego profil TikTok — wystarczy '
+                            'dotknąć nazwy pod autorem przepisu.\n'
+                            '• Uporządkowano wygląd odnośnika TikTok w profilu '
+                            'i usunięto niepasującą ikonę nutki.',
                     style: TextStyle(
                       color: AppTheme.textSecondary,
                       height: 1.5,

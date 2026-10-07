@@ -203,6 +203,7 @@ class RecipeResponse(RecipeBase):
     created_by_name: str | None = None
     created_by_avatar: str | None = None
     created_by_avatar_photo: str | None = None
+    created_by_tiktok_username: str | None = None
 
     @field_validator("tags", mode="before")
     @classmethod
@@ -232,6 +233,7 @@ class RecipeResponse(RecipeBase):
                 data.created_by_name = data.creator.display_name
                 data.created_by_avatar = data.creator.avatar
                 data.created_by_avatar_photo = data.creator.avatar_photo_base64
+                data.created_by_tiktok_username = data.creator.tiktok_username
         except Exception:
             pass
 
@@ -293,6 +295,9 @@ class RecipeResponse(RecipeBase):
             res["created_by_name"] = getattr(data, "created_by_name", None)
             res["created_by_avatar"] = getattr(data, "created_by_avatar", None)
             res["created_by_avatar_photo"] = getattr(data, "created_by_avatar_photo", None)
+            res["created_by_tiktok_username"] = getattr(
+                data, "created_by_tiktok_username", None
+            )
             return res
         return data
 

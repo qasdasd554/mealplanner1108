@@ -150,7 +150,7 @@ class ProfileScreen extends StatelessWidget {
                       ),
                       if (tiktokUsername.isNotEmpty) ...[
                         const SizedBox(height: 4),
-                        TextButton.icon(
+                        TextButton(
                           onPressed:
                               () => _openTikTokProfile(context, tiktokUsername),
                           style: TextButton.styleFrom(
@@ -158,8 +158,7 @@ class ProfileScreen extends StatelessWidget {
                             minimumSize: const Size(44, 44),
                             padding: const EdgeInsets.symmetric(horizontal: 8),
                           ),
-                          icon: const Icon(Icons.music_note_rounded, size: 18),
-                          label: Text('@$tiktokUsername'),
+                          child: Text('@$tiktokUsername'),
                         ),
                       ],
                       if (user?.hasPremiumAccess ?? false) ...[
@@ -418,7 +417,7 @@ class ProfileScreen extends StatelessWidget {
                   children: [
                     _buildProfileSettingTile(
                       context,
-                      icon: Icons.music_note_rounded,
+                      icon: Icons.alternate_email_rounded,
                       title: 'TikTok',
                       value:
                           tiktokUsername.isEmpty

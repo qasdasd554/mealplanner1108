@@ -89,6 +89,7 @@ class Recipe {
   final String? createdByName;
   final String? createdByAvatar;
   final String? createdByAvatarPhoto;
+  final String? createdByTikTokUsername;
 
   Recipe({
     required this.id,
@@ -116,6 +117,7 @@ class Recipe {
     this.createdByName,
     this.createdByAvatar,
     this.createdByAvatarPhoto,
+    this.createdByTikTokUsername,
   });
 
   factory Recipe.fromJson(Map<String, dynamic> json) {
@@ -164,10 +166,14 @@ class Recipe {
       createdByName: json['created_by_name'] as String?,
       createdByAvatar: json['created_by_avatar'] as String?,
       createdByAvatarPhoto: json['created_by_avatar_photo'] as String?,
+      createdByTikTokUsername: json['created_by_tiktok_username'] as String?,
     );
   }
 
   int get totalTimeMin => (prepTimeMin ?? 0) + (cookTimeMin ?? 0);
+
+  bool get hasCreatorTikTok =>
+      createdByTikTokUsername?.trim().isNotEmpty ?? false;
 
   /// Czy przepis pojawił się w ostatnich 14 dniach — niezależnie od tego,
   /// czy dodany "z zewnątrz" (przy starcie/aktualizacji seed danych) czy

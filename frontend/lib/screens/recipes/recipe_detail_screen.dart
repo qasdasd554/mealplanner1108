@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'dart:async';
 
@@ -125,6 +126,20 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       // przeglądania komunikatem o błędzie dla danych, które są
       // dodatkiem, nie koniecznością.
       // Dane przekazane podczas nawigacji pozostają dostępne.
+    }
+  }
+
+  Future<void> _openTikTokProfile(String username) async {
+    final uri = Uri.https('www.tiktok.com', '/@$username');
+    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!opened && mounted) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('Nie udało się otworzyć profilu TikTok.'),
+          ),
+        );
     }
   }
 
@@ -354,13 +369,40 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                         ),
                         const SizedBox(width: 10),
                         Expanded(
-                          child: Text(
-                            'Dodane przez ${recipe.createdByName}',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.textSecondary,
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Dodane przez ${recipe.createdByName}',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.textSecondary,
+                                ),
+                              ),
+                              if (recipe.hasCreatorTikTok)
+                                TextButton(
+                                  onPressed:
+                                      () => _openTikTokProfile(
+                                        recipe.createdByTikTokUsername!,
+                                      ),
+                                  style: TextButton.styleFrom(
+                                    minimumSize: Size.zero,
+                                    padding: const EdgeInsets.only(top: 2),
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                    foregroundColor:
+                                        AppTheme.actionPrimaryColor,
+                                  ),
+                                  child: Text(
+                                    '@${recipe.createdByTikTokUsername}',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
                       ],
