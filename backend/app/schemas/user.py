@@ -76,6 +76,12 @@ class UserResponse(BaseModel):
         # premium_expires_at — ten schemat ma dokładnie te pola, więc
         # przekazujemy go bezpośrednio zamiast duplikować logikę.
         self.has_premium_access = is_premium_active(self)
+        # Profil TikTok jest dodatkiem Premium. Nie kasujemy zapisanej nazwy
+        # po wygaśnięciu subskrypcji, ale przestajemy ją zwracać do aplikacji.
+        # Po ponownym wykupieniu Premium odnośnik może więc wrócić bez
+        # ponownego wpisywania nazwy przez użytkownika.
+        if not self.has_premium_access:
+            self.tiktok_username = None
         return self
 
 

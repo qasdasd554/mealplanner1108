@@ -2,6 +2,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_meal_planner/services/share_intent_handler.dart';
 
 void main() {
+  test('rozpoznaje bezpośredni link do ekranu Premium', () {
+    expect(
+      ShareIntentHandler.isPremiumDeepLink('mealplannerpolska://premium'),
+      isTrue,
+    );
+    expect(
+      ShareIntentHandler.isPremiumDeepLink('mealplannerpolska://recipes'),
+      isFalse,
+    );
+  });
+
   test('wyciąga link TikToka z udostępnionego opisu', () {
     expect(
       ShareIntentHandler.extractUrl(

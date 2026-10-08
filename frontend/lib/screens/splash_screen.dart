@@ -55,6 +55,7 @@ class _SplashScreenState extends State<SplashScreen> {
     // komentarz), więc nie ma ryzyka, że dwa miejsca "walczą" o tę samą,
     // jednorazowo zwracaną wartość.
     String? sharedUrl;
+    bool openPremium = false;
     try {
       final sharedText = await _shareChannel.invokeMethod<String>(
         'getInitialSharedText',
@@ -64,6 +65,14 @@ class _SplashScreenState extends State<SplashScreen> {
       }
     } catch (_) {
       // Cicho ignorujemy — to nie jest krytyczna ścieżka startu aplikacji.
+    }
+    try {
+      final deepLink = await _shareChannel.invokeMethod<String>(
+        'getInitialDeepLink',
+      );
+      openPremium = ShareIntentHandler.isPremiumDeepLink(deepLink);
+    } catch (_) {
+      // iOS nie obsługuje jeszcze tego kanału — link dotyczy Androida.
     }
 
     // Small delay for splash animation
@@ -126,7 +135,14 @@ class _SplashScreenState extends State<SplashScreen> {
         });
         return;
       }
-      if (sharedUrl != null) {
+      if (openPremium) {
+        final navigator = Navigator.of(context);
+        navigator.pushReplacementNamed('/home');
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!navigator.mounted) return;
+          navigator.pushNamed('/premium');
+        });
+      } else if (sharedUrl != null) {
         // Zostaw stronę główną pod ekranem AI. Poprzednio zastępowaliśmy
         // splash bezpośrednio ekranem importu; po cofnięciu nie było już
         // żadnej trasy i aplikacja zamykała się zamiast wrócić do domu.

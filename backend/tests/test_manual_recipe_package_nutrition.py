@@ -1,5 +1,10 @@
 from types import SimpleNamespace
 
+import pytest
+from fastapi import HTTPException
+
+from app.api.v1.products import _require_complete_recipe_nutrition
+from app.api.v1.recipes import _product_has_complete_nutrition
 from app.services.nutrition_calculator import (
     compute_recipe_nutrition_total,
     is_ingredient_quantity_reasonable,
@@ -47,3 +52,47 @@ def test_recipe_nutrition_for_package_is_not_zero() -> None:
 
 def test_one_hundred_packages_is_rejected_as_unreasonable() -> None:
     assert is_ingredient_quantity_reasonable(100, "opak") is False
+
+
+def test_manual_recipe_rejects_unknown_nutrition_instead_of_saving_zeros() -> None:
+    with pytest.raises(HTTPException) as error:
+        _require_complete_recipe_nutrition({
+            "kcal": 0,
+            "protein": 0,
+            "fat": 0,
+            "carbs": 0,
+        })
+
+    assert error.value.status_code == 422
+    assert "etykiety" in str(error.value.detail)
+
+
+def test_manual_recipe_accepts_real_nutrition_with_valid_zero_macros() -> None:
+    _require_complete_recipe_nutrition({
+        "kcal": 42,
+        "protein": 0,
+        "fat": 0,
+        "carbs": 10.5,
+    })
+
+
+def test_recipe_api_does_not_treat_placeholder_zeros_as_nutrition() -> None:
+    product = SimpleNamespace(nutrition_per_100={
+        "kcal": 0,
+        "protein": 0,
+        "fat": 0,
+        "carbs": 0,
+    })
+
+    assert _product_has_complete_nutrition(product) is False
+
+
+def test_recipe_api_accepts_complete_macros_with_individual_zeros() -> None:
+    product = SimpleNamespace(nutrition_per_100={
+        "kcal": 64,
+        "protein": 4,
+        "fat": 0,
+        "carbs": 12,
+    })
+
+    assert _product_has_complete_nutrition(product) is True

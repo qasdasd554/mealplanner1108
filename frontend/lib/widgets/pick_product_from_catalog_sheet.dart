@@ -318,6 +318,22 @@ class _PickProductFromCatalogSheetState
       return;
     }
 
+    if (nutritionMissing) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            duration: Duration(seconds: 4),
+            content: Text(
+              'Ten produkt nie ma jeszcze wartości odżywczych. '
+              'Dodaj go do bazy z danymi z etykiety, aby użyć go w Dzienniku.',
+            ),
+          ),
+        );
+      return;
+    }
+
     if (product.barcode?.trim().isNotEmpty == true ||
         product.unit == 'opak' ||
         product.source == 'scan') {

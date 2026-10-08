@@ -27,6 +27,7 @@ class MainActivity : FlutterActivity() {
     // (zimny start aplikacji przez samo udostępnienie, nie przez zwykłe
     // uruchomienie) — czekamy, aż strona Dart o niego zapyta.
     private var pendingSharedText: String? = null
+    private var pendingDeepLink: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // UWAGA (naprawa): enableEdgeToEdge() z androidx.activity wymaga
@@ -41,6 +42,7 @@ class MainActivity : FlutterActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         super.onCreate(savedInstanceState)
         pendingSharedText = extractSharedText(intent)
+        pendingDeepLink = extractDeepLink(intent)
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -54,6 +56,10 @@ class MainActivity : FlutterActivity() {
                     // restarcie w trakcie developmentu) nie powinny wciąż
                     // dostawać tego samego, już "zjedzonego" udostępnienia.
                     pendingSharedText = null
+                }
+                "getInitialDeepLink" -> {
+                    result.success(pendingDeepLink)
+                    pendingDeepLink = null
                 }
                 else -> result.notImplemented()
             }
@@ -70,6 +76,10 @@ class MainActivity : FlutterActivity() {
             // (Dart nie ma jak "zapytać ponownie" w tym scenariuszu).
             methodChannel?.invokeMethod("onSharedText", sharedText)
         }
+        val deepLink = extractDeepLink(intent)
+        if (deepLink != null) {
+            methodChannel?.invokeMethod("onDeepLink", deepLink)
+        }
     }
 
     private fun extractSharedText(intent: Intent?): String? {
@@ -78,5 +88,14 @@ class MainActivity : FlutterActivity() {
                 ?: intent.dataString
         }
         return null
+    }
+
+    private fun extractDeepLink(intent: Intent?): String? {
+        if (intent?.action != Intent.ACTION_VIEW) return null
+        val uri = intent.data ?: return null
+        return if (
+            uri.scheme.equals("mealplannerpolska", ignoreCase = true) &&
+            uri.host.equals("premium", ignoreCase = true)
+        ) uri.toString() else null
     }
 }

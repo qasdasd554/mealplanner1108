@@ -18,6 +18,7 @@ class PremiumComparisonTable extends StatelessWidget {
     ('Import przepisu przez AI (zdjęcie, tekst, link)', true, false),
     ('Seryjne skanowanie produktów bez zamykania aparatu', true, false),
     ('Publikacja przepisów we wspólnym katalogu', true, false),
+    ('Odnośnik TikTok przy własnych przepisach', true, false),
     ('Listy zakupów z wybranych przepisów', 'Bez limitu', '1 / tydzień'),
     ('Generowanie planu posiłków', true, true),
     ('Dziennik kalorii i makroskładników', true, true),

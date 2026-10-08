@@ -230,10 +230,19 @@ class RecipeResponse(RecipeBase):
 
             insp = sa_inspect(data)
             if "creator" not in insp.unloaded and data.creator is not None:
+                from app.core.premium import is_premium_active
+
                 data.created_by_name = data.creator.display_name
                 data.created_by_avatar = data.creator.avatar
                 data.created_by_avatar_photo = data.creator.avatar_photo_base64
-                data.created_by_tiktok_username = data.creator.tiktok_username
+                # TikTok autora jest publicznym dodatkiem Premium. Sam nick
+                # zostaje w bazie, ale po wygaśnięciu dostępu przepis nie
+                # ujawnia go ani w aktualnej, ani w starszej aplikacji.
+                data.created_by_tiktok_username = (
+                    data.creator.tiktok_username
+                    if is_premium_active(data.creator)
+                    else None
+                )
         except Exception:
             pass
 

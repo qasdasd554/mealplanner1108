@@ -139,11 +139,15 @@ class UpdateAvailableScreen extends StatelessWidget {
                     forceUpdate
                         ? 'Ta wersja aplikacji nie jest już obsługiwana. '
                             'Zaktualizuj ją, aby korzystać dalej.'
-                        : '• Przy każdym przepisie dodanym przez użytkownika '
-                            'wyświetlamy teraz jego profil TikTok — wystarczy '
-                            'dotknąć nazwy pod autorem przepisu.\n'
-                            '• Uporządkowano wygląd odnośnika TikTok w profilu '
-                            'i usunięto niepasującą ikonę nutki.',
+                        : '• Dodawanie składników do przepisu nie zapisuje '
+                            'już brakujących wartości jako 0 kcal — aplikacja '
+                            'poprosi o uzupełnienie etykiety.\n'
+                            '• Opakowanie można wybrać tylko wtedy, gdy znamy '
+                            'jego prawdziwą gramaturę; poprawiono też '
+                            'bezpieczeństwo skanowania kodów.\n'
+                            '• Profile TikTok przy przepisach są dostępne dla '
+                            'Premium, a linki promocyjne mogą otwierać ekran '
+                            'Premium bezpośrednio w aplikacji.',
                     style: TextStyle(
                       color: AppTheme.textSecondary,
                       height: 1.5,

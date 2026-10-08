@@ -39,6 +39,71 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
+def _product_has_complete_nutrition(product: Product) -> bool:
+    nutrition = product.nutrition_per_100 or {}
+    values = [
+        nutrition.get("kcal"),
+        nutrition.get("protein"),
+        nutrition.get("fat"),
+        nutrition.get("carbs"),
+    ]
+    if any(value is None for value in values):
+        return False
+    try:
+        return any(float(value) > 0 for value in values)
+    except (TypeError, ValueError):
+        return False
+
+
+async def _validate_recipe_ingredient_products(
+    db: AsyncSession,
+    ingredients,
+    user_id: UUID,
+) -> dict[UUID, Product]:
+    """Ładuje dozwolone produkty i odrzuca składniki, których nie da się policzyć."""
+    requested_ids = {ingredient.product_id for ingredient in ingredients}
+    if not requested_ids:
+        return {}
+    result = await db.execute(
+        select(Product).where(
+            Product.id.in_(requested_ids),
+            or_(
+                Product.review_status == "approved",
+                Product.created_by_user_id == user_id,
+            ),
+        )
+    )
+    products = {product.id: product for product in result.scalars().all()}
+    missing_ids = requested_ids - products.keys()
+    if missing_ids:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Nie znaleziono dostępnego produktu/produktów: "
+                f"{', '.join(str(item) for item in missing_ids)}"
+            ),
+        )
+    for ingredient in ingredients:
+        product = products[ingredient.product_id]
+        if not _product_has_complete_nutrition(product):
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    f'Produkt "{product.name}" nie ma pełnych wartości '
+                    "odżywczych. Uzupełnij dane z etykiety."
+                ),
+            )
+        if ingredient.unit == "opak" and not product.serving_quantity:
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    f'Nie znamy masy całego opakowania produktu "{product.name}". '
+                    "Wybierz gramy lub mililitry."
+                ),
+            )
+    return products
+
+
 async def _get_favorite_recipe_ids(
     db: AsyncSession,
     user_id: UUID,
@@ -455,16 +520,9 @@ async def create_recipe(
     # to jako naruszenie klucza obcego, kończąc się nieobsłużonym błędem
     # 500 zamiast czytelnej odpowiedzi. Sprawdzamy WSZYSTKIE product_id na
     # raz (jedno zapytanie) PRZED zapisaniem czegokolwiek do bazy.
-    if recipe_in.ingredients:
-        requested_ids = {ing.product_id for ing in recipe_in.ingredients}
-        existing_result = await db.execute(select(Product.id).where(Product.id.in_(requested_ids)))
-        existing_ids = set(existing_result.scalars().all())
-        missing_ids = requested_ids - existing_ids
-        if missing_ids:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Nie znaleziono produktu/produktów: {', '.join(str(i) for i in missing_ids)}",
-            )
+    await _validate_recipe_ingredient_products(
+        db, recipe_in.ingredients, current_user.id
+    )
 
     recipe = Recipe(
         name=recipe_in.name,
@@ -570,15 +628,9 @@ async def save_recipe_variant(
     if not is_own and not is_public:
         raise NotFoundException(detail=f"Przepis o ID {recipe_id} nie został znaleziony")
 
-    requested_ids = {ingredient.product_id for ingredient in variant_in.ingredients}
-    product_result = await db.execute(select(Product.id).where(Product.id.in_(requested_ids)))
-    existing_ids = set(product_result.scalars().all())
-    missing_ids = requested_ids - existing_ids
-    if missing_ids:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Nie znaleziono produktu/produktów: {', '.join(str(i) for i in missing_ids)}",
-        )
+    await _validate_recipe_ingredient_products(
+        db, variant_in.ingredients, current_user.id
+    )
 
     base_name = re.sub(r" - edytowane \d+$", "", source.name, flags=re.IGNORECASE)
     prefix = f"{base_name} - edytowane "
@@ -950,7 +1002,11 @@ async def _create_ai_recipe(
         Product.review_status == "approved",
         Product.created_by_user_id == current_user.id,
     )))
-    available_product_rows = list(products_result.scalars().all())
+    available_product_rows = [
+        product
+        for product in products_result.scalars().all()
+        if _product_has_complete_nutrition(product)
+    ]
     available_products = list(dict.fromkeys(p.name for p in available_product_rows))
     catalog_seconds = time.perf_counter() - started_at
 
@@ -1145,7 +1201,11 @@ async def edit_recipe_with_ai(
     product_result = await db.execute(select(Product).where(or_(
         Product.review_status == "approved", Product.created_by_user_id == user_id,
     )))
-    available_rows = list(product_result.scalars().all())
+    available_rows = [
+        product
+        for product in product_result.scalars().all()
+        if _product_has_complete_nutrition(product)
+    ]
     product_by_name = {
         product.name.casefold(): (product.id, product.name)
         for product in available_rows

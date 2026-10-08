@@ -27,6 +27,7 @@ import '../../providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../../widgets/user_avatar.dart';
+import '../../widgets/tiktok_icon.dart';
 
 class RecipeDetailScreen extends StatefulWidget {
   const RecipeDetailScreen({super.key});
@@ -394,12 +395,19 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                     foregroundColor:
                                         AppTheme.actionPrimaryColor,
                                   ),
-                                  child: Text(
-                                    '@${recipe.createdByTikTokUsername}',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const TikTokIcon(size: 15),
+                                      const SizedBox(width: 5),
+                                      Text(
+                                        '@${recipe.createdByTikTokUsername}',
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                             ],

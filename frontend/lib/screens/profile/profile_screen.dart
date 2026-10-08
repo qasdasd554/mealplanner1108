@@ -26,6 +26,7 @@ import '../tracker/calorie_calculator_screen.dart';
 import '../../widgets/premium_comparison_table.dart';
 import '../../widgets/decorative_circles.dart';
 import '../../widgets/user_avatar.dart';
+import '../../widgets/tiktok_icon.dart';
 import 'premium_screen.dart';
 import '../admin/admin_panel_screen.dart';
 import 'blocked_users_screen.dart';
@@ -47,7 +48,8 @@ class ProfileScreen extends StatelessWidget {
     final themeProvider = Provider.of<ThemeProvider>(context);
 
     final user = authProvider.currentUser;
-    final tiktokUsername = user?.tiktokUsername ?? '';
+    final hasPremiumAccess = user?.hasPremiumAccess ?? false;
+    final tiktokUsername = hasPremiumAccess ? (user?.tiktokUsername ?? '') : '';
 
     String getStoreName(String? id) {
       if (id == null) return 'Brak';
@@ -161,7 +163,7 @@ class ProfileScreen extends StatelessWidget {
                           child: Text('@$tiktokUsername'),
                         ),
                       ],
-                      if (user?.hasPremiumAccess ?? false) ...[
+                      if (hasPremiumAccess) ...[
                         const SizedBox(height: 8),
                         const PremiumBadge(),
                       ],
@@ -415,19 +417,24 @@ class ProfileScreen extends StatelessWidget {
                   title: 'Konto i prywatność',
                   icon: Icons.manage_accounts_outlined,
                   children: [
-                    _buildProfileSettingTile(
-                      context,
-                      icon: Icons.alternate_email_rounded,
-                      title: 'TikTok',
-                      value:
-                          tiktokUsername.isEmpty
-                              ? 'Dodaj nazwę użytkownika'
-                              : '@$tiktokUsername',
-                      onTap:
-                          () =>
-                              _showTikTokUsernameDialog(context, authProvider),
-                    ),
-                    const SizedBox(height: 16),
+                    if (hasPremiumAccess) ...[
+                      _buildProfileSettingTile(
+                        context,
+                        icon: Icons.alternate_email_rounded,
+                        leading: const TikTokIcon(size: 24),
+                        title: 'TikTok',
+                        value:
+                            tiktokUsername.isEmpty
+                                ? 'Dodaj nazwę użytkownika'
+                                : '@$tiktokUsername',
+                        onTap:
+                            () => _showTikTokUsernameDialog(
+                              context,
+                              authProvider,
+                            ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                     if (user?.isAdmin ?? false) ...[
                       _buildAdminTile(context),
                       const SizedBox(height: 16),
@@ -814,6 +821,7 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildProfileSettingTile(
     BuildContext context, {
     required IconData icon,
+    Widget? leading,
     required String title,
     required String value,
     required VoidCallback onTap,
@@ -831,7 +839,7 @@ class ProfileScreen extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              Icon(icon, color: AppTheme.primaryColor),
+              leading ?? Icon(icon, color: AppTheme.primaryColor),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(

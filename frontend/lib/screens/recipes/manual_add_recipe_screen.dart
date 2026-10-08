@@ -9,6 +9,7 @@ import '../../utils/quantity_formatter.dart';
 import '../../services/recipe_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/product_amount_picker.dart';
+import '../../widgets/product_label_recognition_sheet.dart';
 import 'recipe_detail_screen.dart';
 import '../../utils/error_utils.dart';
 
@@ -211,13 +212,44 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
   }
 
   Future<void> _addIngredient() async {
-    final selected = await showModalBottomSheet<BarcodeLookupResult>(
+    var selected = await showModalBottomSheet<BarcodeLookupResult>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
+      showDragHandle: true,
+      backgroundColor: AppTheme.surfaceColor,
       builder: (ctx) => const _ProductPickerSheet(),
     );
     if (selected == null || !mounted) return;
+
+    // Sama nazwa produktu nie wystarcza do policzenia przepisu. Wcześniej
+    // brakujące pola były zamieniane na zera, przez co gotowy przepis mógł
+    // pokazywać fałszywe 0 kcal. Jeśli znamy EAN, prowadzimy użytkownika do
+    // uzupełnienia etykiety; bez EAN blokujemy zapis i wyjaśniamy, co zrobić.
+    if (!selected.hasCompleteNutrition) {
+      final barcode = selected.barcode?.trim();
+      if (barcode != null && barcode.isNotEmpty) {
+        final recognized = await showProductLabelRecognitionSheet(
+          context,
+          barcode: barcode,
+        );
+        if (!mounted || recognized == null) return;
+        selected = recognized;
+      } else {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(
+              duration: Duration(seconds: 4),
+              content: Text(
+                'Ten produkt nie ma pełnych wartości odżywczych. '
+                'Wybierz inny wynik albo dodaj produkt do bazy z danymi z etykiety.',
+              ),
+            ),
+          );
+        return;
+      }
+    }
 
     final preview = Product(
       id: selected.existingProductId ?? '',
@@ -789,9 +821,21 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
               TextField(
                 controller: _searchController,
                 autofocus: true,
-                decoration: const InputDecoration(
+                textInputAction: TextInputAction.search,
+                decoration: InputDecoration(
                   hintText: 'Szukaj w katalogu i bazie produktów...',
-                  prefixIcon: Icon(Icons.search),
+                  prefixIcon: const Icon(Icons.search),
+                  suffixIcon:
+                      _searchController.text.isEmpty
+                          ? null
+                          : IconButton(
+                            tooltip: 'Wyczyść wyszukiwanie',
+                            onPressed: () {
+                              _searchController.clear();
+                              _search('');
+                            },
+                            icon: const Icon(Icons.close),
+                          ),
                 ),
                 onChanged: _search,
               ),
@@ -808,11 +852,27 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                         ? Center(
                           child: Text(_error!, textAlign: TextAlign.center),
                         )
+                        : _results.isEmpty
+                        ? Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Text(
+                              _searchController.text.trim().length < 2
+                                  ? 'Wpisz co najmniej 2 znaki, aby znaleźć składnik.'
+                                  : 'Nie znaleziono produktu. Dodaj go najpierw do bazy produktów wraz z wartościami z etykiety.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: AppTheme.textSecondary),
+                            ),
+                          ),
+                        )
                         : ListView.builder(
                           controller: scrollController,
+                          keyboardDismissBehavior:
+                              ScrollViewKeyboardDismissBehavior.onDrag,
                           itemCount: _results.length,
                           itemBuilder: (context, index) {
                             final product = _results[index];
+                            final hasNutrition = product.hasCompleteNutrition;
                             return ListTile(
                               title: Text(product.name ?? ''),
                               subtitle: Text(
@@ -823,8 +883,20 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                                     '${product.kcalPer100!.toStringAsFixed(0)} kcal / 100 ${product.unit}',
                                   if (product.source == 'open_food_facts')
                                     'Open Food Facts',
+                                  if (!hasNutrition)
+                                    product.barcode?.trim().isNotEmpty == true
+                                        ? 'Wymaga uzupełnienia etykiety'
+                                        : 'Brak pełnych wartości odżywczych',
                                 ].join(' · '),
                               ),
+                              trailing:
+                                  hasNutrition
+                                      ? const Icon(Icons.chevron_right)
+                                      : Icon(
+                                        Icons.warning_amber_rounded,
+                                        color:
+                                            Theme.of(context).colorScheme.error,
+                                      ),
                               onTap: () => Navigator.of(context).pop(product),
                             );
                           },

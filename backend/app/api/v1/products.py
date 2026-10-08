@@ -192,8 +192,24 @@ def _nutrition_values_are_complete(nutrition: dict | None) -> bool:
         (nutrition or {}).get("fat"),
         (nutrition or {}).get("carbs"),
     ]
-    return all(value is not None for value in values) and any(
-        float(value) > 0 for value in values if value is not None
+    if any(value is None for value in values):
+        return False
+    try:
+        return any(float(value) > 0 for value in values)
+    except (TypeError, ValueError):
+        return False
+
+
+def _require_complete_recipe_nutrition(nutrition: dict | None) -> None:
+    """Nie pozwala utrwalić składnika, którego nie da się poprawnie policzyć."""
+    if _nutrition_values_are_complete(nutrition):
+        return
+    raise HTTPException(
+        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+        detail=(
+            "Nie odnaleziono pełnych wartości odżywczych produktu. "
+            "Uzupełnij dane z etykiety przed dodaniem go do przepisu."
+        ),
     )
 
 
@@ -276,6 +292,8 @@ async def _enrich_recipe_ingredient_product(
             product.serving_quantity,
         )
         changed = True
+
+    _require_complete_recipe_nutrition(product.nutrition_per_100)
 
     if changed:
         await db.commit()
@@ -992,6 +1010,7 @@ async def resolve_recipe_ingredient_product(
             "carbs": payload.carbs_per_100,
             "fiber": None,
         }
+    _require_complete_recipe_nutrition(nutrition)
     from app.services.product_measures import build_measure_options
 
     product = Product(

@@ -47,10 +47,19 @@ class ShareIntentHandler {
     return url;
   }
 
+  static bool isPremiumDeepLink(String? rawLink) {
+    final uri = rawLink == null ? null : Uri.tryParse(rawLink);
+    return uri?.scheme.toLowerCase() == 'mealplannerpolska' &&
+        uri?.host.toLowerCase() == 'premium';
+  }
+
   static void initialize(GlobalKey<NavigatorState> navigatorKey) {
     _channel.setMethodCallHandler((call) async {
-      if (call.method == 'onSharedText') {
-        _handleSharedText(call.arguments as String?, navigatorKey);
+      switch (call.method) {
+        case 'onSharedText':
+          _handleSharedText(call.arguments as String?, navigatorKey);
+        case 'onDeepLink':
+          _handleDeepLink(call.arguments as String?, navigatorKey);
       }
     });
     // Zimny start obsługuje SplashScreen; po wznowieniu iOS może już
@@ -76,6 +85,16 @@ class ShareIntentHandler {
               (_) => AiAddRecipeScreen(initialUrl: url, autoStartImport: true),
         ),
       );
+    });
+  }
+
+  static void _handleDeepLink(
+    String? rawLink,
+    GlobalKey<NavigatorState> navigatorKey,
+  ) {
+    if (!isPremiumDeepLink(rawLink)) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      navigatorKey.currentState?.pushNamed('/premium');
     });
   }
 }

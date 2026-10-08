@@ -229,6 +229,24 @@ class UserProfileUpdate(BaseModel):
         return v
 
 
+def ensure_tiktok_premium_access(update_data: dict, current_user: User) -> None:
+    """Blokuje ustawienie publicznego TikToka bez aktywnego Premium.
+
+    Jawne wyczyszczenie pola pozostaje dostępne dla każdego. Dzięki temu
+    użytkownik może usunąć wcześniej zapisany nick także po wygaśnięciu
+    subskrypcji, natomiast starsza wersja aplikacji nie ominie bramki UI.
+    """
+    if (
+        "tiktok_username" in update_data
+        and update_data["tiktok_username"] is not None
+        and not is_premium_active(current_user)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Dodanie profilu TikTok jest dostępne wyłącznie w Premium.",
+        )
+
+
 class AllergenIdsUpdate(BaseModel):
     """Lista identyfikatorów alergenów do przypisania użytkownikowi."""
 
@@ -273,6 +291,7 @@ async def update_me(
     Pomija pola o wartości ``None`` — aktualizowane są tylko jawnie przekazane wartości.
     """
     update_data = payload.model_dump(exclude_unset=True)
+    ensure_tiktok_premium_access(update_data, current_user)
 
     # UWAGA (naprawa): wcześniej `preferred_store_id` nie było w ogóle
     # sprawdzane — nieistniejący sklep przechodził walidację Pydantic (to
