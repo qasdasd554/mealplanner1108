@@ -61,6 +61,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   Recipe? _freshRecipe;
   List<RecipeIngredient>? _temporaryIngredients;
   bool _isSavingVariant = false;
+  bool _isRefreshingRecipe = false;
+  bool _detailsLoadFailed = false;
 
   @override
   void initState() {
@@ -112,6 +114,12 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
   Future<void> _refreshFromServer() async {
     final requestedRecipeId = _initialRecipe!.id;
+    if (mounted) {
+      setState(() {
+        _isRefreshingRecipe = true;
+        _detailsLoadFailed = false;
+      });
+    }
     try {
       final fresh = await RecipeService().getRecipe(requestedRecipeId);
       if (!mounted) return;
@@ -122,11 +130,13 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
         _freshRecipe = fresh;
       });
     } catch (_) {
-      // Cicha awaria — użytkownik i tak widzi przekazany przepis
-      // (bez autora, ale w pełni funkcjonalny). Brak sensu przerywać
-      // przeglądania komunikatem o błędzie dla danych, które są
-      // dodatkiem, nie koniecznością.
-      // Dane przekazane podczas nawigacji pozostają dostępne.
+      if (mounted && _initialRecipe?.id == requestedRecipeId) {
+        setState(() => _detailsLoadFailed = true);
+      }
+    } finally {
+      if (mounted && _initialRecipe?.id == requestedRecipeId) {
+        setState(() => _isRefreshingRecipe = false);
+      }
     }
   }
 
@@ -549,12 +559,38 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                             ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       TextButton.icon(
-                        onPressed: () => _editIngredients(recipe),
+                        onPressed:
+                            _freshRecipe == null && recipe.ingredients.isEmpty
+                                ? null
+                                : () => _editIngredients(recipe),
                         icon: const Icon(Icons.edit_outlined, size: 18),
                         label: const Text('Zmień'),
                       ),
                     ],
                   ),
+                  if (_isRefreshingRecipe &&
+                      _freshRecipe == null &&
+                      displayedIngredients.isEmpty) ...[
+                    const SizedBox(height: 12),
+                    const LinearProgressIndicator(minHeight: 2),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Ładowanie składników i sposobu przygotowania…',
+                      style: TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ] else if (_detailsLoadFailed &&
+                      _freshRecipe == null &&
+                      displayedIngredients.isEmpty) ...[
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: _refreshFromServer,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Spróbuj ponownie wczytać szczegóły'),
+                    ),
+                  ],
                   if (_temporaryIngredients != null) ...[
                     Container(
                       width: double.infinity,

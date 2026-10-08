@@ -3,7 +3,7 @@ from uuid import uuid4
 
 from app.models.recipe import Recipe
 from app.models.user import User
-from app.schemas.recipe import RecipeResponse
+from app.schemas.recipe import RecipeListItemResponse, RecipeResponse
 
 
 def test_recipe_response_includes_creator_tiktok_username() -> None:
@@ -68,3 +68,32 @@ def test_recipe_response_hides_creator_tiktok_after_premium_expires() -> None:
 
     assert response.created_by_name == "Autor"
     assert response.created_by_tiktok_username is None
+
+
+def test_recipe_list_item_omits_heavy_detail_fields() -> None:
+    recipe = Recipe(
+        id=uuid4(),
+        name="Lekki kafelek przepisu",
+        description="Krótki opis widoczny przed odświeżeniem szczegółów.",
+        meal_type="obiad",
+        servings=2,
+        difficulty="łatwy",
+        nutrition_total={"kcal": 300, "protein": 20},
+        photo_base64="bardzo-duże-zdjęcie-base64",
+        instructions=["Krok pierwszy", "Krok drugi"],
+        suggested_seasonings=["pieprz"],
+        is_active=True,
+        created_at=datetime.now(timezone.utc),
+        visibility="private",
+        tags=[],
+        ingredients=[],
+    )
+
+    payload = RecipeListItemResponse.model_validate(recipe).model_dump()
+
+    assert payload["name"] == "Lekki kafelek przepisu"
+    assert payload["nutrition_total"]["kcal"] == 300
+    assert "photo_base64" not in payload
+    assert "instructions" not in payload
+    assert "suggested_seasonings" not in payload
+    assert "ingredients" not in payload

@@ -36,4 +36,23 @@ void main() {
     expect(recipe.createdByTikTokUsername, isNull);
     expect(recipe.hasCreatorTikTok, isFalse);
   });
+
+  test('lekki rekord listy działa bez pól szczegółów', () {
+    final recipe = Recipe.fromJson({
+      'id': 'recipe-summary',
+      'name': 'Szybko wczytany przepis',
+      'meal_type': 'obiad',
+      'servings': 2,
+      'difficulty': 'łatwy',
+      'nutrition_total': <String, dynamic>{'kcal': 420},
+      'is_active': true,
+      'created_at': '2026-10-08T10:00:00Z',
+    });
+
+    expect(recipe.name, 'Szybko wczytany przepis');
+    expect(recipe.nutritionTotal.kcal, 420);
+    expect(recipe.ingredients, isEmpty);
+    expect(recipe.instructions, isEmpty);
+    expect(recipe.photoBase64, isNull);
+  });
 }

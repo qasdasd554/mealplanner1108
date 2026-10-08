@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, ConfigDict, field_validator
 from sqlalchemy import and_, delete, exists, func, nullslast, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import load_only, selectinload
 
 from app.api.deps import get_current_admin, get_current_premium, get_current_user
 from app.core.exceptions import NotFoundException
@@ -29,6 +29,7 @@ from app.schemas.recipe import (
     AIRecipeEditRequest,
     AIRecipeImportRequest,
     RecipeCreate,
+    RecipeListItemResponse,
     RecipeResponse,
     RecipeVariantCreate,
 )
@@ -153,6 +154,35 @@ def _apply_recipe_sort(query, sort_by: str):
     return query.order_by(Recipe.name, Recipe.id)
 
 
+def _recipe_list_options():
+    """Ładuje tylko pola potrzebne kafelkom listy.
+
+    Szczególnie ważne jest pominięcie ``photo_base64`` (do 3 MB na jeden
+    przepis), instrukcji i relacji składników. Pełny przepis jest już
+    pobierany po wejściu w jego szczegóły.
+    """
+    return (
+        load_only(
+            Recipe.id,
+            Recipe.name,
+            Recipe.description,
+            Recipe.cuisine,
+            Recipe.meal_type,
+            Recipe.prep_time_min,
+            Recipe.cook_time_min,
+            Recipe.servings,
+            Recipe.difficulty,
+            Recipe.nutrition_total,
+            Recipe.image_url,
+            Recipe.is_active,
+            Recipe.created_at,
+            Recipe.visibility,
+            Recipe.created_by_user_id,
+        ),
+        selectinload(Recipe.tags),
+    )
+
+
 def _visibility_filter(current_user_id: UUID, blocked_user_ids: set[UUID] | None = None):
     """Warunek widoczności przepisu:
     - wspólny katalog (created_by_user_id puste — 81 oficjalnych) LUB
@@ -176,7 +206,7 @@ def _visibility_filter(current_user_id: UUID, blocked_user_ids: set[UUID] | None
 
 @router.get(
     "/",
-    response_model=list[RecipeResponse],
+    response_model=list[RecipeListItemResponse],
     summary="Lista przepisów z filtrami",
 )
 async def list_recipes(
@@ -211,10 +241,9 @@ async def list_recipes(
     tagach, maksymalnym czasie przygotowania oraz wyszukiwanie pełnotekstowe.
     """
     blocked_ids = await get_blocked_user_ids(db, current_user.id)
-    query = select(Recipe).options(
-        selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product),
-        selectinload(Recipe.tags),
-    ).where(_visibility_filter(current_user.id, blocked_ids))
+    query = select(Recipe).options(*_recipe_list_options()).where(
+        _visibility_filter(current_user.id, blocked_ids)
+    )
 
     if meal_type is not None:
         query = query.where(Recipe.meal_type == meal_type)
@@ -337,7 +366,7 @@ async def list_available_recipes(
 
 @router.get(
     "/mine",
-    response_model=list[RecipeResponse],
+    response_model=list[RecipeListItemResponse],
     summary="Moje przepisy dodane przez AI",
 )
 async def list_my_recipes(
@@ -371,10 +400,7 @@ async def list_my_recipes(
     """
     query = (
         select(Recipe)
-        .options(
-            selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product),
-            selectinload(Recipe.tags),
-        )
+        .options(*_recipe_list_options())
         .where(Recipe.created_by_user_id == current_user.id)
     )
     favorite_ids = await _get_favorite_recipe_ids(db, current_user.id)

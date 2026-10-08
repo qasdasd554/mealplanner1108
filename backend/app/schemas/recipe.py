@@ -164,6 +164,36 @@ class AIRecipeEditRequest(BaseModel):
         return value
 
 
+class RecipeListItemResponse(RecipeBase):
+    """Lekki rekord do listy przepisów.
+
+    Lista nie wysyła zdjęcia Base64, instrukcji ani składników. Te dane są
+    potrzebne dopiero po otwarciu przepisu i pobiera je istniejący endpoint
+    szczegółów ``GET /recipes/{id}``. Dzięki temu pierwsza strona nie waży
+    wielu megabajtów, gdy zawiera przepisy użytkowników ze zdjęciami.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    nutrition_total: dict | None = None
+    image_url: str | None = None
+    is_active: bool
+    tags: list[str] = []
+    created_at: datetime
+    is_favorite: bool = False
+    is_own_recipe: bool = False
+    visibility: str = "private"
+    created_by_user_id: uuid.UUID | None = None
+
+    @field_validator("tags", mode="before")
+    @classmethod
+    def serialize_tags(cls, value):
+        if isinstance(value, list):
+            return [tag.tag if hasattr(tag, "tag") else tag for tag in value]
+        return value
+
+
 class RecipeResponse(RecipeBase):
     """Odpowiedź API — pełne dane przepisu."""
 

@@ -39,11 +39,19 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late int _currentIndex;
+  late final List<Widget?> _tabs;
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex.clamp(0, 5);
+    // Zakładki tworzymy dopiero przy pierwszym wejściu, ale później
+    // zachowujemy ich State. Wcześniej `tabs[_currentIndex]` usuwało ekran
+    // Przepisów z drzewa po każdej zmianie zakładki, więc powrót uruchamiał
+    // initState i ponownie pobierał całą listę z sieci.
+    _tabs = List<Widget?>.filled(6, null);
+    _tabs[0] = const HomeTab();
+    _ensureTab(_currentIndex);
     // Pobierz plany posiłków na start
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<MealPlanProvider>(context, listen: false).loadPlans();
@@ -65,23 +73,24 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  Widget _createTab(int index) => switch (index) {
+    0 => const HomeTab(),
+    1 => const RecipesScreen(),
+    2 => const ShoppingListScreen(isTab: true),
+    3 => const CalorieTrackerScreen(),
+    4 => const PremiumScreen(popAfterSuccess: false),
+    5 => const ProfileScreen(),
+    _ => const SizedBox.shrink(),
+  };
+
+  void _ensureTab(int index) {
+    _tabs[index] ??= _createTab(index);
+  }
+
   @override
   Widget build(BuildContext context) {
     final reduceMotion =
         MediaQuery.maybeOf(context)?.disableAnimations ?? false;
-    // Podział na taby
-    // UWAGA (zmiana): kolejność "Śledzenie" i "Profil" zamieniona miejscami
-    // na życzenie — Śledzenie (częściej używana funkcja) jest teraz na
-    // czwartej pozycji, Profil na piątej.
-    final List<Widget> tabs = [
-      const HomeTab(),
-      const RecipesScreen(),
-      const ShoppingListScreen(isTab: true),
-      const CalorieTrackerScreen(),
-      const PremiumScreen(popAfterSuccess: false),
-      const ProfileScreen(),
-    ];
-
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -90,7 +99,16 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       },
       child: Scaffold(
-        body: tabs[_currentIndex],
+        // IndexedStack utrzymuje już odwiedzone zakładki w pamięci. Puste
+        // miejsca pozostają lekkie, dopóki użytkownik nie otworzy danej
+        // sekcji po raz pierwszy.
+        body: IndexedStack(
+          index: _currentIndex,
+          children: List<Widget>.generate(
+            _tabs.length,
+            (index) => _tabs[index] ?? const SizedBox.shrink(),
+          ),
+        ),
         // Stały rozmiar eliminuje dodatkową animację położenia Scaffolda.
         // AnimatedSwitcher używa tej samej krzywej w obu kierunkach, więc
         // pojawianie jest dokładnym odwróceniem znikania.
@@ -199,6 +217,7 @@ class _HomeScreenState extends State<HomeScreen> {
               // }
               if (!mounted) return;
               setState(() {
+                _ensureTab(index);
                 _currentIndex = index;
               });
             },

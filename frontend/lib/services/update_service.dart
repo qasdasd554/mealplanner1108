@@ -139,7 +139,9 @@ class UpdateAvailableScreen extends StatelessWidget {
                     forceUpdate
                         ? 'Ta wersja aplikacji nie jest już obsługiwana. '
                             'Zaktualizuj ją, aby korzystać dalej.'
-                        : '• Dodawanie składników do przepisu nie zapisuje '
+                        : '• Lista przepisów otwiera się szybciej i nie '
+                            'pobiera ponownie danych po każdej zmianie zakładki.\n'
+                            '• Dodawanie składników do przepisu nie zapisuje '
                             'już brakujących wartości jako 0 kcal — aplikacja '
                             'poprosi o uzupełnienie etykiety.\n'
                             '• Opakowanie można wybrać tylko wtedy, gdy znamy '
