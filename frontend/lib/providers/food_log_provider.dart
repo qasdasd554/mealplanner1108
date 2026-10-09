@@ -11,12 +11,14 @@ class FoodLogProvider with ChangeNotifier {
   String? _token;
 
   List<FoodLogEntry> _logs = [];
+  List<FoodLogEntry> _recentEntries = [];
   DailySummary? _summary;
   DateTime _currentDate = DateTime.now();
   bool _isLoading = false;
   String? _error;
 
   List<FoodLogEntry> get logs => _logs;
+  List<FoodLogEntry> get recentEntries => _recentEntries;
   DailySummary? get summary => _summary;
   DateTime get currentDate => _currentDate;
   bool get isLoading => _isLoading;
@@ -72,6 +74,40 @@ class FoodLogProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> fetchRecentEntries() async {
+    final token = await _resolveToken();
+    if (token == null) return;
+    try {
+      _recentEntries = await _service.getRecentEntries(token);
+      notifyListeners();
+    } catch (_) {
+      // Szybkie podpowiedzi są dodatkiem. Ich błąd nie może zasłonić
+      // podstawowego formularza ani nadpisać komunikatu Dziennika.
+    }
+  }
+
+  Future<bool> repeatEntry(FoodLogEntry source) async {
+    if (source.recipeId != null) {
+      return addRecipeEntry(
+        recipeId: source.recipeId!,
+        mealType: source.mealType,
+        servings: source.servings,
+      );
+    }
+    return addManualEntry(
+      mealType: source.mealType,
+      foodName: source.displayName,
+      calories: source.calories,
+      protein: source.protein,
+      carbs: source.carbs,
+      fat: source.fat,
+      amountValue: source.amountValue,
+      amountUnit: source.amountUnit,
+      portionSize: source.portionSize,
+      portionUnit: source.portionUnit,
+    );
   }
 
   /// Dodaje wpis ręczny. Zwraca `true` po sukcesie — w razie błędu ustawia
@@ -249,6 +285,7 @@ class FoodLogProvider with ChangeNotifier {
   /// nie były widoczne po zalogowaniu się jako ktoś inny.
   void clear() {
     _logs = [];
+    _recentEntries = [];
     _summary = null;
     _currentDate = DateTime.now();
     _isLoading = false;

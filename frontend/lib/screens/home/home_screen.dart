@@ -279,31 +279,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _openBatchScanner() async {
     final user = context.read<AuthProvider>().currentUser;
     if (!(user?.hasPremiumAccess ?? false)) {
-      final openPremium = await showDialog<bool>(
-        context: context,
-        builder:
-            (dialogContext) => AlertDialog(
-              title: const Text('Skanowanie seryjne jest w Premium'),
-              content: const Text(
-                'Aparat pozostaje otwarty, a kolejne produkty są automatycznie '
-                'rozpoznawane. Raz wybierzesz spiżarnię, dziennik, katalog '
-                'lub kilka miejsc naraz i dodasz całą serię jednym przyciskiem.',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext, false),
-                  child: const Text('Nie teraz'),
-                ),
-                FilledButton(
-                  onPressed: () => Navigator.pop(dialogContext, true),
-                  child: const Text('Zobacz Premium'),
-                ),
-              ],
-            ),
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => const BatchBarcodeScannerScreen(previewOnly: true),
+        ),
       );
-      if (openPremium == true && mounted) {
-        setState(() => _currentIndex = 4);
-      }
       return;
     }
 

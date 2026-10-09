@@ -204,6 +204,23 @@ async def get_daily_summary(
     return summary
 
 
+@router.get("/recent", response_model=List[FoodLogEntryResponse])
+async def get_recent_food_log_entries(
+    limit: int = Query(8, ge=1, le=20),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Ostatnie wpisy do szybkiego ponownego dodania w Dzienniku."""
+    result = await db.execute(
+        select(FoodLogEntry)
+        .where(FoodLogEntry.user_id == current_user.id)
+        .options(selectinload(FoodLogEntry.recipe))
+        .order_by(FoodLogEntry.created_at.desc())
+        .limit(limit)
+    )
+    return [_to_response(entry) for entry in result.scalars().all()]
+
+
 class FoodLogNutritionUpdate(BaseModel):
     """Skorygowane wartości odżywcze POJEDYNCZEGO wpisu w dzienniku.
 

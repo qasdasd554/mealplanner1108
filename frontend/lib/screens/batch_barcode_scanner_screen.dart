@@ -18,7 +18,9 @@ import '../widgets/product_label_recognition_sheet.dart';
 /// wybiera jedno lub kilka miejsc dla całej sesji i zatwierdza wszystkie
 /// produkty jednym przyciskiem.
 class BatchBarcodeScannerScreen extends StatefulWidget {
-  const BatchBarcodeScannerScreen({super.key});
+  final bool previewOnly;
+
+  const BatchBarcodeScannerScreen({super.key, this.previewOnly = false});
 
   @override
   State<BatchBarcodeScannerScreen> createState() =>
@@ -550,6 +552,11 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.previewOnly) return _buildPremiumPreview();
+    final hasPremium =
+        context.watch<AuthProvider>().currentUser?.hasPremiumAccess ?? false;
+    if (!hasPremium) return _buildPremiumPreview();
+
     final screenHeight = MediaQuery.sizeOf(context).height;
     final cameraHeight = (screenHeight * .34).clamp(210.0, 310.0).toDouble();
     return Scaffold(
@@ -704,6 +711,183 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
             ),
           ),
           _buildBatchActions(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPremiumPreview() {
+    Widget sampleProduct(String name, String nutrition) => Card(
+      margin: EdgeInsets.zero,
+      child: ListTile(
+        leading: const Icon(
+          Icons.check_circle_outline,
+          color: AppTheme.primaryColor,
+        ),
+        title: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis),
+        subtitle: Text(nutrition),
+        trailing: const Icon(Icons.lock_outline),
+      ),
+    );
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Skanowanie seryjne')),
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(
+                    height: 220,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1D2925),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          height: double.infinity,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Colors.black.withOpacity(0.22),
+                                AppTheme.primaryColor.withOpacity(0.2),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Container(
+                          width: 250,
+                          height: 118,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.white, width: 3),
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                        ),
+                        Positioned(
+                          top: 14,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 7,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.68),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.lock_outline,
+                                  size: 16,
+                                  color: Colors.white,
+                                ),
+                                SizedBox(width: 6),
+                                Text(
+                                  'Podgląd funkcji Premium',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Text(
+                    'Całe zakupy jednym skanowaniem',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Aparat pozostaje otwarty, a rozpoznane produkty trafiają '
+                    'na jedną listę. Na końcu wybierasz miejsca i zatwierdzasz wszystko raz.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: AppTheme.textSecondary),
+                  ),
+                  const SizedBox(height: 16),
+                  sampleProduct(
+                    'Jogurt naturalny',
+                    '100 g: 62 kcal · B 4 g · T 3 g · W 5 g',
+                  ),
+                  const SizedBox(height: 8),
+                  sampleProduct(
+                    'Makaron pełnoziarnisty',
+                    '100 g: 348 kcal · B 13 g · T 3 g · W 65 g',
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Dodaj wszystkie do',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children:
+                        _BatchDestination.values
+                            .map(
+                              (destination) => Chip(
+                                avatar: Icon(destination.icon, size: 17),
+                                label: Text(destination.label),
+                              ),
+                            )
+                            .toList(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Material(
+            color: Theme.of(context).colorScheme.surface,
+            elevation: 10,
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed:
+                            () => Navigator.of(context).pushNamed('/premium'),
+                        icon: const Icon(Icons.workspace_premium_outlined),
+                        label: const Text('Wypróbuj Premium przez 7 dni'),
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      'To jest podgląd — aparat nie został uruchomiony.',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );

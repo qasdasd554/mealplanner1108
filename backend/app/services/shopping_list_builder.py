@@ -70,7 +70,12 @@ class ShoppingListBuilder:
     # Tworzenie listy z planu posiłków
     # ==================================================================
 
-    async def build_from_meal_plan(self, meal_plan_id: UUID) -> ShoppingList:
+    async def build_from_meal_plan(
+        self,
+        meal_plan_id: UUID,
+        *,
+        include_pantry: bool = True,
+    ) -> ShoppingList:
         """Generuje listę zakupów na podstawie planu posiłków.
 
         Algorytm:
@@ -99,6 +104,7 @@ class ShoppingListBuilder:
             aggregated=aggregated,
             store_id=meal_plan.store_id,
             user_id=meal_plan.user_id,
+            include_pantry=include_pantry,
         )
 
         # ── 5. Utwórz listę zakupów ─────────────────────────────────
@@ -344,6 +350,7 @@ class ShoppingListBuilder:
         aggregated: dict[UUID, float],
         store_id: UUID,
         user_id: UUID,
+        include_pantry: bool = True,
     ) -> list[dict[str, Any]]:
         """Uzupełnia dane sklepowe: opakowania, ceny, działy.
 
@@ -385,15 +392,17 @@ class ShoppingListBuilder:
             sp.product_id: sp for sp in sp_result.scalars().unique().all()
         }
 
-        pantry_result = await self.db.execute(
-            select(PantryItem).where(
-                PantryItem.user_id == user_id,
-                PantryItem.product_id.in_(product_ids),
+        pantry_by_product: dict[UUID, PantryItem] = {}
+        if include_pantry:
+            pantry_result = await self.db.execute(
+                select(PantryItem).where(
+                    PantryItem.user_id == user_id,
+                    PantryItem.product_id.in_(product_ids),
+                )
             )
-        )
-        pantry_by_product = {
-            item.product_id: item for item in pantry_result.scalars().all()
-        }
+            pantry_by_product = {
+                item.product_id: item for item in pantry_result.scalars().all()
+            }
 
         items_data: list[dict[str, Any]] = []
 

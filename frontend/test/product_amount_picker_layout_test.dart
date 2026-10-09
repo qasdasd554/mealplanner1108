@@ -82,6 +82,8 @@ void main() {
       find.ancestor(of: quickChoice, matching: find.byType(InkWell)),
       findsOneWidget,
     );
+    expect(find.text('1 × porcja'), findsOneWidget);
+    expect(find.text('1 × gramy'), findsNothing);
   });
 
   testWidgets(
@@ -119,6 +121,13 @@ void main() {
         (widget) => widget is DropdownButtonFormField<ProductMeasureOption>,
       );
       expect(unitPicker, findsOneWidget);
+      await tester.scrollUntilVisible(
+        unitPicker,
+        180,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.drag(find.byType(ListView), const Offset(0, -80));
+      await tester.pumpAndSettle();
       await tester.tap(unitPicker);
       await tester.pumpAndSettle();
       await tester.tap(find.text('gramy').last);

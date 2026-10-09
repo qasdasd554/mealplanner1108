@@ -139,17 +139,10 @@ class UpdateAvailableScreen extends StatelessWidget {
                     forceUpdate
                         ? 'Ta wersja aplikacji nie jest już obsługiwana. '
                             'Zaktualizuj ją, aby korzystać dalej.'
-                        : '• Lista przepisów otwiera się szybciej i nie '
-                            'pobiera ponownie danych po każdej zmianie zakładki.\n'
-                            '• Dodawanie składników do przepisu nie zapisuje '
-                            'już brakujących wartości jako 0 kcal — aplikacja '
-                            'poprosi o uzupełnienie etykiety.\n'
-                            '• Opakowanie można wybrać tylko wtedy, gdy znamy '
-                            'jego prawdziwą gramaturę; poprawiono też '
-                            'bezpieczeństwo skanowania kodów.\n'
-                            '• Profile TikTok przy przepisach są dostępne dla '
-                            'Premium, a linki promocyjne mogą otwierać ekran '
-                            'Premium bezpośrednio w aplikacji.',
+                        : '• W Dzienniku możesz jednym dotknięciem dodać ponownie ostatni posiłek.\n'
+                            '• Statystyki pokazują teraz czytelne wnioski z ostatnich 7 dni.\n'
+                            '• Podczas tworzenia planu możesz zdecydować, czy uwzględnić zawartość spiżarni.\n'
+                            '• Skanowanie seryjne ma dostępny podgląd, dzięki któremu przed zakupem Premium zobaczysz, jak działa.',
                     style: TextStyle(
                       color: AppTheme.textSecondary,
                       height: 1.5,

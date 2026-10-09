@@ -204,6 +204,46 @@ def _visibility_filter(current_user_id: UUID, blocked_user_ids: set[UUID] | None
     return base
 
 
+def _recipe_search_filter(search: str):
+    """Dopasowuje jedno pole wyszukiwania do przepisu, autora i składnika.
+
+    Skorelowane ``EXISTS`` nie mnożą rekordów przepisu (jak zwykłe JOIN-y),
+    więc paginacja nadal zwraca dokładnie 30 różnych kart i nie wymaga
+    pobierania ciężkiej relacji składników. Znaki LIKE wpisane przez
+    użytkownika traktujemy dosłownie.
+    """
+    escaped = (
+        search.strip()
+        .replace("\\", "\\\\")
+        .replace("%", "\\%")
+        .replace("_", "\\_")
+    )
+    pattern = f"%{escaped}%"
+    author_match = exists(
+        select(1).where(
+            User.id == Recipe.created_by_user_id,
+            or_(
+                User.display_name.ilike(pattern, escape="\\"),
+                User.tiktok_username.ilike(pattern, escape="\\"),
+            ),
+        )
+    )
+    ingredient_match = exists(
+        select(1)
+        .select_from(RecipeIngredient)
+        .join(Product, Product.id == RecipeIngredient.product_id)
+        .where(
+            RecipeIngredient.recipe_id == Recipe.id,
+            Product.name.ilike(pattern, escape="\\"),
+        )
+    )
+    return or_(
+        Recipe.name.ilike(pattern, escape="\\"),
+        author_match,
+        ingredient_match,
+    )
+
+
 @router.get(
     "/",
     response_model=list[RecipeListItemResponse],
@@ -215,7 +255,10 @@ async def list_recipes(
     difficulty: str | None = Query(None, description="Poziom trudności: easy, medium, hard"),
     tags: list[str] | None = Query(None, description="Tagi do filtrowania"),
     max_prep_time: int | None = Query(None, ge=1, description="Maksymalny czas przygotowania w minutach"),
-    search: str | None = Query(None, description="Szukaj po nazwie przepisu"),
+    search: str | None = Query(
+        None,
+        description="Szukaj po nazwie przepisu, autorze lub składniku",
+    ),
     favorites_only: bool = Query(False, description="Pokaż tylko przepisy dodane do ulubionych"),
     new_only: bool = Query(False, description="Pokaż przepisy z ostatnich 14 dni"),
     # Przepisy dodane przez społeczność — publiczne, ale NIE część
@@ -257,8 +300,8 @@ async def list_recipes(
     if max_prep_time is not None:
         query = query.where(Recipe.prep_time_min <= max_prep_time)
 
-    if search:
-        query = query.where(Recipe.name.ilike(f"%{search}%"))
+    if search and search.strip():
+        query = query.where(_recipe_search_filter(search))
 
     if community_only:
         query = query.where(Recipe.created_by_user_id.is_not(None), Recipe.visibility == "public")
@@ -410,8 +453,8 @@ async def list_my_recipes(
         query = query.where(Recipe.id.in_(favorite_ids))
     if new_only:
         query = query.where(Recipe.created_at >= datetime.now(timezone.utc) - timedelta(days=14))
-    if search:
-        query = query.where(Recipe.name.ilike(f"%{search}%"))
+    if search and search.strip():
+        query = query.where(_recipe_search_filter(search))
     if meal_type:
         query = query.where(Recipe.meal_type == meal_type)
     if difficulty:

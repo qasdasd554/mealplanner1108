@@ -83,6 +83,27 @@ class FoodLogService {
     );
   }
 
+  Future<List<FoodLogEntry>> getRecentEntries(
+    String token, {
+    int limit = 8,
+  }) async {
+    final response = await _client
+        .get(
+          Uri.parse('$baseUrl/food-log/recent?limit=$limit'),
+          headers: _headers(token),
+        )
+        .timeout(_timeout);
+    if (response.statusCode == 200) {
+      final List data = json.decode(utf8.decode(response.bodyBytes));
+      return data
+          .map((item) => FoodLogEntry.fromJson(item as Map<String, dynamic>))
+          .toList();
+    }
+    throw Exception(
+      _extractError(response) ?? 'Nie udało się pobrać ostatnich posiłków',
+    );
+  }
+
   /// Dodaje wpis ręczny (z własną nazwą) albo z przepisu (recipe_id +
   /// liczba porcji — makra przeliczy wtedy backend automatycznie, o ile nie
   /// podano ich wprost).

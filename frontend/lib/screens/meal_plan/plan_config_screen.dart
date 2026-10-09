@@ -22,6 +22,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
   Store? _selectedStore;
   int _durationDays = 5;
   int _householdSize = 1;
+  bool _includePantry = true;
   final _budgetController = TextEditingController();
   final _kcalController = TextEditingController(text: '2000');
   final Set<String> _selectedMealTypes = {'śniadanie', 'obiad', 'kolacja'};
@@ -110,6 +111,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
       maxBudget: maxBudget,
       targetKcal: targetKcal,
       householdSize: _householdSize,
+      includePantry: _includePantry,
       preferences: {
         'meal_types': _selectedMealTypes.toList(),
         if (_selectedDiet != 'Bez ograniczeń') 'diet': _selectedDiet,
@@ -708,6 +710,38 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                           suffixText: 'PLN',
                         ),
                       ).animate().fadeIn(delay: 300.ms),
+                      const SizedBox(height: 20),
+                      SwitchListTile.adaptive(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 4,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: BorderSide(
+                            color: AppTheme.textSecondary.withOpacity(0.18),
+                          ),
+                        ),
+                        tileColor: AppTheme.surfaceColor,
+                        value: _includePantry,
+                        onChanged:
+                            mealPlanProvider.isGenerating
+                                ? null
+                                : (value) =>
+                                    setState(() => _includePantry = value),
+                        secondary: const Icon(
+                          Icons.kitchen_outlined,
+                          color: AppTheme.primaryColor,
+                        ),
+                        title: const Text(
+                          'Uwzględnij spiżarnię',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        subtitle: const Text(
+                          'Posiadane produkty trafią na koniec listy za 0 zł. '
+                          'Brakującą ilość nadal dodamy do zakupów.',
+                        ),
+                      ).animate().fadeIn(delay: 325.ms),
                       const SizedBox(height: 48),
 
                       // Przycisk generowania

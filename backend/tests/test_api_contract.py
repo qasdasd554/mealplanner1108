@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from app.api.v1.users import AdminUserEntry
+from app.schemas.meal_plan import MealPlanGenerateRequest
 from app.core.release_version import (
     BACKEND_ONLY_FALLBACK_VERSION,
     parse_pubspec_version,
@@ -13,6 +14,20 @@ from app.main import app
 def test_statistics_endpoint_is_present_in_openapi() -> None:
     paths = app.openapi()["paths"]
     assert "/api/v1/wellness/stats/overview" in paths
+
+
+def test_recent_food_log_endpoint_is_present_in_openapi() -> None:
+    assert "/api/v1/food-log/recent" in app.openapi()["paths"]
+
+
+def test_meal_plan_pantry_choice_is_explicit_and_backwards_compatible() -> None:
+    request = MealPlanGenerateRequest(store_id="00000000-0000-0000-0000-000000000001")
+    assert request.include_pantry is True
+    request_without_pantry = MealPlanGenerateRequest(
+        store_id="00000000-0000-0000-0000-000000000001",
+        include_pantry=False,
+    )
+    assert request_without_pantry.include_pantry is False
 
 
 def test_scanned_products_and_custom_shopping_items_are_exposed() -> None:

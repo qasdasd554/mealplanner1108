@@ -53,6 +53,39 @@ void main() {
     expect(codes, isNot(contains('lyzeczka')));
   });
 
+  test('porcja ma wielkosc dopasowana do rodzaju produktu', () {
+    final chicken = effectiveMeasureOptions(
+      product(name: 'Pierś z kurczaka', unit: 'g', servingQuantity: 500),
+    );
+    final yoghurt = effectiveMeasureOptions(
+      product(name: 'Jogurt naturalny', unit: 'g', servingQuantity: 400),
+    );
+    final milk = effectiveMeasureOptions(
+      product(name: 'Mleko 2%', unit: 'ml', servingQuantity: 1000),
+    );
+
+    expect(
+      chicken.firstWhere((option) => option.code == 'porcja').baseQuantity,
+      150,
+    );
+    expect(
+      yoghurt.firstWhere((option) => option.code == 'porcja').baseQuantity,
+      200,
+    );
+    expect(
+      milk.firstWhere((option) => option.code == 'porcja').baseQuantity,
+      250,
+    );
+  });
+
+  test('techniczny gram pozostaje do wpisania własnej ilości', () {
+    final options = effectiveMeasureOptions(
+      product(name: 'Pierś z kurczaka', unit: 'g', servingQuantity: 500),
+    );
+
+    expect(options.map((option) => option.code), containsAll(['porcja', 'g']));
+  });
+
   test('wybrana jednostka liczy poprawny mnoznik makro', () {
     const selection = ProductAmountSelection(
       quantity: 2,

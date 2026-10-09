@@ -28,6 +28,7 @@ from app.models import (
     Allergen,
     MealPlan,
     MealPlanEntry,
+    PantryItem,
     Product,
     ProductAllergen,
     Recipe,
@@ -220,6 +221,7 @@ class MealPlanGenerator:
         preferences: dict[str, Any] | None = None,
         household_size: int | None = None,
         target_kcal: float | None = None,
+        include_pantry: bool = True,
         create_shopping_list: bool = True,
         start_date: date | None = None,
     ) -> MealPlan:
@@ -257,6 +259,11 @@ class MealPlanGenerator:
             diet=preferences.get("diet"),
             user_id=user_id,
         )
+        pantry_product_ids = (
+            await self._load_pantry_product_ids(user_id)
+            if include_pantry
+            else set()
+        )
 
         # Krok 3 — zachłanna selekcja
         slot_distribution = self._build_slot_distribution(
@@ -270,6 +277,7 @@ class MealPlanGenerator:
             max_budget=max_budget,
             store_id=store_id,
             target_kcal=target_kcal,
+            preferred_ingredient_ids=pantry_product_ids,
         )
 
         # Krok 4 — macierz dzień × slot
@@ -308,7 +316,10 @@ class MealPlanGenerator:
         # Krok 6 — automatyczna lista zakupów, tylko jeśli limit pozwala.
         if can_create_list:
             builder = ShoppingListBuilder(self.db)
-            shopping_list = await builder.build_from_meal_plan(meal_plan.id)
+            shopping_list = await builder.build_from_meal_plan(
+                meal_plan.id,
+                include_pantry=include_pantry,
+            )
 
             from app.models import ShoppingListItem
             from sqlalchemy import func
@@ -378,6 +389,18 @@ class MealPlanGenerator:
             len(allergen_ids),
         )
         return user, allergen_ids
+
+    async def _load_pantry_product_ids(self, user_id: UUID) -> set[UUID]:
+        """Zwraca produkty domowe używane do preferowania tańszych dań.
+
+        Dokładne ilości rozlicza później budowniczy listy zakupów. Tutaj
+        sama obecność produktu jest sygnałem, że przepis lepiej wykorzysta
+        to, co użytkownik już ma.
+        """
+        result = await self.db.execute(
+            select(PantryItem.product_id).where(PantryItem.user_id == user_id)
+        )
+        return {row[0] for row in result.all()}
 
     # ==================================================================
     # Krok 2 — filtracja przepisów
@@ -566,6 +589,7 @@ class MealPlanGenerator:
         max_budget: float | None,
         store_id: UUID,
         target_kcal: float | None = None,
+        preferred_ingredient_ids: set[UUID] | None = None,
     ) -> list[tuple[int, str, Recipe]]:
         """Zachłanny algorytm selekcji przepisów z reuse składników.
 
@@ -591,7 +615,10 @@ class MealPlanGenerator:
         for day, _meal_type in slot_distribution:
             slots_per_day[day] += 1
 
-        used_ingredient_ids: set[UUID] = set()
+        # Składniki ze spiżarni dostają ten sam umiarkowany bonus co produkty
+        # ponownie używane w kilku daniach. Wyłączenie spiżarni przekazuje
+        # pusty zbiór, więc zachowanie pozostaje identyczne jak wcześniej.
+        used_ingredient_ids: set[UUID] = set(preferred_ingredient_ids or set())
         recipe_usage_count: dict[UUID, int] = defaultdict(int)
         selected: list[tuple[int, str, Recipe]] = []
 

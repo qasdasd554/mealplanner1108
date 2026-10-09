@@ -19,7 +19,6 @@ import '../../widgets/premium_feature_tag.dart';
 import '../../widgets/product_contribution_reward_banner.dart';
 import '../../widgets/barcode_destination_sheet.dart';
 import '../batch_barcode_scanner_screen.dart';
-import '../profile/premium_screen.dart';
 
 /// Ekran produktów w trzech zakładkach: „Sklep” (oferta wybranego sklepu),
 /// „Katalog” (wszystkie produkty żywieniowe) i „Moje” (własne zgłoszenia).
@@ -65,33 +64,11 @@ class _ProductsScreenState extends State<ProductsScreen>
     final hasPremium =
         context.read<AuthProvider>().currentUser?.hasPremiumAccess ?? false;
     if (!hasPremium) {
-      final showPremium = await showDialog<bool>(
-        context: context,
-        builder:
-            (dialogContext) => AlertDialog(
-              title: const Text('Skanowanie seryjne jest w Premium'),
-              content: const Text(
-                'Skanuj wiele produktów bez zamykania aparatu i dodawaj je '
-                'jednym zatwierdzeniem do jednego lub kilku miejsc: spiżarni, '
-                'Dziennika i bazy produktów.',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext, false),
-                  child: const Text('Nie teraz'),
-                ),
-                FilledButton(
-                  onPressed: () => Navigator.pop(dialogContext, true),
-                  child: const Text('Zobacz Premium'),
-                ),
-              ],
-            ),
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => const BatchBarcodeScannerScreen(previewOnly: true),
+        ),
       );
-      if (showPremium == true && mounted) {
-        Navigator.of(
-          context,
-        ).push(MaterialPageRoute(builder: (_) => const PremiumScreen()));
-      }
       return;
     }
 

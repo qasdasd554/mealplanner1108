@@ -11,7 +11,7 @@ from fastapi import HTTPException
 
 from app.api.v1.shopping_lists import shopping_item_merge_key
 from app.schemas.shopping_list import ShoppingListItemResponse
-from app.services.shopping_list_builder import pantry_coverage_grams
+from app.services.shopping_list_builder import ShoppingListBuilder, pantry_coverage_grams
 from app.services.shopping_list_quota import (
     calendar_week_start, can_append_recipes_to_existing_list,
     can_create_shopping_list, record_shopping_list_creation,
@@ -80,6 +80,41 @@ def test_pantry_covers_only_available_amount() -> None:
 def test_pantry_without_quantity_means_product_is_available() -> None:
     pantry = SimpleNamespace(quantity=None, unit=None)
     assert pantry_coverage_grams("Mąka", 250, pantry, "g") == 250
+
+
+def test_disabling_pantry_does_not_query_or_consume_it() -> None:
+    product_id = uuid4()
+    product = SimpleNamespace(
+        id=product_id,
+        name="Mąka",
+        unit="g",
+        serving_quantity=None,
+        measure_options=None,
+        default_quantity=Decimal("1000"),
+    )
+    product_result = SimpleNamespace(
+        scalars=lambda: SimpleNamespace(all=lambda: [product]),
+    )
+    store_result = SimpleNamespace(
+        scalars=lambda: SimpleNamespace(
+            unique=lambda: SimpleNamespace(all=lambda: []),
+        ),
+    )
+    db = SimpleNamespace(execute=AsyncMock(side_effect=[product_result, store_result]))
+
+    items = asyncio.run(
+        ShoppingListBuilder(db)._resolve_store_details(
+            aggregated={product_id: 250.0},
+            store_id=uuid4(),
+            user_id=uuid4(),
+            include_pantry=False,
+        )
+    )
+
+    assert db.execute.await_count == 2
+    assert len(items) == 1
+    assert items[0]["is_from_pantry"] is False
+    assert items[0]["required_quantity"] == 250
 
 
 def test_pantry_item_is_last_section_with_zero_price() -> None:

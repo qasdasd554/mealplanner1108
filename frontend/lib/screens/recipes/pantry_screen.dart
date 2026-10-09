@@ -360,30 +360,11 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
     final hasPremium =
         context.read<AuthProvider>().currentUser?.hasPremiumAccess ?? false;
     if (!hasPremium) {
-      final showPremium = await showDialog<bool>(
-        context: context,
-        builder:
-            (dialogContext) => AlertDialog(
-              title: const Text('Skanowanie seryjne jest w Premium'),
-              content: const Text(
-                'Skanuj kolejne produkty bez zamykania aparatu, wybierz jedno '
-                'miejsce dla całej serii i zatwierdź wszystko jednym przyciskiem.',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext, false),
-                  child: const Text('Nie teraz'),
-                ),
-                FilledButton(
-                  onPressed: () => Navigator.pop(dialogContext, true),
-                  child: const Text('Zobacz Premium'),
-                ),
-              ],
-            ),
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => const BatchBarcodeScannerScreen(previewOnly: true),
+        ),
       );
-      if (showPremium == true && mounted) {
-        await Navigator.of(context).pushNamed('/premium');
-      }
       return;
     }
 

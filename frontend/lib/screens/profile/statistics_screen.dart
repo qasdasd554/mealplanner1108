@@ -1,12 +1,16 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../models/weight_log.dart';
 import '../../models/wellness_statistics.dart';
+import '../../models/weekly_insight.dart';
+import '../../providers/auth_provider.dart';
 import '../../services/wellness_statistics_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
+import 'premium_screen.dart';
 
 class StatisticsScreen extends StatefulWidget {
   const StatisticsScreen({super.key});
@@ -127,6 +131,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           ],
         ),
         const SizedBox(height: 14),
+        _weeklyInsights(statistics),
+        const SizedBox(height: 14),
         _section(
           title: 'Kalorie dziennie',
           icon: Icons.local_fire_department_outlined,
@@ -219,6 +225,109 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       ],
     );
   }
+
+  Widget _weeklyInsights(WellnessStatistics statistics) {
+    final isPremium =
+        context.watch<AuthProvider>().currentUser?.hasPremiumAccess ?? false;
+    final insights = buildWeeklyInsights(statistics);
+
+    final visible = isPremium ? insights : insights.take(1).toList();
+    return _section(
+      title: 'Wnioski z ostatnich 7 dni',
+      icon: Icons.insights_outlined,
+      child: Column(
+        children: [
+          for (var index = 0; index < visible.length; index++) ...[
+            _insightRow(visible[index]),
+            if (index != visible.length - 1) const Divider(height: 20),
+          ],
+          if (!isPremium) ...[
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: AppTheme.primaryColor.withOpacity(0.24),
+                ),
+              ),
+              child: Column(
+                children: [
+                  const Icon(Icons.lock_outline, color: AppTheme.primaryColor),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Pełny raport w Premium',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Odblokuj analizę kalorii, nawodnienia i zmian wagi z konkretnymi wnioskami na każdy tydzień.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  OutlinedButton(
+                    onPressed:
+                        () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const PremiumScreen(),
+                          ),
+                        ),
+                    child: const Text('Zobacz pełny raport'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _insightRow(WeeklyInsight insight) => Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: AppTheme.primaryColor.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(
+          switch (insight.kind) {
+            WeeklyInsightKind.regularity => Icons.calendar_view_week_outlined,
+            WeeklyInsightKind.calories => Icons.local_fire_department_outlined,
+            WeeklyInsightKind.water => Icons.water_drop_outlined,
+            WeeklyInsightKind.weight => Icons.monitor_weight_outlined,
+          },
+          size: 19,
+          color: AppTheme.primaryColor,
+        ),
+      ),
+      const SizedBox(width: 10),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              insight.title,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              insight.detail,
+              style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
 
   Widget _section({
     required String title,

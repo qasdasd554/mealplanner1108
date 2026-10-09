@@ -519,6 +519,68 @@ class TestMealSlotDistribution:
 
         assert slots == [(1, "obiad"), (1, "deser"), (2, "obiad"), (2, "deser")]
 
+
+class TestPantryPreference:
+    def test_recipe_using_pantry_product_is_preferred(self) -> None:
+        pantry_product = FakeProduct(name="Ryż")
+        other_product = FakeProduct(name="Makaron")
+        pantry_recipe = FakeRecipe(
+            name="Ryż z warzywami",
+            meal_type="obiad",
+            ingredients=[
+                FakeRecipeIngredient(
+                    product_id=pantry_product.id,
+                    product=pantry_product,
+                )
+            ],
+        )
+        other_recipe = FakeRecipe(
+            name="Makaron z warzywami",
+            meal_type="obiad",
+            ingredients=[
+                FakeRecipeIngredient(
+                    product_id=other_product.id,
+                    product=other_product,
+                )
+            ],
+        )
+        generator = MealPlanGenerator(MagicMock())
+
+        selected = generator._greedy_select(
+            eligible_recipes=[other_recipe, pantry_recipe],
+            slot_distribution=[(1, "obiad")],
+            max_budget=100,
+            store_id=uuid.uuid4(),
+            preferred_ingredient_ids={pantry_product.id},
+        )
+
+        assert selected[0][2].id == pantry_recipe.id
+
+    def test_recipe_is_not_preferred_when_pantry_is_disabled(self) -> None:
+        pantry_product = FakeProduct(name="Ryż")
+        other_product = FakeProduct(name="Makaron")
+        pantry_recipe = FakeRecipe(
+            name="Ryż z warzywami",
+            meal_type="obiad",
+            ingredients=[FakeRecipeIngredient(product_id=pantry_product.id)],
+        )
+        first_recipe = FakeRecipe(
+            name="Makaron z warzywami",
+            meal_type="obiad",
+            ingredients=[FakeRecipeIngredient(product_id=other_product.id)],
+        )
+        generator = MealPlanGenerator(MagicMock())
+
+        selected = generator._greedy_select(
+            eligible_recipes=[first_recipe, pantry_recipe],
+            slot_distribution=[(1, "obiad")],
+            max_budget=100,
+            store_id=uuid.uuid4(),
+            preferred_ingredient_ids=set(),
+        )
+
+        assert selected[0][2].id == first_recipe.id
+
 class TestGeneratePlanRespectsMealTypes:
     """Test: plan posiłków respektuje przypisanie typów posiłków."""
 

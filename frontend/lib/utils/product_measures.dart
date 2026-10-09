@@ -59,6 +59,177 @@ String productBaseUnit(String name, String unit) {
   return _liquidWords.any(lower.contains) ? 'ml' : 'g';
 }
 
+bool _containsAny(String value, Iterable<String> words) =>
+    words.any(value.contains);
+
+/// Zwraca praktyczną wielkość jednej porcji w g/ml.
+///
+/// Najpierw respektujemy dokładną porcję zwróconą przez API. Dla starszych
+/// produktów, które jej jeszcze nie mają, dobieramy wartość według rodzaju
+/// żywności i ograniczamy ją do znanej wielkości opakowania. To nadal
+/// przybliżenie (oznaczone w UI jako „ok.”), ale jest znacznie bardziej
+/// użyteczne niż techniczny wybór 1 g / 1 ml.
+double recommendedPortionQuantity(Product product) {
+  for (final option in product.measureOptions) {
+    if (option.code == 'porcja' && option.baseQuantity > 0) {
+      return option.baseQuantity;
+    }
+  }
+
+  final name = product.name.toLowerCase();
+  final baseUnit = productBaseUnit(product.name, product.unit);
+  double portion;
+
+  if (baseUnit == 'ml') {
+    if (_containsAny(name, const ['olej', 'oliwa'])) {
+      portion = 10;
+    } else if (_containsAny(name, const ['sos', 'ocet'])) {
+      portion = 15;
+    } else if (name.contains('śmietan')) {
+      portion = 50;
+    } else {
+      portion = 250;
+    }
+  } else if (_containsAny(name, const [
+    'pieprz',
+    'papryka słodka',
+    'papryka wędzona',
+    'curry',
+    'kurkuma',
+    'cynamon',
+    'oregano',
+    'tymianek',
+    'rozmaryn',
+    'kolendra mielona',
+    'gałka muszkatołowa',
+    'ziele angielskie',
+    'liść laurowy',
+    'czosnek granulowany',
+    'chili suszone',
+  ])) {
+    portion = 2;
+  } else if (_containsAny(name, const ['sól', 'proszek do pieczenia'])) {
+    portion = 5;
+  } else if (_containsAny(name, const [
+    'masło',
+    'miód',
+    'majonez',
+    'ketchup',
+    'musztarda',
+    'pesto',
+    'tahini',
+    'chrzan',
+  ])) {
+    portion = 15;
+  } else if (_containsAny(name, const [
+    'orzech',
+    'migdał',
+    'pestki',
+    'nasiona',
+    'sezam',
+    'rodzynki',
+    'wiórki kokosowe',
+  ])) {
+    portion = 30;
+  } else if (_containsAny(name, const [
+    'ser ',
+    'parmezan',
+    'mozzarella',
+    'feta',
+    'cheddar',
+  ])) {
+    portion = 30;
+  } else if (_containsAny(name, const ['chleb', 'bułka', 'tortilla'])) {
+    portion = 50;
+  } else if (_containsAny(name, const [
+    'makaron',
+    'ryż',
+    'kasza',
+    'quinoa',
+    'kuskus',
+    'płatki',
+    'soczewica sucha',
+    'ciecierzyca sucha',
+  ])) {
+    portion = 80;
+  } else if (_containsAny(name, const [
+    'kurczak',
+    'indyk',
+    'wołow',
+    'wieprz',
+    'schab',
+    'mięso',
+    'łosoś',
+    'dorsz',
+    'tuńczyk',
+    'ryba',
+    'krewet',
+    'tofu',
+  ])) {
+    portion = 150;
+  } else if (_containsAny(name, const [
+    'jogurt',
+    'kefir',
+    'twaróg',
+    'ricotta',
+    'mascarpone',
+    'serek',
+  ])) {
+    portion = 200;
+  } else if (name.contains('hummus')) {
+    portion = 50;
+  } else if (_containsAny(name, const [
+    'jabł',
+    'banan',
+    'malin',
+    'truskawk',
+    'borów',
+    'mango',
+    'kiwi',
+    'pomarańcz',
+    'mandarynk',
+    'grejpfrut',
+    'ananas',
+    'melon',
+    'granat',
+    'kaki',
+  ])) {
+    portion = 150;
+  } else if (_containsAny(name, const [
+    'warzyw',
+    'pomidor',
+    'ogórek',
+    'marchew',
+    'ziemniak',
+    'kapust',
+    'brokuł',
+    'kalafior',
+    'cukini',
+    'bakłażan',
+    'szpinak',
+    'burak',
+    'papryka',
+    'pieczark',
+  ])) {
+    portion = 200;
+  } else if (product.unit == 'opak' &&
+      product.servingQuantity != null &&
+      product.servingQuantity! > 0) {
+    portion =
+        product.servingQuantity! <= 350
+            ? product.servingQuantity!
+            : product.servingQuantity! / 2;
+  } else {
+    portion = 100;
+  }
+
+  final packageSize = product.servingQuantity;
+  if (packageSize != null && packageSize >= 5 && portion > packageSize) {
+    portion = packageSize;
+  }
+  return portion;
+}
+
 List<ProductMeasureOption> effectiveMeasureOptions(Product product) {
   final baseUnit = productBaseUnit(product.name, product.unit);
   final result = <ProductMeasureOption>[];
@@ -84,6 +255,20 @@ List<ProductMeasureOption> effectiveMeasureOptions(Product product) {
       continue;
     }
     result.add(option);
+  }
+  if (!result.any((option) => option.code == 'porcja')) {
+    final insertionIndex =
+        result.any((option) => option.code == 'opak') ? 1 : 0;
+    result.insert(
+      insertionIndex,
+      ProductMeasureOption(
+        code: 'porcja',
+        label: 'porcja',
+        baseQuantity: recommendedPortionQuantity(product),
+        baseUnit: baseUnit,
+        approximate: true,
+      ),
+    );
   }
   // Nie zakładamy, że masa całego opakowania jest masą jednej sztuki.
   // Opcję „sztuka” zachowujemy tylko wtedy, gdy API podało jej osobny,

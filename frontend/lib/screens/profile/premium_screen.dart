@@ -1027,15 +1027,14 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   isPremium: isPremium,
                   onTap: () async {
                     if (!isPremium) {
-                      ScaffoldMessenger.of(context)
-                        ..hideCurrentSnackBar()
-                        ..showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Aktywuj Premium poniżej, aby użyć skanowania seryjnego.',
-                            ),
-                          ),
-                        );
+                      await Navigator.of(context).push<void>(
+                        MaterialPageRoute(
+                          builder:
+                              (_) => const BatchBarcodeScannerScreen(
+                                previewOnly: true,
+                              ),
+                        ),
+                      );
                       return;
                     }
                     final completed = await Navigator.of(context).push<int>(

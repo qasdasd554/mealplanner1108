@@ -113,6 +113,7 @@ class _ProductAmountPickerState extends State<_ProductAmountPicker> {
 
   IconData _iconFor(ProductMeasureOption option) => switch (option.code) {
     'opak' => Icons.inventory_2_outlined,
+    'porcja' => Icons.restaurant_menu,
     'szt' => Icons.circle_outlined,
     'lyzeczka' => Icons.restaurant_outlined,
     'szklanka' => Icons.local_drink_outlined,
@@ -203,7 +204,12 @@ class _ProductAmountPickerState extends State<_ProductAmountPicker> {
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                 ),
                 const SizedBox(height: 10),
-                ..._options.take(4).map(_buildQuickOption),
+                ..._options
+                    .where(
+                      (option) => option.code != 'g' && option.code != 'ml',
+                    )
+                    .take(4)
+                    .map(_buildQuickOption),
                 const SizedBox(height: 10),
                 const Divider(),
                 const SizedBox(height: 8),

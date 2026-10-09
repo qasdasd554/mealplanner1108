@@ -311,7 +311,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
               controller: _searchController,
               onChanged: _setSearchQuery,
               decoration: InputDecoration(
-                hintText: 'Szukaj przepisu...',
+                hintText: 'Nazwa, autor lub składnik...',
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon:
                     _searchQuery.isEmpty
@@ -1249,7 +1249,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Spróbuj zmienić parametry wyszukiwania.',
+            'Sprawdź nazwę przepisu, autora lub składnika.',
             style: TextStyle(color: AppTheme.textSecondary),
           ),
         ],

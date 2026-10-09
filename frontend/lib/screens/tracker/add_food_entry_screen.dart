@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../providers/food_log_provider.dart';
 import '../../providers/meal_plan_provider.dart';
 import '../../models/meal_plan.dart';
+import '../../models/food_log.dart';
 import '../../models/barcode_lookup_result.dart';
 import '../../services/recipe_service.dart';
 import '../../models/recipe.dart';
@@ -937,6 +938,34 @@ class _ProductsTabState extends State<_ProductsTab> {
   ];
   bool _isAdding = false;
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<FoodLogProvider>().fetchRecentEntries();
+    });
+  }
+
+  Future<void> _repeat(FoodLogEntry entry) async {
+    if (_isAdding) return;
+    setState(() => _isAdding = true);
+    final provider = context.read<FoodLogProvider>();
+    final success = await provider.repeatEntry(entry);
+    if (!mounted) return;
+    setState(() => _isAdding = false);
+    if (success) {
+      Navigator.pop(context);
+      return;
+    }
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(provider.error ?? 'Nie udało się powtórzyć wpisu'),
+        ),
+      );
+  }
+
   Future<void> _pickAndLog(PickedCatalogProduct picked) async {
     if (_isAdding) return;
     var mealType = 'Przekąska';
@@ -1029,6 +1058,85 @@ class _ProductsTabState extends State<_ProductsTab> {
       children: [
         Column(
           children: [
+            Consumer<FoodLogProvider>(
+              builder: (context, provider, _) {
+                final entries = provider.recentEntries;
+                if (entries.isEmpty) return const SizedBox.shrink();
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.history,
+                            size: 18,
+                            color: AppTheme.primaryColor,
+                          ),
+                          const SizedBox(width: 7),
+                          Text(
+                            'Dodaj ponownie',
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        height: 76,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: entries.length,
+                          separatorBuilder: (_, __) => const SizedBox(width: 8),
+                          itemBuilder: (context, index) {
+                            final entry = entries[index];
+                            return SizedBox(
+                              width: 180,
+                              child: OutlinedButton(
+                                onPressed:
+                                    _isAdding ? null : () => _repeat(entry),
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
+                                  alignment: Alignment.centerLeft,
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      entry.displayName,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 3),
+                                    Text(
+                                      '${entry.calories.round()} kcal · ${entry.mealType}',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: AppTheme.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
             Expanded(
               child: PickProductFromCatalogSheet(
                 embedded: true,

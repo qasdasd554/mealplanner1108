@@ -78,4 +78,7 @@ class MealPlanGenerateRequest(BaseModel):
     # (fizjologicznie sensowniejsze niż ">0", które dopuszczało absurdalne
     # wartości typu target_kcal=1).
     target_kcal: float | None = Field(default=None, ge=800, le=5000)
+    # Użytkownik może wygenerować listę zakupów z uwzględnieniem tego,
+    # co już ma w domu, albo zobaczyć pełne zapotrzebowanie bez spiżarni.
+    include_pantry: bool = True
     preferences: dict | None = None

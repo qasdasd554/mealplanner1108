@@ -110,6 +110,7 @@ class MealPlanGenerateRequest {
   final double? maxBudget;
   final int? targetKcal;
   final int? householdSize;
+  final bool includePantry;
   final Map<String, dynamic>? preferences;
 
   MealPlanGenerateRequest({
@@ -119,6 +120,7 @@ class MealPlanGenerateRequest {
     this.maxBudget,
     this.targetKcal,
     this.householdSize,
+    this.includePantry = true,
     this.preferences,
   });
 
@@ -129,6 +131,7 @@ class MealPlanGenerateRequest {
     'max_budget': maxBudget,
     'target_kcal': targetKcal,
     'household_size': householdSize,
+    'include_pantry': includePantry,
     'preferences': preferences,
   };
 }
