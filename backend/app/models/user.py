@@ -134,6 +134,13 @@ class User(Base):
     premium_last_verified_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    # Stan zwrócony przez sklep (np. SUBSCRIPTION_STATE_ACTIVE / expired)
+    # oraz informacja, czy kolejny okres ma odnowić się automatycznie.
+    # Data premium_expires_at nadal oznacza koniec JUŻ opłaconego okresu.
+    premium_status: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    premium_auto_renew_enabled: Mapped[bool | None] = mapped_column(
+        Boolean, nullable=True
+    )
     # Saldo punktów premium — WYMIENNA waluta w aplikacji, niezależna od
     # samej subskrypcji Premium. 2 punkty = jedno zapytanie do AI
     # (rozpoznanie przepisu z tekstu/zdjęcia/linku). Kupowane w pakietach

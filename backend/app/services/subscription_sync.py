@@ -135,6 +135,8 @@ async def refresh_subscription_if_needed(
     )
     user.premium_platform = verified_platform
     user.premium_last_verified_at = now
+    user.premium_status = result.get("subscription_status")
+    user.premium_auto_renew_enabled = result.get("auto_renew_enabled")
     db.add(user)
     await db.commit()
     await db.refresh(user)

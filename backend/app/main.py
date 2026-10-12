@@ -93,6 +93,19 @@ async def _create_tables() -> None:
             text("ALTER TABLE users ADD COLUMN IF NOT EXISTS premium_last_verified_at TIMESTAMPTZ")
         )
         await conn.execute(
+            text("ALTER TABLE users ADD COLUMN IF NOT EXISTS premium_status VARCHAR(80)")
+        )
+        await conn.execute(
+            text("ALTER TABLE users ADD COLUMN IF NOT EXISTS premium_auto_renew_enabled BOOLEAN")
+        )
+        await conn.execute(
+            text(
+                "CREATE INDEX IF NOT EXISTS ix_users_premium_purchase_token "
+                "ON users (premium_purchase_token) "
+                "WHERE premium_purchase_token IS NOT NULL"
+            )
+        )
+        await conn.execute(
             text("ALTER TABLE users ADD COLUMN IF NOT EXISTS weight_kg DOUBLE PRECISION")
         )
         await conn.execute(
@@ -170,6 +183,9 @@ async def _create_tables() -> None:
         )
         await conn.execute(
             text("ALTER TABLE recipes ADD COLUMN IF NOT EXISTS photo_base64 TEXT")
+        )
+        await conn.execute(
+            text("ALTER TABLE recipes ADD COLUMN IF NOT EXISTS photo_thumbnail_base64 TEXT")
         )
         # Sign in with Apple — patrz app/models/user.py, app/services/apple_sign_in.py.
         await conn.execute(
@@ -687,6 +703,41 @@ async def _weekly_plan_automation_loop() -> None:
         await asyncio.sleep(10 * 60)
 
 
+async def _backfill_recipe_photo_thumbnails() -> None:
+    """Jednorazowo uzupełnia miniatury starszych zdjęć użytkowników.
+
+    Kolumna została dodana po istniejących zdjęciach, dlatego samo
+    generowanie miniatur przy nowych zapisach nie naprawiłoby kafelków
+    już opublikowanych przepisów.
+    """
+    from app.db.session import async_session_factory
+    from app.models.recipe import Recipe
+    from app.services.recipe_photo_thumbnail import create_recipe_photo_thumbnail
+
+    async with async_session_factory() as db:
+        result = await db.execute(
+            select(Recipe).where(
+                Recipe.photo_base64.is_not(None),
+                Recipe.photo_thumbnail_base64.is_(None),
+            )
+        )
+        recipes = list(result.scalars().all())
+        updated = 0
+        for recipe in recipes:
+            thumbnail = await asyncio.to_thread(
+                create_recipe_photo_thumbnail,
+                recipe.photo_base64,
+            )
+            if thumbnail is None:
+                continue
+            recipe.photo_thumbnail_base64 = thumbnail
+            db.add(recipe)
+            updated += 1
+        if updated:
+            await db.commit()
+            logger.info("Utworzono %d brakujących miniaturek przepisów.", updated)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Zarządza cyklem życia aplikacji — startup i shutdown."""
@@ -694,6 +745,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     await _create_tables()
     await _seed_database_if_empty()
     await _normalize_barcode_products_as_packages()
+    await _backfill_recipe_photo_thumbnails()
     await _backfill_missing_nutrition_totals()
     scraper_task = asyncio.create_task(_price_scraper_background_loop())
     weekly_contest_task = asyncio.create_task(_weekly_contest_background_loop())
@@ -805,7 +857,7 @@ async def health_check(db: AsyncSession = Depends(get_db)) -> dict[str, str]:
     return {
         "status": "healthy",
         "service": "smart-meal-planner-pl",
-        "release": "1.0.32+229",
+        "release": APP_VERSION,
         "catalog_products": str(catalog_products),
         "database_provider": db_provider,
         "database_host": "ep-small-lab-b1y3gm3e.c-5.eu-central-1.aws.neon.tech" if "neon.tech" in settings.DATABASE_URL else "local",

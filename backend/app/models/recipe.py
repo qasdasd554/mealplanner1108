@@ -62,6 +62,9 @@ class Recipe(Base):
     # TYLKO przepisów dodanych przez użytkowników — 81 oficjalnych
     # przepisów ma swoje zdjęcia jako zasoby aplikacji (recipe.realPhotoAsset).
     photo_base64: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Lekka miniatura JPEG do listy przepisów. Pełne zdjęcie może mieć
+    # kilka MB i jest pobierane dopiero na ekranie szczegółów.
+    photo_thumbnail_base64: Mapped[str | None] = mapped_column(Text, nullable=True)
     # ── Zdjęcie zgłoszone przez użytkownika, CZEKAJĄCE na moderację ──
     # Osobne pole od `photo_base64`, a nie nadpisanie go: zdjęcie staje
     # się widoczne DOPIERO po akceptacji administratora, więc do tego

@@ -40,13 +40,19 @@ class _RecipePhotoState extends State<RecipePhoto> {
   @override
   void didUpdateWidget(covariant RecipePhoto oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.recipe.photoBase64 != widget.recipe.photoBase64) {
+    if (oldWidget.recipe.photoBase64 != widget.recipe.photoBase64 ||
+        oldWidget.recipe.photoThumbnailBase64 !=
+            widget.recipe.photoThumbnailBase64) {
       _decodeUserPhoto();
     }
   }
 
   void _decodeUserPhoto() {
-    final encoded = widget.recipe.photoBase64;
+    // Szczegóły zawierają pełne zdjęcie, natomiast lekka lista tylko
+    // miniaturę. Ten sam widget obsługuje oba przypadki bez dodatkowego
+    // zapytania i bez pobierania wielomegabajtowych zdjęć przy scrollu.
+    final encoded =
+        widget.recipe.photoBase64 ?? widget.recipe.photoThumbnailBase64;
     if (encoded == null || encoded.isEmpty) {
       _userPhotoBytes = null;
       return;

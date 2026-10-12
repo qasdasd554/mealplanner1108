@@ -17,6 +17,8 @@ import '../../services/api_client.dart';
 import '../../models/premium_offer.dart';
 import '../../utils/error_utils.dart';
 import '../../widgets/campaign_icon.dart';
+import '../../widgets/planner_components.dart';
+import '../../widgets/premium_feature_tag.dart';
 import '../recipes/recipes_screen.dart';
 import '../recipes/ai_add_recipe_screen.dart';
 import '../recipes/ingredient_match_select_screen.dart';
@@ -78,168 +80,46 @@ class _PremiumScreenState extends State<PremiumScreen> {
 
   Widget _buildContextualOfferCard(BuildContext context) {
     final copy = PremiumOfferCopy.forContext(widget.offerContext!);
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            const Color(0xFF6D28D9).withValues(alpha: 0.10),
-            const Color(0xFFE0A62E).withValues(alpha: 0.10),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(_contextIcon, color: AppTheme.actionPrimaryColor, size: 26),
+            const SizedBox(width: 10),
+            const PremiumFeatureTag(fontSize: 11),
           ],
         ),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: const Color(0xFF6D28D9).withValues(alpha: 0.22),
+        const SizedBox(height: 16),
+        Text(copy.title, style: Theme.of(context).textTheme.headlineSmall),
+        const SizedBox(height: 10),
+        Text(
+          copy.description,
+          style: TextStyle(color: AppTheme.textSecondary, height: 1.45),
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF6D28D9).withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(13),
+        const SizedBox(height: 16),
+        ...copy.benefits.map(
+          (benefit) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.check_rounded,
+                  color: AppTheme.actionPrimaryColor,
+                  size: 20,
                 ),
-                child: Icon(
-                  _contextIcon,
-                  color: const Color(0xFF6D28D9),
-                  size: 23,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  copy.eyebrow,
-                  style: const TextStyle(
-                    color: Color(0xFF6D28D9),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.8,
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFE2A1),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: const Text(
-                  '7 DNI ZA 0 ZŁ*',
-                  style: TextStyle(
-                    color: Color(0xFF8A5A00),
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Text(
-            copy.title,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w800,
-              height: 1.15,
+                const SizedBox(width: 8),
+                Expanded(child: Text(benefit)),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            copy.description,
-            style: TextStyle(
-              color: AppTheme.textSecondary,
-              fontSize: 14,
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 16),
-          ...copy.benefits.map(
-            (benefit) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(
-                    Icons.check_circle,
-                    size: 19,
-                    color: AppTheme.primaryColor,
-                  ),
-                  const SizedBox(width: 9),
-                  Expanded(
-                    child: Text(
-                      benefit,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 4),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: () {
-                final pricingContext = _pricingSectionKey.currentContext;
-                if (pricingContext != null) {
-                  Scrollable.ensureVisible(
-                    pricingContext,
-                    duration: const Duration(milliseconds: 450),
-                    curve: Curves.easeOutCubic,
-                    alignment: 0.05,
-                  );
-                } else if (_screenScrollController.hasClients) {
-                  final target =
-                      (_screenScrollController.offset + 520)
-                          .clamp(
-                            0.0,
-                            _screenScrollController.position.maxScrollExtent,
-                          )
-                          .toDouble();
-                  _screenScrollController.animateTo(
-                    target,
-                    duration: const Duration(milliseconds: 450),
-                    curve: Curves.easeOutCubic,
-                  );
-                }
-              },
-              icon: const Icon(Icons.workspace_premium_outlined),
-              label: const Text('Sprawdź okres próbny'),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '* Dla kont uprawnionych do oferty. Dostępność, cena po '
-            'okresie próbnym i termin odnowienia zostaną pokazane przez '
-            '${Platform.isIOS ? "App Store" : "Google Play"} przed potwierdzeniem.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: AppTheme.textSecondary,
-              fontSize: 10.5,
-              height: 1.35,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Align(
-            alignment: Alignment.center,
-            child: TextButton(
-              onPressed: () => Navigator.of(context).maybePop(),
-              child: const Text('Nie teraz'),
-            ),
-          ),
-        ],
-      ),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(context).maybePop(),
+          child: const Text('Nie teraz'),
+        ),
+      ],
     );
   }
 
@@ -848,42 +728,6 @@ class _PremiumScreenState extends State<PremiumScreen> {
     );
   }
 
-  static const List<_PremiumFeature> _features = [
-    _PremiumFeature(
-      icon: Icons.auto_mode_outlined,
-      title: 'Automatyczny tydzień',
-      description:
-          'W wybranym dniu przygotujemy plan i opcjonalną listę zakupów.',
-    ),
-    _PremiumFeature(
-      icon: Icons.qr_code_2,
-      title: 'Skanowanie seryjne',
-      description:
-          'Skanuj bez zamykania aparatu i dodaj całą serię do jednego wybranego miejsca.',
-    ),
-    _PremiumFeature(
-      icon: Icons.all_inclusive,
-      title: 'Plany posiłków bez limitu',
-      description: 'Generuj tyle planów, ile chcesz — bez tygodniowego limitu.',
-    ),
-    _PremiumFeature(
-      icon: Icons.auto_awesome,
-      title: 'Przepisy rozpoznawane przez AI',
-      description: 'Dodawaj własne przepisy z wklejonego tekstu albo zdjęcia.',
-    ),
-    _PremiumFeature(
-      icon: Icons.history,
-      title: 'Pełna historia Dziennika',
-      description:
-          'Przeglądaj całą historię kalorii, bez limitu 30 dni wstecz.',
-    ),
-    _PremiumFeature(
-      icon: Icons.calendar_view_week,
-      title: 'Listy zakupów bez limitu',
-      description: 'Twórz nowe listy zakupów wtedy, kiedy ich potrzebujesz.',
-    ),
-  ];
-
   @override
   Widget build(BuildContext context) {
     // UWAGA (przebudowa): zakładka Premium ma pokazywać FAKTYCZNE
@@ -896,82 +740,24 @@ class _PremiumScreenState extends State<PremiumScreen> {
       body: CustomScrollView(
         controller: _screenScrollController,
         slivers: [
-          SliverAppBar(
-            expandedHeight: 250,
-            pinned: true,
-            iconTheme: const IconThemeData(color: Colors.white),
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF6D28D9), Color(0xFFE0A62E)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.15),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.workspace_premium,
-                          color: Colors.white,
-                          size: 40,
-                        ),
-                      ).animate().scale(
-                        duration: 400.ms,
-                        curve: Curves.easeOutBack,
-                      ),
-                      const SizedBox(height: 12),
-                      const Text(
-                        'Meal Planner Premium',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ).animate().fadeIn(delay: 150.ms),
-                      const SizedBox(height: 4),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 28),
-                        child: Text(
-                          'Zaplanuj cały tydzień, zeskanuj zakupy i przygotuj listę w kilka minut.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.85),
-                            fontSize: 13,
-                            height: 1.35,
-                          ),
-                        ),
-                      ).animate().fadeIn(delay: 250.ms),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
+          const SliverAppBar(pinned: true, title: Text('Premium')),
           SliverPadding(
             padding: const EdgeInsets.all(20),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                if (widget.offerContext != null && !isPremium) ...[
-                  _buildContextualOfferCard(context)
-                      .animate()
-                      .fadeIn(duration: 250.ms)
-                      .slideY(begin: 0.04, end: 0),
-                  const SizedBox(height: 22),
-                  Column(
-                    key: _pricingSectionKey,
-                    children: _buildPricingSection(context),
-                  ),
-                  const SizedBox(height: 26),
+                if (!isPremium) ...[
+                  if (widget.offerContext != null)
+                    _buildContextualOfferCard(context)
+                  else
+                    const PremiumBenefitPreview(),
+                  const SizedBox(height: 24),
                 ],
+                Column(
+                  key: _pricingSectionKey,
+                  children: _buildPricingSection(context),
+                ),
+                const SizedBox(height: 24),
+                const PlannerSectionHeading(title: 'Twoje funkcje Premium'),
                 // Skróty do FAKTYCZNYCH funkcji Premium — bezpośrednie
                 // akcje, nie tylko opis. Dla kont bez Premium dotknięcie
                 // prowadzi do tego samego miejsca, gdzie wbudowana
@@ -985,15 +771,17 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   isPremium: isPremium,
                   onTap: () {
                     if (!isPremium) {
-                      ScaffoldMessenger.of(context)
-                        ..hideCurrentSnackBar()
-                        ..showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Automatyczny tydzień jest dostępny w Premium.',
-                            ),
-                          ),
+                      final pricingContext = _pricingSectionKey.currentContext;
+                      if (pricingContext != null) {
+                        Scrollable.ensureVisible(
+                          pricingContext,
+                          duration:
+                              MediaQuery.disableAnimationsOf(context)
+                                  ? Duration.zero
+                                  : const Duration(milliseconds: 250),
+                          alignment: .05,
                         );
+                      }
                       return;
                     }
                     Navigator.of(context).push(
@@ -1008,7 +796,8 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   context,
                   icon: Icons.auto_awesome,
                   title: 'Dodaj przepis przez AI',
-                  subtitle: 'Zdjęcie, tekst albo link — AI zrobi resztę',
+                  subtitle:
+                      'Zapisz składniki i kroki ze zdjęcia, opisu lub linku',
                   isPremium: isPremium,
                   pointsAlternativeCost: 2,
                   onTap:
@@ -1055,7 +844,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                 _buildQuickAction(
                   context,
                   icon: Icons.groups,
-                  title: 'Publikuj przepisy we wspólnocie',
+                  title: 'Podziel się swoimi przepisami',
                   subtitle: 'Podziel się swoimi przepisami z innymi',
                   isPremium: isPremium,
                   onTap:
@@ -1110,66 +899,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                         MaterialPageRoute(builder: (_) => const PantryScreen()),
                       ),
                 ),
-                const SizedBox(height: 28),
-                ..._features.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final feature = entry.value;
-                  return Padding(
-                        padding: const EdgeInsets.only(bottom: 14),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: AppTheme.secondaryColor.withOpacity(
-                                  0.12,
-                                ),
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: Icon(
-                                feature.icon,
-                                color: AppTheme.secondaryColor,
-                                size: 22,
-                              ),
-                            ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    feature.title,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    feature.description,
-                                    style: TextStyle(
-                                      color: AppTheme.textSecondary,
-                                      fontSize: 13,
-                                      height: 1.3,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                      .animate()
-                      .fadeIn(delay: (300 + index * 100).ms)
-                      .slideX(begin: 0.05, end: 0);
-                }),
-                const SizedBox(height: 12),
-                if (widget.offerContext == null || isPremium)
-                  Column(
-                    key: _pricingSectionKey,
-                    children: _buildPricingSection(context),
-                  ),
+                const SizedBox(height: 24),
                 const SizedBox(height: 24),
                 ..._buildPointsSection(context),
                 const SizedBox(height: 20),
@@ -1352,12 +1082,46 @@ class _PremiumScreenState extends State<PremiumScreen> {
     final yearly = _products[kYearlyProductId];
 
     return [
+      if (monthly != null) ...[
+        _buildPricingCard(
+          context: context,
+          title: 'Premium miesięczne',
+          price: _billing.regularSubscriptionPrice(monthly),
+          period: '/ miesiąc',
+          trialLabel: '7 dni za darmo',
+          highlight: true,
+          discountPercent:
+              _activeOffers[kMonthlyProductId]?['discount_percent'] as int?,
+          onTap:
+              _isProcessingPurchase
+                  ? null
+                  : () => _useSubscriptionOffer(kMonthlyProductId),
+        ),
+        const SizedBox(height: 12),
+      ],
+      if (yearly != null) ...[
+        _buildPricingCard(
+          context: context,
+          title: 'Premium roczne',
+          price: _billing.regularSubscriptionPrice(yearly),
+          period: '/ rok',
+          badge: 'Płatność raz w roku',
+          highlight: false,
+          discountPercent:
+              _activeOffers[kYearlyProductId]?['discount_percent'] as int?,
+          onTap:
+              _isProcessingPurchase
+                  ? null
+                  : () => _useSubscriptionOffer(kYearlyProductId),
+        ),
+        const SizedBox(height: 12),
+      ],
       if (weekly != null)
         _buildPricingCard(
           context: context,
-          title: 'Tygodniowo',
+          title: 'Premium tygodniowe',
           price: _billing.regularSubscriptionPrice(weekly),
-          period: '',
+          period: '/ tydzień',
           highlight: false,
           discountPercent:
               _activeOffers[kWeeklyProductId]?['discount_percent'] as int?,
@@ -1365,42 +1129,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
               _isProcessingPurchase
                   ? null
                   : () => _useSubscriptionOffer(kWeeklyProductId),
-        ).animate().fadeIn(delay: 650.ms),
-      if (weekly != null) const SizedBox(height: 12),
-      if (monthly != null)
-        _buildPricingCard(
-          context: context,
-          title: 'Miesięcznie',
-          price: _billing.regularSubscriptionPrice(monthly),
-          period: '',
-          trialLabel: '7 dni za darmo',
-          highlight: false,
-          discountPercent:
-              _activeOffers[kMonthlyProductId]?['discount_percent'] as int?,
-          onTap:
-              _isProcessingPurchase
-                  ? null
-                  : () => _useSubscriptionOffer(kMonthlyProductId),
-        ).animate().fadeIn(delay: 700.ms),
-      if (monthly != null) const SizedBox(height: 12),
-      if (yearly != null)
-        _buildPricingCard(
-          context: context,
-          title: 'Rocznie',
-          price: _billing.regularSubscriptionPrice(yearly),
-          period: '',
-          badge:
-              _activeOffers.containsKey(kYearlyProductId)
-                  ? null
-                  : 'Oszczędzasz 17%',
-          highlight: true,
-          discountPercent:
-              _activeOffers[kYearlyProductId]?['discount_percent'] as int?,
-          onTap:
-              _isProcessingPurchase
-                  ? null
-                  : () => _useSubscriptionOffer(kYearlyProductId),
-        ).animate().fadeIn(delay: 800.ms),
+        ),
       const SizedBox(height: 20),
       Text(
         Platform.isIOS
@@ -1638,209 +1367,22 @@ class _PremiumScreenState extends State<PremiumScreen> {
     int? discountPercent,
     required bool highlight,
     required VoidCallback? onTap,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        gradient:
-            highlight
-                ? const LinearGradient(
-                  colors: [Color(0xFFF5C24D), Color(0xFFE0A62E)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                )
-                : null,
-        color: highlight ? null : AppTheme.surfaceColor,
-        border:
-            highlight
-                ? null
-                : Border.all(color: AppTheme.textSecondary.withOpacity(0.15)),
-        boxShadow:
-            highlight
-                ? [
-                  BoxShadow(
-                    color: const Color(0xFFE0A62E).withOpacity(0.35),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-                : null,
-      ),
-      child: Column(
-        children: [
-          if (badge != null)
-            Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.25),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                badge,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+  }) => PremiumPlanCard(
+    title: title,
+    price: price,
+    period: period,
+    onTap: onTap,
+    highlight: highlight,
+    hasTrial: trialLabel != null,
+    badge: badge,
+    processing: _isProcessingPurchase,
+    campaign:
+        discountPercent == null
+            ? null
+            : CampaignIcon(
+              icon: Icons.workspace_premium,
+              color: AppTheme.actionAccentColor,
+              discountPercent: discountPercent,
             ),
-          if (discountPercent != null)
-            Align(
-              alignment: Alignment.centerLeft,
-              child: CampaignIcon(
-                icon: Icons.workspace_premium,
-                color: highlight ? Colors.white : AppTheme.accentColor,
-                discountPercent: discountPercent,
-              ),
-            ),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final details = Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                      color: highlight ? Colors.white : null,
-                    ),
-                  ),
-                  if (trialLabel != null) ...[
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.celebration_outlined,
-                            size: 16,
-                            color: AppTheme.primaryColor,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            trialLabel,
-                            style: TextStyle(
-                              color: AppTheme.primaryColor,
-                              fontWeight: FontWeight.w800,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                  ],
-                  RichText(
-                    text: TextSpan(
-                      children: [
-                        TextSpan(
-                          text:
-                              trialLabel != null
-                                  ? 'Potem $price miesięcznie'
-                                  : discountPercent == null
-                                  ? price
-                                  : Platform.isIOS
-                                  ? 'Cena przed kodem: $price'
-                                  : 'Cena promocyjna: $price',
-                          style: TextStyle(
-                            fontSize:
-                                trialLabel != null
-                                    ? 15
-                                    : discountPercent == null
-                                    ? 22
-                                    : 15,
-                            fontWeight: FontWeight.bold,
-                            color:
-                                highlight
-                                    ? Colors.white
-                                    : AppTheme.primaryColor,
-                          ),
-                        ),
-                        if (period.isNotEmpty)
-                          TextSpan(
-                            text: ' $period',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color:
-                                  highlight
-                                      ? Colors.white.withOpacity(0.85)
-                                      : AppTheme.textSecondary,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              );
-              final buyButton = ElevatedButton(
-                onPressed: onTap,
-                style:
-                    highlight
-                        ? ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: const Color(0xFFE0A62E),
-                          minimumSize: const Size(100, 44),
-                        )
-                        : ElevatedButton.styleFrom(
-                          minimumSize: const Size(100, 44),
-                        ),
-                child:
-                    _isProcessingPurchase
-                        ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                        : Text(
-                          trialLabel != null
-                              ? 'Wypróbuj za 0 zł'
-                              : discountPercent == null
-                              ? 'Kup Premium'
-                              : Platform.isIOS
-                              ? 'Odbierz kod'
-                              : 'Kup z rabatem',
-                        ),
-              );
-              if (constraints.maxWidth < 350) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [details, const SizedBox(height: 12), buyButton],
-                );
-              }
-              return Row(
-                children: [
-                  Expanded(child: details),
-                  const SizedBox(width: 8),
-                  buyButton,
-                ],
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PremiumFeature {
-  final IconData icon;
-  final String title;
-  final String description;
-
-  const _PremiumFeature({
-    required this.icon,
-    required this.title,
-    required this.description,
-  });
+  );
 }

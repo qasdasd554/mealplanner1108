@@ -35,6 +35,7 @@ from app.schemas.recipe import (
 )
 from app.services.moderation import get_blocked_user_ids
 from app.services.nutrition_calculator import compute_recipe_nutrition_total, is_ingredient_quantity_reasonable
+from app.services.recipe_photo_thumbnail import create_recipe_photo_thumbnail
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -174,6 +175,7 @@ def _recipe_list_options():
             Recipe.difficulty,
             Recipe.nutrition_total,
             Recipe.image_url,
+            Recipe.photo_thumbnail_base64,
             Recipe.is_active,
             Recipe.created_at,
             Recipe.visibility,
@@ -607,6 +609,9 @@ async def create_recipe(
         created_by_user_id=current_user.id,
         visibility=visibility,
         photo_base64=recipe_in.photo_base64,
+        photo_thumbnail_base64=create_recipe_photo_thumbnail(
+            recipe_in.photo_base64
+        ),
     )
     db.add(recipe)
     await db.flush()
@@ -732,6 +737,7 @@ async def save_recipe_variant(
         suggested_seasonings=list(source.suggested_seasonings or []),
         image_url=source.image_url,
         photo_base64=source.photo_base64,
+        photo_thumbnail_base64=source.photo_thumbnail_base64,
         created_by_user_id=current_user.id,
         visibility="private",
     )
@@ -1138,6 +1144,9 @@ async def _create_ai_recipe(
         # zdjęciem przepisu — to zwykle prawdziwe zdjęcie tego dania,
         # więc szkoda by było go nie wykorzystać.
         photo_base64=payload.photo_base64,
+        photo_thumbnail_base64=create_recipe_photo_thumbnail(
+            payload.photo_base64
+        ),
     )
     db.add(recipe)
     await db.flush()
@@ -1752,6 +1761,9 @@ async def approve_recipe_photo(
 
     submitter_id = recipe.pending_photo_user_id
     recipe.photo_base64 = recipe.pending_photo_base64
+    recipe.photo_thumbnail_base64 = create_recipe_photo_thumbnail(
+        recipe.pending_photo_base64
+    )
     recipe.pending_photo_base64 = None
     recipe.pending_photo_user_id = None
     recipe.pending_photo_submitted_at = None

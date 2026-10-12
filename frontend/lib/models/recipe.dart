@@ -80,6 +80,7 @@ class Recipe {
   // Osobne od `realPhotoAsset` (te dotyczą TYLKO 137 oficjalnych przepisów
   // dostarczonych z aplikacją jako zasoby, nie danych z bazy).
   final String? photoBase64;
+  final String? photoThumbnailBase64;
   // "private" / "pending" / "public" / "rejected"
   final String visibility;
   final DateTime? createdAt;
@@ -111,6 +112,7 @@ class Recipe {
     this.isFavorite = false,
     this.isOwnRecipe = false,
     this.photoBase64,
+    this.photoThumbnailBase64,
     this.visibility = 'private',
     this.createdAt,
     this.createdByUserId,
@@ -157,6 +159,7 @@ class Recipe {
       isFavorite: json['is_favorite'] as bool? ?? false,
       isOwnRecipe: json['is_own_recipe'] as bool? ?? false,
       photoBase64: json['photo_base64'] as String?,
+      photoThumbnailBase64: json['photo_thumbnail_base64'] as String?,
       visibility: json['visibility'] as String? ?? 'private',
       createdAt:
           json['created_at'] != null

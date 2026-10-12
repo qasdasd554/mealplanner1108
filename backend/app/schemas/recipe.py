@@ -178,6 +178,7 @@ class RecipeListItemResponse(RecipeBase):
     id: uuid.UUID
     nutrition_total: dict | None = None
     image_url: str | None = None
+    photo_thumbnail_base64: str | None = None
     is_active: bool
     tags: list[str] = []
     created_at: datetime
@@ -203,6 +204,7 @@ class RecipeResponse(RecipeBase):
     nutrition_total: dict | None = None
     image_url: str | None = None
     photo_base64: str | None = None
+    photo_thumbnail_base64: str | None = None
     instructions: list[str] | None = None
     suggested_seasonings: list[str] | None = None
     is_active: bool

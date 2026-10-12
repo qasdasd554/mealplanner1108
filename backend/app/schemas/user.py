@@ -47,6 +47,8 @@ class UserResponse(BaseModel):
     is_premium: bool = False
     premium_expires_at: datetime | None = None
     premium_product_id: str | None = None
+    premium_status: str | None = None
+    premium_auto_renew_enabled: bool | None = None
     # Saldo punktów premium — widoczne w profilu, żeby użytkownik wiedział,
     # ile mu zostało (2 punkty = jedno zapytanie do AI).
     premium_points: int = 0

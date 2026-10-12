@@ -20,6 +20,7 @@ from app.api.v1.billing import router as billing_router
 from app.api.v1.pantry import router as pantry_router
 from app.api.v1.friends import router as friends_router
 from app.api.v1.purchase_campaigns import router as purchase_campaigns_router
+from app.api.v1.subscription_webhooks import router as subscription_webhooks_router
 
 router = APIRouter()
 
@@ -43,3 +44,8 @@ router.include_router(billing_router, prefix="/billing", tags=["Billing"])
 router.include_router(pantry_router, prefix="/pantry", tags=["Pantry"])
 router.include_router(friends_router, prefix="/friends", tags=["Friends"])
 router.include_router(purchase_campaigns_router, prefix="/purchase-campaigns", tags=["Purchase Campaigns"])
+router.include_router(
+    subscription_webhooks_router,
+    prefix="/billing/webhooks",
+    tags=["Billing Webhooks"],
+)

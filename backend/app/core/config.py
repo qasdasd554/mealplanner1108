@@ -97,6 +97,13 @@ class Settings(BaseSettings):
     # bezpiecznie od razu przy generowaniu.
     APPLE_PRIVATE_KEY: str = ""
 
+    # Wspólny, losowy sekret (min. 32 znaki) dopisywany do adresów
+    # webhooków Apple i Google jako parametr `token`. Powiadomienie nigdy
+    # samo nie nadaje Premium — po jego odebraniu backend dodatkowo pyta
+    # właściwy sklep o bieżący stan zakupu — ale sekret chroni endpointy
+    # przed spamem i niepotrzebnymi zapytaniami do API sklepów.
+    BILLING_WEBHOOK_SECRET: str = ""
+
     # ── Wysyłka e-maili (weryfikacja konta) ─────────────────────────
     # Klucz API z resend.com — WYMAGANY, żeby wysyłka kodu weryfikacyjnego
     # przy rejestracji w ogóle działała. Bez tego rejestracja i tak

@@ -143,10 +143,19 @@ async def verify_subscription_purchase(purchase_token: str, product_id: str) -> 
         subscription_state in _ENTITLED_STATES
         and expiry_time > datetime.now(timezone.utc)
     )
+    matched_item = next(
+        (item for item in line_items if item.get("productId") == matched_product_id),
+        {},
+    )
+    auto_renew_enabled = (
+        (matched_item.get("autoRenewingPlan") or {}).get("autoRenewEnabled")
+    )
 
     return {
         "is_active": is_active,
         "subscription_state": subscription_state,
+        "subscription_status": subscription_state,
+        "auto_renew_enabled": auto_renew_enabled,
         "expiry_time": expiry_time,
         "product_id": matched_product_id,
         "purchase_token": purchase_token,

@@ -15,12 +15,13 @@ import '../../widgets/premium_feature_tag.dart';
 import '../../widgets/barcode_destination_sheet.dart';
 import '../../widgets/user_avatar.dart';
 import '../../models/meal_plan.dart';
+import '../../models/premium_offer.dart';
+import '../../widgets/planner_components.dart';
 import '../recipes/recipes_screen.dart';
 import '../recipes/recipe_leaderboard_screen.dart';
 import '../recipes/pantry_screen.dart';
 import '../recipes/ai_add_recipe_screen.dart';
 import '../batch_barcode_scanner_screen.dart';
-import '../../widgets/decorative_circles.dart';
 import '../shopping/shopping_list_screen.dart';
 import '../profile/profile_screen.dart';
 import '../profile/premium_screen.dart';
@@ -173,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
           color:
               Theme.of(context).bottomNavigationBarTheme.backgroundColor ??
               Theme.of(context).colorScheme.surface,
-          elevation: 8,
+          elevation: 0,
           child: BottomNavigationBar(
             elevation: 0,
             // Sześć zakładek wymaga trybu 'fixed' — bez tego Flutter przechodzi
@@ -410,19 +411,43 @@ class _HomeScreenState extends State<HomeScreen> {
           side: BorderSide(color: colors.outlineVariant),
         ),
         clipBehavior: Clip.antiAlias,
-        child: ListTile(
-          leading: Icon(icon),
-          title: Text(title, maxLines: 2, overflow: TextOverflow.ellipsis),
-          subtitle:
-              subtitle == null
-                  ? null
-                  : Text(
-                    subtitle,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-          trailing: trailing,
+        child: InkWell(
           onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(icon, color: AppTheme.textSecondary),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      if (subtitle != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          subtitle,
+                          style: TextStyle(
+                            color: AppTheme.textSecondary,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                      if (trailing != null) ...[
+                        const SizedBox(height: 8),
+                        trailing,
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -436,23 +461,12 @@ class _HomeScreenState extends State<HomeScreen> {
     final iconColor =
         Theme.of(context).bottomNavigationBarTheme.unselectedItemColor ??
         colors.onSurfaceVariant;
-    final background = Color.alphaBlend(
-      colors.primary.withOpacity(
-        active
-            ? (Theme.of(context).brightness == Brightness.dark ? 0.20 : 0.13)
-            : (Theme.of(context).brightness == Brightness.dark ? 0.12 : 0.07),
-      ),
-      colors.surface,
-    );
-
     return Padding(
       padding: const EdgeInsets.only(bottom: 2),
-      child: Container(
-        width: 34,
-        height: 34,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(color: background, shape: BoxShape.circle),
-        child: Icon(icon, size: 21, color: iconColor),
+      child: SizedBox(
+        width: 36,
+        height: 36,
+        child: Icon(icon, size: 26, color: iconColor),
       ),
     );
   }
@@ -530,7 +544,6 @@ class HomeTab extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
-          const DecorativeCircles(),
           SafeArea(
             child: RefreshIndicator(
               onRefresh: () async {
@@ -545,7 +558,7 @@ class HomeTab extends StatelessWidget {
               },
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(24.0),
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 88),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -572,8 +585,12 @@ class HomeTab extends StatelessWidget {
                               // odznaka jest na osobnej linii pod spodem.
                               Text(
                                 'Cześć, ${user?.displayName ?? 'użytkowniku'}!',
-                                style: Theme.of(context).textTheme.displaySmall
-                                    ?.copyWith(fontWeight: FontWeight.bold),
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.displaySmall?.copyWith(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w600,
+                                ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -606,37 +623,21 @@ class HomeTab extends StatelessWidget {
                           ),
                         ),
                       ],
-                    ).animate().fadeIn().slideY(begin: -0.1, end: 0),
+                    ),
                     const SizedBox(height: 24),
 
                     // Najczęstsze wejścia są pierwsze i mieszczą się w równej
                     // siatce 2x2. Przepisy są już w dolnym menu, więc nie
                     // dublujemy tutaj tego samego odnośnika.
-                    Text(
-                      'Szybkie akcje',
-                      style: Theme.of(context).textTheme.headlineMedium
-                          ?.copyWith(fontWeight: FontWeight.bold),
-                    ),
+                    const PlannerSectionHeading(title: 'Pod ręką'),
                     const SizedBox(height: 12),
-                    GridView.count(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      // Nie ściskamy kafelków do jednego wiersza. Na węższych
-                      // telefonach i przy większym rozmiarze tekstu tytuły
-                      // (np. „Baza produktów”) mogą dzięki temu ułożyć się w
-                      // dwóch pełnych wierszach zamiast kończyć wielokropkiem.
-                      childAspectRatio:
-                          MediaQuery.sizeOf(context).width < 370 ? 1.55 : 1.75,
+                    PlannerQuickActionGrid(
                       children: [
                         _buildQuickActionCard(
                           context,
                           title: 'Nowy plan',
                           subtitle: 'Zaplanuj posiłki',
                           icon: Icons.calendar_today_outlined,
-                          color: AppTheme.primaryColor,
                           onTap:
                               () => Navigator.of(
                                 context,
@@ -645,9 +646,8 @@ class HomeTab extends StatelessWidget {
                         _buildQuickActionCard(
                           context,
                           title: 'Baza produktów',
-                          subtitle: 'Sprawdź ceny',
+                          subtitle: 'Skanuj i wyszukuj',
                           icon: Icons.storefront_outlined,
-                          color: AppTheme.accentColor,
                           onTap:
                               () =>
                                   Navigator.of(context).pushNamed('/products'),
@@ -657,7 +657,6 @@ class HomeTab extends StatelessWidget {
                           title: 'Promocje',
                           subtitle: 'Aktualne okazje',
                           icon: Icons.local_offer_outlined,
-                          color: Colors.red,
                           onTap:
                               () => Navigator.of(
                                 context,
@@ -668,7 +667,6 @@ class HomeTab extends StatelessWidget {
                           title: 'Spiżarnia',
                           subtitle: 'Co masz w domu',
                           icon: Icons.inventory_2_outlined,
-                          color: AppTheme.secondaryColor,
                           onTap:
                               () => Navigator.of(context).push(
                                 MaterialPageRoute(
@@ -677,8 +675,7 @@ class HomeTab extends StatelessWidget {
                               ),
                         ),
                       ],
-                    ).animate().fadeIn(delay: 100.ms),
-                    const _ContextualPremiumCard(),
+                    ),
                     const SizedBox(height: 24),
 
                     // Dopiero po skrótach pokazujemy postęp bieżącego dnia.
@@ -702,25 +699,14 @@ class HomeTab extends StatelessWidget {
                         onRetry: mealPlanProvider.loadPlans,
                       )
                     else if (activePlan != null) ...[
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              'Twój aktywny plan',
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.headlineMedium
-                                  ?.copyWith(fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pushNamed('/plan/view');
-                            },
-                            child: const Text('Szczegóły'),
-                          ),
-                        ],
+                      PlannerSectionHeading(
+                        title: 'Twój plan na dziś',
+                        trailing: TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pushNamed('/plan/view');
+                          },
+                          child: const Text('Szczegóły'),
+                        ),
                       ),
                       // Plany z różnych tygodni mogą współistnieć również
                       // na koncie standardowym. Przełącznik pojawia się,
@@ -761,21 +747,44 @@ class HomeTab extends StatelessWidget {
                         ),
                       ],
                       const SizedBox(height: 12),
-                      _buildActivePlanCard(
-                        context,
-                        plan: activePlan,
-                        storeName: getStoreName(activePlan.storeId),
-                        currentDay: currentDay,
-                      ).animate().fadeIn(delay: 200.ms),
-                      const SizedBox(height: 12),
-                      ...activePlan.entriesForDay(currentDay).map((entry) {
-                        return _buildMealItem(context, entry);
-                      }).toList(),
+                      Material(
+                        color: AppTheme.surfaceColor,
+                        borderRadius: BorderRadius.circular(16),
+                        clipBehavior: Clip.antiAlias,
+                        child: Column(
+                          children: [
+                            _buildActivePlanCard(
+                              context,
+                              plan: activePlan,
+                              storeName: getStoreName(activePlan.storeId),
+                              currentDay: currentDay,
+                            ),
+                            ...activePlan.entriesForDay(currentDay).map((
+                              entry,
+                            ) {
+                              return Column(
+                                children: [
+                                  Divider(
+                                    height: 1,
+                                    indent: 20,
+                                    endIndent: 20,
+                                    color: AppTheme.outlineColor.withValues(
+                                      alpha: .35,
+                                    ),
+                                  ),
+                                  _buildMealItem(context, entry),
+                                ],
+                              );
+                            }),
+                          ],
+                        ),
+                      ),
                     ] else ...[
                       // Brak aktywnego planu - pusta sekcja zachęcająca do stworzenia
-                      _buildNoPlanCard(context).animate().fadeIn(delay: 200.ms),
+                      _buildNoPlanCard(context),
                     ],
                     const SizedBox(height: 24),
+                    const _ContextualPremiumCard(),
 
                     // Treści dodatkowe są na końcu — nie odsuwają planu ani
                     // dzisiejszych posiłków od początku ekranu.
@@ -845,7 +854,7 @@ class HomeTab extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Dziś zjedzono',
+                  'Bilans dnia',
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -1095,21 +1104,14 @@ class HomeTab extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              AppTheme.secondaryColor.withOpacity(0.15),
-              AppTheme.primaryColor.withOpacity(0.08),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: AppTheme.surfaceColor,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
           children: [
-            const Icon(
+            Icon(
               Icons.lightbulb_outline,
-              color: AppTheme.secondaryColor,
+              color: AppTheme.actionPrimaryColor,
               size: 28,
             ),
             const SizedBox(width: 12),
@@ -1251,11 +1253,7 @@ class HomeTab extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            colors: [gold.withOpacity(0.18), gold.withOpacity(0.06)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: AppTheme.surfaceColor,
           border: Border.all(color: gold.withOpacity(0.4)),
         ),
         child: Row(
@@ -1304,64 +1302,13 @@ class HomeTab extends StatelessWidget {
     required String title,
     required String subtitle,
     required IconData icon,
-    required Color color,
     required VoidCallback onTap,
   }) {
-    // UWAGA (naprawa): przebudowane z pionowej karty (ikona nad tekstem)
-    // na poziomy, kompaktowy układ (ikona obok tekstu) — pasuje do
-    // nowej siatki 2x2 zamiast poprzedniej, szerokiej listy przewijanej
-    // w bok.
-    return GestureDetector(
+    return PlannerQuickAction(
+      title: title,
+      subtitle: subtitle,
+      icon: icon,
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceColor,
-          borderRadius: const BorderRadius.all(Radius.circular(14)),
-          border: Border.all(color: color.withOpacity(0.2), width: 1),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, color: color, size: 20),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                    maxLines: 2,
-                    softWrap: true,
-                    overflow: TextOverflow.fade,
-                  ),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: AppTheme.textSecondary,
-                    ),
-                    maxLines: 2,
-                    softWrap: true,
-                    overflow: TextOverflow.fade,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -1371,7 +1318,17 @@ class HomeTab extends StatelessWidget {
     required String storeName,
     required int currentDay,
   }) {
-    final progress = currentDay / plan.durationDays;
+    final statusLabel = switch (plan.status) {
+      'active' => 'W trakcie',
+      'draft' => 'Gotowy',
+      'completed' => 'Zakończony',
+      'archived' => 'Archiwum',
+      _ => 'Plan',
+    };
+    final progress =
+        plan.durationDays > 0
+            ? (currentDay / plan.durationDays).clamp(0.0, 1.0)
+            : 0.0;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -1416,7 +1373,7 @@ class HomeTab extends StatelessWidget {
                   borderRadius: const BorderRadius.all(Radius.circular(12)),
                 ),
                 child: Text(
-                  plan.status.toUpperCase(),
+                  statusLabel,
                   style: const TextStyle(
                     color: AppTheme.primaryColor,
                     fontSize: 10,
@@ -1474,24 +1431,19 @@ class HomeTab extends StatelessWidget {
   }
 
   Widget _buildMealItem(BuildContext context, MealPlanEntry entry) {
-    return GestureDetector(
+    return InkWell(
       onTap: () {
         Navigator.of(
           context,
         ).pushNamed('/recipe/detail', arguments: entry.recipe);
       },
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceColor,
-          borderRadius: BorderRadius.all(Radius.circular(16)),
-        ),
         child: Row(
           children: [
             SizedBox(
-              width: 36,
-              height: 36,
+              width: 52,
+              height: 52,
               child: RecipePhoto(
                 recipe: entry.recipe,
                 borderRadius: BorderRadius.circular(8),
@@ -1504,12 +1456,11 @@ class HomeTab extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    entry.mealSlot.toUpperCase(),
+                    entry.mealSlot,
                     style: TextStyle(
                       color: AppTheme.primaryColor.withOpacity(0.8),
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      letterSpacing: 1.0,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -1518,7 +1469,7 @@ class HomeTab extends StatelessWidget {
                     style: Theme.of(
                       context,
                     ).textTheme.titleLarge?.copyWith(fontSize: 16),
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
@@ -1555,7 +1506,7 @@ class HomeTab extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Wygeneruj zbilansowany plan posiłków, zminimalizuj koszty i wygeneruj inteligentną listę zakupów.',
+            'Wybierz liczbę dni i swój cel. Przygotujemy posiłki oraz listę zakupów.',
             style: Theme.of(context).textTheme.bodyMedium,
             textAlign: TextAlign.center,
           ),
@@ -1620,9 +1571,10 @@ class _ContextualPremiumCardState extends State<_ContextualPremiumCard> {
     if (user.premiumPoints >= 2 && !_dismissed.contains('free_ai')) {
       key = 'free_ai';
       icon = Icons.auto_awesome;
-      title = 'Masz punkty na import przepisu AI';
-      text = 'Dodaj przepis ze zdjęcia, tekstu albo linku — bez subskrypcji.';
-      action = 'Wypróbuj';
+      title = 'Zapisz przepis, który wpadł Ci w oko';
+      text =
+          'Wklej link lub dodaj zdjęcie. Import kosztuje 2 punkty, które już masz.';
+      action = 'Dodaj przepis z AI';
       onTap =
           () => Navigator.of(
             context,
@@ -1630,29 +1582,41 @@ class _ContextualPremiumCardState extends State<_ContextualPremiumCard> {
     } else if (_scanCount >= 2 && !_dismissed.contains('batch_scan')) {
       key = 'batch_scan';
       icon = Icons.qr_code_scanner;
-      title = 'Skanujesz kilka produktów?';
-      text = 'W Premium zeskanujesz całą serię bez zamykania aparatu.';
-      action = 'Zobacz Premium';
+      title = 'Całe zakupy w jednej serii';
+      text =
+          'Skanuj kolejne produkty, potem zapisz je razem w Dzienniku i spiżarni.';
+      action = 'Zobacz skanowanie Premium';
       onTap =
-          () => Navigator.of(
-            context,
-          ).push(MaterialPageRoute(builder: (_) => const PremiumScreen()));
+          () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder:
+                  (_) => const PremiumScreen(
+                    offerContext: PremiumOfferContext.barcodeScanner,
+                  ),
+            ),
+          );
     } else if (plans.isNotEmpty && !_dismissed.contains('auto_week')) {
       key = 'auto_week';
       icon = Icons.auto_mode_outlined;
-      title = 'Następny tydzień może zrobić się sam';
-      text = 'Premium przygotuje co tydzień plan i opcjonalną listę zakupów.';
-      action = 'Sprawdź';
+      title = 'Kolejny tydzień zaplanowany';
+      text =
+          'Włącz automatyczny plan w Premium. Lista zakupów też może powstawać co tydzień.';
+      action = 'Zobacz planowanie Premium';
       onTap =
-          () => Navigator.of(
-            context,
-          ).push(MaterialPageRoute(builder: (_) => const PremiumScreen()));
+          () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder:
+                  (_) => const PremiumScreen(
+                    offerContext: PremiumOfferContext.mealPlan,
+                  ),
+            ),
+          );
     } else {
       return const SizedBox.shrink();
     }
 
     return Padding(
-      padding: const EdgeInsets.only(top: 14),
+      padding: const EdgeInsets.only(bottom: 24),
       child: Container(
         padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
         decoration: BoxDecoration(
@@ -1672,6 +1636,10 @@ class _ContextualPremiumCardState extends State<_ContextualPremiumCard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  PremiumFeatureTag(
+                    label: key == 'free_ai' ? 'PREMIUM / PUNKTY' : 'PREMIUM',
+                  ),
+                  const SizedBox(height: 8),
                   Text(
                     title,
                     style: const TextStyle(fontWeight: FontWeight.bold),

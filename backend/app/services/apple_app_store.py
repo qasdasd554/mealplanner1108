@@ -231,6 +231,8 @@ async def verify_apple_subscription(transaction_id: str, expected_product_id: st
                     "purchase_token": item.get("originalTransactionId")
                     or claims.get("originalTransactionId")
                     or transaction_id,
+                    "auto_renew_enabled": renewal_claims.get("autoRenewStatus")
+                    in (1, "1", True),
                 }
             )
 
@@ -259,6 +261,13 @@ async def verify_apple_subscription(transaction_id: str, expected_product_id: st
         and not result["revoked"]
         and expiry_time > datetime.now(timezone.utc)
     )
+    result["subscription_status"] = {
+        1: "active",
+        2: "expired",
+        3: "billing_retry",
+        4: "grace_period",
+        5: "revoked",
+    }.get(result["status"], "unknown")
     return result
 
 

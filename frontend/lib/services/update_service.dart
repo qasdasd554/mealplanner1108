@@ -139,10 +139,11 @@ class UpdateAvailableScreen extends StatelessWidget {
                     forceUpdate
                         ? 'Ta wersja aplikacji nie jest już obsługiwana. '
                             'Zaktualizuj ją, aby korzystać dalej.'
-                        : '• W Dzienniku możesz jednym dotknięciem dodać ponownie ostatni posiłek.\n'
-                            '• Statystyki pokazują teraz czytelne wnioski z ostatnich 7 dni.\n'
-                            '• Podczas tworzenia planu możesz zdecydować, czy uwzględnić zawartość spiżarni.\n'
-                            '• Skanowanie seryjne ma dostępny podgląd, dzięki któremu przed zakupem Premium zobaczysz, jak działa.',
+                        : '• Zdjęcia dodane do przepisów przez użytkowników są teraz widoczne również na miniaturach listy.\n'
+                            '• Status Premium i data końca subskrypcji są dokładniej synchronizowane ze sklepem.\n'
+                            '• Poprawiliśmy szybkość przewijania przepisów ze zdjęciami.\n'
+                            '• Odświeżyliśmy Start, przepisy i Dziennik, aby łatwiej znaleźć codzienne funkcje.\n'
+                            '• Premium ma teraz podgląd korzyści i czytelniej pokazany okres próbny oraz cenę odnowienia.',
                     style: TextStyle(
                       color: AppTheme.textSecondary,
                       height: 1.5,
