@@ -21,9 +21,10 @@ from __future__ import annotations
 import asyncio
 import base64
 import logging
+import math
 import re
 from datetime import date
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 import httpx
 from bs4 import BeautifulSoup
@@ -82,7 +83,7 @@ async def _find_flyer_pdf_url(store_name: str) -> str:
     soup = BeautifulSoup(response.text, "html.parser")
     for link in soup.find_all("a", href=True):
         href = link["href"]
-        if href.lower().endswith(".pdf"):
+        if urlparse(href).path.lower().endswith(".pdf"):
             return urljoin(url, href)
 
     raise PromoAIScanError(f"Nie znaleziono linku do PDF-a z gazetką dla {store_name}")
@@ -115,7 +116,20 @@ async def _download_pdf(url: str, referer: str) -> bytes:
         timeout = httpx.Timeout(connect=15.0, read=60.0, write=15.0, pool=15.0)
         async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
             try:
-                response = await client.get(url, headers=headers)
+                async with client.stream("GET", url, headers=headers) as response:
+                    if response.status_code not in {429, 500, 502, 503, 504} and response.status_code != 200:
+                        raise PromoAIScanError(f"Pobieranie PDF-a zwróciło błąd ({response.status_code})")
+                    response.raise_for_status()
+                    chunks, size = [], 0
+                    async for chunk in response.aiter_bytes():
+                        size += len(chunk)
+                        if size > _MAX_PDF_BYTES:
+                            raise PromoAIScanError("Gazetka przekracza bezpieczny limit rozmiaru PDF.")
+                        chunks.append(chunk)
+                    pdf = b"".join(chunks)
+                    if not pdf.lstrip().startswith(b"%PDF-"):
+                        raise PromoAIScanError("Serwer gazetki zwrócił stronę zamiast PDF-a. Spróbuj ponownie później.")
+                    return pdf
             except httpx.HTTPError as exc:
                 last_error = str(exc)
                 logger.warning(
@@ -127,16 +141,6 @@ async def _download_pdf(url: str, referer: str) -> bytes:
                 raise PromoAIScanError(
                     f"Nie udało się pobrać pliku PDF z gazetką mimo {max_attempts} prób: {last_error}"
                 )
-
-        if response.status_code != 200:
-            raise PromoAIScanError(f"Pobieranie PDF-a zwróciło błąd ({response.status_code})")
-
-        if len(response.content) > _MAX_PDF_BYTES:
-            raise PromoAIScanError(
-                f"Gazetka jest za duża ({len(response.content) // 1024 // 1024} MB) — pomijam."
-            )
-
-        return response.content
 
     # Nieosiągalne (pętla zawsze albo zwraca, albo rzuca wyjątek powyżej),
     # ale jawny błąd na wszelki wypadek, gdyby to się kiedyś zmieniło.
@@ -208,14 +212,9 @@ async def _call_gemini_with_pdf(pdf_bytes: bytes, store_name: str, available_pro
     reason_types: list[str] = []
     for model in GEMINI_MODELS:
         url = GEMINI_API_URL.format(model=model)
-        # UWAGA (naprawa wydajności): 120 sekund na model x3 modele w
-        # łańcuchu zapasowym dawało nawet do 6 minut oczekiwania w
-        # najgorszym scenariuszu. Analiza PDF-a gazetki to zadanie
-        # cięższe niż zwykły tekst (stąd trochę więcej niż w imporcie
-        # przepisu), ale 45s z zapasem wciąż w pełni wystarcza typowej,
-        # udanej odpowiedzi, a dużo szybciej przechodzi do kolejnego
-        # modelu, gdy poprzedni faktycznie ma problem.
-        async with httpx.AsyncClient(timeout=45.0) as client:
+        # Duży PDF może wymagać więcej niż 45 sekund. Telefon nie czeka
+        # na tę operację; worker ma wspólny limit całego zadania.
+        async with httpx.AsyncClient(timeout=httpx.Timeout(connect=10, read=90, write=60, pool=10)) as client:
             try:
                 response = await client.post(
                     url,
@@ -278,16 +277,20 @@ def _parse_promotions_json(raw_text: str) -> list[dict]:
     except Exception:
         raise PromoAIScanError("Nie udało się zinterpretować odpowiedzi AI jako listy promocji.")
 
+    if not isinstance(parsed, dict) or not isinstance(parsed.get("promotions", []), list):
+        raise PromoAIScanError("Odpowiedź AI nie zawiera poprawnej listy promocji.")
     promotions = parsed.get("promotions", [])
     cleaned_promotions = []
     for p in promotions:
+        if not isinstance(p, dict):
+            continue
         try:
             regular = float(p["regular_price"])
             promo = float(p["promo_price"])
         except (KeyError, TypeError, ValueError):
             continue
         name = p.get("product_name")
-        if not name or promo <= 0 or promo >= regular:
+        if not isinstance(name, str) or not name.strip() or not math.isfinite(promo) or not math.isfinite(regular) or promo <= 0 or promo >= regular:
             continue
 
         # UWAGA (nowe): wyciągamy WARUNEK promocji (np. "2+1", "przy

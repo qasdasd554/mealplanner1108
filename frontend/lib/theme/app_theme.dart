@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 
 /// Definicje wyglądu aplikacji — jasny (domyślny) i ciemny motyw.
 ///
@@ -26,18 +25,18 @@ class AppTheme {
   static const Color errorColor = Color(0xFFEF4444);
 
   // ── Paleta ciemna ────────────────────────────────────────────────
-  static const Color _darkBackground = Color(0xFF141C1A);
-  static const Color _darkSurface = Color(0xFF1D2824);
-  static const Color _darkSurfaceRaised = Color(0xFF2A3831);
-  static const Color _darkOutline = Color(0xFF657B70);
+  static const Color _darkBackground = Color(0xFF0F0F1A);
+  static const Color _darkSurface = Color(0xFF1A1B2E);
+  static const Color _darkSurfaceRaised = Color(0xFF24263D);
+  static const Color _darkOutline = Color(0xFF526079);
   static const Color _darkTextPrimary = Color(0xFFF8FAFC);
-  static const Color _darkTextSecondary = Color(0xFFB8C3BB);
+  static const Color _darkTextSecondary = Color(0xFFB4C0D2);
   static const Color _darkPrimary = Color(0xFF34D399);
   static const Color _darkSecondary = Color(0xFFA78BFA);
   static const Color _darkAccent = Color(0xFFFBBF24);
 
   // ── Paleta jasna (nowy domyślny wygląd aplikacji) ───────────────
-  static const Color _lightBackground = Color(0xFFF6F7F4);
+  static const Color _lightBackground = Color(0xFFF7F8FA);
   static const Color _lightSurface = Color(0xFFFFFFFF);
   static const Color _lightTextPrimary = Color(0xFF16181D);
   static const Color _lightTextSecondary = Color(0xFF6B7280);
@@ -53,8 +52,7 @@ class AppTheme {
       _isDark ? _darkSurfaceRaised : _lightSurface;
   static Color get outlineColor =>
       _isDark ? _darkOutline : const Color(0xFFD1D5DB);
-  static Color get actionPrimaryColor =>
-      _isDark ? _darkPrimary : const Color(0xFF047857);
+  static Color get actionPrimaryColor => _isDark ? _darkPrimary : primaryColor;
   static Color get actionSecondaryColor =>
       _isDark ? _darkSecondary : secondaryColor;
   static Color get actionAccentColor => _isDark ? _darkAccent : accentColor;
@@ -72,8 +70,7 @@ class AppTheme {
     final surface = isDarkMode ? _darkSurface : _lightSurface;
     final txtPrimary = isDarkMode ? _darkTextPrimary : _lightTextPrimary;
     final txtSecondary = isDarkMode ? _darkTextSecondary : _lightTextSecondary;
-    final interactivePrimary =
-        isDarkMode ? _darkPrimary : const Color(0xFF047857);
+    final interactivePrimary = isDarkMode ? _darkPrimary : primaryColor;
     final interactiveSecondary = isDarkMode ? _darkSecondary : secondaryColor;
     final interactiveAccent = isDarkMode ? _darkAccent : accentColor;
     final onPrimary = isDarkMode ? const Color(0xFF052E24) : Colors.white;
@@ -126,18 +123,12 @@ class AppTheme {
         ),
         displaySmall: TextStyle(
           fontSize: 24,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.bold,
           color: txtPrimary,
         ),
         headlineMedium: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.w600,
-          color: txtPrimary,
-        ),
-        headlineSmall: TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.w600,
-          height: 1.2,
           color: txtPrimary,
         ),
         titleLarge: TextStyle(
@@ -165,10 +156,10 @@ class AppTheme {
       // Kafelki i karty
       cardTheme: CardThemeData(
         color: surface,
-        elevation: 0,
+        elevation: isDarkMode ? 0 : 1,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: const BorderRadius.all(Radius.circular(14)),
+          borderRadius: const BorderRadius.all(Radius.circular(16)),
           side: BorderSide(
             color: isDarkMode ? outline.withOpacity(0.55) : Colors.transparent,
           ),
@@ -302,10 +293,10 @@ class AppTheme {
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        centerTitle: defaultTargetPlatform == TargetPlatform.iOS,
+        centerTitle: true,
         titleTextStyle: TextStyle(
           fontSize: 20,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.bold,
           color: txtPrimary,
         ),
         iconTheme: IconThemeData(color: txtPrimary),
@@ -342,7 +333,7 @@ class AppTheme {
         selectedItemColor: interactivePrimary,
         unselectedItemColor: txtSecondary,
         type: BottomNavigationBarType.fixed,
-        elevation: 0,
+        elevation: 8,
       ),
 
       dividerColor: isDarkMode ? Colors.white24 : Colors.black12,

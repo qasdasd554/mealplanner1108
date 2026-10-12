@@ -2,7 +2,11 @@ import '../models/promotion.dart';
 import 'api_client.dart';
 
 class PromotionService {
-  final ApiClient _client = ApiClient();
+  PromotionService({ApiClient? client, Future<void> Function(Duration)? wait})
+    : _client = client ?? ApiClient(),
+      _wait = wait ?? Future<void>.delayed;
+  final ApiClient _client;
+  final Future<void> Function(Duration) _wait;
 
   /// Zwraca aktywne, dziś ważne promocje — opcjonalnie tylko dla danego
   /// sklepu i/lub pasujące do wpisanej nazwy produktu.
@@ -50,11 +54,70 @@ class PromotionService {
   /// Uruchamia skanowanie gazetki danego sklepu przez AI (tylko admin).
   /// Zwraca podsumowanie — ile promocji znaleziono i zakolejkowano do
   /// akceptacji. To NIE tworzy żadnych aktywnych promocji od razu.
-  Future<Map<String, dynamic>> triggerAiScan(String storeName) async {
+  Future<Map<String, dynamic>> triggerAiScan(
+    String storeName, {
+    bool Function()? isActive,
+  }) async {
     final response = await _client.post(
-      '/promotions/ai-scan?store_name=${Uri.encodeComponent(storeName)}',
+      '/promotions/ai-scan/jobs?store_name=${Uri.encodeComponent(storeName)}',
     );
-    return response as Map<String, dynamic>;
+    return waitForScan(response as Map<String, dynamic>, isActive: isActive);
+  }
+
+  Future<List<Map<String, dynamic>>> activeScans() async {
+    final response = await _client.get('/promotions/ai-scan/jobs/active');
+    return (response as List).cast<Map<String, dynamic>>();
+  }
+
+  Future<Map<String, dynamic>> waitForScan(
+    Map<String, dynamic> job, {
+    bool Function()? isActive,
+  }) async {
+    var current = job;
+    final id = current['id'];
+    if (id is! String || id.isEmpty)
+      throw ApiException(422, 'Nieprawidłowy status skanowania.');
+    final deadline = DateTime.now().add(const Duration(minutes: 8));
+    var connectionErrors = 0;
+    while (DateTime.now().isBefore(deadline) && (isActive?.call() ?? true)) {
+      if (current['status'] == 'completed') {
+        return {
+          ...?current['result'] as Map<String, dynamic>?,
+          'status': 'completed',
+        };
+      }
+      if (current['status'] == 'failed') {
+        throw ApiException(
+          422,
+          current['error'] as String? ?? 'Nie udało się przeskanować gazetki.',
+        );
+      }
+      await _wait(const Duration(seconds: 3));
+      if (!(isActive?.call() ?? true)) break;
+      try {
+        current =
+            await _client.get(
+                  '/promotions/ai-scan/jobs/$id',
+                  timeout: const Duration(seconds: 20),
+                )
+                as Map<String, dynamic>;
+        connectionErrors = 0;
+      } on ApiException catch (error) {
+        if ({401, 403, 404}.contains(error.statusCode)) rethrow;
+        if (++connectionErrors >= 3) break;
+      } catch (_) {
+        if (++connectionErrors >= 3) break;
+      }
+    }
+    // Praca na serwerze nadal trwa. Zamknięcie widoku/utrata sieci jej nie
+    // anuluje i nie uruchamia drugiego skanu. Wyniki zostaną w kolejce.
+    if (current['status'] == 'completed') {
+      return {
+        ...?current['result'] as Map<String, dynamic>?,
+        'status': 'completed',
+      };
+    }
+    return current;
   }
 
   /// Lista promocji znalezionych przez AI, czekających na akceptację

@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../models/recipe.dart';
 import '../../models/recipe_import_job.dart';
 import '../../config/constants.dart';
 import '../../services/recipe_service.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/planner_components.dart';
+import '../../widgets/recipe_photo.dart';
+import '../../widgets/decorative_circles.dart';
+import '../../widgets/recipe_favorite_button.dart';
 import '../../widgets/premium_feature_tag.dart';
 import 'recipe_leaderboard_screen.dart';
 import 'manual_add_recipe_screen.dart';
@@ -269,22 +272,36 @@ class _RecipesScreenState extends State<RecipesScreen> {
           // trofeum, na delikatnym tle, z subtelną animacją pulsowania,
           // żeby wyraźnie zachęcała do sprawdzenia cotygodniowego
           // konkursu, nie ginęła obok innych, zwykłych ikon.
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: IconButton(
-              icon: Icon(
-                Icons.emoji_events_outlined,
-                color: AppTheme.actionAccentColor,
-              ),
-              tooltip: 'Ranking autorów przepisów',
-              onPressed:
-                  () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const RecipeLeaderboardScreen(),
-                    ),
+          Container(
+                // Odstęp zwiększony z 4 na 14 px — jedyna ikona w tym pasku
+                // siedziała praktycznie przyklejona do prawej krawędzi
+                // ekranu, bez żadnego oddechu.
+                margin: const EdgeInsets.only(right: 14),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFFE0A62E).withOpacity(0.15),
+                ),
+                child: IconButton(
+                  icon: const Icon(
+                    Icons.emoji_events,
+                    color: Color(0xFFE0A62E),
                   ),
-            ),
-          ),
+                  tooltip: 'Ranking autorów przepisów',
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const RecipeLeaderboardScreen(),
+                      ),
+                    );
+                  },
+                ),
+              )
+              .animate(onPlay: (controller) => controller.repeat(reverse: true))
+              .scale(
+                duration: 1200.ms,
+                begin: const Offset(1, 1),
+                end: const Offset(1.08, 1.08),
+              ),
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
@@ -316,27 +333,45 @@ class _RecipesScreenState extends State<RecipesScreen> {
       ),
       body: Stack(
         children: [
+          const DecorativeCircles(),
           NestedScrollView(
             // UWAGA (naprawa): pasek filtrów przebudowany na SliverAppBar
             // (floating+snap) zamiast zwykłego Column — to standardowy
             // wzorzec Fluttera "chowaj przy przewijaniu w dół, pokaż od razu
             // przy najmniejszym przewinięciu w górę". Daje więcej miejsca na
             // siatkę przepisów, gdy użytkownik przegląda listę.
-            headerSliverBuilder:
-                (context, innerBoxIsScrolled) => [
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
-                      child: Wrap(
-                        spacing: 8,
-                        runSpacing: 4,
+            headerSliverBuilder: (context, innerBoxIsScrolled) {
+              return [
+                SliverAppBar(
+                  automaticallyImplyLeading: false,
+                  toolbarHeight: 0,
+                  floating: true,
+                  snap: true,
+                  expandedHeight: 80,
+                  backgroundColor: AppTheme.backgroundColor,
+                  elevation: 0,
+                  // UWAGA (przebudowa #2): teraz WSZYSTKIE 4 szybkie filtry
+                  // (Ulubione/Moje/Nowość/Społeczność) widoczne naraz w jednym
+                  // rzędzie — gwarancja mieszczenia się na KAŻDYM ekranie
+                  // wynika z użycia Expanded (5 równych segmentów: 4 filtry +
+                  // "Więcej filtrów"), więc fizycznie nie da się przewinąć w
+                  // bok — nie ma czego przewijać, cała szerokość jest już
+                  // wykorzystana. Reszta (typ posiłku, trudność, dieta)
+                  // przeniesiona do panelu "Więcej filtrów".
+                  flexibleSpace: FlexibleSpaceBar(
+                    background: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                      child: Row(
                         children: [
                           _buildQuickToggle(
                             icon: Icons.favorite_border,
                             activeIcon: Icons.favorite,
                             label: 'Ulubione',
                             isActive: _favoritesOnly,
-                            activeColor: AppTheme.actionPrimaryColor,
+                            activeColor: Colors.redAccent,
                             onTap: () {
                               setState(() => _favoritesOnly = !_favoritesOnly);
                               _loadRecipes();
@@ -347,7 +382,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                             activeIcon: Icons.person,
                             label: 'Moje',
                             isActive: _myRecipesOnly,
-                            activeColor: AppTheme.actionPrimaryColor,
+                            activeColor: AppTheme.primaryColor,
                             onTap: () {
                               setState(() => _myRecipesOnly = !_myRecipesOnly);
                               _loadRecipes();
@@ -356,9 +391,9 @@ class _RecipesScreenState extends State<RecipesScreen> {
                           _buildQuickToggle(
                             icon: Icons.fiber_new_outlined,
                             activeIcon: Icons.fiber_new,
-                            label: 'Nowości',
+                            label: 'Nowość',
                             isActive: _newOnly,
-                            activeColor: AppTheme.actionPrimaryColor,
+                            activeColor: AppTheme.accentColor,
                             onTap: () {
                               setState(() => _newOnly = !_newOnly);
                               _loadRecipes();
@@ -369,30 +404,103 @@ class _RecipesScreenState extends State<RecipesScreen> {
                             activeIcon: Icons.groups,
                             label: 'Społeczność',
                             isActive: _communityOnly,
-                            activeColor: AppTheme.actionPrimaryColor,
+                            activeColor: AppTheme.secondaryColor,
                             onTap: () {
                               setState(() => _communityOnly = !_communityOnly);
                               _loadRecipes();
                             },
                           ),
-                          ActionChip(
-                            avatar: Icon(
-                              Icons.tune,
-                              size: 18,
-                              color: AppTheme.textSecondary,
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => _showFilterSheet(context),
+                              child: Container(
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 3,
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color:
+                                      _moreFiltersActiveCount > 0
+                                          ? AppTheme.primaryColor.withOpacity(
+                                            0.12,
+                                          )
+                                          : AppTheme.surfaceColor,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color:
+                                        _moreFiltersActiveCount > 0
+                                            ? AppTheme.primaryColor
+                                            : AppTheme.textSecondary
+                                                .withOpacity(0.2),
+                                  ),
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Stack(
+                                      clipBehavior: Clip.none,
+                                      children: [
+                                        Icon(
+                                          Icons.tune,
+                                          size: 18,
+                                          color:
+                                              _moreFiltersActiveCount > 0
+                                                  ? AppTheme.primaryColor
+                                                  : AppTheme.textSecondary,
+                                        ),
+                                        if (_moreFiltersActiveCount > 0)
+                                          Positioned(
+                                            right: -6,
+                                            top: -4,
+                                            child: Container(
+                                              padding: const EdgeInsets.all(2),
+                                              decoration: const BoxDecoration(
+                                                color: AppTheme.primaryColor,
+                                                shape: BoxShape.circle,
+                                              ),
+                                              constraints: const BoxConstraints(
+                                                minWidth: 13,
+                                                minHeight: 13,
+                                              ),
+                                              child: Text(
+                                                '$_moreFiltersActiveCount',
+                                                textAlign: TextAlign.center,
+                                                style: const TextStyle(
+                                                  fontSize: 8,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Więcej',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 9,
+                                        color:
+                                            _moreFiltersActiveCount > 0
+                                                ? AppTheme.primaryColor
+                                                : AppTheme.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
-                            label: Text(
-                              _moreFiltersActiveCount == 0
-                                  ? 'Filtry'
-                                  : 'Filtry ($_moreFiltersActiveCount)',
-                            ),
-                            onPressed: () => _showFilterSheet(context),
                           ),
                         ],
                       ),
                     ),
                   ),
-                ],
+                ),
+              ];
+            },
             body:
                 _isLoading && !_isBackgroundRefreshing
                     ? const Center(child: CircularProgressIndicator())
@@ -408,23 +516,11 @@ class _RecipesScreenState extends State<RecipesScreen> {
                           padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
                           sliver: SliverGrid(
                             gridDelegate:
-                                SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: _recipeColumnCount,
-                                  crossAxisSpacing: 12,
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 16,
                                   mainAxisSpacing: 16,
-                                  mainAxisExtent:
-                                      ((MediaQuery.sizeOf(context).width -
-                                                  48 -
-                                                  12 *
-                                                      (_recipeColumnCount -
-                                                          1)) /
-                                              _recipeColumnCount) *
-                                          .75 +
-                                      136 *
-                                          MediaQuery.textScalerOf(
-                                            context,
-                                          ).scale(14) /
-                                          14,
+                                  childAspectRatio: 0.82,
                                 ),
                             delegate: SliverChildBuilderDelegate(
                               (context, index) =>
@@ -640,6 +736,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
     return count;
   }
 
+  /// Kompaktowy, zawsze widoczny przełącznik filtra — szerokość
+  /// wymuszona przez Expanded w rodzicu (Row z 5 równymi segmentami),
+  /// więc GWARANTOWANE jest zmieszczenie się na każdym ekranie bez
+  /// przewijania w bok.
   Widget _buildQuickToggle({
     required IconData icon,
     required IconData activeIcon,
@@ -647,22 +747,51 @@ class _RecipesScreenState extends State<RecipesScreen> {
     required bool isActive,
     required Color activeColor,
     required VoidCallback onTap,
-  }) => FilterChip(
-    label: Text(label),
-    labelStyle: TextStyle(
-      color: AppTheme.textPrimary,
-      fontSize: 13,
-      fontWeight: FontWeight.w500,
-    ),
-    avatar: Icon(
-      isActive ? activeIcon : icon,
-      size: 18,
-      color: isActive ? activeColor : AppTheme.textSecondary,
-    ),
-    selected: isActive,
-    showCheckmark: false,
-    onSelected: (_) => onTap(),
-  );
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 3),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color:
+                isActive
+                    ? activeColor.withOpacity(0.12)
+                    : AppTheme.surfaceColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color:
+                  isActive
+                      ? activeColor
+                      : AppTheme.textSecondary.withOpacity(0.2),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isActive ? activeIcon : icon,
+                size: 18,
+                color: isActive ? activeColor : AppTheme.textSecondary,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 9,
+                  color: isActive ? activeColor : AppTheme.textSecondary,
+                  fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   /// Panel ze WSZYSTKIMI filtrami naraz, w układzie zawijanym (Wrap) —
   /// zamiast przewijania w bok, elementy po prostu przechodzą do nowej
@@ -918,25 +1047,193 @@ class _RecipesScreenState extends State<RecipesScreen> {
   }
 
   Widget _buildRecipeCard(Recipe recipe) {
-    return RecipeLibraryCard(
+    return GestureDetector(
+      // UWAGA (naprawa): bez klucza powiązanego z ID przepisu, GridView
+      // przy zmianie listy (np. przełączenie filtra "Ulubione") mogło
+      // odzyskać ten sam obiekt stanu (w tym serca ulubionych) dla
+      // zupełnie innego przepisu na tej samej pozycji siatki, pokazując
+      // nieaktualny/błędny stan przez chwilę po przeładowaniu.
       key: ValueKey(recipe.id),
-      recipe: recipe,
       onTap: () async {
+        // UWAGA (uzupełnienie): po dodaniu możliwości usuwania własnego
+        // przepisu na ekranie szczegółów, lista tutaj musi się odświeżyć
+        // po powrocie — inaczej usunięty przepis zostawałby widoczny
+        // jako "widmowy" wpis, dopóki coś innego nie wymusiłoby
+        // ponownego pobrania.
         await Navigator.of(
           context,
         ).pushNamed('/recipe/detail', arguments: recipe);
         if (mounted) _loadRecipes(preserveCurrent: true);
       },
-    );
-  }
-
-  int get _recipeColumnCount {
-    final width = MediaQuery.sizeOf(context).width;
-    if (width < 400 && MediaQuery.textScalerOf(context).scale(14) > 21)
-      return 1;
-    if (width >= 1000) return 4;
-    if (width >= 680) return 3;
-    return 2;
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceColor,
+          borderRadius: BorderRadius.all(Radius.circular(16)),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Górna część z gradientem / placeholderem (Premium look)
+            Expanded(
+              flex: 4,
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    // UWAGA (naprawa — prawdziwy błąd): wcześniej ten warunek
+                    // sprawdzał TYLKO realPhotoAsset (zdjęcia wbudowane w
+                    // aplikację dla oryginalnych 94 przepisów) i przy braku
+                    // od razu pokazywał ilustrację kategorii — CAŁKOWICIE
+                    // pomijając RecipePhoto (a więc i jego poprawną logikę
+                    // fallbacku do photoBase64). Efekt: przepisy z prawdziwym
+                    // zdjęciem w bazie (photoBase64), ale bez wbudowanego
+                    // assetu, pokazywały tylko generyczną ilustrację —
+                    // dokładnie przypadek nowo dodanych przepisów. RecipePhoto
+                    // samo poprawnie wybiera: realPhotoAsset -> photoBase64 ->
+                    // categoryImageAsset, więc wystarczy wywoływać je zawsze.
+                    child: RecipePhoto(recipe: recipe, showAiBadge: false),
+                  ),
+                  // Serce w rogu miniaturki — szybkie dodanie/usunięcie
+                  // z ulubionych bez wchodzenia w szczegóły przepisu.
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.35),
+                        shape: BoxShape.circle,
+                      ),
+                      child: RecipeFavoriteButton(
+                        recipe: recipe,
+                        activeColor: Colors.redAccent,
+                        inactiveColor: Colors.white,
+                        size: 18,
+                      ),
+                    ),
+                  ),
+                  // Znaczek "Nowość" — widoczny przez 14 dni od dodania
+                  // przepisu, niezależnie czy dodany "z zewnątrz" (przy
+                  // aktualizacji katalogu) czy przez użytkownika.
+                  if (recipe.isNew)
+                    Positioned(
+                      top: 6,
+                      left: 6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppTheme.secondaryColor,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'Nowość',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            // Dolne informacje
+            Expanded(
+              flex: 7,
+              child: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          recipe.mealType.toUpperCase(),
+                          style: TextStyle(
+                            color: AppTheme.primaryColor.withOpacity(0.8),
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.0,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          recipe.name,
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleLarge?.copyWith(fontSize: 14),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Flexible(
+                          child: Row(
+                            // Kcal na porcję (nie na cały przepis) — to jest
+                            // wartość, jakiej ktoś przeglądający listę przepisów
+                            // się spodziewa (jak na etykiecie dania, nie garnka).
+                            // Zabezpieczenie przed dzieleniem przez zero: gdyby
+                            // servings kiedyś było 0 (błędne dane), Dart rzuca
+                            // wyjątkiem przy .round() na Infinity i wywala ekran.
+                            children: [
+                              Icon(
+                                Icons.schedule,
+                                size: 13,
+                                color: AppTheme.textSecondary,
+                              ),
+                              const SizedBox(width: 3),
+                              Flexible(
+                                child: Text(
+                                  '${recipe.totalTimeMin} min • ${(recipe.nutritionTotal.kcal / (recipe.servings > 0 ? recipe.servings : 1)).round()} kcal/porcję',
+                                  style: TextStyle(
+                                    color: AppTheme.textSecondary,
+                                    fontSize: 11,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppTheme.backgroundColor,
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(6),
+                            ),
+                          ),
+                          child: Text(
+                            recipe.difficulty,
+                            style: const TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ).animate().fadeIn().scale(begin: const Offset(0.9, 0.9), duration: 200.ms);
   }
 
   Widget _buildEmptyState() {

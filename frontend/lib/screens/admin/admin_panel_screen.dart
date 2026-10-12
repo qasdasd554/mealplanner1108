@@ -67,6 +67,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     _loadPendingRecipes();
     _loadPending();
     _loadReports();
+    _resumeScan();
   }
 
   @override
@@ -416,7 +417,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   Future<void> _scan(String storeName) async {
     setState(() => _scanningStore = storeName);
     try {
-      final result = await _service.triggerAiScan(storeName);
+      final result = await _service.triggerAiScan(
+        storeName,
+        isActive: () => mounted,
+      );
       if (!mounted) return;
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
@@ -424,7 +428,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
           SnackBar(
             duration: const Duration(seconds: 3),
             content: Text(
-              'Znaleziono ${result['found']}, zakolejkowano ${result['queued_for_review']} do akceptacji.',
+              result['status'] == 'completed'
+                  ? 'Znaleziono ${result['found']}, zakolejkowano ${result['queued_for_review']} do akceptacji.'
+                  : 'Skanowanie trwa na serwerze. Możesz wyjść z panelu; wyniki pojawią się w kolejce do akceptacji.',
             ),
           ),
         );
@@ -478,6 +484,26 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         );
     } finally {
       if (mounted) setState(() => _busyPromotionIds.remove(promotion.id));
+    }
+  }
+
+  Future<void> _resumeScan() async {
+    var resumed = false;
+    try {
+      final jobs = await _service.activeScans();
+      if (!mounted || jobs.isEmpty || _scanningStore != null) return;
+      resumed = true;
+      setState(() => _scanningStore = jobs.first['store_name'] as String);
+      await _service.waitForScan(jobs.first, isActive: () => mounted);
+      if (mounted) await _loadPending();
+    } catch (error) {
+      if (mounted && resumed) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(friendlyError(error))));
+      }
+    } finally {
+      if (mounted && resumed) setState(() => _scanningStore = null);
     }
   }
 
@@ -1006,6 +1032,13 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                     );
                   }).toList(),
             ),
+            if (_scanningStore != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Skanowanie $_scanningStore trwa w tle. Możesz opuścić panel.',
+                style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+              ),
+            ],
             const SizedBox(height: 32),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

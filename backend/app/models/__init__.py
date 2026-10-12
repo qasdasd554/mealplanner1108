@@ -17,6 +17,7 @@ from app.models.product import (
 from app.models.product_contribution_reward import ProductContributionReward
 from app.models.recipe import Recipe, RecipeIngredient, RecipeTag
 from app.models.recipe_import_job import RecipeImportJob
+from app.models.promotion_scan_job import PromotionScanJob
 from app.models.recipe_comment import RecipeComment, RecipeCommentLike
 from app.models.recipe_favorite import RecipeFavorite
 from app.models.shopping_list import ShoppingList, ShoppingListItem
@@ -49,6 +50,7 @@ __all__ = [
     # Recipe
     "Recipe",
     "RecipeImportJob",
+    "PromotionScanJob",
     "RecipeTag",
     "RecipeIngredient",
     "RecipeComment",

@@ -121,6 +121,45 @@ async def claim_contextual_premium_offer(
     )
 
 
+@router.post(
+    "/me/review-prompt/claim",
+    response_model=PremiumOfferClaimResponse,
+    summary="Zarezerwuj natywną prośbę o ocenę, najwyżej raz na 10 dni",
+)
+async def claim_app_review_prompt(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> PremiumOfferClaimResponse:
+    now = datetime.now(timezone.utc)
+    cooldown = timedelta(days=10)
+    # Nie pokazuj oceny bezpośrednio po kontekstowej ofercie triala.
+    # UPDATE z warunkiem i RETURNING chroni również przed dwoma urządzeniami.
+    statement = (
+        update(User)
+        .where(
+            User.id == current_user.id,
+            or_(
+                User.review_prompt_last_requested_at.is_(None),
+                User.review_prompt_last_requested_at <= now - cooldown,
+            ),
+            or_(
+                User.premium_offer_last_shown_at.is_(None),
+                User.premium_offer_last_shown_at <= now - timedelta(days=1),
+            ),
+        )
+        .values(review_prompt_last_requested_at=now)
+        .returning(User.review_prompt_last_requested_at)
+    )
+    claimed_at = (await db.execute(statement)).scalar_one_or_none()
+    if claimed_at is not None:
+        await db.commit()
+        return PremiumOfferClaimResponse(
+            allowed=True, next_eligible_at=claimed_at + cooldown
+        )
+    await db.rollback()
+    return PremiumOfferClaimResponse(allowed=False)
+
+
 class UserProfileUpdate(BaseModel):
     """Schemat aktualizacji profilu użytkownika."""
 

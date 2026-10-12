@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/meal_plan.dart';
 import '../services/meal_plan_service.dart';
+import '../services/app_review_service.dart';
 import '../utils/error_utils.dart';
 
 class MealPlanProvider with ChangeNotifier {
@@ -96,6 +97,7 @@ class MealPlanProvider with ChangeNotifier {
       final newPlan = await _mealPlanService.generatePlan(request);
       _currentPlan = newPlan;
       _plans.insert(0, newPlan);
+      AppReviewSignal.recordSuccess();
       _isGenerating = false;
       notifyListeners();
       return true;

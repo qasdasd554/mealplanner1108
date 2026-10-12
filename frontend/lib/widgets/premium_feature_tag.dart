@@ -17,8 +17,6 @@ class PremiumFeatureTag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ink =
-        AppTheme.isDark ? const Color(0xFFFBBF24) : const Color(0xFF865500);
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: fontSize * 0.65,
@@ -32,17 +30,19 @@ class PremiumFeatureTag extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.auto_awesome, size: fontSize * 0.9, color: ink),
+          Icon(
+            Icons.auto_awesome,
+            size: fontSize * 0.9,
+            color: AppTheme.actionAccentColor,
+          ),
           SizedBox(width: fontSize * 0.3),
-          Flexible(
-            child: Text(
-              label,
-              style: TextStyle(
-                color: ink,
-                fontSize: fontSize,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.35,
-              ),
+          Text(
+            label,
+            style: TextStyle(
+              color: AppTheme.actionAccentColor,
+              fontSize: fontSize,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.35,
             ),
           ),
         ],

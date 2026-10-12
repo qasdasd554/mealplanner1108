@@ -6,7 +6,11 @@ nic nie wystawiało tych danych na zewnątrz. Aplikacja nie miała jak
 zapytać "czy jest promocja na produkt X w sklepie Y".
 """
 
-from datetime import date, timedelta
+import asyncio
+import hashlib
+import logging
+from datetime import date, datetime, timedelta, timezone
+from uuid import UUID
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -18,9 +22,66 @@ from app.models.promotion import Promotion
 from app.models.store import Store
 from app.models.product import Product, StoreProduct
 from app.models.user import User
+from app.models.promotion_scan_job import PromotionScanJob
 from app.schemas.promotion import PromotionResponse
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
+
+
+def _scan_job_response(job: PromotionScanJob) -> dict:
+    return {"id": str(job.id), "store_name": job.store_name,
+            "status": job.status, "result": job.result, "error": job.error}
+
+
+@router.post("/ai-scan/jobs", status_code=202)
+async def create_promotion_scan_job(
+    store_name: str = Query(..., min_length=1, max_length=80),
+    current_user: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    from app.services.promo_ai_scanner import _AGGREGATOR_SLUGS
+    if store_name not in _AGGREGATOR_SLUGS:
+        raise HTTPException(422, "Ten sklep nie ma skonfigurowanego skanera gazetek.")
+    store = await db.scalar(select(Store.id).where(Store.name == store_name))
+    if store is None:
+        raise HTTPException(404, "Nie znaleziono sklepu.")
+    # Jeden aktywny skan na sklep, także przy ponowieniu POST po utracie sieci.
+    lock_key = int.from_bytes(hashlib.sha256(("promotion-scan:" + store_name).encode()).digest()[:8], "big", signed=True)
+    await db.execute(select(func.pg_advisory_xact_lock(lock_key)))
+    job = await db.scalar(
+        select(PromotionScanJob).where(
+            PromotionScanJob.store_name == store_name,
+            PromotionScanJob.status.in_(["queued", "processing"]),
+        ).order_by(PromotionScanJob.created_at).limit(1)
+    )
+    if job is None:
+        job = PromotionScanJob(user_id=current_user.id, store_name=store_name, status="queued", attempts=0)
+        db.add(job)
+    await db.commit()
+    await db.refresh(job)
+    return _scan_job_response(job)
+
+
+@router.get("/ai-scan/jobs/active")
+async def active_promotion_scan_jobs(
+    current_user: User = Depends(get_current_admin), db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(select(PromotionScanJob).where(
+        PromotionScanJob.status.in_(["queued", "processing"])
+    ).order_by(PromotionScanJob.created_at).limit(10))
+    return [_scan_job_response(job) for job in result.scalars()]
+
+
+@router.get("/ai-scan/jobs/{job_id}")
+async def get_promotion_scan_job(
+    job_id: UUID, current_user: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    job = await db.get(PromotionScanJob, job_id)
+    if job is None:
+        raise HTTPException(404, "Nie znaleziono zadania skanowania.")
+    return _scan_job_response(job)
 
 
 @router.get("/", response_model=List[PromotionResponse])
@@ -154,6 +215,10 @@ async def trigger_ai_scan(
     wywołuje AI), więc celowo nie jest dostępna dla zwykłych użytkowników
     ani nawet kont Premium.
     """
+    return await _scan_and_queue_promotions(store_name, db)
+
+
+async def _scan_and_queue_promotions(store_name: str, db: AsyncSession) -> dict:
     from app.services.promo_ai_scanner import PromoAIScanError, find_promotions_for_store
 
     store_result = await db.execute(select(Store).where(Store.name == store_name))
@@ -161,8 +226,14 @@ async def trigger_ai_scan(
     if store is None:
         raise HTTPException(status_code=404, detail=f"Sklep '{store_name}' nie istnieje w bazie")
 
-    products_result = await db.execute(select(Product.name))
+    products_result = await db.execute(
+        select(Product.name).join(StoreProduct, StoreProduct.product_id == Product.id)
+        .where(StoreProduct.store_id == store.id, Product.review_status == "approved")
+        .distinct().order_by(Product.name).limit(2000)
+    )
     available_products = list(products_result.scalars().all())
+    # Nie trzymaj połączenia Neon przez kilka minut pobierania PDF i pracy AI.
+    await db.commit()
 
     try:
         found = await find_promotions_for_store(store_name, available_products)
@@ -171,6 +242,7 @@ async def trigger_ai_scan(
 
     created = 0
     skipped_duplicates = 0
+    seen_names = set()
     for item in found:
         # Dopasuj do prawdziwego produktu w katalogu, żeby znać jego
         # AKTUALNĄ cenę regularną (nie ufamy ślepo cenie odczytanej z PDF-a
@@ -188,6 +260,11 @@ async def trigger_ai_scan(
         product = product_result.scalar_one_or_none()
         if product is None:
             continue
+        normalized_name = product.name.strip().lower()
+        if normalized_name in seen_names:
+            skipped_duplicates += 1
+            continue
+        seen_names.add(normalized_name)
 
         # UWAGA (nowe): promo_description teraz zawiera WARUNEK promocji
         # (np. "Kup 2, zapłać za 1"), jeśli AI go znalazło — użytkownik
@@ -225,6 +302,8 @@ async def trigger_ai_scan(
         # plakacie, więc promocja mogła zniknąć za wcześnie albo zbyt
         # późno względem rzeczywistości.
         extracted_valid_until = item.get("valid_until")
+        if extracted_valid_until is not None and extracted_valid_until < date.today():
+            continue
         if (
             extracted_valid_until
             and date.today() <= extracted_valid_until <= date.today() + timedelta(days=90)
@@ -291,7 +370,10 @@ async def trigger_ai_scan(
     await db.commit()
 
     if created > 0:
-        await _notify_admins_pending_promotions(db, store_name, created)
+        try:
+            await asyncio.wait_for(_notify_admins_pending_promotions(db, store_name, created), timeout=15)
+        except Exception:
+            logger.warning("Promocje zapisano, ale powiadomienie administratorów nie dotarło.")
 
     return {
         "store_name": store_name,

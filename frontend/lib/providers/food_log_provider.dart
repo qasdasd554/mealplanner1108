@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../models/food_log.dart';
 import '../services/api_client.dart';
 import '../services/food_log_service.dart';
+import '../services/app_review_service.dart';
 import '../utils/error_utils.dart';
 
 class FoodLogProvider with ChangeNotifier {
@@ -150,6 +151,7 @@ class FoodLogProvider with ChangeNotifier {
         portionUnit: portionUnit,
       );
       await _service.addFoodLog(entry.toCreateJson(), token);
+      AppReviewSignal.recordSuccess();
       await fetchLogsForDate(_currentDate);
       return true;
     } catch (e) {
@@ -183,6 +185,7 @@ class FoodLogProvider with ChangeNotifier {
         'recipe_id': recipeId,
         'servings': servings,
       }, token);
+      AppReviewSignal.recordSuccess();
       await fetchLogsForDate(_currentDate);
       return true;
     } catch (e) {
@@ -212,6 +215,7 @@ class FoodLogProvider with ChangeNotifier {
         forDate: _currentDate,
         servings: servings,
       );
+      AppReviewSignal.recordSuccess();
       await fetchLogsForDate(_currentDate);
       return true;
     } catch (e) {

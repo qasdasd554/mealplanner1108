@@ -197,6 +197,10 @@ class User(Base):
     premium_offer_last_context: Mapped[str | None] = mapped_column(
         String(32), nullable=True
     )
+    # Wspólny limit dla konta na wszystkich urządzeniach, bez przechowywania oceny.
+    review_prompt_last_requested_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

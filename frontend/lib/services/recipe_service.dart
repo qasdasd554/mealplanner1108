@@ -1,6 +1,7 @@
 import '../models/recipe.dart';
 import '../models/recipe_import_job.dart';
 import 'api_client.dart';
+import 'app_review_service.dart';
 import '../config/api_config.dart';
 
 class RecipeService {
@@ -258,7 +259,9 @@ class RecipeService {
         'request_public': requestPublic,
       },
     );
-    return Recipe.fromJson(response as Map<String, dynamic>);
+    final recipe = Recipe.fromJson(response as Map<String, dynamic>);
+    AppReviewSignal.recordSuccess();
+    return recipe;
   }
 
   /// Zapisuje roboczą wersję składników jako nowy, prywatny wariant.

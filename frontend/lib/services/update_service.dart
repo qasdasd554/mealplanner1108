@@ -139,11 +139,10 @@ class UpdateAvailableScreen extends StatelessWidget {
                     forceUpdate
                         ? 'Ta wersja aplikacji nie jest już obsługiwana. '
                             'Zaktualizuj ją, aby korzystać dalej.'
-                        : '• Zdjęcia dodane do przepisów przez użytkowników są teraz widoczne również na miniaturach listy.\n'
-                            '• Status Premium i data końca subskrypcji są dokładniej synchronizowane ze sklepem.\n'
-                            '• Poprawiliśmy szybkość przewijania przepisów ze zdjęciami.\n'
-                            '• Odświeżyliśmy Start, przepisy i Dziennik, aby łatwiej znaleźć codzienne funkcje.\n'
-                            '• Premium ma teraz podgląd korzyści i czytelniej pokazany okres próbny oraz cenę odnowienia.',
+                        : '• Przywróciliśmy poprzedni wygląd aplikacji.\n'
+                            '• Dodaliśmy prośbę o ocenę w Google Play i App Store — nie częściej niż raz na 10 dni.\n'
+                            '• Skanowanie gazetek administratora działa w tle, bez przerywania po dłuższym oczekiwaniu.\n'
+                            '• Zachowaliśmy poprawki zdjęć przepisów i synchronizacji subskrypcji Premium.',
                     style: TextStyle(
                       color: AppTheme.textSecondary,
                       height: 1.5,

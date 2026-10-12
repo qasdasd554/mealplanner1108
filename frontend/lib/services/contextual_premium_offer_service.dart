@@ -9,6 +9,7 @@ import 'api_client.dart';
 
 class ContextualPremiumOfferService {
   static bool _claimInProgress = false;
+  static bool get isPresenting => _claimInProgress;
 
   static Future<bool> maybeShow(
     BuildContext context,

@@ -220,6 +220,9 @@ async def _create_tables() -> None:
                 "premium_offer_last_context VARCHAR(32)"
             )
         )
+        await conn.execute(
+            text("ALTER TABLE users ADD COLUMN IF NOT EXISTS review_prompt_last_requested_at TIMESTAMPTZ")
+        )
         # Blokada konta przez administratora — patrz app/models/user.py.
         await conn.execute(
             text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_banned BOOLEAN NOT NULL DEFAULT FALSE")
@@ -754,6 +757,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     from app.services.recipe_import_worker import recipe_import_worker_loop
 
     recipe_import_task = asyncio.create_task(recipe_import_worker_loop())
+    from app.services.promotion_scan_worker import promotion_scan_worker_loop
+    promotion_scan_task = asyncio.create_task(promotion_scan_worker_loop())
     logger.info("Aplikacja gotowa do obsługi żądań.")
     yield
     logger.info("Zamykanie Smart Meal Planner PL API...")
@@ -762,6 +767,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     promotion_expiry_task.cancel()
     weekly_plan_task.cancel()
     recipe_import_task.cancel()
+    promotion_scan_task.cancel()
 
 
 app = FastAPI(

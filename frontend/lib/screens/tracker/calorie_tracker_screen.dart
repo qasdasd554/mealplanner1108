@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../providers/food_log_provider.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/planner_components.dart';
+import '../../widgets/decorative_circles.dart';
 import '../../models/food_log.dart';
 import '../../providers/wellness_provider.dart';
 import '../../models/recipe.dart';
@@ -113,7 +113,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dziennik'),
+        title: const Text('Dziennik kalorii'),
         actions: [
           // Kalkulator zapotrzebowania (waga, wzrost, BMI, cel kaloryczny)
           // PRZENIESIONY do zakładki Profil — jako ikona w pasku był
@@ -121,13 +121,13 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
           // nie codzienna czynność. Patrz profile_screen.dart.
           IconButton(
             icon: const Icon(Icons.calendar_today),
-            tooltip: 'Wybierz dzień',
             onPressed: () => _selectDate(context),
           ),
         ],
       ),
       body: Stack(
         children: [
+          const DecorativeCircles(),
           provider.isLoading
               ? const Center(
                 child: CircularProgressIndicator(color: AppTheme.primaryColor),
@@ -144,26 +144,28 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                 },
                 color: AppTheme.primaryColor,
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 96),
+                  padding: const EdgeInsets.all(24.0),
                   children: [
                     _buildDateNavigation(provider.currentDate),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 24),
                     _buildProgressSection(provider.summary),
                     const SizedBox(height: 16),
-                    _buildMacrosSection(provider.summary),
-                    const SizedBox(height: 24),
-                    _buildLogsList(context, provider.logs),
-                    const SizedBox(height: 16),
-                    _buildWaterSection(context),
-                    const SizedBox(height: 16),
+                    // Przycisk aktywności TUŻ pod licznikiem — spalone
+                    // kalorie powiększają dzienny limit, więc naturalne
+                    // miejsce jest przy liczbie, na którą wpływają.
                     _buildActivitySection(context),
+                    const SizedBox(height: 24),
+                    _buildWaterSection(context),
+                    const SizedBox(height: 32),
+                    _buildMacrosSection(provider.summary),
+                    const SizedBox(height: 32),
+                    _buildLogsList(context, provider.logs),
                   ],
                 ),
               ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        tooltip: 'Dodaj posiłek',
         onPressed: () {
           Navigator.pushNamed(context, '/tracker/add');
         },
@@ -283,28 +285,72 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
       formattedDate,
       style: TextStyle(
         fontSize: 18,
-        fontWeight: FontWeight.w600,
-        color: AppTheme.textPrimary,
+        fontWeight: FontWeight.bold,
+        color: AppTheme.textSecondary,
       ),
       textAlign: TextAlign.center,
     );
   }
 
   Widget _buildProgressSection(DailySummary? summary) {
-    if (summary == null) {
-      return Padding(
-        padding: const EdgeInsets.all(16),
-        child: Text(
-          'Podsumowanie nie jest jeszcze dostępne. Odśwież Dziennik.',
-          style: TextStyle(color: AppTheme.textSecondary),
-        ),
-      );
-    }
-    final burned = context.watch<WellnessProvider>().kcalBurned.toDouble();
-    return DiaryEnergySummary(
-      consumed: summary.totalCalories,
-      target: summary.targetCalories + burned,
-      burned: burned,
+    double consumed = summary?.totalCalories ?? 0.0;
+    final baseTarget = summary?.targetCalories ?? 2000.0;
+
+    // Kalorie spalone aktywnością POWIĘKSZAJĄ dzienny limit — to, co
+    // użytkownik wypracował bieganiem czy rowerem, może zjeść dodatkowo.
+    // Dlatego dodajemy je do celu, zamiast odejmować od spożytych: dzięki
+    // temu widać osobno "ile zjadłem" i "ile wypracowałem", a nie jedną
+    // zafałszowaną liczbę.
+    final burned = Provider.of<WellnessProvider>(context).kcalBurned.toDouble();
+    final double target = baseTarget + burned;
+
+    double remaining = target - consumed;
+    if (remaining < 0) remaining = 0;
+    double progress = target > 0 ? (consumed / target).clamp(0.0, 1.0) : 0.0;
+
+    return Center(
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          SizedBox(
+            width: 200,
+            height: 200,
+            child: CircularProgressIndicator(
+              value: progress,
+              strokeWidth: 12,
+              backgroundColor: AppTheme.surfaceColor,
+              color: progress > 1.0 ? Colors.red : AppTheme.primaryColor,
+            ),
+          ),
+          Column(
+            children: [
+              Text(
+                '${remaining.toInt()}',
+                style: TextStyle(
+                  fontSize: 42,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textPrimary,
+                ),
+              ),
+              Text(
+                'kcal pozostało',
+                style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
+              ),
+              if (burned > 0) ...[
+                const SizedBox(height: 2),
+                Text(
+                  '+${burned.toInt()} z aktywności',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppTheme.primaryColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -1093,8 +1139,11 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
         ),
         const SizedBox(height: 4),
         Text(
-          'Cel makro dla wybranego limitu kcal',
-          style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+          'Optymalny podział dla Twojego celu kcal',
+          style: TextStyle(
+            fontSize: 11,
+            color: AppTheme.textSecondary.withOpacity(0.7),
+          ),
         ),
       ],
     );
@@ -1106,32 +1155,30 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
     Color color, {
     required double target,
   }) {
-    return Expanded(
-      child: Column(
-        children: [
-          Text(
-            '${amount.toInt()} g',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: AppTheme.textPrimary,
-            ),
+    return Column(
+      children: [
+        Text(
+          '${amount.toInt()}g',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.textPrimary,
           ),
-          Text(
-            '/ ${target.round()} g',
-            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+        ),
+        Text(
+          '/ ${target.round()}g',
+          style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            color: color,
+            fontWeight: FontWeight.w500,
           ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 14,
-              color: color,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -1153,11 +1200,11 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
       groupedLogs.putIfAbsent(log.mealType, () => []).add(log);
     }
 
-    final orderedMealTypes = ['śniadanie', 'obiad', 'kolacja', 'przekąska'];
+    final orderedMealTypes = ['Śniadanie', 'Obiad', 'Kolacja', 'Przekąska'];
     final existingTypes =
         groupedLogs.keys.toList()..sort((a, b) {
-          int indexA = orderedMealTypes.indexOf(a.toLowerCase());
-          int indexB = orderedMealTypes.indexOf(b.toLowerCase());
+          int indexA = orderedMealTypes.indexOf(a);
+          int indexB = orderedMealTypes.indexOf(b);
           if (indexA == -1) indexA = 99;
           if (indexB == -1) indexB = 99;
           return indexA.compareTo(indexB);
@@ -1175,44 +1222,35 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  PlannerSectionHeading(
-                    title:
-                        type.isEmpty
-                            ? 'Posiłek'
-                            : '${type[0].toUpperCase()}${type.substring(1)}',
-                    trailing: Text(
-                      '${totalCal.toInt()} kcal',
-                      maxLines: 2,
-                      textAlign: TextAlign.end,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.primaryColor,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          type,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${totalCal.toInt()} kcal',
+                        maxLines: 2,
+                        textAlign: TextAlign.end,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryColor,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 12),
-                  Material(
-                    color: AppTheme.surfaceColor,
-                    borderRadius: BorderRadius.circular(14),
-                    clipBehavior: Clip.antiAlias,
-                    child: Column(
-                      children: [
-                        for (var i = 0; i < items.length; i++) ...[
-                          if (i > 0)
-                            Divider(
-                              height: 1,
-                              indent: 16,
-                              endIndent: 16,
-                              color: AppTheme.outlineColor.withValues(
-                                alpha: .35,
-                              ),
-                            ),
-                          _buildLogItem(context, items[i]),
-                        ],
-                      ],
-                    ),
-                  ),
+                  ...items.map((item) => _buildLogItem(context, item)).toList(),
                 ],
               ),
             );
@@ -1294,38 +1332,143 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
           : value.toStringAsFixed(1);
 
   Widget _buildLogItem(BuildContext context, FoodLogEntry item) {
-    void edit() {
-      if (item.recipeId != null) {
-        _editEntryIngredients(item);
-      } else {
-        _editProductAmount(item);
-      }
-    }
-
     return Dismissible(
       key: ValueKey(item.id),
       direction: DismissDirection.endToStart,
       background: Container(
-        color: AppTheme.errorColor,
+        margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.symmetric(horizontal: 20),
+        decoration: BoxDecoration(
+          color: AppTheme.errorColor,
+          borderRadius: BorderRadius.circular(16),
+        ),
         alignment: Alignment.centerRight,
         child: const Icon(Icons.delete_outline, color: Colors.white),
       ),
       confirmDismiss: (_) => _confirmDeleteEntry(item),
-      onDismissed: (_) => context.read<FoodLogProvider>().deleteEntry(item.id),
-      child: DiaryEntryRow(
-        name: item.displayName,
-        amount: _entryAmountLabel(item),
-        calories: item.calories,
-        protein: item.protein,
-        carbs: item.carbs,
-        fat: item.fat,
-        onEdit: edit,
-        onDelete: () async {
-          if (await _confirmDeleteEntry(item) && mounted) {
-            await context.read<FoodLogProvider>().deleteEntry(item.id);
+      onDismissed: (_) {
+        Provider.of<FoodLogProvider>(
+          context,
+          listen: false,
+        ).deleteEntry(item.id);
+      },
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          if (item.recipeId != null) {
+            _editEntryIngredients(item);
+          } else {
+            _editProductAmount(item);
           }
         },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppTheme.surfaceColor,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                item.recipeId != null
+                    ? Icons.menu_book_outlined
+                    : Icons.restaurant_menu,
+                color: AppTheme.textSecondary,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.displayName,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            _entryAmountLabel(item),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppTheme.textSecondary,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.edit_outlined,
+                          size: 14,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '${item.calories.toInt()} kcal',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(
+                        'B:${item.protein.toInt()}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.accentColor,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'W:${item.carbs.toInt()}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.orange,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'T:${item.fat.toInt()}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.redAccent,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              IconButton(
+                tooltip: 'Usuń z Dziennika',
+                icon: Icon(Icons.delete_outline, color: AppTheme.errorColor),
+                onPressed: () async {
+                  if (await _confirmDeleteEntry(item) && mounted) {
+                    await Provider.of<FoodLogProvider>(
+                      context,
+                      listen: false,
+                    ).deleteEntry(item.id);
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
