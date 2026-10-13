@@ -1,5 +1,8 @@
 """Endpointy planów posiłków — generowanie, przeglądanie, modyfikacja."""
 
+from copy import deepcopy
+from datetime import date, datetime, timezone
+from decimal import Decimal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -25,6 +28,13 @@ from app.schemas.meal_plan import (
     MealPlanResponse,
 )
 from app.services import MealPlanGenerator, ShoppingListBuilder
+from app.core.premium import is_premium_active
+from app.services.meal_plan_lifecycle import (
+    CURRENT_STATUSES,
+    WARSAW,
+    plan_has_expired,
+    process_due_meal_plans,
+)
 
 router = APIRouter()
 
@@ -51,6 +61,41 @@ class RecipeSwap(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     recipe_id: UUID
+
+
+class ResumeMealPlanRequest(BaseModel):
+    start_date: date
+
+
+def _ensure_plan_access(plan: MealPlan, user: User, *, editable: bool = False) -> None:
+    """Żaden stary link ani endpoint statusu nie odblokuje wygasłego planu."""
+    if plan.status == "expired":
+        raise NotFoundException(detail="Ten plan posiłków już się zakończył.")
+
+
+    if plan.status == "archived":
+        if plan.archived_at is None:
+            # Techniczne plany będące właścicielem samodzielnej listy zakupów.
+            raise NotFoundException(detail="Plan posiłków nie został znaleziony.")
+        if not is_premium_active(user):
+            raise HTTPException(status_code=403, detail="Archiwum planów jest dostępne w Premium.")
+        if editable:
+            raise HTTPException(status_code=409, detail="Wznów plan z archiwum, aby ponownie z niego korzystać.")
+    elif plan.status not in CURRENT_STATUSES or plan_has_expired(plan):
+        raise NotFoundException(detail="Ten plan posiłków już się zakończył.")
+
+
+def _stored_household_size(value) -> int | None:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value if 1 <= value <= 20 else None
+    if isinstance(value, str):
+        text = value.strip()
+        if 1 <= len(text) <= 2 and text.isascii() and text.isdigit():
+            parsed = int(text)
+            return parsed if 1 <= parsed <= 20 else None
+    return None
 
 
 class WeeklyAutomationUpdate(BaseModel):
@@ -152,7 +197,8 @@ async def list_meal_plans(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> list[MealPlan]:
-    """Zwraca wszystkie plany posiłków bieżącego użytkownika."""
+    """Zwraca bieżące plany; archiwum Premium ma osobny endpoint."""
+    await process_due_meal_plans(db, user_id=current_user.id, send_reminders=False)
     result = await db.execute(
         select(MealPlan)
         .options(
@@ -164,8 +210,44 @@ async def list_meal_plans(
             .selectinload(MealPlanEntry.recipe)
             .selectinload(Recipe.tags)
         )
-        .where(MealPlan.user_id == current_user.id)
+        .where(
+            MealPlan.user_id == current_user.id,
+            MealPlan.status.in_(CURRENT_STATUSES),
+        )
         .order_by(MealPlan.created_at.desc())
+    )
+    return [plan for plan in result.unique().scalars().all() if not plan_has_expired(plan)]
+
+
+@router.get(
+    "/archive",
+    response_model=list[MealPlanResponse],
+    summary="Archiwum planów Premium",
+)
+async def list_archived_meal_plans(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> list[MealPlan]:
+    if not is_premium_active(current_user):
+        raise HTTPException(status_code=403, detail="Archiwum planów jest dostępne w Premium.")
+    await process_due_meal_plans(db, user_id=current_user.id, send_reminders=False)
+    result = await db.execute(
+        select(MealPlan)
+        .options(
+            selectinload(MealPlan.entries)
+            .selectinload(MealPlanEntry.recipe)
+            .selectinload(Recipe.ingredients)
+            .selectinload(RecipeIngredient.product),
+            selectinload(MealPlan.entries)
+            .selectinload(MealPlanEntry.recipe)
+            .selectinload(Recipe.tags),
+        )
+        .where(
+            MealPlan.user_id == current_user.id,
+            MealPlan.status == "archived",
+            MealPlan.archived_at.is_not(None),
+        )
+        .order_by(MealPlan.archived_at.desc())
     )
     return list(result.unique().scalars().all())
 
@@ -269,6 +351,7 @@ async def get_meal_plan(
     db: AsyncSession = Depends(get_db),
 ) -> MealPlan:
     """Zwraca plan posiłków z pozycjami (przepisami przypisanymi do slotów)."""
+    await process_due_meal_plans(db, user_id=current_user.id, send_reminders=False)
     result = await db.execute(
         select(MealPlan)
         .options(
@@ -287,7 +370,95 @@ async def get_meal_plan(
         raise NotFoundException(
             detail=f"Plan posiłków o ID {plan_id} nie został znaleziony"
         )
+    _ensure_plan_access(plan, current_user)
     return plan
+
+
+@router.post(
+    "/{plan_id}/resume",
+    response_model=MealPlanResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Wznów plan z archiwum Premium",
+)
+async def resume_meal_plan(
+    plan_id: UUID,
+    payload: ResumeMealPlanRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> MealPlan:
+    """Kopiuje posiłki do nowego okresu, bez AI i bez zużycia punktów."""
+    if not is_premium_active(current_user):
+        raise HTTPException(status_code=403, detail="Wznawianie planów jest dostępne w Premium.")
+    if payload.start_date < datetime.now(WARSAW).date():
+        raise HTTPException(status_code=422, detail="Data rozpoczęcia nie może być wcześniejsza niż dzisiaj.")
+    from app.core.rate_limit import enforce_user_rate_limit, meal_plan_generation_limiter
+
+    enforce_user_rate_limit(meal_plan_generation_limiter, current_user.id, "wznawianie planu")
+    result = await db.execute(
+        select(MealPlan)
+        .options(selectinload(MealPlan.entries))
+        .where(MealPlan.id == plan_id, MealPlan.user_id == current_user.id)
+        .with_for_update(of=MealPlan)
+    )
+    archived = result.scalar_one_or_none()
+    if archived is None:
+        raise NotFoundException(detail="Plan posiłków nie został znaleziony.")
+    if archived.status != "archived" or archived.archived_at is None:
+        raise HTTPException(status_code=409, detail="Można wznowić tylko plan z archiwum.")
+    if not archived.entries:
+        raise HTTPException(status_code=409, detail="Ten plan nie ma już posiłków do wznowienia.")
+    preferences = deepcopy(archived.preferences) if isinstance(archived.preferences, dict) else {}
+    previous_people = _stored_household_size(preferences.get("household_size"))
+    scale = Decimal("1")
+    if previous_people is not None and previous_people > 8:
+        scale = Decimal("8") / Decimal(previous_people)
+        preferences["household_size"] = 8
+        warnings = preferences.get("preference_warnings", [])
+        warnings = [value for value in warnings if isinstance(value, str)] if isinstance(warnings, list) else []
+        preferences["preference_warnings"] = [*warnings, "Plan dostosowaliśmy do limitu 8 osób."]
+    elif previous_people is None:
+        preferences["household_size"] = min(8, _stored_household_size(current_user.household_size) or 1)
+    resumed = MealPlan(
+        user_id=current_user.id,
+        store_id=archived.store_id,
+        start_date=payload.start_date,
+        duration_days=archived.duration_days,
+        meals_per_day=archived.meals_per_day,
+        status="active",
+        preferences=preferences,
+    )
+    db.add(resumed)
+    await db.flush()
+    for entry in archived.entries:
+        db.add(MealPlanEntry(
+            meal_plan_id=resumed.id,
+            recipe_id=entry.recipe_id,
+            day_number=entry.day_number,
+            meal_slot=entry.meal_slot,
+            servings_multiplier=(
+                max(Decimal("0.01"), (entry.servings_multiplier * scale).quantize(Decimal("0.01")))
+                if scale != 1 else entry.servings_multiplier
+            ),
+        ))
+    # Każde wznowienie ma własną listę zakupów. Stara lista (w tym zakupy
+    # już odhaczone) pozostaje nietknięta. Zapis planu, historii limitu i
+    # nowej listy jest zatwierdzany wspólnie przez standardowy builder.
+    from app.services.exceptions import ServiceError
+    from app.services.meal_plan_quota import record_meal_plan_creation
+
+    try:
+        await record_meal_plan_creation(db, user=current_user, meal_plan_id=resumed.id)
+        await ShoppingListBuilder(db).build_from_meal_plan(
+            resumed.id, include_pantry=preferences.get("include_pantry", True)
+        )
+        await db.commit()
+    except ServiceError as error:
+        await db.rollback()
+        raise HTTPException(status_code=422, detail=str(error)) from error
+    except Exception:
+        await db.rollback()
+        raise
+    return await get_meal_plan(resumed.id, current_user=current_user, db=db)
 
 
 @router.put(
@@ -315,6 +486,7 @@ async def update_meal_plan_store(
     plan = result.scalar_one_or_none()
     if plan is None:
         raise NotFoundException(detail=f"Plan posiłków o ID {plan_id} nie został znaleziony")
+    _ensure_plan_access(plan, current_user, editable=True)
 
     from app.models import Store
 
@@ -397,7 +569,13 @@ async def update_meal_plan_status(
             detail=f"Plan posiłków o ID {plan_id} nie został znaleziony"
         )
 
+    _ensure_plan_access(plan, current_user, editable=True)
+    if payload.status == "archived" and not is_premium_active(current_user):
+        raise HTTPException(status_code=403, detail="Archiwizowanie planów jest dostępne w Premium.")
+
     plan.status = payload.status
+    if payload.status == "archived":
+        plan.archived_at = datetime.now(timezone.utc)
     db.add(plan)
     await db.commit()
 
@@ -446,6 +624,7 @@ async def swap_recipe_in_plan(
         raise NotFoundException(
             detail=f"Plan posiłków o ID {plan_id} nie został znaleziony"
         )
+    _ensure_plan_access(plan, current_user, editable=True)
 
     # Znajdź pozycję do zamiany
     entry_result = await db.execute(
@@ -512,6 +691,8 @@ async def delete_meal_plan(
         raise NotFoundException(
             detail=f"Plan posiłków o ID {plan_id} nie został znaleziony"
         )
+
+    _ensure_plan_access(plan, current_user)
 
     # UWAGA (naprawa): usuwamy powiązane wiersze RĘCZNIE, zamiast polegać
     # wyłącznie na kaskadowym usuwaniu w bazie danych (ON DELETE CASCADE).

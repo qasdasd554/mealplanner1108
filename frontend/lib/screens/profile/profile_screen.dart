@@ -32,6 +32,7 @@ import '../admin/admin_panel_screen.dart';
 import 'blocked_users_screen.dart';
 import 'statistics_screen.dart';
 import 'friends_screen.dart';
+import '../../utils/plan_defaults.dart';
 
 /// Odmiana słowa "dzień" — w polskim wystarczy rozróżnić TYLKO liczbę 1
 /// (dzień) od wszystkich pozostałych (dni), w przeciwieństwie do wielu
@@ -360,14 +361,55 @@ class ProfileScreen extends StatelessWidget {
                       context,
                       icon: Icons.people_outline,
                       title: 'Liczba osób w gospodarstwie',
-                      value: '${user?.householdSize ?? 1} os.',
+                      value: '${householdSizeForPlan(user?.householdSize)} os.',
                       onTap: () {
                         _showHouseholdSizePicker(
                           context,
                           authProvider,
-                          user?.householdSize ?? 1,
+                          householdSizeForPlan(user?.householdSize),
                         );
                       },
+                    ),
+                    const SizedBox(height: 12),
+                    Material(
+                      color: AppTheme.surfaceColor,
+                      borderRadius: BorderRadius.circular(16),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        leading: const Icon(
+                          Icons.favorite_border,
+                          color: AppTheme.primaryColor,
+                        ),
+                        title: const Text('Lubię / Nie lubię'),
+                        subtitle: Text(
+                          'Premium',
+                          style: TextStyle(
+                            color:
+                                AppTheme.isDark
+                                    ? const Color(0xFFFFD166)
+                                    : const Color(0xFF8A5C00),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap:
+                            () => Navigator.of(
+                              context,
+                            ).pushNamed('/profile/ingredients'),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildProfileSettingTile(
+                      context,
+                      icon: Icons.inventory_2_outlined,
+                      title: 'Archiwum planów',
+                      value: 'Premium · podgląd i wznowienie',
+                      onTap:
+                          () =>
+                              Navigator.of(context).pushNamed('/plan/archive'),
                     ),
                     const SizedBox(height: 32),
 
@@ -600,33 +642,35 @@ class ProfileScreen extends StatelessWidget {
       ),
       builder: (ctx) {
         return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Wybierz sklep',
-                  style: Theme.of(ctx).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 16),
-                ...storeProv.stores.map(
-                  (store) => ListTile(
-                    title: Text(store.name),
-                    trailing:
-                        auth.currentUser?.preferredStoreId == store.id
-                            ? const Icon(
-                              Icons.check,
-                              color: AppTheme.primaryColor,
-                            )
-                            : null,
-                    onTap: () async {
-                      Navigator.pop(ctx);
-                      await auth.updateProfile(preferredStoreId: store.id);
-                    },
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Wybierz sklep',
+                    style: Theme.of(ctx).textTheme.titleLarge,
                   ),
-                ),
-              ],
+                  const SizedBox(height: 16),
+                  ...storeProv.stores.map(
+                    (store) => ListTile(
+                      title: Text(store.name),
+                      trailing:
+                          auth.currentUser?.preferredStoreId == store.id
+                              ? const Icon(
+                                Icons.check,
+                                color: AppTheme.primaryColor,
+                              )
+                              : null,
+                      onTap: () async {
+                        Navigator.pop(ctx);
+                        await auth.updateProfile(preferredStoreId: store.id);
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -702,32 +746,34 @@ class ProfileScreen extends StatelessWidget {
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Liczba osób w gospodarstwie',
-                  style: Theme.of(ctx).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 16),
-                ...List.generate(6, (index) {
-                  final size = index + 1;
-                  return ListTile(
-                    title: Text('$size os.'),
-                    trailing:
-                        currentSize == size
-                            ? const Icon(
-                              Icons.check,
-                              color: AppTheme.primaryColor,
-                            )
-                            : null,
-                    onTap: () async {
-                      Navigator.pop(ctx);
-                      await auth.updateProfile(householdSize: size);
-                    },
-                  );
-                }),
-              ],
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Liczba osób w gospodarstwie',
+                    style: Theme.of(ctx).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 16),
+                  ...List.generate(8, (index) {
+                    final size = index + 1;
+                    return ListTile(
+                      title: Text('$size os.'),
+                      trailing:
+                          currentSize == size
+                              ? const Icon(
+                                Icons.check,
+                                color: AppTheme.primaryColor,
+                              )
+                              : null,
+                      onTap: () async {
+                        Navigator.pop(ctx);
+                        await auth.updateProfile(householdSize: size);
+                      },
+                    );
+                  }),
+                ],
+              ),
             ),
           ),
         );

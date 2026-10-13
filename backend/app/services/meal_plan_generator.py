@@ -13,12 +13,14 @@ ponowne użycie składników, uwzględniając przy tym:
 from __future__ import annotations
 
 import logging
+import math
 import re
 import unicodedata
 from collections import defaultdict
-from datetime import date
+from datetime import date, datetime
 from typing import Any, Sequence
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -61,6 +63,7 @@ _DIET_NAME_TO_TAG: dict[str, str] = {
 from app.services.exceptions import (
     InsufficientRecipesError,
     StoreNotFoundError,
+    ServiceError,
     UserNotFoundError,
 )
 from app.services.nutrition_calculator import NutritionCalculator
@@ -200,6 +203,57 @@ CALORIE_TOP_UP_THRESHOLD: float = 0.85
 MAX_TOP_UP_DISHES_PER_DAY: int = 8
 
 
+def effective_household_size(user: User, requested: int | None = None) -> int:
+    """Jawne żądanie podlega limitowi; stare ustawienie profilu jest bezpiecznie ograniczone."""
+    if requested is not None:
+        if isinstance(requested, bool) or not isinstance(requested, int) or not 1 <= requested <= 8:
+            raise ServiceError("Plan można utworzyć dla 1–8 osób.")
+        return requested
+    stored = getattr(user, "household_size", 1) or 1
+    try:
+        return min(max(int(stored), 1), 8)
+    except (TypeError, ValueError, OverflowError):
+        return 1
+
+
+def effective_target_kcal(user: User, requested: float | None = None) -> float:
+    """Wybrany cel, następnie zapisany kalkulator, w końcu 2000 kcal na osobę."""
+    if requested is not None:
+        if not math.isfinite(requested) or not 800 <= requested <= 6000:
+            raise ServiceError("Cel kaloryczny musi wynosić 800–6000 kcal na osobę.")
+        return float(requested)
+    stored = getattr(user, "daily_kcal_goal", None)
+    if isinstance(stored, (int, float)) and math.isfinite(stored) and 800 <= stored <= 6000:
+        return float(stored)
+    return 2000.0
+
+
+def active_ingredient_preferences(user: User) -> tuple[set[UUID], set[UUID]]:
+    """Wygaśnięcie Premium wyłącza preferencje, lecz nie usuwa zapisanego wyboru."""
+    from app.core.premium import is_premium_active
+
+    if not hasattr(user, "role") or not is_premium_active(user):
+        return set(), set()
+    stored = getattr(user, "ingredient_preferences", None) or {}
+    if not isinstance(stored, dict):
+        return set(), set()
+
+    def ids(key: str) -> set[UUID]:
+        values = stored.get(key, [])
+        if not isinstance(values, list):
+            return set()
+        result = set()
+        for value in values[:50]:
+            try:
+                result.add(UUID(str(value)))
+            except (ValueError, TypeError):
+                continue
+        return result
+
+    disliked = ids("disliked_product_ids")
+    return ids("liked_product_ids") - disliked, disliked
+
+
 class MealPlanGenerator:
     """Generuje zbilansowany plan posiłków z zachłannym reuse składników."""
 
@@ -251,6 +305,13 @@ class MealPlanGenerator:
 
         # Krok 1 — profil użytkownika
         user, allergen_ids = await self._load_user_profile(user_id)
+        household_size = effective_household_size(user, household_size)
+        target_kcal = effective_target_kcal(user, target_kcal)
+        liked_ids, disliked_ids = active_ingredient_preferences(user)
+        preference_warnings: list[str] = []
+        saved_diet = getattr(user, "dietary_preferences", None) or {}
+        if "diet" not in preferences and isinstance(saved_diet, dict) and saved_diet.get("diet"):
+            preferences = {**preferences, "diet": saved_diet["diet"]}
 
         # Krok 2 — przepisy kwalifikujące się
         eligible_recipes = await self._filter_eligible_recipes(
@@ -278,6 +339,9 @@ class MealPlanGenerator:
             store_id=store_id,
             target_kcal=target_kcal,
             preferred_ingredient_ids=pantry_product_ids,
+            liked_ingredient_ids=liked_ids,
+            disliked_ingredient_ids=disliked_ids,
+            preference_warnings=preference_warnings,
         )
 
         # Krok 4 — macierz dzień × slot
@@ -305,6 +369,13 @@ class MealPlanGenerator:
             entries_data=entries_data,
             start_date=start_date,
         )
+        meal_plan.preferences = {
+            **preferences,
+            "household_size": household_size,
+            "target_kcal": target_kcal,
+            "include_pantry": include_pantry,
+            "preference_warnings": preference_warnings,
+        }
         # Historia powstaje przed commitem buildera listy. Dzięki temu
         # plan, wpis limitu i lista są atomowe, a usunięcie planu nie
         # pozwala wygenerować drugiego w tym samym tygodniu.
@@ -350,6 +421,7 @@ class MealPlanGenerator:
         meal_plan_reloaded.shopping_list_limit_reached = (
             create_shopping_list and not can_create_list
         )
+        meal_plan_reloaded.preference_warnings = preference_warnings
 
         return meal_plan_reloaded
 
@@ -448,22 +520,26 @@ class MealPlanGenerator:
                 )
             )
 
-        # Filtr po tagu dietetycznym — mapujemy nazwę z interfejsu na
-        # rzeczywisty tag w bazie (patrz komentarz przy _DIET_NAME_TO_TAG
-        # na górze pliku). Nierozpoznana wartość diety NIE powinna po
-        # cichu zostać zignorowana (to dokładnie ten błąd, który
-        # naprawiamy) — logujemy ostrzeżenie, żeby było widać w logach,
-        # gdyby interfejs kiedyś zaczął wysyłać nieznaną wartość.
-        if diet:
-            tag = _DIET_NAME_TO_TAG.get(diet)
+        # Nieznany filtr nie może po cichu zmienić planu w „bez ograniczeń”.
+        # Akceptujemy etykiety oficjalnego klienta oraz starsze kanoniczne tagi.
+        if diet is not None and not isinstance(diet, str):
+            raise ServiceError("Wybierz poprawną dietę w ustawieniach planu.")
+        normalized_diet = _normalise_recipe_text(diet.strip()) if diet else ""
+        if normalized_diet not in {"", "bez ograniczen", "none", "brak", "no restrictions"}:
+            diet_tags = {_normalise_recipe_text(name): tag for name, tag in _DIET_NAME_TO_TAG.items()}
+            diet_tags.update({_normalise_recipe_text(tag): tag for tag in _DIET_NAME_TO_TAG.values()})
+            aliases = {
+                "vegetarian": "wegetariańskie", "vegan": "wegańskie",
+                "gluten_free": "bezglutenowe", "high_protein": "wysokobiałkowe",
+                "ketogenic": "keto",
+            }
+            diet_tags.update({_normalise_recipe_text(name): tag for name, tag in aliases.items()})
+            tag = diet_tags.get(normalized_diet)
             if tag is None:
-                logger.warning("Nieznana wartość diety '%s' — filtr diety pominięty.", diet)
-            else:
-                stmt = stmt.where(
-                    Recipe.id.in_(
-                        select(RecipeTag.recipe_id).where(RecipeTag.tag == tag)
-                    )
-                )
+                raise ServiceError("Nieznana dieta. Wybierz ją ponownie w ustawieniach planu.")
+            stmt = stmt.where(
+                Recipe.id.in_(select(RecipeTag.recipe_id).where(RecipeTag.tag == tag))
+            )
 
         # UWAGA (naprawa poważnego błędu): brak jawnego sortowania w tym
         # zapytaniu oznaczał, że PostgreSQL mógł zwracać przepisy w
@@ -590,6 +666,9 @@ class MealPlanGenerator:
         store_id: UUID,
         target_kcal: float | None = None,
         preferred_ingredient_ids: set[UUID] | None = None,
+        liked_ingredient_ids: set[UUID] | None = None,
+        disliked_ingredient_ids: set[UUID] | None = None,
+        preference_warnings: list[str] | None = None,
     ) -> list[tuple[int, str, Recipe]]:
         """Zachłanny algorytm selekcji przepisów z reuse składników.
 
@@ -710,6 +789,19 @@ class MealPlanGenerator:
                 used_ingredient_ids.add(ing.product_id)
             daily_recipes.append(best_recipe)
 
+        if liked_ingredient_ids or disliked_ingredient_ids:
+            selected = self._apply_ingredient_preferences(
+                selected, eligible_recipes,
+                liked_ingredient_ids or set(), disliked_ingredient_ids or set(),
+                preference_warnings if preference_warnings is not None else [],
+                target_kcal=target_kcal,
+            )
+            recipe_usage_count = defaultdict(int)
+            used_ingredient_ids = set(preferred_ingredient_ids or set())
+            for _day, _slot, recipe in selected:
+                recipe_usage_count[recipe.id] += 1
+                used_ingredient_ids.update(ing.product_id for ing in recipe.ingredients)
+
         if target_kcal:
             selected = self._top_up_low_calorie_days(
                 selected=selected,
@@ -728,6 +820,96 @@ class MealPlanGenerator:
             len(used_ingredient_ids),
         )
         return selected
+
+    def _apply_ingredient_preferences(
+        self,
+        selected: list[tuple[int, str, Recipe]],
+        eligible_recipes: list[Recipe],
+        liked_ids: set[UUID],
+        disliked_ids: set[UUID],
+        warnings: list[str],
+        *,
+        target_kcal: float | None = None,
+    ) -> list[tuple[int, str, Recipe]]:
+        """Uwzględnia upodobania w jednym daniu dziennie, bez obchodzenia filtrów.
+
+        Źródłem kandydatów jest wyłącznie uprzednio odfiltrowany katalog:
+        alergie, dieta, widoczność i sklep mają bezwarunkowe pierwszeństwo.
+        Pozostałe dania nie są globalnie ograniczane przez „nie lubię”.
+        """
+        result = list(selected)
+        ingredient_ids = {
+            recipe.id: {ing.product_id for ing in recipe.ingredients}
+            for recipe in eligible_recipes
+        }
+
+        def compatible(recipe: Recipe) -> bool:
+            return not (ingredient_ids.get(recipe.id, set()) & disliked_ids)
+
+        safe_candidates = [recipe for recipe in eligible_recipes if compatible(recipe)]
+        liked_candidates = [
+            recipe for recipe in safe_candidates
+            if ingredient_ids.get(recipe.id, set()) & liked_ids
+        ]
+        days = sorted({day for day, _slot, _recipe in result})
+        for day in days:
+            indices = [index for index, entry in enumerate(result) if entry[0] == day]
+            daily = [result[index][2] for index in indices]
+            if any(
+                compatible(recipe) and (not liked_ids or ingredient_ids.get(recipe.id, set()) & liked_ids)
+                for recipe in daily
+            ):
+                continue
+
+            # Lubiane składniki są preferowane, a nielubiane wykluczone
+            # w wybranym daniu. Gdy lubianych nie da się użyć, pokazujemy
+            # ostrzeżenie i próbujemy przynajmniej zachować wykluczenia.
+            candidate_groups = [liked_candidates, safe_candidates] if liked_ids else [safe_candidates]
+            replacement: tuple[int, Recipe] | None = None
+            used_liked = False
+            for group_number, candidates in enumerate(candidate_groups):
+                best_score = -1.0
+                for index in indices:
+                    _day, slot, previous = result[index]
+                    other_recipes = [result[other][2] for other in indices if other != index]
+                    usage: dict[UUID, int] = defaultdict(int)
+                    used_ids: set[UUID] = set()
+                    for other_index, (_other_day, _other_slot, recipe) in enumerate(result):
+                        if other_index == index:
+                            continue
+                        usage[recipe.id] += 1
+                        used_ids.update(ingredient_ids.get(recipe.id, set()))
+                    for candidate in candidates:
+                        if (candidate.meal_type or "obiad") != slot:
+                            continue
+                        score = self._score_candidate(
+                            candidate, used_ids, usage, other_recipes,
+                            ignore_repeat_limit=True,
+                            target_kcal=target_kcal,
+                            meals_today=len(indices),
+                        )
+                        if score > best_score:
+                            best_score = score
+                            replacement = (index, candidate)
+                if replacement is not None:
+                    used_liked = bool(liked_ids and group_number == 0)
+                    break
+            if replacement is not None:
+                index, candidate = replacement
+                result[index] = (day, result[index][1], candidate)
+
+            matches_exclusions = any(compatible(result[index][2]) for index in indices)
+            if not matches_exclusions:
+                warnings.append(
+                    f"Dzień {day}: nie znaleziono dania bez nielubianych składników "
+                    "zgodnego z dietą, alergiami i wybranymi posiłkami. Zmień preferencje lub plan."
+                )
+            elif liked_ids and not used_liked:
+                warnings.append(
+                    f"Dzień {day}: nie znaleziono pasującego dania z lubianymi składnikami. "
+                    "Uwzględniliśmy wykluczenie nielubianych składników w jednym daniu."
+                )
+        return result
 
     def _top_up_low_calorie_days(
         self,
@@ -1036,12 +1218,12 @@ class MealPlanGenerator:
         Returns:
             Lista słowników gotowych do utworzenia ``MealPlanEntry``.
         """
-        effective_household_size = household_size or getattr(user, "household_size", 1) or 1
+        people = effective_household_size(user, household_size)
         entries: list[dict[str, Any]] = []
 
         for day, meal_type, recipe in selected:
             recipe_servings = float(recipe.servings or 1)
-            servings_multiplier = round(effective_household_size / recipe_servings, 2)
+            servings_multiplier = round(people / recipe_servings, 2)
             # UWAGA (naprawa): wcześniej był tu sztuczny dolny próg
             # `max(servings_multiplier, 1.0)`, który wymuszał ugotowanie
             # CO NAJMNIEJ całego przepisu — niezależnie od liczby osób.
@@ -1084,7 +1266,7 @@ class MealPlanGenerator:
         meal_plan = MealPlan(
             user_id=user_id,
             store_id=store_id,
-            start_date=start_date or date.today(),
+            start_date=start_date or datetime.now(ZoneInfo("Europe/Warsaw")).date(),
             duration_days=duration_days,
             meals_per_day=meals_per_day,
             status="draft",

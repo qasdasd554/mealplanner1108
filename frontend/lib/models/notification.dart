@@ -5,6 +5,7 @@ class AppNotification {
   final String? recipeId;
   final String? recipeName;
   final String? commentId;
+  final String? mealPlanId;
   final bool isRead;
   final DateTime createdAt;
 
@@ -15,6 +16,7 @@ class AppNotification {
     this.recipeId,
     this.recipeName,
     this.commentId,
+    this.mealPlanId,
     required this.isRead,
     required this.createdAt,
   });
@@ -28,6 +30,7 @@ class AppNotification {
       recipeId: json['recipe_id'] as String?,
       recipeName: json['recipe_name'] as String?,
       commentId: json['comment_id'] as String?,
+      mealPlanId: json['meal_plan_id'] as String?,
       isRead: json['is_read'] as bool? ?? false,
       createdAt: DateTime.parse(json['created_at'] as String),
     );

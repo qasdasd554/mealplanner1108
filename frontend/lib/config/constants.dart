@@ -26,3 +26,15 @@ const Map<String, String> kDietNameToTag = {
   'Wysokobiałkowa': 'wysokobiałkowe',
   'Keto': 'keto',
 };
+
+/// Sieci obsługiwane przez skaner gazetek po stronie backendu.
+/// Wybory sklepów użytkownika nadal są pobierane dynamicznie z API.
+const List<String> kPromotionScanStores = [
+  'Biedronka',
+  'Lidl',
+  'Dino',
+  'Carrefour',
+  'Stokrotka',
+  'Kaufland',
+  'Auchan',
+];

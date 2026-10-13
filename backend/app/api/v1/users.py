@@ -20,13 +20,14 @@ from app.models import (
     Allergen,
     BlockedUser,
     Friendship,
+    Product,
     ShoppingListShare,
     Store,
     User,
     UserAllergen,
 )
 from app.models.friendship import canonical_friend_ids
-from app.schemas.user import UserResponse
+from app.schemas.user import IngredientPreferencesResponse, IngredientPreferencesUpdate, UserResponse
 from app.services.display_name import validate_display_name
 from app.core.premium import is_premium_active
 from app.services.premium_offer import (
@@ -175,7 +176,7 @@ class UserProfileUpdate(BaseModel):
     tiktok_username: str | None = Field(default=None, max_length=100)
     preferred_store_id: UUID | None = None
     dietary_preferences: dict | None = None
-    household_size: int | None = Field(default=None, ge=1, le=20)
+    household_size: int | None = Field(default=None, ge=1, le=8)
     # Dane do kalkulatora zapotrzebowania kalorycznego (Śledzenie) —
     # granice dobrane szeroko, ale na tyle rozsądnie, żeby odciąć
     # oczywiście błędne wartości (patrz komentarz o household_size wyżej
@@ -190,6 +191,13 @@ class UserProfileUpdate(BaseModel):
     # Własne zdjęcie profilowe, base64. Puste-ale-nie-None ("") kasuje
     # zdjęcie i wraca do ikony z `avatar` — patrz update_me niżej.
     avatar_photo_base64: str | None = None
+
+    @field_validator("household_size")
+    @classmethod
+    def require_household_size_when_supplied(cls, value: int | None) -> int:
+        if value is None:
+            raise ValueError("Podaj liczbę osób od 1 do 8.")
+        return value
 
     @field_validator("avatar")
     @classmethod
@@ -292,6 +300,81 @@ class AllergenIdsUpdate(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     allergen_ids: list[str]
+
+
+def _stored_ingredient_preferences(user: User) -> IngredientPreferencesUpdate:
+    """Stare konta nie mają ustawień; uszkodzone ID nie powodują błędu profilu."""
+    stored = getattr(user, "ingredient_preferences", None) or {}
+    cleaned: dict[str, list[UUID]] = {}
+    for key in ("liked_product_ids", "disliked_product_ids"):
+        values: list[UUID] = []
+        for value in stored.get(key, []) if isinstance(stored, dict) else []:
+            try:
+                identifier = UUID(str(value))
+            except (ValueError, TypeError):
+                continue
+            if identifier not in values:
+                values.append(identifier)
+        cleaned[key] = values[:50]
+    # Przy ewentualnej starej niespójności wykluczenie ma pierwszeństwo.
+    cleaned["liked_product_ids"] = [
+        value for value in cleaned["liked_product_ids"]
+        if value not in cleaned["disliked_product_ids"]
+    ]
+    return IngredientPreferencesUpdate(**cleaned)
+
+
+async def _ingredient_preferences_response(
+    payload: IngredientPreferencesUpdate, db: AsyncSession, *, require_all: bool = False,
+) -> IngredientPreferencesResponse:
+    requested = set(payload.liked_product_ids) | set(payload.disliked_product_ids)
+    products: dict[UUID, dict] = {}
+    if requested:
+        result = await db.execute(
+            select(Product.id, Product.name).where(
+                Product.id.in_(requested), Product.review_status == "approved",
+            )
+        )
+        products = {row[0]: {"id": row[0], "name": row[1]} for row in result.all()}
+    if require_all and set(products) != requested:
+        raise HTTPException(
+            status_code=400,
+            detail="Wybierz składniki z zatwierdzonego katalogu produktów.",
+        )
+    liked = [identifier for identifier in payload.liked_product_ids if identifier in products]
+    disliked = [identifier for identifier in payload.disliked_product_ids if identifier in products]
+    return IngredientPreferencesResponse(
+        liked_product_ids=liked,
+        disliked_product_ids=disliked,
+        liked_products=[products[identifier] for identifier in liked],
+        disliked_products=[products[identifier] for identifier in disliked],
+    )
+
+
+@router.get("/me/ingredient-preferences", response_model=IngredientPreferencesResponse)
+async def get_ingredient_preferences(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> IngredientPreferencesResponse:
+    return await _ingredient_preferences_response(_stored_ingredient_preferences(current_user), db)
+
+
+@router.put("/me/ingredient-preferences", response_model=IngredientPreferencesResponse)
+async def update_ingredient_preferences(
+    payload: IngredientPreferencesUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> IngredientPreferencesResponse:
+    if not is_premium_active(current_user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Preferencje składników są dostępne w aktywnym Premium.",
+        )
+    response = await _ingredient_preferences_response(payload, db, require_all=True)
+    current_user.ingredient_preferences = payload.model_dump(mode="json")
+    db.add(current_user)
+    await db.commit()
+    return response
 
 
 @router.get(

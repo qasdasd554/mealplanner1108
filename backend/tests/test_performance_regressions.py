@@ -1,6 +1,7 @@
 """Regresje wydajności, które nie powinny zmieniać wyników API."""
 
 import uuid
+from datetime import date, timedelta
 from types import SimpleNamespace
 
 import pytest
@@ -56,6 +57,8 @@ async def test_price_compare_loads_all_store_prices_in_one_query() -> None:
     recipe = SimpleNamespace(ingredients=[ingredient])
     meal_plan = SimpleNamespace(
         user_id=user_id,
+        status="active",
+        end_date=date.today() + timedelta(days=6),
         entries=[SimpleNamespace(recipe=recipe, servings_multiplier=1)],
     )
     stores = [

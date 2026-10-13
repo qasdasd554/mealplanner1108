@@ -10,9 +10,9 @@ daje te same identyfikatory, co ułatwia debugowanie i testowanie.
 from __future__ import annotations
 
 import uuid
-from datetime import date
 from decimal import Decimal
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.product import Allergen, Product, ProductAllergen, StoreProduct
@@ -35,7 +35,9 @@ def _uid(name: str) -> uuid.UUID:
 # ══════════════════════════════════════════════════════════════════
 # SKLEPY
 # ══════════════════════════════════════════════════════════════════
-STORE_NAMES = ["Biedronka", "Lidl", "Dino", "Carrefour"]
+STORE_NAMES = [
+    "Biedronka", "Lidl", "Dino", "Carrefour", "Stokrotka", "Kaufland", "Auchan"
+]
 
 DEPARTMENT_NAMES = [
     "Warzywa i owoce",
@@ -825,12 +827,17 @@ if len(PRODUCT_BRANDS) != len(_catalog_product_names) or set(PRODUCT_BRANDS) != 
     extra = sorted(set(PRODUCT_BRANDS) - set(_catalog_product_names))
     raise RuntimeError(f"Niepełne mapowanie marek produktów: missing={missing}, extra={extra}")
 
-# Mnożniki cen — Biedronka jest bazą (1.0)
+# Historyczne mnożniki są wyłącznie szacunkiem, nie potwierdzoną ceną.
+# Nowe sieci używają neutralnej ceny referencyjnej; nie zgadujemy różnic
+# cenowych między sklepami ani nie oznaczamy tych kwot jako zweryfikowane.
 PRICE_MULTIPLIERS = {
     "Biedronka": Decimal("1.00"),
     "Lidl": Decimal("1.05"),
     "Dino": Decimal("1.12"),
     "Carrefour": Decimal("1.15"),
+    "Stokrotka": Decimal("1.00"),
+    "Kaufland": Decimal("1.00"),
+    "Auchan": Decimal("1.00"),
 }
 
 # ── Marki własne sklepów ──────────────────────────────────────────
@@ -944,8 +951,10 @@ def _store_brand_for(
 
 
 # Ceny regularne są orientacyjne i zależą od lokalizacji sklepu. Poniższe
-# wyjątki odwzorowują publiczne ceny katalogowe z września 2026; reszta jest
-# liczona z ceny bazowej i mnożnika sieci.
+# wyjątki pochodzą ze statycznego katalogu z września 2026; nie są bieżącą
+# weryfikacją. Seed nie odświeża daty sprawdzenia podczas wdrożenia i nie
+# nadpisuje cen zapisanych przez administratora. Reszta jest liczona z ceny
+# bazowej i mnożnika sieci.
 STORE_PRICE_OVERRIDES: dict[tuple[str, str], Decimal] = {
     ("Biedronka", "Makaron fusilli"): Decimal("3.39"),
     ("Biedronka", "Makaron spaghetti"): Decimal("2.99"),
@@ -5110,8 +5119,9 @@ for _recipe_data in RECIPES_DATA:
 async def seed_database(session: AsyncSession) -> None:
     """Wypełnia bazę danych danymi startowymi.
 
-    Funkcja jest idempotentna dzięki determinystycznym UUID —
-    duplikaty zostaną odrzucone przez merge.
+    Funkcja korzysta z determinystycznych UUID. Powiązania sklepowe są
+    wyłącznie dokładane, więc ponowny deploy zachowuje zweryfikowane ceny,
+    dostępność i wycofane produkty zmienione przez administratora.
 
     Args:
         session: Aktywna sesja async SQLAlchemy.
@@ -5153,6 +5163,18 @@ async def seed_database(session: AsyncSession) -> None:
         allergens[allergen_name] = await session.merge(allergen)
 
     # ── 4. Produkty + StoreProducts + ProductAllergens ───────────
+    # Jedno zapytanie dla całego katalogu zamiast merge/SELECT dla każdej
+    # pary. Sprawdzamy rzeczywistą parę, a nie seedowy UUID: administrator
+    # mógł utworzyć relację wcześniej pod innym identyfikatorem.
+    existing_pairs = set((await session.execute(
+        select(StoreProduct.store_id, StoreProduct.product_id).where(
+            StoreProduct.store_id.in_([store.id for store in stores.values()]),
+            StoreProduct.product_id.in_([
+                _uid(f"product:{row[0]}") for row in PRODUCTS_DATA
+            ]),
+        )
+    )).all())
+    new_store_products: list[StoreProduct] = []
     products: dict[str, Product] = {}
     for (
         prod_name,
@@ -5199,6 +5221,8 @@ async def seed_database(session: AsyncSession) -> None:
 
         # Powiązanie z każdym sklepem
         for store_name, store in stores.items():
+            if (store.id, product.id) in existing_pairs:
+                continue
             multiplier = PRICE_MULTIPLIERS[store_name]
             price = STORE_PRICE_OVERRIDES.get(
                 (store_name, prod_name),
@@ -5214,16 +5238,14 @@ async def seed_database(session: AsyncSession) -> None:
                 price=price,
                 store_brand_name=_store_brand_for(store_name, prod_name, dept_name),
                 is_available=True,
-                # Data oznacza rzeczywistą weryfikację w publicznym
-                # katalogu. Ceny obliczone z mnożnika są tylko szacunkiem.
-                last_verified=(
-                    date.today()
-                    if (store_name, prod_name) in STORE_PRICE_OVERRIDES
-                    else None
-                ),
+                # Statyczny seed nie potwierdza bieżącej ceny ani
+                # rzeczywistej dostępności w konkretnej placówce.
+                last_verified=None,
                 withdrawn_at=None,
             )
-            await session.merge(sp)
+            new_store_products.append(sp)
+
+    session.add_all(new_store_products)
 
     # Gotowe dania restauracyjne są częścią katalogu żywieniowego, ale nie
     # udajemy, że można je kupić w każdym supermarkecie. Dlatego celowo nie

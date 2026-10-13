@@ -15,6 +15,7 @@ import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
 import '../../widgets/submit_product_sheet.dart';
 import '../../widgets/price_source_info.dart';
+import '../../utils/store_price_labels.dart';
 import '../../widgets/premium_feature_tag.dart';
 import '../../widgets/product_contribution_reward_banner.dart';
 import '../../widgets/barcode_destination_sheet.dart';
@@ -522,6 +523,7 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
               width: double.infinity,
               child: DropdownButtonFormField<String>(
                 value: _selectedStoreId,
+                isExpanded: true,
                 decoration: const InputDecoration(
                   labelText: 'Sklep',
                   prefixIcon: Icon(Icons.storefront_outlined),
@@ -532,7 +534,11 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
                         .map(
                           (Store s) => DropdownMenuItem(
                             value: s.id,
-                            child: Text(s.name),
+                            child: Text(
+                              s.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         )
                         .toList(),
@@ -649,7 +655,7 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
                       'Marka produktu: ${product!.brand}',
                     if (kcal != null)
                       '${kcal.toInt()} kcal / 100${product?.unit == 'ml' || product?.unit == 'l' ? 'ml' : 'g'}',
-                    if (sp.lastVerified != null) 'cena sprawdzona',
+                    storePriceVerificationLabel(sp),
                     if (!sp.isAvailable) 'niedostępny',
                   ].join(' • '),
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
@@ -658,22 +664,30 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
             ),
           ),
           const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '${sp.price.toStringAsFixed(2)} zł',
-                style: const TextStyle(
-                  color: AppTheme.primaryColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
+          SizedBox(
+            width: 96,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  '${sp.lastVerified == null ? '~ ' : ''}'
+                  '${sp.price.toStringAsFixed(2)} zł',
+                  textAlign: TextAlign.end,
+                  style: const TextStyle(
+                    color: AppTheme.primaryColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
                 ),
-              ),
-              Text(
-                '/ ${product?.defaultQuantity ?? 1} ${product?.unit ?? ''}',
-                style: TextStyle(color: AppTheme.textSecondary, fontSize: 10),
-              ),
-            ],
+                Text(
+                  storePriceQuantityLabel(product),
+                  textAlign: TextAlign.end,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 10),
+                ),
+              ],
+            ),
           ),
         ],
       ),

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/meal_plan_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../models/notification.dart';
 import '../../services/notification_service.dart';
 import '../../services/push_service.dart';
@@ -65,6 +68,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     recipeId: n.recipeId,
                     recipeName: n.recipeName,
                     commentId: n.commentId,
+                    mealPlanId: n.mealPlanId,
                     isRead: true,
                     createdAt: n.createdAt,
                   ),
@@ -101,6 +105,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               recipeId: notification.recipeId,
               recipeName: notification.recipeName,
               commentId: notification.commentId,
+              mealPlanId: notification.mealPlanId,
               isRead: true,
               createdAt: notification.createdAt,
             );
@@ -117,6 +122,36 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
 
     if (!mounted) return;
+
+    if (notification.notificationType == 'meal_plan_expiring') {
+      final plans = context.read<MealPlanProvider>();
+      if (notification.mealPlanId != null) {
+        await plans.loadPlan(notification.mealPlanId!);
+      } else {
+        await plans.loadPlans();
+      }
+      if (!mounted) return;
+      if (plans.errorMessage != null && !plans.lastPlanLoadNotFound) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(plans.errorMessage!)));
+        return;
+      }
+      final current = plans.currentPlan;
+      if (current != null && current.isInUseAt(DateTime.now())) {
+        await Navigator.of(context).pushNamed('/plan/view');
+      } else {
+        final premium =
+            context.read<AuthProvider>().currentUser?.hasPremiumAccess ?? false;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Ten plan już się zakończył.')),
+        );
+        await Navigator.of(
+          context,
+        ).pushNamed(premium ? '/plan/archive' : '/home');
+      }
+      return;
+    }
 
     if (notification.notificationType == 'friend_invitation' ||
         notification.notificationType == 'friend_accepted') {

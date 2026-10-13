@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text, func
+from sqlalchemy import Boolean, CheckConstraint, DateTime, Float, ForeignKey, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import JSON, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -16,6 +16,9 @@ class User(Base):
     """Użytkownik aplikacji."""
 
     __tablename__ = "users"
+    __table_args__ = (
+        CheckConstraint("household_size BETWEEN 1 AND 8", name="ck_users_household_size_1_8"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -40,6 +43,11 @@ class User(Base):
         JSON,
         nullable=True,
         comment="Preferencje dietetyczne w formacie JSON",
+    )
+    ingredient_preferences: Mapped[dict | None] = mapped_column(
+        JSON,
+        nullable=True,
+        comment="Premium: liked_product_ids i disliked_product_ids z publicznego katalogu",
     )
     household_size: Mapped[int] = mapped_column(
         Integer, default=1, nullable=False

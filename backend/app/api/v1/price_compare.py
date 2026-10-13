@@ -11,10 +11,11 @@ tak samo, korzystając z tych samych funkcji konwersji jednostek co
 
 import math
 import uuid
+from datetime import date
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -37,6 +38,8 @@ class PriceCompareItem(BaseModel):
     # Marka własna sklepu dla tego produktu (np. "Mleczna Dolina"), jeśli
     # potwierdzona — puste, jeśli w tej kategorii sklep nie ma marki własnej.
     store_brand_name: str | None = None
+    price_is_estimated: bool = True
+    last_verified: date | None = None
 
 class PriceCompareStoreResult(BaseModel):
     store_id: uuid.UUID
@@ -45,6 +48,18 @@ class PriceCompareStoreResult(BaseModel):
     is_cheapest: bool
     savings_vs_most_expensive: float
     items: List[PriceCompareItem]
+    has_estimated_prices: bool = True
+    is_complete: bool = True
+    missing_products: List[str] = Field(default_factory=list)
+
+
+def _positive_finite_float(value) -> float | None:
+    """Nieznana/nieprawidłowa cena lub gramatura nie oznacza darmowego produktu."""
+    try:
+        number = float(value)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    return number if math.isfinite(number) and number > 0 else None
 
 @router.get("/{meal_plan_id}", response_model=List[PriceCompareStoreResult])
 async def compare_prices(
@@ -67,6 +82,10 @@ async def compare_prices(
         raise HTTPException(status_code=404, detail="Nie znaleziono planu posiłków")
     if meal_plan.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Brak uprawnień do tego planu posiłków")
+    # Porównanie cen nie jest tylnym wejściem do usuniętego planu lub
+    # płatnego archiwum; stosuje tę samą regułę co podgląd planu.
+    from app.api.v1.meal_plans import _ensure_plan_access
+    _ensure_plan_access(meal_plan, current_user)
 
     stores = (await db.execute(select(Store))).scalars().all()
     if not stores:
@@ -107,9 +126,18 @@ async def compare_prices(
             )
 
             if product.id not in product_requirements:
-                product_requirements[product.id] = {"product": product, "grams": req_qty_grams}
+                product_requirements[product.id] = {
+                    "product": product,
+                    "grams": req_qty_grams,
+                    "quantity_known": _positive_finite_float(req_qty_grams) is not None,
+                }
             else:
                 product_requirements[product.id]["grams"] += req_qty_grams
+                if _positive_finite_float(req_qty_grams) is None:
+                    product_requirements[product.id]["quantity_known"] = False
+
+    if not product_requirements:
+        return []
 
     # ── Policz cenę w każdym sklepie — identyczna logika co lista zakupów ──
     store_results = []
@@ -134,6 +162,7 @@ async def compare_prices(
     for store in stores:
         total_price = 0.0
         items = []
+        missing_products = []
 
         for prod_id, req in product_requirements.items():
             product = req["product"]
@@ -141,13 +170,21 @@ async def compare_prices(
 
             store_product = store_product_by_pair.get((store.id, prod_id))
 
-            if not store_product:
-                # Produkt niedostępny w tym sklepie — pomijamy w tej cenie,
-                # tak samo jak robi to lista zakupów.
+            if not store_product or not getattr(store_product, "is_available", True):
+                missing_products.append(product.name)
+                continue
+
+            price = _positive_finite_float(store_product.price)
+            total_grams = _positive_finite_float(total_grams)
+            if price is None or total_grams is None or not req["quantity_known"]:
+                missing_products.append(product.name)
                 continue
 
             product_unit = product.unit or "szt"
-            default_qty_native = float(product.default_quantity or 1.0)
+            default_qty_native = _positive_finite_float(product.default_quantity)
+            if default_qty_native is None:
+                missing_products.append(product.name)
+                continue
             default_qty_grams = quantity_to_grams(
                 product.name,
                 default_qty_native,
@@ -156,10 +193,15 @@ async def compare_prices(
                 getattr(product, "measure_options", None),
             )
 
-            package_count = (
-                math.ceil(total_grams / default_qty_grams) if default_qty_grams > 0 else 1
-            )
-            item_cost = round(float(store_product.price) * package_count, 2)
+            default_qty_grams = _positive_finite_float(default_qty_grams)
+            if default_qty_grams is None:
+                # Brak masy opakowania nie może skutkować zakupem fikcyjnego
+                # jednego opakowania ani sugerowaniem wiarygodnej sumy.
+                missing_products.append(product.name)
+                continue
+
+            package_count = math.ceil(total_grams / default_qty_grams)
+            item_cost = round(price * package_count, 2)
             total_price += item_cost
 
             items.append(PriceCompareItem(
@@ -176,6 +218,8 @@ async def compare_prices(
                 unit=product_unit,
                 price_in_store=item_cost,
                 store_brand_name=store_product.store_brand_name,
+                price_is_estimated=getattr(store_product, "last_verified", None) is None,
+                last_verified=getattr(store_product, "last_verified", None),
             ))
 
         store_results.append({
@@ -183,14 +227,20 @@ async def compare_prices(
             "store_name": store.name,
             "total_price": round(total_price, 2),
             "items": items,
+            "has_estimated_prices": any(item.price_is_estimated for item in items),
+            "is_complete": bool(product_requirements) and not missing_products,
+            "missing_products": sorted(set(missing_products)),
         })
 
     if not store_results:
         return []
 
-    store_results.sort(key=lambda x: x["total_price"])
-    cheapest_price = store_results[0]["total_price"]
-    most_expensive_price = max(res["total_price"] for res in store_results)
+    # Nie porównuj części koszyka z całym koszykiem. Najpierw pokazujemy
+    # pełne zestawy; brakujących cen nie wolno interpretować jako 0 zł.
+    store_results.sort(key=lambda x: (not x["is_complete"], x["total_price"], x["store_name"]))
+    complete_prices = [res["total_price"] for res in store_results if res["is_complete"]]
+    cheapest_price = min(complete_prices) if complete_prices else None
+    most_expensive_price = max(complete_prices) if complete_prices else None
 
     final_results = []
     for res in store_results:
@@ -199,9 +249,15 @@ async def compare_prices(
                 store_id=res["store_id"],
                 store_name=res["store_name"],
                 total_price=res["total_price"],
-                is_cheapest=(res["total_price"] == cheapest_price and res["total_price"] > 0),
-                savings_vs_most_expensive=round(most_expensive_price - res["total_price"], 2),
+                is_cheapest=(res["is_complete"] and res["total_price"] == cheapest_price),
+                savings_vs_most_expensive=(
+                    round(most_expensive_price - res["total_price"], 2)
+                    if res["is_complete"] and most_expensive_price is not None else 0.0
+                ),
                 items=res["items"],
+                has_estimated_prices=res["has_estimated_prices"],
+                is_complete=res["is_complete"],
+                missing_products=res["missing_products"],
             )
         )
 

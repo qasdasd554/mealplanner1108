@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../../models/promotion.dart';
+import '../../config/constants.dart';
 import '../../models/recipe.dart';
 import '../../services/promotion_service.dart';
 import '../../services/recipe_service.dart';
@@ -32,7 +34,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   final ModerationService _moderationService = ModerationService();
   final TextEditingController _broadcastController = TextEditingController();
   bool _isSendingBroadcast = false;
-  final List<String> _stores = ['Biedronka', 'Lidl', 'Dino', 'Carrefour'];
+  final List<String> _stores = kPromotionScanStores;
 
   String? _scanningStore;
   bool _isLoadingPending = true;

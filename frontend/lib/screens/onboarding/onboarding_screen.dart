@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+
 import '../../providers/auth_provider.dart';
 import '../../providers/store_provider.dart';
 import '../../models/store.dart';
@@ -312,11 +313,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             ),
                           ),
                           const SizedBox(width: 16),
-                          Text(
-                            store.name,
-                            style: Theme.of(context).textTheme.titleLarge,
+                          Expanded(
+                            child: Text(
+                              store.name,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
                           ),
-                          const Spacer(),
+                          const SizedBox(width: 8),
                           if (isSelected)
                             const Icon(
                               Icons.check_circle,
@@ -555,7 +560,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               _buildCounterButton(
                 icon: Icons.add,
                 onPressed: () {
-                  if (_householdSize < 10) {
+                  if (_householdSize < 8) {
                     setState(() {
                       _householdSize++;
                     });

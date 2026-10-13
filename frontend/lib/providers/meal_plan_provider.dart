@@ -2,17 +2,23 @@ import 'package:flutter/material.dart';
 import '../models/meal_plan.dart';
 import '../services/meal_plan_service.dart';
 import '../services/app_review_service.dart';
+import '../services/api_client.dart';
 import '../utils/error_utils.dart';
 
 class MealPlanProvider with ChangeNotifier {
-  final MealPlanService _mealPlanService = MealPlanService();
+  final MealPlanService _mealPlanService;
+
+  MealPlanProvider({MealPlanService? service})
+    : _mealPlanService = service ?? MealPlanService();
 
   MealPlan? _currentPlan;
   List<MealPlan> _plans = [];
   bool _isLoading = false;
   bool _hasLoaded = false;
   bool _isGenerating = false;
+  bool _isRefreshing = false;
   String? _errorMessage;
+  bool _lastPlanLoadNotFound = false;
 
   MealPlan? get currentPlan => _currentPlan;
   List<MealPlan> get plans => _plans;
@@ -20,16 +26,15 @@ class MealPlanProvider with ChangeNotifier {
   bool get hasLoaded => _hasLoaded;
   bool get isGenerating => _isGenerating;
   String? get errorMessage => _errorMessage;
+  bool get lastPlanLoadNotFound => _lastPlanLoadNotFound;
 
   // Lista jest sortowana od najnowszego, więc nowszy draft nie może być
   // przesłonięty przez starszy plan ze statusem active.
   MealPlan? get activePlan {
     try {
-      return _plans.firstWhere(
-        (plan) => plan.status == 'active' || plan.status == 'draft',
-      );
+      return _plans.firstWhere((plan) => plan.isInUseAt(DateTime.now()));
     } catch (_) {
-      return _plans.isNotEmpty ? _plans.first : null;
+      return null;
     }
   }
 
@@ -41,7 +46,7 @@ class MealPlanProvider with ChangeNotifier {
   /// backend nigdy go automatycznie nie "aktywuje". Traktujemy więc
   /// "draft" i "active" jako "obecnie w użyciu".
   List<MealPlan> get activePlans =>
-      _plans.where((p) => p.status == 'active' || p.status == 'draft').toList();
+      _plans.where((p) => p.isInUseAt(DateTime.now())).toList();
 
   /// Ustawia, który plan jest aktualnie przeglądany — używane przez
   /// przełącznik planów, gdy użytkownik ma ich kilka aktywnych naraz.
@@ -51,11 +56,16 @@ class MealPlanProvider with ChangeNotifier {
   }
 
   Future<void> loadPlans() async {
+    if (_isRefreshing) return;
+    _isRefreshing = true;
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
     try {
-      _plans = await _mealPlanService.getPlans();
+      _plans =
+          (await _mealPlanService.getPlans())
+              .where((p) => !p.isArchived && !p.isExpiredAt(DateTime.now()))
+              .toList();
       // Posortuj od najnowszych
       _plans.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       if (_plans.isNotEmpty) {
@@ -69,6 +79,7 @@ class MealPlanProvider with ChangeNotifier {
     } catch (e) {
       _errorMessage = friendlyError(e);
     } finally {
+      _isRefreshing = false;
       _isLoading = false;
       _hasLoaded = true;
       notifyListeners();
@@ -78,10 +89,14 @@ class MealPlanProvider with ChangeNotifier {
   Future<void> loadPlan(String planId) async {
     _isLoading = true;
     _errorMessage = null;
+    _lastPlanLoadNotFound = false;
+    _currentPlan = null;
     notifyListeners();
     try {
       _currentPlan = await _mealPlanService.getPlan(planId);
     } catch (e) {
+      _currentPlan = null;
+      _lastPlanLoadNotFound = e is ApiException && e.statusCode == 404;
       _errorMessage = friendlyError(e);
     } finally {
       _isLoading = false;
@@ -90,6 +105,7 @@ class MealPlanProvider with ChangeNotifier {
   }
 
   Future<bool> generatePlan(MealPlanGenerateRequest request) async {
+    if (_isGenerating) return false;
     _isGenerating = true;
     _errorMessage = null;
     notifyListeners();
@@ -106,6 +122,25 @@ class MealPlanProvider with ChangeNotifier {
       _isGenerating = false;
       notifyListeners();
       return false;
+    }
+  }
+
+  Future<MealPlan?> resumePlan(String planId, DateTime startDate) async {
+    if (_isLoading) return null;
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      final plan = await _mealPlanService.resumePlan(planId, startDate);
+      _plans.insert(0, plan);
+      _currentPlan = plan;
+      return plan;
+    } catch (e) {
+      _errorMessage = friendlyError(e);
+      return null;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
@@ -207,6 +242,7 @@ class MealPlanProvider with ChangeNotifier {
     _hasLoaded = false;
     _isGenerating = false;
     _errorMessage = null;
+    _lastPlanLoadNotFound = false;
     notifyListeners();
   }
 }

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../services/price_compare_service.dart';
 import '../../providers/meal_plan_provider.dart';
 import '../../widgets/price_source_info.dart';
+import '../../widgets/store_price_comparison_card.dart';
 
 class PriceCompareScreen extends StatefulWidget {
   final String mealPlanId;
@@ -70,8 +72,7 @@ class _PriceCompareScreenState extends State<PriceCompareScreen> {
       final results = await _priceCompareService.comparePrices(
         widget.mealPlanId,
       );
-      // Sort by price ascending
-      results.sort((a, b) => a.totalPrice.compareTo(b.totalPrice));
+      results.sort(PriceComparisonResult.compareForDisplay);
 
       if (!mounted) return;
       setState(() {
@@ -132,115 +133,23 @@ class _PriceCompareScreenState extends State<PriceCompareScreen> {
 
     return ListView.builder(
       padding: const EdgeInsets.all(16.0),
-      itemCount: _results.length,
+      itemCount: _results.length + 1,
       itemBuilder: (context, index) {
-        final result = _results[index];
-        final isCheapest = index == 0;
-
-        return Card(
-          elevation: isCheapest ? 4.0 : 1.0,
-          color: isCheapest ? Colors.green.shade50 : null,
-          margin: const EdgeInsets.only(bottom: 12.0),
-          child: ExpansionTile(
-            tilePadding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 8.0,
+        if (index == 0) {
+          return const Padding(
+            padding: EdgeInsets.only(bottom: 16),
+            child: Text(
+              'Porównujemy koszt całej listy. „~” oznacza cenę orientacyjną. '
+              'Dostępność i aktualną cenę potwierdź w wybranym sklepie.',
+              style: TextStyle(fontSize: 12),
             ),
-            leading: const Icon(Icons.store, size: 40, color: Colors.grey),
-            title: Text(
-              result.storeName,
-              style: TextStyle(
-                fontWeight: isCheapest ? FontWeight.bold : FontWeight.normal,
-                fontSize: 18,
-              ),
-            ),
-            subtitle: Text(
-              '${result.items.length} ${result.items.length == 1 ? "produkt" : "produktów"} • dotknij, aby zobaczyć listę'
-              '${result.savingsVsMostExpensive > 0 ? " • oszczędzasz ${result.savingsVsMostExpensive.toStringAsFixed(2)} zł" : ""}',
-              style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
-            ),
-            trailing: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                if (isCheapest)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.green,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text(
-                      'Najtaniej',
-                      style: TextStyle(color: Colors.white, fontSize: 10),
-                    ),
-                  ),
-                const SizedBox(height: 4),
-                Text(
-                  '${result.totalPrice.toStringAsFixed(2)} zł',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: isCheapest ? Colors.green.shade800 : null,
-                  ),
-                ),
-              ],
-            ),
-            children: [
-              const Divider(height: 1),
-              ...result.items.map((item) {
-                return ListTile(
-                  dense: true,
-                  title: Text(
-                    item.displayName,
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                  subtitle: Text(
-                    '${item.quantityNeeded.toStringAsFixed(item.quantityNeeded == item.quantityNeeded.roundToDouble() ? 0 : 1)} ${item.unit}',
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                  ),
-                  trailing: Text(
-                    '${item.priceInStore.toStringAsFixed(2)} zł',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                );
-              }),
-              const SizedBox(height: 8),
-              // Wcześniej porównanie cen było czysto informacyjne — dało
-              // się zobaczyć, że inny sklep wypada taniej, ale nie dało
-              // się nic z tym zrobić. Backend do tego już istniał (patrz
-              // PUT /meal-plans/{id}/store), brakowało tylko przycisku.
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 4,
-                ),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton(
-                    onPressed:
-                        _isSwitchingStore ? null : () => _switchToStore(result),
-                    child:
-                        _isSwitchingStore
-                            ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                            : const Text('Przełącz plan na ten sklep'),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-            ],
-          ),
+          );
+        }
+        final result = _results[index - 1];
+        return StorePriceComparisonCard(
+          result: result,
+          isSwitchingStore: _isSwitchingStore,
+          onSwitchStore: () => _switchToStore(result),
         );
       },
     );

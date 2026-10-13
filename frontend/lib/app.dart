@@ -8,6 +8,7 @@ import 'providers/theme_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/food_log_provider.dart';
 import 'providers/wellness_provider.dart';
+import 'providers/meal_plan_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
@@ -16,6 +17,8 @@ import 'screens/onboarding/onboarding_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/meal_plan/plan_config_screen.dart';
 import 'screens/meal_plan/plan_view_screen.dart';
+import 'screens/meal_plan/plan_archive_screen.dart';
+import 'screens/profile/ingredient_preferences_screen.dart';
 import 'screens/shopping/shopping_list_screen.dart';
 import 'screens/recipes/recipes_screen.dart';
 import 'screens/recipes/recipe_detail_screen.dart';
@@ -28,6 +31,7 @@ import 'screens/promotions/promotions_screen.dart';
 import 'screens/notifications/notifications_screen.dart';
 import 'utils/calendar_day.dart';
 import 'services/update_service.dart';
+import 'models/meal_plan.dart';
 
 class SmartMealPlannerApp extends StatefulWidget {
   const SmartMealPlannerApp({super.key});
@@ -58,10 +62,15 @@ class _SmartMealPlannerAppState extends State<SmartMealPlannerApp>
     // Dłuższa sesja na pierwszym planie też nie wymaga ponownego uruchomienia
     // aplikacji. Kontrola co 15 minut jest lekka (jeden publiczny endpoint),
     // a pojedynczy aktywny request chroni flaga poniżej.
-    _updateTimer = Timer.periodic(
-      const Duration(minutes: 15),
-      (_) => unawaited(_checkForUpdateAfterResume()),
-    );
+    _updateTimer = Timer.periodic(const Duration(minutes: 15), (_) {
+      if (WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed &&
+          context.read<AuthProvider>().isAuthenticated &&
+          !isSameCalendarDay(_lastForegroundDay, DateTime.now())) {
+        _lastForegroundDay = DateTime.now();
+        unawaited(context.read<MealPlanProvider>().loadPlans());
+      }
+      unawaited(_checkForUpdateAfterResume());
+    });
   }
 
   @override
@@ -80,6 +89,7 @@ class _SmartMealPlannerAppState extends State<SmartMealPlannerApp>
       final auth = Provider.of<AuthProvider>(context, listen: false);
       if (auth.isAuthenticated) {
         unawaited(auth.loadProfile());
+        unawaited(context.read<MealPlanProvider>().loadPlans());
         if (dayChanged) {
           Provider.of<FoodLogProvider>(context, listen: false).setDate(now);
           unawaited(
@@ -167,7 +177,17 @@ class _SmartMealPlannerAppState extends State<SmartMealPlannerApp>
                       (ModalRoute.of(context)?.settings.arguments as int?) ?? 0,
                 ),
             '/plan/config': (context) => const PlanConfigScreen(),
-            '/plan/view': (context) => const PlanViewScreen(),
+            '/plan/view':
+                (context) => PlanViewScreen(
+                  archivedPlan:
+                      ModalRoute.of(context)?.settings.arguments is MealPlan
+                          ? ModalRoute.of(context)!.settings.arguments
+                              as MealPlan
+                          : null,
+                ),
+            '/plan/archive': (context) => const PlanArchiveScreen(),
+            '/profile/ingredients':
+                (context) => const IngredientPreferencesScreen(),
             '/shopping': (context) => const ShoppingListScreen(),
             '/recipes': (context) => const RecipesScreen(),
             '/recipe/detail': (context) => const RecipeDetailScreen(),

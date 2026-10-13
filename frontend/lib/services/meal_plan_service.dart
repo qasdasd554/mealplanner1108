@@ -29,6 +29,25 @@ class MealPlanService {
     return MealPlan.fromJson(response as Map<String, dynamic>);
   }
 
+  Future<List<MealPlan>> getArchivedPlans() async {
+    final response = await _client.get('${ApiConfig.mealPlans}archive');
+    return (response as List<dynamic>)
+        .map((e) => MealPlan.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<MealPlan> resumePlan(String planId, DateTime startDate) async {
+    final date =
+        '${startDate.year.toString().padLeft(4, '0')}-'
+        '${startDate.month.toString().padLeft(2, '0')}-'
+        '${startDate.day.toString().padLeft(2, '0')}';
+    final response = await _client.post(
+      '${ApiConfig.mealPlans}$planId/resume',
+      body: {'start_date': date},
+    );
+    return MealPlan.fromJson(response as Map<String, dynamic>);
+  }
+
   Future<void> updatePlanStatus(String planId, String status) async {
     await _client.put(
       '${ApiConfig.mealPlans}$planId/status',

@@ -117,7 +117,7 @@ class User {
       tiktokUsername: json['tiktok_username'] as String?,
       preferredStoreId: json['preferred_store_id'] as String?,
       dietaryPreferences: json['dietary_preferences'] as Map<String, dynamic>?,
-      householdSize: json['household_size'] as int? ?? 1,
+      householdSize: (json['household_size'] as int? ?? 1).clamp(1, 8),
       weightKg: (json['weight_kg'] as num?)?.toDouble(),
       heightCm: (json['height_cm'] as num?)?.toDouble(),
       age: json['age'] as int?,

@@ -78,8 +78,10 @@ async def generate_for_user(
                 duration_days=7,
                 meals_per_day=3,
                 preferences=user.dietary_preferences or {},
-                household_size=user.household_size,
-                target_kcal=user.daily_kcal_goal,
+                # Generator rozwiązuje i waliduje bieżące ustawienia
+                # profilu tak samo jak w ręcznym formularzu nowego planu.
+                household_size=None,
+                target_kcal=None,
                 create_shopping_list=automation.create_shopping_list,
                 start_date=calendar_week_start(now_local.date())
                 + timedelta(days=7),

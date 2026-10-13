@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+
 import '../../providers/auth_provider.dart';
 import '../../providers/store_provider.dart';
 import '../../providers/meal_plan_provider.dart';
@@ -10,6 +11,7 @@ import '../../config/constants.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/decorative_circles.dart';
 import '../profile/premium_screen.dart';
+import '../../utils/plan_defaults.dart';
 
 class PlanConfigScreen extends StatefulWidget {
   const PlanConfigScreen({super.key});
@@ -25,6 +27,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
   bool _includePantry = true;
   final _budgetController = TextEditingController();
   final _kcalController = TextEditingController(text: '2000');
+  String? _kcalError;
   final Set<String> _selectedMealTypes = {'śniadanie', 'obiad', 'kolacja'};
   // Dieta DLA TEGO KONKRETNEGO planu — domyślnie ta z profilu, ale można
   // ją tu zmienić bez trwałej zmiany preferencji w profilu (np. plan
@@ -35,8 +38,10 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       final storeProvider = Provider.of<StoreProvider>(context, listen: false);
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      _kcalController.text = '${calorieGoalForPlan(authProvider.currentUser)}';
 
       // Ustaw sklep z preferencji użytkownika
       if (authProvider.currentUser?.preferredStoreId != null) {
@@ -62,7 +67,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
       final profileHouseholdSize = authProvider.currentUser?.householdSize;
       if (profileHouseholdSize != null && profileHouseholdSize > 0) {
         setState(() {
-          _householdSize = profileHouseholdSize;
+          _householdSize = householdSizeForPlan(profileHouseholdSize);
         });
       }
     });
@@ -76,6 +81,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
   }
 
   Future<void> _generate() async {
+    if (context.read<MealPlanProvider>().isGenerating) return;
     if (_selectedStore == null) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
@@ -98,6 +104,14 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
     if (_kcalController.text.isNotEmpty) {
       targetKcal = int.tryParse(_kcalController.text);
     }
+    if (targetKcal == null || targetKcal < 800 || targetKcal > 6000) {
+      setState(
+        () => _kcalError = 'Wpisz od 800 do 6000 kcal na osobę dziennie.',
+      );
+      return;
+    }
+    setState(() => _kcalError = null);
+    FocusManager.instance.primaryFocus?.unfocus();
 
     // UWAGA (naprawa poważnego błędu, teraz z możliwością wyboru na
     // ekranie): wcześniej preferencja diety zapisana podczas onboardingu
@@ -199,107 +213,113 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
               borderRadius: BorderRadius.circular(20),
             ),
             title: const Text('Plan gotowy'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Twój plan na $_durationDays dni dla '
-                  '${_householdSize == 1 ? "1 osoby" : "$_householdSize osób"} jest gotowy.',
-                ),
-                const SizedBox(height: 16),
-                if (budget != null)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Szacowany minimalny koszt zakupów',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppTheme.textSecondary,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${budget.toStringAsFixed(2)} zł',
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryColor,
-                          ),
-                        ),
-                      ],
-                    ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Twój plan na $_durationDays dni dla '
+                    '${_householdSize == 1 ? "1 osoby" : "$_householdSize osób"} jest gotowy.',
                   ),
-                if (plan?.shoppingListLimitReached ?? false) ...[
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Plan jest gotowy, ale w tym tygodniu wykorzystano już '
-                    'darmowy limit jednej nowej listy zakupów. Produkty możesz '
-                    'dopisać do istniejącej listy albo utworzyć kolejną w '
-                    'przyszłym tygodniu.',
-                  ),
-                ],
-                // Proaktywna informacja o tygodniowym limicie konta standardowego.
-                if (!(Provider.of<AuthProvider>(
-                      context,
-                      listen: false,
-                    ).currentUser?.hasPremiumAccess ??
-                    false)) ...[
-                  const SizedBox(height: 12),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: AppTheme.secondaryColor.withOpacity(0.08),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: AppTheme.secondaryColor.withOpacity(0.25),
+                  const SizedBox(height: 16),
+                  if (budget != null)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Szacowany minimalny koszt zakupów',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppTheme.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${budget.toStringAsFixed(2)} zł',
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.primaryColor,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(
-                          Icons.info_outline,
-                          color: AppTheme.secondaryColor,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Konto standardowe: jeden nowy plan tygodniowo',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                'Limit odnawia się w poniedziałek. Usunięcie planu go nie odnawia. Premium pozwala tworzyć plany bez limitu.',
-                                style: TextStyle(
-                                  color: AppTheme.textSecondary,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                  if (plan?.shoppingListLimitReached ?? false) ...[
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Plan jest gotowy, ale w tym tygodniu wykorzystano już '
+                      'darmowy limit jednej nowej listy zakupów. Kolejną listę '
+                      'utworzysz w przyszłym tygodniu lub z Premium.',
                     ),
-                  ),
+                  ],
+                  for (final warning
+                      in plan?.preferenceWarnings ?? <String>[]) ...[
+                    const SizedBox(height: 12),
+                    Text(warning),
+                  ],
+                  // Proaktywna informacja o tygodniowym limicie konta standardowego.
+                  if (!(Provider.of<AuthProvider>(
+                        context,
+                        listen: false,
+                      ).currentUser?.hasPremiumAccess ??
+                      false)) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: AppTheme.secondaryColor.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppTheme.secondaryColor.withOpacity(0.25),
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            Icons.info_outline,
+                            color: AppTheme.secondaryColor,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Konto standardowe: jeden nowy plan tygodniowo',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Limit odnawia się w poniedziałek. Usunięcie planu go nie odnawia. Premium pozwala tworzyć plany bez limitu.',
+                                  style: TextStyle(
+                                    color: AppTheme.textSecondary,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
             actions: [
               if (!(Provider.of<AuthProvider>(
@@ -408,15 +428,24 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                                           mainAxisAlignment:
                                               MainAxisAlignment.center,
                                           children: [
-                                            Text(
-                                              store.name,
-                                              style: Theme.of(
-                                                context,
-                                              ).textTheme.titleLarge?.copyWith(
-                                                color:
-                                                    isSelected
-                                                        ? AppTheme.primaryColor
-                                                        : AppTheme.textPrimary,
+                                            Flexible(
+                                              child: Text(
+                                                store.name,
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                                textAlign: TextAlign.center,
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .titleLarge
+                                                    ?.copyWith(
+                                                      fontSize: 16,
+                                                      color:
+                                                          isSelected
+                                                              ? AppTheme
+                                                                  .primaryColor
+                                                              : AppTheme
+                                                                  .textPrimary,
+                                                    ),
                                               ),
                                             ),
                                             if (isSelected) ...[
@@ -434,6 +463,15 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                                   },
                                 ),
                       ).animate().fadeIn(),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Koszt planu jest szacunkiem. Ceny i dostępność '
+                        'produktów potwierdź w wybranym sklepie.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
                       const SizedBox(height: 32),
 
                       // 2. Czas trwania planu
@@ -557,7 +595,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Domyślnie z Twojego profilu — możesz to zmienić tylko dla tego planu.',
+                        'Od 1 do 8 osób. Domyślnie z profilu — zmiana dotyczy tylko tego planu.',
                         style: TextStyle(
                           color: AppTheme.textSecondary,
                           fontSize: 12,
@@ -684,10 +722,19 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                       TextField(
                         controller: _kcalController,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
+                        onChanged: (_) {
+                          if (_kcalError != null)
+                            setState(() => _kcalError = null);
+                        },
+                        decoration: InputDecoration(
                           labelText: 'Docelowe kcal / dzień / osoba',
                           hintText: 'np. 2000',
                           suffixText: 'kcal',
+                          helperText:
+                              'Cel z kalkulatora; bez zapisanego celu: 2000 kcal.',
+                          helperMaxLines: 2,
+                          errorText: _kcalError,
+                          errorMaxLines: 2,
                         ),
                       ).animate().fadeIn(delay: 250.ms),
                       const SizedBox(height: 32),
@@ -745,6 +792,31 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                       const SizedBox(height: 48),
 
                       // Przycisk generowania
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(
+                          Icons.favorite_border,
+                          color: AppTheme.primaryColor,
+                        ),
+                        title: const Text('Lubię / Nie lubię'),
+                        subtitle: Text(
+                          'Premium · jedno dopasowane danie dziennie',
+                          style: TextStyle(
+                            color:
+                                AppTheme.isDark
+                                    ? const Color(0xFFFFD166)
+                                    : const Color(0xFF8A5C00),
+                          ),
+                        ),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap:
+                            mealPlanProvider.isGenerating
+                                ? null
+                                : () => Navigator.of(
+                                  context,
+                                ).pushNamed('/profile/ingredients'),
+                      ),
+                      const SizedBox(height: 12),
                       ElevatedButton(
                         onPressed:
                             mealPlanProvider.isGenerating ? null : _generate,

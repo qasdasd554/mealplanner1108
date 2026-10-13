@@ -24,6 +24,7 @@ def _to_response(n: Notification) -> NotificationResponse:
         notification_type=n.notification_type,
         message=n.message,
         recipe_id=n.recipe_id,
+        meal_plan_id=getattr(n, "meal_plan_id", None),
         recipe_name=n.recipe.name if n.recipe_id and n.recipe else None,
         comment_id=n.comment_id,
         is_read=n.is_read,

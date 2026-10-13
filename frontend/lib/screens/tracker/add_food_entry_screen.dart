@@ -359,7 +359,13 @@ class _PlanTabState extends State<_PlanTab> {
       targetDate.month,
       targetDate.day,
     );
-    final diff = targetDay.difference(startDay).inDays + 1;
+    final diff =
+        DateTime.utc(targetDay.year, targetDay.month, targetDay.day)
+            .difference(
+              DateTime.utc(startDay.year, startDay.month, startDay.day),
+            )
+            .inDays +
+        1;
     if (diff < 1 || diff > durationDays) return null;
     return diff;
   }
@@ -380,7 +386,15 @@ class _PlanTabState extends State<_PlanTab> {
       );
     }
 
-    final plan = mealPlanProvider.activePlan;
+    final selectedPlan = mealPlanProvider.currentPlan;
+    final matchingPlans = mealPlanProvider.activePlans.where(
+      (p) => p.dayNumberAt(targetDate) != null,
+    );
+    final plan =
+        selectedPlan?.isInUseAt(DateTime.now()) == true &&
+                selectedPlan?.dayNumberAt(targetDate) != null
+            ? selectedPlan
+            : matchingPlans.firstOrNull ?? mealPlanProvider.activePlan;
     if (plan == null) {
       return _withBarcodeButton(
         context,

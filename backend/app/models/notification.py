@@ -42,6 +42,11 @@ class Notification(Base):
     recipe_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("recipes.id", ondelete="CASCADE"), nullable=True
     )
+    # Plan pozostaje wewnętrznym właścicielem listy zakupów po wygaszeniu.
+    # Opcjonalny identyfikator umożliwia wejście z przypomnienia w jego widok.
+    meal_plan_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), nullable=True
+    )
     comment_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("recipe_comments.id", ondelete="CASCADE"), nullable=True
     )

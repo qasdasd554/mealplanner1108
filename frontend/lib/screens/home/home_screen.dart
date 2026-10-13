@@ -537,17 +537,7 @@ class HomeTab extends StatelessWidget {
 
   // Pomocnicza metoda do obliczania bieżącego dnia planu na podstawie daty startowej
   int _getCurrentPlanDay(MealPlan plan) {
-    if (plan.startDate == null) return 1;
-    try {
-      final start = DateTime.parse(plan.startDate!);
-      final today = DateTime.now();
-      final difference = today.difference(start).inDays + 1;
-      if (difference < 1) return 1;
-      if (difference > plan.durationDays) return plan.durationDays;
-      return difference;
-    } catch (_) {
-      return 1;
-    }
+    return plan.dayNumberAt(DateTime.now()) ?? 1;
   }
 
   @override
@@ -562,8 +552,11 @@ class HomeTab extends StatelessWidget {
     // MealPlanProvider.selectPlan) — activePlan zawsze zwraca pierwszy
     // znaleziony, co uniemożliwiłoby przełączanie się między kilkoma
     // aktywnymi planami.
+    final selectedPlan = mealPlanProvider.currentPlan;
     final activePlan =
-        mealPlanProvider.currentPlan ?? mealPlanProvider.activePlan;
+        selectedPlan?.isInUseAt(DateTime.now()) == true
+            ? selectedPlan
+            : mealPlanProvider.activePlan;
     final currentDay = activePlan != null ? _getCurrentPlanDay(activePlan) : 1;
 
     // Pobierz nazwę sklepu z ID
@@ -734,6 +727,17 @@ class HomeTab extends StatelessWidget {
                     const SizedBox(height: 24),
 
                     // Aktywny Plan Posiłków
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton.icon(
+                        onPressed:
+                            () => Navigator.of(
+                              context,
+                            ).pushNamed('/plan/archive'),
+                        icon: const Icon(Icons.inventory_2_outlined, size: 18),
+                        label: const Text('Archiwum planów'),
+                      ),
+                    ),
                     if ((!mealPlanProvider.hasLoaded ||
                             mealPlanProvider.isLoading) &&
                         mealPlanProvider.plans.isEmpty)
@@ -754,7 +758,9 @@ class HomeTab extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              'Twój aktywny plan',
+                              activePlan.startsAfter(DateTime.now())
+                                  ? 'Twój najbliższy plan'
+                                  : 'Twój aktywny plan',
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: Theme.of(context).textTheme.headlineMedium
@@ -816,9 +822,10 @@ class HomeTab extends StatelessWidget {
                         currentDay: currentDay,
                       ).animate().fadeIn(delay: 200.ms),
                       const SizedBox(height: 12),
-                      ...activePlan.entriesForDay(currentDay).map((entry) {
-                        return _buildMealItem(context, entry);
-                      }).toList(),
+                      if (activePlan.dayNumberAt(DateTime.now()) != null)
+                        ...activePlan.entriesForDay(currentDay).map((entry) {
+                          return _buildMealItem(context, entry);
+                        }).toList(),
                     ] else ...[
                       // Brak aktywnego planu - pusta sekcja zachęcająca do stworzenia
                       _buildNoPlanCard(context).animate().fadeIn(delay: 200.ms),
@@ -1419,7 +1426,9 @@ class HomeTab extends StatelessWidget {
     required String storeName,
     required int currentDay,
   }) {
-    final progress = currentDay / plan.durationDays;
+    final upcoming = plan.startsAfter(DateTime.now());
+    final progress = upcoming ? 0.0 : currentDay / plan.durationDays;
+    final start = DateTime.tryParse(plan.startDate ?? '');
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -1476,7 +1485,9 @@ class HomeTab extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'Dzień $currentDay z ${plan.durationDays}',
+            upcoming && start != null
+                ? 'Plan od ${start.day.toString().padLeft(2, '0')}.${start.month.toString().padLeft(2, '0')}.${start.year}'
+                : 'Dzień $currentDay z ${plan.durationDays}',
             style: Theme.of(
               context,
             ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),

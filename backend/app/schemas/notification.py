@@ -15,6 +15,7 @@ class NotificationResponse(BaseModel):
     notification_type: str
     message: str
     recipe_id: uuid.UUID | None = None
+    meal_plan_id: uuid.UUID | None = None
     recipe_name: str | None = None
     comment_id: uuid.UUID | None = None
     is_read: bool

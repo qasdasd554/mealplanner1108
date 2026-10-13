@@ -123,6 +123,37 @@ async def _create_tables() -> None:
         await conn.execute(
             text("ALTER TABLE users ADD COLUMN IF NOT EXISTS daily_kcal_goal INTEGER")
         )
+        await conn.execute(text(
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS ingredient_preferences JSON"
+        ))
+        # Napraw historyczne ustawienia przed dodaniem rzeczywistej blokady
+        # w bazie. Nie zmieniamy porcji w już wygenerowanych przepisach.
+        await conn.execute(text(
+            "UPDATE users SET household_size = LEAST(8, GREATEST(1, "
+            "COALESCE(household_size, 1))) "
+            "WHERE household_size IS NULL OR household_size < 1 OR household_size > 8"
+        ))
+        await conn.execute(text(
+            "DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_constraint "
+            "WHERE conname = 'ck_users_household_size_1_8' "
+            "AND conrelid = 'users'::regclass) THEN "
+            "ALTER TABLE users ADD CONSTRAINT ck_users_household_size_1_8 "
+            "CHECK (household_size BETWEEN 1 AND 8); END IF; END $$"
+        ))
+        await conn.execute(text(
+            "ALTER TABLE meal_plans ADD COLUMN IF NOT EXISTS "
+            "expiration_reminder_sent_at TIMESTAMPTZ"
+        ))
+        await conn.execute(text(
+            "ALTER TABLE meal_plans ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ"
+        ))
+        await conn.execute(text(
+            "CREATE INDEX IF NOT EXISTS ix_meal_plans_lifecycle "
+            "ON meal_plans (status, start_date)"
+        ))
+        await conn.execute(text(
+            "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS meal_plan_id UUID"
+        ))
         await conn.execute(
             text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_email_verified BOOLEAN NOT NULL DEFAULT false")
         )
@@ -706,6 +737,31 @@ async def _weekly_plan_automation_loop() -> None:
         await asyncio.sleep(10 * 60)
 
 
+async def _run_meal_plan_lifecycle_once() -> None:
+    """Przypomnienia i wygaszanie planów niezależnie od otwarcia aplikacji."""
+    from app.db.session import async_session_factory
+    from app.services.meal_plan_lifecycle import process_due_meal_plans
+
+    async with async_session_factory() as db:
+        processed = await process_due_meal_plans(db)
+        if processed.reminders or processed.archived or processed.removed:
+            logger.info(
+                "Cykl planów: przypomnienia=%d, archiwum=%d, wygaszone=%d",
+                processed.reminders, processed.archived, processed.removed,
+            )
+
+
+async def _meal_plan_lifecycle_background_loop() -> None:
+    # Pierwszy przebieg po starcie nadrabia restart Rendera. Stan i znacznik
+    # powiadomienia są w bazie, nie w pamięci tego procesu.
+    while True:
+        try:
+            await _run_meal_plan_lifecycle_once()
+        except Exception:
+            logger.exception("Błąd przypomnienia lub wygaszania planów posiłków")
+        await asyncio.sleep(5 * 60)
+
+
 async def _backfill_recipe_photo_thumbnails() -> None:
     """Jednorazowo uzupełnia miniatury starszych zdjęć użytkowników.
 
@@ -754,6 +810,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     weekly_contest_task = asyncio.create_task(_weekly_contest_background_loop())
     promotion_expiry_task = asyncio.create_task(_promotion_expiry_background_loop())
     weekly_plan_task = asyncio.create_task(_weekly_plan_automation_loop())
+    meal_plan_lifecycle_task = asyncio.create_task(_meal_plan_lifecycle_background_loop())
     from app.services.recipe_import_worker import recipe_import_worker_loop
 
     recipe_import_task = asyncio.create_task(recipe_import_worker_loop())
@@ -766,6 +823,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     weekly_contest_task.cancel()
     promotion_expiry_task.cancel()
     weekly_plan_task.cancel()
+    meal_plan_lifecycle_task.cancel()
     recipe_import_task.cancel()
     promotion_scan_task.cancel()
 

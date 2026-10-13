@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import '../../providers/meal_plan_provider.dart';
 import '../../providers/store_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../models/meal_plan.dart';
 import '../../models/recipe.dart';
 import '../../services/recipe_service.dart';
@@ -11,7 +12,8 @@ import '../../widgets/recipe_photo.dart';
 import '../../widgets/decorative_circles.dart';
 
 class PlanViewScreen extends StatefulWidget {
-  const PlanViewScreen({super.key});
+  final MealPlan? archivedPlan;
+  const PlanViewScreen({super.key, this.archivedPlan});
 
   @override
   State<PlanViewScreen> createState() => _PlanViewScreenState();
@@ -222,7 +224,41 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
     final mealPlanProvider = Provider.of<MealPlanProvider>(context);
     final storeProvider = Provider.of<StoreProvider>(context);
 
-    final plan = mealPlanProvider.currentPlan;
+    final plan = widget.archivedPlan ?? mealPlanProvider.currentPlan;
+
+    final premium =
+        context.watch<AuthProvider>().currentUser?.hasPremiumAccess ?? false;
+    if (plan != null &&
+        ((plan.isArchived && !premium) ||
+            (!plan.isArchived && plan.isExpiredAt(DateTime.now())))) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Plan zakończony')),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  plan.isArchived
+                      ? 'Podgląd archiwum jest dostępny z Premium.'
+                      : 'Ten plan już się zakończył.',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                FilledButton(
+                  onPressed:
+                      () => Navigator.of(
+                        context,
+                      ).pushNamed(premium ? '/plan/archive' : '/plan/config'),
+                  child: Text(premium ? 'Otwórz archiwum' : 'Utwórz nowy plan'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
     if (plan == null) {
       return Scaffold(
@@ -272,6 +308,11 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            tooltip: 'Archiwum planów',
+            icon: const Icon(Icons.inventory_2_outlined),
+            onPressed: () => Navigator.of(context).pushNamed('/plan/archive'),
+          ),
           IconButton(
             icon: const Icon(Icons.delete_outline, color: AppTheme.errorColor),
             onPressed: () {
@@ -454,10 +495,12 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
                                       );
                                     },
                                     onLongPress:
-                                        () => _openSwapBottomSheet(
-                                          entry,
-                                          plan.id,
-                                        ),
+                                        plan.isArchived
+                                            ? null
+                                            : () => _openSwapBottomSheet(
+                                              entry,
+                                              plan.id,
+                                            ),
                                     child: Container(
                                       margin: const EdgeInsets.only(bottom: 16),
                                       padding: const EdgeInsets.all(18),
@@ -531,17 +574,18 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
                                               ],
                                             ),
                                           ),
-                                          IconButton(
-                                            icon: const Icon(
-                                              Icons.swap_horiz,
-                                              color: AppTheme.primaryColor,
+                                          if (!plan.isArchived)
+                                            IconButton(
+                                              icon: const Icon(
+                                                Icons.swap_horiz,
+                                                color: AppTheme.primaryColor,
+                                              ),
+                                              onPressed:
+                                                  () => _openSwapBottomSheet(
+                                                    entry,
+                                                    plan.id,
+                                                  ),
                                             ),
-                                            onPressed:
-                                                () => _openSwapBottomSheet(
-                                                  entry,
-                                                  plan.id,
-                                                ),
-                                          ),
                                         ],
                                       ),
                                     ),
@@ -557,7 +601,16 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
                 Padding(
                   padding: const EdgeInsets.all(24.0),
                   child:
-                      plan.status == 'draft'
+                      plan.isArchived
+                          ? OutlinedButton.icon(
+                            icon: const Icon(Icons.inventory_2_outlined),
+                            onPressed:
+                                () => Navigator.of(
+                                  context,
+                                ).pushNamed('/plan/archive'),
+                            label: const Text('Archiwum · wznów plan'),
+                          )
+                          : plan.status == 'draft'
                           ? Row(
                             children: [
                               Expanded(

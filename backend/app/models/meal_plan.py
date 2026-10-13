@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 
 from sqlalchemy import (
@@ -50,9 +50,15 @@ class MealPlan(Base):
         String(50),
         default="draft",
         nullable=False,
-        comment="draft | active | completed | archived",
+        comment="draft | active | completed | archived | expired",
     )
     preferences: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    expiration_reminder_sent_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    archived_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -78,6 +84,24 @@ class MealPlan(Base):
 
     def __repr__(self) -> str:
         return f"<MealPlan {self.id} user={self.user_id} {self.start_date}>"
+
+    @property
+    def end_date(self) -> date:
+        """Ostatni dzień planu, włącznie (nie data jego wygaśnięcia)."""
+        return self.start_date + timedelta(days=max(1, self.duration_days) - 1)
+
+    @property
+    def preference_warnings(self) -> list[str]:
+        preferences = self.preferences if isinstance(self.preferences, dict) else {}
+        warnings = preferences.get("preference_warnings", [])
+        if not isinstance(warnings, list):
+            return []
+        return [value for value in warnings if isinstance(value, str)]
+
+    @preference_warnings.setter
+    def preference_warnings(self, warnings: list[str]) -> None:
+        preferences = self.preferences if isinstance(self.preferences, dict) else {}
+        self.preferences = {**preferences, "preference_warnings": warnings}
 
 
 class MealPlanEntry(Base):

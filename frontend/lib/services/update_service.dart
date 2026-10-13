@@ -139,10 +139,11 @@ class UpdateAvailableScreen extends StatelessWidget {
                     forceUpdate
                         ? 'Ta wersja aplikacji nie jest już obsługiwana. '
                             'Zaktualizuj ją, aby korzystać dalej.'
-                        : '• Przywróciliśmy poprzedni wygląd aplikacji.\n'
-                            '• Dodaliśmy prośbę o ocenę w Google Play i App Store — nie częściej niż raz na 10 dni.\n'
-                            '• Skanowanie gazetek administratora działa w tle, bez przerywania po dłuższym oczekiwaniu.\n'
-                            '• Zachowaliśmy poprawki zdjęć przepisów i synchronizacji subskrypcji Premium.',
+                        : '• Dodaliśmy Stokrotkę, Kaufland i Auchan do wyboru sklepów oraz planowania zakupów.\n'
+                            '• Przypominamy o końcu planu posiłków, a zakończone plany znikają z aktywnych.\n'
+                            '• Premium pozwala archiwizować i wznawiać plany oraz wybierać lubiane i nielubiane składniki.\n'
+                            '• Nowy plan korzysta z Twojego celu kalorycznego i obsługuje maksymalnie 8 osób.\n'
+                            '• Czytelniej oznaczamy orientacyjne ceny i brakujące produkty przy porównywaniu zakupów.',
                     style: TextStyle(
                       color: AppTheme.textSecondary,
                       height: 1.5,

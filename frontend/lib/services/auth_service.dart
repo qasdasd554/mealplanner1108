@@ -289,7 +289,8 @@ class AuthService {
     if (preferredStoreId != null) body['preferred_store_id'] = preferredStoreId;
     if (dietaryPreferences != null)
       body['dietary_preferences'] = dietaryPreferences;
-    if (householdSize != null) body['household_size'] = householdSize;
+    if (householdSize != null)
+      body['household_size'] = householdSize.clamp(1, 8);
     if (weightKg != null) body['weight_kg'] = weightKg;
     if (heightCm != null) body['height_cm'] = heightCm;
     if (age != null) body['age'] = age;

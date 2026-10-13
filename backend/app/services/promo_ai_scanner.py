@@ -42,6 +42,9 @@ _AGGREGATOR_SLUGS: dict[str, str] = {
     "Lidl": "lidl",
     "Dino": "dino",
     "Carrefour": "carrefour",
+    "Stokrotka": "stokrotka",
+    "Kaufland": "kaufland",
+    "Auchan": "auchan",
 }
 
 # Bezpiecznik: gazetki bywają duże (kilkadziesiąt stron) — ale Gemini

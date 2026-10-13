@@ -43,9 +43,13 @@ class MealPlanResponse(BaseModel):
     user_id: uuid.UUID
     store_id: uuid.UUID
     start_date: date
+    end_date: date | None = None
     duration_days: int
     meals_per_day: int
     status: str
+    archived_at: datetime | None = None
+    expiration_reminder_sent_at: datetime | None = None
+    preference_warnings: list[str] = Field(default_factory=list)
     estimated_min_budget: float | None = None
     shopping_list_limit_reached: bool = False
     entries: list[MealPlanEntryResponse] = []
@@ -63,7 +67,7 @@ class MealPlanGenerateRequest(BaseModel):
     # wartości z profilu użytkownika (household_size ustawione w onboardingu
     # / profilu). Podanie tej wartości NIE zmienia trwale profilu — dotyczy
     # tylko generowanego teraz planu.
-    household_size: int | None = Field(default=None, ge=1, le=20)
+    household_size: int | None = Field(default=None, ge=1, le=8)
     # Docelowa dzienna kaloryczność na osobę. Wcześniej aplikacja wysyłała
     # to pole, ale backend go nie przyjmował (Pydantic po cichu odrzucał
     # nieznane pole) — ustawienie w formularzu nic nie robiło.
@@ -75,9 +79,10 @@ class MealPlanGenerateRequest(BaseModel):
     # klasy), więc pierwsza była martwym kodem. Scalone w jedną: typ
     # `float` (zgodny z tym, czego wszędzie indziej w kodzie —
     # meal_plan_generator.py — oczekuje ta wartość), z granicami 800-5000
-    # (fizjologicznie sensowniejsze niż ">0", które dopuszczało absurdalne
+    # (obecnie 800-6000, zgodnie z zapisanym celem z kalkulatora; zamiast
+    # ">0", które dopuszczało absurdalne
     # wartości typu target_kcal=1).
-    target_kcal: float | None = Field(default=None, ge=800, le=5000)
+    target_kcal: float | None = Field(default=None, ge=800, le=6000)
     # Użytkownik może wygenerować listę zakupów z uwzględnieniem tego,
     # co już ma w domu, albo zobaczyć pełne zapotrzebowanie bez spiżarni.
     include_pantry: bool = True

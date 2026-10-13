@@ -5,7 +5,33 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, EmailStr, model_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
+
+
+class IngredientPreferencesUpdate(BaseModel):
+    """Uporządkowane preferencje Premium, niezależne od alergii i diety."""
+
+    liked_product_ids: list[uuid.UUID] = Field(default_factory=list, max_length=50)
+    disliked_product_ids: list[uuid.UUID] = Field(default_factory=list, max_length=50)
+
+    @model_validator(mode="after")
+    def validate_products(self):
+        if set(self.liked_product_ids) & set(self.disliked_product_ids):
+            raise ValueError("Składnik nie może być jednocześnie lubiany i nielubiany.")
+        self.liked_product_ids = list(dict.fromkeys(self.liked_product_ids))
+        self.disliked_product_ids = list(dict.fromkeys(self.disliked_product_ids))
+        return self
+
+
+class IngredientPreferenceProduct(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: uuid.UUID
+    name: str
+
+
+class IngredientPreferencesResponse(IngredientPreferencesUpdate):
+    liked_products: list[IngredientPreferenceProduct] = Field(default_factory=list)
+    disliked_products: list[IngredientPreferenceProduct] = Field(default_factory=list)
 
 
 class UserCreate(BaseModel):
@@ -16,7 +42,7 @@ class UserCreate(BaseModel):
     display_name: str | None = None
     preferred_store_id: uuid.UUID | None = None
     dietary_preferences: dict | None = None
-    household_size: int = 1
+    household_size: int = Field(default=1, ge=1, le=8)
     allergen_ids: list[uuid.UUID] = []
 
 
@@ -31,6 +57,7 @@ class UserResponse(BaseModel):
     tiktok_username: str | None = None
     preferred_store_id: uuid.UUID | None = None
     dietary_preferences: dict | None = None
+    ingredient_preferences: IngredientPreferencesUpdate = Field(default_factory=IngredientPreferencesUpdate)
     household_size: int
     weight_kg: float | None = None
     height_cm: float | None = None
@@ -67,6 +94,11 @@ class UserResponse(BaseModel):
     # premium wracało z 403 — użytkownik widział aktywne premium, którego
     # nie dało się użyć.
     has_premium_access: bool = False
+
+    @field_validator("ingredient_preferences", mode="before")
+    @classmethod
+    def empty_legacy_ingredient_preferences(cls, value):
+        return value or {}
 
     @model_validator(mode="after")
     def compute_premium_access(self):

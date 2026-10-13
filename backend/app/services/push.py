@@ -198,6 +198,7 @@ _TITLES: dict[str, str] = {
     "friend_accepted": "Zaproszenie przyjęte",
     "weekly_plan_ready": "Twój plan na tydzień jest gotowy",
     "weekly_plan_failed": "Automatyczny tydzień wymaga uwagi",
+    "meal_plan_expiring": "Twój plan wkrótce się kończy",
 }
 
 
@@ -215,6 +216,8 @@ async def push_for_notification(db: AsyncSession, notification) -> None:
     data = {"type": notification.notification_type}
     if notification.recipe_id:
         data["recipe_id"] = str(notification.recipe_id)
+    if getattr(notification, "meal_plan_id", None):
+        data["meal_plan_id"] = str(notification.meal_plan_id)
     try:
         await send_push_to_user(db, notification.user_id, title, notification.message, data)
     except Exception:

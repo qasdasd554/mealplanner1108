@@ -41,6 +41,9 @@ class MealPlan {
   final String userId;
   final String storeId;
   final String? startDate;
+  final String? endDate;
+  final DateTime? archivedAt;
+  final List<String> preferenceWarnings;
   final int durationDays;
   final int mealsPerDay;
   final String status; // 'draft', 'active', 'completed', 'archived'
@@ -54,6 +57,9 @@ class MealPlan {
     required this.userId,
     required this.storeId,
     this.startDate,
+    this.endDate,
+    this.archivedAt,
+    this.preferenceWarnings = const [],
     required this.durationDays,
     required this.mealsPerDay,
     required this.status,
@@ -69,6 +75,12 @@ class MealPlan {
       userId: json['user_id'] as String,
       storeId: json['store_id'] as String,
       startDate: json['start_date'] as String?,
+      endDate: json['end_date'] as String?,
+      archivedAt: DateTime.tryParse(json['archived_at'] as String? ?? ''),
+      preferenceWarnings:
+          (json['preference_warnings'] as List<dynamic>? ?? [])
+              .whereType<String>()
+              .toList(),
       durationDays: json['duration_days'] as int? ?? 3,
       mealsPerDay: json['meals_per_day'] as int? ?? 3,
       status: json['status'] as String? ?? 'draft',
@@ -101,6 +113,50 @@ class MealPlan {
     });
     return list;
   }
+
+  bool get isArchived => status == 'archived';
+
+  DateTime? get lastDay {
+    final explicit = DateTime.tryParse(endDate ?? '');
+    final start = DateTime.tryParse(startDate ?? '');
+    if (explicit != null) {
+      return DateTime(explicit.year, explicit.month, explicit.day);
+    }
+    if (start == null || durationDays < 1) return null;
+    return DateTime(start.year, start.month, start.day + durationDays - 1);
+  }
+
+  bool isExpiredAt(DateTime now) {
+    final last = lastDay;
+    return last != null && DateTime(now.year, now.month, now.day).isAfter(last);
+  }
+
+  bool isInUseAt(DateTime now) =>
+      (status == 'active' || status == 'draft') && !isExpiredAt(now);
+
+  int? dayNumberAt(DateTime day) {
+    final start = DateTime.tryParse(startDate ?? '');
+    if (start == null) return null;
+    // Compare calendar days, not hours: a DST change must not move the menu.
+    final offset =
+        DateTime.utc(
+          day.year,
+          day.month,
+          day.day,
+        ).difference(DateTime.utc(start.year, start.month, start.day)).inDays +
+        1;
+    return offset >= 1 && offset <= durationDays ? offset : null;
+  }
+
+  bool startsAfter(DateTime day) {
+    final start = DateTime.tryParse(startDate ?? '');
+    return start != null &&
+        DateTime(
+          start.year,
+          start.month,
+          start.day,
+        ).isAfter(DateTime(day.year, day.month, day.day));
+  }
 }
 
 class MealPlanGenerateRequest {
@@ -130,7 +186,7 @@ class MealPlanGenerateRequest {
     'meals_per_day': mealsPerDay,
     'max_budget': maxBudget,
     'target_kcal': targetKcal,
-    'household_size': householdSize,
+    'household_size': householdSize?.clamp(1, 8),
     'include_pantry': includePantry,
     'preferences': preferences,
   };
