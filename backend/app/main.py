@@ -19,6 +19,7 @@ from app.core.release_version import APP_VERSION
 from app.db.session import Base, get_db
 
 logger = logging.getLogger(__name__)
+BACKFILL_BATCH_SIZE = 25
 
 
 async def _create_tables() -> None:
@@ -583,56 +584,43 @@ async def _backfill_missing_nutrition_totals() -> None:
         from app.services.nutrition_calculator import compute_recipe_nutrition_total
 
         async with async_session_factory() as db:
-            # UWAGA (naprawa): filtrowanie `WHERE nutrition_total IS NULL`
-            # na poziomie SQL nie wyłapywało wszystkich przypadków — dla
-            # kolumn typu JSON, Python `None` bywa zapisany jako literał
-            # JSON "null" (prawdziwa wartość JSON), a nie jako SQL NULL,
-            # więc `.is_(None)` w zapytaniu SQL nie zawsze to dopasowuje.
-            # Pobieramy więc WSZYSTKIE przepisy i sprawdzamy w Pythonie —
-            # po deserializacji SQLAlchemy oba przypadki (SQL NULL i JSON
-            # "null") stają się identycznie Python `None`, więc to
-            # niezawodne niezależnie od tego, jak faktycznie jest
-            # zapisane w bazie. Tabela przepisów nie jest na tyle duża
-            # (dziesiątki/setki, nie miliony), żeby to było problemem
-            # wydajnościowym przy starcie aplikacji.
-            result = await db.execute(
-                select(Recipe).options(
-                    selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product)
-                )
-            )
-            all_recipes = list(result.scalars().all())
-            recipes = [r for r in all_recipes if not r.nutrition_total]
-
-            # PRZELICZENIE po zmianie sposobu liczenia tłuszczu do
-            # smażenia (patrz _edible_grams w nutrition_calculator.py).
-            # Przepisy, które mają już zapisane `nutrition_total`, nie
-            # zostałyby ruszone przez powyższy warunek, więc smażone dania
-            # zostałyby ze starą, mocno zawyżoną kalorycznością. Bierzemy
-            # tylko te, w których faktycznie występuje tłuszcz smażalniczy
-            # — nie ma powodu przeliczać całego katalogu.
+            from sqlalchemy.orm import load_only
+            from app.models.product import Product
             from app.services.nutrition_calculator import FRYING_FATS
-
-            already_selected = {r.id for r in recipes}
-            for r in all_recipes:
-                if r.id in already_selected:
-                    continue
-                has_package_ingredient = any(
-                    ing.unit == "opak" for ing in r.ingredients
-                )
-                has_frying_fat = any(
-                    (ing.product.name or "").strip().lower() in FRYING_FATS
-                    for ing in r.ingredients
-                    if ing.product is not None
-                )
-                if has_frying_fat or has_package_ingredient:
-                    recipes.append(r)
-
-            if not recipes:
-                return
-            for recipe in recipes:
-                recipe.nutrition_total = compute_recipe_nutrition_total(recipe.ingredients)
-            await db.commit()
-            logger.info("Przeliczono nutrition_total dla %d przepisów.", len(recipes))
+            cursor = None
+            updated = 0
+            # SQL NULL i JSON null nadal rozpoznajemy po deserializacji.
+            # Nie pobieramy jednak zdjęć ani całego katalogu do pamięci.
+            while True:
+                query = select(Recipe).options(
+                    load_only(Recipe.id, Recipe.nutrition_total),
+                    selectinload(Recipe.ingredients)
+                    .selectinload(RecipeIngredient.product)
+                    .load_only(Product.id, Product.name, Product.nutrition_per_100,
+                               Product.serving_quantity, Product.measure_options),
+                ).order_by(Recipe.id).limit(BACKFILL_BATCH_SIZE)
+                if cursor is not None:
+                    query = query.where(Recipe.id > cursor)
+                rows = list((await db.execute(query)).scalars().all())
+                if not rows:
+                    break
+                cursor = rows[-1].id
+                changed = False
+                for recipe in rows:
+                    needs_recalculation = not recipe.nutrition_total or any(
+                        ingredient.unit == "opak" or (
+                            ingredient.product is not None and
+                            (ingredient.product.name or "").strip().lower() in FRYING_FATS
+                        ) for ingredient in recipe.ingredients
+                    )
+                    if needs_recalculation:
+                        recipe.nutrition_total = compute_recipe_nutrition_total(recipe.ingredients)
+                        updated += 1
+                        changed = True
+                if changed:
+                    await db.commit()
+            if updated:
+                logger.info("Przeliczono nutrition_total dla %d przepisów.", updated)
     except Exception:
         logger.exception("Błąd podczas uzupełniania nutrition_total.")
 
@@ -772,28 +760,37 @@ async def _backfill_recipe_photo_thumbnails() -> None:
     from app.db.session import async_session_factory
     from app.models.recipe import Recipe
     from app.services.recipe_photo_thumbnail import create_recipe_photo_thumbnail
+    from sqlalchemy.orm import load_only
 
     async with async_session_factory() as db:
-        result = await db.execute(
-            select(Recipe).where(
-                Recipe.photo_base64.is_not(None),
-                Recipe.photo_thumbnail_base64.is_(None),
-            )
-        )
-        recipes = list(result.scalars().all())
         updated = 0
-        for recipe in recipes:
-            thumbnail = await asyncio.to_thread(
-                create_recipe_photo_thumbnail,
-                recipe.photo_base64,
-            )
-            if thumbnail is None:
-                continue
-            recipe.photo_thumbnail_base64 = thumbnail
-            db.add(recipe)
-            updated += 1
+        cursor = None
+        while True:
+            query = select(Recipe).options(
+                load_only(Recipe.id, Recipe.photo_base64, Recipe.photo_thumbnail_base64)
+            ).where(
+                Recipe.photo_base64.is_not(None), Recipe.photo_thumbnail_base64.is_(None),
+            ).order_by(Recipe.id).limit(BACKFILL_BATCH_SIZE)
+            if cursor is not None:
+                query = query.where(Recipe.id > cursor)
+            recipes = list((await db.execute(query)).scalars().all())
+            if not recipes:
+                break
+            # Przechodzimy dalej również po błędnym zdjęciu, bez pętli
+            # próbującej przetwarzać ten sam niepoprawny rekord.
+            cursor = recipes[-1].id
+            changed = False
+            for recipe in recipes:
+                thumbnail = await asyncio.to_thread(create_recipe_photo_thumbnail, recipe.photo_base64)
+                if thumbnail is None:
+                    continue
+                recipe.photo_thumbnail_base64 = thumbnail
+                db.add(recipe)
+                updated += 1
+                changed = True
+            if changed:
+                await db.commit()
         if updated:
-            await db.commit()
             logger.info("Utworzono %d brakujących miniaturek przepisów.", updated)
 
 
@@ -912,11 +909,15 @@ app.include_router(v1_router, prefix=settings.API_V1_PREFIX)
     summary="Sprawdzenie stanu aplikacji i połączenia z bazą danych",
 )
 @app.head("/health", include_in_schema=False)
-async def health_check(db: AsyncSession = Depends(get_db)) -> dict[str, str]:
+async def health_check(request: Request, db: AsyncSession = Depends(get_db)) -> dict[str, str]:
     """Zwraca status zdrowia aplikacji oraz informację o bazie danych Neon."""
     from app.models.product import Product
 
     db_provider = "Neon PostgreSQL" if "neon.tech" in settings.DATABASE_URL else "PostgreSQL"
+    # Readiness/HEAD ma potwierdzać połączenie, bez skanowania całej tabeli.
+    if request.method == "HEAD":
+        await db.scalar(select(1))
+        return {"status": "healthy"}
     catalog_products = await db.scalar(select(func.count(Product.id))) or 0
     return {
         "status": "healthy",
@@ -924,7 +925,7 @@ async def health_check(db: AsyncSession = Depends(get_db)) -> dict[str, str]:
         "release": APP_VERSION,
         "catalog_products": str(catalog_products),
         "database_provider": db_provider,
-        "database_host": "ep-small-lab-b1y3gm3e.c-5.eu-central-1.aws.neon.tech" if "neon.tech" in settings.DATABASE_URL else "local",
+        "database_host": "configured" if "neon.tech" in settings.DATABASE_URL else "local",
     }
 
 

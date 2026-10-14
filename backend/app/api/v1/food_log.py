@@ -111,6 +111,9 @@ async def create_food_log_entry(
     recipe: Optional[Recipe] = None
     if db_entry.recipe_id:
         recipe = await db.get(Recipe, db_entry.recipe_id)
+        from app.services.recipe_access import ensure_recipe_access
+
+        await ensure_recipe_access(db, recipe, current_user)
         # UWAGA (naprawa): wcześniej brak przepisu o podanym recipe_id był
         # cicho ignorowany — kod po prostu pomijał automatyczne przeliczenie
         # wartości odżywczych, ale NADAL próbował zapisać wpis z
@@ -163,6 +166,13 @@ async def read_food_log_entries(
     )
     if entry_date:
         query = query.where(FoodLogEntry.date == entry_date)
+    else:
+        from app.core.premium import is_premium_active
+
+        if not is_premium_active(current_user):
+            query = query.where(
+                FoodLogEntry.date >= date.today() - timedelta(days=FREE_TIER_HISTORY_DAYS)
+            )
     query = query.order_by(FoodLogEntry.created_at)
 
     result = await db.execute(query)
@@ -211,13 +221,20 @@ async def get_recent_food_log_entries(
     current_user: User = Depends(get_current_user),
 ):
     """Ostatnie wpisy do szybkiego ponownego dodania w Dzienniku."""
-    result = await db.execute(
+    query = (
         select(FoodLogEntry)
         .where(FoodLogEntry.user_id == current_user.id)
         .options(selectinload(FoodLogEntry.recipe))
         .order_by(FoodLogEntry.created_at.desc())
         .limit(limit)
     )
+    from app.core.premium import is_premium_active
+
+    if not is_premium_active(current_user):
+        query = query.where(
+            FoodLogEntry.date >= date.today() - timedelta(days=FREE_TIER_HISTORY_DAYS)
+        )
+    result = await db.execute(query)
     return [_to_response(entry) for entry in result.scalars().all()]
 
 

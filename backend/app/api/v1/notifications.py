@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -34,7 +34,7 @@ def _to_response(n: Notification) -> NotificationResponse:
 
 @router.get("/", response_model=List[NotificationResponse])
 async def list_notifications(
-    limit: int = 50,
+    limit: int = Query(default=50, ge=1, le=200),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -136,8 +136,8 @@ async def send_broadcast_notification(
 # TOKENY URZĄDZEŃ (powiadomienia push)
 # ══════════════════════════════════════════════════════════════════
 class DeviceTokenRequest(BaseModel):
-    token: str
-    platform: str | None = None
+    token: str = Field(min_length=1, max_length=512)
+    platform: str | None = Field(default=None, pattern="^(ios|android)$")
 
 
 @router.post("/device-token", status_code=status.HTTP_204_NO_CONTENT)

@@ -2,6 +2,7 @@
 
 import hashlib
 import logging
+import math
 import re
 import unicodedata
 import uuid
@@ -9,7 +10,7 @@ from decimal import Decimal
 from uuid import UUID
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy import or_, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import IntegrityError
@@ -36,6 +37,7 @@ from app.schemas.product import (
 from app.services import ProductSubstitutionService
 from app.services.barcode_lookup import (
     BarcodeLookupResult,
+    EXPLICIT_NUTRITION_SOURCES,
     has_complete_nutrition,
     lookup_barcode_external,
     find_nutrition_by_name,
@@ -97,14 +99,16 @@ def _response_has_complete_nutrition(response: BarcodeLookupResponse) -> bool:
         response.fat_per_100,
         response.carbs_per_100,
     )
-    return all(value is not None for value in values) and any(
-        value > 0 for value in values if value is not None
-    )
+    return all(
+        value is not None and math.isfinite(value) and value >= 0 for value in values
+    ) and (response.source in EXPLICIT_NUTRITION_SOURCES or any(value > 0 for value in values))
 
 
 def _merge_local_barcode_response(
     local: BarcodeLookupResponse,
     external: BarcodeLookupResult,
+    *,
+    include_package: bool = True,
 ) -> BarcodeLookupResponse:
     """Zachowuje zweryfikowaną nazwę lokalną, ale wymienia stare 0/0/0/0."""
     local_nutrition = (
@@ -113,7 +117,7 @@ def _merge_local_barcode_response(
         local.fat_per_100,
         local.carbs_per_100,
     )
-    placeholders = all(value == 0 for value in local_nutrition)
+    placeholders = not _response_has_complete_nutrition(local) and all(value == 0 for value in local_nutrition)
 
     def nutrition(
         local_value: float | None,
@@ -131,7 +135,7 @@ def _merge_local_barcode_response(
         unit=(
             external.unit
             if local.unit == "opak"
-            and external.serving_quantity is not None
+            and include_package and external.serving_quantity is not None
             and external.unit in {"g", "ml"}
             else local.unit or external.unit
         ),
@@ -148,7 +152,7 @@ def _merge_local_barcode_response(
         serving_quantity=(
             local.serving_quantity
             if local.serving_quantity is not None
-            else external.serving_quantity
+            else external.serving_quantity if include_package else None
         ),
     )
 
@@ -172,6 +176,8 @@ class ProductNameSuggestion(BaseModel):
 
 class RecipeIngredientProductCreate(BaseModel):
     """Wybrany wynik wyszukiwania po nazwie użyty w prywatnym przepisie."""
+
+    model_config = ConfigDict(str_strip_whitespace=True)
 
     name: str = Field(..., min_length=2, max_length=300)
     brand: str | None = Field(None, max_length=200)
@@ -217,6 +223,7 @@ async def _enrich_recipe_ingredient_product(
     product: Product,
     payload: RecipeIngredientProductCreate,
     db: AsyncSession,
+    user_id: UUID,
 ) -> Product:
     """Uzupełnia makro i gramaturę przed zapisaniem składnika przepisu."""
     changed = False
@@ -227,16 +234,20 @@ async def _enrich_recipe_ingredient_product(
         "carbs": payload.carbs_per_100,
         "fiber": (product.nutrition_per_100 or {}).get("fiber"),
     }
+    owns_product = product.created_by_user_id == user_id
     if (
+        owns_product
+        and
         not _nutrition_values_are_complete(product.nutrition_per_100)
         and _nutrition_values_are_complete(incoming)
     ):
         product.nutrition_per_100 = incoming
         changed = True
-    if product.serving_quantity is None and payload.serving_quantity is not None:
+    if owns_product and product.serving_quantity is None and payload.serving_quantity is not None:
         product.serving_quantity = payload.serving_quantity
         changed = True
-    barcode = product.barcode or payload.barcode
+    # A client's barcode for a shared product is not a trusted identity.
+    barcode = product.barcode or (payload.barcode if owns_product else None)
     if barcode:
         from app.services.barcode_lookup import barcode_variants
 
@@ -261,7 +272,7 @@ async def _enrich_recipe_ingredient_product(
     if not _nutrition_values_are_complete(product.nutrition_per_100):
         external = await lookup_barcode_external(barcode) if barcode else None
         if external is None or not has_complete_nutrition(external):
-            by_name = await find_nutrition_by_name(product.name, product.brand)
+            by_name = await find_nutrition_by_name(product.name, product.brand, barcode=barcode)
             if by_name is not None:
                 external = (
                     merge_lookup_results(external, by_name)
@@ -469,7 +480,8 @@ async def lookup_barcode(
         )
         cached = cached_result.scalar_one_or_none()
         if cached is not None and cached.serving_quantity is not None:
-            local_response.serving_quantity = cached.serving_quantity
+            if local_response.serving_quantity is None:
+                local_response.serving_quantity = cached.serving_quantity
             # Jednostka opisuje podstawę masy opakowania, podczas gdy sam
             # zapis do katalogu/spiżarni pozostaje zawsze „1 opakowanie”.
             local_response.unit = cached.unit
@@ -493,7 +505,12 @@ async def lookup_barcode(
             nutrition = cached.nutrition_per_100 or {}
             local_response = BarcodeLookupResponse(
                 found=True,
-                source="neon_cache",
+                source=(
+                    cached.source
+                    if cached.source in EXPLICIT_NUTRITION_SOURCES
+                    and all(nutrition.get(key) == 0 for key in ("kcal", "protein", "fat", "carbs"))
+                    else "neon_cache"
+                ),
                 name=cached.name,
                 brand=cached.brand,
                 unit=cached.unit,
@@ -517,6 +534,7 @@ async def lookup_barcode(
             internet_nutrition = await find_nutrition_by_name(
                 external.name,
                 external.brand,
+                barcode=normalized_barcode,
             )
             if internet_nutrition is not None:
                 external = merge_lookup_results(external, internet_nutrition)
@@ -572,11 +590,13 @@ async def lookup_barcode(
         internet_nutrition = await find_nutrition_by_name(
             local_response.name or "",
             local_response.brand,
+            barcode=normalized_barcode,
         )
         if internet_nutrition is not None:
             local_response = _merge_local_barcode_response(
                 local_response,
                 internet_nutrition,
+                include_package=False,
             )
             if existing is not None and _response_has_complete_nutrition(
                 local_response
@@ -623,6 +643,8 @@ class ProductLabelRecognitionRequest(BaseModel):
 
 
 class ProductLabelConfirmation(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     barcode: str = Field(..., min_length=8, max_length=50)
     name: str = Field(..., min_length=2, max_length=300)
     brand: str | None = Field(None, max_length=200)
@@ -820,7 +842,7 @@ async def search_products_by_name(
     )
 
     suggestions: list[ProductNameSuggestion] = []
-    suggestion_indexes: dict[tuple[str, str], int] = {}
+    suggestion_indexes: dict[tuple[str, str, str], int] = {}
 
     def suggestion_has_nutrition(suggestion: ProductNameSuggestion) -> bool:
         return _nutrition_values_are_complete({
@@ -831,7 +853,12 @@ async def search_products_by_name(
         })
 
     def add_suggestion(suggestion: ProductNameSuggestion) -> None:
-        key = (suggestion.name.casefold(), (suggestion.brand or "").casefold())
+        # Equal names/brands can still be different flavours or pack sizes.
+        # Merge catalog/cache fields only when the GTIN identity also agrees.
+        key = (
+            suggestion.name.casefold(), (suggestion.brand or "").casefold(),
+            suggestion.barcode.zfill(14) if suggestion.barcode else "",
+        )
         existing_index = suggestion_indexes.get(key)
         if existing_index is not None:
             existing = suggestions[existing_index]
@@ -956,7 +983,7 @@ async def resolve_recipe_ingredient_product(
         existing = result.scalar_one_or_none()
         if existing is None:
             raise HTTPException(status_code=404, detail="Nie znaleziono produktu")
-        return await _enrich_recipe_ingredient_product(existing, payload, db)
+        return await _enrich_recipe_ingredient_product(existing, payload, db, current_user.id)
 
     name = " ".join(payload.name.split())
     brand = (payload.brand or "").strip() or None
@@ -981,7 +1008,7 @@ async def resolve_recipe_ingredient_product(
             )
         )
         if same_dimension:
-            return await _enrich_recipe_ingredient_product(existing, payload, db)
+            return await _enrich_recipe_ingredient_product(existing, payload, db, current_user.id)
     result = await db.execute(select(Product).where(
         Product.created_by_user_id == current_user.id,
         Product.review_status == "private",
@@ -991,7 +1018,7 @@ async def resolve_recipe_ingredient_product(
     ).limit(1))
     existing = result.scalar_one_or_none()
     if existing is not None:
-        return await _enrich_recipe_ingredient_product(existing, payload, db)
+        return await _enrich_recipe_ingredient_product(existing, payload, db, current_user.id)
 
     from app.core.rate_limit import enforce_user_rate_limit, recipe_ingredient_limiter
 
@@ -1207,6 +1234,8 @@ class ProductSubmission(BaseModel):
     w dzienniku kalorii doda po prostu 0 kcal.
     """
 
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     name: str = Field(..., min_length=2, max_length=300)
     price: Decimal | None = Field(None, gt=0, le=10_000)
     unit: str = Field("szt", max_length=20)
@@ -1312,11 +1341,11 @@ async def submit_product(
         )
     ):
         nutrition = {
-            "kcal": payload.kcal_per_100 or 0,
-            "protein": payload.protein_per_100 or 0,
-            "fat": payload.fat_per_100 or 0,
-            "carbs": payload.carbs_per_100 or 0,
-            "fiber": 0,
+            "kcal": payload.kcal_per_100,
+            "protein": payload.protein_per_100,
+            "fat": payload.fat_per_100,
+            "carbs": payload.carbs_per_100,
+            "fiber": None,
         }
 
     from app.services.product_measures import build_measure_options
@@ -1357,6 +1386,7 @@ async def submit_product(
         await db.flush()
         locked_user = await db.scalar(
             select(User).where(User.id == current_user.id).with_for_update()
+            .execution_options(populate_existing=True)
         )
         if locked_user is None:
             raise HTTPException(status_code=401, detail="Użytkownik nie istnieje")
@@ -1450,18 +1480,46 @@ async def update_own_product(
     was_pending = product.review_status == "pending"
 
     nutrition = None
-    if payload.kcal_per_100 is not None:
+    if any(value is not None for value in (
+        payload.kcal_per_100, payload.protein_per_100,
+        payload.fat_per_100, payload.carbs_per_100,
+    )):
         nutrition = {
             "kcal": payload.kcal_per_100,
-            "protein": payload.protein_per_100 or 0,
-            "fat": payload.fat_per_100 or 0,
-            "carbs": payload.carbs_per_100 or 0,
-            "fiber": 0,
+            "protein": payload.protein_per_100,
+            "fat": payload.fat_per_100,
+            "carbs": payload.carbs_per_100,
+            "fiber": None,
         }
+
+    normalized_barcode = product.barcode
+    if payload.barcode:
+        from app.services.barcode_lookup import normalize_barcode
+
+        normalized_barcode = normalize_barcode(payload.barcode)
+        if normalized_barcode is None:
+            raise HTTPException(status_code=400, detail="Nieprawidłowy kod EAN/UPC")
+
+    from app.services.product_measures import build_measure_options
+
+    if "serving_quantity" in payload.model_fields_set:
+        product.serving_quantity = payload.serving_quantity
+    requested_unit = payload.unit.strip() or "szt"
+    product_unit = (
+        "opak"
+        if normalized_barcode and product.serving_quantity is not None
+        else requested_unit if requested_unit != "opak" else payload.serving_unit or "g"
+    )
+    default_quantity = 1 if product_unit in {"opak", "szt", "kg", "l"} else 100
 
     product.name = payload.name.strip()
     product.brand = (payload.brand or "").strip() or None
-    product.unit = payload.unit.strip() or "szt"
+    product.unit = product_unit
+    product.default_quantity = Decimal(default_quantity)
+    product.measure_options = build_measure_options(
+        product.name, payload.serving_unit or product_unit,
+        default_quantity, product.serving_quantity,
+    )
     product.nutrition_per_100 = nutrition
     product.submitted_price = payload.price
     product.requested_store_ids = [str(sid) for sid in payload.store_ids] or None
@@ -1469,7 +1527,7 @@ async def update_own_product(
     # kreskowy (np. gdy edytujący nie skanował ponownie), więc pusta
     # wartość NIE MA kasować już zapisanego kodu.
     if payload.barcode:
-        product.barcode = payload.barcode.strip()
+        product.barcode = normalized_barcode
     # Patrz docstring — każda edycja wraca do kolejki moderacji.
     product.review_status = "pending"
 

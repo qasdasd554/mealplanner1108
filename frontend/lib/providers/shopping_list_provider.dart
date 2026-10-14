@@ -22,6 +22,8 @@ class ShoppingListProvider with ChangeNotifier {
   List<ShoppingList> _allLists = [];
   String? _selectedListId;
   final Set<String> _pendingToggleIds = <String>{};
+  int _requestGeneration = 0;
+  int _sessionGeneration = 0;
 
   ShoppingList? get currentList => _currentList;
   List<ShoppingList> get allLists => _allLists;
@@ -46,11 +48,14 @@ class ShoppingListProvider with ChangeNotifier {
   /// pierwszą dostępną, żeby ekran nigdy nie był pusty tylko dlatego, że
   /// aktywny plan akurat nie ma listy.
   Future<void> loadAllLists({String? preferredListId}) async {
+    final generation = ++_requestGeneration;
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
     try {
-      _allLists = await _shoppingListService.getMyLists();
+      final lists = await _shoppingListService.getMyLists();
+      if (generation != _requestGeneration) return;
+      _allLists = lists;
 
       String? target = preferredListId;
       // Porównujemy po mealPlanId, bo tym identyfikatorem backend
@@ -64,16 +69,21 @@ class ShoppingListProvider with ChangeNotifier {
 
       if (target != null) {
         _selectedListId = target;
-        _currentList = await _shoppingListService.getShoppingList(target);
+        final list = await _shoppingListService.getShoppingList(target);
+        if (generation != _requestGeneration) return;
+        _currentList = list;
       } else {
         _selectedListId = null;
         _currentList = null;
       }
     } catch (e) {
+      if (generation != _requestGeneration) return;
       _errorMessage = friendlyError(e);
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (generation == _requestGeneration) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
@@ -91,17 +101,21 @@ class ShoppingListProvider with ChangeNotifier {
     String unit = 'szt',
   }) async {
     if (_selectedListId == null) return false;
+    final session = _sessionGeneration;
+    final listId = _selectedListId!;
     _errorMessage = null;
     try {
       await _shoppingListService.addProduct(
-        _selectedListId!,
+        listId,
         productId,
         quantity: quantity,
         unit: unit,
       );
-      await loadShoppingList(_selectedListId!);
+      if (session != _sessionGeneration) return false;
+      if (_selectedListId == listId) await loadShoppingList(listId);
       return true;
     } catch (e) {
+      if (session != _sessionGeneration) return false;
       _errorMessage = friendlyError(e);
       notifyListeners();
       return false;
@@ -114,17 +128,21 @@ class ShoppingListProvider with ChangeNotifier {
     String unit = 'szt',
   }) async {
     if (_selectedListId == null || name.trim().isEmpty) return false;
+    final session = _sessionGeneration;
+    final listId = _selectedListId!;
     _errorMessage = null;
     try {
       await _shoppingListService.addCustomItem(
-        _selectedListId!,
+        listId,
         name.trim(),
         quantity: quantity,
         unit: unit,
       );
-      await loadShoppingList(_selectedListId!);
+      if (session != _sessionGeneration) return false;
+      if (_selectedListId == listId) await loadShoppingList(listId);
       return true;
     } catch (e) {
+      if (session != _sessionGeneration) return false;
       _errorMessage = friendlyError(e);
       notifyListeners();
       return false;
@@ -132,11 +150,14 @@ class ShoppingListProvider with ChangeNotifier {
   }
 
   Future<bool> createEmptyList(String storeId) async {
+    if (_isLoading) return false;
+    final session = _sessionGeneration;
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
     try {
       final created = await _shoppingListService.createEmptyList(storeId);
+      if (session != _sessionGeneration) return false;
       _currentList = created;
       _selectedListId = created.mealPlanId;
       _allLists = [
@@ -145,20 +166,26 @@ class ShoppingListProvider with ChangeNotifier {
       ];
       return true;
     } catch (e) {
+      if (session != _sessionGeneration) return false;
       _errorMessage = friendlyError(e);
       return false;
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (session == _sessionGeneration) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
   Future<bool> mergeLists(List<String> listIds) async {
+    if (_isLoading) return false;
+    final session = _sessionGeneration;
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
     try {
       final merged = await _shoppingListService.mergeLists(listIds);
+      if (session != _sessionGeneration) return false;
       final sourceIds = listIds.toSet();
       _allLists = [
         merged,
@@ -168,11 +195,14 @@ class ShoppingListProvider with ChangeNotifier {
       _selectedListId = merged.mealPlanId;
       return true;
     } catch (e) {
+      if (session != _sessionGeneration) return false;
       _errorMessage = friendlyError(e);
       return false;
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (session == _sessionGeneration) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
@@ -180,13 +210,16 @@ class ShoppingListProvider with ChangeNotifier {
   /// aktualnie oglądaną, `loadAllLists` sam przełączy się na pierwszą
   /// dostępną (albo wyczyści widok, gdy nie ma już żadnej).
   Future<bool> deleteList(String listId) async {
+    final session = _sessionGeneration;
     _errorMessage = null;
     try {
       await _shoppingListService.deleteList(listId);
+      if (session != _sessionGeneration) return false;
       final wasSelected = listId == _selectedListId;
       await loadAllLists(preferredListId: wasSelected ? null : _selectedListId);
       return true;
     } catch (e) {
+      if (session != _sessionGeneration) return false;
       _errorMessage = friendlyError(e);
       notifyListeners();
       return false;
@@ -197,15 +230,19 @@ class ShoppingListProvider with ChangeNotifier {
   /// spiżarni, albo `null` przy błędzie.
   Future<int?> completeList({bool moveToPantry = true}) async {
     if (_selectedListId == null) return null;
+    final session = _sessionGeneration;
+    final listId = _selectedListId!;
     _errorMessage = null;
     try {
       final moved = await _shoppingListService.completeList(
-        _selectedListId!,
+        listId,
         moveToPantry: moveToPantry,
       );
+      if (session != _sessionGeneration) return null;
       await loadAllLists(preferredListId: _selectedListId);
       return moved;
     } catch (e) {
+      if (session != _sessionGeneration) return null;
       _errorMessage = friendlyError(e);
       notifyListeners();
       return null;
@@ -214,12 +251,16 @@ class ShoppingListProvider with ChangeNotifier {
 
   Future<bool> removeItem(String itemId) async {
     if (_selectedListId == null) return false;
+    final session = _sessionGeneration;
+    final listId = _selectedListId!;
     _errorMessage = null;
     try {
-      await _shoppingListService.deleteItem(_selectedListId!, itemId);
-      await loadShoppingList(_selectedListId!);
+      await _shoppingListService.deleteItem(listId, itemId);
+      if (session != _sessionGeneration) return false;
+      if (_selectedListId == listId) await loadShoppingList(listId);
       return true;
     } catch (e) {
+      if (session != _sessionGeneration) return false;
       _errorMessage = friendlyError(e);
       notifyListeners();
       return false;
@@ -227,20 +268,28 @@ class ShoppingListProvider with ChangeNotifier {
   }
 
   Future<void> loadShoppingList(String listId) async {
+    final generation = ++_requestGeneration;
+    _currentList = null;
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
     try {
-      _currentList = await _shoppingListService.getShoppingList(listId);
+      final list = await _shoppingListService.getShoppingList(listId);
+      if (generation != _requestGeneration) return;
+      _currentList = list;
     } catch (e) {
+      if (generation != _requestGeneration) return;
       _errorMessage = friendlyError(e);
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (generation == _requestGeneration) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
   Future<bool> toggleItem(String itemId) async {
+    final session = _sessionGeneration;
     final listAtRequest = _currentList;
     if (listAtRequest == null || _pendingToggleIds.contains(itemId)) {
       return false;
@@ -261,6 +310,7 @@ class ShoppingListProvider with ChangeNotifier {
         listAtRequest.id,
         itemId,
       );
+      if (session != _sessionGeneration) return false;
       // Lista mogła zostać odświeżona w trakcie żądania. Aktualizujemy
       // obiekt, który jest faktycznie widoczny, a nie stary odłączony model.
       if (_currentList?.id == listAtRequest.id) {
@@ -268,45 +318,66 @@ class ShoppingListProvider with ChangeNotifier {
       }
       return true;
     } catch (e) {
+      if (session != _sessionGeneration) return false;
       if (_currentList?.id == listAtRequest.id) {
         _findItem(_currentList!, itemId)?.isChecked = previousValue;
       }
       _errorMessage = friendlyError(e);
       return false;
     } finally {
-      _pendingToggleIds.remove(itemId);
-      notifyListeners();
+      if (session == _sessionGeneration) {
+        _pendingToggleIds.remove(itemId);
+        notifyListeners();
+      }
     }
   }
 
   Future<bool> substituteItem(String itemId, String substituteProductId) async {
     if (_currentList == null) return false;
+    final session = _sessionGeneration;
+    final listAtRequest = _currentList!;
     _isLoading = true;
     notifyListeners();
     try {
       await _shoppingListService.substituteItem(
-        _currentList!.id,
+        listAtRequest.id,
         itemId,
         substituteProductId,
       );
       // Przeładuj listę, aby odzwierciedlić zamianę
-      await loadShoppingList(_currentList!.id);
+      if (session != _sessionGeneration) return false;
+      if (_currentList?.id == listAtRequest.id)
+        await loadShoppingList(listAtRequest.mealPlanId);
       return true;
     } catch (e) {
+      if (session != _sessionGeneration) return false;
       _errorMessage = friendlyError(e);
       return false;
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (session == _sessionGeneration) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
   /// Czyści cały stan — wywoływane przy wylogowaniu.
   void clear() {
+    _sessionGeneration++;
+    _requestGeneration++;
     _currentList = null;
+    _allLists = [];
+    _selectedListId = null;
     _isLoading = false;
     _errorMessage = null;
     _pendingToggleIds.clear();
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _sessionGeneration++;
+    _requestGeneration++;
+    super.dispose();
   }
 }

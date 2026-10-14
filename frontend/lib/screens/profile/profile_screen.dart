@@ -33,6 +33,8 @@ import 'blocked_users_screen.dart';
 import 'statistics_screen.dart';
 import 'friends_screen.dart';
 import '../../utils/plan_defaults.dart';
+import '../../widgets/app_document_links.dart';
+import '../../widgets/installed_app_version.dart';
 
 /// Odmiana słowa "dzień" — w polskim wystarczy rozróżnić TYLKO liczbę 1
 /// (dzień) od wszystkich pozostałych (dni), w przeciwieństwie do wielu
@@ -459,6 +461,8 @@ class ProfileScreen extends StatelessWidget {
                   title: 'Konto i prywatność',
                   icon: Icons.manage_accounts_outlined,
                   children: [
+                    const AppDocumentLinks(showAccountHelp: true),
+                    const SizedBox(height: 16),
                     if (hasPremiumAccess) ...[
                       _buildProfileSettingTile(
                         context,
@@ -526,7 +530,9 @@ class ProfileScreen extends StatelessWidget {
                         ).clear();
                         await authProvider.logout();
                         if (context.mounted) {
-                          Navigator.of(context).pushReplacementNamed('/login');
+                          Navigator.of(
+                            context,
+                          ).pushNamedAndRemoveUntil('/login', (route) => false);
                         }
                       },
                       child: const Text('Wyloguj się'),
@@ -567,15 +573,7 @@ class ProfileScreen extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 // Wersja aplikacji
-                Center(
-                  child: Text(
-                    'v1.0.22 (Meal Planner)',
-                    style: TextStyle(
-                      color: AppTheme.textSecondary,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
+                const Center(child: InstalledAppVersion()),
               ],
             ),
           ),

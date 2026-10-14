@@ -431,6 +431,7 @@ class ShoppingListBuilder:
                     "required_quantity": round(grams_to_quantity(
                         product_name, pantry_grams, product_unit,
                         getattr(product, "serving_quantity", None),
+                        getattr(product, "measure_options", None),
                     ), 3),
                     "unit": product_unit,
                     "estimated_price": 0,
@@ -451,6 +452,7 @@ class ShoppingListBuilder:
                     "required_quantity": round(grams_to_quantity(
                         product_name, purchase_grams, product_unit,
                         getattr(product, "serving_quantity", None),
+                        getattr(product, "measure_options", None),
                     ), 3),
                     "unit": product_unit,
                     "estimated_price": None,
@@ -468,6 +470,7 @@ class ShoppingListBuilder:
                 purchase_grams,
                 product_unit,
                 getattr(product, "serving_quantity", None),
+                getattr(product, "measure_options", None),
             )
 
             # Rozmiar opakowania — przeliczony na wspólną bazę gramów/ml,

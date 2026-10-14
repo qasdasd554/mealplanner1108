@@ -18,8 +18,7 @@ import 'product_label_recognition_sheet.dart';
 ///
 /// Wymagana jest tylko NAZWA. Cena i makroskładniki są opcjonalne, bo
 /// użytkownik nie zawsze ma etykietę pod ręką, a produkt bez nich i tak
-/// przydaje się na liście zakupów. Bez wartości odżywczych wpis
-/// w dzienniku kalorii doda po prostu 0 kcal.
+/// przydaje się na liście zakupów. Dziennik wymaga uzupełnienia makro.
 class SubmitProductSheet extends StatefulWidget {
   /// Gdy podane — okno działa w trybie EDYCJI istniejącego zgłoszenia
   /// (pola wypełnione danymi z `Product`, zapis idzie przez PUT zamiast
@@ -48,22 +47,30 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
     text: widget.editing?.submittedPrice?.toStringAsFixed(2) ?? '',
   );
   late final _kcal = TextEditingController(
-    text: _prefillNum(widget.editing?.nutritionPer100.kcal),
+    text: _prefillNum(widget.editing?.nutritionPer100.knownValue('kcal')),
   );
   late final _protein = TextEditingController(
-    text: _prefillNum(widget.editing?.nutritionPer100.protein, decimals: 1),
+    text: _prefillNum(
+      widget.editing?.nutritionPer100.knownValue('protein'),
+      decimals: 1,
+    ),
   );
   late final _fat = TextEditingController(
-    text: _prefillNum(widget.editing?.nutritionPer100.fat, decimals: 1),
+    text: _prefillNum(
+      widget.editing?.nutritionPer100.knownValue('fat'),
+      decimals: 1,
+    ),
   );
   late final _carbs = TextEditingController(
-    text: _prefillNum(widget.editing?.nutritionPer100.carbs, decimals: 1),
+    text: _prefillNum(
+      widget.editing?.nutritionPer100.knownValue('carbs'),
+      decimals: 1,
+    ),
   );
 
-  /// Puste pole zamiast "0" — zero na starcie formularza wygląda jak
-  /// świadomie wpisana wartość, a najczęściej oznacza po prostu brak danych.
+  /// Zachowujemy jawne zero, ale brak danych pozostawiamy pusty.
   static String _prefillNum(double? value, {int decimals = 0}) {
-    if (value == null || value <= 0) return '';
+    if (value == null || !value.isFinite || value < 0) return '';
     return value.toStringAsFixed(decimals);
   }
 

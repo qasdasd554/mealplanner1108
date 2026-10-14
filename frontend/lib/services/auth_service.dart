@@ -7,7 +7,9 @@ import 'api_client.dart';
 import '../config/api_config.dart';
 
 class AuthService {
-  final ApiClient _client = ApiClient();
+  final ApiClient _client;
+  AuthService({ApiClient? client}) : _client = client ?? ApiClient();
+  void invalidateSession() => _client.invalidateSession();
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   bool _googleInitialized = false;
 
@@ -33,6 +35,7 @@ class AuthService {
     String password, {
     String? captchaToken,
   }) async {
+    final session = _client.sessionGeneration;
     final response = await _client.post(
       ApiConfig.authLogin,
       // WAŻNE: backend (app/api/v1/auth.py) parsuje ciało żądania jako JSON
@@ -48,7 +51,11 @@ class AuthService {
       },
     );
     final token = AuthToken.fromJson(response as Map<String, dynamic>);
-    await _client.setSession(token.accessToken, token.refreshToken);
+    await _client.setSession(
+      token.accessToken,
+      token.refreshToken,
+      expectedGeneration: session,
+    );
     return token;
   }
 
@@ -58,6 +65,7 @@ class AuthService {
     String displayName, {
     String? captchaToken,
   }) async {
+    final session = _client.sessionGeneration;
     // Odpowiedź /auth/register zawiera access_token — ZAPISUJEMY go od
     // razu, zamiast logować się drugi raz.
     //
@@ -82,7 +90,11 @@ class AuthService {
 
     if (response is Map<String, dynamic> && response['access_token'] != null) {
       final token = AuthToken.fromJson(response);
-      await _client.setSession(token.accessToken, token.refreshToken);
+      await _client.setSession(
+        token.accessToken,
+        token.refreshToken,
+        expectedGeneration: session,
+      );
     }
   }
 
@@ -94,6 +106,7 @@ class AuthService {
   /// Zwraca `true` po udanym zalogowaniu, `false` jeśli użytkownik po prostu
   /// anulował okno logowania (nie jest to błąd).
   Future<bool> loginWithGoogle({String? captchaToken}) async {
+    final session = _client.sessionGeneration;
     await _ensureGoogleInitialized();
 
     late final GoogleSignInAccount googleUser;
@@ -138,7 +151,11 @@ class AuthService {
       },
     );
     final token = AuthToken.fromJson(response as Map<String, dynamic>);
-    await _client.setSession(token.accessToken, token.refreshToken);
+    await _client.setSession(
+      token.accessToken,
+      token.refreshToken,
+      expectedGeneration: session,
+    );
     return true;
   }
 
@@ -147,6 +164,7 @@ class AuthService {
   /// zabezpieczenie przed niechcianym wylogowaniem, na wypadek gdyby lokalny
   /// token aplikacji zniknął, ale urządzenie wciąż ma zapisaną sesję Google.
   Future<bool> attemptGoogleSilentLogin() async {
+    final session = _client.sessionGeneration;
     try {
       await _ensureGoogleInitialized();
       final future = _googleSignIn.attemptLightweightAuthentication();
@@ -161,7 +179,11 @@ class AuthService {
         body: {'id_token': idToken},
       );
       final token = AuthToken.fromJson(response as Map<String, dynamic>);
-      await _client.setSession(token.accessToken, token.refreshToken);
+      await _client.setSession(
+        token.accessToken,
+        token.refreshToken,
+        expectedGeneration: session,
+      );
       return true;
     } catch (_) {
       return false;
@@ -178,6 +200,7 @@ class AuthService {
   /// Zwraca `true` po udanym zalogowaniu, `false` jeśli użytkownik
   /// anulował okno logowania.
   Future<bool> loginWithApple({String? captchaToken}) async {
+    final session = _client.sessionGeneration;
     late final AuthorizationCredentialAppleID credential;
     try {
       credential = await SignInWithApple.getAppleIDCredential(
@@ -216,20 +239,30 @@ class AuthService {
       },
     );
     final token = AuthToken.fromJson(response as Map<String, dynamic>);
-    await _client.setSession(token.accessToken, token.refreshToken);
+    await _client.setSession(
+      token.accessToken,
+      token.refreshToken,
+      expectedGeneration: session,
+    );
     return true;
   }
 
   Future<User> getProfile() async {
+    final generation = _client.sessionGeneration;
     final response = await _client.get(ApiConfig.usersMe);
     // Starsze instalacje mają tylko access token. Gdy jest jeszcze ważny,
     // jednorazowo wymieniamy go na pełną, odnawialną sesję bez proszenia
     // użytkownika o ponowne logowanie.
-    if (!await _client.hasRefreshToken()) {
+    if (generation == _client.sessionGeneration &&
+        !await _client.hasRefreshToken()) {
       try {
         final session = await _client.post(ApiConfig.authSession);
         final token = AuthToken.fromJson(session as Map<String, dynamic>);
-        await _client.setSession(token.accessToken, token.refreshToken);
+        await _client.setSession(
+          token.accessToken,
+          token.refreshToken,
+          expectedGeneration: generation,
+        );
       } catch (_) {
         // Profil został poprawnie pobrany; chwilowa awaria bootstrapu nie
         // może sama w sobie wylogować ani zablokować wejścia do aplikacji.

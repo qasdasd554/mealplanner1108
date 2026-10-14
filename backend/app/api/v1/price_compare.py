@@ -212,6 +212,7 @@ async def compare_prices(
                         total_grams,
                         product_unit,
                         getattr(product, "serving_quantity", None),
+                        getattr(product, "measure_options", None),
                     ),
                     2,
                 ),

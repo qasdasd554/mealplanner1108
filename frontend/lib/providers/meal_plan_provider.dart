@@ -19,6 +19,8 @@ class MealPlanProvider with ChangeNotifier {
   bool _isRefreshing = false;
   String? _errorMessage;
   bool _lastPlanLoadNotFound = false;
+  int _sessionGeneration = 0;
+  int _detailGeneration = 0;
 
   MealPlan? get currentPlan => _currentPlan;
   List<MealPlan> get plans => _plans;
@@ -51,19 +53,23 @@ class MealPlanProvider with ChangeNotifier {
   /// Ustawia, który plan jest aktualnie przeglądany — używane przez
   /// przełącznik planów, gdy użytkownik ma ich kilka aktywnych naraz.
   void selectPlan(MealPlan plan) {
+    _detailGeneration++;
     _currentPlan = plan;
     notifyListeners();
   }
 
   Future<void> loadPlans() async {
     if (_isRefreshing) return;
+    final session = _sessionGeneration;
     _isRefreshing = true;
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
     try {
+      final plans = await _mealPlanService.getPlans();
+      if (session != _sessionGeneration) return;
       _plans =
-          (await _mealPlanService.getPlans())
+          plans
               .where((p) => !p.isArchived && !p.isExpiredAt(DateTime.now()))
               .toList();
       // Posortuj od najnowszych
@@ -77,40 +83,52 @@ class MealPlanProvider with ChangeNotifier {
         _currentPlan = null;
       }
     } catch (e) {
+      if (session != _sessionGeneration) return;
       _errorMessage = friendlyError(e);
     } finally {
-      _isRefreshing = false;
-      _isLoading = false;
-      _hasLoaded = true;
-      notifyListeners();
+      if (session == _sessionGeneration) {
+        _isRefreshing = false;
+        _isLoading = false;
+        _hasLoaded = true;
+        notifyListeners();
+      }
     }
   }
 
   Future<void> loadPlan(String planId) async {
+    final session = _sessionGeneration;
+    final detail = ++_detailGeneration;
     _isLoading = true;
     _errorMessage = null;
     _lastPlanLoadNotFound = false;
     _currentPlan = null;
     notifyListeners();
     try {
-      _currentPlan = await _mealPlanService.getPlan(planId);
+      final plan = await _mealPlanService.getPlan(planId);
+      if (session != _sessionGeneration || detail != _detailGeneration) return;
+      _currentPlan = plan;
     } catch (e) {
+      if (session != _sessionGeneration || detail != _detailGeneration) return;
       _currentPlan = null;
       _lastPlanLoadNotFound = e is ApiException && e.statusCode == 404;
       _errorMessage = friendlyError(e);
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (session == _sessionGeneration && detail == _detailGeneration) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
   Future<bool> generatePlan(MealPlanGenerateRequest request) async {
     if (_isGenerating) return false;
+    final session = _sessionGeneration;
     _isGenerating = true;
     _errorMessage = null;
     notifyListeners();
     try {
       final newPlan = await _mealPlanService.generatePlan(request);
+      if (session != _sessionGeneration) return false;
       _currentPlan = newPlan;
       _plans.insert(0, newPlan);
       AppReviewSignal.recordSuccess();
@@ -118,6 +136,7 @@ class MealPlanProvider with ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
+      if (session != _sessionGeneration) return false;
       _errorMessage = friendlyError(e);
       _isGenerating = false;
       notifyListeners();
@@ -127,36 +146,47 @@ class MealPlanProvider with ChangeNotifier {
 
   Future<MealPlan?> resumePlan(String planId, DateTime startDate) async {
     if (_isLoading) return null;
+    final session = _sessionGeneration;
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
     try {
       final plan = await _mealPlanService.resumePlan(planId, startDate);
+      if (session != _sessionGeneration) return null;
       _plans.insert(0, plan);
       _currentPlan = plan;
       return plan;
     } catch (e) {
+      if (session != _sessionGeneration) return null;
       _errorMessage = friendlyError(e);
       return null;
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (session == _sessionGeneration) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
   Future<bool> activatePlan(String planId) async {
+    if (_isLoading) return false;
+    final session = _sessionGeneration;
     _isLoading = true;
     notifyListeners();
     try {
       await _mealPlanService.updatePlanStatus(planId, 'active');
+      if (session != _sessionGeneration) return false;
       await loadPlans(); // przeładuj, aby statusy się zaktualizowały
       return true;
     } catch (e) {
+      if (session != _sessionGeneration) return false;
       _errorMessage = friendlyError(e);
       return false;
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (session == _sessionGeneration) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
@@ -165,6 +195,8 @@ class MealPlanProvider with ChangeNotifier {
     required String entryId,
     required String newRecipeId,
   }) async {
+    if (_isLoading) return false;
+    final session = _sessionGeneration;
     _isLoading = true;
     notifyListeners();
     try {
@@ -173,6 +205,7 @@ class MealPlanProvider with ChangeNotifier {
         entryId,
         newRecipeId,
       );
+      if (session != _sessionGeneration) return false;
       _currentPlan = updatedPlan;
       // Zaktualizuj na liście planów
       final index = _plans.indexWhere((p) => p.id == planId);
@@ -181,21 +214,27 @@ class MealPlanProvider with ChangeNotifier {
       }
       return true;
     } catch (e) {
+      if (session != _sessionGeneration) return false;
       _errorMessage = friendlyError(e);
       return false;
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (session == _sessionGeneration) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
   /// Zmienia sklep przypisany do planu — lista zakupów przelicza się
   /// automatycznie po stronie backendu pod nowe ceny/działy.
   Future<bool> updateStore(String planId, String storeId) async {
+    if (_isLoading) return false;
+    final session = _sessionGeneration;
     _isLoading = true;
     notifyListeners();
     try {
       final updatedPlan = await _mealPlanService.updateStore(planId, storeId);
+      if (session != _sessionGeneration) return false;
       _currentPlan = updatedPlan;
       final index = _plans.indexWhere((p) => p.id == planId);
       if (index != -1) {
@@ -203,30 +242,39 @@ class MealPlanProvider with ChangeNotifier {
       }
       return true;
     } catch (e) {
+      if (session != _sessionGeneration) return false;
       _errorMessage = friendlyError(e);
       return false;
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (session == _sessionGeneration) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
   Future<bool> deletePlan(String planId) async {
+    if (_isLoading) return false;
+    final session = _sessionGeneration;
     _isLoading = true;
     notifyListeners();
     try {
       await _mealPlanService.deletePlan(planId);
+      if (session != _sessionGeneration) return false;
       _plans.removeWhere((p) => p.id == planId);
       if (_currentPlan?.id == planId) {
         _currentPlan = _plans.isNotEmpty ? _plans.first : null;
       }
       return true;
     } catch (e) {
+      if (session != _sessionGeneration) return false;
       _errorMessage = friendlyError(e);
       return false;
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (session == _sessionGeneration) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
@@ -236,6 +284,9 @@ class MealPlanProvider with ChangeNotifier {
   /// dane TYLKO gdy lista jest pusta) pokazywałyby plany POPRZEDNIEGO
   /// użytkownika, dopóki coś jawnie nie wymusiłoby ponownego pobrania.
   void clear() {
+    _sessionGeneration++;
+    _detailGeneration++;
+    _isRefreshing = false;
     _currentPlan = null;
     _plans = [];
     _isLoading = false;
@@ -244,5 +295,12 @@ class MealPlanProvider with ChangeNotifier {
     _errorMessage = null;
     _lastPlanLoadNotFound = false;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _sessionGeneration++;
+    _detailGeneration++;
+    super.dispose();
   }
 }

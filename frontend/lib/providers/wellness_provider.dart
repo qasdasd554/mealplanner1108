@@ -10,13 +10,17 @@ import '../utils/error_utils.dart';
 /// uzupełniające. Wciśnięcie ich w jeden provider oznaczałoby, że każde
 /// dolanie wody odświeża całą listę posiłków.
 class WellnessProvider with ChangeNotifier {
-  final WellnessService _service = WellnessService();
+  final WellnessService _service;
+
+  WellnessProvider({WellnessService? service})
+    : _service = service ?? WellnessService();
 
   DailyWellness _data = DailyWellness.empty();
   DateTime _currentDate = DateTime.now();
   bool _isLoading = false;
   bool _hasLoaded = false;
   String? _errorMessage;
+  int _requestGeneration = 0;
 
   DailyWellness get data => _data;
   bool get isLoading => _isLoading;
@@ -28,21 +32,27 @@ class WellnessProvider with ChangeNotifier {
   int get kcalBurned => _data.totalKcalBurned;
 
   Future<void> loadForDate(DateTime date) async {
+    final generation = ++_requestGeneration;
     _currentDate = date;
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
     try {
-      _data = await _service.getForDate(date);
+      final data = await _service.getForDate(date);
+      if (generation != _requestGeneration) return;
+      _data = data;
     } catch (e) {
+      if (generation != _requestGeneration) return;
       _errorMessage = friendlyError(e);
       // Przy błędzie pokazujemy stan pusty zamiast poprzedniego dnia —
       // stare dane wyglądałyby jak prawdziwe i wprowadzały w błąd.
       _data = DailyWellness.empty();
     } finally {
-      _isLoading = false;
-      _hasLoaded = true;
-      notifyListeners();
+      if (generation == _requestGeneration) {
+        _isLoading = false;
+        _hasLoaded = true;
+        notifyListeners();
+      }
     }
   }
 
@@ -55,6 +65,7 @@ class WellnessProvider with ChangeNotifier {
   }
 
   Future<void> addWater(int amountMl) async {
+    final generation = _requestGeneration;
     // Aktualizacja optymistyczna: pasek nawodnienia reaguje od razu,
     // bez czekania na serwer. Przy błędzie i tak przeładujemy dzień,
     // więc rozjazd nie utrzyma się dłużej niż jedno żądanie.
@@ -65,12 +76,20 @@ class WellnessProvider with ChangeNotifier {
       activities: _data.activities,
       totalKcalBurned: _data.totalKcalBurned,
     );
+    final appliedDelta = _data.waterMl - previous.waterMl;
     notifyListeners();
 
     try {
       await _service.addWater(_currentDate, amountMl);
     } catch (e) {
-      _data = previous;
+      if (generation != _requestGeneration) return;
+      // Cofamy tylko tę operację; inny szybki klik mógł już się zapisać.
+      _data = DailyWellness(
+        waterMl: (_data.waterMl - appliedDelta).clamp(0, 100000),
+        waterGoalMl: _data.waterGoalMl,
+        activities: _data.activities,
+        totalKcalBurned: _data.totalKcalBurned,
+      );
       _errorMessage = friendlyError(e);
       notifyListeners();
     }
@@ -81,6 +100,7 @@ class WellnessProvider with ChangeNotifier {
     required int kcalBurned,
     int? durationMin,
   }) async {
+    final generation = _requestGeneration;
     try {
       await _service.addActivity(
         _currentDate,
@@ -88,9 +108,11 @@ class WellnessProvider with ChangeNotifier {
         kcalBurned: kcalBurned,
         durationMin: durationMin,
       );
+      if (generation != _requestGeneration) return false;
       await loadForDate(_currentDate);
       return true;
     } catch (e) {
+      if (generation != _requestGeneration) return false;
       _errorMessage = friendlyError(e);
       notifyListeners();
       return false;
@@ -98,11 +120,14 @@ class WellnessProvider with ChangeNotifier {
   }
 
   Future<bool> deleteActivity(String id) async {
+    final generation = _requestGeneration;
     try {
       await _service.deleteActivity(id);
+      if (generation != _requestGeneration) return false;
       await loadForDate(_currentDate);
       return true;
     } catch (e) {
+      if (generation != _requestGeneration) return false;
       _errorMessage = friendlyError(e);
       notifyListeners();
       return false;
@@ -110,11 +135,18 @@ class WellnessProvider with ChangeNotifier {
   }
 
   void clear() {
+    _requestGeneration++;
     _data = DailyWellness.empty();
     _currentDate = DateTime.now();
     _isLoading = false;
     _hasLoaded = false;
     _errorMessage = null;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _requestGeneration++;
+    super.dispose();
   }
 }

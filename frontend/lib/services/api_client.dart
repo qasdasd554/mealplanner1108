@@ -32,15 +32,25 @@ class ApiClient {
 
   static final ApiClient _instance = ApiClient._internal();
   factory ApiClient() => _instance;
-  ApiClient._internal();
+  ApiClient._internal() : _httpClient = http.Client();
+  ApiClient.forTesting({required http.Client httpClient})
+    : _httpClient = httpClient;
 
   // Jeden klient utrzymuje pulę połączeń przez całą sesję aplikacji.
   // Wywołania statyczne http.get/post tworzyły nowy Client dla każdego
   // żądania i wymuszały ponowne zestawianie połączenia.
-  final http.Client _httpClient = http.Client();
+  final http.Client _httpClient;
 
   String? _token;
   String? _appVersion;
+  int _sessionGeneration = 0;
+  int get sessionGeneration => _sessionGeneration;
+  Future<bool>? _refreshInProgress;
+
+  void invalidateSession() {
+    _sessionGeneration++;
+    _refreshInProgress = null;
+  }
 
   /// Pobierane raz przy starcie. Brak tej informacji nigdy nie blokuje
   /// uruchomienia ani żądania sieciowego.
@@ -71,14 +81,17 @@ class ApiClient {
 
   Future<String?> getToken() async {
     if (_token != null) return _token;
-
-    _token = await _secureStorage.read(key: _tokenKey);
+    final session = _sessionGeneration;
+    final stored = await _secureStorage.read(key: _tokenKey);
+    if (session != _sessionGeneration) return null;
+    _token = stored;
     if (_token != null) return _token;
 
     // Migracja jednorazowa: jeśli token istnieje w starym,
     // niezaszyfrowanym miejscu (z wersji aplikacji sprzed tej poprawki),
     // przenieś go do bezpiecznego magazynu i usuń stamtąd.
     final prefs = await SharedPreferences.getInstance();
+    if (session != _sessionGeneration) return null;
     final legacyToken = prefs.getString(_legacyPrefsKey);
     if (legacyToken != null) {
       _token = legacyToken;
@@ -93,7 +106,13 @@ class ApiClient {
     await _secureStorage.write(key: _tokenKey, value: token);
   }
 
-  Future<void> setSession(String accessToken, String? refreshToken) async {
+  Future<void> setSession(
+    String accessToken,
+    String? refreshToken, {
+    int? expectedGeneration,
+  }) async {
+    if (expectedGeneration != null && expectedGeneration != _sessionGeneration)
+      return;
     await setToken(accessToken);
     if (refreshToken != null && refreshToken.isNotEmpty) {
       await _secureStorage.write(key: _refreshTokenKey, value: refreshToken);
@@ -106,6 +125,7 @@ class ApiClient {
   }
 
   Future<void> clearToken() async {
+    invalidateSession();
     _token = null;
     await _secureStorage.delete(key: _tokenKey);
     await _secureStorage.delete(key: _refreshTokenKey);
@@ -125,7 +145,20 @@ class ApiClient {
       }.contains(path);
 
   Future<bool> _refreshSession() async {
+    if (_refreshInProgress != null) return _refreshInProgress!;
+    final pending = _performRefresh();
+    _refreshInProgress = pending;
+    try {
+      return await pending;
+    } finally {
+      if (identical(_refreshInProgress, pending)) _refreshInProgress = null;
+    }
+  }
+
+  Future<bool> _performRefresh() async {
+    final session = _sessionGeneration;
     final refreshToken = await _secureStorage.read(key: _refreshTokenKey);
+    if (session != _sessionGeneration) return false;
     if (refreshToken == null || refreshToken.isEmpty) return false;
     try {
       final response = await _httpClient
@@ -136,11 +169,13 @@ class ApiClient {
           )
           .timeout(_timeout);
       if (response.statusCode < 200 || response.statusCode >= 300) return false;
+      if (session != _sessionGeneration) return false;
       final decoded = jsonDecode(response.body);
       if (decoded is! Map || decoded['access_token'] is! String) return false;
       await setSession(
         decoded['access_token'] as String,
         decoded['refresh_token'] as String?,
+        expectedGeneration: session,
       );
       return true;
     } catch (_) {
@@ -152,10 +187,13 @@ class ApiClient {
     String path,
     Future<http.Response> Function(Map<String, String> headers) send,
   ) async {
+    final session = _sessionGeneration;
     var response = await send(_headers(await getToken()));
     if (response.statusCode == 401 &&
+        session == _sessionGeneration &&
         _canRefresh(path) &&
-        await _refreshSession()) {
+        await _refreshSession() &&
+        session == _sessionGeneration) {
       response = await send(_headers(await getToken()));
     }
     return response;

@@ -190,22 +190,27 @@ def grams_to_quantity(
     grams: float,
     unit: str,
     serving_quantity: float | None = None,
+    measure_options: list[dict] | None = None,
 ) -> float:
     """Przelicza ilość z gramów/mililitrów z powrotem na jednostkę ``unit``.
 
     Odwrotność ``quantity_to_grams`` — używana np. przy wyświetlaniu sumy
     zapotrzebowania na produkt w jego naturalnej jednostce sklepowej.
     """
+    if unit == "opak":
+        # Unknown package mass must never become an invented 100 g.
+        weight = float(serving_quantity or 0.0)
+        return grams / weight if weight else 0.0
+    if measure_options:
+        from app.services.product_measures import measure_to_base
+
+        conversion = measure_to_base(1, unit, measure_options)
+        if conversion is not None and conversion[0] > 0:
+            return grams / conversion[0]
     if unit in ("kg", "l"):
         return grams / 1000.0
     if unit == "szt":
         weight = _piece_weight(product_name)
-        return grams / weight if weight else 0.0
-    if unit == "opak":
-        # Bez potwierdzonej masy opakowania nie istnieje poprawne
-        # przeliczenie. Zwrócenie 0 jest bezpieczniejsze niż wcześniejsze
-        # zmyślone 100 g, które fałszowało kcal i listę zakupów.
-        weight = float(serving_quantity or 0.0)
         return grams / weight if weight else 0.0
     return grams
 
@@ -287,6 +292,7 @@ class NutritionCalculator:
                 getattr(product, "serving_quantity", None),
                 getattr(product, "measure_options", None),
             )
+            weight_g = _edible_grams(product.name, weight_g)
             factor = weight_g / 100.0
 
             nutrition = getattr(product, 'nutrition_per_100', None) or {}

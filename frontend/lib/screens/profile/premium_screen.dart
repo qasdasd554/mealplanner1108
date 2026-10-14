@@ -17,6 +17,7 @@ import '../../services/api_client.dart';
 import '../../models/premium_offer.dart';
 import '../../utils/error_utils.dart';
 import '../../widgets/campaign_icon.dart';
+import '../../widgets/app_document_links.dart';
 import '../recipes/recipes_screen.dart';
 import '../recipes/ai_add_recipe_screen.dart';
 import '../recipes/ingredient_match_select_screen.dart';
@@ -1205,64 +1206,9 @@ class _PremiumScreenState extends State<PremiumScreen> {
           ),
         ),
         const SizedBox(height: 8),
-        Wrap(
-          alignment: WrapAlignment.center,
-          children: [
-            TextButton(
-              onPressed:
-                  () => _openLegalUrl(
-                    context,
-                    'https://qasdasd554.github.io/mealplanner1108/terms-of-use.html',
-                  ),
-              child: const Text(
-                'Regulamin (EULA)',
-                style: TextStyle(fontSize: 12),
-              ),
-            ),
-            TextButton(
-              onPressed:
-                  () => _openLegalUrl(
-                    context,
-                    'https://qasdasd554.github.io/mealplanner1108/privacy-policy.html',
-                  ),
-              child: const Text(
-                'Polityka prywatności',
-                style: TextStyle(fontSize: 12),
-              ),
-            ),
-          ],
-        ),
+        const AppDocumentLinks(),
       ],
     );
-  }
-
-  Future<void> _openLegalUrl(BuildContext context, String url) async {
-    // NIE sprawdzamy najpierw canLaunchUrl. Ta metoda potrafi zwrócić
-    // false mimo w pełni sprawnej przeglądarki — na Androidzie zależy od
-    // deklaracji <queries> w manifeście, a na iOS bywa zawodna przy
-    // niektórych konfiguracjach. Wcześniej blokowała otwarcie regulaminu
-    // i polityki prywatności, pokazując błąd zamiast strony.
-    // Po prostu próbujemy otworzyć i reagujemy dopiero na faktyczny błąd.
-    final uri = Uri.parse(url);
-    try {
-      final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
-      if (!opened && context.mounted) {
-        // Zapas: część urządzeń nie potrafi otworzyć w przeglądarce
-        // zewnętrznej, ale poradzi sobie z widokiem wbudowanym.
-        await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
-      }
-    } catch (_) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(
-            SnackBar(
-              duration: const Duration(seconds: 3),
-              content: Text('Nie udało się otworzyć strony: $url'),
-            ),
-          );
-      }
-    }
   }
 
   /// Buduje sekcję cennika: status "już masz Premium", stan ładowania,

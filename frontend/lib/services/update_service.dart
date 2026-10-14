@@ -139,11 +139,10 @@ class UpdateAvailableScreen extends StatelessWidget {
                     forceUpdate
                         ? 'Ta wersja aplikacji nie jest już obsługiwana. '
                             'Zaktualizuj ją, aby korzystać dalej.'
-                        : '• Dodaliśmy Stokrotkę, Kaufland i Auchan do wyboru sklepów oraz planowania zakupów.\n'
-                            '• Przypominamy o końcu planu posiłków, a zakończone plany znikają z aktywnych.\n'
-                            '• Premium pozwala archiwizować i wznawiać plany oraz wybierać lubiane i nielubiane składniki.\n'
-                            '• Nowy plan korzysta z Twojego celu kalorycznego i obsługuje maksymalnie 8 osób.\n'
-                            '• Czytelniej oznaczamy orientacyjne ceny i brakujące produkty przy porównywaniu zakupów.',
+                        : '• Poprawiliśmy odczyt wartości odżywczych skanowanych produktów i przeliczanie porcji.\n'
+                            '• Usprawniliśmy Dziennik i listy zakupów oraz odświeżanie danych po zmianie konta.\n'
+                            '• Poprawiliśmy formularze i zabezpieczenia dostępu do prywatnych przepisów.\n'
+                            '• Regulamin, politykę prywatności i pomoc znajdziesz na mealplannerpolska.pl. Kontakt: kontakt@mealplannerpolska.pl.',
                     style: TextStyle(
                       color: AppTheme.textSecondary,
                       height: 1.5,

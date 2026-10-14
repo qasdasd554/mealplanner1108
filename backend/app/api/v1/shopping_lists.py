@@ -483,6 +483,8 @@ async def _get_shopping_list_or_404(
     list_id: UUID,
     current_user: User,
     db: AsyncSession,
+    *,
+    for_update: bool = False,
 ) -> ShoppingList:
     """Pobiera listę zakupów z weryfikacją dostępu.
 
@@ -504,7 +506,7 @@ async def _get_shopping_list_or_404(
         ShoppingListShare.status == "accepted",
     )
 
-    result = await db.execute(
+    query = (
         select(ShoppingList)
         .join(MealPlan, ShoppingList.meal_plan_id == MealPlan.id)
         .options(
@@ -519,6 +521,9 @@ async def _get_shopping_list_or_404(
             ShoppingList.status != "merged",
         )
     )
+    if for_update:
+        query = query.with_for_update(of=ShoppingList).execution_options(populate_existing=True)
+    result = await db.execute(query)
     shopping_list = result.scalar_one_or_none()
     if shopping_list is None:
         raise NotFoundException(
@@ -716,7 +721,7 @@ async def delete_shopping_list(
     if plan is None:
         raise NotFoundException(detail="Nie znaleziono listy zakupów do usunięcia.")
 
-    if plan.status == "archived":
+    if plan.status == "archived" and plan.archived_at is None:
         # Sztuczny plan utworzony WYŁĄCZNIE pod listę z pojedynczych dań
         # (/from-recipes) — nie ma innej treści, więc znika razem z listą.
         await db.delete(plan)
@@ -893,9 +898,12 @@ async def share_shopping_list(
             status=existing.status,
             created_at=existing.created_at,
             shared_with_name=target_user.display_name,
-            shared_with_email=target_user.email,
+            shared_with_email=None,
         )
     else:
+        from app.core.rate_limit import enforce_user_rate_limit, shopping_share_limiter
+
+        enforce_user_rate_limit(shopping_share_limiter, current_user.id, "udostępnienie listy")
         share = ShoppingListShare(
             meal_plan_id=canonical_plan_id,
             shared_by_user_id=current_user.id,
@@ -939,7 +947,7 @@ async def share_shopping_list(
         status=share.status,
         created_at=share.created_at,
         shared_with_name=target_user.display_name,
-        shared_with_email=target_user.email,
+        shared_with_email=None,
     )
 
 
@@ -1113,8 +1121,8 @@ async def delete_share(
 # ══════════════════════════════════════════════════════════════════
 class AddItemRequest(BaseModel):
     product_id: UUID
-    quantity: float = 1.0
-    unit: str = "szt"
+    quantity: float = Field(default=1.0, gt=0, le=9999, allow_inf_nan=False)
+    unit: str = Field(default="szt", min_length=1, max_length=20)
 
 
 class AddCustomItemRequest(BaseModel):
@@ -1299,7 +1307,12 @@ async def complete_shopping_list(
     """
     from app.models.pantry import PantryItem
 
-    shopping_list = await _get_shopping_list_or_404(list_id, current_user, db)
+    # Serializuj przyrost spiżarni konta oraz zakończenie współdzielonej
+    # listy. Ponowna próba po timeoutcie nie może przenieść zakupów drugi raz.
+    await db.execute(select(User.id).where(User.id == current_user.id).with_for_update())
+    shopping_list = await _get_shopping_list_or_404(list_id, current_user, db, for_update=True)
+    if shopping_list.status == "completed":
+        return {"detail": "Lista zakończona", "moved_to_pantry": 0}
 
     moved = 0
     if move_to_pantry:

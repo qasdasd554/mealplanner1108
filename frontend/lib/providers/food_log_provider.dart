@@ -7,9 +7,17 @@ import '../services/app_review_service.dart';
 import '../utils/error_utils.dart';
 
 class FoodLogProvider with ChangeNotifier {
-  final FoodLogService _service = FoodLogService();
-  final ApiClient _apiClient = ApiClient();
+  final FoodLogService _service;
+  final Future<String?> Function() _readToken;
   String? _token;
+  int _requestGeneration = 0;
+  int _sessionGeneration = 0;
+
+  FoodLogProvider({
+    FoodLogService? service,
+    Future<String?> Function()? readToken,
+  }) : _service = service ?? FoodLogService(),
+       _readToken = readToken ?? ApiClient().getToken;
 
   List<FoodLogEntry> _logs = [];
   List<FoodLogEntry> _recentEntries = [];
@@ -35,7 +43,7 @@ class FoodLogProvider with ChangeNotifier {
   /// Pobiera token sesji — najpierw ten ustawiony ręcznie przez [updateAuth],
   /// a w razie jego braku bezpośrednio z [ApiClient].
   Future<String?> _resolveToken() async {
-    final token = _token ?? await _apiClient.getToken();
+    final token = _token ?? await _readToken();
     return token;
   }
 
@@ -45,7 +53,10 @@ class FoodLogProvider with ChangeNotifier {
   }
 
   Future<void> fetchLogsForDate(DateTime date) async {
+    final generation = ++_requestGeneration;
+    _currentDate = date;
     final token = await _resolveToken();
+    if (generation != _requestGeneration) return;
     if (token == null) {
       _error = 'Musisz być zalogowany, aby zobaczyć dziennik.';
       notifyListeners();
@@ -65,23 +76,30 @@ class FoodLogProvider with ChangeNotifier {
         _service.getLogsForDate(date, token),
         _service.getDailySummary(date, token),
       ]);
+      if (generation != _requestGeneration) return;
       _logs = results[0] as List<FoodLogEntry>;
       _summary = results[1] as DailySummary;
     } catch (e) {
+      if (generation != _requestGeneration) return;
       _error = friendlyError(e);
       _logs = [];
       _summary = null;
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (generation == _requestGeneration) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
   Future<void> fetchRecentEntries() async {
+    final session = _sessionGeneration;
     final token = await _resolveToken();
-    if (token == null) return;
+    if (token == null || session != _sessionGeneration) return;
     try {
-      _recentEntries = await _service.getRecentEntries(token);
+      final entries = await _service.getRecentEntries(token);
+      if (session != _sessionGeneration) return;
+      _recentEntries = entries;
       notifyListeners();
     } catch (_) {
       // Szybkie podpowiedzi są dodatkiem. Ich błąd nie może zasłonić
@@ -126,7 +144,10 @@ class FoodLogProvider with ChangeNotifier {
     double? portionSize,
     String? portionUnit,
   }) async {
+    final session = _sessionGeneration;
+    final date = _currentDate;
     final token = await _resolveToken();
+    if (session != _sessionGeneration) return false;
     if (token == null) {
       _error = 'Musisz być zalogowany, aby dodać wpis.';
       notifyListeners();
@@ -137,7 +158,7 @@ class FoodLogProvider with ChangeNotifier {
       final entry = FoodLogEntry(
         id: '',
         userId: '',
-        date: _currentDate,
+        date: date,
         mealType: mealType,
         customName: foodName,
         servings: 1.0,
@@ -151,10 +172,12 @@ class FoodLogProvider with ChangeNotifier {
         portionUnit: portionUnit,
       );
       await _service.addFoodLog(entry.toCreateJson(), token);
+      if (session != _sessionGeneration) return false;
       AppReviewSignal.recordSuccess();
       await fetchLogsForDate(_currentDate);
       return true;
     } catch (e) {
+      if (session != _sessionGeneration) return false;
       _error = friendlyError(e);
       notifyListeners();
       return false;
@@ -168,7 +191,10 @@ class FoodLogProvider with ChangeNotifier {
     required String mealType,
     required double servings,
   }) async {
+    final session = _sessionGeneration;
+    final date = _currentDate;
     final token = await _resolveToken();
+    if (session != _sessionGeneration) return false;
     if (token == null) {
       _error = 'Musisz być zalogowany, aby dodać wpis.';
       notifyListeners();
@@ -178,17 +204,19 @@ class FoodLogProvider with ChangeNotifier {
     try {
       await _service.addFoodLog({
         'date':
-            '${_currentDate.year.toString().padLeft(4, '0')}-'
-            '${_currentDate.month.toString().padLeft(2, '0')}-'
-            '${_currentDate.day.toString().padLeft(2, '0')}',
+            '${date.year.toString().padLeft(4, '0')}-'
+            '${date.month.toString().padLeft(2, '0')}-'
+            '${date.day.toString().padLeft(2, '0')}',
         'meal_type': mealType,
         'recipe_id': recipeId,
         'servings': servings,
       }, token);
+      if (session != _sessionGeneration) return false;
       AppReviewSignal.recordSuccess();
       await fetchLogsForDate(_currentDate);
       return true;
     } catch (e) {
+      if (session != _sessionGeneration) return false;
       _error = friendlyError(e);
       notifyListeners();
       return false;
@@ -201,7 +229,10 @@ class FoodLogProvider with ChangeNotifier {
     String mealPlanEntryId, {
     double? servings,
   }) async {
+    final session = _sessionGeneration;
+    final date = _currentDate;
     final token = await _resolveToken();
+    if (session != _sessionGeneration) return false;
     if (token == null) {
       _error = 'Musisz być zalogowany, aby dodać wpis.';
       notifyListeners();
@@ -212,13 +243,15 @@ class FoodLogProvider with ChangeNotifier {
       await _service.addFromMealPlanEntry(
         mealPlanEntryId,
         token,
-        forDate: _currentDate,
+        forDate: date,
         servings: servings,
       );
+      if (session != _sessionGeneration) return false;
       AppReviewSignal.recordSuccess();
       await fetchLogsForDate(_currentDate);
       return true;
     } catch (e) {
+      if (session != _sessionGeneration) return false;
       _error = friendlyError(e);
       notifyListeners();
       return false;
@@ -238,7 +271,9 @@ class FoodLogProvider with ChangeNotifier {
     double? portionSize,
     String? portionUnit,
   }) async {
+    final session = _sessionGeneration;
     final token = await _resolveToken();
+    if (session != _sessionGeneration) return false;
     if (token == null) return false;
 
     try {
@@ -255,11 +290,13 @@ class FoodLogProvider with ChangeNotifier {
         portionSize: portionSize,
         portionUnit: portionUnit,
       );
+      if (session != _sessionGeneration) return false;
       // Przeładowanie dnia, żeby odświeżyło się też podsumowanie kalorii
       // i makroskładników u góry ekranu — sama lista by nie wystarczyła.
       await fetchLogsForDate(_currentDate);
       return true;
     } catch (e) {
+      if (session != _sessionGeneration) return false;
       _error = friendlyError(e);
       notifyListeners();
       return false;
@@ -267,13 +304,17 @@ class FoodLogProvider with ChangeNotifier {
   }
 
   Future<void> deleteEntry(String logId) async {
+    final session = _sessionGeneration;
     final token = await _resolveToken();
+    if (session != _sessionGeneration) return;
     if (token == null) return;
 
     try {
       await _service.deleteFoodLog(logId, token);
+      if (session != _sessionGeneration) return;
       await fetchLogsForDate(_currentDate);
     } catch (e) {
+      if (session != _sessionGeneration) return;
       _error = friendlyError(e);
       notifyListeners();
     }
@@ -288,6 +329,9 @@ class FoodLogProvider with ChangeNotifier {
   /// poprzedniego użytkownika (wpisy dziennika, podsumowanie kalorii)
   /// nie były widoczne po zalogowaniu się jako ktoś inny.
   void clear() {
+    _sessionGeneration++;
+    _requestGeneration++;
+    _token = null;
     _logs = [];
     _recentEntries = [];
     _summary = null;
@@ -295,5 +339,12 @@ class FoodLogProvider with ChangeNotifier {
     _isLoading = false;
     _error = null;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _sessionGeneration++;
+    _requestGeneration++;
+    super.dispose();
   }
 }

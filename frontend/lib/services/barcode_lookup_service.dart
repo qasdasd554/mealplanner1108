@@ -225,7 +225,17 @@ BarcodeLookupResult mergeBarcodeLookupResults(
   return BarcodeLookupResult(
     found: true,
     source:
-        catalog.source == null ? external.source : '${catalog.source}_enriched',
+        catalog.source == null ||
+                (catalogHasPlaceholderNutrition &&
+                    external.hasCompleteNutrition &&
+                    [
+                      external.kcalPer100,
+                      external.proteinPer100,
+                      external.fatPer100,
+                      external.carbsPer100,
+                    ].every((value) => value == 0))
+            ? external.source
+            : '${catalog.source}_enriched',
     name: _nonEmpty(catalog.name) ?? external.name,
     brand: _nonEmpty(catalog.brand) ?? external.brand,
     unit:

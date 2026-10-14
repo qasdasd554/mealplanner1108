@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import get_current_user, get_db
+from app.core.rate_limit import enforce_user_rate_limit, friend_invitation_limiter
 from app.models import (
     BlockedUser,
     Friendship,
@@ -88,6 +89,7 @@ async def send_invitation(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> FriendEntry:
+    enforce_user_rate_limit(friend_invitation_limiter, current_user.id, "zaproszenie do znajomych")
     identifier = payload.identifier.strip()
     if "@" in identifier:
         result = await db.execute(select(User).where(func.lower(User.email) == identifier.lower()))

@@ -69,7 +69,7 @@ def _parse_label_json(raw_text: str, barcode: str) -> dict:
         "unit": unit,
         "serving_quantity": _optional_number(
             payload.get("serving_quantity"), maximum=100_000
-        ),
+        ) or None,
         "kcal_per_100": _optional_number(payload.get("kcal_per_100"), maximum=2_000),
         "protein_per_100": _optional_number(
             payload.get("protein_per_100"), maximum=200

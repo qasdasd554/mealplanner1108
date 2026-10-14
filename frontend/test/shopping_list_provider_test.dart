@@ -71,4 +71,17 @@ void main() {
     expect(_item(provider).isChecked, isFalse);
     expect(provider.errorMessage, isNotNull);
   });
+
+  test('logout clears list selector and all cached account lists', () async {
+    final provider = ShoppingListProvider(
+      shoppingListService: _FakeShoppingListService(),
+    );
+    addTearDown(provider.dispose);
+    await provider.loadAllLists();
+    expect(provider.allLists, isNotEmpty);
+    provider.clear();
+    expect(provider.currentList, isNull);
+    expect(provider.allLists, isEmpty);
+    expect(provider.selectedListId, isNull);
+  });
 }

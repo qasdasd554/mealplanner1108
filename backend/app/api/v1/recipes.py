@@ -530,27 +530,10 @@ async def get_recipe(
     # szczegółów nie mógł odświeżyć pełnych danych przed decyzją.
     # Dla wszystkich pozostałych zachowujemy 404, żeby nie ujawniać nawet
     # samego faktu istnienia prywatnej treści.
+    from app.services.recipe_access import ensure_recipe_access
+
+    await ensure_recipe_access(db, recipe, current_user)
     is_own = recipe.created_by_user_id == current_user.id
-    is_public = recipe.visibility == "public"
-    is_admin = current_user.role == "admin"
-    if recipe.created_by_user_id is not None and not is_own and not is_public and not is_admin:
-        friend_result = await db.execute(
-            select(Friendship.id).where(
-                Friendship.status == "accepted",
-                or_(
-                    and_(
-                        Friendship.user_a_id == current_user.id,
-                        Friendship.user_b_id == recipe.created_by_user_id,
-                    ),
-                    and_(
-                        Friendship.user_b_id == current_user.id,
-                        Friendship.user_a_id == recipe.created_by_user_id,
-                    ),
-                ),
-            )
-        )
-        if friend_result.scalar_one_or_none() is None:
-            raise NotFoundException(detail=f"Przepis o ID {recipe_id} nie został znaleziony")
     favorite_ids = await _get_favorite_recipe_ids(db, current_user.id)
     recipe.is_favorite = recipe.id in favorite_ids
     recipe.is_own_recipe = is_own
@@ -1114,8 +1097,9 @@ async def _create_ai_recipe(
     # pobieramy 2 punkty od kont bez Premium (jeśli user jest Premium,
     # nic się nie odejmuje — korzysta z funkcji w ramach subskrypcji).
     if not user_is_premium:
-        current_user.premium_points -= 2
-        db.add(current_user)
+        from app.services.premium_points import spend_points
+
+        await spend_points(db, current_user.id, 2)
 
     # Zgłoszenie do wspólnego katalogu — jak przy ręcznym dodawaniu.
     visibility = "pending" if payload.request_public else "private"
@@ -1325,7 +1309,7 @@ async def edit_recipe_with_ai(
         raise HTTPException(status_code=422, detail="AI nie wprowadziło żadnej zmiany. Punkt nie został pobrany.")
 
     locked_user = (await db.execute(
-        select(User).where(User.id == user_id).with_for_update()
+        select(User).where(User.id == user_id).with_for_update().execution_options(populate_existing=True)
     )).scalar_one()
     locked_recipe = (await db.execute(
         select(Recipe).where(Recipe.id == recipe_id).with_for_update()
@@ -1352,7 +1336,9 @@ async def edit_recipe_with_ai(
         recipe_id=recipe_id, product_id=product_id,
         quantity=ingredient["quantity"], unit=ingredient["unit"], is_optional=False,
     ) for product_id, _, ingredient in matched)
-    locked_user.premium_points -= 1
+    from app.services.premium_points import spend_points
+
+    await spend_points(db, user_id, 1)
     await db.flush()
 
     final_result = await db.execute(select(Recipe).options(

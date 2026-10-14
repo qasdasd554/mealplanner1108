@@ -104,6 +104,10 @@ async def _process_recipe_import(job_id: uuid.UUID) -> None:
                     user = await db.get(User, job.user_id)
                     if user is None or job.payload is None:
                         raise ValueError("Brak danych potrzebnych do importu.")
+                    # A queued job may outlive an account ban or loss of
+                    # verification. Recheck before contacting paid AI services.
+                    if user.is_banned or not user.is_email_verified:
+                        raise HTTPException(status_code=403, detail="Konto nie ma dostępu do importu przepisu.")
                     payload = AIRecipeImportRequest.model_validate(job.payload)
                     from app.api.v1.recipes import _create_ai_recipe
 

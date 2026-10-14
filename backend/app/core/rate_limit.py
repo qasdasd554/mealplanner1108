@@ -130,6 +130,9 @@ meal_plan_generation_daily_free_limiter = SlidingWindowRateLimiter(
 # Dodawanie komentarzy: ochrona przed spamem (w tym spamem zdjęciami,
 # które trafiają bezpośrednio do bazy danych).
 comment_creation_limiter = SlidingWindowRateLimiter(max_events=30, window_seconds=3600)
+friend_invitation_limiter = SlidingWindowRateLimiter(max_events=30, window_seconds=3600)
+shopping_share_limiter = SlidingWindowRateLimiter(max_events=30, window_seconds=3600)
+billing_verification_limiter = SlidingWindowRateLimiter(max_events=60, window_seconds=3600)
 
 # Zgłaszanie treści do moderacji — bez limitu jedna osoba mogłaby zasypać
 # panel administratora tysiącami zgłoszeń w kilka sekund (a każde tworzy
@@ -160,6 +163,10 @@ product_label_ai_limiter = SlidingWindowRateLimiter(max_events=15, window_second
 # żeby nie dało się zasypać cudzej skrzynki mailem (albo zużyć darmowy
 # limit Resend) powtarzanym "wyślij ponownie".
 email_verification_resend_limiter = SlidingWindowRateLimiter(max_events=3, window_seconds=600)
+# Sześciocyfrowe kody wymagają limitu weryfikacji, nie tylko wysyłki.
+email_verification_attempt_limiter = SlidingWindowRateLimiter(max_events=10, window_seconds=900)
+password_reset_attempt_limiter = SlidingWindowRateLimiter(max_events=10, window_seconds=900)
+password_reset_attempt_ip_limiter = SlidingWindowRateLimiter(max_events=30, window_seconds=900)
 # Prośba o reset hasła — po adresie IP (nie po koncie, bo formularz
 # "zapomniałem hasła" jest dostępny BEZ zalogowania, więc nie ma jeszcze
 # żadnego user_id do policzenia). Limit celowo dość hojny (5/15 min),

@@ -12,6 +12,23 @@ import '../services/barcode_lookup_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/error_utils.dart';
 import 'product_amount_picker.dart';
+import '../utils/barcode_utils.dart';
+
+List<Product> mergeCatalogProducts(Iterable<List<Product>> responses) {
+  final merged = <String, Product>{};
+  for (final response in responses) {
+    for (final product in response) {
+      final barcode = normalizeScannedBarcode(product.barcode);
+      // Taka sama etykieta nie identyfikuje wariantu ani opakowania.
+      final key =
+          barcode != null
+              ? 'gtin:${barcode.padLeft(14, '0')}'
+              : 'id:${product.id}';
+      merged.putIfAbsent(key, () => product);
+    }
+  }
+  return merged.values.toList()..sort((a, b) => a.name.compareTo(b.name));
+}
 
 /// Wynik wyboru produktu z katalogu — nazwa, ilość i wyliczone wartości
 /// odżywcze gotowe do wstawienia w formularz dziennika.
@@ -171,20 +188,8 @@ class _PickProductFromCatalogSheetState
       ]);
       if (!mounted || generation != _requestGeneration) return;
 
-      final merged = <String, Product>{};
-      for (final response in responses) {
-        for (final product in response) {
-          final key =
-              '${product.name.trim().toLowerCase()}|'
-              '${(product.brand ?? '').trim().toLowerCase()}';
-          // Katalog oficjalny jest pobierany pierwszy i ma pierwszeństwo
-          // przed takim samym rekordem z cache skanera.
-          merged.putIfAbsent(key, () => product);
-        }
-      }
       setState(() {
-        _results =
-            merged.values.toList()..sort((a, b) => a.name.compareTo(b.name));
+        _results = mergeCatalogProducts(responses);
       });
     } catch (e) {
       if (!mounted || generation != _requestGeneration) return;
@@ -276,6 +281,7 @@ class _PickProductFromCatalogSheetState
         fat: result.fatPer100 ?? 0,
         carbs: result.carbsPer100 ?? 0,
         fiber: 0,
+        confirmedZeroValues: result.hasCompleteNutrition,
       ),
     );
     final selection = await showProductAmountPicker(
@@ -303,11 +309,7 @@ class _PickProductFromCatalogSheetState
 
   Future<void> _pickProduct(Product product) async {
     final nutrition = product.nutritionPer100;
-    final nutritionMissing =
-        nutrition.kcal == 0 &&
-        nutrition.protein == 0 &&
-        nutrition.fat == 0 &&
-        nutrition.carbs == 0;
+    final nutritionMissing = !nutrition.hasCompleteNutrition;
     if (nutritionMissing && product.barcode?.trim().isNotEmpty == true) {
       final recognized = await showProductLabelRecognitionSheet(
         context,

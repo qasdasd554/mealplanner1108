@@ -171,8 +171,9 @@ class _ProductLabelRecognitionSheetState
       _number(_fat),
       _number(_carbs),
     ];
-    if (nutrition.any((value) => value == null) ||
-        !nutrition.any((value) => value! > 0)) {
+    if (nutrition.any(
+      (value) => value == null || !value.isFinite || value < 0,
+    )) {
       setState(
         () =>
             _error =

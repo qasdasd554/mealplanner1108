@@ -539,7 +539,7 @@ async def _fetch_url_text(url: str) -> tuple[str, dict | None]:
     import httpx
     from bs4 import BeautifulSoup
 
-    from app.core.safe_url import UnsafeUrlError, validate_public_http_url
+    from app.core.safe_url import UnsafeUrlError, public_http_request_target
 
     headers = {
                     # UWAGA (naprawa): nagłówki tylko z User-Agent są łatwym
@@ -567,10 +567,13 @@ async def _fetch_url_text(url: str) -> tuple[str, dict | None]:
     response_encoding = "utf-8"
     status_code = 0
     try:
-        async with httpx.AsyncClient(timeout=12.0, follow_redirects=False) as client:
+        async with httpx.AsyncClient(
+            timeout=12.0, follow_redirects=False, trust_env=False,
+            limits=httpx.Limits(max_keepalive_connections=0),
+        ) as client:
             for _ in range(6):
-                current_url = await validate_public_http_url(current_url)
-                async with client.stream("GET", current_url, headers=headers) as response:
+                target, host_headers, extensions = await public_http_request_target(current_url)
+                async with client.stream("GET", target, headers={**headers, **host_headers}, extensions=extensions) as response:
                     status_code = response.status_code
                     if status_code in {301, 302, 303, 307, 308}:
                         location = response.headers.get("location")

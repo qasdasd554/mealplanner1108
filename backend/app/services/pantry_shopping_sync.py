@@ -44,10 +44,10 @@ def split_required_quantity(
         getattr(product, "measure_options", None),
     )
     covered = Decimal(str(grams_to_quantity(
-        product.name, covered_grams, unit, serving_quantity,
+        product.name, covered_grams, unit, serving_quantity, getattr(product, "measure_options", None),
     )))
     required = Decimal(str(grams_to_quantity(
-        product.name, required_grams, unit, serving_quantity,
+        product.name, required_grams, unit, serving_quantity, getattr(product, "measure_options", None),
     )))
     covered = min(required, max(Decimal(0), covered.quantize(Decimal("0.001"))))
     return covered, required - covered

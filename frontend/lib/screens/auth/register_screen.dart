@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/turnstile_widget.dart';
 import '../../theme/app_theme.dart';
+import '../../config/app_links.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -83,7 +84,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   /// premium_screen.dart).
   Future<void> _openLegal(String url) async {
     try {
-      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      final opened = await launchUrl(
+        Uri.parse(url),
+        mode: LaunchMode.externalApplication,
+      );
+      if (!opened) throw StateError('Document could not be opened');
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context)
@@ -344,10 +349,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       ),
                                     ),
                                     GestureDetector(
-                                      onTap:
-                                          () => _openLegal(
-                                            'https://qasdasd554.github.io/mealplanner1108/terms-of-use.html',
-                                          ),
+                                      onTap: () => _openLegal(AppLinks.terms),
                                       child: Text(
                                         'regulamin',
                                         style: TextStyle(
@@ -366,10 +368,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       ),
                                     ),
                                     GestureDetector(
-                                      onTap:
-                                          () => _openLegal(
-                                            'https://qasdasd554.github.io/mealplanner1108/privacy-policy.html',
-                                          ),
+                                      onTap: () => _openLegal(AppLinks.privacy),
                                       child: Text(
                                         'politykę prywatności',
                                         style: TextStyle(

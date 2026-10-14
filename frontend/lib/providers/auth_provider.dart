@@ -9,8 +9,9 @@ import '../utils/error_utils.dart';
 import '../services/push_service.dart';
 
 class AuthProvider with ChangeNotifier {
-  final AuthService _authService = AuthService();
-  final ApiClient _apiClient = ApiClient();
+  final AuthService _authService;
+  final Future<String?> Function() _readToken;
+  final Future<void> Function() _unregisterPush;
 
   User? _currentUser;
   bool _isAuthenticated = false;
@@ -19,6 +20,10 @@ class AuthProvider with ChangeNotifier {
   String? _errorMessage;
   Timer? _premiumExpiryTimer;
   late final Future<void> initialization;
+  int _sessionGeneration = 0;
+  bool _disposed = false;
+  bool _explicitLogout = false;
+  bool _logoutInProgress = false;
 
   User? get currentUser => _currentUser;
   bool get isAuthenticated => _isAuthenticated;
@@ -26,13 +31,21 @@ class AuthProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  AuthProvider() {
+  AuthProvider({
+    AuthService? service,
+    Future<String?> Function()? readToken,
+    Future<void> Function()? unregisterPush,
+  }) : _authService = service ?? AuthService(),
+       _readToken = readToken ?? ApiClient().getToken,
+       _unregisterPush = unregisterPush ?? PushService().unregister {
     initialization = _checkTokenOnInit();
   }
 
   Future<void> _checkTokenOnInit() async {
+    final session = _sessionGeneration;
     try {
-      final token = await _apiClient.getToken();
+      final token = await _readToken();
+      if (session != _sessionGeneration) return;
       if (token != null) {
         _isAuthenticated = true;
         notifyListeners();
@@ -59,8 +72,9 @@ class AuthProvider with ChangeNotifier {
       // loadProfile go wyczyścił), spróbuj po cichu wznowić sesję Google,
       // o ile użytkownik logował się nią wcześniej na tym urządzeniu.
       // Dodatkowe zabezpieczenie przed niechcianym wylogowaniem.
-      if (!_isAuthenticated) {
+      if (!_isAuthenticated && !_explicitLogout) {
         final restored = await _authService.attemptGoogleSilentLogin();
+        if (session != _sessionGeneration) return;
         if (restored) {
           _isAuthenticated = true;
           notifyListeners();
@@ -78,10 +92,14 @@ class AuthProvider with ChangeNotifier {
     String password, {
     String? captchaToken,
   }) async {
+    if (_isLoading || _logoutInProgress) return false;
+    final session = _sessionGeneration;
     _setLoading(true);
     _clearError();
     try {
       await _authService.login(email, password, captchaToken: captchaToken);
+      if (session != _sessionGeneration) return false;
+      _explicitLogout = false;
       _isAuthenticated = true;
       notifyListeners();
       await loadProfile();
@@ -110,16 +128,20 @@ class AuthProvider with ChangeNotifier {
   /// Logowanie/rejestracja przez Google. Zwraca `true` po sukcesie, `false`
   /// jeśli użytkownik anulował okno logowania (bez pokazywania błędu).
   Future<bool> loginWithGoogle({String? captchaToken}) async {
+    if (_isLoading || _logoutInProgress) return false;
+    final session = _sessionGeneration;
     _setLoading(true);
     _clearError();
     try {
       final success = await _authService.loginWithGoogle(
         captchaToken: captchaToken,
       );
+      if (session != _sessionGeneration) return false;
       if (!success) {
         _setLoading(false);
         return false;
       }
+      _explicitLogout = false;
       _isAuthenticated = true;
       notifyListeners();
       await loadProfile();
@@ -135,16 +157,20 @@ class AuthProvider with ChangeNotifier {
   /// Logowanie/rejestracja przez "Sign in with Apple" (iOS). Zwraca
   /// `true` po sukcesie, `false` jeśli użytkownik anulował okno logowania.
   Future<bool> loginWithApple({String? captchaToken}) async {
+    if (_isLoading || _logoutInProgress) return false;
+    final session = _sessionGeneration;
     _setLoading(true);
     _clearError();
     try {
       final success = await _authService.loginWithApple(
         captchaToken: captchaToken,
       );
+      if (session != _sessionGeneration) return false;
       if (!success) {
         _setLoading(false);
         return false;
       }
+      _explicitLogout = false;
       _isAuthenticated = true;
       notifyListeners();
       await loadProfile();
@@ -163,6 +189,8 @@ class AuthProvider with ChangeNotifier {
     String displayName, {
     String? captchaToken,
   }) async {
+    if (_isLoading || _logoutInProgress) return false;
+    final session = _sessionGeneration;
     _setLoading(true);
     _clearError();
     try {
@@ -172,6 +200,9 @@ class AuthProvider with ChangeNotifier {
         displayName,
         captchaToken: captchaToken,
       );
+      if (session != _sessionGeneration) return false;
+      _explicitLogout = false;
+      _isAuthenticated = true;
 
       // Sesja jest już zapisana przez register() na podstawie tokenu
       // zwróconego przez serwer — NIE logujemy się drugi raz.
@@ -189,8 +220,11 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> loadProfile() async {
+    final session = _sessionGeneration;
     try {
-      _currentUser = await _authService.getProfile();
+      final user = await _authService.getProfile();
+      if (session != _sessionGeneration) return;
+      _currentUser = user;
       _schedulePremiumExpiryRefresh();
       notifyListeners();
 
@@ -205,6 +239,7 @@ class AuthProvider with ChangeNotifier {
         unawaited(PushService().registerForUser());
       }
     } catch (e) {
+      if (session != _sessionGeneration) return;
       if (e is ApiException && e.statusCode == 401) {
         // UWAGA (naprawa — zgłoszone jednorazowe, niewyjaśnione
         // wylogowanie): wcześniej POJEDYNCZY błąd 401 z JAKIEGOKOLWIEK
@@ -223,8 +258,11 @@ class AuthProvider with ChangeNotifier {
         // kosztuje w tym przypadku, a chroni przed niepotrzebnym
         // wylogowaniem przy czysto przejściowym problemie.
         await Future.delayed(const Duration(seconds: 2));
+        if (session != _sessionGeneration) return;
         try {
-          _currentUser = await _authService.getProfile();
+          final user = await _authService.getProfile();
+          if (session != _sessionGeneration) return;
+          _currentUser = user;
           _schedulePremiumExpiryRefresh();
           notifyListeners();
           if (_currentUser != null && _currentUser!.isEmailVerified) {
@@ -232,6 +270,7 @@ class AuthProvider with ChangeNotifier {
           }
           return;
         } catch (retryError) {
+          if (session != _sessionGeneration) return;
           if (retryError is ApiException && retryError.statusCode == 401) {
             await logout();
           }
@@ -334,6 +373,7 @@ class AuthProvider with ChangeNotifier {
     String? avatar,
     String? avatarPhotoBase64,
   }) async {
+    final session = _sessionGeneration;
     _clearError();
     try {
       final updatedUser = await _authService.updateProfile(
@@ -351,10 +391,12 @@ class AuthProvider with ChangeNotifier {
         avatar: avatar,
         avatarPhotoBase64: avatarPhotoBase64,
       );
+      if (session != _sessionGeneration) return false;
       _currentUser = updatedUser;
       notifyListeners();
       return true;
     } catch (e) {
+      if (session != _sessionGeneration) return false;
       _setErrorMessage(friendlyError(e));
       return false;
     }
@@ -432,18 +474,38 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> logout() async {
-    // Wyrejestruj urządzenie ZANIM stracimy token sesji — po wylogowaniu
-    // żądanie do backendu nie przeszłoby autoryzacji.
-    await PushService().unregister();
-    await _authService.logout();
+    if (_logoutInProgress) return;
+    _logoutInProgress = true;
+    _authService.invalidateSession();
+    _sessionGeneration++;
+    _explicitLogout = true;
     _currentUser = null;
     _premiumExpiryTimer?.cancel();
     _isAuthenticated = false;
+    _isLoading = false;
     notifyListeners();
+    // Wyrejestruj urządzenie ZANIM stracimy token sesji — po wylogowaniu
+    // żądanie do backendu nie przeszłoby autoryzacji.
+    try {
+      await _unregisterPush();
+    } catch (_) {
+      // Optional push cleanup must never prevent local token removal.
+    }
+    try {
+      await _authService.logout();
+    } finally {
+      _currentUser = null;
+      _premiumExpiryTimer?.cancel();
+      _isAuthenticated = false;
+      _logoutInProgress = false;
+      notifyListeners();
+    }
   }
 
   @override
   void dispose() {
+    _sessionGeneration++;
+    _disposed = true;
     _premiumExpiryTimer?.cancel();
     super.dispose();
   }
@@ -452,10 +514,15 @@ class AuthProvider with ChangeNotifier {
   /// jak logout(), więc ekran logowania pojawia się natychmiast — nie ma
   /// już żadnego tokenu ani profilu, do których dałoby się wrócić.
   Future<bool> deleteAccount() async {
+    if (_isLoading) return false;
+    _setLoading(true);
     _clearError();
     try {
-      await PushService().unregister();
+      await _unregisterPush();
       await _authService.deleteAccount();
+      _authService.invalidateSession();
+      _sessionGeneration++;
+      _explicitLogout = true;
       await _authService.logout();
       _currentUser = null;
       _premiumExpiryTimer?.cancel();
@@ -465,6 +532,8 @@ class AuthProvider with ChangeNotifier {
     } catch (e) {
       _setErrorMessage(friendlyError(e));
       return false;
+    } finally {
+      _setLoading(false);
     }
   }
 
@@ -537,6 +606,11 @@ class AuthProvider with ChangeNotifier {
   void _setLoading(bool value) {
     _isLoading = value;
     notifyListeners();
+  }
+
+  @override
+  void notifyListeners() {
+    if (!_disposed) super.notifyListeners();
   }
 
   void _setErrorMessage(String msg) {

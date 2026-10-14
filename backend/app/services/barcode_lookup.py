@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import logging
+import math
 import asyncio
 import time
 import re
-from difflib import SequenceMatcher
 
 import httpx
 
@@ -27,6 +27,9 @@ OFF_TEXT_SEARCH_URL = "https://world.openfoodfacts.org/cgi/search.pl"
 USER_AGENT = "MealPlannerPolska/1.0 (https://github.com/qasdasd554/mealplanner1108)"
 
 logger = logging.getLogger(__name__)
+EXPLICIT_NUTRITION_SOURCES = frozenset({
+    "open_food_facts", "usda_fooddata_central", "product_label_ai", "product_label_ai_confirmed",
+})
 _TEXT_SEARCH_CACHE_TTL_SECONDS = 300
 _TEXT_SEARCH_CACHE_MAX_ENTRIES = 200
 _text_search_cache: dict[str, tuple[float, list["BarcodeLookupResult"]]] = {}
@@ -71,9 +74,13 @@ def _has_complete_nutrition(result: BarcodeLookupResult) -> bool:
     # Stare rekordy i niektóre niepełne odpowiedzi zewnętrzne zapisują
     # brak makro jako cztery zera. Nie wolno uznać takiego zestawu za
     # kompletne dane, bo wtedy wynik trafia do Neon i blokuje USDA/OCR.
-    return all(value is not None for value in values) and any(
-        value > 0 for value in values if value is not None
+    known_values = all(
+        value is not None and math.isfinite(value) and value >= 0 for value in values
     )
+    # Exact external responses have explicit missing fields (None), so four
+    # real zeros are valid for e.g. water. Legacy caches lack that provenance.
+    explicit_source = result.source in EXPLICIT_NUTRITION_SOURCES
+    return known_values and (explicit_source or any(value > 0 for value in values))
 
 
 def _merge_lookup_results(
@@ -86,7 +93,7 @@ def _merge_lookup_results(
         primary.fat_per_100,
         primary.carbs_per_100,
     )
-    primary_has_placeholder_nutrition = all(
+    primary_has_placeholder_nutrition = not _has_complete_nutrition(primary) and all(
         value == 0 for value in primary_nutrition
     )
 
@@ -178,18 +185,22 @@ def barcode_variants(barcode: str) -> tuple[str, ...]:
         variants.append(normalized.zfill(14))
     if len(normalized) == 12:
         variants.append("0" + normalized)
-    if len(normalized) in (13, 14) and normalized.startswith("0"):
-        variants.append(normalized.lstrip("0"))
+    # Remove only GTIN padding, never the meaningful first digit of UPC-A.
+    for length in (14, 13, 12, 8):
+        if len(normalized) > length and set(normalized[:-length]) == {"0"}:
+            variants.append(normalized[-length:])
     return tuple(dict.fromkeys(value for value in variants if 8 <= len(value) <= 14))
 
 
 def _number(mapping: dict, *keys: str) -> float | None:
     for key in keys:
         value = mapping.get(key)
-        if value is None:
+        if value is None or isinstance(value, bool):
             continue
         try:
-            return float(value)
+            number = float(value)
+            if math.isfinite(number) and number >= 0:
+                return number
         except (TypeError, ValueError):
             continue
     return None
@@ -265,7 +276,8 @@ def _package_quantity_in_base_unit(product: dict) -> float | None:
     nie używamy jako zastępczej masy całego produktu.
     """
     package_quantity = _number(product, "product_quantity")
-    if package_quantity is not None and package_quantity > 0:
+    package_unit = str(product.get("product_quantity_unit") or "").strip().lower()
+    if package_quantity is not None and package_quantity > 0 and package_unit in {"g", "kg", "mg", "ml", "cl", "dl", "l"}:
         return _quantity_in_base_unit(
             package_quantity, product.get("product_quantity_unit")
         )
@@ -316,9 +328,18 @@ def _result_from_off_product(product: dict) -> BarcodeLookupResult | None:
     if name is None:
         return None
     nutriments = product.get("nutriments") or {}
-    kcal = _number(nutriments, "energy-kcal_100g", "energy-kcal")
+    if not isinstance(nutriments, dict):
+        nutriments = {}
+    # Raw keys describe the label's basis, which may be a single serving.
+    # Only explicit per-100 values are safe without a confirmed label basis.
+    raw_per_100 = product.get("nutrition_data_per") in {"100g", "100ml"}
+
+    def nutrient(per_100_key: str, raw_key: str) -> float | None:
+        return _number(nutriments, per_100_key, *([raw_key] if raw_per_100 else []))
+
+    kcal = nutrient("energy-kcal_100g", "energy-kcal")
     if kcal is None:
-        energy_kj = _number(nutriments, "energy_100g", "energy")
+        energy_kj = nutrient("energy_100g", "energy")
         kcal = round(energy_kj / 4.184, 1) if energy_kj is not None else None
     raw_brands = product.get("brands")
     brand = (
@@ -332,9 +353,9 @@ def _result_from_off_product(product: dict) -> BarcodeLookupResult | None:
         brand=brand,
         unit=_unit_from_product(product),
         kcal_per_100=kcal,
-        protein_per_100=_number(nutriments, "proteins_100g", "proteins"),
-        fat_per_100=_number(nutriments, "fat_100g", "fat"),
-        carbs_per_100=_number(nutriments, "carbohydrates_100g", "carbohydrates"),
+        protein_per_100=nutrient("proteins_100g", "proteins"),
+        fat_per_100=nutrient("fat_100g", "fat"),
+        carbs_per_100=nutrient("carbohydrates_100g", "carbohydrates"),
         price_min=price_min,
         price_max=price_max,
         source="open_food_facts",
@@ -411,12 +432,15 @@ async def search_products_external(
 async def find_nutrition_by_name(
     name: str,
     brand: str | None = None,
+    *,
+    barcode: str | None = None,
 ) -> BarcodeLookupResult | None:
     """Uzupełnia makro przez wyszukiwanie internetowe po nazwie.
 
     Ta ścieżka uruchamia się tylko wtedy, gdy wyszukiwanie po kodzie dało
     nazwę, ale nie wartości odżywcze. Wymagamy bliskiego dopasowania nazwy
-    (lub zgodnej marki), aby nie przypisać makro podobnego produktu.
+    i marki; dla skanu także zgodnego GTIN. Podobny wariant produktu może
+    mieć inne makro, więc nie stanowi automatycznego uzupełnienia.
     """
     clean_name = " ".join(name.strip().split())
     clean_brand = " ".join((brand or "").strip().split())
@@ -427,24 +451,22 @@ async def find_nutrition_by_name(
     if not results and clean_brand:
         results = await search_products_external(clean_name, limit=10)
 
-    best: BarcodeLookupResult | None = None
-    best_score = 0.0
     for candidate in results:
         if not _has_complete_nutrition(candidate):
             continue
-        name_score = SequenceMatcher(
-            None, clean_name.casefold(), candidate.name.casefold()
-        ).ratio()
-        brand_matches = bool(
-            clean_brand
-            and candidate.brand
-            and clean_brand.casefold() in candidate.brand.casefold()
-        )
-        score = name_score + (0.2 if brand_matches else 0.0)
-        if name_score >= 0.72 and score > best_score:
-            best = candidate
-            best_score = score
-    return best
+        if barcode:
+            # An automatically enriched scan must still refer to its exact
+            # GTIN. A similar flavour or "light" product has different macros.
+            if candidate.barcode in barcode_variants(barcode):
+                return candidate
+            continue
+        candidate_name = " ".join(candidate.name.split()).casefold()
+        candidate_brand = " ".join((candidate.brand or "").split()).casefold()
+        if candidate_name == clean_name.casefold() and (
+            not clean_brand or candidate_brand == clean_brand.casefold()
+        ):
+            return candidate
+    return None
 
 
 def _results_from_off_search_response(
@@ -540,7 +562,9 @@ def _product_from_usda_response(data: object, barcode: str) -> BarcodeLookupResu
             if not isinstance(nutrient, dict):
                 continue
             try:
-                nutrient_values[int(nutrient["nutrientId"])] = float(nutrient["value"])
+                value = _number(nutrient, "value")
+                if value is not None:
+                    nutrient_values[int(nutrient["nutrientId"])] = value
             except (KeyError, TypeError, ValueError):
                 continue
         price_min, price_max = price_range_for_product(name, food.get("brandedFoodCategory"))

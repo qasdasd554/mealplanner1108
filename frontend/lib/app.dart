@@ -9,6 +9,9 @@ import 'providers/auth_provider.dart';
 import 'providers/food_log_provider.dart';
 import 'providers/wellness_provider.dart';
 import 'providers/meal_plan_provider.dart';
+import 'providers/shopping_list_provider.dart';
+import 'providers/promotion_provider.dart';
+import 'providers/store_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
@@ -34,7 +37,10 @@ import 'services/update_service.dart';
 import 'models/meal_plan.dart';
 
 class SmartMealPlannerApp extends StatefulWidget {
-  const SmartMealPlannerApp({super.key});
+  @visibleForTesting
+  final Map<String, WidgetBuilder> testRoutes;
+
+  const SmartMealPlannerApp({super.key, this.testRoutes = const {}});
 
   // Globalny klucz nawigatora — potrzebny, żeby ShareIntentHandler mógł
   // otworzyć ekran rozpoznawania przepisu z linku POZA drzewem widgetów
@@ -54,6 +60,40 @@ class _SmartMealPlannerAppState extends State<SmartMealPlannerApp>
   bool _updatePromptVisible = false;
   bool _hasLeftForeground = false;
   Timer? _updateTimer;
+  AuthProvider? _observedAuth;
+  bool _wasAuthenticated = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final auth = context.read<AuthProvider>();
+    if (identical(auth, _observedAuth)) return;
+    _observedAuth?.removeListener(_onAuthChanged);
+    _observedAuth = auth;
+    _wasAuthenticated = auth.isAuthenticated;
+    auth.addListener(_onAuthChanged);
+  }
+
+  void _onAuthChanged() {
+    if (!mounted) return;
+    final authenticated = _observedAuth!.isAuthenticated;
+    final endedSession = _wasAuthenticated && !authenticated;
+    _wasAuthenticated = authenticated;
+    if (!endedSession) return;
+    context.read<MealPlanProvider>().clear();
+    context.read<FoodLogProvider>().clear();
+    context.read<WellnessProvider>().clear();
+    context.read<ShoppingListProvider>().clear();
+    context.read<PromotionProvider>().clear();
+    context.read<StoreProvider>().clear();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _observedAuth!.isAuthenticated) return;
+      SmartMealPlannerApp.navigatorKey.currentState?.pushNamedAndRemoveUntil(
+        '/login',
+        (route) => false,
+      );
+    });
+  }
 
   @override
   void initState() {
@@ -75,6 +115,7 @@ class _SmartMealPlannerAppState extends State<SmartMealPlannerApp>
 
   @override
   void dispose() {
+    _observedAuth?.removeListener(_onAuthChanged);
     _updateTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -198,6 +239,7 @@ class _SmartMealPlannerAppState extends State<SmartMealPlannerApp>
             '/tracker/add': (context) => const AddFoodEntryScreen(),
             '/promotions': (context) => const PromotionsScreen(),
             '/notifications': (context) => const NotificationsScreen(),
+            ...widget.testRoutes,
           },
         );
       },

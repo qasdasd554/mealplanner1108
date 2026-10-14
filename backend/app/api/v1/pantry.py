@@ -5,6 +5,7 @@ import uuid
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
+from sqlalchemy import or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -35,15 +36,15 @@ class AddPantryItemsRequest(BaseModel):
     """Żądanie dodania jednego lub wielu produktów do spiżarni naraz —
     np. po odhaczeniu pozycji na liście zakupów jako kupionych."""
 
-    product_ids: list[uuid.UUID]
-    quantity: float | None = None
-    unit: str | None = None
+    product_ids: list[uuid.UUID] = Field(..., max_length=200)
+    quantity: float | None = Field(None, gt=0, le=1_000_000)
+    unit: str | None = Field(None, pattern="^(g|kg|ml|l|szt|opak|porcja|lyzeczka|szklanka)$")
 
 
 class AddPantryBarcodeRequest(BaseModel):
     barcode: str
-    quantity: float
-    unit: str
+    quantity: float = Field(..., gt=0, le=1_000_000)
+    unit: str = Field(..., pattern="^(g|kg|ml|l|szt|opak|porcja|lyzeczka|szklanka)$")
     batch: bool = False
     name: str | None = Field(None, min_length=2, max_length=300)
     brand: str | None = Field(None, max_length=200)
@@ -61,8 +62,8 @@ class UpdatePantryItemQuantityRequest(BaseModel):
     typowy przepływ: najpierw dodajesz produkt jednym dotknięciem,
     potem, jeśli chcesz, doprecyzowujesz ile go dokładnie masz."""
 
-    quantity: float | None = None
-    unit: str | None = None
+    quantity: float | None = Field(None, gt=0, le=1_000_000)
+    unit: str | None = Field(None, pattern="^(g|kg|ml|l|szt|opak|porcja|lyzeczka|szklanka)$")
 
 
 def merge_scanned_nutrition(
@@ -128,7 +129,10 @@ async def add_pantry_items(
 
     # Sprawdź, które z podanych produktów faktycznie istnieją w katalogu.
     existing_products = await db.execute(
-        select(Product.id).where(Product.id.in_(payload.product_ids))
+        select(Product.id).where(
+            Product.id.in_(payload.product_ids),
+            or_(Product.review_status == "approved", Product.created_by_user_id == current_user.id),
+        )
     )
     valid_ids = set(existing_products.scalars().all())
 
@@ -268,6 +272,11 @@ async def add_pantry_item_from_barcode(
             select(Product).where(Product.barcode.in_(barcode_variants(barcode))).limit(1)
         )
         product = product_result.scalar_one_or_none()
+    if product is not None and not (
+        product.review_status == "approved"
+        or product.created_by_user_id == current_user.id
+    ):
+        raise NotFoundException(detail="Nie znaleziono produktu o tym kodzie kreskowym.")
     if product is None:
         from app.services.product_measures import build_measure_options
 
@@ -290,11 +299,8 @@ async def add_pantry_item_from_barcode(
                 ),
             )
         nutrition = {
-            "kcal": resolved_nutrition["kcal"] or 0,
-            "protein": resolved_nutrition["protein"] or 0,
-            "fat": resolved_nutrition["fat"] or 0,
-            "carbs": resolved_nutrition["carbs"] or 0,
-            "fiber": 0,
+            **resolved_nutrition,
+            "fiber": None,
         }
         product_unit = "opak" if package_size is not None else lookup_unit
         product = Product(

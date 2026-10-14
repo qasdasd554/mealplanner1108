@@ -40,15 +40,21 @@ class BarcodeLookupResult {
       source == 'catalog' || source == 'catalog_enriched';
 
   /// Pełny zestaw wartości potrzebny do zapisania produktu w Śledzeniu.
-  /// Stare rekordy katalogu/cache mogły zapisać brakujące dane jako cztery
-  /// zera. Traktujemy taki wynik jak brak danych niezależnie od źródła —
-  /// aplikacja nie może pokazać użytkownikowi fałszywego "0 kcal / 0 g".
-  /// Pojedyncze zero jest prawidłowe (np. 0 g tłuszczu), ale cały zestaw
-  /// zer wymaga uzupełnienia z etykiety produktu.
+  /// Stare zera katalogu/cache mogą być brakiem danych. Jawne wartości
+  /// z zewnętrznej bazy lub potwierdzonej etykiety obejmują też np. wodę.
   bool get hasCompleteNutrition {
     final values = [kcalPer100, proteinPer100, fatPer100, carbsPer100];
-    if (values.any((value) => value == null)) return false;
-    return values.any((value) => value! > 0);
+    if (values.any((value) => value == null || !value.isFinite || value < 0)) {
+      return false;
+    }
+    return values.any((value) => value! > 0) ||
+        const {
+          'open_food_facts',
+          'open_food_facts_direct',
+          'usda_fooddata_central',
+          'product_label_ai',
+          'product_label_ai_confirmed',
+        }.contains(source);
   }
 
   static double? _asDouble(dynamic value) {

@@ -91,87 +91,96 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 96,
-                height: 96,
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withOpacity(0.12),
-                  shape: BoxShape.circle,
+        child: LayoutBuilder(
+          builder:
+              (context, constraints) => SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 96,
+                          height: 96,
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryColor.withOpacity(0.12),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.mark_email_read_outlined,
+                            size: 48,
+                            color: AppTheme.primaryColor,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          'Potwierdź swój e-mail',
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Wysłaliśmy 6-cyfrowy kod na adres\n$email',
+                          style: TextStyle(color: AppTheme.textSecondary),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 32),
+                        TextField(
+                          controller: _codeController,
+                          keyboardType: TextInputType.number,
+                          textAlign: TextAlign.center,
+                          maxLength: 6,
+                          style: const TextStyle(
+                            fontSize: 28,
+                            letterSpacing: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          decoration: const InputDecoration(
+                            counterText: '',
+                            hintText: '000000',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton(
+                            onPressed: _isVerifying ? null : _verify,
+                            child:
+                                _isVerifying
+                                    ? const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                    : const Text('Potwierdź'),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        TextButton(
+                          onPressed: _isResending ? null : _resend,
+                          child:
+                              _isResending
+                                  ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                  : const Text('Wyślij kod ponownie'),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                child: const Icon(
-                  Icons.mark_email_read_outlined,
-                  size: 48,
-                  color: AppTheme.primaryColor,
-                ),
               ),
-              const SizedBox(height: 24),
-              Text(
-                'Potwierdź swój e-mail',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Wysłaliśmy 6-cyfrowy kod na adres\n$email',
-                style: TextStyle(color: AppTheme.textSecondary),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32),
-              TextField(
-                controller: _codeController,
-                keyboardType: TextInputType.number,
-                textAlign: TextAlign.center,
-                maxLength: 6,
-                style: const TextStyle(
-                  fontSize: 28,
-                  letterSpacing: 12,
-                  fontWeight: FontWeight.bold,
-                ),
-                decoration: const InputDecoration(
-                  counterText: '',
-                  hintText: '000000',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: _isVerifying ? null : _verify,
-                  child:
-                      _isVerifying
-                          ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                          : const Text('Potwierdź'),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: _isResending ? null : _resend,
-                child:
-                    _isResending
-                        ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                        : const Text('Wyślij kod ponownie'),
-              ),
-            ],
-          ),
         ),
       ),
     );

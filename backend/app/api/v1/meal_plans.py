@@ -639,6 +639,12 @@ async def swap_recipe_in_plan(
             detail=f"Pozycja planu o ID {entry_id} nie została znaleziona",
         )
 
+    # Pośrednie odczytanie przepisu przez plan podlega tej samej widoczności.
+    from app.services.recipe_access import ensure_recipe_access
+
+    recipe = await db.get(Recipe, payload.recipe_id)
+    await ensure_recipe_access(db, recipe, current_user)
+
     # Zamień przepis
     entry.recipe_id = payload.recipe_id
     db.add(entry)

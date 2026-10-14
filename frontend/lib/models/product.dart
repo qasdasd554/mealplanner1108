@@ -4,6 +4,8 @@ class NutritionInfo {
   final double fat;
   final double carbs;
   final double fiber;
+  final Set<String> _unknownValues;
+  final bool confirmedZeroValues;
 
   NutritionInfo({
     required this.kcal,
@@ -11,7 +13,32 @@ class NutritionInfo {
     required this.fat,
     required this.carbs,
     required this.fiber,
-  });
+    Set<String> unknownValues = const {},
+    this.confirmedZeroValues = false,
+  }) : _unknownValues = unknownValues;
+
+  double? knownValue(String key) {
+    if (_unknownValues.contains(key)) return null;
+    final value = switch (key) {
+      'kcal' => kcal,
+      'protein' => protein,
+      'fat' => fat,
+      'carbs' => carbs,
+      'fiber' => fiber,
+      _ => null,
+    };
+    return value != null && value.isFinite && value >= 0 ? value : null;
+  }
+
+  bool get hasCompleteNutrition =>
+      const [
+        'kcal',
+        'protein',
+        'fat',
+        'carbs',
+      ].every((key) => knownValue(key) != null) &&
+      (confirmedZeroValues ||
+          [kcal, protein, fat, carbs].any((value) => value > 0));
 
   factory NutritionInfo.fromJson(Map<String, dynamic> json) {
     return NutritionInfo(
@@ -20,15 +47,23 @@ class NutritionInfo {
       fat: (json['fat'] as num? ?? 0.0).toDouble(),
       carbs: (json['carbs'] as num? ?? 0.0).toDouble(),
       fiber: (json['fiber'] as num? ?? 0.0).toDouble(),
+      unknownValues: {
+        for (final key in ['kcal', 'protein', 'fat', 'carbs', 'fiber'])
+          if (json[key] is! num) key,
+      },
+      confirmedZeroValues: const {
+        'open_food_facts',
+        'open_food_facts_direct',
+        'usda_fooddata_central',
+        'product_label_ai',
+        'product_label_ai_confirmed',
+      }.contains(json['source']),
     );
   }
 
   Map<String, dynamic> toJson() => {
-    'kcal': kcal,
-    'protein': protein,
-    'fat': fat,
-    'carbs': carbs,
-    'fiber': fiber,
+    for (final key in ['kcal', 'protein', 'fat', 'carbs', 'fiber'])
+      if (knownValue(key) != null) key: knownValue(key),
   };
 }
 

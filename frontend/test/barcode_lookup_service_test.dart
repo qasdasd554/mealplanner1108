@@ -191,7 +191,7 @@ void main() {
     expect(unknown.hasCompleteNutrition, isFalse);
   });
 
-  test('nawet zewnętrzne cztery zera wymagają uzupełnienia', () {
+  test('jawne zewnętrzne cztery zera są poprawnym makro wody', () {
     const external = BarcodeLookupResult(
       found: true,
       source: 'open_food_facts_direct',
@@ -202,7 +202,7 @@ void main() {
       carbsPer100: 0,
     );
 
-    expect(external.hasCompleteNutrition, isFalse);
+    expect(external.hasCompleteNutrition, isTrue);
   });
 
   test('zastępuje cztery stare zera makro z zewnętrznej bazy', () {
