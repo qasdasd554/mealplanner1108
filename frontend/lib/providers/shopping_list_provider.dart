@@ -15,6 +15,8 @@ class ShoppingListProvider with ChangeNotifier {
   ShoppingList? _currentList;
   bool _isLoading = false;
   String? _errorMessage;
+  Object? _creationFailure;
+  Object? get creationFailure => _creationFailure;
 
   // Użytkownik Premium może mieć wiele list, ale ekran zakupów
   // ładował WYŁĄCZNIE listę powiązaną z aktywnym planem posiłków
@@ -157,6 +159,7 @@ class ShoppingListProvider with ChangeNotifier {
     final session = _sessionGeneration;
     _isLoading = true;
     _errorMessage = null;
+    _creationFailure = null;
     notifyListeners();
     try {
       final created = await _shoppingListService.createEmptyList(storeId);
@@ -170,6 +173,7 @@ class ShoppingListProvider with ChangeNotifier {
       return true;
     } catch (e) {
       if (session != _sessionGeneration) return false;
+      _creationFailure = e;
       _errorMessage = friendlyError(e, strings: errorStrings?.call());
       return false;
     } finally {
@@ -374,6 +378,7 @@ class ShoppingListProvider with ChangeNotifier {
     _isLoading = false;
     _errorMessage = null;
     _pendingToggleIds.clear();
+    _creationFailure = null;
     notifyListeners();
   }
 

@@ -440,6 +440,9 @@ class MealPlanGenerator:
             .options(
                 selectinload(MealPlan.entries)
                 .selectinload(MealPlanEntry.recipe)
+                .selectinload(Recipe.tags),
+                selectinload(MealPlan.entries)
+                .selectinload(MealPlanEntry.recipe)
                 .selectinload(Recipe.ingredients)
                 .selectinload(RecipeIngredient.product)
             )

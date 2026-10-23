@@ -15,6 +15,7 @@ class RecipeIngredient {
   final double? fat;
   final double? carbs;
   final Product? product;
+  final bool nutritionEstimated;
 
   RecipeIngredient({
     required this.id,
@@ -28,6 +29,7 @@ class RecipeIngredient {
     this.fat,
     this.carbs,
     this.product,
+    this.nutritionEstimated = false,
   });
 
   factory RecipeIngredient.fromJson(Map<String, dynamic> json) {
@@ -39,6 +41,7 @@ class RecipeIngredient {
       unit: json['unit'] as String? ?? 'g',
       isOptional: json['is_optional'] as bool? ?? false,
       kcal: json['kcal'] as int?,
+      nutritionEstimated: json['nutrition_estimated'] == true,
       protein: (json['protein'] as num?)?.toDouble(),
       fat: (json['fat'] as num?)?.toDouble(),
       carbs: (json['carbs'] as num?)?.toDouble(),
@@ -93,6 +96,9 @@ class Recipe {
   final String? createdByTikTokUsername;
   final bool createdByProfileLoaded;
   final List<String> missingNutritionIngredients;
+  final List<String> estimatedNutritionIngredients;
+  final NutritionInfo? knownNutritionSubtotal;
+  final bool nutritionIncomplete;
 
   Recipe({
     required this.id,
@@ -124,6 +130,9 @@ class Recipe {
     this.createdByTikTokUsername,
     this.createdByProfileLoaded = false,
     this.missingNutritionIngredients = const [],
+    this.estimatedNutritionIngredients = const [],
+    this.knownNutritionSubtotal,
+    this.nutritionIncomplete = false,
   });
 
   factory Recipe.fromJson(Map<String, dynamic> json) {
@@ -140,6 +149,25 @@ class Recipe {
       nutritionTotal: NutritionInfo.fromJson(
         json['nutrition_total'] as Map<String, dynamic>? ?? {},
       ),
+      nutritionIncomplete:
+          (json['nutrition_total'] as Map<String, dynamic>?)?['_incomplete'] ==
+          true,
+      knownNutritionSubtotal:
+          (json['nutrition_total'] as Map<String, dynamic>?)?['_known_totals']
+                  is Map<String, dynamic>
+              ? NutritionInfo.fromJson(
+                (json['nutrition_total']
+                        as Map<String, dynamic>)['_known_totals']
+                    as Map<String, dynamic>,
+              )
+              : null,
+      estimatedNutritionIngredients:
+          ((json['nutrition_total']
+                      as Map<String, dynamic>?)?['_estimated_ingredients']
+                  as List<dynamic>?)
+              ?.map((value) => value.toString())
+              .toList() ??
+          const [],
       imageUrl: json['image_url'] as String?,
       isActive: json['is_active'] as bool? ?? true,
       tags:
@@ -187,7 +215,9 @@ class Recipe {
   }
 
   int get totalTimeMin => (prepTimeMin ?? 0) + (cookTimeMin ?? 0);
-  bool get hasIncompleteNutrition => missingNutritionIngredients.isNotEmpty;
+  bool get hasIncompleteNutrition =>
+      nutritionIncomplete || missingNutritionIngredients.isNotEmpty;
+  bool get hasEstimatedNutrition => estimatedNutritionIngredients.isNotEmpty;
 
   bool get hasCreatorTikTok =>
       createdByTikTokUsername?.trim().isNotEmpty ?? false;

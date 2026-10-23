@@ -51,6 +51,24 @@ def has_recipe_nutrition(product):
     return any(value > 0 for value in values) or ingredient_key(getattr(product, "name", "")) in {"salt", "water"}
 
 
+def recipe_prompt_ingredient_names(products, *, country):
+    """Only the reviewed cooking vocabulary may guide recipe composition.
+
+    The full retail catalogue is still searched AFTER composition. Otherwise
+    any scanned/published ready meal can bias AI into using it as a component,
+    regardless of how many dish names a blacklist happens to recognise.
+    """
+    from app.services.system_content_language import _index, ingredient_display_name
+    reviewed = _index()["ingredients"]
+    labels = []
+    for product in products:
+        row = reviewed.get(str(product.id))
+        if (row is not None and product.name == row["source"]
+                and product.created_by_user_id is None and product.review_status == "approved"):
+            labels.append(ingredient_display_name(product, country_code=country))
+    return list(dict.fromkeys(labels))
+
+
 def _proposal(name, unit, nutrition, *, country, source, brand=None, barcode=None, package=None, owner_id=None):
     identifier = uuid5(NAMESPACE_URL, "mealplanner:discovered-ingredient:" +
         "|".join((ingredient_key(name), _normal(brand), unit, barcode or "", str(owner_id or "shared"))))
@@ -98,6 +116,14 @@ async def resolve_recipe_ingredients(ingredients, catalogue, *, country, user_id
     usable = [product for product in catalogue if has_recipe_nutrition(product)
               and not looks_like_whole_meal(product.name)]
     by_name = {product.name.casefold(): product for product in usable}
+    if country == "GB":
+        from app.services.system_content_language import ingredient_display_name
+        for product in usable:
+            # Real exact catalogue names retain priority. Only an unchanged,
+            # known system ID gets its reviewed English alias; no translation
+            # service, extra request, product write or stock claim is involved.
+            label = ingredient_display_name(product, country_code=country)
+            by_name.setdefault(label.casefold(), product)
     names = list(by_name)
     pairs = []
     missing = {}
@@ -131,6 +157,12 @@ async def resolve_recipe_ingredients(ingredients, catalogue, *, country, user_id
         for task in tasks.values():
             if not task.done(): task.cancel()
         await asyncio.gather(*tasks.values(), return_exceptions=True)
+    estimates = {}
+    if user_id is not None:
+        from app.services.ingredient_nutrition_estimate import estimate_missing_ingredients
+        unresolved = [ingredient for ingredient, product in pairs
+                      if product is None and not found.get(ingredient_key(ingredient["product_name"]))]
+        estimates = await estimate_missing_ingredients(unresolved, country=country)
     resolved = []
     for ingredient, product in pairs:
         product = product or found.get(ingredient_key(ingredient["product_name"]))
@@ -139,9 +171,11 @@ async def resolve_recipe_ingredients(ingredients, catalogue, *, country, user_id
             # publish unverified nutrition or invent a GTIN/package/price.
             base_unit = ("szt" if ingredient["unit"] == "szt" else
                          "ml" if ingredient["unit"] in {"ml", "l"} else "g")
-            product = _proposal(ingredient["product_name"], base_unit, {}, country=country,
-                owner_id=user_id, source={"provider": "unresolved_recipe_ingredient",
-                    "status": "missing", "allergens_checked": False})
+            estimate = estimates.get(ingredient_key(ingredient["product_name"]))
+            product = _proposal(ingredient["product_name"], estimate["unit"] if estimate else base_unit,
+                estimate["nutrition"] if estimate else {}, country=country,
+                owner_id=user_id, source=estimate["source"] if estimate else {
+                    "provider": "unresolved_recipe_ingredient", "status": "missing", "allergens_checked": False})
         resolved.append((ingredient, product))
     return resolved
 

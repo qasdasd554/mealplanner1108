@@ -2284,6 +2284,14 @@ class AppLocalizationsPl extends AppLocalizations {
   String get nutritionMissing => 'Brak danych odżywczych';
 
   @override
+  String get recipeNutritionEstimated =>
+      'Wartości orientacyjne: część składników oszacowano. Mogą różnić się od danych na etykiecie.';
+
+  @override
+  String get recipeNutritionPartial =>
+      'Niepełne dane. ≥ pokazuje wyłącznie sumę znanych wartości, a nie pełne makro posiłku.';
+
+  @override
   String get recipeNutritionNeedsDetails =>
       'Ten przepis ma brakujące dane odżywcze. Uzupełnij składniki w przepisie lub wpisz wartości posiłku ręcznie w Dzienniku.';
 
@@ -4230,7 +4238,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• Poprawiliśmy przenoszenie składników i ich ilości z przepisu na listę zakupów, również po edycji składu i dopisaniu kolejnego dania.\n• Usprawniliśmy porównywanie cen i generowanie przepisów AI: automatycznie szukamy brakujących produktów, a nieznane wartości odżywcze oznaczamy zamiast przerywać zapis.\n• Ograniczyliśmy zbędne odświeżanie ekranów i pracę ukrytych animacji; autor przepisu jest widoczny od razu po wczytaniu.\n• Usprawniliśmy uruchamianie aplikacji i obsługę aparatu; skanowanie nie przerywa ręcznego wpisywania kodu.\n• Ułatwiliśmy pierwszą konfigurację i poprawiliśmy stabilność weryfikacji podczas logowania oraz zmiany konta.';
+      '• Poprawiliśmy dobór składników przepisów AI — podobnie nazwany produkt nie zastąpi składnika gotowym daniem.\n• Usprawniliśmy uzupełnianie kcal i makro. Szacunki są oznaczone, a brak danych jednego składnika nie ukrywa znanych wartości.\n• Naprawiliśmy błąd podczas generowania planu posiłków.\n• Ułatwiliśmy zmianę sklepu na liście zakupów. Brak pełnej wyceny nie jest już przedstawiany jako koszt 0 zł.\n• Po wykorzystaniu darmowej listy łatwiej sprawdzisz Premium lub wrócisz do swoich zakupów.';
 
   @override
   String get releasePromptApple => 'Otwórz App Store';
@@ -5203,4 +5211,21 @@ class AppLocalizationsPl extends AppLocalizations {
   @override
   String get authAppleTokenUnavailable =>
       'Nie udało się uzyskać tokenu tożsamości Apple.';
+
+  @override
+  String get shoppingLimitTitle => 'Kolejne zakupy? Z Premium bez limitu';
+
+  @override
+  String get shoppingLimitDescription =>
+      'Wykorzystano już jedną bezpłatną listę w tym tygodniu. Z Premium twórz osobne listy na przepisy, sklepy i kolejne zakupy — kiedy potrzebujesz.';
+
+  @override
+  String get shoppingLimitSeePremium => 'Zobacz Premium';
+
+  @override
+  String get shoppingLimitBack => 'Wróć do mojej listy';
+
+  @override
+  String get shoppingLimitShort =>
+      'Tygodniowy limit list został wykorzystany. Z Premium tworzysz kolejne bez limitu.';
 }

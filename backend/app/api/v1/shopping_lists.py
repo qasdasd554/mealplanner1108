@@ -647,31 +647,45 @@ async def update_shopping_list_store(
     offers = await load_regional_offers(db, product_ids - {None}, target.id)
     products = (await db.execute(select(Product).where(Product.id.in_(product_ids - {None})))).scalars().all()
     products = {product.id: product for product in products}
-    prepared = []
+    prepared, unpriced = [], []
     for item in shopping.items:
         requirement = regional_snapshot_requirement(item)
+        snapshot = item.regional_snapshot
+        saved_unpriced = (snapshot is not None and snapshot.country_code == "GB"
+            and snapshot.currency_code == "GBP" and snapshot.quote_status == "unpriced"
+            and snapshot.quote_data is None and snapshot.offer_id is None
+            and item.estimated_price is None and item.required_quantity > 0
+            and (requirement is not None or (snapshot.required_quantity is None and snapshot.required_unit is None)))
         if item.is_from_pantry:
             if (requirement is None or item.regional_snapshot.quote_status != "pantry"
                     or not item.is_checked or item.estimated_price != Decimal(0)):
                 raise HTTPException(status_code=409, detail="The saved pantry quantity needs to be corrected first.")
             continue  # Proven coverage is already split; never subtract again.
         if item.is_checked:
+            if saved_unpriced:
+                continue  # A handwritten/unpriced purchase has no invented pack history.
             if frozen_regional_purchase_quote(item, as_of=as_of) is None:
                 raise HTTPException(status_code=409, detail="The saved purchased package needs to be corrected first.")
             continue  # Already bought: original store/package/price is history.
         if requirement is None:
+            if saved_unpriced:
+                unpriced.append(item)
+                continue
             raise HTTPException(status_code=409, detail="This store cannot fully price the current shopping list.")
         product_id, quantity, unit = requirement
         product = products.get(product_id)
-        quote = select_uk_offer_quote(offers, product_id=product_id, store_id=target.id,
-            quantity=quantity, unit=unit, as_of=as_of)
-        if product is None or quote is None:
+        if product is None:
             raise HTTPException(status_code=409, detail="This store cannot fully price the current shopping list.")
         prepared.append((item, product, quantity, unit))
 
     # Entire target basket is validated before mutation. A SAVEPOINT also rolls
     # back a later DB/flush failure without leaking an earlier repriced row.
     async with db.begin_nested():
+        for item in unpriced:
+            # No proven g/ml conversion or catalogue identity: move the
+            # destination only, preserving the user's exact name and quantity.
+            item.regional_snapshot.store_id = target.id
+            item.regional_snapshot.pricing_as_of = as_of
         for item, product, quantity, unit in prepared:
             apply_regional_item_quote(item, product=product, store_id=target.id,
                 quantity=quantity, unit=unit, offers=offers, as_of=as_of)
@@ -691,18 +705,23 @@ async def _switch_polish_list_store(db, shopping, plan, target_id, user):
     if target is None:
         raise NotFoundException(detail="Wybrany sklep nie jest dostępny na rynku tej listy.")
     quoted = (await quote_polish_list(db, shopping, [target]))[target.id]
-    if any(quote is None for _, _, quote in quoted):
-        raise HTTPException(status_code=409, detail="Nie można wycenić wszystkich produktów tej listy w wybranym sklepie.")
     async with db.begin_nested():
         for item, offer, quote in quoted:
             if item.is_checked or item.is_from_pantry:
                 continue
-            item.store_product_id, item.store_product = offer.id, offer
-            item.department_id, item.department = offer.department_id, offer.department
-            item.estimated_price = Decimal(str(quote["price_in_store"]))
+            if offer is not None and quote is not None:
+                item.store_product_id, item.store_product = offer.id, offer
+                item.department_id, item.department = offer.department_id, offer.department
+                item.estimated_price = Decimal(str(quote["price_in_store"]))
+            else:
+                # Retain the existing canonical identity (or handwritten name),
+                # never borrow the former shop's price/department/own brand.
+                item.department_id, item.department = None, None
+                item.estimated_price = None
         shopping.store_id, shopping.store = target.id, target
         plan.store_id, plan.store = target.id, target
-        plan.estimated_min_budget = sum((Decimal(str(quote["price_in_store"])) for _, _, quote in quoted), Decimal(0))
+        plan.estimated_min_budget = (None if any(quote is None for _, _, quote in quoted) else
+            sum((Decimal(str(quote["price_in_store"])) for _, _, quote in quoted), Decimal(0)))
         await db.flush()
     await db.commit()
     return await _get_shopping_list_or_404(shopping.meal_plan_id, user, db, refresh=True)

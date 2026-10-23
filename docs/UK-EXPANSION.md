@@ -19,6 +19,8 @@ Etap 25: [komunikaty błędów providerów](uk-stage25-provider-errors.md).
 Etap 26: [treści systemowe i wyszukiwanie](uk-stage26-system-content.md).
 Etapy 27–28: [bezpieczeństwo sesji i język logowania](uk-stage27-28-auth-safety.md).
 Priorytet z 23.10: [generowanie składników i przenoszenie na listę zakupów](shopping-ingredient-source-20261023.md).
+Kontynuacja po zamrożeniu paczki 269: [etapy 30–31 — komunikaty przepisów i angielskie nazwy składników AI](uk-stage30-31-recipe-language.md).
+To późniejsze zmiany lokalne; nie zmieniają ZIP-a 1.0.68+269 przekazanego do testów.
 
 Do publicznego startu UK pozostają:
 

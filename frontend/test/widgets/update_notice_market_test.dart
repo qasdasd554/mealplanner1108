@@ -44,50 +44,35 @@ void main() {
         expect(body.split('\n'), hasLength(5));
         expect(
           body,
-          contains(english ? 'first-time setup' : 'pierwszą konfigurację'),
-        );
-        expect(
-          body,
           contains(
-            english ? 'sign-in verification' : 'weryfikacji podczas logowania',
+            english ? 'AI recipe ingredients' : 'dobór składników przepisów AI',
           ),
         );
         expect(
           body,
-          contains(english ? 'screen refreshes' : 'odświeżanie ekranów'),
+          contains(
+            english ? 'Estimates are labelled' : 'Szacunki są oznaczone',
+          ),
         );
-        expect(body, contains(english ? 'camera handling' : 'obsługę aparatu'));
         expect(
           body,
           contains(
-            english
-                ? 'recipe ingredients and amounts'
-                : 'składników i ich ilości z przepisu',
+            english ? 'generating meal plans' : 'generowania planu posiłków',
           ),
         );
-        expect(body, contains(english ? 'edited recipes' : 'po edycji składu'));
+        expect(body, contains(english ? 'switching shops' : 'zmianę sklepu'));
+        expect(body, contains(english ? 'zero total' : 'koszt 0 zł'));
         expect(
           body,
           contains(
             english
-                ? 'missing products are searched automatically'
-                : 'automatycznie szukamy brakujących produktów',
+                ? 'missing ingredient data no longer hides known values'
+                : 'brak danych jednego składnika nie ukrywa znanych wartości',
           ),
         );
         expect(
           body,
-          contains(
-            english
-                ? 'unknown nutrition is labelled'
-                : 'nieznane wartości odżywcze oznaczamy',
-          ),
-        );
-        expect(body, contains(english ? 'recipe author' : 'autor przepisu'));
-        expect(
-          body,
-          contains(
-            english ? 'adding another dish' : 'dopisaniu kolejnego dania',
-          ),
+          contains(english ? 'explore Premium' : 'sprawdzisz Premium'),
         );
         expect(body, isNot(contains('mealplannerpolska.pl')));
         expect(tester.takeException(), isNull);

@@ -28,6 +28,24 @@ class _Client extends ApiClient {
 
 void main() {
   group('price comparison market boundaries', () {
+    for (final currency in ['PLN', 'GBP']) {
+      test(
+        '$currency missing or partial total never becomes a zero-price basket',
+        () {
+          for (final rawTotal in [null, 0, 12.3]) {
+            final result = PriceComparisonResult.fromJson(
+              _result(currency: currency)
+                ..['total_price'] = rawTotal
+                ..['is_complete'] = false
+                ..['missing_products'] = ['Milk'],
+            );
+            expect(result.totalPrice, isNull);
+            expect(result.isCheapest, isFalse);
+            expect(result.savingsVsMostExpensive, 0);
+          }
+        },
+      );
+    }
     test(
       'unknown GBP total never becomes a free basket or a cheapest offer',
       () {

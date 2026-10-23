@@ -77,7 +77,7 @@ void main() {
           find.text(
             country == 'GB'
                 ? (complete ? '~ £12.30' : 'Total unavailable')
-                : '~ 12.30 zł',
+                : (complete ? '~ 12.30 zł' : 'Brak pełnej wyceny'),
           ),
           findsOneWidget,
         );

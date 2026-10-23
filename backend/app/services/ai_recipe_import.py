@@ -20,7 +20,6 @@ infrastruktury do wyciągania klatek/transkrypcji dźwięku.
 from __future__ import annotations
 
 import asyncio
-from difflib import SequenceMatcher
 import json
 import logging
 import math
@@ -113,30 +112,12 @@ def match_product_name(name: str, available_products: list[str]) -> str | None:
     for candidate, _ in normalized:
         if ingredient_key(candidate) == ingredient_key(name):
             return candidate
-    # A bone-in cut and an unspecified/boneless cut are not interchangeable.
-    def bone_state(value):
-        value = value.replace("ł", "l")
-        if any(token in value for token in ("z koscia", "z kosciami", "bone in")):
-            return "in"
-        if any(token in value for token in ("bez kosci", "boneless")):
-            return "out"
-        return None
-    if bone_state(target):
-        normalized = [(candidate, key) for candidate, key in normalized if bone_state(key) == bone_state(target)]
-    # A fuzzy name match is not permission to turn a cooking ingredient
-    # into a prepared dish. Explicit exact components above remain valid.
-    if not looks_like_whole_meal(name):
-        normalized = [(candidate, key) for candidate, key in normalized
-                      if not looks_like_whole_meal(candidate)]
-    scored = sorted(
-        ((SequenceMatcher(None, target, key).ratio(), candidate) for candidate, key in normalized),
-        reverse=True,
-    )
-    if not scored or scored[0][0] < 0.78:
-        return None
-    if len(scored) > 1 and scored[0][0] - scored[1][0] < 0.04:
-        return None
-    return scored[0][1]
+    # Spelling similarity is not evidence of ingredient identity. A longer
+    # prepared-food name or a different flavour/fat/cooking state can score
+    # highly. Unknown names use external lookup/labelled estimates instead
+    # of being silently substituted. Normalised exact names and the explicit
+    # equivalences above still work, including accents/case/punctuation.
+    return None
 
 
 def _select_prompt_products(available_products: list[str], context: str | None) -> list[str]:
@@ -404,6 +385,7 @@ async def _call_gemini(
     timeout_seconds: float = 35.0,
     max_total_seconds: float | None = None,
     country_code: str = "PL",
+    record_unavailability: bool = True,
 ) -> str:
     """Próbuje kolejnych modeli z GEMINI_MODELS (najpierw główny, potem
     "lite" jako zapasowy), przechodząc do następnego, gdy poprzedni
@@ -442,9 +424,10 @@ async def _call_gemini(
             )
         except _ModelUnavailableError as exc:
             logger.warning("Gemini: %s — próbuję kolejnego modelu, jeśli jest", exc)
-            _model_unavailable_until[model] = time.monotonic() + (
-                300 if exc.reason in {"quota_exhausted", "rate_limited"} else 20
-            )
+            if record_unavailability:
+                _model_unavailable_until[model] = time.monotonic() + (
+                    300 if exc.reason in {"quota_exhausted", "rate_limited"} else 20
+                )
             unavailable_reasons.append(str(exc))
             reason_types.append(exc.reason)
             continue
@@ -527,13 +510,15 @@ async def revise_recipe_with_ai(
         "Zmień istniejący przepis zgodnie z poleceniem. Zachowaj pozostałe "
         "składniki i kroki, o ile polecenie nie wymaga ich zmiany. Zwróć "
         "CAŁY przepis w formacie JSON powyżej, nie tylko fragment różnic. "
-        "Nie dodawaj składników, których nie ma w katalogu.",
+        "Jeśli potrzebnego składnika nie ma w katalogu, zachowaj jego nazwę i ilość. "
+        "Nie zastępuj go gotowym daniem ani podobnie nazwanym produktem.",
         f"{prompt}\n\nEXISTING RECIPE (JSON):\n{original}\n\n"
         f"OWNER'S INSTRUCTION: {instruction}\n\n"
         "Revise the existing recipe as requested. Preserve its other ingredients "
         "and steps unless the instruction requires changes. Return the WHOLE "
-        "recipe in the JSON format above, not a patch. Do not add ingredients "
-        "that are absent from the catalogue.",
+        "recipe in the JSON format above, not a patch. If a required ingredient "
+        "is absent from the catalogue, preserve its name and amount. Never "
+        "substitute a ready meal or a similarly named product.",
     )
     raw = await _call_gemini([{"text": revision}], **_market_kwargs(country_code))
     return validate_and_clean_recipe_dict(_parse_recipe_json(raw, country_code=country_code), country_code=country_code)

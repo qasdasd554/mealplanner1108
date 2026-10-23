@@ -116,7 +116,7 @@ def test_switch_preserves_frozen_purchased_pack_and_pantry_without_second_deduct
     assert session.scalar(select(PantryItem).where(PantryItem.product_id == product.id)).quantity == Decimal("5500")
 
 
-@pytest.mark.parametrize("kind", ["custom", "unknown", "missing", "stale", "corrupt-history"])
+@pytest.mark.parametrize("kind", ["unknown", "corrupt-history"])
 def test_incomplete_or_corrupt_target_rejects_atomically_even_if_caller_commits(db, kind):
     session, adapter, user, product, plan, shopping = build(db, quantity="100")
     before = deepcopy(shopping.items[0].regional_snapshot.quote_data)
@@ -145,6 +145,32 @@ def test_incomplete_or_corrupt_target_rejects_atomically_even_if_caller_commits(
     shopping = loaded(session, shopping.id)
     assert shopping.store_id == plan.store_id == UK_STORES[0].id
     assert {item.id: (row_state(item), item.regional_snapshot.quote_data) for item in shopping.items} == before_rows
+
+
+@pytest.mark.parametrize("kind", ["custom", "missing", "stale", "raw-unit"])
+def test_unpriced_uk_list_can_switch_without_losing_rows_or_claiming_free_prices(db, kind):
+    session, adapter, user, product, plan, shopping = build(db, quantity="100")
+    if kind == "custom":
+        run(api.add_custom_item_to_shopping_list(plan.id, api.AddCustomItemRequest(name="My own item"), user, adapter))
+    elif kind == "raw-unit":
+        regional_shopping.apply_regional_item_quote(shopping.items[0], product=product,
+            store_id=shopping.store_id, quantity=Decimal(2), unit="cup", offers=[],
+            as_of=regional_shopping.regional_pricing_date())
+    else:
+        offer = session.scalar(select(RegionalProductOffer).where(RegionalProductOffer.store_id == UK_STORES[1].id, RegionalProductOffer.product_id == product.id))
+        if kind == "missing": session.delete(offer)
+        else: offer.reviewed_at -= timedelta(days=40)
+    session.commit()
+    shopping = loaded(session, shopping.id)
+    before = {item.id: row_state(item) for item in shopping.items}
+    changed = loaded(session, switch(adapter, user, shopping).id)
+    assert changed.store_id == UK_STORES[1].id
+    assert {item.id: row_state(item) for item in changed.items} == before
+    response = ShoppingListResponse.model_validate(changed)
+    assert response.total_estimated_price is None and response.has_unpriced_items
+    unknown = [item for item in changed.items if item.estimated_price is None]
+    assert unknown and all(item.regional_snapshot.quote_status == "unpriced" for item in unknown)
+    assert all(item.regional_snapshot.store_id == UK_STORES[1].id for item in unknown)
 
 
 @pytest.mark.parametrize("share_status", [None, "pending", "accepted"])

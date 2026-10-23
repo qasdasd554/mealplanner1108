@@ -34,6 +34,7 @@ import '../meal_plan/weekly_plan_automation_screen.dart';
 class PremiumScreen extends StatefulWidget {
   final bool popAfterSuccess;
   final PremiumOfferContext? offerContext;
+  final bool shoppingListLimit;
   final BillingService? billing;
   final ApiClient? client;
 
@@ -41,6 +42,7 @@ class PremiumScreen extends StatefulWidget {
     super.key,
     this.popAfterSuccess = true,
     this.offerContext,
+    this.shoppingListLimit = false,
     this.billing,
     this.client,
   });
@@ -133,10 +135,19 @@ class _PremiumScreenState extends State<PremiumScreen> {
   }
 
   Widget _buildContextualOfferCard(BuildContext context) {
-    final copy = PremiumOfferCopy.forContext(
+    final baseCopy = PremiumOfferCopy.forContext(
       widget.offerContext!,
       strings: context.strings,
     );
+    final copy =
+        widget.shoppingListLimit
+            ? PremiumOfferCopy(
+              eyebrow: baseCopy.eyebrow,
+              title: context.strings.shoppingLimitTitle,
+              description: context.strings.shoppingLimitDescription,
+              benefits: [context.strings.premiumContextShoppingBenefitLists],
+            )
+            : baseCopy;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -310,6 +321,8 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   label: Text(
                     _monthlyHasSevenDayTrial
                         ? context.strings.premiumCheckTrial
+                        : widget.shoppingListLimit
+                        ? context.strings.shoppingLimitSeePremium
                         : context.strings.premiumSeePlans,
                   ),
                 ),
@@ -330,8 +343,16 @@ class _PremiumScreenState extends State<PremiumScreen> {
               Align(
                 alignment: Alignment.center,
                 child: TextButton(
-                  onPressed: () => Navigator.of(context).maybePop(),
-                  child: Text(context.strings.premiumNotNow),
+                  onPressed:
+                      () =>
+                          widget.shoppingListLimit
+                              ? Navigator.of(context).pop('shopping-list')
+                              : Navigator.of(context).maybePop(),
+                  child: Text(
+                    widget.shoppingListLimit
+                        ? context.strings.shoppingLimitBack
+                        : context.strings.premiumNotNow,
+                  ),
                 ),
               ),
             ],

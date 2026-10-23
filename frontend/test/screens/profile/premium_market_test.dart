@@ -104,6 +104,7 @@ Future<void> open(
   bool branded = false,
   bool dark = false,
   _Api? api,
+  bool shoppingListLimit = false,
 }) async {
   tester.view.physicalSize =
       viewport ?? (narrow ? const Size(320, 740) : const Size(390, 844));
@@ -134,7 +135,11 @@ Future<void> open(
           child: PremiumScreen(
             billing: billing,
             client: api ?? _Api(),
-            offerContext: PremiumOfferContext.recipe,
+            offerContext:
+                shoppingListLimit
+                    ? PremiumOfferContext.shoppingList
+                    : PremiumOfferContext.recipe,
+            shoppingListLimit: shoppingListLimit,
           ),
         ),
       ),
@@ -151,6 +156,43 @@ Future<void> pricing(WidgetTester tester, String monthly) async {
 void main() {
   setUpAll(loadProductFormFonts);
   setUp(() => SharedPreferences.setMockInitialValues({}));
+  for (final english in [false, true]) {
+    for (final trial in [false, true]) {
+      testWidgets(
+        'weekly list limit offer ${english ? "GB" : "PL"} trial=$trial fits narrow screen',
+        (tester) async {
+          final billing = _Billing()..eligible = trial;
+          await open(
+            tester,
+            billing,
+            english: english,
+            narrow: true,
+            shoppingListLimit: true,
+          );
+          final title =
+              english
+                  ? 'More shopping? Go unlimited with Premium'
+                  : 'Kolejne zakupy? Z Premium bez limitu';
+          await tester.scrollUntilVisible(find.text(title), 300);
+          await tester.pumpAndSettle();
+          expect(find.text(title), findsOneWidget);
+          final back = find.text(
+            english ? 'Back to my shopping list' : 'Wróć do mojej listy',
+          );
+          await tester.scrollUntilVisible(back, 250);
+          await tester.pumpAndSettle();
+          expect(back, findsOneWidget);
+          if (!trial)
+            expect(
+              find.text(english ? 'Explore Premium' : 'Zobacz Premium'),
+              findsOneWidget,
+            );
+          expect(billing.buys, 0);
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+  }
   testWidgets(
     'GB offer and real prices are English without an unverified trial',
     (tester) async {

@@ -19,6 +19,8 @@ class MealPlanProvider with ChangeNotifier {
   bool _isGenerating = false;
   bool _isRefreshing = false;
   String? _errorMessage;
+  Object? _generationFailure;
+  Object? get generationFailure => _generationFailure;
   bool _lastPlanLoadNotFound = false;
   int _sessionGeneration = 0;
   int _detailGeneration = 0;
@@ -126,6 +128,7 @@ class MealPlanProvider with ChangeNotifier {
     final session = _sessionGeneration;
     _isGenerating = true;
     _errorMessage = null;
+    _generationFailure = null;
     notifyListeners();
     try {
       final newPlan = await _mealPlanService.generatePlan(request);
@@ -138,6 +141,7 @@ class MealPlanProvider with ChangeNotifier {
       return true;
     } catch (e) {
       if (session != _sessionGeneration) return false;
+      _generationFailure = e;
       _errorMessage = friendlyError(e, strings: errorStrings?.call());
       _isGenerating = false;
       notifyListeners();
@@ -300,6 +304,7 @@ class MealPlanProvider with ChangeNotifier {
     _hasLoaded = false;
     _isGenerating = false;
     _errorMessage = null;
+    _generationFailure = null;
     _lastPlanLoadNotFound = false;
     notifyListeners();
   }

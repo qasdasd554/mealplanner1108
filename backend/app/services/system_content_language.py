@@ -22,6 +22,20 @@ def recipe_display_name(recipe, *, country_code: str = 'PL') -> str:
     return row['en_GB']
 
 
+def ingredient_display_name(product, *, country_code: str = 'PL') -> str:
+    """Use the reviewed seed label without translating arbitrary authored food.
+
+    This is only a language alias for the same product ID. It is not evidence
+    of UK sale, a retailer offer, a pack weight or an ingredient substitution.
+    """
+    if country_code != 'GB' or getattr(product, 'created_by_user_id', object()) is not None:
+        return product.name
+    row = _index()['ingredients'].get(str(product.id))
+    if row is None or row['source'] != product.name:
+        return product.name
+    return row['en_GB']
+
+
 @lru_cache(maxsize=1)
 def _recipe_translations():
     return json.loads((Path(__file__).resolve().parents[1] / 'data/system_recipes_en_GB.json').read_text(encoding='utf-8'))

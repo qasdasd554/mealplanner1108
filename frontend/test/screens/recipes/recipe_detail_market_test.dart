@@ -218,6 +218,75 @@ Future<void> _openDetail(
 }
 
 void main() {
+  for (final english in [true, false]) {
+    for (final partial in [false, true]) {
+      testWidgets(
+        'nutrition recovery is labelled; EN=$english partial=$partial',
+        (tester) async {
+          final auth = _Auth();
+          addTearDown(auth.dispose);
+          final item = Recipe.fromJson({
+            'id': 'nutrition-recovery',
+            'name': 'Chicken',
+            'meal_type': 'obiad',
+            'servings': 4,
+            'is_own_recipe': true,
+            'instructions': ['Cook.'],
+            'nutrition_total':
+                partial
+                    ? {
+                      'kcal': null,
+                      '_incomplete': true,
+                      '_missing_ingredients': ['Oil'],
+                      '_known_totals': {'kcal': 720, 'protein': 132},
+                    }
+                    : {
+                      'kcal': 968,
+                      'protein': 132,
+                      'fat': 45,
+                      'carbs': 0,
+                      '_estimated': true,
+                      '_estimated_ingredients': ['Oil'],
+                    },
+            'ingredients': [
+              {
+                'id': 'chicken',
+                'product_id': 'chicken',
+                'product_name': 'Chicken',
+                'quantity': 600,
+                'unit': 'g',
+                'kcal': 720,
+              },
+            ],
+          });
+          await _openDetail(
+            tester,
+            auth,
+            _Recipes()..response = item,
+            routeRecipe: item,
+            english: english,
+            scale: 1.5,
+          );
+          await tester.scrollUntilVisible(
+            find.byKey(const ValueKey('recipe-nutrition-status')),
+            250,
+            scrollable: find.byType(Scrollable).first,
+          );
+          expect(
+            find.text(partial ? '≥ 180 kcal' : '~ 242 kcal'),
+            findsOneWidget,
+          );
+          expect(
+            find.byKey(const ValueKey('recipe-nutrition-status')),
+            findsOneWidget,
+          );
+          expect(find.text('0 kcal'), findsNothing);
+          expect(tester.takeException(), isNull);
+          await tester.pumpWidget(const SizedBox());
+        },
+      );
+    }
+  }
   Recipe authored({required bool preview, bool full = false}) =>
       Recipe.fromJson({
         'id': 'authored',

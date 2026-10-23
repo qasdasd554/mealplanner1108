@@ -151,13 +151,12 @@ class PriceComparisonResult {
     final isComplete =
         (json['is_complete'] as bool? ?? missingProducts.isEmpty) &&
         missingProducts.isEmpty &&
-        (currency != 'GBP' || rawTotal != null);
+        rawTotal != null;
     return PriceComparisonResult(
       storeId: json['store_id']?.toString() ?? '',
       storeName: json['store_name']?.toString() ?? 'Nieznany sklep',
-      // GB partial totals are deliberately absent, not a price of zero.
-      // Preserve legacy PLN subtotal presentation for existing clients/data.
-      totalPrice: currency == 'GBP' && !isComplete ? null : rawTotal ?? 0.0,
+      // A missing/partial PLN total is no more a free basket than a GBP one.
+      totalPrice: isComplete ? rawTotal : null,
       isCheapest: isComplete && (json['is_cheapest'] as bool? ?? false),
       savingsVsMostExpensive:
           isComplete

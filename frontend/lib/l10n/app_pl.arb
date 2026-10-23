@@ -1523,6 +1523,8 @@
   "measureGrams": "gramy",
   "measureMillilitres": "mililitry",
   "nutritionMissing": "Brak danych odżywczych",
+  "recipeNutritionEstimated": "Wartości orientacyjne: część składników oszacowano. Mogą różnić się od danych na etykiecie.",
+  "recipeNutritionPartial": "Niepełne dane. ≥ pokazuje wyłącznie sumę znanych wartości, a nie pełne makro posiłku.",
   "recipeNutritionNeedsDetails": "Ten przepis ma brakujące dane odżywcze. Uzupełnij składniki w przepisie lub wpisz wartości posiłku ręcznie w Dzienniku.",
   "productsProcessed": "Obsłużono: {count} produktów.",
   "@productsProcessed": {
@@ -2368,7 +2370,7 @@
   "releasePromptTitle": "Dostępna nowa wersja",
   "releasePromptRequired": "Ta wersja aplikacji nie jest już obsługiwana. Zaktualizuj ją, aby korzystać dalej.",
   "releasePromptStoreError": "Nie udało się otworzyć sklepu.",
-  "releasePromptChanges": "• Poprawiliśmy przenoszenie składników i ich ilości z przepisu na listę zakupów, również po edycji składu i dopisaniu kolejnego dania.\n• Usprawniliśmy porównywanie cen i generowanie przepisów AI: automatycznie szukamy brakujących produktów, a nieznane wartości odżywcze oznaczamy zamiast przerywać zapis.\n• Ograniczyliśmy zbędne odświeżanie ekranów i pracę ukrytych animacji; autor przepisu jest widoczny od razu po wczytaniu.\n• Usprawniliśmy uruchamianie aplikacji i obsługę aparatu; skanowanie nie przerywa ręcznego wpisywania kodu.\n• Ułatwiliśmy pierwszą konfigurację i poprawiliśmy stabilność weryfikacji podczas logowania oraz zmiany konta.",
+  "releasePromptChanges": "• Poprawiliśmy dobór składników przepisów AI — podobnie nazwany produkt nie zastąpi składnika gotowym daniem.\n• Usprawniliśmy uzupełnianie kcal i makro. Szacunki są oznaczone, a brak danych jednego składnika nie ukrywa znanych wartości.\n• Naprawiliśmy błąd podczas generowania planu posiłków.\n• Ułatwiliśmy zmianę sklepu na liście zakupów. Brak pełnej wyceny nie jest już przedstawiany jako koszt 0 zł.\n• Po wykorzystaniu darmowej listy łatwiej sprawdzisz Premium lub wrócisz do swoich zakupów.",
   "releasePromptApple": "Otwórz App Store",
   "releasePromptGoogle": "Otwórz Google Play",
   "releasePromptLater": "Później",
@@ -2684,5 +2686,10 @@
   "authGoogleNativeFailed": "Nie udało się zalogować przez Google ({code}). Spróbuj ponownie.",
   "authGoogleTokenUnavailable": "Nie udało się uzyskać tokenu tożsamości Google.",
   "authAppleNativeFailed": "Nie udało się zalogować przez Apple. Spróbuj ponownie.",
-  "authAppleTokenUnavailable": "Nie udało się uzyskać tokenu tożsamości Apple."
+  "authAppleTokenUnavailable": "Nie udało się uzyskać tokenu tożsamości Apple.",
+  "shoppingLimitTitle": "Kolejne zakupy? Z Premium bez limitu",
+  "shoppingLimitDescription": "Wykorzystano już jedną bezpłatną listę w tym tygodniu. Z Premium twórz osobne listy na przepisy, sklepy i kolejne zakupy — kiedy potrzebujesz.",
+  "shoppingLimitSeePremium": "Zobacz Premium",
+  "shoppingLimitBack": "Wróć do mojej listy",
+  "shoppingLimitShort": "Tygodniowy limit list został wykorzystany. Z Premium tworzysz kolejne bez limitu."
 }

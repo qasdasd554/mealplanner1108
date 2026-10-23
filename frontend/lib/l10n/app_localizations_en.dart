@@ -2281,6 +2281,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nutritionMissing => 'Nutrition unavailable';
 
   @override
+  String get recipeNutritionEstimated =>
+      'Approximate values: some ingredients were estimated. They may differ from the product label.';
+
+  @override
+  String get recipeNutritionPartial =>
+      'Incomplete data. ≥ shows only the sum of known values, not the meal\'s full nutrition.';
+
+  @override
   String get recipeNutritionNeedsDetails =>
       'This recipe has missing nutrition. Complete the ingredient details in the recipe or enter the meal\'s nutrition manually in your Diary.';
 
@@ -4249,7 +4257,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• Improved copying recipe ingredients and amounts to shopping lists, including edited recipes and adding another dish.\n• Improved shop price comparisons and AI recipes: missing products are searched automatically, and unknown nutrition is labelled instead of preventing the recipe from being saved.\n• Reduced unnecessary screen refreshes and paused animations in hidden tabs; the recipe author appears as soon as the page loads.\n• Improved app startup and camera handling; scanning no longer interrupts manual barcode entry.\n• Improved first-time setup and made sign-in verification and account switching more stable.';
+      '• Improved AI recipe ingredients: a similarly named ready meal no longer replaces a required ingredient.\n• Improved calorie and macro recovery. Estimates are labelled, and missing ingredient data no longer hides known values.\n• Fixed an error when generating meal plans.\n• Made switching shops on a shopping list easier. Missing basket prices are no longer shown as a zero total.\n• After using your free list, you can easily explore Premium or return to your shopping.';
 
   @override
   String get releasePromptApple => 'Open App Store';
@@ -5214,6 +5222,23 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get authAppleTokenUnavailable =>
       'Could not obtain the Apple identity token.';
+
+  @override
+  String get shoppingLimitTitle => 'More shopping? Go unlimited with Premium';
+
+  @override
+  String get shoppingLimitDescription =>
+      'You have used your free shopping list this week. With Premium, create separate lists for recipes, shops and your next shop — whenever you need them.';
+
+  @override
+  String get shoppingLimitSeePremium => 'Explore Premium';
+
+  @override
+  String get shoppingLimitBack => 'Back to my shopping list';
+
+  @override
+  String get shoppingLimitShort =>
+      'You have reached this week\'s list limit. Create more lists with Premium.';
 }
 
 /// The translations for English, as used in the United Kingdom (`en_GB`).
@@ -7493,6 +7518,14 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
   String get nutritionMissing => 'Nutrition unavailable';
 
   @override
+  String get recipeNutritionEstimated =>
+      'Approximate values: some ingredients were estimated. They may differ from the product label.';
+
+  @override
+  String get recipeNutritionPartial =>
+      'Incomplete data. ≥ shows only the sum of known values, not the meal\'s full nutrition.';
+
+  @override
   String get recipeNutritionNeedsDetails =>
       'This recipe has missing nutrition. Complete the ingredient details in the recipe or enter the meal\'s nutrition manually in your Diary.';
 
@@ -9461,7 +9494,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get releasePromptChanges =>
-      '• Improved copying recipe ingredients and amounts to shopping lists, including edited recipes and adding another dish.\n• Improved shop price comparisons and AI recipes: missing products are searched automatically, and unknown nutrition is labelled instead of preventing the recipe from being saved.\n• Reduced unnecessary screen refreshes and paused animations in hidden tabs; the recipe author appears as soon as the page loads.\n• Improved app startup and camera handling; scanning no longer interrupts manual barcode entry.\n• Improved first-time setup and made sign-in verification and account switching more stable.';
+      '• Improved AI recipe ingredients: a similarly named ready meal no longer replaces a required ingredient.\n• Improved calorie and macro recovery. Estimates are labelled, and missing ingredient data no longer hides known values.\n• Fixed an error when generating meal plans.\n• Made switching shops on a shopping list easier. Missing basket prices are no longer shown as a zero total.\n• After using your free list, you can easily explore Premium or return to your shopping.';
 
   @override
   String get releasePromptApple => 'Open App Store';
@@ -10426,4 +10459,21 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
   @override
   String get authAppleTokenUnavailable =>
       'Could not obtain the Apple identity token.';
+
+  @override
+  String get shoppingLimitTitle => 'More shopping? Go unlimited with Premium';
+
+  @override
+  String get shoppingLimitDescription =>
+      'You have used your free shopping list this week. With Premium, create separate lists for recipes, shops and your next shop — whenever you need them.';
+
+  @override
+  String get shoppingLimitSeePremium => 'Explore Premium';
+
+  @override
+  String get shoppingLimitBack => 'Back to my shopping list';
+
+  @override
+  String get shoppingLimitShort =>
+      'You have reached this week\'s list limit. Create more lists with Premium.';
 }

@@ -101,12 +101,16 @@ def compute_recipe_nutrition_total(ingredients: Sequence["RecipeIngredient"]) ->
     """
     total = {"kcal": 0.0, "protein": 0.0, "fat": 0.0, "carbs": 0.0, "fiber": 0.0}
     missing = []
+    estimated = []
     for ing in ingredients:
         prod = getattr(ing, "product", None)
-        source = (getattr(prod, "nutrition_per_100", None) or {}).get("_source", {})
-        if isinstance(source, dict) and source.get("status") == "missing":
-            missing.append(prod.name)
+        nutrition = getattr(prod, "nutrition_per_100", None)
+        source = nutrition.get("_source", {}) if isinstance(nutrition, dict) else {}
+        if not prod or not nutrition or isinstance(source, dict) and source.get("status") == "missing":
+            missing.append(getattr(prod, "name", str(getattr(ing, "product_id", "?"))))
             continue
+        if isinstance(source, dict) and source.get("status") == "estimated":
+            estimated.append(prod.name)
         if prod and prod.nutrition_per_100:
             try:
                 qty = float(ing.quantity)
@@ -119,16 +123,32 @@ def compute_recipe_nutrition_total(ingredients: Sequence["RecipeIngredient"]) ->
                     getattr(prod, "measure_options", None),
                 )
                 w = _edible_grams(prod.name, w)
+                if not math.isfinite(w) or w <= 0:
+                    raise ValueError("Missing or invalid ingredient mass")
+                contribution = {}
                 for k in total:
-                    total[k] += float(prod.nutrition_per_100.get(k, 0) or 0) * (w / 100.0)
-            except Exception:
-                pass
+                    # Absent legacy optional fields retain their historical
+                    # default; explicit null/invalid numbers must not become 0.
+                    raw = prod.nutrition_per_100.get(k, 0)
+                    value = float(0 if k == "fiber" and raw is None else raw)
+                    if not math.isfinite(value) or value < 0:
+                        raise ValueError("Missing or invalid ingredient nutrition")
+                    contribution[k] = value * (w / 100.0)
+                for k in total:
+                    total[k] += contribution[k]
+            except (TypeError, ValueError, OverflowError):
+                missing.append(prod.name)
     if missing:
         # Unknown energy is not zero energy, nor a valid partial total for
         # calorie targets. Keep the recipe usable while exposing null values.
         return {**dict.fromkeys(total), "_incomplete": True,
+                "_known_totals": {k: round(v, 1) for k, v in total.items()},
+                "_estimated_ingredients": list(dict.fromkeys(estimated)),
                 "_missing_ingredients": list(dict.fromkeys(missing))}
-    return {k: round(v, 1) for k, v in total.items()}
+    result = {k: round(v, 1) for k, v in total.items()}
+    if estimated:
+        result.update(_estimated=True, _estimated_ingredients=list(dict.fromkeys(estimated)))
+    return result
 
 
 @dataclass(frozen=True, slots=True)

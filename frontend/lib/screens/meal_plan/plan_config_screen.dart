@@ -8,6 +8,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/store_provider.dart';
 import '../../providers/meal_plan_provider.dart';
 import '../../services/contextual_premium_offer_service.dart';
+import '../../services/shopping_list_limit_offer.dart';
 import '../../models/premium_offer.dart';
 import '../../models/store.dart';
 import '../../models/meal_plan.dart';
@@ -166,6 +167,12 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
       if (success) {
         await _showBudgetConfirmation(mealPlanProvider.currentPlan);
       } else {
+        if (await ShoppingListLimitOffer.handle(
+          context,
+          mealPlanProvider.generationFailure,
+        ))
+          return;
+        if (!mounted) return;
         final errorMsg =
             mealPlanProvider.errorMessage ?? context.strings.planGenerateError;
         // Błąd limitu darmowego konta wspomina Premium w treści (patrz backend).

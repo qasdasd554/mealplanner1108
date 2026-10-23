@@ -286,21 +286,53 @@ void main() {
     },
   );
 
-  testWidgets('incomplete list has no store switch action', (tester) async {
-    final client =
-        _Client()..onGet = (_) async => [_comparison(complete: false)];
-    await _open(tester, client);
-    await tester.tap(find.text('Aldi'));
-    await tester.pumpAndSettle();
-    expect(
-      find.widgetWithText(OutlinedButton, 'Switch list to this shop'),
-      findsNothing,
+  for (final currency in ['PLN', 'GBP']) {
+    testWidgets(
+      '$currency incomplete list can change shop without a false zero total',
+      (tester) async {
+        final client = _Client();
+        client.onGet =
+            (_) async => [_comparison(currency: currency, complete: false)];
+        client.onPut =
+            (_, __) async =>
+                (_listPayload(currency: currency)..['store_id'] = 'new-store');
+        final country = currency == 'PLN' ? 'PL' : 'GB';
+        final state = await _open(
+          tester,
+          client,
+          country: country,
+          currency: currency,
+        );
+        final before = state.shopping.loads;
+        await tester.tap(find.text('Aldi'));
+        await tester.pumpAndSettle();
+        final switchLabel =
+            country == 'PL'
+                ? 'Przełącz listę na ten sklep'
+                : 'Switch list to this shop';
+        expect(
+          find.widgetWithText(OutlinedButton, switchLabel),
+          findsOneWidget,
+        );
+        expect(
+          find.text(
+            country == 'PL' ? 'Brak pełnej wyceny' : 'Total unavailable',
+          ),
+          findsOneWidget,
+        );
+        expect(find.textContaining('0.00'), findsNothing);
+        expect(client.puts, isEmpty);
+        await tester.ensureVisible(find.text(switchLabel));
+        await tester.tap(find.text(switchLabel));
+        await tester.pumpAndSettle();
+        expect(client.puts, ['/shopping-lists/technical-api-list-id/store']);
+        expect(state.shopping.loads, before + 1);
+        expect(state.plans.switches, 0);
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox());
+      },
     );
-    expect(find.text('Total unavailable'), findsOneWidget);
-    expect(client.puts, isEmpty);
-    expect(tester.takeException(), isNull);
-    await tester.pumpWidget(const SizedBox());
-  });
+  }
 
   testWidgets(
     'dismissing pending list switch does not update disposed context',

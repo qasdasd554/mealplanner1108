@@ -62,6 +62,7 @@ class RecipeIngredientResponse(BaseModel):
     protein: float | None = None
     fat: float | None = None
     carbs: float | None = None
+    nutrition_estimated: bool = False
 
     @model_validator(mode="before")
     @classmethod
@@ -71,6 +72,7 @@ class RecipeIngredientResponse(BaseModel):
 
             kcal: int | None = None
             protein = fat = carbs = None
+            source = (data.product.nutrition_per_100 or {}).get("_source")
             try:
                 # Ta sama funkcja, której backend używa do liczenia
                 # `nutrition_total` całego przepisu — wywołana na LIŚCIE
@@ -96,6 +98,7 @@ class RecipeIngredientResponse(BaseModel):
                 "protein": protein,
                 "fat": fat,
                 "carbs": carbs,
+                "nutrition_estimated": isinstance(source, dict) and source.get("status") == "estimated",
             }
         return data
 
@@ -297,7 +300,9 @@ class RecipeResponse(RecipeBase):
         # w jedną funkcję eliminuje zależność od kolejności międzywalidatorowej.
         data = _attach_loaded_creator(data, include_photo=True)
 
-        if not getattr(data, "nutrition_total", None) and hasattr(data, "ingredients"):
+        stored = getattr(data, "nutrition_total", None)
+        stale_zero = isinstance(stored, dict) and all(stored.get(key) == 0 for key in ("kcal", "protein", "fat", "carbs"))
+        if (not stored or stale_zero or isinstance(stored, dict) and stored.get("_incomplete")) and hasattr(data, "ingredients"):
             from app.services.nutrition_calculator import compute_recipe_nutrition_total
             total = compute_recipe_nutrition_total(data.ingredients)
             # UWAGA (naprawa): wcześniej ten blok wykonywał się TYLKO gdy

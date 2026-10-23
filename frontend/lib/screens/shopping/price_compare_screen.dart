@@ -257,6 +257,7 @@ class _PriceCompareScreenState extends State<PriceCompareScreen> {
         return StorePriceComparisonCard(
           result: result,
           isSwitchingStore: _isSwitchingStore,
+          allowUnpricedListSwitch: widget.shoppingListId != null,
           switchStoreLabel:
               widget.shoppingListId != null
                   ? context.strings.priceCompareListSwitchStore

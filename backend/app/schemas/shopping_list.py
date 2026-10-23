@@ -71,7 +71,10 @@ class ShoppingListItemResponse(BaseModel):
             # dla wszystkich sklepów). Dzięki temu lista zakupów pokazuje
             # realną nazwę, pod jaką kupisz dany produkt w TYM konkretnym
             # sklepie.
-            brand = data.store_product.store_brand_name or (prod.brand if prod else None)
+            # An old store-product link may retain canonical identity after
+            # switching to an unpriced shop; it is not that shop's own brand.
+            brand = ((data.store_product.store_brand_name if data.estimated_price is not None else None)
+                     or (prod.brand if prod else None))
             return {
                 "id": data.id,
                 "product_id": prod.id if prod else None,
@@ -163,6 +166,7 @@ class ShoppingListResponse(BaseModel):
                 }
             items_by_dept = {}
             total_price = 0.0
+            missing_prices = False
             for item in (data.items or []):
                 dept_name = (
                     "W spiżarni" if getattr(item, "is_from_pantry", False) else
@@ -171,6 +175,8 @@ class ShoppingListResponse(BaseModel):
                 if dept_name not in items_by_dept:
                     items_by_dept[dept_name] = []
                 items_by_dept[dept_name].append(item)
+                if not getattr(item, "is_from_pantry", False) and item.estimated_price is None:
+                    missing_prices = True
                 if item.estimated_price:
                     total_price += float(item.estimated_price)
             pantry_items = items_by_dept.pop("W spiżarni", None)
@@ -188,7 +194,8 @@ class ShoppingListResponse(BaseModel):
                 "store_id": data.store_id,
                 "store_name": data.store.name,
                 "status": data.status,
-                "total_estimated_price": round(total_price, 2),
+                "total_estimated_price": None if missing_prices else round(total_price, 2),
+                "has_unpriced_items": missing_prices,
                 "items_by_department": items_by_dept,
                 "created_at": data.created_at,
             }

@@ -4161,6 +4161,18 @@ abstract class AppLocalizations {
   /// **'Brak danych odżywczych'**
   String get nutritionMissing;
 
+  /// No description provided for @recipeNutritionEstimated.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wartości orientacyjne: część składników oszacowano. Mogą różnić się od danych na etykiecie.'**
+  String get recipeNutritionEstimated;
+
+  /// No description provided for @recipeNutritionPartial.
+  ///
+  /// In pl, this message translates to:
+  /// **'Niepełne dane. ≥ pokazuje wyłącznie sumę znanych wartości, a nie pełne makro posiłku.'**
+  String get recipeNutritionPartial;
+
   /// No description provided for @recipeNutritionNeedsDetails.
   ///
   /// In pl, this message translates to:
@@ -7451,7 +7463,7 @@ abstract class AppLocalizations {
   /// No description provided for @releasePromptChanges.
   ///
   /// In pl, this message translates to:
-  /// **'• Poprawiliśmy przenoszenie składników i ich ilości z przepisu na listę zakupów, również po edycji składu i dopisaniu kolejnego dania.\n• Usprawniliśmy porównywanie cen i generowanie przepisów AI: automatycznie szukamy brakujących produktów, a nieznane wartości odżywcze oznaczamy zamiast przerywać zapis.\n• Ograniczyliśmy zbędne odświeżanie ekranów i pracę ukrytych animacji; autor przepisu jest widoczny od razu po wczytaniu.\n• Usprawniliśmy uruchamianie aplikacji i obsługę aparatu; skanowanie nie przerywa ręcznego wpisywania kodu.\n• Ułatwiliśmy pierwszą konfigurację i poprawiliśmy stabilność weryfikacji podczas logowania oraz zmiany konta.'**
+  /// **'• Poprawiliśmy dobór składników przepisów AI — podobnie nazwany produkt nie zastąpi składnika gotowym daniem.\n• Usprawniliśmy uzupełnianie kcal i makro. Szacunki są oznaczone, a brak danych jednego składnika nie ukrywa znanych wartości.\n• Naprawiliśmy błąd podczas generowania planu posiłków.\n• Ułatwiliśmy zmianę sklepu na liście zakupów. Brak pełnej wyceny nie jest już przedstawiany jako koszt 0 zł.\n• Po wykorzystaniu darmowej listy łatwiej sprawdzisz Premium lub wrócisz do swoich zakupów.'**
   String get releasePromptChanges;
 
   /// No description provided for @releasePromptApple.
@@ -9135,6 +9147,36 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Nie udało się uzyskać tokenu tożsamości Apple.'**
   String get authAppleTokenUnavailable;
+
+  /// No description provided for @shoppingLimitTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kolejne zakupy? Z Premium bez limitu'**
+  String get shoppingLimitTitle;
+
+  /// No description provided for @shoppingLimitDescription.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wykorzystano już jedną bezpłatną listę w tym tygodniu. Z Premium twórz osobne listy na przepisy, sklepy i kolejne zakupy — kiedy potrzebujesz.'**
+  String get shoppingLimitDescription;
+
+  /// No description provided for @shoppingLimitSeePremium.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zobacz Premium'**
+  String get shoppingLimitSeePremium;
+
+  /// No description provided for @shoppingLimitBack.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wróć do mojej listy'**
+  String get shoppingLimitBack;
+
+  /// No description provided for @shoppingLimitShort.
+  ///
+  /// In pl, this message translates to:
+  /// **'Tygodniowy limit list został wykorzystany. Z Premium tworzysz kolejne bez limitu.'**
+  String get shoppingLimitShort;
 }
 
 class _AppLocalizationsDelegate

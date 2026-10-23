@@ -12,6 +12,7 @@ class StorePriceComparisonCard extends StatelessWidget {
   final bool isSwitchingStore;
   final VoidCallback? onSwitchStore;
   final String? switchStoreLabel;
+  final bool allowUnpricedListSwitch;
 
   const StorePriceComparisonCard({
     super.key,
@@ -19,6 +20,7 @@ class StorePriceComparisonCard extends StatelessWidget {
     this.isSwitchingStore = false,
     this.onSwitchStore,
     this.switchStoreLabel,
+    this.allowUnpricedListSwitch = false,
   });
 
   @override
@@ -150,7 +152,7 @@ class StorePriceComparisonCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          if (result.isComplete && total != null)
+          if ((result.isComplete && total != null) || allowUnpricedListSwitch)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               child: SizedBox(

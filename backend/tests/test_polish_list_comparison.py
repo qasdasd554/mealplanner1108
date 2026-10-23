@@ -70,7 +70,7 @@ def test_polish_unknown_custom_line_is_not_a_free_winning_basket(pl):
         assert row["total_price"] is None and not row["is_cheapest"] and not row["is_complete"]
 
 
-def test_polish_list_access_and_failed_switch_do_not_mutate(pl):
+def test_polish_list_access_denial_and_unpriced_store_switch_preserve_basket(pl):
     session, adapter, user, product, _ = pl
     shopping = run(api.create_empty_shopping_list(api.EmptyShoppingListRequest(store_id=UK_STORES[0].id), user, adapter))
     run(api.add_item_to_shopping_list(shopping.meal_plan_id,
@@ -82,7 +82,32 @@ def test_polish_list_access_and_failed_switch_do_not_mutate(pl):
     session.commit()
     with client_for(adapter, other) as client:
         assert list_compare(client, shopping.meal_plan_id).status_code == 404
+    old_row = loaded(session, shopping.id).items[0]
+    before = old_row.id, old_row.required_quantity, old_row.unit, old_row.is_checked
     with client_for(adapter, user) as client:
-        assert client.put(f"/api/v1/shopping-lists/{shopping.meal_plan_id}/store",
-                          json={"store_id": str(UK_STORES[1].id)}).status_code == 409
-    assert loaded(session, shopping.id).store_id == UK_STORES[0].id
+        response = client.put(f"/api/v1/shopping-lists/{shopping.meal_plan_id}/store",
+                          json={"store_id": str(UK_STORES[1].id)})
+    assert response.status_code == 200, response.text
+    changed = loaded(session, shopping.id)
+    assert changed.store_id == UK_STORES[1].id
+    row = changed.items[0]
+    assert (row.id, row.required_quantity, row.unit, row.is_checked) == before
+    assert row.store_product.product_id == product.id
+    assert row.estimated_price is None
+    assert response.json()["total_estimated_price"] is None
+    assert response.json()["has_unpriced_items"] is True
+
+
+def test_polish_custom_unknown_rows_can_change_shop_without_becoming_free(pl):
+    session, adapter, user, _, _ = pl
+    shopping = run(api.create_empty_shopping_list(api.EmptyShoppingListRequest(store_id=UK_STORES[0].id), user, adapter))
+    for name in ("Nieznany zakup", "Drugi własny zakup"):
+        run(api.add_custom_item_to_shopping_list(shopping.meal_plan_id, api.AddCustomItemRequest(name=name), user, adapter))
+    before = [(row.id, row.custom_name, row.required_quantity, row.unit) for row in loaded(session, shopping.id).items]
+    with client_for(adapter, user) as client:
+        response = client.put(f"/api/v1/shopping-lists/{shopping.meal_plan_id}/store", json={"store_id": str(UK_STORES[1].id)})
+        comparison = list_compare(client, shopping.meal_plan_id)
+    assert response.status_code == 200, response.text
+    assert response.json()["total_estimated_price"] is None
+    assert [(row.id, row.custom_name, row.required_quantity, row.unit) for row in loaded(session, shopping.id).items] == before
+    assert all(row["total_price"] is None and not row["is_cheapest"] for row in comparison.json())

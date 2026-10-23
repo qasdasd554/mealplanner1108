@@ -590,6 +590,20 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                   ),
                   const SizedBox(height: 12),
                   _buildNutritionGrid(recipe),
+                  if (recipe.hasIncompleteNutrition ||
+                      recipe.hasEstimatedNutrition) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      recipe.hasIncompleteNutrition
+                          ? '${context.strings.recipeNutritionPartial}${recipe.hasEstimatedNutrition ? '\n${context.strings.recipeNutritionEstimated}' : ''}'
+                          : context.strings.recipeNutritionEstimated,
+                      key: const ValueKey('recipe-nutrition-status'),
+                      style: TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 20),
 
                   // Zaproponowanie zdjęcia — trafia do moderacji, nie
@@ -749,7 +763,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                           Flexible(
                             child: Text(
                               '${formatQuantity(ing.quantity, ing.unit)} ${context.strings.unitLabel(ing.unit)}${ing.kcal != null
-                                  ? ' (${ing.kcal} kcal)'
+                                  ? ' (${ing.nutritionEstimated ? '~ ' : ''}${ing.kcal} kcal)'
                                   : recipe.missingNutritionIngredients.contains(ing.productName)
                                   ? '\n${context.strings.nutritionMissing}'
                                   : ''}',
@@ -982,10 +996,16 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     // wartość na porcję, a nie na cały garnek).
     final servings = recipe.servings > 0 ? recipe.servings : 1;
     String value(String key, String unit) {
+      if (recipe.hasIncompleteNutrition) {
+        final subtotal = recipe.knownNutritionSubtotal?.knownValue(key);
+        return subtotal != null && subtotal > 0
+            ? '${recipe.hasEstimatedNutrition ? '~ ' : ''}≥ ${(subtotal / servings).round()} $unit'
+            : '—';
+      }
       final amount = nut.knownValue(key);
-      return recipe.hasIncompleteNutrition || amount == null
+      return amount == null
           ? '—'
-          : '${(amount / servings).round()} $unit';
+          : '${recipe.hasEstimatedNutrition ? '~ ' : ''}${(amount / servings).round()} $unit';
     }
 
     final list = [

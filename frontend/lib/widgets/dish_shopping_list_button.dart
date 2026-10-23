@@ -5,6 +5,7 @@ import '../models/recipe.dart';
 import '../models/shopping_list.dart';
 import '../providers/store_provider.dart';
 import '../services/shopping_list_service.dart';
+import '../services/shopping_list_limit_offer.dart';
 import '../services/contextual_premium_offer_service.dart';
 import '../models/premium_offer.dart';
 import '../providers/shopping_list_provider.dart';
@@ -218,6 +219,8 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
         arguments: 2,
       );
     } catch (e) {
+      if (!mounted) return;
+      if (await ShoppingListLimitOffer.handle(context, e)) return;
       if (!mounted) return;
       // UWAGA: limit list (403) to najbardziej prawdopodobny błąd tutaj —
       // dajemy bezpośrednie przejście do Premium zamiast tylko komunikatu,

@@ -14,6 +14,7 @@ from sqlalchemy.orm import load_only, selectinload
 
 from app.api.deps import get_current_admin, get_current_premium, get_current_user
 from app.core.exceptions import NotFoundException
+from app.core.language import account_text
 from app.core.markets import account_country, MarketCode
 from app.db.session import get_db
 from app.models import (
@@ -57,6 +58,8 @@ async def _validate_recipe_ingredient_products(
     db: AsyncSession,
     ingredients,
     user_id: UUID,
+    *,
+    country_code: str = "PL",
 ) -> dict[UUID, Product]:
     """Ładuje dozwolone produkty i odrzuca składniki, których nie da się policzyć."""
     requested_ids = {ingredient.product_id for ingredient in ingredients}
@@ -77,8 +80,9 @@ async def _validate_recipe_ingredient_products(
         raise HTTPException(
             status_code=400,
             detail=(
-                "Nie znaleziono dostępnego produktu/produktów: "
-                f"{', '.join(str(item) for item in missing_ids)}"
+                ("Available product(s) not found: " if country_code == "GB"
+                 else "Nie znaleziono dostępnego produktu/produktów: ")
+                + ', '.join(str(item) for item in missing_ids)
             ),
         )
     for ingredient in ingredients:
@@ -90,16 +94,18 @@ async def _validate_recipe_ingredient_products(
             raise HTTPException(
                 status_code=422,
                 detail=(
-                    f'Produkt "{product.name}" nie ma pełnych wartości '
-                    "odżywczych. Uzupełnij dane z etykiety."
+                    f'Product "{product.name}" does not have complete nutrition information. Add the label values.'
+                    if country_code == "GB" else
+                    f'Produkt "{product.name}" nie ma pełnych wartości odżywczych. Uzupełnij dane z etykiety.'
                 ),
             )
         if ingredient.unit == "opak" and not product.serving_quantity:
             raise HTTPException(
                 status_code=422,
                 detail=(
-                    f'Nie znamy masy całego opakowania produktu "{product.name}". '
-                    "Wybierz gramy lub mililitry."
+                    f'The full pack size of "{product.name}" is unknown. Choose grams or millilitres.'
+                    if country_code == "GB" else
+                    f'Nie znamy masy całego opakowania produktu "{product.name}". Wybierz gramy lub mililitry.'
                 ),
             )
     return products
@@ -377,7 +383,9 @@ async def list_available_recipes(
     jest oznaczony jako dostępny (``is_available=True``) w wybranym sklepie.
     """
     if await get_store_in_account_market(db, store_id, current_user) is None:
-        raise NotFoundException(detail="Sklep nie jest dostępny w kraju tego konta.")
+        raise NotFoundException(detail=account_text(current_user,
+            "Sklep nie jest dostępny w kraju tego konta.",
+            "This shop is not available in your account's country."))
     # Dostępność i paginację obsługuje baza. Wcześniej endpoint pobierał
     # wszystkie przepisy wraz ze składnikami, filtrował je w Pythonie i
     # dopiero potem wybierał stronę.
@@ -551,7 +559,8 @@ async def get_recipe(
     recipe = result.scalar_one_or_none()
     if recipe is None:
         raise NotFoundException(
-            detail=f"Przepis o ID {recipe_id} nie został znaleziony"
+            detail=account_text(current_user, f"Przepis o ID {recipe_id} nie został znaleziony",
+                f"Recipe {recipe_id} was not found.")
         )
     # Prywatny/oczekujący przepis może zobaczyć właściciel, administrator
     # wykonujący moderację oraz zaakceptowany znajomy. Wcześniej administrator
@@ -608,7 +617,7 @@ async def create_recipe(
     # 500 zamiast czytelnej odpowiedzi. Sprawdzamy WSZYSTKIE product_id na
     # raz (jedno zapytanie) PRZED zapisaniem czegokolwiek do bazy.
     await _validate_recipe_ingredient_products(
-        db, recipe_in.ingredients, current_user.id
+        db, recipe_in.ingredients, current_user.id, country_code=account_country(current_user)
     )
 
     recipe = Recipe(
@@ -711,17 +720,19 @@ async def save_recipe_variant(
     )
     source = source_result.scalar_one_or_none()
     if source is None:
-        raise NotFoundException(detail=f"Przepis o ID {recipe_id} nie został znaleziony")
+        raise NotFoundException(detail=account_text(current_user,
+            f"Przepis o ID {recipe_id} nie został znaleziony", f"Recipe {recipe_id} was not found."))
 
     is_own = source.created_by_user_id == current_user.id
     is_public = source.created_by_user_id is None or source.visibility == "public"
     if not is_own and not is_public:
-        raise NotFoundException(detail=f"Przepis o ID {recipe_id} nie został znaleziony")
+        raise NotFoundException(detail=account_text(current_user,
+            f"Przepis o ID {recipe_id} nie został znaleziony", f"Recipe {recipe_id} was not found."))
     if not is_own and getattr(current_user, "role", None) != "admin":
         await ensure_recipe_available_in_market(db, source, current_user)
 
     await _validate_recipe_ingredient_products(
-        db, variant_in.ingredients, current_user.id
+        db, variant_in.ingredients, current_user.id, country_code=account_country(current_user)
     )
 
     from app.services.system_content_language import recipe_display_content
@@ -827,7 +838,8 @@ async def approve_recipe(
     """Akceptuje zgłoszony przepis — staje się widoczny dla wszystkich."""
     recipe = await db.get(Recipe, recipe_id)
     if recipe is None:
-        raise NotFoundException(detail=f"Przepis o ID {recipe_id} nie został znaleziony")
+        raise NotFoundException(detail=account_text(current_user,
+            f"Przepis o ID {recipe_id} nie został znaleziony", f"Recipe {recipe_id} was not found."))
     recipe.visibility = "public"
     await db.commit()
 
@@ -877,7 +889,8 @@ async def reject_recipe(
     zachowuje ślad, że nie przeszedł akceptacji."""
     recipe = await db.get(Recipe, recipe_id)
     if recipe is None:
-        raise NotFoundException(detail=f"Przepis o ID {recipe_id} nie został znaleziony")
+        raise NotFoundException(detail=account_text(current_user,
+            f"Przepis o ID {recipe_id} nie został znaleziony", f"Recipe {recipe_id} was not found."))
     recipe.visibility = "rejected"
     await db.commit()
 
@@ -989,7 +1002,8 @@ async def add_recipe_favorite(
 
     recipe = await db.get(Recipe, recipe_id)
     if recipe is None:
-        raise NotFoundException(detail=f"Przepis o ID {recipe_id} nie został znaleziony")
+        raise NotFoundException(detail=account_text(current_user,
+            f"Przepis o ID {recipe_id} nie został znaleziony", f"Recipe {recipe_id} was not found."))
 
     existing = await db.execute(
         select(RecipeFavorite).where(
@@ -1132,7 +1146,8 @@ async def _create_ai_recipe(
         for product in products_result.scalars().all()
         if _product_has_complete_nutrition(product) and not looks_like_whole_meal(product.name)
     ]
-    available_products = list(dict.fromkeys(p.name for p in available_product_rows))
+    from app.services.recipe_ingredient_catalogue import recipe_prompt_ingredient_names
+    available_products = recipe_prompt_ingredient_names(available_product_rows, country=country)
     catalog_seconds = time.perf_counter() - started_at
 
     try:
@@ -1350,7 +1365,8 @@ async def edit_recipe_with_ai(
         for product in product_result.scalars().all()
         if _product_has_complete_nutrition(product) and not looks_like_whole_meal(product.name)
     ]
-    available_names = list(dict.fromkeys(product.name for product in available_rows))
+    from app.services.recipe_ingredient_catalogue import recipe_prompt_ingredient_names
+    available_names = recipe_prompt_ingredient_names(available_rows, country=country)
     # Nie trzymaj połączenia i transakcji z Neonem w czasie odpowiedzi Gemini.
     await db.rollback()
 
@@ -1463,17 +1479,23 @@ async def request_publish_recipe(
     """
     recipe = await db.get(Recipe, recipe_id)
     if recipe is None:
-        raise NotFoundException(detail=f"Przepis o ID {recipe_id} nie został znaleziony")
+        raise NotFoundException(detail=account_text(current_user,
+            f"Przepis o ID {recipe_id} nie został znaleziony", f"Recipe {recipe_id} was not found."))
     if recipe.created_by_user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Możesz opublikować tylko własny przepis.")
+        raise HTTPException(status_code=403, detail=account_text(current_user,
+            "Możesz opublikować tylko własny przepis.", "You can only publish your own recipe."))
     if recipe.visibility != "private":
         raise HTTPException(
             status_code=400,
             detail={
-                "pending": "Ten przepis już czeka na przegląd administratora.",
-                "public": "Ten przepis jest już publiczny.",
-                "rejected": "Ten przepis został odrzucony — skontaktuj się z administratorem, żeby dowiedzieć się dlaczego.",
-            }.get(recipe.visibility, "Tego przepisu nie można teraz opublikować."),
+                "pending": account_text(current_user, "Ten przepis już czeka na przegląd administratora.",
+                    "This recipe is already awaiting administrator review."),
+                "public": account_text(current_user, "Ten przepis jest już publiczny.", "This recipe is already public."),
+                "rejected": account_text(current_user,
+                    "Ten przepis został odrzucony — skontaktuj się z administratorem, żeby dowiedzieć się dlaczego.",
+                    "This recipe was rejected. Contact the administrator to find out why."),
+            }.get(recipe.visibility, account_text(current_user, "Tego przepisu nie można teraz opublikować.",
+                "This recipe cannot be published right now.")),
         )
 
     recipe.visibility = "pending"
@@ -1532,15 +1554,18 @@ async def delete_recipe(
 
     recipe = await db.get(Recipe, recipe_id)
     if recipe is None:
-        raise NotFoundException(detail=f"Przepis o ID {recipe_id} nie został znaleziony")
+        raise NotFoundException(detail=account_text(current_user,
+            f"Przepis o ID {recipe_id} nie został znaleziony", f"Recipe {recipe_id} was not found."))
 
     if recipe.created_by_user_id is None:
         raise HTTPException(
             status_code=403,
-            detail="Nie można usunąć oficjalnego przepisu dostarczonego z aplikacją.",
+            detail=account_text(current_user, "Nie można usunąć oficjalnego przepisu dostarczonego z aplikacją.",
+                "Official recipes supplied with the app cannot be deleted."),
         )
     if recipe.created_by_user_id != current_user.id and current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Możesz usunąć tylko własny przepis.")
+        raise HTTPException(status_code=403, detail=account_text(current_user,
+            "Możesz usunąć tylko własny przepis.", "You can only delete your own recipe."))
 
     # Polubienia komentarzy pod komentarzami DO TEGO przepisu — trzeba
     # usunąć PRZED samymi komentarzami (klucz obcy wskazuje na comment_id).
@@ -1593,11 +1618,16 @@ async def report_recipe(
     from app.core.rate_limit import content_report_limiter, enforce_user_rate_limit
     from app.models import ContentReport
 
-    enforce_user_rate_limit(content_report_limiter, current_user.id, "zgłaszanie treści")
+    try:
+        enforce_user_rate_limit(content_report_limiter, current_user.id, "zgłaszanie treści")
+    except HTTPException as exc:
+        if account_country(current_user) == "GB" and exc.status_code == 429:
+            exc.detail = "Too many content reports. Please try again later."
+        raise
 
     recipe = await db.get(Recipe, recipe_id)
     if not recipe:
-        raise NotFoundException("Nie znaleziono przepisu")
+        raise NotFoundException(account_text(current_user, "Nie znaleziono przepisu", "Recipe not found."))
 
     report = ContentReport(
         reporter_user_id=current_user.id,
@@ -1659,7 +1689,8 @@ async def match_recipes_by_ingredients(
     istniejący katalog, więc działa natychmiast i bez kosztu wywołania AI.
     """
     if not payload.product_ids:
-        raise HTTPException(status_code=400, detail="Podaj przynajmniej jeden posiadany składnik")
+        raise HTTPException(status_code=400, detail=account_text(current_user,
+            "Podaj przynajmniej jeden posiadany składnik", "Choose at least one ingredient you have."))
 
     have_ids = set(payload.product_ids)
 
@@ -1734,13 +1765,18 @@ async def submit_recipe_photo(
 ):
     from app.core.rate_limit import enforce_user_rate_limit, recipe_photo_submission_limiter
 
-    enforce_user_rate_limit(
-        recipe_photo_submission_limiter, current_user.id, "zgłaszanie zdjęć do przepisów"
-    )
+    try:
+        enforce_user_rate_limit(
+            recipe_photo_submission_limiter, current_user.id, "zgłaszanie zdjęć do przepisów"
+        )
+    except HTTPException as exc:
+        if account_country(current_user) == "GB" and exc.status_code == 429:
+            exc.detail = "Too many photo submissions. Please try again later."
+        raise
 
     recipe = await db.get(Recipe, recipe_id)
     if recipe is None:
-        raise NotFoundException("Nie znaleziono przepisu")
+        raise NotFoundException(account_text(current_user, "Nie znaleziono przepisu", "Recipe not found."))
 
     # Widoczność sprawdzana jawnie: bez tego dałoby się zgłosić zdjęcie do
     # CUDZEGO prywatnego przepisu, którego zgłaszający nie ma prawa nawet
@@ -1752,12 +1788,13 @@ async def submit_recipe_photo(
         or recipe.visibility == "public"
     )
     if not is_visible:
-        raise NotFoundException("Nie znaleziono przepisu")
+        raise NotFoundException(account_text(current_user, "Nie znaleziono przepisu", "Recipe not found."))
 
     if recipe.pending_photo_base64 is not None:
         raise HTTPException(
             status_code=409,
-            detail="Do tego przepisu zgłoszono już zdjęcie, które czeka na akceptację.",
+            detail=account_text(current_user, "Do tego przepisu zgłoszono już zdjęcie, które czeka na akceptację.",
+                "A photo for this recipe is already awaiting approval."),
         )
 
     recipe.pending_photo_base64 = payload.photo_base64
@@ -1778,7 +1815,9 @@ async def submit_recipe_photo(
         english_message=f'{current_user.display_name or "A user"} added a photo to recipe "{recipe.name}" — approval required.',
         recipe_id=recipe.id,
     )
-    return {"detail": "Zdjęcie zgłoszone. Pojawi się po akceptacji przez administratora."}
+    return {"detail": account_text(current_user,
+        "Zdjęcie zgłoszone. Pojawi się po akceptacji przez administratora.",
+        "Photo submitted. It will appear once approved by an administrator.")}
 
 
 class PendingPhotoEntry(BaseModel):
@@ -1832,7 +1871,8 @@ async def approve_recipe_photo(
 ) -> None:
     recipe = await db.get(Recipe, recipe_id)
     if recipe is None or recipe.pending_photo_base64 is None:
-        raise NotFoundException("Brak zdjęcia oczekującego dla tego przepisu")
+        raise NotFoundException(account_text(current_user, "Brak zdjęcia oczekującego dla tego przepisu",
+            "No pending photo was found for this recipe."))
 
     from app.models.notification import Notification
 
@@ -1875,7 +1915,8 @@ async def reject_recipe_photo(
 ) -> None:
     recipe = await db.get(Recipe, recipe_id)
     if recipe is None or recipe.pending_photo_base64 is None:
-        raise NotFoundException("Brak zdjęcia oczekującego dla tego przepisu")
+        raise NotFoundException(account_text(current_user, "Brak zdjęcia oczekującego dla tego przepisu",
+            "No pending photo was found for this recipe."))
 
     from app.models.notification import Notification
 

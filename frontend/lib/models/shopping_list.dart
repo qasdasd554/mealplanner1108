@@ -188,8 +188,7 @@ class ShoppingList {
       storeId: json['store_id'] as String,
       storeName: json['store_name'] as String? ?? '',
       status: json['status'] as String? ?? 'pending',
-      totalEstimatedPrice:
-          currency == 'GBP' ? (incomplete ? null : total) : total ?? 0.0,
+      totalEstimatedPrice: incomplete ? null : total,
       currencyCode: currency,
       hasUnpricedItems: incomplete,
       itemsByDepartment: parsedGrouped,
@@ -224,8 +223,7 @@ class ShoppingList {
     return sum;
   }
 
-  double? get remainingQuotedPrice =>
-      currencyCode == 'GBP' && hasUnknownPrices ? null : remainingPrice;
+  double? get remainingQuotedPrice => hasUnknownPrices ? null : remainingPrice;
 
   bool get hasUnknownPrices =>
       (currencyCode == 'GBP' && hasUnpricedItems) ||

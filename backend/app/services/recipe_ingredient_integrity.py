@@ -40,6 +40,11 @@ def looks_like_whole_meal(name):
     normal = _normal(name)
     if _component(name):
         return False
+    # Compound dish names without a preposition still describe a ready meal.
+    # In particular '&' is removed by normalisation, so a connector-only
+    # rule let packaged Cordon Bleu enter the cooking-ingredient prompt.
+    if re.search(r"\bcordon bleu\b", normal):
+        return True
     if any(phrase in normal for phrase in ("ready meal", "danie gotowe", "gotowe danie", "danie obiadowe")):
         return True
     connector = _CONNECTOR.search(normal)

@@ -10,6 +10,7 @@ import '../../providers/promotion_provider.dart';
 import '../../models/shopping_list.dart';
 import '../../l10n/catalog_labels.dart';
 import '../../l10n/market_locale.dart';
+import '../../services/shopping_list_limit_offer.dart';
 import '../../utils/market_money.dart';
 import '../../utils/quantity_formatter.dart';
 import '../../services/api_client.dart';
@@ -179,6 +180,12 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
       final created = await shoppingProvider.createEmptyList(storeId);
       if (!mounted) return;
       if (!created) {
+        if (await ShoppingListLimitOffer.handle(
+          context,
+          shoppingProvider.creationFailure,
+        ))
+          return;
+        if (!mounted) return;
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
