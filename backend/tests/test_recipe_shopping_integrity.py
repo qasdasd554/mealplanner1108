@@ -14,10 +14,14 @@ from tests.test_regional_shopping import db, run, make_plan, ShoppingListBuilder
 
 
 @pytest.mark.parametrize("country,recipe_name,product_name", [
-    ("PL", "Kotlet schabowy z ziemniakami", "Kotlet schabowy z buraczkami i puree"),
-    ("GB", "Pork schnitzel with mash", "Pork schnitzel with mash ready meal"),
+    ("PL", "Schab wieprzowy w marynacie z ziemniakami", "Schab wieprzowy w marynacie"),
+    ("GB", "Chicken breast in lemon marinade with potatoes", "Chicken breast in lemon marinade"),
 ])
-def test_build_rejects_whole_dish_before_writing_any_shopping_rows(db, country, recipe_name, product_name):
+@pytest.mark.parametrize("action", ["build", "from_recipes", "recalculate"])
+def test_shopping_copies_declared_ingredient_without_title_heuristics(db, country, recipe_name, product_name, action):
+    from app.api.v1.shopping_lists import create_shopping_list_from_recipes, ShoppingListFromRecipesRequest
+    from app.schemas.shopping_list import ShoppingListResponse
+    from tests.test_regional_shopping import loaded, UK_STORES
     session, adapter, user, product, _ = db
     if country == "PL":
         user = User(id=uuid4(), email="pl-integrity@example.test", password_hash="fixture", role="admin", country_code="PL")
@@ -28,18 +32,40 @@ def test_build_rejects_whole_dish_before_writing_any_shopping_rows(db, country, 
     plan = make_plan(session, user, product, quantity="400")
     plan.entries[0].recipe.name = recipe_name
     session.commit()
-    before = session.scalar(select(func.count()).select_from(ShoppingList))
-    with pytest.raises(HTTPException) as error:
-        run(ShoppingListBuilder(adapter).build_from_meal_plan(plan.id))
-    assert error.value.status_code == 409
-    assert product_name in error.value.detail
-    assert session.scalar(select(func.count()).select_from(ShoppingList)) == before
+    if action == "from_recipes":
+        shopping = run(create_shopping_list_from_recipes(
+            ShoppingListFromRecipesRequest(recipe_ids=[plan.entries[0].recipe_id], store_id=UK_STORES[0].id),
+            user, adapter,
+        ))
+    else:
+        shopping = run(ShoppingListBuilder(adapter).build_from_meal_plan(plan.id))
+        if action == "recalculate":
+            shopping = run(ShoppingListBuilder(adapter).recalculate(shopping.id))
+    response = ShoppingListResponse.model_validate(loaded(session, shopping.id))
+    rows = [row for group in response.items_by_department.values() for row in group]
+    assert len(rows) == 1
+    # GB can display the reviewed retailer label, but identity and amount
+    # must still be the selected recipe ingredient, never a title match.
+    assert rows[0].product_id == product.id if country == "GB" else rows[0].product_name == product_name
+    assert rows[0].required_quantity == 400 and rows[0].unit == "g"
     assert plan.entries[0].recipe.ingredients[0].product_id == product.id
 
 
 def test_fuzzy_match_cannot_replace_raw_meat_with_prepared_breaded_meat():
     assert match_product_name("Chicken breast", ["Chicken breast ready meal"]) is None
     assert match_product_name("Schab wieprzowy", ["Schab wieprzowy panierowany gotowy"]) is None
+
+
+@pytest.mark.parametrize("raw,prepared", [
+    ("Chicken breast", "Chicken breast in sauce"),
+    ("Schab wieprzowy", "Schab wieprzowy w sosie"),
+    ("Rice", "Rice with veg"),
+])
+def test_similar_catalogue_name_cannot_change_a_raw_ai_ingredient_into_a_dish(raw, prepared):
+    assert match_product_name(raw, [prepared]) is None
+    # A deliberately supplied exact ingredient remains exact (e.g. a sauce
+    # or prepared component explicitly used by the recipe author).
+    assert match_product_name(prepared, [prepared]) == prepared
 
 
 @pytest.mark.parametrize("country", ["PL", "GB"])
@@ -95,9 +121,72 @@ def test_prepared_components_are_not_confused_with_the_whole_recipe(title, produ
     validate_ingredient_names(title, [product])
 
 
+@pytest.mark.parametrize("country,title,prepared", [
+    ("PL", "Domowy obiad z marynaty", "Kotlet schabowy z buraczkami i puree"),
+    ("GB", "Sunday lunch", "Pork schnitzel with mash ready meal"),
+])
+def test_ai_cannot_hide_an_entire_meal_under_a_different_recipe_title(country, title, prepared):
+    from app.services.ai_recipe_import import validate_and_clean_recipe_dict, AIRecipeImportError
+    parsed = dict(name=title, ingredients=[dict(product_name=prepared, quantity=400, unit="g")])
+    with pytest.raises(AIRecipeImportError):
+        validate_and_clean_recipe_dict(parsed, country_code=country)
+
+
 @pytest.mark.parametrize("country", ["PL", "GB"])
-def test_incomplete_ai_recipe_is_rejected_before_points_or_recipe_write(db, monkeypatch, country):
+@pytest.mark.parametrize("source", ["text", "photo", "url"])
+def test_ai_source_never_saves_a_meal_as_an_ingredient_or_spends_points(db, monkeypatch, country, source):
     from unittest.mock import AsyncMock
+    from app.api.v1.recipes import _create_ai_recipe
+    from app.schemas.recipe import AIRecipeImportRequest
+    from app.services import ai_recipe_import
+    session, adapter, _, product, _ = db
+    product.name = "Kotlet schabowy z buraczkami i puree" if country == "PL" else "Pork schnitzel with mash ready meal"
+    product.nutrition_per_100 = {"kcal": 119, "protein": 15, "fat": 5, "carbs": 3}
+    user = User(id=uuid4(), email=f"{source}-{country}@example.test", password_hash="fixture", country_code=country, premium_points=3, role="user")
+    session.add(user)
+    session.commit()
+    parsed = dict(name="Domowy obiad" if country == "PL" else "Sunday lunch", meal_type="obiad", servings=4,
+                  ingredients=[dict(product_name=product.name, quantity=4, unit="szt")], instructions=["Prepare the ingredients."])
+    extract = AsyncMock(return_value=parsed)
+    monkeypatch.setattr(ai_recipe_import, f"extract_recipe_from_{source}", extract)
+    spend = AsyncMock()
+    monkeypatch.setattr("app.services.premium_points.spend_points", spend)
+    count = session.scalar(select(func.count()).select_from(Recipe))
+    import base64
+    from io import BytesIO
+    from PIL import Image
+    photo = BytesIO()
+    Image.new("RGB", (2, 2), "green").save(photo, format="JPEG")
+    payload = AIRecipeImportRequest(**{dict(text="text", photo="photo_base64", url="url")[source]:
+                                       "https://example.test/recipe" if source == "url" else base64.b64encode(photo.getvalue()).decode() if source == "photo" else "synthetic-input"})
+    with pytest.raises(HTTPException) as error:
+        run(_create_ai_recipe(payload, user, adapter, skip_rate_limit=True))
+    assert error.value.status_code == 422
+    assert product.name not in extract.await_args.args[1]
+    spend.assert_not_awaited()
+    assert user.premium_points == 3
+    assert session.scalar(select(func.count()).select_from(Recipe)) == count
+
+
+@pytest.mark.parametrize("ingredient", ["Tuna in spring water", "Pomidory w puszce", "Tuna in its own juice", "Tuńczyk w sosie własnym"])
+def test_canned_cooking_components_are_not_complete_ready_meals(ingredient):
+    from app.services.recipe_ingredient_integrity import looks_like_whole_meal, validate_ingredient_names
+    assert not looks_like_whole_meal(ingredient)
+    validate_ingredient_names("Lunch", [ingredient])
+
+
+@pytest.mark.parametrize("ingredient", ["Pierś z kurczaka", "Filet z indyka", "Filet z dorsza", "Sok z cytryny", "Mąka z ciecierzycy", "Bułka tarta", "Masło"])
+def test_real_cooking_ingredients_remain_in_ai_catalogue_and_validation(ingredient):
+    from app.services.ai_recipe_import import _select_prompt_products
+    from app.services.recipe_ingredient_integrity import validate_ingredient_names
+    assert _select_prompt_products([ingredient], None) == [ingredient]
+    validate_ingredient_names("Obiad", [ingredient])
+
+
+@pytest.mark.parametrize("country", ["PL", "GB"])
+def test_missing_nutrition_preserves_complete_recipe_with_private_unverified_ingredient(db, monkeypatch, country):
+    from unittest.mock import AsyncMock
+    monkeypatch.setattr("app.services.barcode_lookup.search_products_external", AsyncMock(return_value=[]))
     from app.api.v1.recipes import _create_ai_recipe
     from app.schemas.recipe import AIRecipeImportRequest
     from app.models import Recipe
@@ -117,13 +206,15 @@ def test_incomplete_ai_recipe_is_rejected_before_points_or_recipe_write(db, monk
     spend = AsyncMock()
     monkeypatch.setattr("app.services.premium_points.spend_points", spend)
     before = session.scalar(select(func.count()).select_from(Recipe))
-    with pytest.raises(HTTPException) as error:
-        run(_create_ai_recipe(AIRecipeImportRequest(text="Vegetable soup"), user, adapter, skip_rate_limit=True))
-    assert error.value.status_code == 422
-    assert "A missing real ingredient" in error.value.detail
-    spend.assert_not_awaited()
+    created = run(_create_ai_recipe(AIRecipeImportRequest(text="Vegetable soup"), user, adapter, skip_rate_limit=True))
+    assert len(created.ingredients) == 2
+    unknown = next(i for i in created.ingredients if i.product.name == "A missing real ingredient")
+    assert unknown.quantity == 200 and unknown.unit == "g"
+    assert unknown.product.review_status == "pending" and unknown.product.created_by_user_id == user.id
+    assert created.nutrition_total["kcal"] is None
+    spend.assert_awaited_once_with(adapter, user.id, 2)
     assert user.premium_points == 3
-    assert session.scalar(select(func.count()).select_from(Recipe)) == before
+    assert session.scalar(select(func.count()).select_from(Recipe)) == before + 1
 
 
 @pytest.mark.parametrize("country", ["PL", "GB"])
@@ -140,7 +231,9 @@ def test_required_ingredients_cannot_disappear_in_ai_cleaning(country, bad):
 
 
 @pytest.mark.parametrize("country", ["PL", "GB"])
-def test_basket_is_exact_recipe_ingredients_even_when_cheap_ready_meal_exists(db, country):
+@pytest.mark.parametrize("action", ["build", "from_recipes", "append", "recalculate"])
+def test_basket_is_exact_recipe_ingredients_even_when_cheap_ready_meal_exists(db, country, action):
+    from app.api.v1.shopping_lists import create_shopping_list_from_recipes, ShoppingListFromRecipesRequest
     from app.models import MealPlanEntry
     from app.services.uk_catalogue_import import import_reviewed_uk_catalogue
     from tests.test_regional_shopping import _offer, loaded, UK_STORES
@@ -174,11 +267,24 @@ def test_basket_is_exact_recipe_ingredients_even_when_cheap_ready_meal_exists(db
     for product, amount in zip(raw[1:], [500, 100, 80]):
         recipe.ingredients.append(RecipeIngredient(id=uuid4(), product_id=product.id, quantity=amount, unit="g"))
     session.commit()
-    shopping = run(ShoppingListBuilder(adapter).build_from_meal_plan(plan.id, include_pantry=False))
+    if action == "from_recipes":
+        shopping = run(create_shopping_list_from_recipes(
+            ShoppingListFromRecipesRequest(recipe_ids=[recipe.id], store_id=UK_STORES[0].id), user, adapter,
+        ))
+    else:
+        shopping = run(ShoppingListBuilder(adapter).build_from_meal_plan(plan.id, include_pantry=False))
+        if action == "append":
+            shopping = run(create_shopping_list_from_recipes(
+                ShoppingListFromRecipesRequest(recipe_ids=[recipe.id], store_id=UK_STORES[0].id, existing_list_id=shopping.meal_plan_id),
+                user, adapter,
+            ))
+        elif action == "recalculate":
+            shopping = run(ShoppingListBuilder(adapter).recalculate(shopping.id))
     rows = loaded(session, shopping.id).items
     actual = {
         item.regional_snapshot.product_id if item.regional_snapshot else item.store_product.product_id:
         item.required_quantity for item in rows
     }
-    assert actual == {product.id: amount for product, amount in zip(raw, [400, 500, 100, 80])}
+    multiplier = 2 if action == "append" else 1
+    assert actual == {product.id: amount * multiplier for product, amount in zip(raw, [400, 500, 100, 80])}
     assert prepared.id not in actual

@@ -2284,6 +2284,10 @@ class AppLocalizationsPl extends AppLocalizations {
   String get nutritionMissing => 'Brak danych odżywczych';
 
   @override
+  String get recipeNutritionNeedsDetails =>
+      'Ten przepis ma brakujące dane odżywcze. Uzupełnij składniki w przepisie lub wpisz wartości posiłku ręcznie w Dzienniku.';
+
+  @override
   String productsProcessed(int count) {
     return 'Obsłużono: $count produktów.';
   }
@@ -2602,7 +2606,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get detailTemporaryHelp =>
-      'Oryginalny przepis nie został zmieniony. Po zapisie wartości odżywcze zostaną przeliczone dla nowego składu.';
+      'Oryginalny przepis nie został zmieniony. Przy tworzeniu listy zakupów ten wariant zapisze się w Moje, aby lista zawierała widoczne tutaj składniki i ilości. Po zapisie przeliczymy wartości odżywcze.';
 
   @override
   String get detailSaveVariant => 'Zapisz wariant w Moje';
@@ -4226,7 +4230,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• Poprawiliśmy listy zakupów ze składników przepisów i porównywanie cen.\n• Usprawniliśmy import przepisów, aby brakujące składniki nie były pomijane.\n• Ograniczyliśmy zbędne odświeżanie ekranów i pracę ukrytych animacji.\n• Usprawniliśmy uruchamianie aplikacji i obsługę aparatu; skanowanie nie przerywa ręcznego wpisywania kodu.\n• Ułatwiliśmy pierwszą konfigurację i poprawiliśmy stabilność weryfikacji podczas logowania oraz zmiany konta.';
+      '• Poprawiliśmy przenoszenie składników i ich ilości z przepisu na listę zakupów, również po edycji składu i dopisaniu kolejnego dania.\n• Usprawniliśmy porównywanie cen i generowanie przepisów AI: automatycznie szukamy brakujących produktów, a nieznane wartości odżywcze oznaczamy zamiast przerywać zapis.\n• Ograniczyliśmy zbędne odświeżanie ekranów i pracę ukrytych animacji; autor przepisu jest widoczny od razu po wczytaniu.\n• Usprawniliśmy uruchamianie aplikacji i obsługę aparatu; skanowanie nie przerywa ręcznego wpisywania kodu.\n• Ułatwiliśmy pierwszą konfigurację i poprawiliśmy stabilność weryfikacji podczas logowania oraz zmiany konta.';
 
   @override
   String get releasePromptApple => 'Otwórz App Store';
@@ -5182,4 +5186,21 @@ class AppLocalizationsPl extends AppLocalizations {
   @override
   String get authStoredSessionFailed =>
       'Nie udało się odtworzyć zapisanej sesji. Spróbuj zalogować się ponownie.';
+
+  @override
+  String authGoogleNativeFailed(Object code) {
+    return 'Nie udało się zalogować przez Google ($code). Spróbuj ponownie.';
+  }
+
+  @override
+  String get authGoogleTokenUnavailable =>
+      'Nie udało się uzyskać tokenu tożsamości Google.';
+
+  @override
+  String get authAppleNativeFailed =>
+      'Nie udało się zalogować przez Apple. Spróbuj ponownie.';
+
+  @override
+  String get authAppleTokenUnavailable =>
+      'Nie udało się uzyskać tokenu tożsamości Apple.';
 }

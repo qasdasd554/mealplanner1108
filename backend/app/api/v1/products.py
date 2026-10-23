@@ -1592,6 +1592,9 @@ async def update_own_product(
     await _validate_submission_stores(db, payload.store_ids, current_user)
 
     was_pending = product.review_status == "pending"
+    previous_source = (getattr(product, "nutrition_per_100", None) or {}).get("_source", {})
+    was_recipe_placeholder = (isinstance(previous_source, dict)
+        and previous_source.get("provider") == "unresolved_recipe_ingredient")
 
     nutrition = None
     if any(value is not None for value in (
@@ -1649,6 +1652,9 @@ async def update_own_product(
 
     db.add(product)
     try:
+        if was_recipe_placeholder:
+            from app.services.recipe_ingredient_catalogue import refresh_incomplete_recipes_for_product
+            await refresh_incomplete_recipes_for_product(db, product.id)
         await db.commit()
     except IntegrityError:
         await db.rollback()

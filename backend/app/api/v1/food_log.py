@@ -64,11 +64,17 @@ def _enforce_history_limit(entry_date: Optional[date], current_user: User) -> No
         )
 
 
-def _macros_from_recipe(recipe: Optional[Recipe], servings: float) -> dict:
+def _macros_from_recipe(recipe: Optional[Recipe], servings: float, *, country_code="PL") -> dict:
     """Przelicza makroskładniki przepisu na podaną liczbę porcji."""
     if not recipe or not recipe.nutrition_total:
         return {"calories": 0.0, "protein": 0.0, "fat": 0.0, "carbs": 0.0}
     n = recipe.nutrition_total
+    if n.get("_incomplete"):
+        raise HTTPException(status_code=422, detail=(
+            "Complete the missing ingredient nutrition before adding this recipe to your diary, or enter the meal's nutrition manually."
+            if country_code == "GB" else
+            "Uzupełnij brakujące dane odżywcze składników przed dodaniem przepisu do dziennika albo wpisz wartości posiłku ręcznie."
+        ))
     return {
         "calories": (n.get("kcal", n.get("calories", 0.0)) or 0.0) * servings,
         "protein": (n.get("protein", 0.0) or 0.0) * servings,
@@ -150,7 +156,7 @@ async def create_food_log_entry(
         recipe_servings = float(recipe.servings or 1)
         recipe_fraction = entry_in.servings / recipe_servings if recipe_servings else entry_in.servings
         if entry_in.calories == 0.0 and entry_in.protein == 0.0:
-            macros = _macros_from_recipe(recipe, recipe_fraction)
+            macros = _macros_from_recipe(recipe, recipe_fraction, country_code=account_country(current_user))
             db_entry.calories = macros["calories"]
             db_entry.protein = macros["protein"]
             db_entry.fat = macros["fat"]
@@ -404,7 +410,7 @@ async def create_from_meal_plan_entry(
     servings = servings_override if servings_override is not None else 1.0
     recipe_servings = float(plan_entry.recipe.servings or 1) if plan_entry.recipe else 1.0
     recipe_fraction = servings / recipe_servings if recipe_servings else servings
-    macros = _macros_from_recipe(plan_entry.recipe, recipe_fraction)
+    macros = _macros_from_recipe(plan_entry.recipe, recipe_fraction, country_code=account_country(current_user))
 
     if entry_date_override is not None:
         entry_date = entry_date_override

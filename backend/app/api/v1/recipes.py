@@ -49,19 +49,8 @@ logger = logging.getLogger(__name__)
 
 
 def _product_has_complete_nutrition(product: Product) -> bool:
-    nutrition = product.nutrition_per_100 or {}
-    values = [
-        nutrition.get("kcal"),
-        nutrition.get("protein"),
-        nutrition.get("fat"),
-        nutrition.get("carbs"),
-    ]
-    if any(value is None for value in values):
-        return False
-    try:
-        return any(float(value) > 0 for value in values)
-    except (TypeError, ValueError):
-        return False
+    from app.services.recipe_ingredient_catalogue import has_recipe_nutrition
+    return has_recipe_nutrition(product)
 
 
 async def _validate_recipe_ingredient_products(
@@ -94,7 +83,10 @@ async def _validate_recipe_ingredient_products(
         )
     for ingredient in ingredients:
         product = products[ingredient.product_id]
-        if not _product_has_complete_nutrition(product):
+        source = (product.nutrition_per_100 or {}).get("_source", {})
+        private_missing = (product.created_by_user_id == user_id
+            and isinstance(source, dict) and source.get("provider") == "unresolved_recipe_ingredient")
+        if not _product_has_complete_nutrition(product) and not private_missing:
             raise HTTPException(
                 status_code=422,
                 detail=(
@@ -193,6 +185,10 @@ def _recipe_list_options():
             Recipe.created_by_user_id,
         ),
         selectinload(Recipe.tags),
+        selectinload(Recipe.creator).load_only(
+            User.id, User.display_name, User.avatar, User.tiktok_username,
+            User.role, User.is_premium, User.premium_product_id, User.premium_expires_at,
+        ).raiseload("*"),
     )
 
 
@@ -705,8 +701,8 @@ async def save_recipe_variant(
     """Zapisuje prywatną kopię dopiero po świadomym wyborze użytkownika.
 
     Zmiany wykonywane na ekranie przepisu pozostają po stronie telefonu.
-    Ten endpoint jest wywoływany wyłącznie po wybraniu „Zapisz w Moje”,
-    więc oryginał nie jest modyfikowany.
+    Wywoływany po „Zapisz w Moje” lub przed utworzeniem listy zakupów
+    z widocznego, zmienionego wariantu. Oryginał nie jest modyfikowany.
     """
     source_result = await db.execute(
         select(Recipe)
@@ -1086,6 +1082,7 @@ async def _create_ai_recipe(
         recipe_message,
         validate_and_clean_recipe_dict,
     )
+    from app.services.recipe_ingredient_integrity import looks_like_whole_meal
 
     started_at = time.perf_counter()
     country = account_country(current_user)
@@ -1133,7 +1130,7 @@ async def _create_ai_recipe(
     available_product_rows = [
         product
         for product in products_result.scalars().all()
-        if _product_has_complete_nutrition(product)
+        if _product_has_complete_nutrition(product) and not looks_like_whole_meal(product.name)
     ]
     available_products = list(dict.fromkeys(p.name for p in available_product_rows))
     catalog_seconds = time.perf_counter() - started_at
@@ -1165,25 +1162,24 @@ async def _create_ai_recipe(
 
     # Resolve ALL required ingredients before charging points or storing the
     # recipe. A partial recipe produces an incomplete shopping basket.
-    from app.services.ai_recipe_import import match_product_name
     from app.services.recipe_ingredient_integrity import validate_ingredient_names
-    products_by_name = {p.name.casefold(): p for p in available_product_rows}
-    matched_ingredients = []
-    unresolved_names = []
-    for ingredient in parsed["ingredients"]:
-        canonical = match_product_name(ingredient["product_name"], available_products)
-        product = products_by_name.get(canonical.casefold()) if canonical else None
-        if product is None or not is_ingredient_quantity_reasonable(ingredient["quantity"], ingredient["unit"]):
-            unresolved_names.append(ingredient["product_name"])
-        else:
-            matched_ingredients.append((ingredient, product))
+    from app.services.recipe_ingredient_catalogue import resolve_recipe_ingredients, materialize_recipe_ingredients
+    matched_ingredients = await resolve_recipe_ingredients(parsed["ingredients"], available_product_rows, country=country, user_id=current_user.id)
+    unresolved_names = [ingredient["product_name"] for ingredient, product in matched_ingredients
+        if product is None or not is_ingredient_quantity_reasonable(ingredient["quantity"], ingredient["unit"])]
     if unresolved_names:
         names = ", ".join(dict.fromkeys(unresolved_names))[:500]
         raise HTTPException(status_code=422, detail=recipe_message(country,
-            f"Nie można zapisać niepełnego przepisu. Nie dopasowano składników: {names}. Uzupełnij katalog lub popraw treść i spróbuj ponownie.",
-            f"An incomplete recipe cannot be saved. Unmatched ingredients: {names}. Add the missing catalogue ingredients or correct the source and try again.",
+            f"Nie odnaleziono wiarygodnych danych składników: {names}, także w zewnętrznej bazie. Nie zapisano niepełnego przepisu ani nie pobrano punktów. Spróbuj ponownie lub uzupełnij dane składnika.",
+            f"Reliable ingredient data was not found for: {names}, including in the external database. No incomplete recipe was saved and no points were charged. Try again or add the ingredient details.",
         ))
     validate_ingredient_names(parsed["name"], [product.name for _, product in matched_ingredients], country_code=country)
+    try:
+        matched_ingredients = await materialize_recipe_ingredients(db, matched_ingredients)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=recipe_message(country,
+            "Nie udało się bezpiecznie dopasować produktu do katalogu. Nie pobrano punktów.",
+            "Could not safely match the product to the catalogue. No points were charged.")) from exc
 
     # UWAGA: rozpoznanie się UDAŁO — dopiero TERAZ, nie wcześniej,
     # pobieramy 2 punkty od kont bez Premium (jeśli user jest Premium,
@@ -1348,15 +1344,12 @@ async def edit_recipe_with_ai(
     product_result = await db.execute(select(Product).where(or_(
         Product.review_status == "approved", Product.created_by_user_id == user_id,
     )))
+    from app.services.recipe_ingredient_integrity import looks_like_whole_meal
     available_rows = [
         product
         for product in product_result.scalars().all()
-        if _product_has_complete_nutrition(product)
+        if _product_has_complete_nutrition(product) and not looks_like_whole_meal(product.name)
     ]
-    product_by_name = {
-        product.name.casefold(): (product.id, product.name)
-        for product in available_rows
-    }
     available_names = list(dict.fromkeys(product.name for product in available_rows))
     # Nie trzymaj połączenia i transakcji z Neonem w czasie odpowiedzi Gemini.
     await db.rollback()
@@ -1366,25 +1359,19 @@ async def edit_recipe_with_ai(
     except AIRecipeImportError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
-    matched: list[tuple[UUID, str, dict]] = []
-    missing: list[str] = []
-    for ingredient in parsed["ingredients"]:
-        canonical = match_product_name(ingredient["product_name"], available_names)
-        product = product_by_name.get(canonical.casefold()) if canonical else None
-        if product is None:
-            missing.append(ingredient["product_name"])
-        elif not is_ingredient_quantity_reasonable(ingredient["quantity"], ingredient["unit"]):
+    # Rollback expired the earlier ORM rows. Reload once, never lazy-load one
+    # ingredient at a time after the network call.
+    catalogue_result = await db.execute(select(Product).where(or_(
+        Product.review_status == "approved", Product.created_by_user_id == user_id,
+    )))
+    from app.services.recipe_ingredient_catalogue import resolve_recipe_ingredients, materialize_recipe_ingredients
+    pairs = await resolve_recipe_ingredients(parsed["ingredients"], catalogue_result.scalars().all(), country=country, user_id=user_id)
+    for ingredient, _ in pairs:
+        if not is_ingredient_quantity_reasonable(ingredient["quantity"], ingredient["unit"]):
             raise HTTPException(status_code=422, detail=recipe_message(country, "AI podało nieprawidłową ilość składnika.", "AI returned an invalid ingredient quantity."))
-        else:
-            matched.append((product[0], product[1], ingredient))
-    if missing:
-        raise HTTPException(
-            status_code=422,
-            detail=recipe_message(country,
-                f"Nie ma w katalogu: {', '.join(missing[:3])}. Punkt nie został pobrany.",
-                f"Not in the catalogue: {', '.join(missing[:3])}. No point was charged.",
-            ),
-        )
+    from app.services.recipe_ingredient_integrity import validate_ingredient_names
+    validate_ingredient_names(parsed["name"], [product.name for _, product in pairs], country_code=country)
+    matched = [(product.id, product.name, ingredient) for ingredient, product in pairs]
     if not matched or not parsed["instructions"]:
         raise HTTPException(status_code=422, detail=recipe_message(country, "AI zwróciło niekompletny przepis. Punkt nie został pobrany.", "AI returned an incomplete recipe. No point was charged."))
 
@@ -1408,6 +1395,14 @@ async def edit_recipe_with_ai(
         raise HTTPException(status_code=409, detail=recipe_message(country, "Przepis został już zgłoszony do moderacji.", "The recipe has already been submitted for review."))
     if locked_user.premium_points < 1:
         raise HTTPException(status_code=402, detail=recipe_message(country, "Brakuje 1 punktu premium.", "You need 1 Premium point."))
+
+    try:
+        pairs = await materialize_recipe_ingredients(db, pairs)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=recipe_message(country,
+            "Nie udało się bezpiecznie dopasować składnika. Punkt nie został pobrany.",
+            "Could not safely match the ingredient. No point was charged.")) from exc
+    matched = [(product.id, product.name, ingredient) for ingredient, product in pairs]
 
     locked_recipe.name = parsed["name"][:300]
     locked_recipe.description = parsed.get("description")

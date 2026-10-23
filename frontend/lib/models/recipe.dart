@@ -91,6 +91,8 @@ class Recipe {
   final String? createdByAvatar;
   final String? createdByAvatarPhoto;
   final String? createdByTikTokUsername;
+  final bool createdByProfileLoaded;
+  final List<String> missingNutritionIngredients;
 
   Recipe({
     required this.id,
@@ -120,6 +122,8 @@ class Recipe {
     this.createdByAvatar,
     this.createdByAvatarPhoto,
     this.createdByTikTokUsername,
+    this.createdByProfileLoaded = false,
+    this.missingNutritionIngredients = const [],
   });
 
   factory Recipe.fromJson(Map<String, dynamic> json) {
@@ -170,10 +174,20 @@ class Recipe {
       createdByAvatar: json['created_by_avatar'] as String?,
       createdByAvatarPhoto: json['created_by_avatar_photo'] as String?,
       createdByTikTokUsername: json['created_by_tiktok_username'] as String?,
+      createdByProfileLoaded:
+          json['created_by_profile_loaded'] as bool? ?? false,
+      missingNutritionIngredients:
+          ((json['nutrition_total']
+                      as Map<String, dynamic>?)?['_missing_ingredients']
+                  as List<dynamic>?)
+              ?.map((value) => value.toString())
+              .toList() ??
+          const [],
     );
   }
 
   int get totalTimeMin => (prepTimeMin ?? 0) + (cookTimeMin ?? 0);
+  bool get hasIncompleteNutrition => missingNutritionIngredients.isNotEmpty;
 
   bool get hasCreatorTikTok =>
       createdByTikTokUsername?.trim().isNotEmpty ?? false;

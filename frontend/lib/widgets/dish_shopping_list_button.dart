@@ -23,18 +23,27 @@ import '../utils/error_utils.dart';
 /// pilnuje limitu i zwraca czytelny błąd, jeśli został przekroczony.
 class DishShoppingListButton extends StatefulWidget {
   final Recipe recipe;
+  final ShoppingListService? service;
+  final Future<Recipe?> Function()? prepareRecipe;
 
-  const DishShoppingListButton({super.key, required this.recipe});
+  const DishShoppingListButton({
+    super.key,
+    required this.recipe,
+    this.service,
+    this.prepareRecipe,
+  });
 
   @override
   State<DishShoppingListButton> createState() => _DishShoppingListButtonState();
 }
 
 class _DishShoppingListButtonState extends State<DishShoppingListButton> {
-  final ShoppingListService _service = ShoppingListService();
+  late final ShoppingListService _service =
+      widget.service ?? ShoppingListService();
   bool _isBusy = false;
 
   Future<void> _onTap() async {
+    if (_isBusy) return;
     setState(() => _isBusy = true);
     List<ShoppingList> existingLists = [];
     try {
@@ -163,8 +172,16 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
 
     setState(() => _isBusy = true);
     try {
+      // A temporary editor variant must be saved before using a recipe ID.
+      // Otherwise the server receives the original recipe while the user
+      // sees different ingredients and amounts on this very screen.
+      final selectedRecipe =
+          widget.prepareRecipe == null
+              ? widget.recipe
+              : await widget.prepareRecipe!();
+      if (!mounted || selectedRecipe == null) return;
       final list = await _service.createFromRecipes(
-        recipeIds: [widget.recipe.id],
+        recipeIds: [selectedRecipe.id],
         storeId: storeId,
         existingListId: existingListId,
       );

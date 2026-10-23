@@ -3,6 +3,51 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_meal_planner/services/app_review_service.dart';
 
 void main() {
+  test('review timing waits for useful activity and a quiet moment', () {
+    final schedule = ReviewPromptSchedule();
+    final start = DateTime.utc(2026, 10, 23);
+    expect(schedule.recordSuccess('user', 1, start), isFalse);
+    expect(
+      schedule.recordSuccess('user', 1, start.add(const Duration(seconds: 2))),
+      isTrue,
+    );
+    expect(
+      schedule.isReady('user', 1, start.add(const Duration(seconds: 9))),
+      isFalse,
+    );
+    expect(
+      schedule.isReady('user', 1, start.add(const Duration(seconds: 10))),
+      isTrue,
+    );
+    expect(
+      schedule.isReady('other', 1, start.add(const Duration(seconds: 10))),
+      isFalse,
+    );
+    expect(
+      schedule.isReady('user', 2, start.add(const Duration(seconds: 10))),
+      isFalse,
+    );
+    expect(
+      schedule.isReady('user', 1, start.add(const Duration(minutes: 3))),
+      isFalse,
+    );
+  });
+  test('another action resets quiet time; a new session resets activity', () {
+    final schedule = ReviewPromptSchedule();
+    final start = DateTime.utc(2026);
+    schedule.recordSuccess('user', 1, start);
+    schedule.recordSuccess('user', 1, start.add(const Duration(seconds: 2)));
+    schedule.recordSuccess('user', 1, start.add(const Duration(seconds: 8)));
+    expect(
+      schedule.isReady('user', 1, start.add(const Duration(seconds: 10))),
+      isFalse,
+    );
+    expect(
+      schedule.isReady('user', 1, start.add(const Duration(seconds: 16))),
+      isTrue,
+    );
+    expect(schedule.recordSuccess('user', 2, start), isFalse);
+  });
   test('bez dostępnego sklepu nie zużywa limitu konta', () async {
     var claims = 0;
     final service = AppReviewService(
@@ -34,6 +79,8 @@ void main() {
       },
     );
     expect(await service.maybeRequest(), isTrue);
+    expect(reviews, 1);
+    expect(await service.maybeRequest(), isFalse);
     expect(reviews, 1);
   });
   test('równoległe sygnały nie uruchamiają dwóch rezerwacji', () async {

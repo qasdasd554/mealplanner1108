@@ -13,6 +13,12 @@ import 'package:smart_meal_planner/models/recipe.dart';
 import 'package:smart_meal_planner/models/recipe_comment.dart';
 import 'package:smart_meal_planner/models/user.dart';
 import 'package:smart_meal_planner/providers/auth_provider.dart';
+import 'package:smart_meal_planner/providers/store_provider.dart';
+import 'package:smart_meal_planner/models/store.dart';
+import 'package:smart_meal_planner/models/shopping_list.dart';
+import 'package:smart_meal_planner/services/shopping_list_service.dart';
+import 'package:smart_meal_planner/widgets/dish_shopping_list_button.dart';
+import 'package:smart_meal_planner/widgets/recipe_variant_editor_sheet.dart';
 import 'package:smart_meal_planner/screens/recipes/recipe_detail_screen.dart';
 import 'package:smart_meal_planner/services/recipe_service.dart';
 import 'package:smart_meal_planner/services/api_client.dart';
@@ -23,34 +29,35 @@ import 'package:smart_meal_planner/widgets/recipe_publish_button.dart';
 import 'package:smart_meal_planner/widgets/submit_recipe_photo_button.dart';
 import 'package:smart_meal_planner/theme/app_theme.dart';
 
-Recipe recipe({bool full = true}) => Recipe.fromJson({
-  'id': 'recipe',
-  'name': 'Zupa autora',
-  'description': 'Oryginalny opis',
-  'meal_type': 'obiad',
-  'servings': 2,
-  'difficulty': 'łatwy',
-  'prep_time_min': 10,
-  'cook_time_min': 5,
-  'nutrition_total': {'kcal': 400, 'protein': 20, 'fat': 10, 'carbs': 30},
-  'is_active': true,
-  'is_own_recipe': true,
-  'visibility': 'private',
-  'created_by_name': 'Kuchnia Autora',
-  if (full) 'instructions': ['Nie tłumacz autorskich kroków'],
-  if (full)
-    'ingredients': [
-      {
-        'id': 'ingredient',
-        'product_id': 'salt',
-        'product_name': 'Sól autora',
-        'quantity': 50,
-        'unit': 'g',
-        'is_optional': false,
-        'kcal': 100,
-      },
-    ],
-});
+Recipe recipe({bool full = true, String id = 'recipe', double quantity = 50}) =>
+    Recipe.fromJson({
+      'id': id,
+      'name': 'Zupa autora',
+      'description': 'Oryginalny opis',
+      'meal_type': 'obiad',
+      'servings': 2,
+      'difficulty': 'łatwy',
+      'prep_time_min': 10,
+      'cook_time_min': 5,
+      'nutrition_total': {'kcal': 400, 'protein': 20, 'fat': 10, 'carbs': 30},
+      'is_active': true,
+      'is_own_recipe': true,
+      'visibility': 'private',
+      'created_by_name': 'Kuchnia Autora',
+      if (full) 'instructions': ['Nie tłumacz autorskich kroków'],
+      if (full)
+        'ingredients': [
+          {
+            'id': 'ingredient',
+            'product_id': 'salt',
+            'product_name': 'Sól autora',
+            'quantity': quantity,
+            'unit': 'g',
+            'is_optional': false,
+            'kcal': 100,
+          },
+        ],
+    });
 
 class _Auth extends AuthProvider {
   final int points;
@@ -79,6 +86,18 @@ class _Recipes extends RecipeService {
   int reads = 0;
   Completer<Recipe>? pending;
   final prompts = <String>[];
+  Object? variantFailure;
+  final variants = <List<RecipeIngredient>>[];
+  @override
+  Future<Recipe> saveVariant(
+    String id,
+    List<RecipeIngredient> ingredients,
+  ) async {
+    variants.add(ingredients);
+    if (variantFailure != null) throw variantFailure!;
+    return recipe(id: 'saved-variant', quantity: ingredients.single.quantity);
+  }
+
   @override
   Future<Recipe> getRecipe(String id) async {
     reads++;
@@ -95,6 +114,22 @@ class _Recipes extends RecipeService {
   }
 }
 
+class _Shopping extends ShoppingListService {
+  final submitted = <List<String>>[];
+  @override
+  Future<List<ShoppingList>> getMyLists() async => [];
+  @override
+  Future<ShoppingList> createFromRecipes({
+    required List<String> recipeIds,
+    required String storeId,
+    String? existingListId,
+  }) async {
+    submitted.add(recipeIds);
+    // Stop at the tested boundary, without navigation or a real request.
+    throw ApiException(503, 'Local test boundary');
+  }
+}
+
 class _Comments extends RecipeCommentService {
   @override
   Future<List<RecipeComment>> getComments(String recipeId) async => [];
@@ -106,8 +141,22 @@ Widget _app(
   bool english = true,
   bool dark = false,
   double scale = 1,
-}) => ChangeNotifierProvider<AuthProvider>.value(
-  value: auth,
+}) => MultiProvider(
+  providers: [
+    ChangeNotifierProvider<AuthProvider>.value(value: auth),
+    ChangeNotifierProvider<StoreProvider>(
+      create:
+          (_) =>
+              StoreProvider()..selectStore(
+                Store(
+                  id: 'store',
+                  name: 'Test store',
+                  createdAt: DateTime.utc(2026),
+                  updatedAt: null,
+                ),
+              ),
+    ),
+  ],
   child: MaterialApp(
     locale: english ? const Locale('en', 'GB') : const Locale('pl', 'PL'),
     supportedLocales: AppLocalizations.supportedLocales,
@@ -132,6 +181,8 @@ Future<void> _openDetail(
   bool english = true,
   bool dark = false,
   double scale = 1,
+  ShoppingListService? shoppingService,
+  Recipe? routeRecipe,
 }) async {
   await tester.pumpWidget(
     _app(
@@ -142,10 +193,13 @@ Future<void> _openDetail(
               onPressed:
                   () => Navigator.of(context).push(
                     MaterialPageRoute<void>(
-                      settings: RouteSettings(arguments: recipe(full: full)),
+                      settings: RouteSettings(
+                        arguments: routeRecipe ?? recipe(full: full),
+                      ),
                       builder:
                           (_) => RecipeDetailScreen(
                             service: service,
+                            shoppingService: shoppingService,
                             commentService: _Comments(),
                           ),
                     ),
@@ -164,6 +218,259 @@ Future<void> _openDetail(
 }
 
 void main() {
+  Recipe authored({required bool preview, bool full = false}) =>
+      Recipe.fromJson({
+        'id': 'authored',
+        'name': 'Author recipe',
+        'meal_type': 'obiad',
+        'servings': 2,
+        'difficulty': 'łatwy',
+        'nutrition_total': {'kcal': 300},
+        'is_active': true,
+        'created_by_user_id': 'author',
+        if (preview) ...{
+          'created_by_profile_loaded': true,
+          'created_by_name': 'Kitchen author',
+          'created_by_tiktok_username': 'kitchen.author',
+        },
+        if (full)
+          'ingredients': [
+            {
+              'id': 'ingredient',
+              'product_id': 'product',
+              'product_name': 'Carrot',
+              'quantity': 100,
+              'unit': 'g',
+              'is_optional': false,
+            },
+          ],
+      });
+  for (final english in [false, true]) {
+    testWidgets(
+      'unknown ingredient is readable, never shown as zero kcal, en=$english',
+      (tester) async {
+        tester.view.physicalSize = const Size(320, 740);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        final missing = Recipe.fromJson({
+          'id': 'missing',
+          'name': 'Recipe',
+          'meal_type': 'obiad',
+          'servings': 2,
+          'nutrition_total': {
+            'kcal': null,
+            'protein': null,
+            'fat': null,
+            'carbs': null,
+            '_incomplete': true,
+            '_missing_ingredients': ['Filo pastry'],
+          },
+          'instructions': ['Prepare ingredients.'],
+          'ingredients': [
+            {
+              'id': 'ingredient',
+              'product_id': 'private-product',
+              'product_name': 'Filo pastry',
+              'quantity': 200,
+              'unit': 'g',
+              'kcal': null,
+            },
+          ],
+        });
+        final auth = _Auth();
+        addTearDown(auth.dispose);
+        final service = _Recipes()..response = missing;
+        await _openDetail(
+          tester,
+          auth,
+          service,
+          english: english,
+          scale: 1.5,
+          routeRecipe: missing,
+        );
+        expect(find.text('0 kcal'), findsNothing);
+        await tester.ensureVisible(
+          find.byKey(const ValueKey('recipe-missing-nutrition')),
+        );
+        await tester.pumpAndSettle();
+        expect(
+          find.textContaining(
+            english ? 'Nutrition unavailable' : 'Brak danych odżywczych',
+          ),
+          findsWidgets,
+        );
+        expect(
+          find.text(
+            '200 g\n${english ? 'Nutrition unavailable' : 'Brak danych odżywczych'}',
+          ),
+          findsOneWidget,
+        );
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox());
+      },
+    );
+    testWidgets(
+      'legacy author failure offers retry without losing route, en=$english',
+      (tester) async {
+        final service = _Recipes()..fail = true;
+        final auth = _Auth();
+        addTearDown(auth.dispose);
+        await _openDetail(
+          tester,
+          auth,
+          service,
+          english: english,
+          routeRecipe: authored(preview: false),
+        );
+        expect(find.byKey(const Key('recipe-author-loading')), findsOneWidget);
+        expect(find.byType(CustomScrollView), findsNothing);
+        service.fail = false;
+        service.response = authored(preview: true, full: true);
+        await tester.tap(find.byType(OutlinedButton));
+        await tester.pumpAndSettle();
+        expect(
+          find.text(
+            english ? 'Added by Kitchen author' : 'Dodane przez Kitchen author',
+          ),
+          findsOneWidget,
+        );
+        expect(service.reads, 2);
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox());
+      },
+    );
+    testWidgets('legacy authored route waits for author, en=$english', (
+      tester,
+    ) async {
+      final service = _Recipes()..pending = Completer<Recipe>();
+      await _openDetail(
+        tester,
+        _Auth(),
+        service,
+        english: english,
+        routeRecipe: authored(preview: false),
+      );
+      expect(find.byKey(const Key('recipe-author-loading')), findsOneWidget);
+      expect(find.byType(CustomScrollView), findsNothing);
+      service.pending!.complete(authored(preview: true, full: true));
+      await tester.pumpAndSettle();
+      expect(
+        find.text(
+          english ? 'Added by Kitchen author' : 'Dodane przez Kitchen author',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('@kitchen.author'), findsOneWidget);
+      expect(service.reads, 1);
+      await tester.pumpWidget(const SizedBox());
+    });
+    testWidgets(
+      'preview author is in first page and survives detail load, en=$english',
+      (tester) async {
+        final service = _Recipes()..pending = Completer<Recipe>();
+        await _openDetail(
+          tester,
+          _Auth(),
+          service,
+          english: english,
+          routeRecipe: authored(preview: true),
+        );
+        final author = find.text(
+          english ? 'Added by Kitchen author' : 'Dodane przez Kitchen author',
+        );
+        expect(author, findsOneWidget);
+        expect(find.text('@kitchen.author'), findsOneWidget);
+        final element = tester.element(author);
+        final scrollable = tester.state<ScrollableState>(
+          find.byType(Scrollable).first,
+        );
+        scrollable.position.jumpTo(120);
+        await tester.pump();
+        service.pending!.complete(authored(preview: true, full: true));
+        await tester.pumpAndSettle();
+        expect(tester.element(author), same(element));
+        expect(
+          tester.state<ScrollableState>(find.byType(Scrollable).first),
+          same(scrollable),
+        );
+        expect(scrollable.position.pixels, 120);
+        expect(service.reads, 1);
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox());
+      },
+    );
+  }
+  for (final english in [false, true]) {
+    for (final saveFails in [false, true]) {
+      testWidgets(
+        'shopping uses displayed variant, en=$english saveFails=$saveFails',
+        (tester) async {
+          final service = _Recipes();
+          if (saveFails) service.variantFailure = ApiException(503, 'offline');
+          final shopping = _Shopping();
+          await _openDetail(
+            tester,
+            _Auth(),
+            service,
+            english: english,
+            shoppingService: shopping,
+          );
+          await Scrollable.ensureVisible(
+            tester.element(
+              find.widgetWithIcon(TextButton, Icons.edit_outlined),
+            ),
+            alignment: 0.5,
+          );
+          await tester.pumpAndSettle();
+          await tester.tap(
+            find.widgetWithIcon(TextButton, Icons.edit_outlined),
+          );
+          await tester.pumpAndSettle();
+          final editor = tester.element(find.byType(RecipeVariantEditorSheet));
+          Navigator.of(editor).pop([
+            RecipeIngredient(
+              id: 'ingredient',
+              productId: 'salt',
+              productName: 'Sól autora',
+              quantity: 125,
+              unit: 'g',
+              isOptional: false,
+            ),
+          ]);
+          await tester.pumpAndSettle();
+          tester
+              .state<ScrollableState>(find.byType(Scrollable).first)
+              .position
+              .jumpTo(0);
+          await tester.pumpAndSettle();
+          await Scrollable.ensureVisible(
+            tester.element(find.byType(DishShoppingListButton)),
+            alignment: 0.5,
+          );
+          await tester.pumpAndSettle();
+          await tester.tap(
+            find.descendant(
+              of: find.byType(DishShoppingListButton),
+              matching: find.byType(OutlinedButton),
+            ),
+          );
+          await tester.pumpAndSettle();
+          expect(service.variants, hasLength(1));
+          expect(service.variants.single.single.quantity, 125);
+          expect(
+            shopping.submitted,
+            saveFails
+                ? isEmpty
+                : equals([
+                  ['saved-variant'],
+                ]),
+          );
+          await tester.pumpWidget(const SizedBox.shrink());
+        },
+      );
+    }
+  }
   setUpAll(loadProductFormFonts);
   testWidgets(
     'English AI edit failure stays English without changing the authored prompt',

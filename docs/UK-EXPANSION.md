@@ -1,10 +1,13 @@
 # Wielka Brytania — prace lokalne, jeszcze nie wydanie
 
-## Bieżący stan — 23.10.2026, po etapach 26–28
+## Bieżący stan — 23.10.2026
 
-Przygotowano osobną paczkę naprawczą PL 1.0.67+268 na dokładnym eksporcie
-3cf0c24 (nie publiczne wydanie UK). Zmiany etapów 25–28 są na razie lokalne,
-nie w pierwotnej zamrożonej paczce. UK nadal wyłączone. Starsze checklisty poniżej
+Kolejna paczka naprawcza PL 1.0.68+269 bazuje na dokładnym eksporcie Codespace
+49576a6 (wersja 1.0.67+268). Obejmuje późniejsze poprawki logowania natywnego,
+generowania i kompletności składników, autora oraz list zakupów. Szczegóły:
+[raport 23.10](recipe-discovery-and-review-20261023.md). Nie jest to publiczne
+wydanie UK. Poprzednia paczka `sqlite-fix` pozostaje niezmieniona.
+UK nadal wyłączone. Starsze checklisty poniżej
 są historią, w szczególności pełny import OFF nie jest już wymaganiem.
 
 Etapy 21–24 objęły istniejącą moderację produktów/przepisów/użytkowników,
@@ -15,6 +18,7 @@ z decyzją właściciela; PL Jush/Glovo pozostają aktywne.
 Etap 25: [komunikaty błędów providerów](uk-stage25-provider-errors.md).
 Etap 26: [treści systemowe i wyszukiwanie](uk-stage26-system-content.md).
 Etapy 27–28: [bezpieczeństwo sesji i język logowania](uk-stage27-28-auth-safety.md).
+Priorytet z 23.10: [generowanie składników i przenoszenie na listę zakupów](shopping-ingredient-source-20261023.md).
 
 Do publicznego startu UK pozostają:
 

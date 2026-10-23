@@ -1208,14 +1208,16 @@ class _RecipesScreenState extends State<RecipesScreen> {
                               const SizedBox(width: 3),
                               Flexible(
                                 child: Text(
-                                  context.strings.recipeCardSummary(
-                                    recipe.totalTimeMin,
-                                    (recipe.nutritionTotal.kcal /
-                                            (recipe.servings > 0
-                                                ? recipe.servings
-                                                : 1))
-                                        .round(),
-                                  ),
+                                  recipe.hasIncompleteNutrition
+                                      ? '${recipe.totalTimeMin} min • ${context.strings.nutritionMissing}'
+                                      : context.strings.recipeCardSummary(
+                                        recipe.totalTimeMin,
+                                        (recipe.nutritionTotal.kcal /
+                                                (recipe.servings > 0
+                                                    ? recipe.servings
+                                                    : 1))
+                                            .round(),
+                                      ),
                                   style: TextStyle(
                                     color: AppTheme.textSecondary,
                                     fontSize: 11,

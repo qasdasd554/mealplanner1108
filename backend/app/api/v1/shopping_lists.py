@@ -213,11 +213,9 @@ async def create_shopping_list_from_recipes(
     if missing:
         raise NotFoundException(detail=f"Nie znaleziono przepisu/przepisów: {missing}")
 
-    # Validate before appending plan entries or spending a weekly allowance.
-    # Otherwise an invalid added recipe could poison an existing good list.
-    from app.services.recipe_ingredient_integrity import validate_recipe_ingredients
-    for recipe in selected_recipes:
-        validate_recipe_ingredients(recipe, country_code=account_country(current_user))
+    # Transfer the saved ingredient rows, never infer a product from the
+    # recipe title. Source/import validation belongs before saving a recipe,
+    # not a name-based refusal to create this shopping list.
 
     if payload.existing_list_id is not None:
         # Dopisywanie kolejnych przepisów do jednej listy wcześniej

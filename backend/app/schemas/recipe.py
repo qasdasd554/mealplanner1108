@@ -77,10 +77,11 @@ class RecipeIngredientResponse(BaseModel):
                 # JEDNOELEMENTOWEJ zwraca sumę dla tego jednego składnika,
                 # z uwzględnieniem korekty tłuszczu do smażenia.
                 totals = compute_recipe_nutrition_total([data])
-                kcal = int(round(totals.get("kcal", 0) or 0))
-                protein = round(totals.get("protein", 0) or 0, 1)
-                fat = round(totals.get("fat", 0) or 0, 1)
-                carbs = round(totals.get("carbs", 0) or 0, 1)
+                if not totals.get("_incomplete"):
+                    kcal = int(round(totals.get("kcal", 0) or 0))
+                    protein = round(totals.get("protein", 0) or 0, 1)
+                    fat = round(totals.get("fat", 0) or 0, 1)
+                    carbs = round(totals.get("carbs", 0) or 0, 1)
             except Exception:
                 pass
 
@@ -164,6 +165,33 @@ class AIRecipeEditRequest(BaseModel):
         return value
 
 
+def _attach_loaded_creator(data, *, include_photo=False):
+    from sqlalchemy import inspect as sa_inspect
+    from sqlalchemy.exc import NoInspectionAvailable
+    from app.core.premium import is_premium_active
+
+    try:
+        state = sa_inspect(data)
+    except NoInspectionAvailable:
+        return data
+    if "creator" in state.unloaded:
+        return data
+    creator = data.creator
+    data.created_by_profile_loaded = True
+    data.created_by_name = creator.display_name if creator else None
+    data.created_by_avatar = creator.avatar if creator else None
+    data.created_by_tiktok_username = (
+        creator.tiktok_username if creator and is_premium_active(creator) else None
+    )
+    # A list page must not trigger a deferred read of a large avatar.
+    if include_photo:
+        data.created_by_avatar_photo = (
+            creator.avatar_photo_base64
+            if creator and "avatar_photo_base64" not in sa_inspect(creator).unloaded else None
+        )
+    return data
+
+
 class RecipeListItemResponse(RecipeBase):
     """Lekki rekord do listy przepisów.
 
@@ -186,6 +214,15 @@ class RecipeListItemResponse(RecipeBase):
     is_own_recipe: bool = False
     visibility: str = "private"
     created_by_user_id: uuid.UUID | None = None
+    created_by_name: str | None = None
+    created_by_avatar: str | None = None
+    created_by_tiktok_username: str | None = None
+    created_by_profile_loaded: bool = False
+
+    @model_validator(mode="before")
+    @classmethod
+    def attach_creator_preview(cls, data):
+        return _attach_loaded_creator(data)
 
     @field_validator("tags", mode="before")
     @classmethod
@@ -236,6 +273,7 @@ class RecipeResponse(RecipeBase):
     created_by_avatar: str | None = None
     created_by_avatar_photo: str | None = None
     created_by_tiktok_username: str | None = None
+    created_by_profile_loaded: bool = False
 
     @field_validator("tags", mode="before")
     @classmethod
@@ -257,46 +295,11 @@ class RecipeResponse(RecipeBase):
         # pokazywał, mimo że dane w bazie i zapytanie były poprawne —
         # potwierdzone testem end-to-end na żywych modelach. Połączenie
         # w jedną funkcję eliminuje zależność od kolejności międzywalidatorowej.
-        try:
-            from sqlalchemy import inspect as sa_inspect
-
-            insp = sa_inspect(data)
-            if "creator" not in insp.unloaded and data.creator is not None:
-                from app.core.premium import is_premium_active
-
-                data.created_by_name = data.creator.display_name
-                data.created_by_avatar = data.creator.avatar
-                data.created_by_avatar_photo = data.creator.avatar_photo_base64
-                # TikTok autora jest publicznym dodatkiem Premium. Sam nick
-                # zostaje w bazie, ale po wygaśnięciu dostępu przepis nie
-                # ujawnia go ani w aktualnej, ani w starszej aplikacji.
-                data.created_by_tiktok_username = (
-                    data.creator.tiktok_username
-                    if is_premium_active(data.creator)
-                    else None
-                )
-        except Exception:
-            pass
+        data = _attach_loaded_creator(data, include_photo=True)
 
         if not getattr(data, "nutrition_total", None) and hasattr(data, "ingredients"):
-            total = {"kcal": 0, "protein": 0, "fat": 0, "carbs": 0, "fiber": 0}
-            for ing in data.ingredients:
-                prod = getattr(ing, "product", None)
-                if prod and prod.nutrition_per_100:
-                    try:
-                        qty = float(ing.quantity)
-                        unit = getattr(ing, "unit", "g")
-                        w = quantity_to_grams(
-                            prod.name,
-                            qty,
-                            unit,
-                            getattr(prod, "serving_quantity", None),
-                            getattr(prod, "measure_options", None),
-                        )
-                        for k in total:
-                            total[k] += float(prod.nutrition_per_100.get(k, 0) or 0) * (w / 100.0)
-                    except:
-                        pass
+            from app.services.nutrition_calculator import compute_recipe_nutrition_total
+            total = compute_recipe_nutrition_total(data.ingredients)
             # UWAGA (naprawa): wcześniej ten blok wykonywał się TYLKO gdy
             # `any(v > 0 for v in total.values())` — czyli jeśli policzona
             # suma wyszła zerowa (np. bo żaden składnik się nie dopasował,
@@ -312,7 +315,7 @@ class RecipeResponse(RecipeBase):
             res = {k: getattr(data, k) for k in data.__table__.columns.keys() if hasattr(data, k)}
             res["tags"] = data.tags
             res["ingredients"] = data.ingredients
-            res["nutrition_total"] = {k: round(v, 1) for k, v in total.items()}
+            res["nutrition_total"] = total
             # UWAGA (naprawa): is_favorite i is_own_recipe to atrybuty
             # ustawiane DYNAMICZNIE w endpointach PO wczytaniu z bazy
             # (nie są prawdziwymi kolumnami tabeli) — pętla powyżej,
@@ -334,6 +337,7 @@ class RecipeResponse(RecipeBase):
             # potwierdzone testem na żywych modelach. Ten sam wzorzec co
             # is_favorite/is_own_recipe wyżej: trzeba przepisać jawnie.
             res["created_by_name"] = getattr(data, "created_by_name", None)
+            res["created_by_profile_loaded"] = getattr(data, "created_by_profile_loaded", False)
             res["created_by_avatar"] = getattr(data, "created_by_avatar", None)
             res["created_by_avatar_photo"] = getattr(data, "created_by_avatar_photo", None)
             res["created_by_tiktok_username"] = getattr(

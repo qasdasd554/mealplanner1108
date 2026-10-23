@@ -100,8 +100,13 @@ def compute_recipe_nutrition_total(ingredients: Sequence["RecipeIngredient"]) ->
     dodatkowe zabezpieczenie na wypadek starszych danych.
     """
     total = {"kcal": 0.0, "protein": 0.0, "fat": 0.0, "carbs": 0.0, "fiber": 0.0}
+    missing = []
     for ing in ingredients:
         prod = getattr(ing, "product", None)
+        source = (getattr(prod, "nutrition_per_100", None) or {}).get("_source", {})
+        if isinstance(source, dict) and source.get("status") == "missing":
+            missing.append(prod.name)
+            continue
         if prod and prod.nutrition_per_100:
             try:
                 qty = float(ing.quantity)
@@ -118,6 +123,11 @@ def compute_recipe_nutrition_total(ingredients: Sequence["RecipeIngredient"]) ->
                     total[k] += float(prod.nutrition_per_100.get(k, 0) or 0) * (w / 100.0)
             except Exception:
                 pass
+    if missing:
+        # Unknown energy is not zero energy, nor a valid partial total for
+        # calorie targets. Keep the recipe usable while exposing null values.
+        return {**dict.fromkeys(total), "_incomplete": True,
+                "_missing_ingredients": list(dict.fromkeys(missing))}
     return {k: round(v, 1) for k, v in total.items()}
 
 

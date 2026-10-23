@@ -59,7 +59,35 @@ void main() {
         expect(body, contains(english ? 'camera handling' : 'obsługę aparatu'));
         expect(
           body,
-          contains(english ? 'recipe ingredients' : 'składników przepisów'),
+          contains(
+            english
+                ? 'recipe ingredients and amounts'
+                : 'składników i ich ilości z przepisu',
+          ),
+        );
+        expect(body, contains(english ? 'edited recipes' : 'po edycji składu'));
+        expect(
+          body,
+          contains(
+            english
+                ? 'missing products are searched automatically'
+                : 'automatycznie szukamy brakujących produktów',
+          ),
+        );
+        expect(
+          body,
+          contains(
+            english
+                ? 'unknown nutrition is labelled'
+                : 'nieznane wartości odżywcze oznaczamy',
+          ),
+        );
+        expect(body, contains(english ? 'recipe author' : 'autor przepisu'));
+        expect(
+          body,
+          contains(
+            english ? 'adding another dish' : 'dopisaniu kolejnego dania',
+          ),
         );
         expect(body, isNot(contains('mealplannerpolska.pl')));
         expect(tester.takeException(), isNull);

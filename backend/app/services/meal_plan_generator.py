@@ -633,6 +633,10 @@ class MealPlanGenerator:
 
         eligible: list[Recipe] = []
         for recipe in all_recipes:
+            if (getattr(recipe, "nutrition_total", None) or {}).get("_incomplete"):
+                # An editable private recipe is useful even with missing
+                # data, but cannot be balanced against a calorie target.
+                continue
             if self._recipe_has_allergen(recipe, allergen_ids, product_allergens):
                 continue
             if country_code == "GB":
@@ -662,6 +666,11 @@ class MealPlanGenerator:
         if not allergen_ids:
             return False
         for ing in recipe.ingredients:
+            product = getattr(ing, "product", None)
+            source = (getattr(product, "nutrition_per_100", None) or {}).get("_source", {})
+            if isinstance(source, dict) and source.get("allergens_checked") is False:
+                # No evidence is not evidence of absence of an allergen.
+                return True
             product_id = ing.product_id
             if product_id in product_allergens:
                 if product_allergens[product_id] & allergen_ids:

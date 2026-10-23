@@ -10,6 +10,7 @@ import 'dart:async';
 import '../../models/recipe.dart';
 import '../../models/premium_offer.dart';
 import '../../services/recipe_service.dart';
+import '../../services/shopping_list_service.dart';
 import '../../services/recipe_comment_service.dart';
 import '../../services/contextual_premium_offer_service.dart';
 import '../../theme/app_theme.dart';
@@ -36,7 +37,13 @@ import '../../widgets/tiktok_icon.dart';
 class RecipeDetailScreen extends StatefulWidget {
   final RecipeService? service;
   final RecipeCommentService? commentService;
-  const RecipeDetailScreen({super.key, this.service, this.commentService});
+  final ShoppingListService? shoppingService;
+  const RecipeDetailScreen({
+    super.key,
+    this.service,
+    this.commentService,
+    this.shoppingService,
+  });
 
   @override
   State<RecipeDetailScreen> createState() => _RecipeDetailScreenState();
@@ -53,17 +60,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   /// czekania na sieć, żeby otwarcie szczegółów nie migało pustym ekranem.
   Recipe? _initialRecipe;
 
-  /// Pełne, ŚWIEŻE dane pobrane bezpośrednio z GET /recipes/{id} — TA
-  /// odpowiedź, w przeciwieństwie do listy/siatki, dociąga autora
-  /// (created_by_name/avatar) i inne pola liczone tylko przy szczegółach.
-  ///
-  /// NAPRAWA: ekran był wcześniej bezstanowy i CAŁKOWICIE polegał na
-  /// obiekcie przekazanym z listy — a lista świadomie NIE dociąga
-  /// autora (koszt joina przy dziesiątkach przepisów na raz). Backendowa
-  /// poprawka "Dodane przez" była więc technicznie poprawna, ale
-  /// bezużyteczna: nic w aplikacji nigdy nie wywoływało endpointu,
-  /// który tę informację faktycznie zwraca. Ekran szczegółów MUSI
-  /// pobierać dane niezależnie, nie tylko wyświetlać to, co dostał.
+  /// Full details still load once for ingredients, method and large photos.
+  /// List summaries already include small public author fields, so this
+  /// response does not insert a previously missing author section.
   Recipe? _freshRecipe;
   List<RecipeIngredient>? _temporaryIngredients;
   bool _isSavingVariant = false;
@@ -118,6 +117,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   }
 
   Future<void> _refreshFromServer() async {
+    if (_isRefreshingRecipe) return;
     final requestedRecipeId = _initialRecipe!.id;
     if (mounted) {
       setState(() {
@@ -125,24 +125,17 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
         _detailsLoadFailed = false;
       });
     }
+    Recipe? fresh;
     try {
-      final fresh = await _service.getRecipe(requestedRecipeId);
-      if (!mounted) return;
-      // Użytkownik mógł w międzyczasie zapisać wariant i przejść na jego
-      // dane. Spóźniona odpowiedź dla oryginału nie może ich nadpisać.
+      fresh = await _service.getRecipe(requestedRecipeId);
+    } catch (_) {}
+    if (!mounted) return;
+    setState(() {
+      _isRefreshingRecipe = false;
       if (_initialRecipe?.id != requestedRecipeId) return;
-      setState(() {
-        _freshRecipe = fresh;
-      });
-    } catch (_) {
-      if (mounted && _initialRecipe?.id == requestedRecipeId) {
-        setState(() => _detailsLoadFailed = true);
-      }
-    } finally {
-      if (mounted && _initialRecipe?.id == requestedRecipeId) {
-        setState(() => _isRefreshingRecipe = false);
-      }
-    }
+      _detailsLoadFailed = fresh == null;
+      if (fresh != null) _freshRecipe = fresh;
+    });
   }
 
   Future<void> _openTikTokProfile(String username) async {
@@ -158,6 +151,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   }
 
   Future<void> _editIngredients(Recipe recipe) async {
+    if (_isSavingVariant) return;
     final changed = await showModalBottomSheet<List<RecipeIngredient>>(
       context: context,
       isScrollControlled: true,
@@ -189,14 +183,15 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     _refreshFromServer();
   }
 
-  Future<void> _saveVariant(Recipe source) async {
+  Future<Recipe?> _saveVariant(Recipe source) async {
     final ingredients = _temporaryIngredients;
-    if (ingredients == null || ingredients.isEmpty || _isSavingVariant) return;
+    if (ingredients == null || ingredients.isEmpty || _isSavingVariant)
+      return null;
 
     setState(() => _isSavingVariant = true);
     try {
       final saved = await _service.saveVariant(source.id, ingredients);
-      if (!mounted) return;
+      if (!mounted) return null;
       setState(() {
         _initialRecipe = saved;
         _freshRecipe = saved;
@@ -209,8 +204,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             content: Text(context.strings.detailSavedVariant(saved.name)),
           ),
         );
+      return saved;
     } catch (error) {
-      if (!mounted) return;
+      if (!mounted) return null;
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
@@ -219,6 +215,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             backgroundColor: AppTheme.errorColor,
           ),
         );
+      return null;
     } finally {
       if (mounted) setState(() => _isSavingVariant = false);
     }
@@ -228,6 +225,45 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   Widget build(BuildContext context) {
     final recipe = _freshRecipe ?? _initialRecipe!;
     final displayedIngredients = _temporaryIngredients ?? recipe.ingredients;
+
+    // Legacy links/plan entries may not have the new light author preview.
+    // Show a loading/retry state, never a finished-looking authorless page
+    // which is then replaced when the one details request completes.
+    if (_freshRecipe == null &&
+        recipe.createdByUserId != null &&
+        !recipe.createdByProfileLoaded &&
+        recipe.createdByName == null) {
+      return Scaffold(
+        key: const Key('recipe-author-loading'),
+        appBar: AppBar(),
+        body: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_detailsLoadFailed)
+                    OutlinedButton.icon(
+                      onPressed: _refreshFromServer,
+                      icon: const Icon(Icons.refresh),
+                      label: Text(context.strings.detailRetry),
+                    )
+                  else ...[
+                    const CircularProgressIndicator(),
+                    const SizedBox(height: 16),
+                    Text(
+                      context.strings.detailLoading,
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       body: CustomScrollView(
@@ -339,7 +375,17 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.only(top: 12),
-              child: DishShoppingListButton(recipe: recipe),
+              child: DishShoppingListButton(
+                recipe: recipe,
+                service: widget.shoppingService,
+                prepareRecipe:
+                    () async =>
+                        _temporaryIngredients == null
+                            ? (_freshRecipe ?? _initialRecipe!)
+                            : await _saveVariant(
+                              _freshRecipe ?? _initialRecipe!,
+                            ),
+              ),
             ),
           ),
 
@@ -667,6 +713,14 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                     const SizedBox(height: 12),
                   ],
                   const SizedBox(height: 12),
+                  if (recipe.hasIncompleteNutrition) ...[
+                    Text(
+                      '${context.strings.nutritionMissing}: ${recipe.missingNutritionIngredients.join(', ')}',
+                      key: const ValueKey('recipe-missing-nutrition'),
+                      style: TextStyle(color: AppTheme.textSecondary),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
                   ...displayedIngredients.map((ing) {
                     return Container(
                       margin: const EdgeInsets.only(bottom: 8),
@@ -694,9 +748,11 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                           const SizedBox(width: 12),
                           Flexible(
                             child: Text(
-                              '${formatQuantity(ing.quantity, ing.unit)} ${context.strings.unitLabel(ing.unit)}${ing.kcal != null ? ' (${ing.kcal} kcal)' : ''}',
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+                              '${formatQuantity(ing.quantity, ing.unit)} ${context.strings.unitLabel(ing.unit)}${ing.kcal != null
+                                  ? ' (${ing.kcal} kcal)'
+                                  : recipe.missingNutritionIngredients.contains(ing.productName)
+                                  ? '\n${context.strings.nutritionMissing}'
+                                  : ''}',
                               textAlign: TextAlign.end,
                               style: const TextStyle(
                                 color: AppTheme.primaryColor,
@@ -925,30 +981,37 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     // przy jednym daniu (tak samo jak etykieta żywieniowa zawsze podaje
     // wartość na porcję, a nie na cały garnek).
     final servings = recipe.servings > 0 ? recipe.servings : 1;
+    String value(String key, String unit) {
+      final amount = nut.knownValue(key);
+      return recipe.hasIncompleteNutrition || amount == null
+          ? '—'
+          : '${(amount / servings).round()} $unit';
+    }
+
     final list = [
       {
         'label': context.strings.productFormCalories,
-        'val': '${(nut.kcal / servings).round()} kcal',
+        'val': value('kcal', 'kcal'),
         'color': AppTheme.accentColor,
       },
       {
         'label': context.strings.homeProtein,
-        'val': '${(nut.protein / servings).round()} g',
+        'val': value('protein', 'g'),
         'color': Colors.blue,
       },
       {
         'label': context.strings.diaryFat,
-        'val': '${(nut.fat / servings).round()} g',
+        'val': value('fat', 'g'),
         'color': Colors.orange,
       },
       {
         'label': context.strings.diaryCarbs,
-        'val': '${(nut.carbs / servings).round()} g',
+        'val': value('carbs', 'g'),
         'color': AppTheme.primaryColor,
       },
       {
         'label': context.strings.detailFiber,
-        'val': '${(nut.fiber / servings).round()} g',
+        'val': value('fiber', 'g'),
         'color': Colors.green,
       },
     ];

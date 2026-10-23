@@ -109,6 +109,25 @@ def match_product_name(name: str, available_products: list[str]) -> str | None:
     for candidate, key in normalized:
         if key == target:
             return candidate
+    from app.services.recipe_ingredient_catalogue import ingredient_key
+    for candidate, _ in normalized:
+        if ingredient_key(candidate) == ingredient_key(name):
+            return candidate
+    # A bone-in cut and an unspecified/boneless cut are not interchangeable.
+    def bone_state(value):
+        value = value.replace("ł", "l")
+        if any(token in value for token in ("z koscia", "z kosciami", "bone in")):
+            return "in"
+        if any(token in value for token in ("bez kosci", "boneless")):
+            return "out"
+        return None
+    if bone_state(target):
+        normalized = [(candidate, key) for candidate, key in normalized if bone_state(key) == bone_state(target)]
+    # A fuzzy name match is not permission to turn a cooking ingredient
+    # into a prepared dish. Explicit exact components above remain valid.
+    if not looks_like_whole_meal(name):
+        normalized = [(candidate, key) for candidate, key in normalized
+                      if not looks_like_whole_meal(candidate)]
     scored = sorted(
         ((SequenceMatcher(None, target, key).ratio(), candidate) for candidate, key in normalized),
         reverse=True,
@@ -175,7 +194,9 @@ Do not translate catalogue names or claim that an item is sold in a UK shop:
 catalogue identity does not prove local availability or a price.
 3. The unit API value MUST be one of: g, kg, ml, l, szt.
 Use metric quantities, never cups/ounces/pounds or an assumed package size.
-For scratch cooking list raw ingredients, not a packaged version of the whole dish.
+List the actual components needed to prepare the dish, not a packaged version
+of the whole meal. Processed ingredients such as milk, butter, breadcrumbs,
+tinned tomatoes and sauces are valid components; they need not be raw foods.
 Never replace plain butter with flavoured butter or raw meat with a ready meal.
 Do not convert grams to millilitres without known product-specific information.
 4. The meal_type API value MUST be one of: śniadanie, obiad, kolacja, przekąska, deser.
@@ -223,13 +244,17 @@ B) SAMA NAZWA DANIA ALBO ZDJĘCIE GOTOWEGO DANIA (np. użytkownik wpisał
 WAŻNE ZASADY:
 1. Odpowiedz WYŁĄCZNIE poprawnym obiektem JSON — bez żadnego tekstu przed
    ani po, bez bloków markdown (```), sam surowy JSON.
-2. Dla każdego składnika wybierz NAJBLIŻSZY pasujący produkt z poniższej
-   listy (np. "cukier puder" może odpowiadać "Cukier"). Jeśli na liście
+2. Dla każdego składnika wybierz rzeczywiście odpowiadający mu produkt z poniższej
+   listy, nie tylko podobną nazwę. Jeśli na liście
    nie ma dobrego odpowiednika, zachowaj oryginalną nazwę składnika;
    nie pomijaj składników z przepisu. Serwer dopasuje je do pełnego katalogu.
 Do przygotowania dania podawaj jego rzeczywiste składniki, nie gotowe danie
 o podobnej nazwie. Nie zamieniaj zwykłego masła na smakowe ani surowego mięsa
 na gotowy posiłek z dodatkami.
+Składniki nie muszą być nieprzetworzone: mleko, masło, bułka tarta, pomidory
+w puszce czy sos są prawidłowe, jeśli przepis ich wymaga. Natomiast pełny
+posiłek, np. schabowy z ziemniakami i burakami, nie zastępuje mięsa,
+ziemniaków ani buraków. Nie przenoś nazwy całego dania do pola składnika.
 3. Pole "unit" MUSI być jednym z: g, kg, ml, l, szt.
 4. Pole "meal_type" MUSI być jednym z: śniadanie, obiad, kolacja, przekąska, deser.
 5. Pole "difficulty" MUSI być jednym z: łatwy, średni, trudny.

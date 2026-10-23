@@ -143,6 +143,55 @@ Future<_Logs> _open(
 }
 
 void main() {
+  for (final english in [false, true]) {
+    testWidgets(
+      'missing recipe nutrition is labelled and cannot be logged as zero, en=$english',
+      (tester) async {
+        final recipes = _Recipes();
+        final pending = Completer<List<Recipe>>();
+        recipes.pending['unknown'] = pending;
+        final logs = await _open(
+          tester,
+          recipes: recipes,
+          locale: english ? const Locale('en', 'GB') : const Locale('pl', 'PL'),
+        );
+        await tester.tap(find.text(english ? 'From recipes' : 'Z przepisów'));
+        await tester.pumpAndSettle();
+        await tester.enterText(find.byType(TextField).first, 'unknown');
+        await tester.pump(const Duration(milliseconds: 400));
+        pending.complete([
+          Recipe.fromJson({
+            'id': 'unknown',
+            'name': 'Unknown recipe',
+            'meal_type': 'obiad',
+            'nutrition_total': {
+              'kcal': null,
+              '_incomplete': true,
+              '_missing_ingredients': ['Ingredient'],
+            },
+          }),
+        ]);
+        await tester.pumpAndSettle();
+        expect(
+          find.text(
+            english ? 'Nutrition unavailable' : 'Brak danych odżywczych',
+          ),
+          findsOneWidget,
+        );
+        await tester.tap(find.text('Unknown recipe'));
+        await tester.pumpAndSettle();
+        expect(
+          find.textContaining(
+            english ? 'Complete the ingredient' : 'Uzupełnij składniki',
+          ),
+          findsOneWidget,
+        );
+        expect(logs.saves, isEmpty);
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox());
+      },
+    );
+  }
   testWidgets('GB entry tabs and no-plan guidance are English', (tester) async {
     await _open(tester);
     expect(find.text('Add a meal'), findsOneWidget);

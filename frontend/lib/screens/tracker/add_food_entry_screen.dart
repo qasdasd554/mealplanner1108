@@ -597,6 +597,12 @@ class _RecipesTabState extends State<_RecipesTab> {
   }
 
   Future<void> _pickAndLog(Recipe recipe) async {
+    if (recipe.hasIncompleteNutrition) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.strings.recipeNutritionNeedsDetails)),
+      );
+      return;
+    }
     final result = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
       useSafeArea: true,
@@ -629,6 +635,13 @@ class _RecipesTabState extends State<_RecipesTab> {
         }
       }
       if (!mounted) return;
+
+      if (full.hasIncompleteNutrition) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.strings.recipeNutritionNeedsDetails)),
+        );
+        return;
+      }
 
       if (full.ingredients.isNotEmpty) {
         final edited = await showModalBottomSheet<EditedNutrition>(
@@ -780,14 +793,17 @@ class _RecipesTabState extends State<_RecipesTab> {
                                         // dosłowny podpis "/ porcja" pokazywał wartość
                                         // 2-4x za wysoką. Zabezpieczenie przed servings=0
                                         // (Infinity.round() rzuca wyjątkiem w Dart).
-                                        context.strings.foodEntryKcalServing(
-                                          (recipe.nutritionTotal.kcal /
-                                                  (recipe.servings > 0
-                                                      ? recipe.servings
-                                                      : 1))
-                                              .round()
-                                              .toString(),
-                                        ),
+                                        recipe.hasIncompleteNutrition
+                                            ? context.strings.nutritionMissing
+                                            : context.strings
+                                                .foodEntryKcalServing(
+                                                  (recipe.nutritionTotal.kcal /
+                                                          (recipe.servings > 0
+                                                              ? recipe.servings
+                                                              : 1))
+                                                      .round()
+                                                      .toString(),
+                                                ),
                                         style: TextStyle(
                                           fontSize: 13,
                                           color: AppTheme.textSecondary,

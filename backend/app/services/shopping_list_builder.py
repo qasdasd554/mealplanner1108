@@ -114,10 +114,9 @@ class ShoppingListBuilder:
         # ── 2. Agreguj składniki ─────────────────────────────────────
         store = await self.db.get(Store, meal_plan.store_id)
         is_gb = store is not None and store.country_code == "GB"
-        from app.services.recipe_ingredient_integrity import validate_recipe_ingredients
-        for entry in meal_plan.entries:
-            if entry.recipe is not None:
-                validate_recipe_ingredients(entry.recipe, country_code="GB" if is_gb else "PL")
+        # RecipeIngredient IDs/amounts are the source, not a similarity
+        # comparison between the recipe title and catalogue product names.
+        # Prepared components can themselves be intentional ingredients.
         aggregated = self._aggregate_ingredients(meal_plan) if not is_gb else None
 
         # ── 3+4. Przelicz opakowania i ceny ──────────────────────────
@@ -207,10 +206,6 @@ class ShoppingListBuilder:
         meal_plan = await self._load_meal_plan(meal_plan_id)
         store = await self.db.get(Store, meal_plan.store_id)
         is_gb = store is not None and store.country_code == "GB"
-        from app.services.recipe_ingredient_integrity import validate_recipe_ingredients
-        for entry in meal_plan.entries:
-            if entry.recipe is not None:
-                validate_recipe_ingredients(entry.recipe, country_code="GB" if is_gb else "PL")
         aggregated = self._aggregate_ingredients(meal_plan) if not is_gb else None
         items_data = await self._resolve_regional_requirements(
             meal_plan, include_pantry=(meal_plan.preferences or {}).get("include_pantry", True),
@@ -394,8 +389,13 @@ class ShoppingListBuilder:
 
     async def _load_meal_plan(self, meal_plan_id: UUID) -> MealPlan:
         """Ładuje plan z wpisami, przepisami i składnikami."""
+        # expire_on_commit=False can retain the previous entries collection
+        # after appending a recipe. Persist pending edits, then load the
+        # actual source rows rather than silently rebuilding the old list.
+        await self.db.flush()
         stmt = (
             select(MealPlan)
+            .execution_options(populate_existing=True)
             .where(MealPlan.id == meal_plan_id)
             .options(
                 selectinload(MealPlan.entries)

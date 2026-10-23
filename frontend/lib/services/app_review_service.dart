@@ -12,6 +12,37 @@ class AppReviewSignal {
   }
 }
 
+/// A short-lived opportunity, never a popup waiting indefinitely for a form
+/// or camera to close. Times are passed in explicitly for deterministic tests.
+class ReviewPromptSchedule {
+  static const quietPeriod = Duration(seconds: 8);
+  static const opportunityLifetime = Duration(minutes: 2);
+  String? _userId;
+  int? _generation;
+  int _successes = 0;
+  DateTime? _lastSuccess;
+
+  bool recordSuccess(String userId, int generation, DateTime now) {
+    if (_userId != userId || _generation != generation) {
+      _userId = userId;
+      _generation = generation;
+      _successes = 0;
+    }
+    _lastSuccess = now;
+    return ++_successes >= 2;
+  }
+
+  bool isReady(String userId, int generation, DateTime now) {
+    if (_userId != userId ||
+        _generation != generation ||
+        _lastSuccess == null ||
+        _successes < 2)
+      return false;
+    final elapsed = now.difference(_lastSuccess!);
+    return elapsed >= quietPeriod && elapsed <= opportunityLifetime;
+  }
+}
+
 /// Wygląd, dostępność, zamknięcie i limity okna należą do Apple/Google.
 /// Backend atomowo pilnuje dodatkowego limitu 10 dni na konto.
 class AppReviewService {
@@ -27,6 +58,7 @@ class AppReviewService {
   final Future<bool> Function() _claim;
   final Future<void> Function() _requestReview;
   bool _busy = false;
+  bool _requestedThisSession = false;
 
   static Future<bool> _claimOnServer() async {
     final response = await ApiClient().post(
@@ -38,12 +70,13 @@ class AppReviewService {
   }
 
   Future<bool> maybeRequest({bool Function()? stillSafe}) async {
-    if (_busy) return false;
+    if (_busy || _requestedThisSession) return false;
     _busy = true;
     try {
       if (!await _isAvailable() || !(stillSafe?.call() ?? true)) return false;
       if (!await _claim() || !(stillSafe?.call() ?? true)) return false;
       await _requestReview();
+      _requestedThisSession = true;
       // Sukces oznacza wywołanie API, nie dowód wystawienia oceny.
       return true;
     } catch (_) {

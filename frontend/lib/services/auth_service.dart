@@ -6,16 +6,25 @@ import '../models/user.dart';
 import 'api_client.dart';
 import 'account_market.dart';
 import '../config/api_config.dart';
+import '../l10n/market_locale.dart';
 
 class AuthService {
   final ApiClient _client;
   final String? Function() _deviceRegion;
+  final Future<String?> Function()? _googleIdentityToken;
+  final Future<AuthorizationCredentialAppleID> Function()? _appleCredential;
 
-  AuthService({ApiClient? client, String? Function()? deviceRegion})
-    : _client = client ?? ApiClient(),
-      _deviceRegion =
-          deviceRegion ??
-          (() => PlatformDispatcher.instance.locale.countryCode);
+  AuthService({
+    ApiClient? client,
+    String? Function()? deviceRegion,
+    Future<String?> Function()? googleIdentityToken,
+    Future<AuthorizationCredentialAppleID> Function()? appleCredential,
+  }) : _client = client ?? ApiClient(),
+       _googleIdentityToken = googleIdentityToken,
+       _appleCredential = appleCredential,
+       _deviceRegion =
+           deviceRegion ??
+           (() => PlatformDispatcher.instance.locale.countryCode);
 
   Map<String, String> _registrationMarket() =>
       registrationMarketFields(_deviceRegion());
@@ -121,11 +130,11 @@ class AuthService {
   /// anulował okno logowania (nie jest to błąd).
   Future<bool> loginWithGoogle({String? captchaToken}) async {
     final session = _client.sessionGeneration;
-    await _ensureGoogleInitialized();
 
-    late final GoogleSignInAccount googleUser;
+    late final String? idToken;
     try {
-      googleUser = await _googleSignIn.authenticate();
+      idToken =
+          await (_googleIdentityToken?.call() ?? _requestGoogleIdentityToken());
     } on GoogleSignInException catch (e) {
       // UWAGA (diagnostyka): biblioteka google_sign_in na Androidzie ma
       // znaną usterkę — prawdziwy błąd konfiguracji (np. niezgodność
@@ -144,15 +153,16 @@ class AuthService {
       }
       throw ApiException(
         401,
-        'Nie udało się zalogować przez Google (${e.code.name}). Spróbuj ponownie.',
+        stringsForAccountCountry(
+          _deviceRegion(),
+        ).authGoogleNativeFailed(e.code.name),
       );
     }
 
-    final idToken = googleUser.authentication.idToken;
-    if (idToken == null) {
+    if (idToken == null || idToken.isEmpty) {
       throw ApiException(
         401,
-        'Nie udało się uzyskać tokenu tożsamości Google.',
+        stringsForAccountCountry(_deviceRegion()).authGoogleTokenUnavailable,
       );
     }
 
@@ -172,6 +182,13 @@ class AuthService {
       expectedGeneration: session,
     );
     return true;
+  }
+
+  // Native boundary is injectable for local tests only. Identity tokens are
+  // still submitted to the unchanged server verification before any session.
+  Future<String?> _requestGoogleIdentityToken() async {
+    await _ensureGoogleInitialized();
+    return (await _googleSignIn.authenticate()).authentication.idToken;
   }
 
   /// Próbuje po cichu wznowić wcześniejszą sesję Google (bez pokazywania
@@ -218,25 +235,30 @@ class AuthService {
     final session = _client.sessionGeneration;
     late final AuthorizationCredentialAppleID credential;
     try {
-      credential = await SignInWithApple.getAppleIDCredential(
-        scopes: [
-          AppleIDAuthorizationScopes.email,
-          AppleIDAuthorizationScopes.fullName,
-        ],
-      );
+      credential =
+          await (_appleCredential?.call() ??
+              SignInWithApple.getAppleIDCredential(
+                scopes: [
+                  AppleIDAuthorizationScopes.email,
+                  AppleIDAuthorizationScopes.fullName,
+                ],
+              ));
     } on SignInWithAppleAuthorizationException catch (e) {
       if (e.code == AuthorizationErrorCode.canceled) {
         return false;
       }
       throw ApiException(
         401,
-        'Nie udało się zalogować przez Apple. Spróbuj ponownie.',
+        stringsForAccountCountry(_deviceRegion()).authAppleNativeFailed,
       );
     }
 
     final identityToken = credential.identityToken;
-    if (identityToken == null) {
-      throw ApiException(401, 'Nie udało się uzyskać tokenu tożsamości Apple.');
+    if (identityToken == null || identityToken.isEmpty) {
+      throw ApiException(
+        401,
+        stringsForAccountCountry(_deviceRegion()).authAppleTokenUnavailable,
+      );
     }
 
     final fullName = [

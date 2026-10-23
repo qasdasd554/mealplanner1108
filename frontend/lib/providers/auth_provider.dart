@@ -172,7 +172,11 @@ class AuthProvider with ChangeNotifier {
       return true;
     } catch (e) {
       if (session != _sessionGeneration) return false;
-      _setErrorMessage(friendlyError(e, strings: _currentErrorStrings));
+      _setErrorMessage(
+        e is ApiException && e.statusCode == 401
+            ? e.message
+            : friendlyError(e, strings: _currentErrorStrings),
+      );
       _setLoading(false);
       return false;
     }
@@ -203,7 +207,11 @@ class AuthProvider with ChangeNotifier {
       return true;
     } catch (e) {
       if (session != _sessionGeneration) return false;
-      _setErrorMessage(friendlyError(e, strings: _currentErrorStrings));
+      _setErrorMessage(
+        e is ApiException && e.statusCode == 401
+            ? e.message
+            : friendlyError(e, strings: _currentErrorStrings),
+      );
       _setLoading(false);
       return false;
     }

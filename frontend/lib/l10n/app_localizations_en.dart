@@ -2281,6 +2281,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nutritionMissing => 'Nutrition unavailable';
 
   @override
+  String get recipeNutritionNeedsDetails =>
+      'This recipe has missing nutrition. Complete the ingredient details in the recipe or enter the meal\'s nutrition manually in your Diary.';
+
+  @override
   String productsProcessed(int count) {
     return 'Processed: $count products.';
   }
@@ -2599,7 +2603,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get detailTemporaryHelp =>
-      'The original recipe has not changed. Saving will recalculate the nutrition for your new ingredients.';
+      'The original recipe has not changed. Creating a shopping list will save this version in My recipes so the list uses the ingredients and amounts shown here. Saving recalculates the nutrition.';
 
   @override
   String get detailSaveVariant => 'Save variation to Mine';
@@ -4245,7 +4249,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• Improved shopping lists made from recipe ingredients and shop price comparisons.\n• Improved recipe imports so missing ingredients are not silently left out.\n• Reduced unnecessary screen refreshes and paused animations in hidden tabs.\n• Improved app startup and camera handling; scanning no longer interrupts manual barcode entry.\n• Improved first-time setup and made sign-in verification and account switching more stable.';
+      '• Improved copying recipe ingredients and amounts to shopping lists, including edited recipes and adding another dish.\n• Improved shop price comparisons and AI recipes: missing products are searched automatically, and unknown nutrition is labelled instead of preventing the recipe from being saved.\n• Reduced unnecessary screen refreshes and paused animations in hidden tabs; the recipe author appears as soon as the page loads.\n• Improved app startup and camera handling; scanning no longer interrupts manual barcode entry.\n• Improved first-time setup and made sign-in verification and account switching more stable.';
 
   @override
   String get releasePromptApple => 'Open App Store';
@@ -5193,6 +5197,23 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get authStoredSessionFailed =>
       'We could not restore your saved session. Please try signing in again.';
+
+  @override
+  String authGoogleNativeFailed(Object code) {
+    return 'Could not sign in with Google ($code). Please try again.';
+  }
+
+  @override
+  String get authGoogleTokenUnavailable =>
+      'Could not obtain the Google identity token.';
+
+  @override
+  String get authAppleNativeFailed =>
+      'Could not sign in with Apple. Please try again.';
+
+  @override
+  String get authAppleTokenUnavailable =>
+      'Could not obtain the Apple identity token.';
 }
 
 /// The translations for English, as used in the United Kingdom (`en_GB`).
@@ -7472,6 +7493,10 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
   String get nutritionMissing => 'Nutrition unavailable';
 
   @override
+  String get recipeNutritionNeedsDetails =>
+      'This recipe has missing nutrition. Complete the ingredient details in the recipe or enter the meal\'s nutrition manually in your Diary.';
+
+  @override
   String productsProcessed(int count) {
     return 'Processed: $count products.';
   }
@@ -7790,7 +7815,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get detailTemporaryHelp =>
-      'The original recipe has not changed. Saving will recalculate the nutrition for your new ingredients.';
+      'The original recipe has not changed. Creating a shopping list will save this version in My recipes so the list uses the ingredients and amounts shown here. Saving recalculates the nutrition.';
 
   @override
   String get detailSaveVariant => 'Save variation to Mine';
@@ -9436,7 +9461,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get releasePromptChanges =>
-      '• Improved shopping lists made from recipe ingredients and shop price comparisons.\n• Improved recipe imports so missing ingredients are not silently left out.\n• Reduced unnecessary screen refreshes and paused animations in hidden tabs.\n• Improved app startup and camera handling; scanning no longer interrupts manual barcode entry.\n• Improved first-time setup and made sign-in verification and account switching more stable.';
+      '• Improved copying recipe ingredients and amounts to shopping lists, including edited recipes and adding another dish.\n• Improved shop price comparisons and AI recipes: missing products are searched automatically, and unknown nutrition is labelled instead of preventing the recipe from being saved.\n• Reduced unnecessary screen refreshes and paused animations in hidden tabs; the recipe author appears as soon as the page loads.\n• Improved app startup and camera handling; scanning no longer interrupts manual barcode entry.\n• Improved first-time setup and made sign-in verification and account switching more stable.';
 
   @override
   String get releasePromptApple => 'Open App Store';
@@ -10384,4 +10409,21 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
   @override
   String get authStoredSessionFailed =>
       'We could not restore your saved session. Please try signing in again.';
+
+  @override
+  String authGoogleNativeFailed(Object code) {
+    return 'Could not sign in with Google ($code). Please try again.';
+  }
+
+  @override
+  String get authGoogleTokenUnavailable =>
+      'Could not obtain the Google identity token.';
+
+  @override
+  String get authAppleNativeFailed =>
+      'Could not sign in with Apple. Please try again.';
+
+  @override
+  String get authAppleTokenUnavailable =>
+      'Could not obtain the Apple identity token.';
 }

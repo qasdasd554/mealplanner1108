@@ -51,9 +51,11 @@ class _HomeScreenState extends State<HomeScreen> {
   late int _currentIndex;
   late final List<Widget?> _tabs;
   final _appReview = AppReviewService();
+  final _reviewSchedule = ReviewPromptSchedule();
   Timer? _reviewTimer;
   Timer? _premiumSuccessTimer;
   String? _pendingReviewUserId;
+  int? _pendingReviewGeneration;
 
   @override
   void initState() {
@@ -101,9 +103,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _queueAppReview() {
     if (!mounted) return;
-    _pendingReviewUserId = context.read<AuthProvider>().currentUser?.id;
+    final userId = context.read<AuthProvider>().currentUser?.id;
+    if (userId == null) return;
+    final generation = ApiClient().sessionGeneration;
     _reviewTimer?.cancel();
-    _reviewTimer = Timer(const Duration(seconds: 5), _tryAppReview);
+    if (!_reviewSchedule.recordSuccess(userId, generation, DateTime.now()))
+      return;
+    _pendingReviewUserId = userId;
+    _pendingReviewGeneration = generation;
+    _reviewTimer = Timer(ReviewPromptSchedule.quietPeriod, _tryAppReview);
   }
 
   void _queuePremiumAfterSuccess() {
@@ -112,7 +120,12 @@ class _HomeScreenState extends State<HomeScreen> {
     final generation = ApiClient().sessionGeneration;
     final offerContext = PremiumOfferSuccessSignal.events.value.context;
     _premiumSuccessTimer?.cancel();
-    _premiumSuccessTimer = Timer(const Duration(seconds: 2), () {
+    // Give an eligible review opportunity priority over a second sales modal.
+    final delay =
+        _pendingReviewUserId == userId
+            ? const Duration(seconds: 11)
+            : const Duration(seconds: 2);
+    _premiumSuccessTimer = Timer(delay, () {
       if (!mounted ||
           userId == null ||
           context.read<AuthProvider>().currentUser?.id != userId ||
@@ -134,13 +147,23 @@ class _HomeScreenState extends State<HomeScreen> {
         _currentIndex != 4 &&
         _currentIndex != 5 &&
         !ContextualPremiumOfferService.isPresenting &&
+        !context.read<MealPlanProvider>().isGenerating &&
+        FocusManager.instance.primaryFocus?.context
+                ?.findAncestorStateOfType<EditableTextState>() ==
+            null &&
         MediaQuery.viewInsetsOf(context).bottom == 0;
   }
 
   Future<void> _tryAppReview() async {
     final userId = _pendingReviewUserId;
     if (!mounted || userId == null) return;
-    if (context.read<AuthProvider>().currentUser?.id != userId) {
+    if (context.read<AuthProvider>().currentUser?.id != userId ||
+        !_reviewSchedule.isReady(
+          userId,
+          ApiClient().sessionGeneration,
+          DateTime.now(),
+        ) ||
+        _pendingReviewGeneration != ApiClient().sessionGeneration) {
       _pendingReviewUserId = null;
       return;
     }
@@ -149,7 +172,13 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
     _pendingReviewUserId = null;
-    await _appReview.maybeRequest(stillSafe: () => _reviewIsSafe(userId));
+    final requested = await _appReview.maybeRequest(
+      stillSafe:
+          () =>
+              _pendingReviewGeneration == ApiClient().sessionGeneration &&
+              _reviewIsSafe(userId),
+    );
+    if (requested) _premiumSuccessTimer?.cancel();
   }
 
   @override

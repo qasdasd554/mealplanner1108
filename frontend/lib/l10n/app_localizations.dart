@@ -4161,6 +4161,12 @@ abstract class AppLocalizations {
   /// **'Brak danych odżywczych'**
   String get nutritionMissing;
 
+  /// No description provided for @recipeNutritionNeedsDetails.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ten przepis ma brakujące dane odżywcze. Uzupełnij składniki w przepisie lub wpisz wartości posiłku ręcznie w Dzienniku.'**
+  String get recipeNutritionNeedsDetails;
+
   /// No description provided for @productsProcessed.
   ///
   /// In pl, this message translates to:
@@ -4667,7 +4673,7 @@ abstract class AppLocalizations {
   /// No description provided for @detailTemporaryHelp.
   ///
   /// In pl, this message translates to:
-  /// **'Oryginalny przepis nie został zmieniony. Po zapisie wartości odżywcze zostaną przeliczone dla nowego składu.'**
+  /// **'Oryginalny przepis nie został zmieniony. Przy tworzeniu listy zakupów ten wariant zapisze się w Moje, aby lista zawierała widoczne tutaj składniki i ilości. Po zapisie przeliczymy wartości odżywcze.'**
   String get detailTemporaryHelp;
 
   /// No description provided for @detailSaveVariant.
@@ -7445,7 +7451,7 @@ abstract class AppLocalizations {
   /// No description provided for @releasePromptChanges.
   ///
   /// In pl, this message translates to:
-  /// **'• Poprawiliśmy listy zakupów ze składników przepisów i porównywanie cen.\n• Usprawniliśmy import przepisów, aby brakujące składniki nie były pomijane.\n• Ograniczyliśmy zbędne odświeżanie ekranów i pracę ukrytych animacji.\n• Usprawniliśmy uruchamianie aplikacji i obsługę aparatu; skanowanie nie przerywa ręcznego wpisywania kodu.\n• Ułatwiliśmy pierwszą konfigurację i poprawiliśmy stabilność weryfikacji podczas logowania oraz zmiany konta.'**
+  /// **'• Poprawiliśmy przenoszenie składników i ich ilości z przepisu na listę zakupów, również po edycji składu i dopisaniu kolejnego dania.\n• Usprawniliśmy porównywanie cen i generowanie przepisów AI: automatycznie szukamy brakujących produktów, a nieznane wartości odżywcze oznaczamy zamiast przerywać zapis.\n• Ograniczyliśmy zbędne odświeżanie ekranów i pracę ukrytych animacji; autor przepisu jest widoczny od razu po wczytaniu.\n• Usprawniliśmy uruchamianie aplikacji i obsługę aparatu; skanowanie nie przerywa ręcznego wpisywania kodu.\n• Ułatwiliśmy pierwszą konfigurację i poprawiliśmy stabilność weryfikacji podczas logowania oraz zmiany konta.'**
   String get releasePromptChanges;
 
   /// No description provided for @releasePromptApple.
@@ -9105,6 +9111,30 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Nie udało się odtworzyć zapisanej sesji. Spróbuj zalogować się ponownie.'**
   String get authStoredSessionFailed;
+
+  /// No description provided for @authGoogleNativeFailed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się zalogować przez Google ({code}). Spróbuj ponownie.'**
+  String authGoogleNativeFailed(Object code);
+
+  /// No description provided for @authGoogleTokenUnavailable.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się uzyskać tokenu tożsamości Google.'**
+  String get authGoogleTokenUnavailable;
+
+  /// No description provided for @authAppleNativeFailed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się zalogować przez Apple. Spróbuj ponownie.'**
+  String get authAppleNativeFailed;
+
+  /// No description provided for @authAppleTokenUnavailable.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się uzyskać tokenu tożsamości Apple.'**
+  String get authAppleTokenUnavailable;
 }
 
 class _AppLocalizationsDelegate
