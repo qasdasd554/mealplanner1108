@@ -1,0 +1,8 @@
+"share_reading" = "Odczytuję link…";
+"share_done" = "Gotowe";
+"share_no_link" = "Nie otrzymano linku do przepisu.";
+"share_prompt" = "Udostępnij link do filmu lub strony z przepisem.";
+"share_no_address" = "Nie znaleziono adresu w udostępnionej treści.";
+"share_invalid_address" = "Udostępniony adres nie jest poprawnym linkiem.";
+"share_save_failed" = "Nie można zapisać linku. Sprawdź App Groups w ustawieniach podpisu aplikacji.";
+"share_saved" = "Link zapisany. Otwórz Meal Planner Polska — rozpoznawanie przepisu ruszy automatycznie.";

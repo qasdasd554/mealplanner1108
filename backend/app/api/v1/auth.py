@@ -15,6 +15,8 @@ from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token as google_id_token
 
 from app.core.config import settings
+from app.core.markets import account_country, registration_country, signup_country
+from app.core.language import account_text
 from app.services.apple_sign_in import AppleSignInError, verify_apple_identity_token
 from app.services.turnstile import verify_turnstile_token
 
@@ -54,6 +56,24 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
+def _request_text(body: dict, polish: str, english: str) -> str:
+    """Pre-authentication UI hint only; never changes an existing account market."""
+    return english if registration_country(body.get("device_region")) == "GB" else polish
+
+
+async def _verify_captcha(body: dict, request: Request) -> None:
+    try:
+        await verify_turnstile_token(body.get("turnstile_token"), _client_ip(request))
+    except HTTPException as exc:
+        translated = {
+            "Potwierdź, że nie jesteś robotem.": "Please confirm that you are not a robot.",
+            "Weryfikacja nie powiodła się. Spróbuj ponownie.": "Verification failed. Please try again.",
+        }.get(exc.detail) if isinstance(exc.detail, str) else None
+        if translated and registration_country(body.get("device_region")) == "GB":
+            raise HTTPException(status_code=exc.status_code, detail=translated, headers=exc.headers) from exc
+        raise
+
+
 def _session_tokens(user: User) -> dict[str, str]:
     subject = {"sub": str(user.id)}
     return {
@@ -67,6 +87,8 @@ async def get_parsed_body(request: Request):
         body = await request.json()
         if isinstance(body, str):
             body = json.loads(body)
+        if not isinstance(body, dict):
+            raise ValueError("Expected a JSON object")
         return body
     except Exception:
         raise HTTPException(status_code=400, detail="Nieprawidłowe dane żądania (oczekiwano JSON)")
@@ -82,7 +104,7 @@ _EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 MIN_PASSWORD_LENGTH = 8
 
 
-def _validate_credentials(email: str, password: str) -> None:
+def _validate_credentials(email: str, password: str, *, country_code: str = "PL") -> None:
     """Wspólna walidacja e-maila i hasła dla rejestracji.
 
     UWAGA (naprawa bezpieczeństwa): wcześniej rejestracja sprawdzała tylko,
@@ -92,11 +114,14 @@ def _validate_credentials(email: str, password: str) -> None:
     natychmiast, jeśli ktoś w ogóle je odgadnie.
     """
     if not _EMAIL_PATTERN.match(email):
-        raise HTTPException(status_code=400, detail="Nieprawidłowy format adresu e-mail")
+        raise HTTPException(status_code=400, detail=_request_text(
+            {"device_region": country_code}, "Nieprawidłowy format adresu e-mail", "Invalid email address format"))
     if len(password) < MIN_PASSWORD_LENGTH:
         raise HTTPException(
             status_code=400,
-            detail=f"Hasło musi mieć co najmniej {MIN_PASSWORD_LENGTH} znaków",
+            detail=_request_text({"device_region": country_code},
+                f"Hasło musi mieć co najmniej {MIN_PASSWORD_LENGTH} znaków",
+                f"Password must contain at least {MIN_PASSWORD_LENGTH} characters"),
         )
 
 @router.post("/register")
@@ -108,22 +133,23 @@ async def register(request: Request, db: AsyncSession = Depends(get_db)):
     # CAPTCHA sprawdzana PRZED czymkolwiek innym — zakładanie konta jest
     # najczęstszym celem botów (spam w komentarzach, wyczerpywanie limitów
     # wysyłki maili weryfikacyjnych).
-    await verify_turnstile_token(body.get("turnstile_token"), _client_ip(request))
+    await _verify_captcha(body, request)
 
     email = body.get("email")
     password = body.get("password")
     display_name = (body.get("display_name") or "").strip()
 
     if not email or not password:
-        raise HTTPException(status_code=400, detail="Email i hasło są wymagane")
-    _validate_credentials(email, password)
+        raise HTTPException(status_code=400, detail=_request_text(body, "Email i hasło są wymagane", "Email and password are required"))
+    _validate_credentials(email, password, country_code=registration_country(body.get("device_region")))
     # UWAGA (naprawa): wcześniej display_name nie miał ŻADNEJ walidacji —
     # nazwa dłuższa niż limit kolumny w bazie (200 znaków) powodowała
     # nieobsłużony błąd bazy danych (surowy 500, bez czytelnego
     # komunikatu) zamiast czytelnej odpowiedzi 400. Sprawdzamy to PRZED
     # dotarciem do bazy.
     if len(display_name) > 200:
-        raise HTTPException(status_code=400, detail="Nazwa użytkownika jest za długa (maks. 200 znaków)")
+        raise HTTPException(status_code=400, detail=_request_text(body,
+            "Nazwa użytkownika jest za długa (maks. 200 znaków)", "Display name is too long (maximum 200 characters)"))
 
     # Nick musi być unikalny — jest widoczny publicznie przy przepisach,
     # komentarzach i w tablicy wyników konkursu, więc dwa identyczne
@@ -141,12 +167,14 @@ async def register(request: Request, db: AsyncSession = Depends(get_db)):
 
     result = await db.execute(select(User).where(func.lower(User.email) == email))
     if result.scalar_one_or_none():
-        raise HTTPException(status_code=400, detail="Ten adres e-mail jest już zarejestrowany")
+        raise HTTPException(status_code=400, detail=_request_text(body,
+            "Ten adres e-mail jest już zarejestrowany", "This email address is already registered"))
 
     user = User(
         email=email,
         password_hash=get_password_hash(password),
-        display_name=display_name
+        display_name=display_name,
+        country_code=signup_country(body.get("device_region")),
     )
     # Generujemy 6-cyfrowy kod weryfikacyjny (secrets, nie random — losowość
     # kryptograficzna, bo to w końcu mechanizm bezpieczeństwa) i 15-minutowe
@@ -162,7 +190,7 @@ async def register(request: Request, db: AsyncSession = Depends(get_db)):
     # (np. chwilowa awaria Resend) — konto i tak się tworzy, użytkownik
     # może poprosić o ponowne wysłanie kodu przez /auth/resend-code.
     try:
-        await send_verification_email(user.email, verification_code, user.display_name)
+        await send_verification_email(user.email, verification_code, user.display_name, country_code=account_country(user))
     except EmailSendError:
         logger.warning("Nie udało się wysłać maila weryfikacyjnego do %s przy rejestracji.", user.email)
 
@@ -178,13 +206,13 @@ async def login(request: Request, db: AsyncSession = Depends(get_db)):
     # CAPTCHA przed sprawdzeniem hasła — inaczej bot i tak mógłby
     # wykorzystać ten endpoint do zgadywania haseł, a limity liczby prób
     # tylko by go spowolniły, nie zatrzymały.
-    await verify_turnstile_token(body.get("turnstile_token"), _client_ip(request))
+    await _verify_captcha(body, request)
 
     email = body.get("email")
     password = body.get("password")
 
     if not email or not password:
-        raise HTTPException(status_code=400, detail="Email i hasło są wymagane")
+        raise HTTPException(status_code=400, detail=_request_text(body, "Email i hasło są wymagane", "Email and password are required"))
 
     # UWAGA (naprawa): dopasowanie bez rozróżniania wielkości liter — patrz
     # komentarz przy /register. Działa poprawnie też dla KONT ZAŁOŻONYCH
@@ -200,7 +228,7 @@ async def login(request: Request, db: AsyncSession = Depends(get_db)):
         # Licznik zwiększamy WYŁĄCZNIE przy nieudanej próbie, żeby normalnie
         # korzystający użytkownik nigdy nie trafił na limit.
         login_limiter.register_failure(rate_key)
-        raise HTTPException(status_code=401, detail="Nieprawidłowy e-mail lub hasło")
+        raise HTTPException(status_code=401, detail=_request_text(body, "Nieprawidłowy e-mail lub hasło", "Invalid email or password"))
 
     login_limiter.reset(rate_key)
 
@@ -211,7 +239,7 @@ async def login(request: Request, db: AsyncSession = Depends(get_db)):
     if user.is_banned:
         raise HTTPException(
             status_code=403,
-            detail=user.ban_reason or "To konto zostało zablokowane przez administratora.",
+            detail=user.ban_reason or account_text(user, "To konto zostało zablokowane przez administratora.", "This account has been blocked by an administrator."),
         )
 
     return _session_tokens(user)
@@ -276,7 +304,8 @@ async def verify_email(
     body = await get_parsed_body(request)
     code = (body.get("code") or "").strip()
 
-    invalid = HTTPException(status_code=400, detail="Nieprawidłowy albo wygasły kod weryfikacyjny.")
+    invalid = HTTPException(status_code=400, detail=account_text(current_user,
+        "Nieprawidłowy albo wygasły kod weryfikacyjny.", "Invalid or expired verification code."))
 
     if not code or not current_user.email_verification_code:
         raise invalid
@@ -305,7 +334,7 @@ async def resend_verification_code(
     wygasł, albo mail się zgubił. Limitowane do 3 razy na 10 minut na
     konto (patrz email_verification_resend_limiter)."""
     if current_user.is_email_verified:
-        return {"detail": "To konto jest już zweryfikowane."}
+        return {"detail": account_text(current_user, "To konto jest już zweryfikowane.", "This account has already been verified.")}
 
     enforce_user_rate_limit(email_verification_resend_limiter, current_user.id, "resend-verification-code")
 
@@ -315,15 +344,15 @@ async def resend_verification_code(
     await db.commit()
 
     try:
-        await send_verification_email(current_user.email, verification_code, current_user.display_name)
+        await send_verification_email(current_user.email, verification_code, current_user.display_name, country_code=account_country(current_user))
     except EmailSendError:
         logger.warning("Nie udało się wysłać ponownego kodu weryfikacyjnego do %s.", current_user.email)
         raise HTTPException(
             status_code=503,
-            detail="Nie udało się wysłać e-maila. Spróbuj ponownie za chwilę.",
+            detail=account_text(current_user, "Nie udało się wysłać e-maila. Spróbuj ponownie za chwilę.", "We could not send the email. Please try again shortly."),
         )
 
-    return {"detail": "Nowy kod został wysłany."}
+    return {"detail": account_text(current_user, "Nowy kod został wysłany.", "A new code has been sent.")}
 
 
 @router.post("/forgot-password")
@@ -340,7 +369,9 @@ async def forgot_password(request: Request, db: AsyncSession = Depends(get_db)):
     email = (body.get("email") or "").strip().lower()
 
     generic_response = {
-        "detail": "Jeśli podany adres e-mail istnieje w naszym systemie, wysłaliśmy na niego kod resetu hasła."
+        "detail": _request_text(body,
+            "Jeśli podany adres e-mail istnieje w naszym systemie, wysłaliśmy na niego kod resetu hasła.",
+            "If this email address is registered, we have sent a password reset code.")
     }
 
     if not email:
@@ -357,7 +388,7 @@ async def forgot_password(request: Request, db: AsyncSession = Depends(get_db)):
     await db.commit()
 
     try:
-        await send_password_reset_email(user.email, reset_code, user.display_name)
+        await send_password_reset_email(user.email, reset_code, user.display_name, country_code=account_country(user))
     except EmailSendError:
         logger.warning("Nie udało się wysłać maila resetu hasła do %s.", user.email)
         # UWAGA: mimo błędu wysyłki NADAL zwracamy generyczną odpowiedź —
@@ -381,14 +412,16 @@ async def reset_password(request: Request, db: AsyncSession = Depends(get_db)):
     # — z tych samych powodów co przy weryfikacji e-mail: nie ułatwiamy
     # zgadywania 6-cyfrowego kodu metodą prób i błędów przez rozróżnianie
     # komunikatów, i nie zdradzamy, czy dany e-mail w ogóle istnieje.
-    invalid = HTTPException(status_code=400, detail="Nieprawidłowy albo wygasły kod resetu hasła.")
+    invalid = HTTPException(status_code=400, detail=_request_text(body,
+        "Nieprawidłowy albo wygasły kod resetu hasła.", "Invalid or expired password reset code."))
 
     if not email or not code:
         raise invalid
     if len(new_password) < MIN_PASSWORD_LENGTH:
         raise HTTPException(
             status_code=400,
-            detail=f"Nowe hasło musi mieć co najmniej {MIN_PASSWORD_LENGTH} znaków",
+            detail=_request_text(body, f"Nowe hasło musi mieć co najmniej {MIN_PASSWORD_LENGTH} znaków",
+                f"New password must contain at least {MIN_PASSWORD_LENGTH} characters"),
         )
 
     result = await db.execute(select(User).where(func.lower(User.email) == email))
@@ -408,7 +441,7 @@ async def reset_password(request: Request, db: AsyncSession = Depends(get_db)):
     user.password_reset_code_expires_at = None
     await db.commit()
 
-    return {"detail": "Hasło zostało zmienione. Możesz się teraz zalogować."}
+    return {"detail": _request_text(body, "Hasło zostało zmienione. Możesz się teraz zalogować.", "Your password has been changed. You can now sign in.")}
 
 
 @router.post("/google")
@@ -425,12 +458,12 @@ async def google_login(request: Request, db: AsyncSession = Depends(get_db)):
     # od Google/Apple sam w sobie jest mocnym dowodem (bot go nie
     # podrobi), ale bramka dokłada spójność i utrudnia zakładanie kont
     # hurtowo kupionymi kontami u dostawcy.
-    await verify_turnstile_token(body.get("turnstile_token"), _client_ip(request))
+    await _verify_captcha(body, request)
 
     token = body.get("id_token")
 
     if not token:
-        raise HTTPException(status_code=400, detail="Wymagany jest token id_token z Google")
+        raise HTTPException(status_code=400, detail=_request_text(body, "Wymagany jest token id_token z Google", "A Google id_token is required"))
 
     try:
         idinfo = google_id_token.verify_oauth2_token(
@@ -438,21 +471,21 @@ async def google_login(request: Request, db: AsyncSession = Depends(get_db)):
         )
     except ValueError:
         # Token nieprawidłowy, wygasły albo wystawiony dla innego client_id.
-        raise HTTPException(status_code=401, detail="Nieprawidłowy lub wygasły token Google")
+        raise HTTPException(status_code=401, detail=_request_text(body, "Nieprawidłowy lub wygasły token Google", "Invalid or expired Google token"))
     except GoogleAuthError:
         # Nie udało się pobrać kluczy publicznych Google (np. chwilowy problem
         # sieciowy po stronie serwera). To NIE jest wina użytkownika — zwracamy
         # 503, żeby aplikacja mogła poprosić o ponowną próbę, zamiast rzucać 500.
         raise HTTPException(
             status_code=503,
-            detail="Nie można teraz zweryfikować logowania Google. Spróbuj ponownie za chwilę.",
+            detail=_request_text(body, "Nie można teraz zweryfikować logowania Google. Spróbuj ponownie za chwilę.", "Google sign-in cannot be verified right now. Please try again shortly."),
         )
 
     email = idinfo.get("email")
     if not email:
-        raise HTTPException(status_code=400, detail="Konto Google nie udostępniło adresu e-mail")
+        raise HTTPException(status_code=400, detail=_request_text(body, "Konto Google nie udostępniło adresu e-mail", "The Google account did not provide an email address"))
     if idinfo.get("email_verified") is False:
-        raise HTTPException(status_code=400, detail="Adres e-mail konta Google nie jest zweryfikowany")
+        raise HTTPException(status_code=400, detail=_request_text(body, "Adres e-mail konta Google nie jest zweryfikowany", "The Google account email address is not verified"))
 
     # UWAGA (naprawa): ta sama normalizacja co przy /register i /login —
     # bez niej konto założone hasłem jako "User@Example.com" i późniejsze
@@ -477,6 +510,7 @@ async def google_login(request: Request, db: AsyncSession = Depends(get_db)):
         google_name = await generate_unique_display_name(db, google_name)
         user = User(
             email=email,
+            country_code=signup_country(body.get("device_region")),
             # Hasło losowe i zahaszowane — konto założone przez Google nie
             # ma hasła, którym dałoby się zalogować metodą e-mail/hasło.
             password_hash=get_password_hash(uuid.uuid4().hex),
@@ -498,7 +532,7 @@ async def google_login(request: Request, db: AsyncSession = Depends(get_db)):
     if user.is_banned:
         raise HTTPException(
             status_code=403,
-            detail=user.ban_reason or "To konto zostało zablokowane przez administratora.",
+            detail=user.ban_reason or account_text(user, "To konto zostało zablokowane przez administratora.", "This account has been blocked by an administrator."),
         )
 
     return _session_tokens(user)
@@ -521,11 +555,11 @@ async def apple_login(request: Request, db: AsyncSession = Depends(get_db)):
     # od Google/Apple sam w sobie jest mocnym dowodem (bot go nie
     # podrobi), ale bramka dokłada spójność i utrudnia zakładanie kont
     # hurtowo kupionymi kontami u dostawcy.
-    await verify_turnstile_token(body.get("turnstile_token"), _client_ip(request))
+    await _verify_captcha(body, request)
 
     identity_token = body.get("identity_token")
     if not identity_token:
-        raise HTTPException(status_code=400, detail="Wymagany jest identity_token z Apple")
+        raise HTTPException(status_code=400, detail=_request_text(body, "Wymagany jest identity_token z Apple", "An Apple identity_token is required"))
 
     # Apple przesyła imię i nazwisko TYLKO przy pierwszej autoryzacji
     # (kolejne logowania tego samego użytkownika ich nie zawierają) —
@@ -536,11 +570,11 @@ async def apple_login(request: Request, db: AsyncSession = Depends(get_db)):
     try:
         claims = await verify_apple_identity_token(identity_token)
     except AppleSignInError as exc:
-        raise HTTPException(status_code=401, detail=str(exc))
+        raise HTTPException(status_code=401, detail=_request_text(body, str(exc), "Invalid or expired Apple identity token"))
 
     apple_user_id = claims.get("sub")
     if not apple_user_id:
-        raise HTTPException(status_code=400, detail="Token Apple nie zawiera identyfikatora użytkownika")
+        raise HTTPException(status_code=400, detail=_request_text(body, "Token Apple nie zawiera identyfikatora użytkownika", "The Apple token does not contain a user identifier"))
 
     email = claims.get("email")
     if email:
@@ -569,9 +603,10 @@ async def apple_login(request: Request, db: AsyncSession = Depends(get_db)):
         effective_email = email or f"apple_{apple_user_id}@privaterelay.local"
         # Ta sama sytuacja co przy Google — nazwa przychodzi z zewnątrz,
         # więc dobieramy wolny wariant zamiast odrzucać logowanie.
-        apple_name = await generate_unique_display_name(db, full_name or "Użytkownik Apple")
+        apple_name = await generate_unique_display_name(db, full_name or _request_text(body, "Użytkownik Apple", "Apple user"))
         user = User(
             email=effective_email,
+            country_code=signup_country(body.get("device_region")),
             password_hash=get_password_hash(uuid.uuid4().hex),
             display_name=apple_name,
             apple_user_id=apple_user_id,
@@ -590,7 +625,7 @@ async def apple_login(request: Request, db: AsyncSession = Depends(get_db)):
     if user.is_banned:
         raise HTTPException(
             status_code=403,
-            detail=user.ban_reason or "To konto zostało zablokowane przez administratora.",
+            detail=user.ban_reason or account_text(user, "To konto zostało zablokowane przez administratora.", "This account has been blocked by an administrator."),
         )
 
     return _session_tokens(user)

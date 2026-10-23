@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../config/api_config.dart';
+import '../l10n/market_locale.dart';
 import '../theme/app_theme.dart';
 
 /// Bramka CAPTCHA (Cloudflare Turnstile) pokazywana przed logowaniem
@@ -36,6 +37,8 @@ class _TurnstileWidgetState extends State<TurnstileWidget>
   WebViewController? _controller;
   bool _isLoading = true;
   bool _failed = false;
+  bool _hasLeftForeground = false;
+  int _controllerGeneration = 0;
 
   /// Znacznik jednorazowego wygaszenia licznika czasu — bez niego,
   /// gdyby _loadTimeout odpalił się PO tym, jak strona już się wczytała,
@@ -50,7 +53,7 @@ class _TurnstileWidgetState extends State<TurnstileWidget>
       // Bramka wyłączona — zgłaszamy "gotowe" po pierwszej klatce, żeby
       // ekran logowania nie czekał w nieskończoność na token.
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        widget.onToken('');
+        if (mounted) widget.onToken('');
       });
       return;
     }
@@ -59,23 +62,26 @@ class _TurnstileWidgetState extends State<TurnstileWidget>
 
   @override
   void dispose() {
+    _controllerGeneration++;
+    _loadGeneration++;
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // NAPRAWA: po wyjściu z aplikacji i powrocie do niej widget CAPTCHA
-    // potrafił zostać "martwy" — WebView na Androidzie wstrzymuje
-    // wykonywanie JS w tle, więc odliczanie ważności tokenu Turnstile
-    // (ok. 5 minut) i wewnętrzne odświeżanie wyzwania nie działały,
-    // jak powinny. Po powrocie z tła użytkownik miał widget, który
-    // wyglądał na sprawny, ale token nigdy nie przychodził — a próba
-    // logowania kończyła się w kółko tym samym błędem, bez wyjaśnienia.
-    // Przeładowanie strony po wznowieniu daje ZAWSZE świeże wyzwanie.
-    if (state == AppLifecycleState.resumed &&
-        TurnstileWidget.isEnabled &&
-        _controller != null) {
+    // A permission overlay / focus change is not backgrounding. Reloading
+    // every inactive -> resumed transition discards a valid challenge and
+    // makes first-time sign-in appear to refresh repeatedly.
+    if (state == AppLifecycleState.hidden ||
+        state == AppLifecycleState.paused) {
+      _hasLeftForeground = true;
+    }
+    if (state != AppLifecycleState.resumed || !_hasLeftForeground) return;
+    _hasLeftForeground = false;
+    if (TurnstileWidget.isEnabled && _controller != null) {
+      // A real return still refreshes the challenge: WebView JS may have
+      // been suspended while its token expired in the background.
       widget.onToken(null);
       setState(() {
         _isLoading = true;
@@ -106,6 +112,9 @@ class _TurnstileWidgetState extends State<TurnstileWidget>
   }
 
   void _initWebView() {
+    final controllerGeneration = ++_controllerGeneration;
+    bool isCurrent() =>
+        mounted && controllerGeneration == _controllerGeneration;
     final theme = AppTheme.isDark ? 'dark' : 'light';
     final uri = Uri.parse(
       '${ApiConfig.turnstilePageUrl}'
@@ -120,6 +129,7 @@ class _TurnstileWidgetState extends State<TurnstileWidget>
           ..addJavaScriptChannel(
             'TurnstileChannel',
             onMessageReceived: (message) {
+              if (!isCurrent() || _failed) return;
               try {
                 final data =
                     jsonDecode(message.message) as Map<String, dynamic>;
@@ -142,7 +152,7 @@ class _TurnstileWidgetState extends State<TurnstileWidget>
           ..setNavigationDelegate(
             NavigationDelegate(
               onPageFinished: (_) {
-                if (mounted) setState(() => _isLoading = false);
+                if (isCurrent()) setState(() => _isLoading = false);
               },
               onWebResourceError: (error) {
                 // WAŻNE: onWebResourceError zgłasza KAŻDY nieudany zasób, nie
@@ -152,8 +162,9 @@ class _TurnstileWidgetState extends State<TurnstileWidget>
                 // "Nie udało się wczytać weryfikacji", mimo że strona i widget
                 // działały poprawnie. Interesuje nas wyłącznie błąd głównego
                 // dokumentu.
-                if (error.isForMainFrame != true) return;
-                if (mounted) {
+                if (error.isForMainFrame != true || !isCurrent()) return;
+                if (!_failed) {
+                  widget.onToken(null);
                   setState(() {
                     _isLoading = false;
                     _failed = true;
@@ -171,15 +182,9 @@ class _TurnstileWidgetState extends State<TurnstileWidget>
     if (!TurnstileWidget.isEnabled) return const SizedBox.shrink();
 
     if (_failed) {
-      // Gdy weryfikacji naprawdę nie da się wczytać (np. sieć blokuje
-      // Cloudflare), NIE blokujemy logowania na stałe. To spójne
-      // z tym, jak backend traktuje WŁASNĄ awarię połączenia z Cloudflare
-      // (patrz verify_turnstile_token — też przepuszcza żądanie zamiast
-      // blokować cały serwis z powodu zewnętrznej usługi). Skoro obecnie
-      // backend i tak nie wymaga jeszcze tokenu (bramka wyłączona do
-      // czasu publikacji), pominięcie tutaj niczego nie osłabia; gdy
-      // bramka zostanie włączona, serwer i tak odrzuci puste żądanie —
-      // to on jest ostatecznym strażnikiem, nie ten ekran.
+      // Preserve the existing explicit retry/continue choices. This UI does
+      // not decide whether CAPTCHA is optional: the server validates every
+      // sign-in request using its current policy. No automatic bypass.
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Column(
@@ -191,7 +196,7 @@ class _TurnstileWidgetState extends State<TurnstileWidget>
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Nie udało się wczytać weryfikacji. Sprawdź połączenie.',
+                    context.strings.authCaptchaUnavailable,
                     style: TextStyle(
                       fontSize: 12,
                       color: AppTheme.textSecondary,
@@ -206,7 +211,7 @@ class _TurnstileWidgetState extends State<TurnstileWidget>
                     });
                     _initWebView();
                   },
-                  child: const Text('Ponów'),
+                  child: Text(context.strings.authCaptchaRetry),
                 ),
               ],
             ),
@@ -215,7 +220,7 @@ class _TurnstileWidgetState extends State<TurnstileWidget>
               child: TextButton(
                 onPressed: () => widget.onToken(''),
                 child: Text(
-                  'Kontynuuj mimo to',
+                  context.strings.authCaptchaContinue,
                   style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                 ),
               ),
@@ -253,7 +258,7 @@ class _TurnstileWidgetState extends State<TurnstileWidget>
                 size: 16,
                 color: AppTheme.textSecondary,
               ),
-              tooltip: 'Odśwież weryfikację',
+              tooltip: context.strings.authCaptchaRefresh,
               visualDensity: VisualDensity.compact,
               onPressed: () {
                 widget.onToken(null);

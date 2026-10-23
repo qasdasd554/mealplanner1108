@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/market_locale.dart';
 import '../services/price_compare_service.dart';
+import '../utils/market_money.dart';
 import '../utils/quantity_formatter.dart';
-import '../utils/store_price_labels.dart';
 
 /// Zachowuje zwykłą kartę porównania, lecz rozróżnia pełny koszyk,
 /// brakujące ceny i szacunki. Niska cena niepełnego koszyka nie wygrywa.
@@ -10,18 +11,45 @@ class StorePriceComparisonCard extends StatelessWidget {
   final PriceComparisonResult result;
   final bool isSwitchingStore;
   final VoidCallback? onSwitchStore;
+  final String? switchStoreLabel;
 
   const StorePriceComparisonCard({
     super.key,
     required this.result,
     this.isSwitchingStore = false,
     this.onSwitchStore,
+    this.switchStoreLabel,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isCheapest = result.isComplete && result.isCheapest;
+    final strings = context.strings;
+    final total = result.totalPrice;
+    final isCheapest = total != null && result.isComplete && result.isCheapest;
+    final cardColor = Theme.of(context).colorScheme.primaryContainer;
+    // Approved contrast-only repair: preserve the card, shape and background.
+    // Some themes use the same green for on-primary actions and the card.
+    final actionColor =
+        cardColor.computeLuminance() >= 0.179 ? Colors.black : Colors.white;
     final textColor = Theme.of(context).colorScheme.onSurfaceVariant;
+    final subtitle =
+        !result.isComplete
+            ? (result.missingProducts.isEmpty
+                ? strings.priceCompareUnpricedTotal
+                : strings.priceCompareIncomplete(result.missingProducts.length))
+            : [
+              strings.priceCompareProductCount(result.items.length),
+              if (result.hasEstimatedPrices)
+                strings.priceCompareEstimatedPrices,
+              if (result.savingsVsMostExpensive > 0)
+                strings.priceCompareSavings(
+                  formatMarketMoney(
+                    result.savingsVsMostExpensive,
+                    currencyCode: result.currencyCode,
+                  ),
+                ),
+              strings.priceCompareExpandHint,
+            ].join(' • ');
     return Card(
       elevation: isCheapest ? 4 : 1,
       color: isCheapest ? Theme.of(context).colorScheme.primaryContainer : null,
@@ -45,8 +73,10 @@ class StorePriceComparisonCard extends StatelessWidget {
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 Text(
-                  '${result.hasEstimatedPrices ? '~ ' : ''}'
-                  '${result.totalPrice.toStringAsFixed(2)} zł',
+                  total == null
+                      ? strings.priceCompareUnpricedTotal
+                      : '${result.hasEstimatedPrices ? '~ ' : ''}'
+                          '${formatMarketMoney(total, currencyCode: result.currencyCode)}',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -55,8 +85,8 @@ class StorePriceComparisonCard extends StatelessWidget {
                 if (isCheapest)
                   Text(
                     result.hasEstimatedPrices
-                        ? 'Najniższy szacunek'
-                        : 'Najtaniej',
+                        ? strings.priceCompareCheapestEstimate
+                        : strings.priceCompareCheapest,
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 12,
@@ -69,13 +99,7 @@ class StorePriceComparisonCard extends StatelessWidget {
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 4),
           child: Text(
-            !result.isComplete
-                ? 'Niepełny koszyk • brak cen dla '
-                    '${result.missingProducts.length} produktów'
-                : '${result.items.length} produktów'
-                    '${result.hasEstimatedPrices ? ' • ceny orientacyjne' : ''}'
-                    '${result.savingsVsMostExpensive > 0 ? ' • różnica do ${result.savingsVsMostExpensive.toStringAsFixed(2)} zł' : ''}'
-                    ' • dotknij, aby zobaczyć listę',
+            subtitle,
             style: TextStyle(color: textColor, fontSize: 12),
           ),
         ),
@@ -85,8 +109,15 @@ class StorePriceComparisonCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
               child: Text(
-                'Brak danych cenowych: ${result.missingProducts.join(', ')}. '
-                'Pokazana suma dotyczy tylko pozycji z ceną.',
+                result.missingProducts.isEmpty
+                    ? strings.priceCompareEmpty
+                    : total == null
+                    ? strings.priceCompareMissingUnpriced(
+                      result.missingProducts.join(', '),
+                    )
+                    : strings.priceCompareMissing(
+                      result.missingProducts.join(', '),
+                    ),
                 style: TextStyle(color: textColor, fontSize: 13),
               ),
             ),
@@ -99,15 +130,16 @@ class StorePriceComparisonCard extends StatelessWidget {
               ),
               subtitle: Text(
                 '${formatQuantity(item.quantityNeeded, item.unit)} '
-                '${formatUnitLabel(item.unit)}'
-                ' • ${item.priceIsEstimated ? 'cena orientacyjna' : priceVerificationLabel(item.lastVerified)}',
+                '${_unitLabel(context, item.unit)}'
+                ' • ${_verificationLabel(context, item)}'
+                '${_packageDescription(context, item)}',
                 style: TextStyle(fontSize: 12, color: textColor),
               ),
               trailing: SizedBox(
                 width: 84,
                 child: Text(
                   '${item.priceIsEstimated ? '~ ' : ''}'
-                  '${item.priceInStore.toStringAsFixed(2)} zł',
+                  '${formatMarketMoney(item.priceInStore, currencyCode: result.currencyCode)}',
                   textAlign: TextAlign.end,
                   style: const TextStyle(
                     fontSize: 13,
@@ -118,22 +150,42 @@ class StorePriceComparisonCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          if (result.isComplete)
+          if (result.isComplete && total != null)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               child: SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
+                  style:
+                      isCheapest
+                          ? OutlinedButton.styleFrom(
+                            foregroundColor: actionColor,
+                            side: BorderSide(
+                              color: actionColor,
+                              width:
+                                  Theme.of(context)
+                                      .outlinedButtonTheme
+                                      .style
+                                      ?.side
+                                      ?.resolve({})
+                                      ?.width ??
+                                  1,
+                            ),
+                          )
+                          : null,
                   onPressed: isSwitchingStore ? null : onSwitchStore,
                   child:
                       isSwitchingStore
-                          ? const SizedBox(
+                          ? SizedBox(
                             width: 16,
                             height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: isCheapest ? actionColor : null,
+                            ),
                           )
-                          : const Text(
-                            'Przełącz plan na ten sklep',
+                          : Text(
+                            switchStoreLabel ?? strings.priceCompareSwitchStore,
                             textAlign: TextAlign.center,
                           ),
                 ),
@@ -143,5 +195,47 @@ class StorePriceComparisonCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _packageDescription(BuildContext context, PriceCompareItem item) {
+    final count = item.packageCount;
+    final quantity = item.packageQuantity;
+    final unit = item.packageUnit;
+    if (count == null ||
+        count <= 0 ||
+        quantity == null ||
+        !quantity.isFinite ||
+        quantity <= 0 ||
+        (unit != 'g' && unit != 'ml')) {
+      return '';
+    }
+    return '\n${context.strings.priceComparePackages(count, formatQuantity(quantity, unit!), unit)}';
+  }
+
+  String _unitLabel(BuildContext context, String unit) {
+    final strings = context.strings;
+    return switch (unit) {
+      'opak' => strings.priceCompareUnitPack,
+      'porcja' => strings.priceCompareUnitServing,
+      'szt' => strings.priceCompareUnitPiece,
+      'lyzeczka' => strings.priceCompareUnitTeaspoon,
+      'szklanka' => strings.priceCompareUnitCup,
+      _ => unit,
+    };
+  }
+
+  String _verificationLabel(BuildContext context, PriceCompareItem item) {
+    final strings = context.strings;
+    if (item.isFromPantry) return strings.shoppingInPantry;
+    final verified = item.lastVerified;
+    if (item.priceIsEstimated || verified == null) {
+      return strings.priceCompareEstimate;
+    }
+    // Keep the established Polish presentation; only UK display is translated.
+    final separator = strings.localeName.startsWith('en') ? '/' : '.';
+    final date =
+        '${verified.day.toString().padLeft(2, '0')}$separator'
+        '${verified.month.toString().padLeft(2, '0')}$separator${verified.year}';
+    return strings.priceCompareVerified(date);
   }
 }

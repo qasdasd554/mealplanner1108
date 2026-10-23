@@ -1,13 +1,15 @@
 import '../models/barcode_lookup_result.dart';
 import '../models/product.dart';
 import 'api_client.dart';
+import 'account_market.dart';
 
 /// Wspólne wyszukiwanie po nazwie: katalog aplikacji, zapamiętane skany
 /// w Neon i Open Food Facts — ta sama zewnętrzna baza co skaner kodów.
 class ProductNameLookupService {
   final ApiClient _client;
+  final String? Function()? accountCountry;
 
-  ProductNameLookupService({ApiClient? client})
+  ProductNameLookupService({ApiClient? client, this.accountCountry})
     : _client = client ?? ApiClient();
 
   Future<List<BarcodeLookupResult>> search(
@@ -16,6 +18,7 @@ class ProductNameLookupService {
   }) async {
     final normalized = query.trim();
     if (normalized.length < 2) return const [];
+    final british = normalizeAccountCountry(accountCountry?.call()) == 'GB';
 
     final response = await _client.get(
       '/products/search-by-name?query=${Uri.encodeQueryComponent(normalized)}&limit=$limit',
@@ -25,6 +28,7 @@ class ProductNameLookupService {
     return response
         .whereType<Map<String, dynamic>>()
         .map(BarcodeLookupResult.fromJson)
+        .map((result) => british ? result.withoutPriceEstimates() : result)
         .where((result) => result.name?.trim().isNotEmpty == true)
         .toList();
   }

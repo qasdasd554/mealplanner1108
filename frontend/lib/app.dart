@@ -35,6 +35,8 @@ import 'screens/notifications/notifications_screen.dart';
 import 'utils/calendar_day.dart';
 import 'services/update_service.dart';
 import 'models/meal_plan.dart';
+import 'l10n/app_localizations.dart';
+import 'l10n/market_locale.dart';
 
 class SmartMealPlannerApp extends StatefulWidget {
   @visibleForTesting
@@ -128,8 +130,11 @@ class _SmartMealPlannerAppState extends State<SmartMealPlannerApp>
       final dayChanged = !isSameCalendarDay(_lastForegroundDay, now);
       _lastForegroundDay = now;
       final auth = Provider.of<AuthProvider>(context, listen: false);
-      if (auth.isAuthenticated) {
-        unawaited(auth.loadProfile());
+      // A notification shade, permission sheet or loss of window focus can
+      // emit inactive → resumed without leaving the app. Do not replace the
+      // user's current content with loading states for these transitions.
+      if (auth.isAuthenticated && (_hasLeftForeground || dayChanged)) {
+        unawaited(auth.loadProfileInBackground());
         unawaited(context.read<MealPlanProvider>().loadPlans());
         if (dayChanged) {
           Provider.of<FoodLogProvider>(context, listen: false).setDate(now);
@@ -149,13 +154,18 @@ class _SmartMealPlannerAppState extends State<SmartMealPlannerApp>
         unawaited(_checkForUpdateAfterResume());
       }
       _hasLeftForeground = false;
-    } else {
+    } else if (state == AppLifecycleState.hidden ||
+        state == AppLifecycleState.paused) {
       _hasLeftForeground = true;
     }
   }
 
   Future<void> _checkForUpdateAfterResume() async {
-    if (_updateCheckInProgress || _updatePromptVisible) return;
+    if (_updateCheckInProgress ||
+        _updatePromptVisible ||
+        WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
+      return;
+    }
     _updateCheckInProgress = true;
     try {
       final update = await UpdateService().checkForUpdate();
@@ -183,6 +193,7 @@ class _SmartMealPlannerAppState extends State<SmartMealPlannerApp>
   Widget build(BuildContext context) {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, _) {
+        final auth = context.watch<AuthProvider>();
         return MaterialApp(
           // NAPRAWA MIGANIA BIAŁEGO TŁA PRZY ZMIANIE MOTYWU:
           // AppTheme trzyma kolory w polu STATYCZNYM (`AppTheme._isDark`),
@@ -201,6 +212,15 @@ class _SmartMealPlannerAppState extends State<SmartMealPlannerApp>
           key: ValueKey(themeProvider.isDark),
           navigatorKey: SmartMealPlannerApp.navigatorKey,
           title: 'Meal Planner Polska',
+          locale: localeForMarket(
+            accountCountry:
+                auth.currentUser?.countryCode ??
+                (auth.isAuthenticated ? 'PL' : null),
+            deviceRegion:
+                WidgetsBinding.instance.platformDispatcher.locale.countryCode,
+          ),
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeProvider.themeMode,

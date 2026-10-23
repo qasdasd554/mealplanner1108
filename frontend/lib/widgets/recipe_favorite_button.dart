@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/market_locale.dart';
 import '../models/recipe.dart';
 import '../services/recipe_service.dart';
 
@@ -74,9 +75,9 @@ class _RecipeFavoriteButtonState extends State<RecipeFavoriteButton> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),
-            content: Text('Nie udało się zaktualizować ulubionych'),
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(context.strings.detailFavoriteError),
           ),
         );
     } finally {
@@ -96,7 +97,10 @@ class _RecipeFavoriteButtonState extends State<RecipeFavoriteButton> {
                 : widget.inactiveColor,
         size: widget.size,
       ),
-      tooltip: _isFavorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych',
+      tooltip:
+          _isFavorite
+              ? context.strings.detailRemoveFavorite
+              : context.strings.detailAddFavorite,
     );
   }
 }

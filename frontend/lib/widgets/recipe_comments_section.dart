@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
+import '../l10n/market_locale.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -16,14 +18,20 @@ import 'user_avatar.dart';
 /// szczegółów przepisu (StatelessWidget) tylko dla tej jednej sekcji.
 class RecipeCommentsSection extends StatefulWidget {
   final String recipeId;
-  const RecipeCommentsSection({super.key, required this.recipeId});
+  final RecipeCommentService? service;
+  const RecipeCommentsSection({
+    super.key,
+    required this.recipeId,
+    this.service,
+  });
 
   @override
   State<RecipeCommentsSection> createState() => _RecipeCommentsSectionState();
 }
 
 class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
-  final RecipeCommentService _service = RecipeCommentService();
+  late final RecipeCommentService _service =
+      widget.service ?? RecipeCommentService();
   final TextEditingController _textController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
 
@@ -63,7 +71,7 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = 'Nie udało się załadować komentarzy';
+        _error = context.strings.commentsLoadFailed;
         _isLoading = false;
       });
     }
@@ -78,7 +86,7 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
         imageQuality:
             80, // kompresja — zdjęcie trafi do bazy danych, patrz backend
       );
-      if (picked != null) {
+      if (picked != null && mounted) {
         setState(() => _pickedImage = File(picked.path));
       }
     } catch (e) {
@@ -86,9 +94,9 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
+          SnackBar(
             duration: Duration(seconds: 3),
-            content: Text('Nie udało się pobrać zdjęcia'),
+            content: Text(context.strings.commentsPhotoFailed),
           ),
         );
     }
@@ -103,7 +111,7 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
               children: [
                 ListTile(
                   leading: const Icon(Icons.photo_camera_outlined),
-                  title: const Text('Zrób zdjęcie'),
+                  title: Text(context.strings.commentsCamera),
                   onTap: () {
                     Navigator.pop(ctx);
                     _pickImage(ImageSource.camera);
@@ -111,7 +119,7 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
                 ),
                 ListTile(
                   leading: const Icon(Icons.photo_library_outlined),
-                  title: const Text('Wybierz z galerii'),
+                  title: Text(context.strings.commentsGallery),
                   onTap: () {
                     Navigator.pop(ctx);
                     _pickImage(ImageSource.gallery);
@@ -125,7 +133,7 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
 
   Future<void> _submit() async {
     final text = _textController.text.trim();
-    if (text.isEmpty && _pickedImage == null) return;
+    if (_isSubmitting || (text.isEmpty && _pickedImage == null)) return;
 
     setState(() => _isSubmitting = true);
     try {
@@ -150,7 +158,7 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
+            content: Text(friendlyError(e, strings: context.strings)),
           ),
         );
     } finally {
@@ -163,17 +171,17 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
       context: context,
       builder:
           (ctx) => AlertDialog(
-            title: const Text('Usunąć komentarz?'),
-            content: const Text('Tej operacji nie da się cofnąć.'),
+            title: Text(context.strings.commentsDeleteTitle),
+            content: Text(context.strings.commentsDeleteBody),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Anuluj'),
+                child: Text(context.strings.commentsCancel),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text(
-                  'Usuń',
+                child: Text(
+                  context.strings.commentsDelete,
                   style: TextStyle(color: AppTheme.errorColor),
                 ),
               ),
@@ -191,9 +199,9 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
+          SnackBar(
             duration: Duration(seconds: 3),
-            content: Text('Nie udało się usunąć komentarza'),
+            content: Text(context.strings.commentsDeleteFailed),
           ),
         );
     }
@@ -229,21 +237,33 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
+          SnackBar(
             duration: Duration(seconds: 3),
-            content: Text('Nie udało się zapisać polubienia'),
+            content: Text(context.strings.commentsLikeFailed),
           ),
         );
     }
   }
 
+  Uint8List? _photoBytes(String? encoded) {
+    if (encoded == null || encoded.isEmpty) return null;
+    try {
+      return base64Decode(encoded);
+    } on FormatException {
+      return null;
+    }
+  }
+
   String _relativeTime(DateTime dt) {
     final diff = DateTime.now().difference(dt);
-    if (diff.inMinutes < 1) return 'przed chwilą';
-    if (diff.inHours < 1) return '${diff.inMinutes} min temu';
-    if (diff.inDays < 1) return '${diff.inHours} godz. temu';
-    if (diff.inDays < 7) return '${diff.inDays} dni temu';
-    return '${dt.day.toString().padLeft(2, '0')}.${dt.month.toString().padLeft(2, '0')}.${dt.year}';
+    if (diff.inMinutes < 1) return context.strings.commentsJustNow;
+    if (diff.inHours < 1)
+      return context.strings.commentsMinutes(diff.inMinutes);
+    if (diff.inDays < 1) return context.strings.commentsHours(diff.inHours);
+    if (diff.inDays < 7) return context.strings.commentsDays(diff.inDays);
+    final local = dt.toLocal();
+    final separator = context.strings.localeName.startsWith('en') ? '/' : '.';
+    return '${local.day.toString().padLeft(2, '0')}$separator${local.month.toString().padLeft(2, '0')}$separator${local.year}';
   }
 
   @override
@@ -256,7 +276,7 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Komentarze i zdjęcia',
+          context.strings.commentsTitle,
           style: Theme.of(
             context,
           ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -264,8 +284,8 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
         const SizedBox(height: 4),
         Text(
           _comments.isEmpty
-              ? 'Bądź pierwszą osobą, która skomentuje ten przepis'
-              : '${_comments.length} ${_comments.length == 1 ? "komentarz" : "komentarzy"}',
+              ? context.strings.commentsFirst
+              : context.strings.commentsCount(_comments.length),
           style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
         ),
         const SizedBox(height: 16),
@@ -322,7 +342,7 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
                 maxLines: 4,
                 maxLength: _maxCommentLength,
                 decoration: InputDecoration(
-                  hintText: 'Podziel się swoją opinią lub wskazówką...',
+                  hintText: context.strings.commentsHint,
                   border: InputBorder.none,
                   counterStyle: TextStyle(
                     color: AppTheme.textSecondary,
@@ -338,7 +358,7 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
                       color: AppTheme.primaryColor,
                     ),
                     onPressed: _isSubmitting ? null : _showImageSourceSheet,
-                    tooltip: 'Dodaj zdjęcie',
+                    tooltip: context.strings.commentsPhoto,
                   ),
                   const Spacer(),
                   ElevatedButton(
@@ -365,7 +385,7 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
                                 color: Colors.white,
                               ),
                             )
-                            : const Text('Dodaj'),
+                            : Text(context.strings.commentsAdd),
                   ),
                 ],
               ),
@@ -394,6 +414,7 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
           )
         else
           ..._comments.map((comment) {
+            final photoBytes = _photoBytes(comment.photoBase64);
             final isMine = comment.userId == currentUserId;
             // Admin widzi przycisk usuwania na KAŻDYM komentarzu (potrzebne
             // do moderacji), nie tylko na własnych.
@@ -458,8 +479,8 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
                           onPressed: () => _delete(comment),
                           tooltip:
                               isMine
-                                  ? 'Usuń komentarz'
-                                  : 'Usuń komentarz (moderacja)',
+                                  ? context.strings.commentsDeleteTooltip
+                                  : context.strings.commentsModerateTooltip,
                         ),
                       // Zgłoś / zablokuj — TYLKO na cudzych komentarzach.
                       if (!isMine)
@@ -479,12 +500,12 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
                         ),
                     ],
                   ),
-                  if (comment.photoBase64 != null) ...[
+                  if (photoBytes != null) ...[
                     const SizedBox(height: 10),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: Image.memory(
-                        base64Decode(comment.photoBase64!),
+                        photoBytes,
                         width: double.infinity,
                         height: 180,
                         fit: BoxFit.cover,

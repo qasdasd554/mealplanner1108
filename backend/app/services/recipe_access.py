@@ -4,12 +4,13 @@ from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundException
+from app.core.language import account_text
 from app.models import Friendship, Recipe, User
 
 
 async def ensure_recipe_access(db: AsyncSession, recipe: Recipe | None, user: User) -> None:
     """Hide inaccessible recipes before attaching them to another resource."""
-    denied = NotFoundException(detail="Przepis nie został znaleziony.")
+    denied = NotFoundException(detail=account_text(user, "Przepis nie został znaleziony.", "Recipe not found."))
     if recipe is None or not getattr(recipe, "is_active", True):
         raise denied
     author = recipe.created_by_user_id

@@ -305,8 +305,12 @@ class RecipeService {
   /// (tylko admin) — wcześniej ten endpoint istniał w backendzie, ale
   /// żaden ekran go nie wywoływał, więc admin nie miał jak w ogóle
   /// odkryć, że jakiś przepis czeka na decyzję.
-  Future<List<Recipe>> getPendingRecipes() async {
-    final response = await _client.get('${ApiConfig.recipes}pending/review');
+  Future<List<Recipe>> getPendingRecipes({String? market}) async {
+    final query =
+        market == null ? '' : '?market=${Uri.encodeQueryComponent(market)}';
+    final response = await _client.get(
+      '${ApiConfig.recipes}pending/review$query',
+    );
     if (response is List) {
       return response
           .map((e) => Recipe.fromJson(e as Map<String, dynamic>))

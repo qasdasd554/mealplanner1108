@@ -36,13 +36,15 @@ class PremiumFeatureTag extends StatelessWidget {
             color: AppTheme.actionAccentColor,
           ),
           SizedBox(width: fontSize * 0.3),
-          Text(
-            label,
-            style: TextStyle(
-              color: AppTheme.actionAccentColor,
-              fontSize: fontSize,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.35,
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: AppTheme.actionAccentColor,
+                fontSize: fontSize,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.35,
+              ),
             ),
           ),
         ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/market_locale.dart';
 import 'package:provider/provider.dart';
 import '../../models/promotion.dart';
 import '../../providers/promotion_provider.dart';
@@ -22,7 +23,10 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<PromotionProvider>(context, listen: false).loadPromotions();
+      Provider.of<PromotionProvider>(
+        context,
+        listen: false,
+      ).loadPromotions(strings: context.strings);
     });
   }
 
@@ -39,7 +43,7 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
                 .toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Promocje')),
+      appBar: AppBar(title: Text(context.strings.promosTitle)),
       body: Column(
         children: [
           if (storeProvider.stores.isNotEmpty)
@@ -52,7 +56,7 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
                   Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: ChoiceChip(
-                      label: const Text('Wszystkie'),
+                      label: Text(context.strings.promosAll),
                       selected: _selectedStore == null,
                       selectedColor: AppTheme.primaryTintColor,
                       onSelected: (_) => setState(() => _selectedStore = null),
@@ -87,7 +91,10 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
                     : filtered.isEmpty
                     ? const _EmptyState()
                     : RefreshIndicator(
-                      onRefresh: () => promotionProvider.loadPromotions(),
+                      onRefresh:
+                          () => promotionProvider.loadPromotions(
+                            strings: context.strings,
+                          ),
                       color: AppTheme.primaryColor,
                       child: ListView.builder(
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
@@ -117,14 +124,15 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              provider.error ?? 'Nie udało się załadować promocji.',
+              provider.error ?? context.strings.promosFailed,
               textAlign: TextAlign.center,
               style: TextStyle(color: AppTheme.textSecondary),
             ),
             const SizedBox(height: 16),
             OutlinedButton(
-              onPressed: () => provider.loadPromotions(),
-              child: const Text('Spróbuj ponownie'),
+              onPressed:
+                  () => provider.loadPromotions(strings: context.strings),
+              child: Text(context.strings.productsRetry),
             ),
           ],
         ),
@@ -223,7 +231,7 @@ class _PromotionTile extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'Wymaga karty lojalnościowej',
+                        context.strings.promosLoyalty,
                         style: TextStyle(
                           color: AppTheme.accentColor,
                           fontSize: 11,
@@ -296,7 +304,7 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Brak aktywnych promocji w tej chwili.',
+              context.strings.promosEmpty,
               textAlign: TextAlign.center,
               style: TextStyle(color: AppTheme.textSecondary),
             ),

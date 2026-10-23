@@ -10,7 +10,9 @@ Obsługuje:
 from __future__ import annotations
 
 import logging
+from datetime import date
 from collections import defaultdict
+from decimal import Decimal
 from typing import Any
 from uuid import UUID
 
@@ -29,12 +31,18 @@ from app.models import (
     ShoppingListItem,
     StoreDepartment,
     StoreProduct,
+    Store,
+    RegionalProductOffer,
 )
 from app.services.exceptions import (
     ProductNotFoundError,
     StoreProductNotFoundError,
 )
 from app.services.nutrition_calculator import NutritionCalculator
+from app.services.regional_shopping import apply_regional_item_quote, load_regional_offers, regional_pricing_date
+from app.services.regional_requirements import to_regional_base_quantity
+from app.services.uk_catalogue_import import canonical_base_unit
+from app.services.regional_offer_pricing import select_uk_offer_quote
 
 logger = logging.getLogger(__name__)
 
@@ -85,6 +93,14 @@ class ProductSubstitutionService:
 
         if not substitutes:
             return []
+
+        store = await self.db.get(Store, store_id)
+        if store is not None and store.country_code == "GB":
+            original = await self.db.get(Product, product_id)
+            return await self._regional_candidates(
+                original, [(sub.substitute_product, sub.similarity_score) for sub in substitutes],
+                store_id=store_id, limit=limit,
+            )
 
         # Pobierz dostępność w sklepie
         substitute_ids = [s.substitute_product_id for s in substitutes]
@@ -240,6 +256,22 @@ class ProductSubstitutionService:
         ref_product = ref_result.scalar_one_or_none()
         if ref_product is None:
             raise ProductNotFoundError(product_id)
+
+        store = await self.db.get(Store, store_id)
+        if store is not None and store.country_code == "GB":
+            local_ids = select(RegionalProductOffer.product_id).where(
+                RegionalProductOffer.store_id == store_id,
+                RegionalProductOffer.country_code == "GB", RegionalProductOffer.currency_code == "GBP",
+                RegionalProductOffer.availability_status == "available_online",
+            )
+            result = await self.db.execute(select(Product).where(
+                Product.id.in_(local_ids), Product.id != product_id, Product.review_status == "approved",
+            ).order_by(Product.id).limit(max(50, min(limit * 20, 200))))
+            reference = self.nutrition.nutrition_vector(ref_product)
+            scored = [(product, self.nutrition.cosine_similarity(reference, self.nutrition.nutrition_vector(product)))
+                      for product in result.scalars().all()]
+            scored.sort(key=lambda row: row[1], reverse=True)
+            return await self._regional_candidates(ref_product, scored, store_id=store_id, limit=limit)
 
         ref_vector = self.nutrition.nutrition_vector(ref_product)
 
@@ -410,6 +442,27 @@ class ProductSubstitutionService:
         from app.models import StoreProduct
         from app.core.exceptions import ProductUnavailableException
 
+        snapshot = getattr(item, "regional_snapshot", None)
+        if snapshot is not None:
+            product = await self.db.get(Product, substitute_product_id)
+            if product is None or product.review_status != "approved":
+                raise ProductUnavailableException(product_id=substitute_product_id, store_id=store_id)
+            try:
+                quantity, unit = to_regional_base_quantity(product, item.required_quantity, item.unit)
+            except ValueError as exc:
+                raise ProductUnavailableException(product_id=substitute_product_id, store_id=store_id) from exc
+            offers = await load_regional_offers(self.db, {product.id}, store_id)
+            quote = select_uk_offer_quote(offers, product_id=product.id, store_id=store_id, quantity=quantity, unit=unit, as_of=regional_pricing_date())
+            if quote is None:
+                raise ProductUnavailableException(product_id=substitute_product_id, store_id=store_id)
+            item.substituted_for = snapshot.product_id
+            apply_regional_item_quote(
+                item, product=product, store_id=store_id,
+                quantity=quantity, unit=unit, offers=offers, as_of=regional_pricing_date(),
+            )
+            item.is_checked = False
+            return item
+
         # Znajdź nowy produkt w sklepie
         stmt = (
             select(StoreProduct)
@@ -444,3 +497,23 @@ class ProductSubstitutionService:
         item.estimated_price = new_price
 
         return item
+    async def _regional_candidates(self, original, candidates, *, store_id, limit):
+        try:
+            unit = canonical_base_unit(original)
+        except (ValueError, AttributeError):
+            return []
+        offers = await load_regional_offers(self.db, {product.id for product, _ in candidates}, store_id)
+        result = []
+        for product, score in candidates:
+            try:
+                if product.review_status != "approved" or canonical_base_unit(product) != unit:
+                    continue
+            except ValueError:
+                continue
+            quote = select_uk_offer_quote(offers, product_id=product.id, store_id=store_id,
+                quantity=Decimal("0.001"), unit=unit, as_of=regional_pricing_date())
+            if quote is not None:
+                result.append({"product": product, "similarity_score": score, "regional_quote": quote})
+            if len(result) >= limit:
+                break
+        return result

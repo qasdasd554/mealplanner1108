@@ -1,6 +1,8 @@
 class Store {
   final String id;
   final String name;
+  final String countryCode;
+  final String currencyCode;
   final String? logoUrl;
   final Map<String, dynamic>? departmentOrder;
   final DateTime createdAt;
@@ -9,6 +11,8 @@ class Store {
   Store({
     required this.id,
     required this.name,
+    this.countryCode = 'PL',
+    this.currencyCode = 'PLN',
     this.logoUrl,
     this.departmentOrder,
     required this.createdAt,
@@ -19,6 +23,8 @@ class Store {
     return Store(
       id: json['id'] as String,
       name: json['name'] as String,
+      countryCode: json['country_code'] as String? ?? 'PL',
+      currencyCode: json['currency_code'] as String? ?? 'PLN',
       logoUrl: json['logo_url'] as String?,
       departmentOrder: json['department_order'] as Map<String, dynamic>?,
       createdAt: DateTime.parse(json['created_at'] as String),
@@ -32,6 +38,8 @@ class Store {
   Map<String, dynamic> toJson() => {
     'id': id,
     'name': name,
+    'country_code': countryCode,
+    'currency_code': currencyCode,
     'logo_url': logoUrl,
     'department_order': departmentOrder,
     'created_at': createdAt.toIso8601String(),

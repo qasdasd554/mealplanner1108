@@ -10,21 +10,92 @@ import uuid
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import get_current_user, get_db
+from app.core.markets import account_country
+from app.core.exceptions import NotFoundException
+from app.models.friendship import Friendship
 from app.models.notification import Notification
-from app.models.recipe import Recipe
+from app.models.recipe import Recipe, RecipeIngredient
 from app.models.recipe_comment import RecipeComment, RecipeCommentLike
 from app.models.user import User
 from app.schemas.moderation import ContentReportCreate, ContentReportResponse
 from app.schemas.recipe_comment import RecipeCommentCreate, RecipeCommentResponse
 from app.services.moderation import get_blocked_user_ids
+from app.services.market_catalog import ensure_recipe_available_in_market
+from app.services.recipe_access import ensure_recipe_access
+from app.services.notification_language import notification_text
 
 router = APIRouter()
+
+
+async def _accessible_recipe(db: AsyncSession, recipe_id: uuid.UUID, user: User) -> Recipe:
+    """A recipe UUID must not bypass its permissions through comment routes.
+
+    Authors and moderators retain access to their editing/review workspace.
+    For everyone else, UK availability is checked just as on recipe detail.
+    Load nutrition/measure relationships only for that UK check, not for every
+    Polish comment request.
+    """
+    recipe = await db.get(Recipe, recipe_id)
+    await ensure_recipe_access(db, recipe, user)
+    if (account_country(user) == "GB"
+            and recipe.created_by_user_id != user.id and user.role != "admin"):
+        result = await db.execute(
+            select(Recipe)
+            .options(selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product))
+            .where(Recipe.id == recipe_id)
+        )
+        recipe = result.scalar_one()
+        await ensure_recipe_available_in_market(db, recipe, user)
+    return recipe
+
+
+async def _notification_recipients(db: AsyncSession, recipe: Recipe, candidate_ids: set[uuid.UUID]) -> list[User]:
+    """Historical participation is not permanent access to future comments.
+
+    Batch-load accounts and accepted friendships. UK eligibility is the same
+    for all ordinary GB recipients, so evaluate it once, never once per user.
+    """
+    if not candidate_ids or not recipe.is_active:
+        return []
+    users = (await db.execute(select(User).where(User.id.in_(candidate_ids)))).scalars().all()
+    author_id = recipe.created_by_user_id
+    public = author_id is None or recipe.visibility == "public"
+    friend_ids = set()
+    if not public and recipe.visibility == "private":
+        friendships = await db.execute(select(Friendship.user_a_id, Friendship.user_b_id).where(
+            Friendship.status == "accepted",
+            or_(
+                and_(Friendship.user_a_id == author_id, Friendship.user_b_id.in_(candidate_ids)),
+                and_(Friendship.user_b_id == author_id, Friendship.user_a_id.in_(candidate_ids)),
+            ),
+        ))
+        for first, second in friendships.all():
+            friend_ids.add(second if first == author_id else first)
+    users = [user for user in users if (
+        public or user.id == author_id or user.role == "admin" or user.id in friend_ids
+    )]
+    gb_readers = [user for user in users if (
+        account_country(user) == "GB" and user.id != author_id and user.role != "admin"
+    )]
+    if gb_readers:
+        result = await db.execute(
+            select(Recipe)
+            .options(selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product))
+            .where(Recipe.id == recipe.id)
+        )
+        loaded_recipe = result.scalar_one()
+        try:
+            await ensure_recipe_available_in_market(db, loaded_recipe, gb_readers[0])
+        except NotFoundException:
+            denied_ids = {user.id for user in gb_readers}
+            users = [user for user in users if user.id not in denied_ids]
+    return users
 
 
 async def _notify_thread_participants(
@@ -76,24 +147,22 @@ async def _notify_thread_participants(
     if recipe.created_by_user_id and recipe.created_by_user_id != author.id:
         recipient_ids.add(recipe.created_by_user_id)
 
-    if not recipient_ids:
+    recipients = await _notification_recipients(db, recipe, recipient_ids)
+    if not recipients:
         return
 
     preview = (new_comment.text or "").strip()
     if len(preview) > 80:
         preview = preview[:80].rstrip() + "…"
-    elif not preview:
-        preview = "dodał(a) zdjęcie"
-
-    author_name = author.display_name or "Ktoś"
-    message = f'{author_name} skomentował(a) "{recipe.name}": {preview}'
-
     created = []
-    for user_id in recipient_ids:
+    for recipient in recipients:
         n = Notification(
-            user_id=user_id,
+            user_id=recipient.id,
             notification_type="recipe_comment",
-            message=message,
+            message=notification_text(recipient,
+                f'{author.display_name or "Ktoś"} skomentował(a) "{recipe.name}": {preview or "dodał(a) zdjęcie"}',
+                f'{author.display_name or "Someone"} commented on "{recipe.name}": {preview or "added a photo"}',
+            ),
             recipe_id=recipe.id,
             comment_id=new_comment.id,
         )
@@ -134,6 +203,7 @@ async def list_recipe_comments(
     komentarz. Komentarze autorów zablokowanych przez bieżącego
     użytkownika są pomijane (patrz Guideline 1.2 Apple — blokada musi
     faktycznie ukrywać treść, nie tylko istnieć jako przycisk)."""
+    await _accessible_recipe(db, recipe_id, current_user)
     blocked_ids = await get_blocked_user_ids(db, current_user.id)
     query = (
         select(RecipeComment)
@@ -181,9 +251,7 @@ async def create_recipe_comment(
             detail="Komentarz musi zawierać tekst, zdjęcie, albo oba naraz.",
         )
 
-    recipe = await db.get(Recipe, recipe_id)
-    if not recipe:
-        raise HTTPException(status_code=404, detail="Nie znaleziono przepisu")
+    recipe = await _accessible_recipe(db, recipe_id, current_user)
 
     comment = RecipeComment(
         recipe_id=recipe_id,
@@ -220,6 +288,9 @@ async def delete_recipe_comment(
     """Usuwa komentarz. Zwykły użytkownik może usuwać tylko własne;
     administrator (rola "admin") może usunąć KAŻDY komentarz —
     potrzebne do moderacji treści."""
+    # Cleanup and moderation remain possible after a recipe becomes private,
+    # inactive or unavailable locally. This path returns no recipe content;
+    # ownership/admin checks below still forbid deleting anybody else's note.
     comment = await db.get(RecipeComment, comment_id)
     if not comment or comment.recipe_id != recipe_id:
         raise HTTPException(status_code=404, detail="Nie znaleziono komentarza")
@@ -239,6 +310,7 @@ async def like_recipe_comment(
 ):
     """Polub komentarz. Idempotentne — polubienie już polubionego
     komentarza nic nie zmienia (nie zwraca błędu)."""
+    recipe = await _accessible_recipe(db, recipe_id, current_user)
     comment = await db.get(RecipeComment, comment_id)
     if not comment or comment.recipe_id != recipe_id:
         raise HTTPException(status_code=404, detail="Nie znaleziono komentarza")
@@ -267,11 +339,17 @@ async def like_recipe_comment(
     # o polubieniu WŁASNEGO komentarza — to jedyny przypadek, w którym
     # użytkownik dostawałby wiadomość o czymś, co sam przed chwilą zrobił.
     if comment.user_id != current_user.id:
+        recipients = await _notification_recipients(db, recipe, {comment.user_id})
+        if not recipients:
+            return
         n = Notification(
             user_id=comment.user_id,
             notification_type="comment_like",
             message=(
-                f"{current_user.display_name or 'Ktoś'} polubił(a) Twój komentarz."
+                notification_text(recipients[0],
+                    f"{current_user.display_name or 'Ktoś'} polubił(a) Twój komentarz.",
+                    f"{current_user.display_name or 'Someone'} liked your comment.",
+                )
             ),
             recipe_id=recipe_id,
             comment_id=comment_id,
@@ -290,6 +368,7 @@ async def unlike_recipe_comment(
 ):
     """Cofnij polubienie. Idempotentne — jeśli nie było polubione, nic
     się nie dzieje (nie zwraca błędu)."""
+    await _accessible_recipe(db, recipe_id, current_user)
     comment = await db.get(RecipeComment, comment_id)
     if not comment or comment.recipe_id != recipe_id:
         raise HTTPException(status_code=404, detail="Nie znaleziono komentarza")
@@ -326,6 +405,7 @@ async def report_recipe_comment(
 
     enforce_user_rate_limit(content_report_limiter, current_user.id, "zgłaszanie treści")
 
+    await _accessible_recipe(db, recipe_id, current_user)
     comment = await db.get(RecipeComment, comment_id)
     if not comment or comment.recipe_id != recipe_id:
         raise HTTPException(status_code=404, detail="Nie znaleziono komentarza")
@@ -350,6 +430,7 @@ async def report_recipe_comment(
             f'{current_user.display_name or "Użytkownik"} zgłosił(a) komentarz '
             "do moderacji."
         ),
+        english_message=f'{current_user.display_name or "A user"} reported a comment for moderation.',
         recipe_id=recipe_id,
     )
     return report

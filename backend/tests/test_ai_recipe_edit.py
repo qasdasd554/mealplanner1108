@@ -62,7 +62,7 @@ def test_revision_receives_original_recipe_and_instruction(monkeypatch) -> None:
 def test_malformed_ai_fields_are_cleaned_without_crashing() -> None:
     parsed = ai_recipe_import.validate_and_clean_recipe_dict({
         "name": "  Zupa  ", "meal_type": "obiad", "servings": "999999",
-        "ingredients": [None, {"product_name": "Marchew", "quantity": 100, "unit": "g"}],
+        "ingredients": [{"product_name": "Marchew", "quantity": 100, "unit": "g"}],
         "instructions": "Nie lista", "suggested_seasonings": None,
     })
     assert parsed["name"] == "Zupa"

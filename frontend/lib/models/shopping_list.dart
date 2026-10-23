@@ -1,3 +1,5 @@
+import '../utils/market_money.dart';
+
 class ShoppingListItem {
   final String id;
   final String? productId;
@@ -11,6 +13,15 @@ class ShoppingListItem {
   bool isChecked;
   final bool isFromPantry;
   final String? substitutedForName;
+  final String currencyCode;
+  final bool priceIsEstimated;
+  final String? quoteStatus;
+  final double? packageQuantity;
+  final String? packageUnit;
+  final int? packageCount;
+  final double? purchasedQuantity;
+  final String? regionalOfferId;
+  final Map<String, dynamic>? priceSource;
 
   ShoppingListItem({
     required this.id,
@@ -25,9 +36,45 @@ class ShoppingListItem {
     required this.isChecked,
     this.isFromPantry = false,
     this.substitutedForName,
+    this.currencyCode = 'PLN',
+    this.priceIsEstimated = true,
+    this.quoteStatus,
+    this.packageQuantity,
+    this.packageUnit,
+    this.packageCount,
+    this.purchasedQuantity,
+    this.regionalOfferId,
+    this.priceSource,
   });
 
   factory ShoppingListItem.fromJson(Map<String, dynamic> json) {
+    final currency = supportedCurrencyCode(
+      json['currency_code']?.toString() ?? 'PLN',
+    );
+    final status = json['quote_status'] as String?;
+    if (status != null &&
+        !const {'quoted', 'unpriced', 'pantry'}.contains(status)) {
+      throw const FormatException('Unsupported shopping quote status');
+    }
+    final price = (json['estimated_price'] as num?)?.toDouble();
+    if (price != null && (!price.isFinite || price < 0)) {
+      throw const FormatException('Invalid shopping price');
+    }
+    final pantry = json['is_from_pantry'] as bool? ?? false;
+    final source = json['price_source'] as Map<String, dynamic>?;
+    final checkedOn = source?['checked_on']?.toString() ?? '';
+    final checkedDate = DateTime.tryParse(checkedOn);
+    final sourceUri = Uri.tryParse(source?['url']?.toString() ?? '');
+    final hasCheckedSource =
+        checkedDate != null &&
+        checkedDate.toIso8601String().substring(0, 10) == checkedOn &&
+        sourceUri != null &&
+        const {'http', 'https'}.contains(sourceUri.scheme) &&
+        sourceUri.host.isNotEmpty &&
+        (source?['publisher']?.toString().trim().isNotEmpty ?? false);
+    final hasBritishPrice =
+        (status == 'quoted' && price != null && price > 0) ||
+        (status == 'pantry' && pantry && price == 0);
     return ShoppingListItem(
       id: json['id'] as String,
       productId: json['product_id'] as String?,
@@ -37,15 +84,36 @@ class ShoppingListItem {
       departmentSortOrder: json['department_sort_order'] as int? ?? 99,
       requiredQuantity: (json['required_quantity'] as num? ?? 0.0).toDouble(),
       unit: json['unit'] as String? ?? 'szt',
-      estimatedPrice:
-          json['estimated_price'] != null
-              ? (json['estimated_price'] as num).toDouble()
-              : null,
+      estimatedPrice: currency == 'GBP' && !hasBritishPrice ? null : price,
       isChecked: json['is_checked'] as bool? ?? false,
-      isFromPantry: json['is_from_pantry'] as bool? ?? false,
+      isFromPantry: pantry,
       substitutedForName: json['substituted_for_name'] as String?,
+      currencyCode: currency,
+      priceIsEstimated:
+          (json['price_is_estimated'] as bool? ?? true) ||
+          (currency == 'GBP' && !pantry && !hasCheckedSource),
+      quoteStatus: status,
+      packageQuantity: (json['package_quantity'] as num?)?.toDouble(),
+      packageUnit: json['package_unit'] as String?,
+      packageCount: json['package_count'] as int?,
+      purchasedQuantity: (json['purchased_quantity'] as num?)?.toDouble(),
+      regionalOfferId: json['regional_offer_id'] as String?,
+      priceSource: source,
     );
   }
+
+  /// Package display is based only on the explicit regional snapshot. It never
+  /// borrows a Polish Product's default quantity or invents a 100 g package.
+  bool get hasReliablePackage =>
+      packageQuantity != null &&
+      packageQuantity!.isFinite &&
+      packageQuantity! > 0 &&
+      const {'g', 'ml'}.contains(packageUnit) &&
+      packageCount != null &&
+      packageCount! > 0 &&
+      purchasedQuantity != null &&
+      purchasedQuantity!.isFinite &&
+      (purchasedQuantity! - packageQuantity! * packageCount!).abs() < 0.001;
 }
 
 class ShoppingList {
@@ -54,7 +122,9 @@ class ShoppingList {
   final String storeId;
   final String storeName;
   final String status;
-  final double totalEstimatedPrice;
+  final double? totalEstimatedPrice;
+  final String currencyCode;
+  final bool hasUnpricedItems;
   final Map<String, List<ShoppingListItem>> itemsByDepartment;
   final DateTime createdAt;
 
@@ -65,11 +135,26 @@ class ShoppingList {
     required this.storeName,
     required this.status,
     required this.totalEstimatedPrice,
+    this.currencyCode = 'PLN',
+    this.hasUnpricedItems = false,
     required this.itemsByDepartment,
     required this.createdAt,
   });
 
-  factory ShoppingList.fromJson(Map<String, dynamic> json) {
+  factory ShoppingList.fromJson(
+    Map<String, dynamic> json, {
+    String? expectedCurrencyCode,
+  }) {
+    // A legacy payload always means PLN, even on a British device/account.
+    final currency = supportedCurrencyCode(
+      json['currency_code']?.toString() ?? 'PLN',
+    );
+    if (expectedCurrencyCode != null &&
+        supportedCurrencyCode(expectedCurrencyCode) != currency) {
+      throw const FormatException(
+        'Shopping list currency does not match account market',
+      );
+    }
     final rawGrouped =
         json['items_by_department'] as Map<String, dynamic>? ?? {};
     final parsedGrouped = <String, List<ShoppingListItem>>{};
@@ -85,6 +170,17 @@ class ShoppingList {
                 .toList();
       }
     });
+    final items = parsedGrouped.values.expand((items) => items);
+    if (items.any((item) => item.currencyCode != currency)) {
+      throw const FormatException('Cannot mix shopping list currencies');
+    }
+    final incomplete =
+        (json['has_unpriced_items'] as bool? ?? false) ||
+        items.any((item) => !item.isFromPantry && item.estimatedPrice == null);
+    final total = (json['total_estimated_price'] as num?)?.toDouble();
+    if (total != null && (!total.isFinite || total < 0)) {
+      throw const FormatException('Invalid shopping list total');
+    }
 
     return ShoppingList(
       id: json['id'] as String,
@@ -93,7 +189,9 @@ class ShoppingList {
       storeName: json['store_name'] as String? ?? '',
       status: json['status'] as String? ?? 'pending',
       totalEstimatedPrice:
-          (json['total_estimated_price'] as num? ?? 0.0).toDouble(),
+          currency == 'GBP' ? (incomplete ? null : total) : total ?? 0.0,
+      currencyCode: currency,
+      hasUnpricedItems: incomplete,
       itemsByDepartment: parsedGrouped,
       createdAt: DateTime.parse(json['created_at'] as String),
     );
@@ -126,12 +224,19 @@ class ShoppingList {
     return sum;
   }
 
-  bool get hasUnknownPrices => itemsByDepartment.values.any(
-    (items) => items.any(
-      (item) =>
-          !item.isFromPantry && !item.isChecked && item.estimatedPrice == null,
-    ),
-  );
+  double? get remainingQuotedPrice =>
+      currencyCode == 'GBP' && hasUnknownPrices ? null : remainingPrice;
+
+  bool get hasUnknownPrices =>
+      (currencyCode == 'GBP' && hasUnpricedItems) ||
+      itemsByDepartment.values.any(
+        (items) => items.any(
+          (item) =>
+              !item.isFromPantry &&
+              !item.isChecked &&
+              item.estimatedPrice == null,
+        ),
+      );
 
   /// Czy wszystko na liście jest już odhaczone (i lista nie jest pusta).
   bool get isFullyChecked => totalItems > 0 && checkedItems == totalItems;

@@ -5,11 +5,12 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, Float, ForeignKey, Integer, String, Text, func
+from sqlalchemy import Boolean, CheckConstraint, DateTime, Float, ForeignKey, Integer, String, Text, event, func, inspect
 from sqlalchemy.dialects.postgresql import JSON, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
+from app.core.markets import SUPPORTED_COUNTRIES
 
 
 class User(Base):
@@ -18,6 +19,7 @@ class User(Base):
     __tablename__ = "users"
     __table_args__ = (
         CheckConstraint("household_size BETWEEN 1 AND 8", name="ck_users_household_size_1_8"),
+        CheckConstraint("country_code IN ('PL', 'GB')", name="ck_users_country_code_supported"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -30,6 +32,11 @@ class User(Base):
     )
     password_hash: Mapped[str] = mapped_column(String(500), nullable=False)
     display_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    # Assigned once from the device region at registration. Existing accounts
+    # and older clients retain PL; logging in abroad never changes this value.
+    country_code: Mapped[str] = mapped_column(
+        String(2), default="PL", server_default="PL", nullable=False,
+    )
     # Opcjonalna publiczna nazwa użytkownika TikTok. Przechowujemy wyłącznie
     # zweryfikowany nick, nigdy dowolny URL, dzięki czemu aplikacja może
     # bezpiecznie zbudować odnośnik https://www.tiktok.com/@nick.
@@ -228,6 +235,15 @@ class User(Base):
 
     def __repr__(self) -> str:
         return f"<User {self.email!r}>"
+
+
+@event.listens_for(User.country_code, "set", retval=True, active_history=True)
+def _keep_registered_country(user, value, previous_value, initiator):
+    if value not in SUPPORTED_COUNTRIES:
+        raise ValueError("Nieobsługiwany kraj konta.")
+    if inspect(user).persistent and previous_value != value:
+        raise ValueError("Kraj konta jest ustalany przy rejestracji i nie można go zmienić.")
+    return value
 
 
 class UserAllergen(Base):

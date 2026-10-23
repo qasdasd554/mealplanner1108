@@ -1,0 +1,1064 @@
+{
+  "Makaron z cukinią i tuńczykiem": {
+    "name": "Courgette and tuna pasta",
+    "description": "Light pasta with fresh courgette and tuna in olive oil — a quick lunch for warm days.",
+    "instructions": [
+      "Cook the penne (160 g) in salted water according to the packet instructions, reserving half a glass of cooking water.",
+      "Heat the olive oil (2 tablespoons) in a frying pan and soften the chopped onion (0.5 onion) with the finely chopped garlic (2 cloves).",
+      "Add the diced courgette (1 courgette) and fry for 6-8 minutes until soft, adding pasta water if needed.",
+      "Season with salt, pepper and oregano (0.5 teaspoon).",
+      "Add the drained pasta and drained tuna (150 g), stir and briefly heat through together.",
+      "Serve sprinkled with grated Parmesan (30 g)."
+    ],
+    "suggested_seasonings": ["fresh basil"]
+  },
+  "Pieczony dorsz z zielonym groszkiem": {
+    "name": "Baked cod with peas",
+    "description": "Tender cod baked with lemon, served with gently cooked peas.",
+    "instructions": [
+      "Preheat the oven to 200°C.",
+      "Pat the cod fillet (400 g) dry, season with salt and pepper, and drizzle with the juice of a lemon (1 lemon) and a tablespoon of olive oil.",
+      "Place the fish in an ovenproof dish and bake for 15-18 minutes until it flakes with a fork.",
+      "Meanwhile, steam the frozen peas (300 g) or cook them in a little water for 4-5 minutes.",
+      "Mix the peas with a tablespoon of butter, finely chopped garlic (1 clove) and chopped dill.",
+      "Serve the fish with the peas, drizzled with the remaining olive oil."
+    ],
+    "suggested_seasonings": ["fresh dill"]
+  },
+  "Placki z twarogiem na słodko": {
+    "name": "Sweet quark pancakes",
+    "description": "Fluffy quark pancakes — a nourishing, sweet breakfast.",
+    "instructions": [
+      "Mash the semi-fat quark (250 g) with a fork in a bowl.",
+      "Add the eggs (2 eggs), wheat flour (60 g) and a pinch of vanilla sugar (4 g), then mix into a smooth batter.",
+      "Heat a frying pan with a little butter (15 g) over a medium heat.",
+      "Spoon in portions of batter and fry for 2-3 minutes on each side until golden.",
+      "Serve with natural yoghurt and your favourite fruit."
+    ],
+    "suggested_seasonings": ["cinnamon"]
+  },
+  "Zupa krem z zielonego groszku": {
+    "name": "Creamy pea soup",
+    "description": "A velvety spring soup — quick and light.",
+    "instructions": [
+      "Gently cook the chopped onion (0.15 kg) in olive oil (1 tablespoon) in a saucepan until soft.",
+      "Add the frozen peas (500 g) and vegetable stock (700 ml), then simmer for 10-12 minutes.",
+      "Blend the soup until smooth.",
+      "Season with salt and pepper, stir in 18% cream (100 ml) and heat without boiling.",
+      "Serve with a piece of crusty bread."
+    ],
+    "suggested_seasonings": ["fresh mint"]
+  },
+  "Stir-fry ryżowy z kurczakiem i warzywami": {
+    "name": "Chicken and vegetable stir-fry with rice",
+    "description": "A quick one-pan dish — chicken and crunchy vegetables in soy sauce.",
+    "instructions": [
+      "Cook the white rice (0.15 kg) according to the packet instructions.",
+      "Cut the chicken breast (0.3 kg) into strips and season with salt and pepper.",
+      "Fry the chicken in hot rapeseed oil (2 tablespoons) until golden, then transfer to a plate.",
+      "In the same pan, stir-fry the frozen mixed vegetables (400 g) with finely grated fresh ginger (10 g) for 5-6 minutes.",
+      "Return the chicken to the pan, pour in the soy sauce (3 tablespoons), stir and heat for 2 minutes.",
+      "Serve over the rice."
+    ],
+    "suggested_seasonings": ["coriander"]
+  },
+  "Owsianka z orzechami włoskimi na mleku migdałowym": {
+    "name": "Almond milk porridge with walnuts",
+    "description": "A filling plant-based breakfast with crunchy nuts.",
+    "instructions": [
+      "Place the oats (60 g) in a pan, pour over the almond milk (250 ml) and cook over a low heat for 5-7 minutes, stirring.",
+      "Remove from the heat and add the chopped walnuts (20 g) and sliced banana (0.1 kg).",
+      "Drizzle with a teaspoon of honey before serving."
+    ],
+    "suggested_seasonings": ["cinnamon"]
+  },
+  "Fit burger z kurczaka": {
+    "name": "Lighter chicken burger",
+    "description": "A homemade burger with grilled chicken instead of fried beef.",
+    "instructions": [
+      "Lightly flatten the chicken breast (0.3 kg) and season with salt, pepper and sweet paprika (5 g).",
+      "Grill or pan-fry in a little rapeseed oil (1 tablespoon) for 4-5 minutes on each side.",
+      "Halve the Kaiser rolls (2 rolls) and lightly toast them in a frying pan.",
+      "Layer iceberg lettuce (0.5 lettuce), a slice of tomato, the chicken and a slice of Gouda (40 g) on the bottom halves.",
+      "Add mustard to taste and cover with the other halves of the rolls."
+    ],
+    "suggested_seasonings": ["smoked paprika"]
+  },
+  "Sałatka cezar z kurczakiem": {
+    "name": "Chicken Caesar salad",
+    "description": "A lighter version of the classic salad with grilled chicken and Parmesan.",
+    "instructions": [
+      "Season the chicken breast (0.25 kg) with salt and pepper, pan-fry in olive oil (1 tablespoon) for 5-6 minutes on each side, then cut into strips.",
+      "Dice the white bread (80 g) and toast in a dry frying pan to make croutons.",
+      "Tear the iceberg lettuce (1 lettuce) into pieces and arrange on a plate.",
+      "Arrange the chicken and croutons over the lettuce and sprinkle with grated Parmesan (30 g).",
+      "Drizzle with a little olive oil and the juice of a lemon (0.5 lemon)."
+    ],
+    "suggested_seasonings": []
+  },
+  "Omlet bananowy na słodko": {
+    "name": "Sweet banana omelette",
+    "description": "A fluffy omelette with no added sugar, sweetened with ripe banana.",
+    "instructions": [
+      "Beat the eggs (2 eggs) with a fork, adding a little vanilla sugar (3 g) and cinnamon.",
+      "Heat a frying pan with butter (10 g) over a medium heat.",
+      "Pour in the egg mixture and cook for 2-3 minutes until the underside is set.",
+      "Arrange the banana slices (0.12 kg) on one half, fold the omelette in half and cook for another minute."
+    ],
+    "suggested_seasonings": ["cinnamon"]
+  },
+  "Owsianka na noc z chia i owocami": {
+    "name": "Overnight oats with chia and fruit",
+    "description": "Prepare in the evening, enjoy in the morning — cold oats with chia seeds.",
+    "instructions": [
+      "Mix the oats (50 g), chia seeds (15 g) and almond milk (200 ml) in a jar.",
+      "Add a teaspoon of honey, stir and close the jar.",
+      "Refrigerate overnight.",
+      "In the morning, stir and top with strawberries (80 g) and blueberries (50 g)."
+    ],
+    "suggested_seasonings": []
+  },
+  "Sałatka z wędzonym łososiem, mango i awokado": {
+    "name": "Smoked salmon, mango and avocado salad",
+    "description": "A refreshing salad pairing smoked salmon with sweet mango.",
+    "instructions": [
+      "Tear the iceberg lettuce (1 lettuce) into pieces and arrange on plates.",
+      "Peel and dice the mango (1 mango) and avocado (1 avocado).",
+      "Cut the smoked salmon (150 g) into strips.",
+      "Arrange the mango, avocado and salmon over the lettuce.",
+      "Drizzle with lime juice (1 lime) and olive oil (1 tablespoon), then season with pepper."
+    ],
+    "suggested_seasonings": ["fresh coriander"]
+  },
+  "Makaron z brokułem w sosie śmietanowym": {
+    "name": "Pasta with broccoli in a cream sauce",
+    "description": "Creamy pasta with broccoli and Parmesan — a filling vegetarian lunch.",
+    "instructions": [
+      "Cook the penne (180 g) in salted water according to the packet instructions.",
+      "Cut the broccoli (1 broccoli) into florets and steam for 5 minutes.",
+      "Gently cook the finely chopped garlic (2 cloves) in butter (15 g) in a frying pan.",
+      "Add the 30% cream (150 ml) and heat, stirring, until slightly thickened.",
+      "Add the pasta, broccoli and grated Parmesan (40 g), stir and season with salt and pepper."
+    ],
+    "suggested_seasonings": ["nutmeg"]
+  },
+  "Tost z awokado i mozzarellą": {
+    "name": "Avocado and mozzarella toast",
+    "description": "A quick, filling breakfast on crisp toast.",
+    "instructions": [
+      "Toast the white bread (60 g) in a toaster or dry frying pan.",
+      "Mash the avocado (1 avocado) with a fork, adding salt, pepper and lemon juice (0.25 lemon).",
+      "Spread the avocado mixture over the toast.",
+      "Top with mozzarella slices (60 g) and chopped tomatoes (0.1 kg)."
+    ],
+    "suggested_seasonings": ["fresh basil"]
+  },
+  "Granola na słono z jajkiem i pomidorkami": {
+    "name": "Savoury granola with eggs and tomatoes",
+    "description": "An unusual, filling breakfast — crunchy granola with a savoury twist.",
+    "instructions": [
+      "Toast the oats (50 g) in a dry frying pan with a little rapeseed oil (1 teaspoon) until golden.",
+      "In a separate pan, fry the eggs (2 eggs) with a little butter (10 g).",
+      "Halve the tomatoes (0.1 kg) and briefly fry alongside the eggs.",
+      "Serve the crunchy oats beside the eggs and tomatoes, seasoned with salt and pepper."
+    ],
+    "suggested_seasonings": ["chives"]
+  },
+  "Dorsz na parze z warzywami i ziemniakami": {
+    "name": "Steamed cod with vegetables and potatoes",
+    "description": "An easy-to-digest steamed lunch — with no added fat.",
+    "instructions": [
+      "Peel and dice the potatoes (0.4 kg), then steam for 15 minutes.",
+      "Season the cod fillet (350 g) with salt and pepper and place in a steamer.",
+      "Add the frozen mixed vegetables (300 g) to the steamer for the last 8 minutes of cooking.",
+      "Steam the fish for 8-10 minutes until it flakes with a fork.",
+      "Serve the fish with the potatoes and vegetables, drizzled with olive oil (1 tablespoon) and lemon juice."
+    ],
+    "suggested_seasonings": ["dill"]
+  },
+  "Kanapki z szynką, serem i sałatą": {
+    "name": "Ham, cheese and lettuce sandwiches",
+    "description": "Classic, filling sandwiches for a quick breakfast or a packed lunch.",
+    "instructions": [
+      "Slice the white bread (80 g).",
+      "Top the slices with iceberg lettuce leaves (0.25 lettuce), cooked ham slices (60 g) and Gouda (30 g).",
+      "Add sliced tomato (0.08 kg) and coarsely grated carrot (0.05 kg).",
+      "Cover with another slice of bread and cut in half."
+    ],
+    "suggested_seasonings": []
+  },
+  "Sałatka z makaronem, brokułem i wędzonym łososiem": {
+    "name": "Pasta salad with broccoli and smoked salmon",
+    "description": "A filling pasta salad, ideal for taking to work.",
+    "instructions": [
+      "Cook the penne (160 g) in salted water according to the packet instructions, then drain and leave to cool slightly.",
+      "Cut the broccoli (1 broccoli) into small florets and steam for 4-5 minutes.",
+      "Cut the smoked salmon (120 g) into pieces.",
+      "Mix the pasta with the broccoli and salmon.",
+      "Drizzle with olive oil (2 tablespoons) and lemon juice (0.5 lemon), then season with salt and pepper."
+    ],
+    "suggested_seasonings": ["dill"]
+  },
+  "Szybka zupa curry z ciecierzycą": {
+    "name": "Quick curried chickpea soup",
+    "description": "A warming, fragrant soup ready in under half an hour.",
+    "instructions": [
+      "Gently cook the chopped onion (0.15 kg) and grated garlic (2 cloves) in rapeseed oil (1 tablespoon) in a saucepan.",
+      "Add the curry powder (15 g) and briefly toast, stirring.",
+      "Pour in the vegetable stock (600 ml) and coconut milk (400 ml), then bring to the boil.",
+      "Add the drained tinned chickpeas (400 g) and simmer for 10 minutes.",
+      "Season with salt and pepper, adding dried chilli for a hotter version."
+    ],
+    "suggested_seasonings": ["dried chilli", "coriander"]
+  },
+  "Jabłko z masłem orzechowym": {
+    "name": "Apple with peanut butter",
+    "description": "A quick, nourishing sweet snack.",
+    "instructions": ["Wash the apple (1 apple) and cut into wedges or slices.", "Serve with peanut butter (30 g) for dipping."],
+    "suggested_seasonings": []
+  },
+  "Marchewki z hummusem": {
+    "name": "Carrots with hummus",
+    "description": "Crunchy carrots dipped in creamy hummus.",
+    "instructions": ["Peel the carrots (200 g) and cut into sticks.", "Serve with hummus (50 g) as a dip."],
+    "suggested_seasonings": ["cumin", "smoked paprika"]
+  },
+  "Jogurt naturalny z malinami": {
+    "name": "Natural yoghurt with raspberries",
+    "description": "A light protein snack.",
+    "instructions": ["Spoon the natural yoghurt (150 g) into a bowl.", "Top with raspberries (50 g), fresh or thawed."],
+    "suggested_seasonings": ["cinnamon", "vanilla"]
+  },
+  "Owsianka na mleku migdałowym": {
+    "name": "Almond milk porridge",
+    "description": "Porridge made with plant-based milk and banana.",
+    "instructions": ["Bring the almond milk (200 ml) to the boil in a small saucepan.", "Add the oats (50 g) and cook over a low heat for 5 minutes, stirring.", "Remove from the heat and leave for 2 minutes to thicken.", "Slice the banana (1 banana) and arrange over the porridge."],
+    "suggested_seasonings": ["cinnamon", "vanilla"]
+  },
+  "Sałatka grecka": {
+    "name": "Greek salad",
+    "description": "A classic salad with feta and olives.",
+    "instructions": ["Dice the tomatoes (300 g) and cucumber, and thinly slice the onion (100 g).", "Mix the vegetables in a bowl and add the crumbled feta and olives (50 g).", "Drizzle with olive oil (20 ml) and toss gently just before serving."],
+    "suggested_seasonings": ["oregano", "dried mint"]
+  },
+  "Jajecznica z pomidorami": {
+    "name": "Scrambled eggs with tomatoes",
+    "description": "Classic scrambled eggs with ripe tomatoes, served with bread.",
+    "instructions": ["Heat the butter (20 g) in a frying pan over a medium heat.", "Dice the tomatoes (200 g) and fry for 2-3 minutes.", "Beat the eggs (4 eggs), season with salt (2 g) and pepper, then pour into the pan.", "Cook, stirring, until the eggs are just set — do not overcook."],
+    "suggested_seasonings": ["chives", "sweet paprika"]
+  },
+  "Kanapki z szynką i serem": {
+    "name": "Ham and cheese sandwiches",
+    "description": "Simple breakfast sandwiches with ham, cheese and vegetables.",
+    "instructions": ["Slice the bread (200 g).", "Arrange the ham slices (100 g) and cheese on the bread.", "Add vegetables of your choice and close the sandwiches."],
+    "suggested_seasonings": ["chives", "mustard"]
+  },
+  "Owsianka z jogurtem": {
+    "name": "Porridge with yoghurt",
+    "description": "Warm porridge with natural yoghurt, ideal for a nourishing breakfast.",
+    "instructions": ["Bring the milk (300 ml) to the boil in a small saucepan and add the oats (100 g).", "Cook over a low heat for about 5 minutes, stirring occasionally.", "Remove from the heat and stir in a spoonful of natural yoghurt (150 g) for creaminess.", "Serve straight away, while warm."],
+    "suggested_seasonings": ["cinnamon"]
+  },
+  "Kotlet schabowy z ziemniakami": {
+    "name": "Breaded pork cutlet with potatoes",
+    "description": "A traditional Polish breaded pork cutlet, served with potatoes.",
+    "instructions": [
+      "Peel the potatoes (500 g), halve any larger ones so they cook evenly, and place in a saucepan of cold salted water.",
+      "Bring to the boil and cook, covered, over a medium heat for 15-20 minutes until a knife slides easily into the centre.",
+      "Meanwhile, cover the pork loin (400 g) with cling film and flatten with a meat mallet into slices about 1 cm thick. Season both sides with salt (3 g) and pepper.",
+      "Prepare three plates: one with flour, one with beaten eggs (2 eggs), and one with breadcrumbs.",
+      "Coat each cutlet in flour, shaking off the excess, then egg and finally breadcrumbs, pressing firmly so the coating sticks.",
+      "Heat the oil in a frying pan. Drop in a few breadcrumbs to check: if they sizzle immediately, the oil is ready.",
+      "Fry the cutlets for 3-4 minutes on each side until golden brown. Do not turn too soon or the coating will tear.",
+      "Drain the cooked cutlets on kitchen paper to remove excess fat.",
+      "Serve with the drained potatoes and, if you like, your favourite slaw."
+    ],
+    "suggested_seasonings": ["marjoram", "sweet paprika"]
+  },
+  "Spaghetti bolognese": {
+    "name": "Spaghetti Bolognese",
+    "description": "Classic spaghetti with a meat Bolognese sauce made with tomato passata.",
+    "instructions": [
+      "Finely dice the onion (150 g) and finely chop the garlic (half a clove).",
+      "Heat the oil in a frying pan over a medium heat, add the onion and garlic, and fry for 3-4 minutes until the onion is soft and translucent.",
+      "Add the mince (300 g), break it up with a fork and fry for 6-8 minutes until browned and no longer pink.",
+      "Pour in the tomato passata (250 g), season with salt (3 g), pepper and basil (2 g), and stir thoroughly.",
+      "Reduce the heat, cover and simmer the sauce for 15 minutes, stirring every few minutes to prevent sticking.",
+      "Bring plenty of salted water to the boil, add the pasta (250 g) and cook al dente according to the packet timing. Taste a piece before draining.",
+      "Drain the pasta, reserving half a glass of cooking water in case the sauce is too thick.",
+      "Combine the hot pasta and sauce, stir and serve straight away, preferably with grated Parmesan."
+    ],
+    "suggested_seasonings": ["oregano", "chilli flakes", "nutmeg"]
+  },
+  "Kurczak z ryżem i warzywami": {
+    "name": "Chicken with rice and vegetables",
+    "description": "A light lunch — grilled chicken breast with rice and vegetables.",
+    "instructions": ["Dice the chicken breast (400 g) and season with salt (3 g) and pepper.", "Cook the rice (200 g) in salted water according to the packet instructions.", "Fry the chicken in oil for about 6-8 minutes until cooked.", "Add the chopped vegetables (carrot (200 g) and pepper) and fry for another 5 minutes.", "Mix with the cooked rice and serve."],
+    "suggested_seasonings": ["sweet paprika", "turmeric", "curry powder"]
+  },
+  "Zupa pomidorowa z makaronem": {
+    "name": "Tomato soup with pasta",
+    "description": "Homemade tomato soup made with passata, served with small pasta shapes.",
+    "instructions": ["Bring the vegetable stock to the boil in a saucepan.", "Add the tomato passata (500 g) and chopped tomatoes, then bring back to the boil.", "Season with salt (5 g), pepper and basil, and simmer for 10 minutes.", "Cook the small pasta shapes (150 g) separately according to the packet instructions.", "Add the pasta to the soup just before serving, with a little cream (100 ml) if desired."],
+    "suggested_seasonings": ["fresh basil", "oregano", "sugar (to balance the acidity)"]
+  },
+  "Sałatka z łososiem": {
+    "name": "Salmon salad",
+    "description": "A light salad with smoked salmon, cucumber and tomatoes.",
+    "instructions": ["Arrange the iceberg lettuce (0.5 lettuce) on a plate as a base.", "Dice the tomatoes (200 g) and cucumber, and add to the lettuce.", "Arrange the smoked salmon slices (100 g) on top.", "Drizzle with olive oil (20 ml) and season with salt (2 g) and pepper."],
+    "suggested_seasonings": ["dill", "lemon juice"]
+  },
+  "Naleśniki z serem": {
+    "name": "Quark-filled pancakes",
+    "description": "Delicate pancakes filled with quark and made with butter.",
+    "instructions": ["Mix the flour (150 g), eggs and milk (250 ml) into a smooth pancake batter, and season with a pinch of salt (2 g).", "Fry thin pancakes in a hot pan with a little butter for 1-2 minutes on each side.", "Mash the quark (250 g) with a little sugar for the filling.", "Spread the filling on the pancakes, roll them up and serve."],
+    "suggested_seasonings": ["vanilla", "lemon zest"]
+  },
+  "Tosty z jajkiem i awokado": {
+    "name": "Egg and avocado toast",
+    "description": "Crisp toast with fried eggs and creamy avocado.",
+    "instructions": ["Toast the bread slices (200 g) in a toaster or dry frying pan.", "Mash the avocado flesh (1 avocado) with a fork and season with salt (2 g), pepper and lemon juice.", "Fry the eggs (2 eggs) in butter.", "Spread the avocado on the toast and top with the eggs."],
+    "suggested_seasonings": ["chilli flakes", "smoked paprika"]
+  },
+  "Shakshuka": {
+    "name": "Shakshuka",
+    "description": "Eggs cooked in a spicy tomato sauce with pepper and onion.",
+    "instructions": [
+      "Finely dice the onion (100 g) and finely chop the garlic (2 cloves).",
+      "Heat the olive oil (30 ml) in a deep-sided frying pan with room for the eggs. Fry the onion and garlic for 3-4 minutes until soft.",
+      "Dice the pepper, add to the pan and fry for another 3-4 minutes.",
+      "Pour in the chopped tomatoes (400 g), season with sweet paprika, salt and pepper, and simmer over a medium heat for 10 minutes until slightly thickened.",
+      "Make 4 wells in the sauce with a spoon and carefully crack an egg into each (4 eggs in total).",
+      "Cover the pan and cook over a low heat for 6-8 minutes. The whites should be set and the yolks slightly runny; cook longer if you prefer them firmer.",
+      "Serve straight away from the pan, preferably with fresh bread for dipping."
+    ],
+    "suggested_seasonings": ["cumin", "smoked paprika", "chilli flakes"]
+  },
+  "Pad Thai z kurczakiem": {
+    "name": "Chicken Pad Thai",
+    "description": "Classic Thai stir-fried noodles with chicken, peanuts and lime.",
+    "instructions": [
+      "Soak the rice noodles (200 g) in warm water according to the packet instructions, usually 10-15 minutes, until soft, then drain.",
+      "Cut the chicken (300 g) into thin strips.",
+      "Heat the oil in a large frying pan over a medium-high heat. Stir-fry the chicken for 5-6 minutes until white inside; check by cutting through the largest piece. Transfer to a plate.",
+      "In the same pan, fry the garlic and vegetables for 2-3 minutes until slightly softened but still crunchy.",
+      "Add the soaked noodles, cooked chicken and soy sauce (30 ml), then stir-fry for 2-3 minutes, stirring constantly.",
+      "Serve hot straight away, sprinkled with roasted nuts for crunch."
+    ],
+    "suggested_seasonings": ["chilli flakes", "roasted peanuts", "lime"]
+  },
+  "Bowl z quinoa i awokado": {
+    "name": "Quinoa and avocado bowl",
+    "description": "A healthy bowl with quinoa, fresh avocado, tomatoes and hummus.",
+    "instructions": ["Cook the quinoa (100 g) in salted water according to the packet instructions and leave to cool.", "Slice the avocado (1 avocado) and quarter the tomatoes.", "Place the quinoa in a bowl and add the avocado, tomatoes and other toppings.", "Drizzle with olive oil (15 ml) and lemon juice, then season with salt and pepper."],
+    "suggested_seasonings": ["cumin", "lime juice", "fresh coriander"]
+  },
+  "Risotto z grzybami leśnymi": {
+    "name": "Wild mushroom risotto",
+    "description": "Creamy risotto with mixed wild mushrooms and Parmesan.",
+    "instructions": [
+      "Finely chop the onion (100 g). Dissolve the stock (1 cube) in a saucepan of hot water and keep over a low heat — risotto needs hot stock.",
+      "Melt the butter in a frying pan, add the onion and fry for 3-4 minutes until soft.",
+      "Add the sliced mushrooms (200 g) and fry for 4-5 minutes until softened and their released liquid has evaporated.",
+      "Add the rice and fry for 1-2 minutes, stirring, until the edges of the grains turn translucent.",
+      "Add a ladleful of hot stock and stir until absorbed before adding the next.",
+      "Keep adding stock in batches for about 18-20 minutes, stirring constantly to release the starch and create a creamy texture.",
+      "Check the rice towards the end: it should be tender but retain a little bite in the centre (al dente).",
+      "Remove from the heat, season with salt and pepper, and stir in a spoonful of butter (30 g) for shine and creaminess. Serve immediately."
+    ],
+    "suggested_seasonings": ["thyme", "nutmeg"]
+  },
+  "Overnight oats z chia i owocami": {
+    "name": "Overnight oats with chia and fruit",
+    "description": "Oats prepared in the evening — ready to eat with fruit in the morning.",
+    "instructions": ["Mix the oats (80 g), chia seeds (20 g) and almond milk in a jar.", "Stir thoroughly, cover and refrigerate overnight.", "In the morning, stir again and top with fresh fruit (raspberries and banana (1 banana))."],
+    "suggested_seasonings": ["cinnamon", "vanilla"]
+  },
+  "Jajka na twardo z awokado i tostem": {
+    "name": "Hard-boiled eggs with avocado and toast",
+    "description": "A nourishing protein breakfast with creamy avocado.",
+    "instructions": ["Hard-boil the eggs (4 eggs) for about 9 minutes from boiling, then cool and peel.", "Toast the bread slices (100 g) in a toaster.", "Mash the avocado (1 avocado) with a fork and season with salt (2 g).", "Spread the avocado on the toast and serve with the sliced eggs."],
+    "suggested_seasonings": ["chilli flakes", "chives"]
+  },
+  "Granola owsiana z miodem i orzechami": {
+    "name": "Oat granola with honey and nuts",
+    "description": "Homemade granola — crunchy, sweet and great with yoghurt.",
+    "instructions": ["Preheat the oven to 160°C.", "Mix the oats (300 g), chopped nuts, honey and oil (30 ml) in a bowl.", "Spread on a lined baking tray and bake for 18-20 minutes, stirring halfway through.", "Leave to cool completely so it turns crunchy. Store in a jar."],
+    "suggested_seasonings": ["cinnamon", "vanilla"]
+  },
+  "Kanapki z pastą jajeczną": {
+    "name": "Egg spread sandwiches",
+    "description": "A classic egg sandwich spread, ready in 10 minutes.",
+    "instructions": ["Hard-boil the eggs (4 eggs), then cool and peel.", "Mash the eggs with a fork, add the softened butter (20 g) and mustard, and mix.", "Spread over the bread slices (120 g) and serve."],
+    "suggested_seasonings": ["chives", "sweet paprika"]
+  },
+  "Placki jaglane na słodko": {
+    "name": "Sweet millet pancakes",
+    "description": "Millet pancakes — an easy-to-digest, gluten-free breakfast.",
+    "instructions": [
+      "Rinse the millet (150 g) under running water to remove any bitterness, then place in a saucepan with twice its volume of water.",
+      "Bring to the boil, reduce the heat and cook, covered, for 12-15 minutes until the water is absorbed and the millet is soft. Leave to cool.",
+      "Mix the cooled millet with the eggs, milk (100 ml) and sugar into a smooth, thick batter.",
+      "Heat a little oil in a frying pan and spoon in the mixture to form small pancakes.",
+      "Fry for 2-3 minutes on one side until the edges set and the underside is golden, then turn with a spatula.",
+      "Fry for another 2-3 minutes until golden on both sides. Serve warm with fruit or honey."
+    ],
+    "suggested_seasonings": ["cinnamon", "vanilla"]
+  },
+  "Omlet z warzywami": {
+    "name": "Vegetable omelette",
+    "description": "A fluffy omelette with pepper, onion and cheese.",
+    "instructions": ["Beat the eggs (3 eggs) with a little salt.", "Fry the chopped pepper (0.5 pepper) and onion in butter for 3-4 minutes.", "Pour the eggs into the pan and cook, covered, over a low heat.", "When the omelette is almost set, sprinkle with cheese, fold in half and remove from the heat."],
+    "suggested_seasonings": ["chives", "oregano"]
+  },
+  "Musli z mlekiem kokosowym i mango": {
+    "name": "Muesli with coconut milk and mango",
+    "description": "An exotic, refreshing cold breakfast.",
+    "instructions": ["Dice the mango (1 mango).", "Mix the oats (60 g) with coconut milk (80 ml) in a bowl.", "Top with the mango and flaked almonds (15 g)."],
+    "suggested_seasonings": ["cinnamon", "ground ginger"]
+  },
+  "Tost francuski z cynamonem": {
+    "name": "Cinnamon French toast",
+    "description": "A sweet weekend breakfast — crisp outside and soft inside.",
+    "instructions": ["Beat the eggs (2 eggs) with milk (100 ml) and cinnamon in a shallow dish.", "Briefly soak both sides of the bread slices (150 g) in the mixture.", "Fry in butter until golden, for 2 minutes on each side.", "Serve immediately, sprinkled with sugar or drizzled with honey if desired."],
+    "suggested_seasonings": ["vanilla", "nutmeg"]
+  },
+  "Smoothie bowl bananowo-truskawkowe": {
+    "name": "Banana and strawberry smoothie bowl",
+    "description": "A thick smoothie served in a bowl with crunchy toppings.",
+    "instructions": ["Blend the frozen or fresh banana (1 banana), strawberries (150 g) and yoghurt until smooth.", "Pour into a bowl.", "Top with chia seeds (10 g) and extra pieces of fruit."],
+    "suggested_seasonings": ["cinnamon"]
+  },
+  "Kanapka z hummusem i warzywami": {
+    "name": "Hummus and vegetable sandwich",
+    "description": "A light, plant-based sandwich for a quick breakfast.",
+    "instructions": ["Spread the hummus (60 g) over the bread slices.", "Top with sliced cucumber (0.5 cucumber) and pepper (0.3 pepper).", "Close the sandwich and serve."],
+    "suggested_seasonings": ["cumin", "smoked paprika"]
+  },
+  "Owsianka z masłem orzechowym i bananem": {
+    "name": "Porridge with peanut butter and banana",
+    "description": "Filling sweet porridge to fuel your whole morning.",
+    "instructions": ["Bring the milk (200 ml) to the boil, add the oats and cook for 5 minutes, stirring.", "Remove from the heat and stir in the peanut butter (20 g).", "Top with banana slices (1 banana) and serve warm."],
+    "suggested_seasonings": ["cinnamon"]
+  },
+  "Jajka sadzone z pomidorami i bazylią": {
+    "name": "Fried eggs with tomatoes and basil",
+    "description": "A simple pan-cooked breakfast — ready in 10 minutes.",
+    "instructions": ["Heat the butter (10 g) in a frying pan and fry the chopped tomatoes for 3 minutes.", "Crack the eggs (2 eggs) directly into the pan between the tomatoes.", "Cook, covered, for 3-4 minutes until set to your liking.", "Sprinkle with basil (1 g) and serve immediately."],
+    "suggested_seasonings": ["fresh oregano", "chilli flakes"]
+  },
+  "Naleśniki jaglane z owocami": {
+    "name": "Millet pancakes with fruit",
+    "description": "Thin, gluten-free pancakes made with millet.",
+    "instructions": [
+      "Rinse the millet (100 g), cook in water until tender for about 12-15 minutes, then drain and cool.",
+      "Blend the cooled millet with the eggs (2 eggs) and milk (150 ml) into a smooth, runny batter without lumps.",
+      "Heat a non-stick frying pan over a medium heat and grease lightly.",
+      "Pour in a thin layer of batter, immediately swirling the pan to coat the base evenly.",
+      "Fry for 1-2 minutes until the edges start to lift, turn with a spatula and cook the other side for another minute.",
+      "Repeat with the remaining batter, stacking the cooked pancakes.",
+      "Serve with chopped strawberries (100 g); you can roll the pancakes up."
+    ],
+    "suggested_seasonings": ["cinnamon", "vanilla"]
+  },
+  "Makaron z brokułami i parmezanem": {
+    "name": "Pasta with broccoli and Parmesan",
+    "description": "Simple, creamy pasta — ideal for a quick lunch.",
+    "instructions": ["Cook the pasta (250 g) in salted water according to the packet instructions.", "Cut the broccoli (1 broccoli) into florets and cook in the pasta water for 5 minutes, during the final minutes of cooking.", "Drain the pasta and broccoli, then briefly fry with olive oil (20 ml) and crushed garlic (2 cloves).", "Sprinkle with grated Parmesan (40 g) and serve."],
+    "suggested_seasonings": ["chilli flakes", "nutmeg"]
+  },
+  "Krem z brokułów": {
+    "name": "Creamy broccoli soup",
+    "description": "A velvety soup, ready in half an hour.",
+    "instructions": ["Fry the onion (100 g) in a saucepan, then add the chopped potatoes (300 g) and broccoli florets (1 broccoli).", "Cover with water and dissolved stock, then simmer for 15-18 minutes until the vegetables are tender.", "Blend the soup until smooth.", "Stir in the cream (100 ml) and season with salt and pepper."],
+    "suggested_seasonings": ["nutmeg", "thyme"]
+  },
+  "Krem z kalafiora": {
+    "name": "Creamy cauliflower soup",
+    "description": "A delicate, creamy soup — a lovely choice for colder days.",
+    "instructions": ["Cut the cauliflower (1 cauliflower) into florets, and peel and chop the potatoes (200 g).", "Cook the vegetables in stock (2 cubes) dissolved in water for 18-20 minutes until tender.", "Blend until smooth and season with salt and pepper.", "Stir in the cream (100 ml) just before serving."],
+    "suggested_seasonings": ["nutmeg", "turmeric"]
+  },
+  "Zupa krem z pieczarek": {
+    "name": "Creamy mushroom soup",
+    "description": "A creamy version of classic mushroom soup.",
+    "instructions": ["Fry the chopped onion (100 g) in butter, add the sliced mushrooms and fry for 8 minutes.", "Pour in stock (2 cubes) dissolved in water and simmer for 10 minutes.", "Blend most of the soup, leaving some mushroom pieces for texture.", "Stir in the cream (100 ml) and season with salt and pepper."],
+    "suggested_seasonings": ["thyme", "marjoram"]
+  },
+  "Zupa jarzynowa z porem": {
+    "name": "Vegetable soup with leek",
+    "description": "A warming vegetable soup made with stock.",
+    "instructions": ["Dice the leek, carrot (200 g) and potatoes.", "Cover the vegetables with water and dissolved stock (2 cubes).", "Simmer for 20-25 minutes until the vegetables are tender.", "Season with salt and pepper to taste."],
+    "suggested_seasonings": ["bay leaf", "allspice", "lovage"]
+  },
+  "Kurczak curry z ryżem": {
+    "name": "Chicken curry with rice",
+    "description": "A fragrant coconut milk curry — mild and filling.",
+    "instructions": [
+      "Cut the chicken (500 g) into cubes about 2 cm across, and finely dice the onion (100 g).",
+      "Heat the oil in a frying pan, add the chicken and onion, and fry for 6-8 minutes, stirring, until the chicken is browned on all sides.",
+      "Add the curry powder (10 g) and fry, stirring, for 1 minute until strongly fragrant.",
+      "Pour in the coconut milk (400 ml), stir, reduce the heat and simmer uncovered for 15 minutes until the sauce thickens.",
+      "Meanwhile, cook the rice (250 g) according to the packet instructions.",
+      "Check the chicken is cooked by cutting through the largest piece — it must not be pink inside.",
+      "Serve the curry over the rice, hot and straight away."
+    ],
+    "suggested_seasonings": ["fresh coriander", "chilli flakes", "ground ginger"]
+  },
+  "Gulasz wołowo-wieprzowy": {
+    "name": "Beef and pork stew",
+    "description": "A thick, warming, slow-simmered stew.",
+    "instructions": [
+      "Dice the onion (200 g) and cut the meat into pieces about 2-3 cm across.",
+      "Heat the oil in a heavy-based saucepan and fry the onion for 3-4 minutes until soft.",
+      "Add the meat and fry for 5-7 minutes until each piece is browned on all sides, giving the stew a deeper flavour.",
+      "Add the sweet paprika (5 g), stir and fry for only 1 minute; cooking it longer can make it bitter.",
+      "Pour in the passata (300 g) and enough water to almost cover the meat, then cover the saucepan.",
+      "Reduce the heat and simmer for 25 minutes. The meat should fall apart easily with a fork; tougher cuts may need more time.",
+      "Separately, cook the peeled potatoes (400 g) in salted water for 15-20 minutes until tender.",
+      "Serve the stew with the potatoes and season with salt and pepper to taste."
+    ],
+    "suggested_seasonings": ["sweet paprika", "caraway", "marjoram", "bay leaf"]
+  },
+  "Chili con carne": {
+    "name": "Chilli con carne",
+    "description": "A spicy, filling one-pot dish with beans.",
+    "instructions": [
+      "Finely dice the onion (150 g).",
+      "Heat the oil in a saucepan and fry the onion for 3 minutes until soft.",
+      "Add the mince (400 g), break it up with a spatula and fry for 6-7 minutes until browned and no longer pink.",
+      "Add the chilli and cumin (5 g), then fry, stirring, for 1 minute until fragrant.",
+      "Pour in the chopped tomatoes (400 g) and the beans with their tinned liquid, then stir thoroughly.",
+      "Reduce the heat, cover and simmer for 20-25 minutes, stirring occasionally to prevent sticking.",
+      "Taste and season with salt, pepper or extra chilli as desired. Serve hot."
+    ],
+    "suggested_seasonings": ["oregano", "smoked paprika", "cinnamon (a pinch)"]
+  },
+  "Tacos z indykiem": {
+    "name": "Turkey tacos",
+    "description": "A Mexican classic — crisp tortillas with a spicy filling.",
+    "instructions": ["Cut the turkey (400 g) into strips and fry in oil until cooked, about 8 minutes.", "Add the chopped pepper (1 pepper) and onion, and fry for another 5 minutes.", "Warm the tortillas (6 tortillas) in a dry frying pan.", "Spoon the filling onto the tortillas with torn lettuce (0.2 lettuce) and roll up."],
+    "suggested_seasonings": ["cumin", "chilli powder", "fresh coriander"]
+  },
+  "Burrito bowl z kurczakiem": {
+    "name": "Chicken burrito bowl",
+    "description": "A colourful Mexican-style bowl packed with filling ingredients.",
+    "instructions": ["Cook the rice (150 g) according to the packet instructions.", "Dice the chicken (300 g) and fry in oil until cooked.", "Heat the beans (200 g), and chop the avocado (1 avocado) and tomatoes (150 g).", "Arrange all the ingredients in layers in a bowl."],
+    "suggested_seasonings": ["cumin", "fresh coriander", "lime juice"]
+  },
+  "Makaron z tuńczykiem i pomidorami": {
+    "name": "Tuna and tomato pasta",
+    "description": "A quick lunch using tinned ingredients — ready in 20 minutes.",
+    "instructions": ["Cook the pasta (200 g) in salted water according to the packet instructions.", "Fry the crushed garlic (2 cloves) in olive oil (15 ml), add the chopped tomatoes and simmer for 8 minutes.", "Add the drained tuna (150 g), stir and heat for 2 minutes.", "Combine the sauce with the pasta and serve."],
+    "suggested_seasonings": ["chilli flakes", "parsley"]
+  },
+  "Sałatka z kurczakiem i awokado": {
+    "name": "Chicken and avocado salad",
+    "description": "A filling lunch salad, rich in protein and healthy fats.",
+    "instructions": ["Season the chicken (300 g) with salt and pepper, pan-fry for 8-10 minutes, then cool and slice.", "Tear the lettuce (0.3 lettuce), and chop the tomatoes (150 g) and avocado.", "Mix all the ingredients in a bowl.", "Drizzle with olive oil (15 ml) and serve."],
+    "suggested_seasonings": ["smoked paprika", "lime juice"]
+  },
+  "Sałatka z ciecierzycą i fetą": {
+    "name": "Chickpea and feta salad",
+    "description": "A protein-packed, plant-based salad with Mediterranean flavours.",
+    "instructions": ["Drain and rinse the chickpeas (400 g).", "Chop the cucumber (1 cucumber) and tomatoes (200 g), and crumble the feta.", "Mix all the ingredients in a bowl.", "Drizzle with olive oil (20 ml) and season with salt and pepper."],
+    "suggested_seasonings": ["oregano", "sumac"]
+  },
+  "Soczewica po indyjsku (dal)": {
+    "name": "Indian-style lentil dal",
+    "description": "A warming, plant-based one-pot curry dish.",
+    "instructions": ["Fry the onion (100 g) and garlic (2 cloves), add the curry powder and fry for 1 minute.", "Add the rinsed lentils (250 g) and water (about 600 ml), then simmer for 15 minutes.", "Pour in the coconut milk (200 ml) and simmer for another 5-8 minutes until the lentils are soft.", "Season with salt to taste and serve with rice."],
+    "suggested_seasonings": ["ground coriander", "turmeric", "ground ginger", "chilli flakes"]
+  },
+  "Kotlety mielone z indyka": {
+    "name": "Turkey mince patties",
+    "description": "Light poultry patties, a good alternative to classic meat patties.",
+    "instructions": ["Mince or finely chop the turkey (500 g), then mix with the onion (100 g), egg and breadcrumbs (40 g).", "Season with salt and pepper and shape into patties.", "Fry in oil for 4-5 minutes on each side until cooked."],
+    "suggested_seasonings": ["marjoram", "sweet paprika"]
+  },
+  "Kurczak pieczony z warzywami": {
+    "name": "Roast chicken with vegetables",
+    "description": "A one-pot lunch straight from the oven.",
+    "instructions": ["Preheat the oven to 200°C.", "Cut the potatoes (500 g) and carrots (300 g) into pieces, then toss with oil, salt and pepper.", "Arrange the vegetables and chicken (600 g) on a baking tray, drizzle with olive oil (30 ml) and season.", "Bake for 35-40 minutes until the chicken and vegetables are golden."],
+    "suggested_seasonings": ["thyme", "rosemary", "smoked paprika"]
+  },
+  "Dorsz pieczony z cytryną i ziołami": {
+    "name": "Cod baked with lemon and herbs",
+    "description": "A light fish lunch — ready in half an hour.",
+    "instructions": ["Preheat the oven to 190°C.", "Place the cod fillets (400 g) on a baking tray and drizzle with olive oil (15 ml) and lemon juice (1 lemon).", "Sprinkle with oregano (2 g), salt and pepper.", "Bake for 15-18 minutes until the fish is white and flakes easily with a fork."],
+    "suggested_seasonings": ["dill", "thyme"]
+  },
+  "Krewetki curry z ryżem": {
+    "name": "Prawn curry with rice",
+    "description": "A quick, fragrant Asian-style dish.",
+    "instructions": [
+      "If the prawns (250 g) are frozen, thaw them beforehand in the fridge or under cold water. Do not cook from frozen.",
+      "Cook the rice (150 g) according to the packet instructions.",
+      "Heat a little oil in a frying pan, add the curry powder (8 g) and fry, stirring, for about 30-60 seconds until fragrant.",
+      "Pour in the coconut milk (200 ml), stir into the spice and bring to the boil.",
+      "Add the prawns and cook for 4-5 minutes. They are ready when pink, opaque and slightly curled; cooking longer will toughen them.",
+      "Serve the prawn curry over the cooked rice."
+    ],
+    "suggested_seasonings": ["fresh coriander", "chilli flakes"]
+  },
+  "Placki ziemniaczane": {
+    "name": "Potato pancakes",
+    "description": "Crisp pancakes, a Polish classic.",
+    "instructions": ["Finely grate the potatoes (800 g) and onion, then squeeze out excess water.", "Add the egg (1 egg) and flour, season with salt and mix.", "Fry the pancakes in hot oil for 3-4 minutes on each side.", "Serve with cream or yoghurt."],
+    "suggested_seasonings": ["nutmeg", "marjoram"]
+  },
+  "Bigos szybki": {
+    "name": "Quick bigos",
+    "description": "A simplified version of classic bigos for a weekday lunch.",
+    "instructions": [
+      "Slice the sausage (300 g) about 1 cm thick and dice the onion (150 g).",
+      "Heat a heavy-based saucepan and fry the sausage and onion together for 5-6 minutes until the sausage is lightly browned.",
+      "Shred the cabbage (1 cabbage) into thin strips.",
+      "Add the cabbage to the saucepan with the chopped tomatoes (400 g) and stir thoroughly.",
+      "Cover and simmer over a low heat for 30-35 minutes, stirring occasionally to prevent the cabbage sticking.",
+      "Season with salt, pepper and a little sweet paprika, stir and taste before serving."
+    ],
+    "suggested_seasonings": ["bay leaf", "allspice", "caraway", "marjoram"]
+  },
+  "Pierogi leniwe": {
+    "name": "Lazy quark dumplings",
+    "description": "Quark dumplings — quicker than traditional pierogi.",
+    "instructions": ["Mash the quark (500 g) with the eggs, add the flour (150 g) and knead into a uniform dough.", "Shape into a log, cut into pieces and form dumplings.", "Cook in boiling salted water until they float to the surface, about 3-4 minutes.", "Drizzle with melted butter (20 g) and serve."],
+    "suggested_seasonings": ["vanilla", "cinnamon"]
+  },
+  "Kotlety schabowe z kapustą pekińską": {
+    "name": "Pork cutlets with Chinese cabbage",
+    "description": "A variation on the classic cutlet with a light slaw.",
+    "instructions": [
+      "Cover the pork loin (600 g) with cling film and flatten with a meat mallet into slices about 1 cm thick. Season both sides with salt and pepper.",
+      "Prepare three plates: one with flour, one with beaten egg (1 egg), and one with breadcrumbs.",
+      "Coat each cutlet in flour, then egg and finally breadcrumbs, pressing firmly so the coating sticks.",
+      "Heat the oil in a frying pan and fry the cutlets for 3-4 minutes on each side until the coating is golden and the meat is white inside.",
+      "Drain the cutlets on kitchen paper.",
+      "Meanwhile, finely shred the Chinese cabbage (1 cabbage), drizzle with olive oil, season with salt and toss.",
+      "Serve the cutlets with the Chinese cabbage slaw."
+    ],
+    "suggested_seasonings": ["marjoram", "caraway"]
+  },
+  "Makaron z cukinią i parmezanem": {
+    "name": "Courgette and Parmesan pasta",
+    "description": "Light, summery pasta — ready in a quarter of an hour.",
+    "instructions": ["Cook the pasta (200 g) in salted water according to the packet instructions.", "Cut the courgettes (2 courgettes) into half-moons and fry in olive oil (20 ml) with garlic for 6-8 minutes.", "Combine the pasta with the courgettes and add the grated Parmesan (40 g).", "Season with salt and pepper and serve immediately."],
+    "suggested_seasonings": ["chilli flakes", "fresh basil"]
+  },
+  "Risotto z krewetkami": {
+    "name": "Prawn risotto",
+    "description": "Creamy seafood risotto.",
+    "instructions": [
+      "Finely chop the onion (100 g).",
+      "Melt the butter in a frying pan and fry the onion for 3 minutes until soft.",
+      "Add the rice and fry for 1-2 minutes, stirring, until the edges of the grains turn translucent.",
+      "Dissolve the stock (2 cubes) in a saucepan of hot water and keep over a low heat.",
+      "Add the hot stock a ladleful at a time, stirring constantly and waiting until each addition is absorbed before adding the next, for about 18 minutes.",
+      "For the final 4-5 minutes of cooking, add the prawns (200 g). They are ready when pink.",
+      "Remove from the heat, season with salt and pepper, and serve straight away while creamy."
+    ],
+    "suggested_seasonings": ["parsley", "chilli flakes"]
+  },
+  "Kasza gryczana z pieczarkami i cebulą": {
+    "name": "Buckwheat with mushrooms and onion",
+    "description": "A filling vegetarian dish in traditional Polish style.",
+    "instructions": ["Cook the buckwheat (200 g) according to the packet instructions.", "Fry the onion in oil (20 ml) until translucent, then add the sliced mushrooms (300 g).", "Fry together for 8-10 minutes until the mushrooms are browned.", "Mix with the cooked buckwheat and season with salt and pepper."],
+    "suggested_seasonings": ["marjoram", "thyme"]
+  },
+  "Zapiekanka z cukinii i sera": {
+    "name": "Courgette and cheese bake",
+    "description": "A light oven-baked vegetable dish.",
+    "instructions": ["Preheat the oven to 190°C.", "Slice the courgettes (2 courgettes) and tomatoes (200 g), then arrange alternating slices in an ovenproof dish.", "Drizzle with olive oil (15 ml) and season with salt, oregano and pepper.", "Sprinkle with grated mozzarella and bake for 25-30 minutes until the cheese is golden."],
+    "suggested_seasonings": ["oregano", "basil"]
+  },
+  "Bakłażan zapiekany po grecku": {
+    "name": "Greek-style baked aubergine",
+    "description": "A fragrant, plant-based lunch with Mediterranean flavours.",
+    "instructions": [
+      "Preheat the oven to 200°C, using top and bottom heat without the fan if possible.",
+      "Cut the aubergine (1 aubergine) into slices about 1 cm thick.",
+      "Arrange on a lined baking tray and drizzle both sides with olive oil.",
+      "Bake for 15 minutes until the edges start to colour lightly.",
+      "Remove the tray, spoon the chopped tomatoes (400 g) over the slices and season with oregano (3 g), salt and pepper.",
+      "Sprinkle the crumbled feta (100 g) over the top.",
+      "Bake for another 10 minutes until the feta is golden and the aubergine is soft when tested with a fork. Serve immediately."
+    ],
+    "suggested_seasonings": ["oregano", "cinnamon (a pinch, Greek style)"]
+  },
+  "Sałatka z tuńczykiem i jajkiem": {
+    "name": "Tuna and egg salad",
+    "description": "A light, protein-rich supper ready in 15 minutes.",
+    "instructions": ["Hard-boil the eggs (3 eggs), then cool, peel and slice.", "Tear the lettuce (0.3 lettuce) and chop the tomatoes (150 g).", "Mix all the ingredients with the drained tuna (150 g).", "Drizzle with olive oil (15 ml) and season with salt and pepper."],
+    "suggested_seasonings": ["dill", "chives"]
+  },
+  "Kanapki caprese": {
+    "name": "Caprese sandwiches",
+    "description": "An Italian classic in a sandwich — tomato, mozzarella and basil.",
+    "instructions": ["Slice the bread (120 g), mozzarella (125 g) and tomatoes (200 g).", "Arrange alternating slices of cheese and tomato on the bread.", "Drizzle with olive oil (15 ml) and sprinkle with basil (1 g) and salt."],
+    "suggested_seasonings": ["fresh basil", "oregano"]
+  },
+  "Sałatka caprese": {
+    "name": "Caprese salad",
+    "description": "A simple, elegant salad for warm evenings.",
+    "instructions": ["Slice the tomatoes (300 g) and mozzarella.", "Arrange alternating slices on a plate.", "Drizzle with olive oil (20 ml) and balsamic vinegar, then sprinkle with basil (2 g), salt and pepper."],
+    "suggested_seasonings": ["fresh basil", "oregano"]
+  },
+  "Omlet na słono z serem i szczypiorkiem": {
+    "name": "Savoury cheese and chive omelette",
+    "description": "A simple, quick savoury supper.",
+    "instructions": ["Beat the eggs (3 eggs) with salt and pepper.", "Heat the butter (10 g) in a frying pan, pour in the eggs and cook, covered, over a low heat.", "Sprinkle with grated cheese and fold in half once set."],
+    "suggested_seasonings": ["sweet paprika"]
+  },
+  "Tost z hummusem i warzywami": {
+    "name": "Hummus and vegetable toast",
+    "description": "A light, plant-based supper ready in a few minutes.",
+    "instructions": ["Toast the bread slices (80 g).", "Spread with hummus (60 g).", "Top with slices of pepper (0.3 pepper) and cucumber."],
+    "suggested_seasonings": ["cumin", "smoked paprika"]
+  },
+  "Sałatka z soczewicy i fety": {
+    "name": "Lentil and feta salad",
+    "description": "A filling, plant-based supper salad.",
+    "instructions": ["Cook the lentils (150 g) in salted water for about 10-12 minutes, then drain and cool.", "Chop the tomatoes (200 g) and crumble the feta.", "Mix all the ingredients and drizzle with olive oil (15 ml).", "Season with salt and pepper to taste."],
+    "suggested_seasonings": ["cumin", "fresh mint"]
+  },
+  "Wrap z kurczakiem i warzywami": {
+    "name": "Chicken and vegetable wrap",
+    "description": "A quick, satisfying wrapped supper.",
+    "instructions": ["Cut the chicken (250 g) into strips and fry in oil until cooked.", "Warm the tortillas (2 tortillas) in a dry frying pan.", "Place the chicken, torn lettuce (0.2 lettuce) and tomatoes (100 g) on a tortilla.", "Roll up and serve."],
+    "suggested_seasonings": ["smoked paprika", "cumin"]
+  },
+  "Quesadilla z serem": {
+    "name": "Cheese quesadilla",
+    "description": "A crisp Mexican snack for supper.",
+    "instructions": ["Sprinkle one tortilla (2 tortillas in total) with grated cheese and chopped pepper (0.5 pepper).", "Cover with the second tortilla.", "Cook in a dry frying pan for 2-3 minutes on each side until the cheese melts.", "Cut into quarters and serve."],
+    "suggested_seasonings": ["cumin", "chilli powder"]
+  },
+  "Zupa krem z brokuła i sera": {
+    "name": "Creamy broccoli and cheese soup",
+    "description": "A creamy, warming soup for the evening.",
+    "instructions": ["Cook the broccoli (1 broccoli) in stock until tender, about 15 minutes.", "Blend until smooth.", "Stir in the grated cheese and cream (100 ml), then heat without bringing to the boil.", "Season with salt and pepper."],
+    "suggested_seasonings": ["nutmeg", "thyme"]
+  },
+  "Kanapki z pastą z ciecierzycy": {
+    "name": "Chickpea spread sandwiches",
+    "description": "A plant-based sandwich spread — filling and full of fibre.",
+    "instructions": ["Drain the chickpeas (400 g), then mash with a fork or blend.", "Add the olive oil (20 ml) and crushed garlic (a clove), then mix into a smooth spread.", "Season with salt and pepper.", "Spread over the bread slices (120 g) and serve."],
+    "suggested_seasonings": ["cumin", "smoked paprika"]
+  },
+  "Sałatka grecka z krewetkami": {
+    "name": "Greek salad with prawns",
+    "description": "A filling seafood version of Greek salad.",
+    "instructions": [
+      "If the prawns are frozen, thaw them beforehand.",
+      "Heat a little oil in a frying pan and fry the prawns for 3-4 minutes until pink and opaque. Do not overcook or they will become rubbery. Set aside to cool.",
+      "Dice the tomatoes (200 g) and cucumber.",
+      "Mix the chopped vegetables and cooled prawns in a bowl.",
+      "Add the crumbled feta and olives (50 g), then toss gently so you do not crush the feta.",
+      "Drizzle with olive oil, season with salt to taste and serve immediately."
+    ],
+    "suggested_seasonings": ["oregano", "lemon juice"]
+  },
+  "Zupa krem porowa": {
+    "name": "Creamy leek soup",
+    "description": "A delicate, elegant soup for supper.",
+    "instructions": ["Chop the leeks (2 leeks) and potatoes (200 g), then cook in stock for 18-20 minutes until tender.", "Blend until smooth.", "Stir in the cream (100 ml) and season with salt and pepper."],
+    "suggested_seasonings": ["nutmeg", "thyme"]
+  },
+  "Tosty z pastą jajeczną i szczypiorkiem": {
+    "name": "Toast with egg spread and chives",
+    "description": "A classic sandwich spread for supper.",
+    "instructions": ["Hard-boil the eggs (4 eggs), then cool and peel.", "Mash the eggs with a fork and the softened butter (15 g).", "Season with salt and pepper and spread over the toast."],
+    "suggested_seasonings": ["sweet paprika"]
+  },
+  "Sałatka z awokado i jajkiem": {
+    "name": "Avocado and egg salad",
+    "description": "A creamy, filling evening salad.",
+    "instructions": ["Hard-boil the eggs (3 eggs), then cool, peel and quarter.", "Dice the avocado (1 avocado) and tear the lettuce (0.3 lettuce).", "Mix the ingredients in a bowl and drizzle with olive oil (15 ml).", "Season with salt and pepper."],
+    "suggested_seasonings": ["smoked paprika", "lemon juice"]
+  },
+  "Pieczone chipsy z kalafiora": {
+    "name": "Baked cauliflower crisps",
+    "description": "A crunchy, healthy alternative to crisps.",
+    "instructions": ["Preheat the oven to 200°C.", "Cut the cauliflower (1 cauliflower) into small florets.", "Toss with olive oil (20 ml), sweet paprika (3 g) and salt.", "Bake for 18-20 minutes until the edges are golden."],
+    "suggested_seasonings": ["turmeric", "garlic granules"]
+  },
+  "Kulki mocy owsiano-orzechowe": {
+    "name": "Oat and nut energy balls",
+    "description": "A homemade no-bake energy snack.",
+    "instructions": ["Mix the oats (150 g), peanut butter (100 g) and honey until uniform.", "Add the chopped nuts and mix.", "Shape into small balls with your hands.", "Refrigerate for at least 30 minutes before serving."],
+    "suggested_seasonings": ["cinnamon", "vanilla"]
+  },
+  "Pieczona chrupiąca ciecierzyca": {
+    "name": "Crispy roast chickpeas",
+    "description": "A crunchy, seasoned snack instead of crisps.",
+    "instructions": ["Preheat the oven to 200°C.", "Drain the chickpeas (400 g) and pat dry with kitchen paper.", "Toss with olive oil (20 ml), cumin and salt.", "Bake for 20-25 minutes, shaking the tray halfway through, until crisp."],
+    "suggested_seasonings": ["smoked paprika", "garlic granules", "chilli powder"]
+  },
+  "Smoothie mango-bananowe": {
+    "name": "Mango and banana smoothie",
+    "description": "A refreshing fruit smoothie for a quick snack.",
+    "instructions": ["Chop the mango and banana (1 banana).", "Blend the fruit with almond milk (200 ml) until smooth.", "Pour into a glass and serve immediately."],
+    "suggested_seasonings": ["cinnamon"]
+  },
+  "Jogurt z granolą i miodem": {
+    "name": "Yoghurt with granola and honey",
+    "description": "A simple, sweet snack for any time of day.",
+    "instructions": ["Spoon the yoghurt (150 g) into a bowl.", "Sprinkle with oats (30 g).", "Drizzle with honey (15 g) and serve immediately."],
+    "suggested_seasonings": ["cinnamon"]
+  },
+  "Sałatka owocowa": {
+    "name": "Fruit salad",
+    "description": "A colourful mix of fresh fruit.",
+    "instructions": ["Dice the mango (1 mango), strawberries (150 g) and banana.", "Mix with the blueberries (100 g) in a bowl.", "Serve chilled, drizzled with honey if desired."],
+    "suggested_seasonings": ["fresh mint", "lime juice"]
+  },
+  "Guacamole z warzywami": {
+    "name": "Guacamole with vegetables",
+    "description": "A creamy Mexican dip with crunchy vegetables for dipping.",
+    "instructions": ["Mash the avocado flesh (2 avocados) with a fork.", "Add lemon juice (0.5 lemon) and finely chopped onion (50 g), then mix.", "Season with salt and pepper.", "Serve with carrot sticks (200 g) for dipping."],
+    "suggested_seasonings": ["fresh coriander", "chilli flakes", "cumin"]
+  },
+  "Musli batoniki owsiane": {
+    "name": "Oat muesli bars",
+    "description": "Homemade cereal bars — great for taking with you.",
+    "instructions": [
+      "Preheat the oven to 170°C and line a small baking tin with baking paper.",
+      "Gently heat the honey (80 g) and peanut butter (60 g) in a small saucepan, stirring until smooth and combined. Do not bring to the boil.",
+      "Remove from the heat, add the oats (200 g) and almonds, and mix thoroughly.",
+      "Transfer the mixture to the tin and press firmly with your hand or the back of a spoon until compact and even.",
+      "Bake for 15-18 minutes until the edges are golden.",
+      "Remove and leave to cool COMPLETELY in the tin for at least 30 minutes. Cutting while warm will make the bars crumble.",
+      "Only once completely cool, cut into bars with a sharp knife."
+    ],
+    "suggested_seasonings": ["cinnamon", "vanilla"]
+  },
+  "Tost z awokado i pomidorem": {
+    "name": "Avocado and tomato toast",
+    "description": "Simple, fully plant-based toast for a quick breakfast.",
+    "instructions": ["Toast the white bread slices (100 g) in a toaster or dry frying pan.", "Mash the avocado (1 avocado) with a fork, season with salt and drizzle with a little lemon juice.", "Spread the avocado over the toast and top with sliced tomatoes (150 g)."],
+    "suggested_seasonings": ["black pepper", "chilli flakes"]
+  },
+  "Curry z ciecierzycą i szpinakiem": {
+    "name": "Chickpea and spinach curry",
+    "description": "A warming, fully plant-based curry — filling and quick.",
+    "instructions": ["Fry the chopped onion (100 g) in rapeseed oil until translucent.", "Add the curry powder (10 g) and fry for 30 seconds until fragrant.", "Pour in the coconut milk (200 ml), then add the chickpeas (400 g) and frozen spinach (200 g).", "Simmer over a low heat for 12-15 minutes until the spinach has thawed and the sauce has thickened slightly.", "Season with salt to taste."],
+    "suggested_seasonings": ["coriander", "chilli"]
+  },
+  "Sałatka z ciecierzycą i awokado": {
+    "name": "Chickpea and avocado salad",
+    "description": "A filling, fully plant-based salad for supper.",
+    "instructions": ["Drain the chickpeas (400 g) and place in a bowl.", "Add the diced avocado (1 avocado) and tomatoes (200 g).", "Drizzle with lemon juice (1 lemon) and olive oil (20 g), then season with salt.", "Toss gently so you do not crush the avocado."],
+    "suggested_seasonings": ["cumin", "parsley"]
+  },
+  "Makaron z pomidorami i bazylią": {
+    "name": "Tomato and basil pasta",
+    "description": "Classic, fully plant-based pasta pomodoro.",
+    "instructions": ["Cook the penne (200 g) in salted water according to the packet instructions.", "Fry the crushed garlic (2 cloves) in olive oil until fragrant.", "Add the chopped tomatoes (400 g) and simmer over a low heat for 10-12 minutes until the sauce thickens.", "Stir in the dried basil (2 g), then add the drained pasta to the sauce and mix."],
+    "suggested_seasonings": ["fresh basil", "chilli flakes"]
+  },
+  "Kasza gryczana z warzywami": {
+    "name": "Buckwheat with vegetables",
+    "description": "A filling, fully plant-based dish of buckwheat and pan-fried vegetables.",
+    "instructions": ["Cook the buckwheat (200 g) according to the packet instructions.", "Fry the diced courgette (1 courgette), pepper (1 pepper) and onion (100 g) in olive oil.", "Fry for 8-10 minutes until the vegetables soften.", "Mix with the cooked buckwheat and season with salt and pepper."],
+    "suggested_seasonings": ["smoked paprika", "marjoram"]
+  },
+  "Awokado z jajkiem sadzonym": {
+    "name": "Avocado with fried eggs",
+    "description": "A low-carbohydrate breakfast without bread.",
+    "instructions": ["Halve the avocado (1 avocado) and remove the stone.", "Heat the butter (10 g) in a frying pan and fry the eggs (2 eggs).", "Place the eggs on the avocado halves and season with salt and pepper."],
+    "suggested_seasonings": ["chilli flakes", "chives"]
+  },
+  "Kurczak z masłem ziołowym i brokułem": {
+    "name": "Chicken with herb butter and broccoli",
+    "description": "A low-carbohydrate, high-protein lunch.",
+    "instructions": ["Season the chicken breast (350 g) with salt and pepper, then fry in olive oil on both sides until golden and tender, about 6-7 minutes per side.", "Steam or boil the broccoli (1 broccoli) for 5-6 minutes.", "Melt the butter (20 g) with the crushed garlic (2 cloves) and pour over the chicken and broccoli before serving."],
+    "suggested_seasonings": ["thyme", "rosemary"]
+  },
+  "Jajka na twardo": {
+    "name": "Hard-boiled eggs",
+    "description": "The simplest high-protein, low-carbohydrate snack.",
+    "instructions": ["Place the eggs (3 eggs) in a small saucepan and cover with cold water.", "Bring to the boil, then simmer over a low heat for 8-9 minutes.", "Rinse under cold water, peel and season with salt before eating."],
+    "suggested_seasonings": ["black pepper", "chives"]
+  },
+  "Oliwki z serem feta": {
+    "name": "Olives with feta",
+    "description": "A Mediterranean, low-carbohydrate snack.",
+    "instructions": ["Mix the black olives (50 g) with the diced feta (50 g).", "Drizzle with olive oil (10 g) and serve."],
+    "suggested_seasonings": ["oregano", "black pepper"]
+  },
+  "Twaróg z miodem": {
+    "name": "Quark with honey",
+    "description": "A simple, high-protein sweet snack.",
+    "instructions": ["Place the semi-fat quark (150 g) on a small plate.", "Drizzle with honey (20 g) and serve."],
+    "suggested_seasonings": ["nuts", "cinnamon"]
+  },
+  "Szynka z serem": {
+    "name": "Ham with cheese",
+    "description": "A quick, high-protein snack with no cooking.",
+    "instructions": ["Arrange the cooked ham slices (80 g) and Gouda (50 g) on a plate."],
+    "suggested_seasonings": ["mustard", "cress"]
+  },
+  "Jogurt z orzechami": {
+    "name": "Yoghurt with nuts",
+    "description": "A simple, high-protein snack.",
+    "instructions": ["Spoon the natural yoghurt (200 g) into a bowl.", "Sprinkle with walnuts (20 g) and serve."],
+    "suggested_seasonings": ["honey", "cinnamon"]
+  },
+  "Sałatka z tuńczyka i ogórkiem": {
+    "name": "Tuna and cucumber salad",
+    "description": "A light, high-protein snack with no cooking.",
+    "instructions": ["Drain the tuna (100 g) and mix with the diced cucumber (1 cucumber).", "Drizzle with olive oil (10 g) and season with salt and pepper."],
+    "suggested_seasonings": ["dill", "lemon"]
+  },
+  "Mandarynkowe skrzydełka z airfryera": {
+    "name": "Air fryer mandarin chicken wings",
+    "description": "Juicy wings in a citrus and tamari glaze.",
+    "instructions": ["Squeeze the mandarins and combine the juice with tamari, honey and grated garlic.", "Toss the wings with half the glaze and arrange in a single layer in the basket.", "Cook for 24 minutes at 180°C, turning after 12 minutes.", "Brush with the remaining glaze and cook for 2 more minutes. Check that the meat is fully cooked."],
+    "suggested_seasonings": ["ginger", "chilli flakes"]
+  },
+  "Łosoś teriyaki z fasolką z airfryera": {
+    "name": "Air fryer teriyaki salmon with green beans",
+    "description": "Salmon and fresh green beans cooked together in one basket.",
+    "instructions": ["Brush the salmon with teriyaki sauce and toss the green beans with olive oil.", "Place the green beans in the basket and cook for 3 minutes at 190°C.", "Add the salmon and cook everything for another 8 minutes until the fish flakes easily with a fork.", "Sprinkle with sesame seeds and serve with lime."],
+    "suggested_seasonings": ["pepper", "ginger"]
+  },
+  "Paluszki z dorsza w panko z airfryera": {
+    "name": "Air fryer panko cod fingers",
+    "description": "Homemade fish fingers in a crisp panko coating.",
+    "instructions": ["Cut the cod into thick strips and pat thoroughly dry.", "Coat the pieces in flour, beaten egg and then panko.", "Spray with olive oil and cook for 10–12 minutes at 190°C, turning halfway through.", "Serve with yoghurt mixed with lemon juice."],
+    "suggested_seasonings": ["sweet paprika", "pepper"]
+  },
+  "Krewetki kokosowe z airfryera": {
+    "name": "Air fryer coconut prawns",
+    "description": "Prawns in a light coconut coating with sweet chilli sauce.",
+    "instructions": ["Pat the prawns dry and dip into beaten egg.", "Mix the panko with desiccated coconut and coat the prawns.", "Arrange without overlapping and cook for 7–8 minutes at 190°C.", "Serve immediately with sweet chilli sauce and lime."],
+    "suggested_seasonings": ["salt", "pepper"]
+  },
+  "Polędwiczka w musztardzie francuskiej z airfryera": {
+    "name": "Air fryer pork tenderloin with wholegrain mustard",
+    "description": "Tender pork with wholegrain mustard and sage.",
+    "instructions": ["Rub the meat with mustard, olive oil, chopped sage and pepper.", "Cook for 16–20 minutes at 190°C, turning halfway through.", "Check the meat is cooked at its thickest point.", "Rest for 5 minutes before slicing to keep the juices in the meat."],
+    "suggested_seasonings": ["salt", "pepper"]
+  },
+  "Kofty z indyka z miętowym skyrem": {
+    "name": "Turkey koftas with mint skyr",
+    "description": "Fragrant lean turkey koftas with a cool mint sauce.",
+    "instructions": ["Mix the meat with chopped onion, cumin and half the mint.", "Shape into elongated koftas and cook for 10–12 minutes at 190°C, turning once.", "Make sure the meat is not raw inside.", "Mix the skyr with the remaining mint and lemon juice, then serve as a sauce."],
+    "suggested_seasonings": ["cumin", "ground coriander"]
+  },
+  "Chrupiące tofu w sosie pomarańczowym": {
+    "name": "Crispy tofu in orange sauce",
+    "description": "Tofu cubes with a citrus sauce and sesame seeds.",
+    "instructions": ["Pat the tofu dry, dice and coat in cornflour.", "Cook for 12–14 minutes at 195°C, shaking the basket halfway through.", "Heat the orange juice with tamari, honey and ginger until slightly thickened.", "Toss the tofu with the sauce and sprinkle with sesame seeds."],
+    "suggested_seasonings": ["ginger", "chilli flakes"]
+  },
+  "Falafel z airfryera z sosem tahini": {
+    "name": "Air fryer falafel with tahini sauce",
+    "description": "Herby chickpea balls without deep-frying.",
+    "instructions": ["Drain the chickpeas and pulse in a blender with onion, garlic, parsley and flour.", "Shape into small flattened balls and brush lightly with olive oil.", "Cook for 12–14 minutes at 190°C, turning after 7 minutes.", "Thin the tahini with lemon juice and a little water."],
+    "suggested_seasonings": ["cumin", "ground coriander"]
+  },
+  "Frytki z halloumi z dipem granatowym": {
+    "name": "Halloumi fries with pomegranate dip",
+    "description": "Crisp halloumi sticks with a sweet and sour dip.",
+    "instructions": ["Cut the halloumi into thick sticks and coat in panko.", "Cook for 8–9 minutes at 190°C, turning after 5 minutes.", "Mix the yoghurt with pomegranate molasses and mint.", "Serve the cheese immediately with the dip."],
+    "suggested_seasonings": ["pepper", "sumac"]
+  },
+  "Arancini z mozzarellą z airfryera": {
+    "name": "Air fryer mozzarella arancini",
+    "description": "Rice balls with melting cheese and a crisp coating.",
+    "instructions": ["Cook the arborio rice in stock and cool completely.", "Wrap a piece of mozzarella in a portion of rice and shape into a firm ball.", "Coat the balls in egg and panko, then spray with olive oil.", "Cook for 10–12 minutes at 195°C and serve with warm marinara sauce."],
+    "suggested_seasonings": ["basil", "oregano"]
+  },
+  "Chrupiące gnocchi z pesto rosso": {
+    "name": "Crispy gnocchi with pesto rosso",
+    "description": "Golden gnocchi with sun-dried tomato and fresh basil.",
+    "instructions": ["Toss the uncooked gnocchi with olive oil.", "Cook for 12–14 minutes at 195°C, shaking the basket twice.", "Mix the hot gnocchi with pesto rosso and halved tomatoes.", "Add basil and grated Parmesan."],
+    "suggested_seasonings": ["pepper", "garlic granules"]
+  },
+  "Portobello ze szpinakiem i ricottą": {
+    "name": "Portobello mushrooms with spinach and ricotta",
+    "description": "Large mushroom caps with a creamy, herby filling.",
+    "instructions": ["Remove the mushroom stalks and pat the caps dry.", "Mix the ricotta with spinach, garlic and Parmesan.", "Fill the caps with the mixture and cook for 10–11 minutes at 185°C.", "Add fresh basil before serving."],
+    "suggested_seasonings": ["pepper", "nutmeg"]
+  },
+  "Mini calzone z salami i żółtą papryką": {
+    "name": "Mini calzones with salami and yellow pepper",
+    "description": "Small dough pockets with a flavourful Italian filling.",
+    "instructions": ["Divide the dough into eight pieces and roll into small circles.", "Place passata, salami, pepper and mozzarella on one half of each circle.", "Fold over and seal the edges firmly with a fork.", "Cook in batches for 8–10 minutes at 185°C until golden."],
+    "suggested_seasonings": ["oregano", "basil"]
+  },
+  "Placki z cukinii i pecorino z airfryera": {
+    "name": "Air fryer courgette and pecorino fritters",
+    "description": "Vegetable fritters with a characterful sheep's milk cheese.",
+    "instructions": ["Grate the courgette, salt it, leave for 5 minutes and squeeze very thoroughly.", "Combine with the egg, flour, pecorino and chives.", "Shape into six flat fritters on baking paper.", "Cook for 12–14 minutes at 190°C, turning carefully halfway through."],
+    "suggested_seasonings": ["pepper", "garlic granules"]
+  },
+  "Bataty hasselback z fetą i harissą": {
+    "name": "Hasselback sweet potatoes with feta and harissa",
+    "description": "Sliced sweet potatoes with spicy harissa and salty feta.",
+    "instructions": ["Make cuts in the sweet potatoes every few millimetres without slicing all the way through.", "Brush with olive oil mixed with harissa and cook for 25–30 minutes at 180°C.", "Check they are soft at the thickest point and cook longer if needed.", "Sprinkle with feta and coriander."],
+    "suggested_seasonings": ["cumin", "pepper"]
+  },
+  "Brukselka balsamiczna z orzechami pekan": {
+    "name": "Balsamic Brussels sprouts with pecans",
+    "description": "Caramelised Brussels sprouts with crunchy nuts.",
+    "instructions": ["Halve the Brussels sprouts and toss with olive oil.", "Cook for 14–16 minutes at 190°C, shaking the basket every 5 minutes.", "Add the nuts for the final 3 minutes of cooking.", "Toss the hot vegetables with balsamic glaze."],
+    "suggested_seasonings": ["salt", "pepper"]
+  },
+  "Marchewkowe frytki zaatar z hummusem": {
+    "name": "Za'atar carrot fries with hummus",
+    "description": "Roast carrot sticks with an aromatic herb blend.",
+    "instructions": ["Cut the carrots into even sticks.", "Toss with olive oil, cornflour and za'atar.", "Cook for 15–17 minutes at 195°C, shaking the basket twice.", "Serve with hummus and lemon wedges."],
+    "suggested_seasonings": ["za'atar", "salt"]
+  },
+  "Frytki z polenty z sosem marinara": {
+    "name": "Polenta fries with marinara sauce",
+    "description": "Golden polenta sticks for dipping in tomato sauce.",
+    "instructions": ["Cook the polenta in stock, add Parmesan and spread out to a thickness of 2 cm.", "Once cool, cut into sticks and brush with olive oil.", "Cook for 14–16 minutes at 200°C, turning after 8 minutes.", "Serve with warmed marinara sauce."],
+    "suggested_seasonings": ["oregano", "pepper"]
+  },
+  "Brokułowe kąski z cheddarem": {
+    "name": "Broccoli and Cheddar bites",
+    "description": "Golden broccoli and cheese bites with soft centres.",
+    "instructions": ["Briefly blanch the broccoli, cool and finely chop.", "Combine with Cheddar, egg and breadcrumbs.", "Shape into small bites and arrange in the basket.", "Cook for 10–12 minutes at 190°C, turning once."],
+    "suggested_seasonings": ["garlic granules", "pepper"]
+  },
+  "Wędzona kukurydza z limonką z airfryera": {
+    "name": "Air fryer smoky corn with lime",
+    "description": "Corn on the cob with lime and smoky paprika.",
+    "instructions": ["Brush the cobs with olive oil and dust with smoked paprika.", "Cook for 12–13 minutes at 195°C, turning every 4 minutes.", "Spread with yoghurt, drizzle with lime juice and sprinkle with coriander."],
+    "suggested_seasonings": ["smoked paprika", "salt"]
+  },
+  "Jabłkowe crumble z airfryera": {
+    "name": "Air fryer apple crumble",
+    "description": "Warm apples under an oat and nut crumble topping.",
+    "instructions": ["Chop the apples and toss with cinnamon and lemon juice.", "Transfer to a small dish that fits in the basket.", "Rub together the oats, flour, butter and nuts, then use to cover the apples.", "Cook for 15–16 minutes at 175°C until the crumble is golden."],
+    "suggested_seasonings": ["cinnamon", "vanilla"]
+  },
+  "Gruszki z serem pleśniowym i pekanami": {
+    "name": "Pears with mould-ripened cheese and pecans",
+    "description": "Baked pears with creamy cheese and crunchy nuts.",
+    "instructions": ["Halve and core the pears.", "Fill the hollows with mould-ripened cheese and chopped nuts.", "Cook for 8–10 minutes at 180°C until the pears soften.", "Drizzle with honey just before serving."],
+    "suggested_seasonings": ["thyme", "pepper"]
+  },
+  "Pomarańczowe serniczki ze skyru": {
+    "name": "Mini orange skyr cheesecakes",
+    "description": "Small skyr cheesecakes scented with fresh orange.",
+    "instructions": ["Mix the skyr with egg, vanilla pudding powder, honey and orange zest.", "Divide the mixture between four silicone moulds.", "Cook for 12–14 minutes at 160°C until the centres are slightly springy.", "Leave to cool, then chill before removing from the moulds."],
+    "suggested_seasonings": ["vanilla", "cardamom"]
+  },
+  "Bananowo-kakaowe muffinki z airfryera": {
+    "name": "Air fryer banana and cocoa muffins",
+    "description": "Moist muffins sweetened with ripe banana and dates.",
+    "instructions": ["Mash the bananas and combine with the egg and finely chopped dates.", "Add the flour, cocoa and baking powder, stirring just until combined.", "Fill the silicone moulds two-thirds full.", "Cook for 12–14 minutes at 165°C; check with a skewer before removing."],
+    "suggested_seasonings": ["cinnamon", "vanilla"]
+  },
+  "Brzoskwiniowe rożki z ciasta francuskiego": {
+    "name": "Peach puff pastry turnovers",
+    "description": "Flaky turnovers with peach, almonds and vanilla.",
+    "instructions": ["Cut the pastry into six squares and finely dice the peaches.", "Place fruit and a little almond flour on each piece.", "Fold diagonally, press the edges firmly and brush with egg.", "Cook in batches for 10–12 minutes at 180°C until well browned."],
+    "suggested_seasonings": ["vanilla", "cinnamon"]
+  }
+}

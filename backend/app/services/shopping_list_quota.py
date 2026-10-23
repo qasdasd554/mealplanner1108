@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from datetime import date, datetime, timedelta
 from uuid import UUID
-from zoneinfo import ZoneInfo
+from app.core.market_clock import market_today
+from app.core.markets import account_country
 
 from fastapi import HTTPException
 from sqlalchemy import func, select, text
@@ -20,8 +21,8 @@ def can_append_recipes_to_existing_list(user: User) -> bool:
     return is_premium_active(user)
 
 
-def calendar_week_start(day: date | None = None) -> date:
-    day = day or datetime.now(ZoneInfo("Europe/Warsaw")).date()
+def calendar_week_start(day: date | None = None, *, country_code: str = "PL", now: datetime | None = None) -> date:
+    day = day or market_today(country_code, now=now)
     return day - timedelta(days=day.weekday())
 
 
@@ -29,7 +30,7 @@ async def can_create_shopping_list(db: AsyncSession, *, user: User) -> bool:
     """Sprawdza limit, trzymając blokadę do końca bieżącej transakcji."""
     if is_premium_active(user):
         return True
-    week = calendar_week_start()
+    week = calendar_week_start(country_code=account_country(user))
     await db.execute(
         text("SELECT pg_advisory_xact_lock(hashtext(:key))"),
         {"key": f"shopping-list:{user.id}:{week.isoformat()}"},
@@ -52,14 +53,17 @@ async def record_shopping_list_creation(
     (np. podwójne dotknięcie przycisku). Historia nie znika po usunięciu
     listy, więc darmowego limitu nie da się ominąć kasowaniem.
     """
-    week = calendar_week_start()
+    week = calendar_week_start(country_code=account_country(user))
     if not await can_create_shopping_list(db, user=user):
         raise HTTPException(
             status_code=403,
             detail=(
-                "Konto standardowe może utworzyć jedną listę zakupów "
-                "w tygodniu (poniedziałek–niedziela). Możesz nadal "
-                "dodać produkty do istniejącej listy albo skorzystać z Premium."
+                ("A Standard account can create one shopping list per week (Monday–Sunday). "
+                 "You can still add products to your existing list, or upgrade to Premium.")
+                if account_country(user) == "GB" else
+                ("Konto standardowe może utworzyć jedną listę zakupów "
+                 "w tygodniu (poniedziałek–niedziela). Możesz nadal "
+                 "dodać produkty do istniejącej listy albo skorzystać z Premium.")
             ),
         )
 

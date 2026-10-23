@@ -1,3 +1,5 @@
+import '../l10n/app_localizations.dart';
+import '../l10n/app_localizations_pl.dart';
 import 'wellness_statistics.dart';
 
 enum WeeklyInsightKind { regularity, calories, water, weight }
@@ -23,7 +25,9 @@ class WeeklyInsight {
 List<WeeklyInsight> buildWeeklyInsights(
   WellnessStatistics statistics, {
   DateTime? referenceDate,
+  AppLocalizations? strings,
 }) {
+  final labels = strings ?? AppLocalizationsPl();
   final sourceNow = referenceDate ?? DateTime.now();
   final today = DateTime(sourceNow.year, sourceNow.month, sourceNow.day);
   final firstDay = today.subtract(const Duration(days: 6));
@@ -40,11 +44,11 @@ List<WeeklyInsight> buildWeeklyInsights(
   final insights = <WeeklyInsight>[
     WeeklyInsight(
       kind: WeeklyInsightKind.regularity,
-      title: 'Regularność: ${active.length} z 7 dni',
+      title: labels.insightRegularity(active.length),
       detail:
           active.length >= 5
-              ? 'Masz już wystarczająco dużo danych, aby porównywać tygodnie.'
-              : 'Uzupełnij jeszcze ${5 - active.length} dni, aby raport był dokładniejszy.',
+              ? labels.insightEnough
+              : labels.insightMoreDays(5 - active.length),
     ),
   ];
 
@@ -55,9 +59,8 @@ List<WeeklyInsight> buildWeeklyInsights(
     insights.add(
       WeeklyInsight(
         kind: WeeklyInsightKind.calories,
-        title: 'Średnio ${averageCalories.round()} kcal dziennie',
-        detail:
-            'Porównuj średnią tydzień do tygodnia, zamiast oceniać pojedynczy dzień.',
+        title: labels.insightCalories(averageCalories.round()),
+        detail: labels.insightCaloriesDetail,
       ),
     );
 
@@ -72,12 +75,12 @@ List<WeeklyInsight> buildWeeklyInsights(
         kind: WeeklyInsightKind.water,
         title:
             waterDays.isEmpty
-                ? 'Brakuje danych o nawodnieniu'
-                : 'Średnio $averageWater ml wody',
+                ? labels.insightWaterMissing
+                : labels.insightWaterAverage(averageWater),
         detail:
             waterDays.length == 7
-                ? 'Nawodnienie zostało zapisane każdego dnia tego tygodnia.'
-                : 'Zapisano nawodnienie w ${waterDays.length} z 7 dni.',
+                ? labels.insightWaterEveryDay
+                : labels.insightWaterDays(waterDays.length),
       ),
     );
   }
@@ -92,9 +95,11 @@ List<WeeklyInsight> buildWeeklyInsights(
         kind: WeeklyInsightKind.weight,
         title:
             change.abs() < 0.05
-                ? 'Waga bez większej zmiany'
-                : 'Zmiana wagi ${change > 0 ? '+' : ''}${change.toStringAsFixed(1)} kg',
-        detail: 'Porównanie pierwszego i ostatniego pomiaru z ostatnich 7 dni.',
+                ? labels.insightWeightStable
+                : labels.insightWeightChange(
+                  '${change > 0 ? '+' : ''}${change.toStringAsFixed(1)}',
+                ),
+        detail: labels.insightWeightDetail,
       ),
     );
   }

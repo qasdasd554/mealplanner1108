@@ -1,6 +1,6 @@
 """Przypomnienia i zakończenie planów, niezależnie od otwierania aplikacji.
 
-Koniec to północ po ostatnim dniu w Europe/Warsaw. Status ``expired``
+Koniec to północ po ostatnim dniu w strefie zapisanego rynku konta. Status ``expired``
 usuwa plan z widoków użytkownika standardowego, ale zachowuje techniczny
 wiersz właściciela listy zakupów. Fizyczne DELETE usunęłoby również listę
 przez istniejący klucz obcy ON DELETE CASCADE.
@@ -18,6 +18,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.premium import PAID_SUBSCRIPTION_PRODUCT_IDS, is_premium_active
+from app.core.markets import account_country
+from app.core.market_clock import market_timezone
 from app.models import MealPlan, Notification, User
 from app.services.push import push_for_notification
 from app.services.subscription_sync import refresh_subscription_if_needed
@@ -34,24 +36,24 @@ class LifecycleResult:
     removed: int = 0
 
 
-def _expiry_from_dates(start_date, duration_days: int) -> datetime:
+def _expiry_from_dates(start_date, duration_days: int, country_code: str = "PL") -> datetime:
     return datetime.combine(
-        start_date + timedelta(days=max(1, duration_days)), time.min, tzinfo=WARSAW
+        start_date + timedelta(days=max(1, duration_days)), time.min, tzinfo=market_timezone(country_code)
     ).astimezone(timezone.utc)
 
 
-def plan_expires_at(plan: MealPlan) -> datetime:
+def plan_expires_at(plan: MealPlan, *, country_code: str = "PL") -> datetime:
     """Zwraca dokładny moment końca w UTC, uwzględniając zmianę czasu."""
     return datetime.combine(
-        plan.end_date + timedelta(days=1), time.min, tzinfo=WARSAW
+        plan.end_date + timedelta(days=1), time.min, tzinfo=market_timezone(country_code)
     ).astimezone(timezone.utc)
 
 
-def plan_has_expired(plan: MealPlan, *, now: datetime | None = None) -> bool:
+def plan_has_expired(plan: MealPlan, *, now: datetime | None = None, country_code: str = "PL") -> bool:
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
-    return current >= plan_expires_at(plan)
+    return current >= plan_expires_at(plan, country_code=country_code)
 
 
 def _expiry_is_verified(owner: User, current: datetime) -> bool:
@@ -94,7 +96,9 @@ async def process_due_meal_plans(
         current = current.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
     local_today = current.astimezone(WARSAW).date()
-    query = select(MealPlan.id, MealPlan.start_date, MealPlan.duration_days).where(
+    query = select(MealPlan.id, MealPlan.start_date, MealPlan.duration_days, User.country_code).join(
+        User, User.id == MealPlan.user_id,
+    ).where(
         MealPlan.status.in_(CURRENT_STATUSES),
         MealPlan.start_date <= local_today,
     )
@@ -103,8 +107,8 @@ async def process_due_meal_plans(
     deadline = current + timedelta(hours=24) if send_reminders else current
     identifiers = [
         plan_id
-        for plan_id, start_date, duration in (await db.execute(query)).all()
-        if _expiry_from_dates(start_date, duration) <= deadline
+        for plan_id, start_date, duration, country in (await db.execute(query)).all()
+        if _expiry_from_dates(start_date, duration, country) <= deadline
     ]
     # Zwolnij transakcję odczytu przed blokowaniem pojedynczych planów.
     await db.commit()
@@ -123,7 +127,7 @@ async def process_due_meal_plans(
                 await db.rollback()
                 continue
             candidate_plan, candidate_owner = candidate
-            if current >= plan_expires_at(candidate_plan) and not _expiry_is_verified(candidate_owner, current):
+            if current >= plan_expires_at(candidate_plan, country_code=account_country(candidate_owner)) and not _expiry_is_verified(candidate_owner, current):
                 # Synchronizator sklepu zatwierdza własną transakcję, dlatego
                 # wywołujemy go PRZED blokadą planu. Odczyt API nie czeka na sklep.
                 if send_reminders:
@@ -146,7 +150,7 @@ async def process_due_meal_plans(
                 await db.rollback()
                 continue
             plan, owner = row
-            expires_at = plan_expires_at(plan)
+            expires_at = plan_expires_at(plan, country_code=account_country(owner))
             notification = None
             action = None
             if current >= expires_at:
@@ -168,8 +172,11 @@ async def process_due_meal_plans(
                     meal_plan_id=plan.id,
                     notification_type="meal_plan_expiring",
                     message=(
-                        f"Twój plan posiłków kończy się {plan.end_date:%d.%m.%Y}. "
-                        "Przygotuj kolejny plan, aby mieć posiłki zaplanowane na następne dni."
+                        (f"Your meal plan ends on {plan.end_date:%d/%m/%Y}. "
+                         "Create another plan to keep your next meals organised.")
+                        if account_country(owner) == "GB" else
+                        (f"Twój plan posiłków kończy się {plan.end_date:%d.%m.%Y}. "
+                         "Przygotuj kolejny plan, aby mieć posiłki zaplanowane na następne dni.")
                     ),
                 )
                 db.add(notification)

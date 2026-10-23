@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import '../l10n/market_locale.dart';
 import 'package:provider/provider.dart';
 import '../models/recipe.dart';
 import '../models/shopping_list.dart';
 import '../providers/store_provider.dart';
 import '../services/shopping_list_service.dart';
+import '../services/contextual_premium_offer_service.dart';
+import '../models/premium_offer.dart';
 import '../providers/shopping_list_provider.dart';
 import '../providers/auth_provider.dart';
 import '../screens/profile/premium_screen.dart';
@@ -73,12 +76,17 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Dodaj do listy zakupów',
+                  context.strings.detailAddToList,
                   style: Theme.of(sheetContext).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Masz już ${existingLists.length} ${existingLists.length == 1 ? "listę" : "listy"} — dodaj do niej, albo stwórz nową.',
+                  context.strings.detailExistingLists(
+                    existingLists.length,
+                    context.strings.localeName.startsWith('en')
+                        ? (existingLists.length == 1 ? 'list' : 'lists')
+                        : (existingLists.length == 1 ? 'listę' : 'listy'),
+                  ),
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
                 ),
                 const SizedBox(height: 16),
@@ -91,7 +99,12 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
                     ),
                     title: Text(list.storeName),
                     subtitle: Text(
-                      '${list.itemsByDepartment.values.fold<int>(0, (sum, items) => sum + items.length)} pozycji',
+                      context.strings.detailListItems(
+                        list.itemsByDepartment.values.fold<int>(
+                          0,
+                          (sum, items) => sum + items.length,
+                        ),
+                      ),
                     ),
                     onTap: () => Navigator.of(sheetContext).pop(list.id),
                   ),
@@ -103,7 +116,7 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
                     Icons.add_circle_outline,
                     color: AppTheme.secondaryColor,
                   ),
-                  title: const Text('Stwórz nową listę'),
+                  title: Text(context.strings.detailCreateList),
                   onTap: () => Navigator.of(sheetContext).pop('__new__'),
                 ),
               ],
@@ -140,9 +153,9 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),
-            content: Text('Wybierz najpierw sklep w swoim profilu'),
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(context.strings.detailChooseShop),
           ),
         );
       return;
@@ -172,6 +185,12 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
       await shoppingProvider.loadAllLists(preferredListId: list.mealPlanId);
       if (!mounted) return;
 
+      await ContextualPremiumOfferService.maybeShow(
+        context,
+        PremiumOfferContext.shoppingList,
+      );
+      if (!mounted) return;
+
       final rootNavigator = Navigator.of(context);
       // `route.isFirst` nie zawsze oznacza ekran główny (np. po wejściu
       // z udostępnionego linku pierwszą trasą potrafił być ekran logowania).
@@ -186,7 +205,7 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
       // UWAGA: limit list (403) to najbardziej prawdopodobny błąd tutaj —
       // dajemy bezpośrednie przejście do Premium zamiast tylko komunikatu,
       // żeby nie trzeba było szukać, jak rozwiązać ten konkretny problem.
-      final message = friendlyError(e);
+      final message = friendlyError(e, strings: context.strings);
       final messenger = ScaffoldMessenger.of(context);
       final rootNavigator = Navigator.of(context);
       messenger
@@ -244,7 +263,12 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
                   )
                   : const Icon(Icons.shopping_cart_outlined, size: 18),
               const SizedBox(width: 8),
-              const Text('Lista zakupów na to danie'),
+              Flexible(
+                child: Text(
+                  context.strings.detailShopping,
+                  textAlign: TextAlign.center,
+                ),
+              ),
             ],
           ),
         ),

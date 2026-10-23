@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import '../l10n/market_locale.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../services/recipe_service.dart';
@@ -56,11 +57,9 @@ class _SubmitRecipePhotoButtonState extends State<SubmitRecipePhotoButton> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),
-            content: Text(
-              'Dziękujemy! Zdjęcie pojawi się po akceptacji przez administratora.',
-            ),
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(context.strings.detailPhotoSent),
           ),
         );
     } catch (e) {
@@ -71,7 +70,7 @@ class _SubmitRecipePhotoButtonState extends State<SubmitRecipePhotoButton> {
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
+            content: Text(friendlyError(e, strings: context.strings)),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -90,8 +89,7 @@ class _SubmitRecipePhotoButtonState extends State<SubmitRecipePhotoButton> {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                     child: Text(
-                      'Ten przepis ma już zdjęcie. Jeśli Twoje zostanie '
-                      'zaakceptowane, zastąpi obecne.',
+                      context.strings.detailPhotoReplaceHelp,
                       style: TextStyle(
                         fontSize: 12,
                         color: AppTheme.textSecondary,
@@ -100,7 +98,7 @@ class _SubmitRecipePhotoButtonState extends State<SubmitRecipePhotoButton> {
                   ),
                 ListTile(
                   leading: const Icon(Icons.photo_camera_outlined),
-                  title: const Text('Zrób zdjęcie'),
+                  title: Text(context.strings.takeRecipePhoto),
                   onTap: () {
                     Navigator.of(sheetContext).pop();
                     _pickAndSend(ImageSource.camera);
@@ -108,7 +106,7 @@ class _SubmitRecipePhotoButtonState extends State<SubmitRecipePhotoButton> {
                 ),
                 ListTile(
                   leading: const Icon(Icons.photo_library_outlined),
-                  title: const Text('Wybierz z galerii'),
+                  title: Text(context.strings.aiRecipeChooseGallery),
                   onTap: () {
                     Navigator.of(sheetContext).pop();
                     _pickAndSend(ImageSource.gallery);
@@ -134,10 +132,10 @@ class _SubmitRecipePhotoButtonState extends State<SubmitRecipePhotoButton> {
               : const Icon(Icons.add_a_photo_outlined, size: 18),
       label: Text(
         _isSending
-            ? 'Wysyłanie…'
+            ? context.strings.detailPhotoSending
             : (widget.recipeHasPhoto
-                ? 'Zaproponuj inne zdjęcie'
-                : 'Dodaj zdjęcie'),
+                ? context.strings.detailPhotoReplace
+                : context.strings.detailPhotoAdd),
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../l10n/market_locale.dart';
 
 /// Ekran "Zapomniałem hasła" — dwa kroki w jednym widgecie (prościej niż
 /// osobna nawigacja między dwoma ekranami dla tak krótkiego przepływu):
@@ -36,9 +37,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),
-            content: Text('Podaj prawidłowy adres e-mail.'),
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(context.strings.authValidEmailRequired),
           ),
         );
       return;
@@ -80,9 +81,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),
-            content: Text('Kod musi mieć dokładnie 6 cyfr.'),
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(context.strings.authCodeSixDigits),
           ),
         );
       return;
@@ -91,9 +92,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),
-            content: Text('Nowe hasło musi mieć co najmniej 8 znaków.'),
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(context.strings.authNewPasswordMinEight),
           ),
         );
       return;
@@ -113,9 +114,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),
-            content: Text('Hasło zostało zmienione. Zaloguj się nowym hasłem.'),
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(context.strings.authPasswordChanged),
           ),
         );
       Navigator.of(context).pop();
@@ -135,7 +136,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Zapomniałem hasła')),
+      appBar: AppBar(title: Text(context.strings.authForgotPasswordTitle)),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -151,16 +152,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   List<Widget> _buildStepOne() {
     return [
       Text(
-        'Podaj adres e-mail, na który wyślemy kod do zresetowania hasła.',
+        context.strings.authResetDescription,
         style: TextStyle(color: AppTheme.textSecondary),
       ),
       const SizedBox(height: 20),
       TextField(
         controller: _emailController,
         keyboardType: TextInputType.emailAddress,
-        decoration: const InputDecoration(
-          labelText: 'Adres e-mail',
-          border: OutlineInputBorder(),
+        decoration: InputDecoration(
+          labelText: context.strings.authEmailAddress,
+          border: const OutlineInputBorder(),
         ),
       ),
       const SizedBox(height: 20),
@@ -178,7 +179,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       color: Colors.white,
                     ),
                   )
-                  : const Text('Wyślij kod'),
+                  : Text(context.strings.authSendCode),
         ),
       ),
     ];
@@ -187,8 +188,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   List<Widget> _buildStepTwo() {
     return [
       Text(
-        'Jeśli konto z adresem ${_emailController.text.trim()} istnieje, wysłaliśmy '
-        'na nie 6-cyfrowy kod. Wpisz go poniżej razem z nowym hasłem.',
+        context.strings.authResetCodeSentTo(_emailController.text.trim()),
         style: TextStyle(color: AppTheme.textSecondary),
       ),
       const SizedBox(height: 20),
@@ -202,19 +202,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           letterSpacing: 8,
           fontWeight: FontWeight.bold,
         ),
-        decoration: const InputDecoration(
-          labelText: 'Kod',
+        decoration: InputDecoration(
+          labelText: context.strings.authCode,
           counterText: '',
-          border: OutlineInputBorder(),
+          border: const OutlineInputBorder(),
         ),
       ),
       const SizedBox(height: 12),
       TextField(
         controller: _newPasswordController,
         obscureText: true,
-        decoration: const InputDecoration(
-          labelText: 'Nowe hasło',
-          border: OutlineInputBorder(),
+        decoration: InputDecoration(
+          labelText: context.strings.authNewPassword,
+          border: const OutlineInputBorder(),
         ),
       ),
       const SizedBox(height: 20),
@@ -232,14 +232,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       color: Colors.white,
                     ),
                   )
-                  : const Text('Zmień hasło'),
+                  : Text(context.strings.authChangePassword),
         ),
       ),
       const SizedBox(height: 8),
       TextButton(
         onPressed:
             _isSubmitting ? null : () => setState(() => _codeSent = false),
-        child: const Text('Podaj inny e-mail'),
+        child: Text(context.strings.authUseDifferentEmail),
       ),
     ];
   }

@@ -8,6 +8,8 @@ import '../../services/ingredient_preferences_service.dart';
 import '../../services/product_search_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
+import '../../l10n/market_locale.dart';
+import '../../l10n/recipe_content.dart';
 
 class IngredientPreferencesScreen extends StatefulWidget {
   final IngredientPreferencesService? service;
@@ -89,7 +91,8 @@ class _IngredientPreferencesScreenState
         _dirty = false;
       });
     } catch (e) {
-      if (mounted) setState(() => _loadError = friendlyError(e));
+      if (mounted)
+        setState(() => _loadError = friendlyError(e, strings: context.strings));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -116,7 +119,7 @@ class _IngredientPreferencesScreenState
       } catch (e) {
         if (!mounted || version != _queryVersion) return;
         setState(() {
-          _searchError = friendlyError(e);
+          _searchError = friendlyError(e, strings: context.strings);
           _searching = false;
         });
       }
@@ -127,9 +130,7 @@ class _IngredientPreferencesScreenState
     final selected = _addingLiked ? _liked : _disliked;
     if (selected.any((p) => p.id == product.id)) return;
     if (selected.length >= 50) {
-      setState(
-        () => _saveError = 'Możesz wybrać do 50 składników w każdej grupie.',
-      );
+      setState(() => _saveError = context.strings.ingredientPreferencesLimit);
       return;
     }
     setState(() {
@@ -160,10 +161,13 @@ class _IngredientPreferencesScreenState
         _dirty = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Zapisano preferencje składników.')),
+        SnackBar(
+          content: Text(context.strings.ingredientPreferencesSavedMessage),
+        ),
       );
     } catch (e) {
-      if (mounted) setState(() => _saveError = friendlyError(e));
+      if (mounted)
+        setState(() => _saveError = friendlyError(e, strings: context.strings));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -175,18 +179,16 @@ class _IngredientPreferencesScreenState
           context: context,
           builder:
               (ctx) => AlertDialog(
-                title: const Text('Niezapisane preferencje'),
-                content: const Text(
-                  'Masz niezapisane zmiany. Wrócić bez zapisywania?',
-                ),
+                title: Text(context.strings.ingredientPreferencesUnsavedTitle),
+                content: Text(context.strings.ingredientPreferencesUnsavedBody),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(ctx, false),
-                    child: const Text('Zostań'),
+                    child: Text(context.strings.ingredientPreferencesStay),
                   ),
                   TextButton(
                     onPressed: () => Navigator.pop(ctx, true),
-                    child: const Text('Wróć bez zapisu'),
+                    child: Text(context.strings.ingredientPreferencesDiscard),
                   ),
                 ],
               ),
@@ -204,7 +206,7 @@ class _IngredientPreferencesScreenState
       const SizedBox(height: 8),
       if (choices.isEmpty)
         Text(
-          'Jeszcze nie wybrano składników.',
+          context.strings.ingredientPreferencesEmpty,
           style: TextStyle(color: AppTheme.textSecondary),
         )
       else
@@ -215,8 +217,8 @@ class _IngredientPreferencesScreenState
               choices
                   .map(
                     (p) => InputChip(
-                      label: Text(p.name),
-                      tooltip: p.name,
+                      label: Text(p.displayName(context)),
+                      tooltip: p.displayName(context),
                       onDeleted:
                           _saving
                               ? null
@@ -225,7 +227,8 @@ class _IngredientPreferencesScreenState
                                 _dirty = true;
                                 _saveError = null;
                               }),
-                      deleteButtonTooltipMessage: 'Usuń ${p.name}',
+                      deleteButtonTooltipMessage: context.strings
+                          .ingredientPreferencesRemove(p.name),
                     ),
                   )
                   .toList(),
@@ -249,7 +252,7 @@ class _IngredientPreferencesScreenState
         }
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text('Preferencje składników')),
+        appBar: AppBar(title: Text(context.strings.ingredientPreferencesTitle)),
         body: SafeArea(
           child:
               !premium
@@ -267,7 +270,9 @@ class _IngredientPreferencesScreenState
                           const SizedBox(height: 12),
                           OutlinedButton(
                             onPressed: _load,
-                            child: const Text('Spróbuj ponownie'),
+                            child: Text(
+                              context.strings.ingredientPreferencesRetry,
+                            ),
                           ),
                         ],
                       ),
@@ -289,20 +294,28 @@ class _IngredientPreferencesScreenState
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              const Text(
-                                'Uwzględnimy preferencje w jednym daniu dziennie, jeśli znajdziemy pasujący przepis. Alergie i dieta mają pierwszeństwo.',
+                              Text(context.strings.ingredientPreferencesHint),
+                              const SizedBox(height: 20),
+                              _choices(
+                                context.strings.ingredientPreferencesLike,
+                                _liked,
                               ),
                               const SizedBox(height: 20),
-                              _choices('Lubię', _liked),
-                              const SizedBox(height: 20),
-                              _choices('Nie lubię', _disliked),
+                              _choices(
+                                context.strings.ingredientPreferencesDislike,
+                                _disliked,
+                              ),
                               const SizedBox(height: 24),
                               Wrap(
                                 spacing: 8,
                                 runSpacing: 4,
                                 children: [
                                   ChoiceChip(
-                                    label: const Text('Dodaj do: Lubię'),
+                                    label: Text(
+                                      context
+                                          .strings
+                                          .ingredientPreferencesAddLike,
+                                    ),
                                     selected: _addingLiked,
                                     onSelected:
                                         _saving
@@ -312,7 +325,11 @@ class _IngredientPreferencesScreenState
                                             ),
                                   ),
                                   ChoiceChip(
-                                    label: const Text('Dodaj do: Nie lubię'),
+                                    label: Text(
+                                      context
+                                          .strings
+                                          .ingredientPreferencesAddDislike,
+                                    ),
                                     selected: !_addingLiked,
                                     onSelected:
                                         _saving
@@ -329,13 +346,17 @@ class _IngredientPreferencesScreenState
                                 enabled: !_saving,
                                 onChanged: _searchChanged,
                                 decoration: InputDecoration(
-                                  labelText: 'Szukaj składnika',
+                                  labelText:
+                                      context
+                                          .strings
+                                          .ingredientPreferencesSearch,
                                   prefixIcon: const Icon(Icons.search),
                                   suffixIcon:
                                       _search.text.isEmpty
                                           ? null
                                           : IconButton(
-                                            tooltip: 'Wyczyść wyszukiwanie',
+                                            tooltip:
+                                                context.strings.clearSearch,
                                             icon: const Icon(Icons.close),
                                             onPressed: () {
                                               _search.clear();
@@ -343,7 +364,9 @@ class _IngredientPreferencesScreenState
                                             },
                                           ),
                                   helperText:
-                                      'Wybranie w drugiej grupie przenosi składnik.',
+                                      context
+                                          .strings
+                                          .ingredientPreferencesMoveHint,
                                   helperMaxLines: 2,
                                 ),
                               ),
@@ -358,18 +381,26 @@ class _IngredientPreferencesScreenState
                                     TextButton(
                                       onPressed:
                                           () => _searchChanged(_search.text),
-                                      child: const Text('Ponów wyszukiwanie'),
+                                      child: Text(
+                                        context
+                                            .strings
+                                            .ingredientPreferencesRetrySearch,
+                                      ),
                                     ),
                                   ],
                                 )
                               else if (_search.text.trim().isNotEmpty &&
                                   _results.isEmpty)
-                                const Text('Brak składników o tej nazwie.')
+                                Text(
+                                  context
+                                      .strings
+                                      .ingredientPreferencesNoResults,
+                                )
                               else
                                 for (final product in _results)
                                   ListTile(
                                     contentPadding: EdgeInsets.zero,
-                                    title: Text(product.name),
+                                    title: Text(product.displayName(context)),
                                     trailing: Icon(
                                       (_addingLiked ? _liked : _disliked).any(
                                             (p) => p.id == product.id,
@@ -385,7 +416,10 @@ class _IngredientPreferencesScreenState
                                   child: Semantics(
                                     liveRegion: true,
                                     child: Text(
-                                      'Nie zapisano: $_saveError',
+                                      context.strings
+                                          .ingredientPreferencesSaveError(
+                                            _saveError!,
+                                          ),
                                       style: const TextStyle(
                                         color: AppTheme.errorColor,
                                       ),
@@ -404,10 +438,10 @@ class _IngredientPreferencesScreenState
                             onPressed: _saving || !_dirty ? null : _save,
                             child: Text(
                               _saving
-                                  ? 'Zapisywanie…'
+                                  ? context.strings.ingredientPreferencesSaving
                                   : _dirty
-                                  ? 'Zapisz preferencje'
-                                  : 'Preferencje zapisane',
+                                  ? context.strings.ingredientPreferencesSave
+                                  : context.strings.ingredientPreferencesSaved,
                             ),
                           ),
                         ),
@@ -432,14 +466,14 @@ class _IngredientPreferencesScreenState
             style: TextStyle(color: _premiumGold, fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 12),
-          const Text(
-            'Wybierz składniki, które lubisz i których nie lubisz. Premium uwzględni je w jednym daniu dziennie, jeśli znajdziemy pasujący przepis.',
+          Text(
+            context.strings.ingredientPreferencesLocked,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
           FilledButton(
             onPressed: () => Navigator.of(context).pushNamed('/premium'),
-            child: const Text('Zobacz Premium'),
+            child: Text(context.strings.ingredientPreferencesPremium),
           ),
         ],
       ),

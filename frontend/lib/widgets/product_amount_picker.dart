@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/market_locale.dart';
+import '../l10n/recipe_content.dart';
+import '../l10n/measure_labels.dart';
+
 import '../models/product.dart';
 import '../theme/app_theme.dart';
 import '../utils/product_measures.dart';
@@ -71,34 +75,55 @@ class _ProductAmountPickerState extends State<_ProductAmountPicker> {
     super.dispose();
   }
 
-  double? get _quantity =>
-      double.tryParse(_quantityController.text.trim().replaceAll(',', '.'));
+  double? get _quantity {
+    final amount = double.tryParse(
+      _quantityController.text.trim().replaceAll(',', '.'),
+    );
+    if (amount == null ||
+        !amount.isFinite ||
+        amount <= 0 ||
+        amount > 1000000 ||
+        !(amount * _selected.baseQuantity).isFinite) {
+      return null;
+    }
+    return amount;
+  }
 
   String _macroPreview() {
     final quantity = _quantity;
-    if (quantity == null || quantity <= 0) return 'Podaj ilość większą od zera';
+    if (quantity == null || quantity <= 0) {
+      return context.strings.amountPositive;
+    }
     final factor = quantity * _selected.baseQuantity / 100;
     final n = widget.product.nutritionPer100;
-    return '${(n.kcal * factor).round()} kcal  •  '
-        'B ${(n.protein * factor).toStringAsFixed(1)} g  •  '
-        'T ${(n.fat * factor).toStringAsFixed(1)} g  •  '
-        'W ${(n.carbs * factor).toStringAsFixed(1)} g';
+    String value(String key, int digits) {
+      final known = n.knownValue(key);
+      final scaled = known == null ? null : known * factor;
+      return scaled != null && scaled.isFinite
+          ? scaled.toStringAsFixed(digits)
+          : '—';
+    }
+
+    return context.strings.nutritionMacroLine(
+      value('kcal', 0),
+      value('protein', 1),
+      value('fat', 1),
+      value('carbs', 1),
+    );
   }
 
   String _baseAmountLabel(ProductMeasureOption option, [double quantity = 1]) {
     final amount = quantity * option.baseQuantity;
     final digits = amount == amount.roundToDouble() ? 0 : 1;
-    return '${option.approximate ? 'ok. ' : ''}'
+    return '${option.approximate ? context.strings.amountApproximate : ''}'
         '${amount.toStringAsFixed(digits)} ${option.baseUnit}';
   }
 
   String _calorieLabel(ProductMeasureOption option, [double quantity = 1]) {
-    final kcal =
-        widget.product.nutritionPer100.kcal *
-        quantity *
-        option.baseQuantity /
-        100;
-    return '${kcal.round()} kcal';
+    final known = widget.product.nutritionPer100.knownValue('kcal');
+    if (known == null) return '— kcal';
+    final kcal = known * quantity * option.baseQuantity / 100;
+    return kcal.isFinite ? '${kcal.round()} kcal' : '— kcal';
   }
 
   void _chooseQuickOption(ProductMeasureOption option) {
@@ -168,7 +193,7 @@ class _ProductAmountPickerState extends State<_ProductAmountPicker> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        widget.product.name,
+                        widget.product.displayName(context),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.titleLarge,
@@ -182,7 +207,7 @@ class _ProductAmountPickerState extends State<_ProductAmountPicker> {
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Zamknij',
+                  tooltip: context.strings.amountClose,
                   onPressed: _dismiss,
                   icon: const Icon(Icons.close),
                 ),
@@ -195,12 +220,12 @@ class _ProductAmountPickerState extends State<_ProductAmountPicker> {
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
               children: [
                 Text(
-                  'Szybki wybór',
+                  context.strings.amountQuick,
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  'Dotknij wariantu, aby od razu go wybrać.',
+                  context.strings.amountQuickHint,
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                 ),
                 const SizedBox(height: 10),
@@ -214,23 +239,28 @@ class _ProductAmountPickerState extends State<_ProductAmountPicker> {
                 const Divider(),
                 const SizedBox(height: 8),
                 Text(
-                  'Własna ilość',
+                  context.strings.amountCustom,
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
                 const SizedBox(height: 10),
                 DropdownButtonFormField<ProductMeasureOption>(
                   initialValue: _selected,
                   isExpanded: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Jednostka',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: context.strings.amountUnit,
+                    border: const OutlineInputBorder(),
                   ),
                   items:
                       _options
                           .map(
                             (option) => DropdownMenuItem(
                               value: option,
-                              child: Text(option.label),
+                              child: Text(
+                                context.strings.measureName(
+                                  option.code,
+                                  fallback: option.label,
+                                ),
+                              ),
                             ),
                           )
                           .toList(),
@@ -250,8 +280,11 @@ class _ProductAmountPickerState extends State<_ProductAmountPicker> {
                   ),
                   onChanged: (_) => setState(() {}),
                   decoration: InputDecoration(
-                    labelText: 'Ilość',
-                    suffixText: _selected.label,
+                    labelText: context.strings.amountQuantity,
+                    suffixText: context.strings.measureName(
+                      _selected.code,
+                      fallback: _selected.label,
+                    ),
                     border: const OutlineInputBorder(),
                   ),
                 ),
@@ -297,7 +330,7 @@ class _ProductAmountPickerState extends State<_ProductAmountPicker> {
                 child: FilledButton.icon(
                   onPressed: (_quantity ?? 0) <= 0 ? null : _submit,
                   icon: const Icon(Icons.check),
-                  label: const Text('Wybierz ilość'),
+                  label: Text(context.strings.amountChoose),
                 ),
               ),
             ),
@@ -346,7 +379,7 @@ class _ProductAmountPickerState extends State<_ProductAmountPicker> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '1 × ${option.label}',
+                          '1 × ${context.strings.measureName(option.code, fallback: option.label)}',
                           style: const TextStyle(fontWeight: FontWeight.w700),
                         ),
                         Text(

@@ -12,12 +12,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import defer
 
 from app.api.deps import get_current_user
+from app.core.markets import account_country
 from app.core.premium import is_premium_active
 from app.core.rate_limit import ai_recipe_import_limiter, enforce_user_rate_limit
 from app.db.session import get_db
 from app.models import RecipeImportJob, User
 from app.schemas.recipe import AIRecipeImportRequest
 from app.services.recipe_import_worker import schedule_recipe_import
+from app.services.ai_recipe_import import recipe_message
 
 router = APIRouter()
 
@@ -44,8 +46,9 @@ async def start_recipe_import(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> RecipeImportJobResponse:
+    country = account_country(current_user)
     if sum(bool(value) for value in (payload.text, payload.photo_base64, payload.url)) != 1:
-        raise HTTPException(status_code=400, detail="Podaj dokładnie tekst, zdjęcie albo link.")
+        raise HTTPException(status_code=400, detail=recipe_message(country, "Podaj dokładnie tekst, zdjęcie albo link.", "Provide exactly one of: text, a photo or a link."))
 
     # Blokada wiersza użytkownika serializuje dwa równoczesne kliknięcia.
     await db.execute(select(User.id).where(User.id == current_user.id).with_for_update())
@@ -56,13 +59,18 @@ async def start_recipe_import(
         RecipeImportJob.status.in_(("queued", "processing")),
     ).limit(1))
     if result.scalar_one_or_none() is not None:
-        raise HTTPException(status_code=409, detail="Poprzedni przepis jest jeszcze rozpoznawany.")
+        raise HTTPException(status_code=409, detail=recipe_message(country, "Poprzedni przepis jest jeszcze rozpoznawany.", "Your previous recipe is still being recognised."))
 
     if not is_premium_active(current_user) and current_user.premium_points < 2:
-        raise HTTPException(status_code=402, detail="Ta funkcja wymaga Premium albo 2 punktów.")
-    enforce_user_rate_limit(
-        ai_recipe_import_limiter, current_user.id, "rozpoznawanie przepisu przez AI"
-    )
+        raise HTTPException(status_code=402, detail=recipe_message(country, "Ta funkcja wymaga Premium albo 2 punktów.", "This feature requires Premium or 2 points."))
+    try:
+        enforce_user_rate_limit(
+            ai_recipe_import_limiter, current_user.id, recipe_message(country, "rozpoznawanie przepisu przez AI", "AI recipe recognition")
+        )
+    except HTTPException as exc:
+        if country == "GB" and exc.status_code == 429:
+            exc.detail = "Too many AI recipe requests. Please try again later."
+        raise
 
     job = RecipeImportJob(user_id=current_user.id, payload=payload.model_dump(exclude_none=True))
     db.add(job)
@@ -97,5 +105,5 @@ async def get_recipe_import(
     ).where(RecipeImportJob.id == job_id))
     job = result.scalar_one_or_none()
     if job is None or job.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="Nie znaleziono importu przepisu.")
+        raise HTTPException(status_code=404, detail=recipe_message(account_country(current_user), "Nie znaleziono importu przepisu.", "Recipe import was not found."))
     return _response(job)

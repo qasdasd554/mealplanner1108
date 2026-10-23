@@ -1,6 +1,8 @@
 import '../models/product.dart';
 import '../models/barcode_lookup_result.dart';
 import 'api_client.dart';
+import 'premium_offer_success_signal.dart';
+import '../models/premium_offer.dart';
 import '../config/api_config.dart';
 
 /// Pojedynczy produkt zapisany w spiżarni użytkownika.
@@ -45,6 +47,7 @@ class PantryService {
     double? quantity,
     String? unit,
   }) async {
+    final session = _client.sessionGeneration;
     final response = await _client.post(
       ApiConfig.pantry,
       body: {
@@ -53,9 +56,14 @@ class PantryService {
         if (unit != null) 'unit': unit,
       },
     );
-    return (response as List)
-        .map((e) => PantryItem.fromJson(e as Map<String, dynamic>))
-        .toList();
+    final items =
+        (response as List)
+            .map((e) => PantryItem.fromJson(e as Map<String, dynamic>))
+            .toList();
+    if (items.isNotEmpty && session == _client.sessionGeneration) {
+      PremiumOfferSuccessSignal.record(PremiumOfferContext.pantry);
+    }
+    return items;
   }
 
   Future<PantryItem> addFromBarcode(
@@ -65,6 +73,7 @@ class PantryService {
     bool batch = false,
     BarcodeLookupResult? lookupResult,
   }) async {
+    final session = _client.sessionGeneration;
     final response = await _client.post(
       '${ApiConfig.pantry}from-barcode',
       body: {
@@ -92,7 +101,11 @@ class PantryService {
       },
       timeout: const Duration(seconds: 15),
     );
-    return PantryItem.fromJson(response as Map<String, dynamic>);
+    final item = PantryItem.fromJson(response as Map<String, dynamic>);
+    if (session == _client.sessionGeneration) {
+      PremiumOfferSuccessSignal.record(PremiumOfferContext.barcodeScanner);
+    }
+    return item;
   }
 
   Future<void> deleteItem(String itemId) async {

@@ -2,6 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../../utils/lookup_market_context.dart';
+import '../../l10n/catalog_labels.dart';
+import '../../l10n/market_locale.dart';
+import '../../l10n/recipe_content.dart';
 import '../../models/barcode_lookup_result.dart';
 import '../../models/product.dart';
 import '../../services/product_name_lookup_service.dart';
@@ -40,8 +44,10 @@ class ManualAddRecipeScreen extends StatefulWidget {
 class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
   final _formKey = GlobalKey<FormState>();
   final RecipeService _recipeService = RecipeService();
-  final ProductNameLookupService _productLookupService =
-      ProductNameLookupService();
+  late final ProductNameLookupService _productLookupService =
+      ProductNameLookupService(
+        accountCountry: () => context.registeredLookupCountry,
+      );
 
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -166,18 +172,16 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
             context: context,
             builder:
                 (dialogContext) => AlertDialog(
-                  title: const Text('Odrzucić zmiany?'),
-                  content: const Text(
-                    'Wpisane dane przepisu nie zostały jeszcze zapisane.',
-                  ),
+                  title: Text(context.strings.manualRecipeDiscardTitle),
+                  content: Text(context.strings.manualRecipeUnsaved),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(dialogContext, false),
-                      child: const Text('Zostań'),
+                      child: Text(context.strings.manualRecipeStay),
                     ),
                     FilledButton(
                       onPressed: () => Navigator.pop(dialogContext, true),
-                      child: const Text('Odrzuć'),
+                      child: Text(context.strings.manualRecipeDiscard),
                     ),
                   ],
                 ),
@@ -239,12 +243,9 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
-            const SnackBar(
-              duration: Duration(seconds: 4),
-              content: Text(
-                'Ten produkt nie ma pełnych wartości odżywczych. '
-                'Wybierz inny wynik albo dodaj produkt do bazy z danymi z etykiety.',
-              ),
+            SnackBar(
+              duration: const Duration(seconds: 4),
+              content: Text(context.strings.manualRecipeNutritionRequired),
             ),
           );
         return;
@@ -287,9 +288,9 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
       );
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(friendlyError(error))));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(friendlyError(error, strings: context.strings))),
+      );
     }
   }
 
@@ -321,9 +322,9 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),
-            content: Text('Dodaj przynajmniej jeden składnik'),
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(context.strings.manualRecipeIngredientRequired),
           ),
         );
       return;
@@ -337,9 +338,9 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),
-            content: Text('Dodaj przynajmniej jeden krok przygotowania'),
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(context.strings.manualRecipeStepRequired),
           ),
         );
       return;
@@ -386,7 +387,7 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
+            content: Text(friendlyError(e, strings: context.strings)),
           ),
         );
     } finally {
@@ -402,7 +403,7 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
         if (!didPop) unawaited(_handleBackAttempt());
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text('Dodaj przepis ręcznie')),
+        appBar: AppBar(title: Text(context.strings.manualRecipeTitle)),
         // UWAGA (naprawa — ten sam wzorzec błędu, w kolejnym miejscu):
         // Form(ListView(...)) bez SafeArea — mimo że to przewijana lista,
         // w trybie edge-to-edge KONIEC przewijania nie uwzględniał
@@ -421,13 +422,13 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
                   textInputAction: TextInputAction.next,
                   onChanged: (_) => _recordEdit(_nameFocus),
                   onFieldSubmitted: (_) => _descriptionFocus.requestFocus(),
-                  decoration: const InputDecoration(
-                    labelText: 'Nazwa przepisu',
+                  decoration: InputDecoration(
+                    labelText: context.strings.manualRecipeName,
                   ),
                   validator:
                       (v) =>
                           (v == null || v.trim().isEmpty)
-                              ? 'Podaj nazwę'
+                              ? context.strings.manualRecipeNameRequired
                               : null,
                 ),
                 const SizedBox(height: 16),
@@ -436,8 +437,8 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
                   focusNode: _descriptionFocus,
                   textInputAction: TextInputAction.newline,
                   onChanged: (_) => _recordEdit(_descriptionFocus),
-                  decoration: const InputDecoration(
-                    labelText: 'Krótki opis (opcjonalnie)',
+                  decoration: InputDecoration(
+                    labelText: context.strings.manualRecipeDescription,
                   ),
                   maxLines: 2,
                 ),
@@ -448,15 +449,17 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
                       child: DropdownButtonFormField<String>(
                         value: _mealType,
                         isExpanded: true,
-                        decoration: const InputDecoration(
-                          labelText: 'Rodzaj posiłku',
+                        decoration: InputDecoration(
+                          labelText: context.strings.manualRecipeMealType,
                         ),
                         items:
                             _mealTypes
                                 .map(
                                   (t) => DropdownMenuItem(
                                     value: t,
-                                    child: Text(t),
+                                    child: Text(
+                                      context.strings.mealTypeLabel(t),
+                                    ),
                                   ),
                                 )
                                 .toList(),
@@ -468,15 +471,17 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
                       child: DropdownButtonFormField<String>(
                         value: _difficulty,
                         isExpanded: true,
-                        decoration: const InputDecoration(
-                          labelText: 'Trudność',
+                        decoration: InputDecoration(
+                          labelText: context.strings.recipeDifficulty,
                         ),
                         items:
                             _difficulties
                                 .map(
                                   (t) => DropdownMenuItem(
                                     value: t,
-                                    child: Text(t),
+                                    child: Text(
+                                      context.strings.difficultyLabel(t),
+                                    ),
                                   ),
                                 )
                                 .toList(),
@@ -496,8 +501,9 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
                         textInputAction: TextInputAction.next,
                         onChanged: (_) => _recordEdit(_prepTimeFocus),
                         onFieldSubmitted: (_) => _cookTimeFocus.requestFocus(),
-                        decoration: const InputDecoration(
-                          labelText: 'Przygotowanie (min)',
+                        decoration: InputDecoration(
+                          labelText:
+                              context.strings.manualRecipePreparationMinutes,
                         ),
                       ),
                       TextFormField(
@@ -507,8 +513,8 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
                         textInputAction: TextInputAction.next,
                         onChanged: (_) => _recordEdit(_cookTimeFocus),
                         onFieldSubmitted: (_) => _servingsFocus.requestFocus(),
-                        decoration: const InputDecoration(
-                          labelText: 'Gotowanie (min)',
+                        decoration: InputDecoration(
+                          labelText: context.strings.manualRecipeCookingMinutes,
                         ),
                       ),
                       TextFormField(
@@ -519,7 +525,9 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
                         onChanged: (_) => _recordEdit(_servingsFocus),
                         onFieldSubmitted:
                             (_) => _stepFocusNodes.first.requestFocus(),
-                        decoration: const InputDecoration(labelText: 'Porcje'),
+                        decoration: InputDecoration(
+                          labelText: context.strings.manualRecipeServings,
+                        ),
                       ),
                     ];
                     if (constraints.maxWidth < 480) {
@@ -554,13 +562,13 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
                   runSpacing: 4,
                   children: [
                     Text(
-                      'Składniki',
+                      context.strings.manualRecipeIngredients,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     TextButton.icon(
                       onPressed: _addIngredient,
                       icon: const Icon(Icons.add, size: 18),
-                      label: const Text('Dodaj'),
+                      label: Text(context.strings.add),
                     ),
                   ],
                 ),
@@ -568,7 +576,7 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Text(
-                      'Brak dodanych składników',
+                      context.strings.manualRecipeNoIngredients,
                       style: TextStyle(color: AppTheme.textSecondary),
                     ),
                   ),
@@ -577,9 +585,9 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
                   final ing = entry.value;
                   return ListTile(
                     contentPadding: EdgeInsets.zero,
-                    title: Text(ing.product.name),
+                    title: Text(ing.product.displayName(context)),
                     subtitle: Text(
-                      '${formatQuantity(ing.quantity, ing.unit)} ${formatUnitLabel(ing.unit)}',
+                      '${formatQuantity(ing.quantity, ing.unit)} ${context.strings.unitLabel(ing.unit)}',
                     ),
                     trailing: IconButton(
                       icon: const Icon(
@@ -600,13 +608,13 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
                   runSpacing: 4,
                   children: [
                     Text(
-                      'Kroki przygotowania',
+                      context.strings.manualRecipeSteps,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     TextButton.icon(
                       onPressed: _addStep,
                       icon: const Icon(Icons.add, size: 18),
-                      label: const Text('Dodaj krok'),
+                      label: Text(context.strings.manualRecipeAddStep),
                     ),
                   ],
                 ),
@@ -641,8 +649,8 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
                             maxLines: null,
                             textInputAction: TextInputAction.newline,
                             onChanged: (_) => _recordEdit(_stepFocusNodes[i]),
-                            decoration: const InputDecoration(
-                              hintText: 'Opisz ten krok...',
+                            decoration: InputDecoration(
+                              hintText: context.strings.manualRecipeStepHint,
                             ),
                           ),
                         ),
@@ -684,9 +692,9 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Zgłoś do wspólnego katalogu',
-                              style: TextStyle(
+                            Text(
+                              context.strings.manualRecipeSubmitToCatalogue,
+                              style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
                               ),
@@ -697,7 +705,7 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
                             // dostępny dla każdego, nie tylko Premium. Moderacja
                             // administratora nadal chroni katalog przed spamem.
                             Text(
-                              'Po akceptacji administratora będzie widoczny dla wszystkich i policzy się do cotygodniowego konkursu.',
+                              context.strings.manualRecipePublicHint,
                               style: TextStyle(
                                 color: AppTheme.textSecondary,
                                 fontSize: 12,
@@ -726,7 +734,7 @@ class _ManualAddRecipeScreenState extends State<ManualAddRecipeScreen> {
                               color: Colors.white,
                             ),
                           )
-                          : const Text('Zapisz przepis'),
+                          : Text(context.strings.manualRecipeSave),
                 ),
                 const SizedBox(height: 20),
               ],
@@ -746,7 +754,9 @@ class _ProductPickerSheet extends StatefulWidget {
 }
 
 class _ProductPickerSheetState extends State<_ProductPickerSheet> {
-  final ProductNameLookupService _service = ProductNameLookupService();
+  late final ProductNameLookupService _service = ProductNameLookupService(
+    accountCountry: () => context.registeredLookupCountry,
+  );
   final TextEditingController _searchController = TextEditingController();
   List<BarcodeLookupResult> _results = [];
   bool _isSearching = false;
@@ -789,7 +799,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
         setState(() {
           _results = [];
           _isSearching = false;
-          _error = friendlyError(error);
+          _error = friendlyError(error, strings: context.strings);
         });
       }
     });
@@ -814,7 +824,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Wybierz składnik',
+                context.strings.manualRecipeChooseIngredient,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 12),
@@ -823,13 +833,13 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                 autofocus: true,
                 textInputAction: TextInputAction.search,
                 decoration: InputDecoration(
-                  hintText: 'Szukaj w katalogu i bazie produktów...',
+                  hintText: context.strings.manualRecipeIngredientSearch,
                   prefixIcon: const Icon(Icons.search),
                   suffixIcon:
                       _searchController.text.isEmpty
                           ? null
                           : IconButton(
-                            tooltip: 'Wyczyść wyszukiwanie',
+                            tooltip: context.strings.clearSearch,
                             onPressed: () {
                               _searchController.clear();
                               _search('');
@@ -858,8 +868,12 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                             padding: const EdgeInsets.all(24),
                             child: Text(
                               _searchController.text.trim().length < 2
-                                  ? 'Wpisz co najmniej 2 znaki, aby znaleźć składnik.'
-                                  : 'Nie znaleziono produktu. Dodaj go najpierw do bazy produktów wraz z wartościami z etykiety.',
+                                  ? context
+                                      .strings
+                                      .manualRecipeIngredientSearchHint
+                                  : context
+                                      .strings
+                                      .manualRecipeIngredientNotFound,
                               textAlign: TextAlign.center,
                               style: TextStyle(color: AppTheme.textSecondary),
                             ),
@@ -874,19 +888,23 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                             final product = _results[index];
                             final hasNutrition = product.hasCompleteNutrition;
                             return ListTile(
-                              title: Text(product.name ?? ''),
+                              title: Text(product.displayName(context) ?? ''),
                               subtitle: Text(
                                 [
                                   if (product.brand?.isNotEmpty == true)
                                     product.brand!,
                                   if (product.kcalPer100 != null)
-                                    '${product.kcalPer100!.toStringAsFixed(0)} kcal / 100 ${product.unit}',
+                                    '${product.kcalPer100!.toStringAsFixed(0)} kcal / 100 ${context.strings.unitLabel(product.unit)}',
                                   if (product.source == 'open_food_facts')
                                     'Open Food Facts',
                                   if (!hasNutrition)
                                     product.barcode?.trim().isNotEmpty == true
-                                        ? 'Wymaga uzupełnienia etykiety'
-                                        : 'Brak pełnych wartości odżywczych',
+                                        ? context
+                                            .strings
+                                            .manualRecipeLabelRequired
+                                        : context
+                                            .strings
+                                            .manualRecipeNutritionMissing,
                                 ].join(' · '),
                               ),
                               trailing:

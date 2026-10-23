@@ -5,9 +5,12 @@ import '../utils/error_utils.dart';
 
 class ShoppingListProvider with ChangeNotifier {
   final ShoppingListService _shoppingListService;
+  final ErrorStringsResolver? errorStrings;
 
-  ShoppingListProvider({ShoppingListService? shoppingListService})
-    : _shoppingListService = shoppingListService ?? ShoppingListService();
+  ShoppingListProvider({
+    ShoppingListService? shoppingListService,
+    this.errorStrings,
+  }) : _shoppingListService = shoppingListService ?? ShoppingListService();
 
   ShoppingList? _currentList;
   bool _isLoading = false;
@@ -78,7 +81,7 @@ class ShoppingListProvider with ChangeNotifier {
       }
     } catch (e) {
       if (generation != _requestGeneration) return;
-      _errorMessage = friendlyError(e);
+      _errorMessage = friendlyError(e, strings: errorStrings?.call());
     } finally {
       if (generation == _requestGeneration) {
         _isLoading = false;
@@ -116,7 +119,7 @@ class ShoppingListProvider with ChangeNotifier {
       return true;
     } catch (e) {
       if (session != _sessionGeneration) return false;
-      _errorMessage = friendlyError(e);
+      _errorMessage = friendlyError(e, strings: errorStrings?.call());
       notifyListeners();
       return false;
     }
@@ -143,7 +146,7 @@ class ShoppingListProvider with ChangeNotifier {
       return true;
     } catch (e) {
       if (session != _sessionGeneration) return false;
-      _errorMessage = friendlyError(e);
+      _errorMessage = friendlyError(e, strings: errorStrings?.call());
       notifyListeners();
       return false;
     }
@@ -167,7 +170,7 @@ class ShoppingListProvider with ChangeNotifier {
       return true;
     } catch (e) {
       if (session != _sessionGeneration) return false;
-      _errorMessage = friendlyError(e);
+      _errorMessage = friendlyError(e, strings: errorStrings?.call());
       return false;
     } finally {
       if (session == _sessionGeneration) {
@@ -196,7 +199,7 @@ class ShoppingListProvider with ChangeNotifier {
       return true;
     } catch (e) {
       if (session != _sessionGeneration) return false;
-      _errorMessage = friendlyError(e);
+      _errorMessage = friendlyError(e, strings: errorStrings?.call());
       return false;
     } finally {
       if (session == _sessionGeneration) {
@@ -220,7 +223,7 @@ class ShoppingListProvider with ChangeNotifier {
       return true;
     } catch (e) {
       if (session != _sessionGeneration) return false;
-      _errorMessage = friendlyError(e);
+      _errorMessage = friendlyError(e, strings: errorStrings?.call());
       notifyListeners();
       return false;
     }
@@ -243,7 +246,7 @@ class ShoppingListProvider with ChangeNotifier {
       return moved;
     } catch (e) {
       if (session != _sessionGeneration) return null;
-      _errorMessage = friendlyError(e);
+      _errorMessage = friendlyError(e, strings: errorStrings?.call());
       notifyListeners();
       return null;
     }
@@ -261,7 +264,7 @@ class ShoppingListProvider with ChangeNotifier {
       return true;
     } catch (e) {
       if (session != _sessionGeneration) return false;
-      _errorMessage = friendlyError(e);
+      _errorMessage = friendlyError(e, strings: errorStrings?.call());
       notifyListeners();
       return false;
     }
@@ -279,7 +282,7 @@ class ShoppingListProvider with ChangeNotifier {
       _currentList = list;
     } catch (e) {
       if (generation != _requestGeneration) return;
-      _errorMessage = friendlyError(e);
+      _errorMessage = friendlyError(e, strings: errorStrings?.call());
     } finally {
       if (generation == _requestGeneration) {
         _isLoading = false;
@@ -322,7 +325,7 @@ class ShoppingListProvider with ChangeNotifier {
       if (_currentList?.id == listAtRequest.id) {
         _findItem(_currentList!, itemId)?.isChecked = previousValue;
       }
-      _errorMessage = friendlyError(e);
+      _errorMessage = friendlyError(e, strings: errorStrings?.call());
       return false;
     } finally {
       if (session == _sessionGeneration) {
@@ -351,7 +354,7 @@ class ShoppingListProvider with ChangeNotifier {
       return true;
     } catch (e) {
       if (session != _sessionGeneration) return false;
-      _errorMessage = friendlyError(e);
+      _errorMessage = friendlyError(e, strings: errorStrings?.call());
       return false;
     } finally {
       if (session == _sessionGeneration) {

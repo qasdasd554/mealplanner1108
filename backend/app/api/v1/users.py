@@ -1,11 +1,12 @@
 """Endpointy zarządzania profilem użytkownika."""
 
 from datetime import datetime, timedelta, timezone
+from collections.abc import Mapping
 import re
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from sqlalchemy import delete, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -29,7 +30,10 @@ from app.models import (
 from app.models.friendship import canonical_friend_ids
 from app.schemas.user import IngredientPreferencesResponse, IngredientPreferencesUpdate, UserResponse
 from app.services.display_name import validate_display_name
+from app.services.store_market_access import get_store_in_account_market
 from app.core.premium import is_premium_active
+from app.core.markets import account_country
+from app.core.language import account_text
 from app.services.premium_offer import (
     PREMIUM_OFFER_CONTEXTS,
     PREMIUM_OFFER_COOLDOWN,
@@ -71,7 +75,7 @@ async def claim_contextual_premium_offer(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> PremiumOfferClaimResponse:
-    """Atomowo pilnuje limitu jednej oferty na dwa dni na konto.
+    """Atomowo pilnuje limitu jednej oferty na 24 godziny na konto.
 
     Wywołanie jest typu ``claim``: pozytywna odpowiedź od razu zapisuje
     pokazanie. Dzięki warunkowemu UPDATE dwa równoległe żądania z dwóch
@@ -165,6 +169,16 @@ class UserProfileUpdate(BaseModel):
     """Schemat aktualizacji profilu użytkownika."""
 
     model_config = ConfigDict(from_attributes=True)
+
+    @model_validator(mode="before")
+    @classmethod
+    def forbid_account_country_changes(cls, value):
+        # Reject these keys explicitly while preserving legacy extra-field
+        # handling for old clients. Even a same-value/null request is not a
+        # supported country-edit operation.
+        if isinstance(value, Mapping) and {"country_code", "country", "device_region"}.intersection(value):
+            raise ValueError("Kraj konta jest ustalany przy rejestracji i nie można go zmienić.")
+        return value
 
     # UWAGA (naprawa bezpieczeństwa): wcześniej display_name i household_size
     # nie miały żadnych granic — dało się ustawić np. household_size=-999999
@@ -290,7 +304,8 @@ def ensure_tiktok_premium_access(update_data: dict, current_user: User) -> None:
     ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Dodanie profilu TikTok jest dostępne wyłącznie w Premium.",
+            detail=account_text(current_user, "Dodanie profilu TikTok jest dostępne wyłącznie w Premium.",
+                "Adding a TikTok profile requires Premium."),
         )
 
 
@@ -326,6 +341,7 @@ def _stored_ingredient_preferences(user: User) -> IngredientPreferencesUpdate:
 
 async def _ingredient_preferences_response(
     payload: IngredientPreferencesUpdate, db: AsyncSession, *, require_all: bool = False,
+    country_code: str = "PL",
 ) -> IngredientPreferencesResponse:
     requested = set(payload.liked_product_ids) | set(payload.disliked_product_ids)
     products: dict[UUID, dict] = {}
@@ -339,7 +355,9 @@ async def _ingredient_preferences_response(
     if require_all and set(products) != requested:
         raise HTTPException(
             status_code=400,
-            detail="Wybierz składniki z zatwierdzonego katalogu produktów.",
+            detail=("Choose ingredients from the approved product catalogue."
+                    if country_code == "GB"
+                    else "Wybierz składniki z zatwierdzonego katalogu produktów."),
         )
     liked = [identifier for identifier in payload.liked_product_ids if identifier in products]
     disliked = [identifier for identifier in payload.disliked_product_ids if identifier in products]
@@ -368,9 +386,13 @@ async def update_ingredient_preferences(
     if not is_premium_active(current_user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Preferencje składników są dostępne w aktywnym Premium.",
+            detail=("Ingredient preferences require active Premium."
+                    if account_country(current_user) == "GB"
+                    else "Preferencje składników są dostępne w aktywnym Premium."),
         )
-    response = await _ingredient_preferences_response(payload, db, require_all=True)
+    response = await _ingredient_preferences_response(
+        payload, db, require_all=True, country_code=account_country(current_user),
+    )
     current_user.ingredient_preferences = payload.model_dump(mode="json")
     db.add(current_user)
     await db.commit()
@@ -421,9 +443,10 @@ async def update_me(
     # obcego, kończąc się nieobsłużonym błędem 500 zamiast czytelnej
     # odpowiedzi. Sprawdzamy istnienie PRZED próbą zapisu.
     if update_data.get("preferred_store_id") is not None:
-        store = await db.get(Store, update_data["preferred_store_id"])
+        store = await get_store_in_account_market(db, update_data["preferred_store_id"], current_user)
         if store is None:
-            raise HTTPException(status_code=400, detail="Wskazany sklep nie istnieje")
+            raise HTTPException(status_code=400, detail=account_text(current_user,
+                "Wskazany sklep nie jest dostępny w kraju tego konta", "This shop is not available in your account's country."))
 
     # Nick musi zostać unikalny również przy EDYCJI (wcześniej dało się
     # ustawić dowolny, w tym zajęty przez kogoś innego — a nick jest
@@ -505,6 +528,7 @@ async def calculate_calorie_needs_endpoint(
             age=payload.age,
             gender=payload.gender,
             activity_level=payload.activity_level,
+            country_code=account_country(current_user),
         )
     except InvalidCalorieCalculatorInput as exc:
         raise HTTPException(status_code=400, detail=str(exc))
@@ -782,11 +806,12 @@ async def block_user(
     db: AsyncSession = Depends(get_db),
 ) -> None:
     if user_id == current_user.id:
-        raise HTTPException(status_code=400, detail="Nie można zablokować samego siebie")
+        raise HTTPException(status_code=400, detail=account_text(current_user,
+            "Nie można zablokować samego siebie", "You cannot block yourself."))
 
     target = await db.get(User, user_id)
     if target is None:
-        raise HTTPException(status_code=404, detail="Użytkownik nie istnieje")
+        raise HTTPException(status_code=404, detail=account_text(current_user, "Użytkownik nie istnieje", "User not found."))
 
     existing = await db.execute(
         select(BlockedUser).where(
@@ -980,7 +1005,7 @@ async def update_report_status(
 
     report = await db.get(ContentReport, report_id)
     if report is None:
-        raise HTTPException(status_code=404, detail="Nie znaleziono zgłoszenia")
+        raise HTTPException(status_code=404, detail=account_text(current_user, "Nie znaleziono zgłoszenia", "Submission not found."))
 
     report.status = payload.status
     report.resolved_at = datetime.now(timezone.utc)
@@ -1012,13 +1037,15 @@ async def ban_user(
     current_user: User = Depends(get_current_admin),
 ) -> None:
     if user_id == current_user.id:
-        raise HTTPException(status_code=400, detail="Nie można zablokować własnego konta")
+        raise HTTPException(status_code=400, detail=account_text(current_user,
+            "Nie można zablokować własnego konta", "You cannot ban your own account."))
 
     target = await db.get(User, user_id)
     if target is None:
-        raise HTTPException(status_code=404, detail="Użytkownik nie istnieje")
+        raise HTTPException(status_code=404, detail=account_text(current_user, "Użytkownik nie istnieje", "User not found."))
     if target.role == "admin":
-        raise HTTPException(status_code=400, detail="Nie można zablokować konta administratora")
+        raise HTTPException(status_code=400, detail=account_text(current_user,
+            "Nie można zablokować konta administratora", "You cannot ban an administrator account."))
 
     target.is_banned = True
     target.ban_reason = (payload.reason or "").strip() or None
@@ -1038,7 +1065,7 @@ async def unban_user(
 ) -> None:
     target = await db.get(User, user_id)
     if target is None:
-        raise HTTPException(status_code=404, detail="Użytkownik nie istnieje")
+        raise HTTPException(status_code=404, detail=account_text(current_user, "Użytkownik nie istnieje", "User not found."))
 
     target.is_banned = False
     target.ban_reason = None
@@ -1186,14 +1213,15 @@ async def delete_reported_content(
 
     report = await db.get(ContentReport, report_id)
     if report is None:
-        raise HTTPException(status_code=404, detail="Nie znaleziono zgłoszenia")
+        raise HTTPException(status_code=404, detail=account_text(current_user, "Nie znaleziono zgłoszenia", "Submission not found."))
 
     if report.content_type == "comment":
         target = await db.get(RecipeComment, report.content_id)
     elif report.content_type == "recipe":
         target = await db.get(Recipe, report.content_id)
     else:
-        raise HTTPException(status_code=400, detail="Nieznany typ zgłoszonej treści")
+        raise HTTPException(status_code=400, detail=account_text(current_user,
+            "Nieznany typ zgłoszonej treści", "Unknown reported content type."))
 
     if target is not None:
         await db.delete(target)

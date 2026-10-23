@@ -11,6 +11,7 @@ from sqlalchemy.orm import selectinload
 
 from app.api.deps import get_current_user, get_db
 from app.core.rate_limit import enforce_user_rate_limit, friend_invitation_limiter
+from app.core.markets import account_country
 from app.models import (
     BlockedUser,
     Friendship,
@@ -27,8 +28,13 @@ from app.models.friendship import canonical_friend_ids
 from app.schemas.friendship import FriendEntry, FriendInvitationCreate
 from app.schemas.recipe import RecipeResponse
 from app.schemas.shopping_list import ShoppingListResponse
+from app.services.market_catalog import apply_recipe_market_filter
 
 router = APIRouter()
+
+
+def _text(country_code: str, polish: str, english: str) -> str:
+    return english if country_code == "GB" else polish
 
 
 def _pair_filter(first: UUID, second: UUID):
@@ -40,7 +46,7 @@ def _other_user(connection: Friendship, current_user_id: UUID) -> User:
     return connection.user_b if connection.user_a_id == current_user_id else connection.user_a
 
 
-def _entry(connection: Friendship, current_user_id: UUID) -> FriendEntry:
+def _entry(connection: Friendship, current_user_id: UUID, *, country_code: str = "PL") -> FriendEntry:
     other = _other_user(connection, current_user_id)
     direction = None
     if connection.status == "pending":
@@ -48,7 +54,7 @@ def _entry(connection: Friendship, current_user_id: UUID) -> FriendEntry:
     return FriendEntry(
         connection_id=connection.id,
         user_id=other.id,
-        display_name=other.display_name or "Użytkownik",
+        display_name=other.display_name or _text(country_code, "Użytkownik", "User"),
         avatar=other.avatar,
         avatar_photo_base64=other.avatar_photo_base64,
         status=connection.status,
@@ -57,7 +63,8 @@ def _entry(connection: Friendship, current_user_id: UUID) -> FriendEntry:
     )
 
 
-async def _get_connection(db: AsyncSession, current_user_id: UUID, friend_id: UUID) -> Friendship:
+async def _get_connection(db: AsyncSession, current_user_id: UUID, friend_id: UUID,
+                          *, country_code: str = "PL") -> Friendship:
     result = await db.execute(
         select(Friendship)
         .options(selectinload(Friendship.user_a), selectinload(Friendship.user_b))
@@ -65,18 +72,20 @@ async def _get_connection(db: AsyncSession, current_user_id: UUID, friend_id: UU
     )
     connection = result.scalar_one_or_none()
     if connection is None:
-        raise HTTPException(status_code=403, detail="Ta osoba nie jest na Twojej liście znajomych.")
+        raise HTTPException(status_code=403, detail=_text(country_code,
+            "Ta osoba nie jest na Twojej liście znajomych.", "This person is not on your friends list."))
     return connection
 
 
-async def _notify(db: AsyncSession, user_id: UUID, notification_type: str, message: str) -> None:
+async def _notify(db: AsyncSession, user_id: UUID, notification_type: str, message: str,
+                  *, country_code: str = "PL") -> None:
     notification = Notification(user_id=user_id, notification_type=notification_type, message=message)
     db.add(notification)
     await db.commit()
     try:
         from app.services.push import push_for_notification
 
-        await push_for_notification(db, notification)
+        await push_for_notification(db, notification, country_code=country_code)
     except Exception:
         # Push jest dodatkiem. Zaproszenie pozostaje zapisane nawet przy
         # chwilowym błędzie konfiguracji APNs/FCM.
@@ -89,6 +98,7 @@ async def send_invitation(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> FriendEntry:
+    country = account_country(current_user)
     enforce_user_rate_limit(friend_invitation_limiter, current_user.id, "zaproszenie do znajomych")
     identifier = payload.identifier.strip()
     if "@" in identifier:
@@ -100,13 +110,18 @@ async def send_invitation(
         )
         matches = list(result.scalars().all())
         if len(matches) > 1:
-            raise HTTPException(status_code=409, detail="Ta nazwa nie jest unikalna. Wpisz adres e-mail znajomego.")
+            raise HTTPException(status_code=409, detail=_text(country,
+                "Ta nazwa nie jest unikalna. Wpisz adres e-mail znajomego.",
+                "This username is not unique. Enter your friend's email address."))
         target = matches[0] if matches else None
 
     if target is None or target.is_banned:
-        raise HTTPException(status_code=404, detail="Nie znaleziono użytkownika o tej nazwie lub adresie e-mail.")
+        raise HTTPException(status_code=404, detail=_text(country,
+            "Nie znaleziono użytkownika o tej nazwie lub adresie e-mail.",
+            "No user was found with this username or email address."))
     if target.id == current_user.id:
-        raise HTTPException(status_code=400, detail="Nie możesz wysłać zaproszenia do siebie.")
+        raise HTTPException(status_code=400, detail=_text(country,
+            "Nie możesz wysłać zaproszenia do siebie.", "You cannot send yourself a friend request."))
 
     blocked = await db.execute(
         select(BlockedUser.id).where(
@@ -117,7 +132,8 @@ async def send_invitation(
         )
     )
     if blocked.scalar_one_or_none() is not None:
-        raise HTTPException(status_code=403, detail="Nie można wysłać zaproszenia do tego użytkownika.")
+        raise HTTPException(status_code=403, detail=_text(country,
+            "Nie można wysłać zaproszenia do tego użytkownika.", "You cannot send a friend request to this user."))
 
     existing_result = await db.execute(
         select(Friendship)
@@ -127,8 +143,10 @@ async def send_invitation(
     existing = existing_result.scalar_one_or_none()
     if existing is not None:
         if existing.status == "accepted":
-            raise HTTPException(status_code=409, detail="Ta osoba jest już Twoim znajomym.")
-        raise HTTPException(status_code=409, detail="Zaproszenie między tymi kontami już oczekuje.")
+            raise HTTPException(status_code=409, detail=_text(country,
+                "Ta osoba jest już Twoim znajomym.", "This person is already your friend."))
+        raise HTTPException(status_code=409, detail=_text(country,
+            "Zaproszenie między tymi kontami już oczekuje.", "A friend request between these accounts is already pending."))
 
     user_a, user_b = canonical_friend_ids(current_user.id, target.id)
     connection = Friendship(
@@ -149,9 +167,12 @@ async def send_invitation(
         db,
         target.id,
         "friend_invitation",
-        f"{current_user.display_name or 'Ktoś'} wysłał(a) Ci zaproszenie do znajomych.",
+        _text(account_country(target),
+            f"{current_user.display_name or 'Ktoś'} wysłał(a) Ci zaproszenie do znajomych.",
+            f"{current_user.display_name or 'Someone'} sent you a friend request."),
+        country_code=account_country(target),
     )
-    return _entry(connection, current_user.id)
+    return _entry(connection, current_user.id, country_code=country)
 
 
 @router.get("/", response_model=list[FriendEntry])
@@ -168,7 +189,7 @@ async def list_friends(
         )
         .order_by(Friendship.updated_at.desc())
     )
-    return [_entry(connection, current_user.id) for connection in result.scalars().all()]
+    return [_entry(connection, current_user.id, country_code=account_country(current_user)) for connection in result.scalars().all()]
 
 
 @router.get("/invitations", response_model=list[FriendEntry])
@@ -185,7 +206,7 @@ async def list_invitations(
         )
         .order_by(Friendship.created_at.desc())
     )
-    return [_entry(connection, current_user.id) for connection in result.scalars().all()]
+    return [_entry(connection, current_user.id, country_code=account_country(current_user)) for connection in result.scalars().all()]
 
 
 @router.post("/invitations/{connection_id}/accept", response_model=FriendEntry)
@@ -206,7 +227,8 @@ async def accept_invitation(
     )
     connection = result.scalar_one_or_none()
     if connection is None:
-        raise HTTPException(status_code=404, detail="Nie znaleziono oczekującego zaproszenia.")
+        raise HTTPException(status_code=404, detail=_text(account_country(current_user),
+            "Nie znaleziono oczekującego zaproszenia.", "No pending friend request was found."))
     connection.status = "accepted"
     sender_id = connection.requested_by_id
     await db.commit()
@@ -214,9 +236,12 @@ async def accept_invitation(
         db,
         sender_id,
         "friend_accepted",
-        f"{current_user.display_name or 'Ktoś'} przyjął(-ęła) Twoje zaproszenie do znajomych.",
+        _text(account_country(_other_user(connection, current_user.id)),
+            f"{current_user.display_name or 'Ktoś'} przyjął(-ęła) Twoje zaproszenie do znajomych.",
+            f"{current_user.display_name or 'Someone'} accepted your friend request."),
+        country_code=account_country(_other_user(connection, current_user.id)),
     )
-    return _entry(connection, current_user.id)
+    return _entry(connection, current_user.id, country_code=account_country(current_user))
 
 
 @router.delete("/invitations/{connection_id}", status_code=status.HTTP_200_OK)
@@ -233,7 +258,8 @@ async def decline_or_cancel_invitation(
         )
     )
     if not result.rowcount:
-        raise HTTPException(status_code=404, detail="Nie znaleziono oczekującego zaproszenia.")
+        raise HTTPException(status_code=404, detail=_text(account_country(current_user),
+            "Nie znaleziono oczekującego zaproszenia.", "No pending friend request was found."))
     await db.commit()
     return {"deleted": True}
 
@@ -248,7 +274,8 @@ async def remove_friend(
         delete(Friendship).where(_pair_filter(current_user.id, friend_id), Friendship.status == "accepted")
     )
     if not result.rowcount:
-        raise HTTPException(status_code=404, detail="Nie znaleziono znajomego.")
+        raise HTTPException(status_code=404, detail=_text(account_country(current_user),
+            "Nie znaleziono znajomego.", "Friend not found."))
     await db.commit()
     return {"deleted": True}
 
@@ -259,8 +286,8 @@ async def friend_recipes(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> list[Recipe]:
-    await _get_connection(db, current_user.id, friend_id)
-    result = await db.execute(
+    await _get_connection(db, current_user.id, friend_id, country_code=account_country(current_user))
+    query = (
         select(Recipe)
         .options(
             selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product),
@@ -272,8 +299,12 @@ async def friend_recipes(
             Recipe.is_active.is_(True),
             Recipe.visibility.in_(["private", "public"]),
         )
-        .order_by(Recipe.created_at.desc())
     )
+    # Friendship grants read-only access to the author's private recipes, but
+    # does not override the viewing account's local ingredient availability.
+    # Filter in SQL before any ordering/pagination; PL remains unchanged.
+    query = apply_recipe_market_filter(query, current_user)
+    result = await db.execute(query.order_by(Recipe.created_at.desc()))
     recipes = list(result.unique().scalars().all())
     for recipe in recipes:
         recipe.is_favorite = False
@@ -287,7 +318,7 @@ async def friend_shopping_lists(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> list[ShoppingList]:
-    await _get_connection(db, current_user.id, friend_id)
+    await _get_connection(db, current_user.id, friend_id, country_code=account_country(current_user))
     result = await db.execute(
         select(ShoppingList)
         .join(MealPlan, MealPlan.id == ShoppingList.meal_plan_id)

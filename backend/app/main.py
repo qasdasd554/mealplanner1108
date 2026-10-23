@@ -16,6 +16,9 @@ from app.api.v1 import router as v1_router
 from app.core.config import settings
 from app.core.exceptions import AppException
 from app.core.release_version import APP_VERSION
+from app.db.market_schema import ensure_account_market_schema
+from app.db.store_market_schema import ensure_store_market_schema
+from app.db.campaign_market_schema import ensure_campaign_market_schema
 from app.db.session import Base, get_db
 
 logger = logging.getLogger(__name__)
@@ -29,6 +32,11 @@ async def _create_tables() -> None:
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        # Existing accounts stay in PL. Registering from another device or
+        # logging in abroad must never change the persisted account market.
+        await ensure_account_market_schema(conn)
+        await ensure_store_market_schema(conn)
+        await ensure_campaign_market_schema(conn)
         # Przy pierwszym uruchomieniu po wprowadzeniu limitu zaliczamy
         # istniejące zwykłe plany. Archiwalne plany techniczne, tworzone
         # pod listy zakupów z przepisów, nie są planami posiłków.
@@ -36,8 +44,9 @@ async def _create_tables() -> None:
             "INSERT INTO meal_plan_creations "
             "(id, user_id, meal_plan_id, week_start, created_at) "
             "SELECT gen_random_uuid(), mp.user_id, mp.id, "
-            "date_trunc('week', mp.created_at AT TIME ZONE 'Europe/Warsaw')::date, "
-            "mp.created_at FROM meal_plans mp "
+            "date_trunc('week', mp.created_at AT TIME ZONE "
+            "CASE WHEN u.country_code = 'GB' THEN 'Europe/London' ELSE 'Europe/Warsaw' END)::date, "
+            "mp.created_at FROM meal_plans mp JOIN users u ON u.id = mp.user_id "
             "WHERE mp.status != 'archived' "
             "ON CONFLICT (meal_plan_id) DO NOTHING"
         ))
@@ -48,9 +57,10 @@ async def _create_tables() -> None:
             "INSERT INTO shopping_list_creations "
             "(id, user_id, shopping_list_id, week_start, created_at) "
             "SELECT gen_random_uuid(), mp.user_id, sl.id, "
-            "date_trunc('week', sl.created_at AT TIME ZONE 'Europe/Warsaw')::date, "
+            "date_trunc('week', sl.created_at AT TIME ZONE "
+            "CASE WHEN u.country_code = 'GB' THEN 'Europe/London' ELSE 'Europe/Warsaw' END)::date, "
             "sl.created_at FROM shopping_lists sl "
-            "JOIN meal_plans mp ON mp.id = sl.meal_plan_id "
+            "JOIN meal_plans mp ON mp.id = sl.meal_plan_id JOIN users u ON u.id = mp.user_id "
             "WHERE COALESCE(mp.preferences->>'shopping_list_merge', 'false') != 'true' "
             "ON CONFLICT (shopping_list_id) DO NOTHING"
         ))
@@ -549,11 +559,16 @@ async def _seed_database_if_empty() -> None:
     """
     try:
         from app.db.seed import seed_database
+        from app.db.uk_store_catalog import seed_uk_stores
         from app.db.session import async_session_factory
 
         async with async_session_factory() as db:
             logger.info("Synchronizuję dane początkowe (seed)...")
             await seed_database(db)
+            # Navigation data only. UK product availability and prices are
+            # independent of the existing Polish catalogue.
+            if settings.UK_MARKET_ENABLED:
+                await seed_uk_stores(db)
             await db.commit()
             logger.info("Dane początkowe zsynchronizowane.")
     except ImportError:

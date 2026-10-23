@@ -31,6 +31,8 @@ import unicodedata
 import httpx
 
 from app.core.config import settings
+from fastapi import HTTPException
+from app.services.recipe_ingredient_integrity import looks_like_whole_meal, validate_ingredient_names
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +64,16 @@ ALLOWED_DIFFICULTIES = {"łatwy", "średni", "trudny"}
 class AIRecipeImportError(Exception):
     """Błąd czytelny dla użytkownika (np. brak klucza API, AI nie
     rozpoznało przepisu, przekroczony limit)."""
+
+
+def recipe_message(country_code: str, polish: str, english: str) -> str:
+    """Only the immutable account's supported market selects user-facing text."""
+    return english if country_code == "GB" else polish
+
+
+def _market_kwargs(country_code: str) -> dict:
+    # Keep the old PL service-call contract, including existing integrations.
+    return {"country_code": "GB"} if country_code == "GB" else {}
 
 
 class _ModelUnavailableError(Exception):
@@ -110,7 +122,7 @@ def match_product_name(name: str, available_products: list[str]) -> str | None:
 
 def _select_prompt_products(available_products: list[str], context: str | None) -> list[str]:
     """Ogranicza wielkość promptu niezależnie od liczby produktów w bazie."""
-    unique = list(dict.fromkeys(available_products))
+    unique = [name for name in dict.fromkeys(available_products) if not looks_like_whole_meal(name)]
     if len(unique) <= 140:
         return unique
     words = set(_normalize_product_name(context or "").split())
@@ -137,10 +149,56 @@ def _select_prompt_products(available_products: list[str], context: str | None) 
     return selected
 
 
-def _build_prompt(available_products: list[str], *, context: str | None = None) -> str:
+def _build_prompt(
+    available_products: list[str], *, context: str | None = None,
+    country_code: str = "PL",
+) -> str:
     products_list = "\n".join(
         f"- {p}" for p in sorted(_select_prompt_products(available_products, context))
     )
+    if country_code == "GB":
+        return f"""You are a culinary assistant. Return ONE complete recipe as strict JSON.
+Write the recipe name, description, cuisine, instructions and suggested seasonings
+in British English. Keep brand names and the exact names of matching catalogue
+products unchanged, even when those names are in another language.
+
+A) If the input already contains a recipe (text, recipe-card photo or book page),
+extract it faithfully; do not invent extra ingredients or change its meaning.
+B) A dish name or photo of a finished meal is valid input: propose a typical,
+authentic recipe for it, with quantities and clear, detailed cooking steps.
+
+RULES:
+1. Return only raw JSON, with no markdown or surrounding text.
+2. Prefer a genuinely matching catalogue ingredient. If there is no good match,
+keep the original ingredient name; never replace it with an unrelated product.
+Do not translate catalogue names or claim that an item is sold in a UK shop:
+catalogue identity does not prove local availability or a price.
+3. The unit API value MUST be one of: g, kg, ml, l, szt.
+Use metric quantities, never cups/ounces/pounds or an assumed package size.
+For scratch cooking list raw ingredients, not a packaged version of the whole dish.
+Never replace plain butter with flavoured butter or raw meat with a ready meal.
+Do not convert grams to millilitres without known product-specific information.
+4. The meal_type API value MUST be one of: śniadanie, obiad, kolacja, przekąska, deser.
+5. The difficulty API value MUST be one of: łatwy, średni, trudny.
+These identifiers and JSON keys are fixed API values; do not translate them.
+6. Instructions must be British English steps with precise quantities, clear
+enough for an inexperienced cook (for example: 'Soften the onion (100 g) in oil').
+7. Only for input entirely unrelated to food return exactly:
+{{"error": "No recipe could be recognised in the supplied content."}}
+Never return this error just because the input is only a dish name or meal photo.
+
+PREFERRED PRODUCT NAMES (a bounded catalogue extract):
+{products_list}
+
+RESPONSE SHAPE (replace examples with the recipe's real data):
+{{
+  "name": "Dish name", "description": "A short description (1–2 sentences)",
+  "cuisine": "British", "meal_type": "obiad", "prep_time_min": 15,
+  "cook_time_min": 25, "servings": 4, "difficulty": "łatwy",
+  "ingredients": [{{"product_name": "exact catalogue name", "quantity": 100, "unit": "g"}}],
+  "instructions": ["First detailed step with quantities.", "Next step."],
+  "suggested_seasonings": ["oregano"]
+}}"""
     return f"""Jesteś asystentem kulinarnym. Otrzymujesz treść (tekst, zdjęcie albo
 samą nazwę dania) i masz dostarczyć przepis kulinarny w ściśle określonym
 formacie JSON, PO POLSKU.
@@ -169,6 +227,9 @@ WAŻNE ZASADY:
    listy (np. "cukier puder" może odpowiadać "Cukier"). Jeśli na liście
    nie ma dobrego odpowiednika, zachowaj oryginalną nazwę składnika;
    nie pomijaj składników z przepisu. Serwer dopasuje je do pełnego katalogu.
+Do przygotowania dania podawaj jego rzeczywiste składniki, nie gotowe danie
+o podobnej nazwie. Nie zamieniaj zwykłego masła na smakowe ani surowego mięsa
+na gotowy posiłek z dodatkami.
 3. Pole "unit" MUSI być jednym z: g, kg, ml, l, szt.
 4. Pole "meal_type" MUSI być jednym z: śniadanie, obiad, kolacja, przekąska, deser.
 5. Pole "difficulty" MUSI być jednym z: łatwy, średni, trudny.
@@ -207,7 +268,10 @@ FORMAT ODPOWIEDZI (przykład struktury, wypełnij prawdziwymi danymi):
 }}"""
 
 
-async def _call_gemini_model(parts: list[dict], model: str, *, timeout_seconds: float = 25.0) -> str:
+async def _call_gemini_model(
+    parts: list[dict], model: str, *, timeout_seconds: float = 25.0,
+    country_code: str = "PL",
+) -> str:
     """Wywołuje JEDEN, konkretny model Gemini. Ponawia próbę przy błędach
     przejściowych (503/502/500), ale przy wyczerpanym limicie (429) albo
     uporczywym przeciążeniu mimo ponowień rzuca `_ModelUnavailableError`
@@ -290,9 +354,11 @@ async def _call_gemini_model(parts: list[dict], model: str, *, timeout_seconds: 
                 reason="overloaded",
             )
 
-        raise AIRecipeImportError(
-            f"Usługa AI zwróciła błąd ({response.status_code}). Spróbuj ponownie za chwilę."
-        )
+        raise AIRecipeImportError(recipe_message(
+            country_code,
+            f"Usługa AI zwróciła błąd ({response.status_code}). Spróbuj ponownie za chwilę.",
+            f"The AI service returned an error ({response.status_code}). Please try again shortly.",
+        ))
 
     data = response.json()
     try:
@@ -300,10 +366,10 @@ async def _call_gemini_model(parts: list[dict], model: str, *, timeout_seconds: 
         text_parts = candidates[0]["content"]["parts"]
         text = "".join(p.get("text", "") for p in text_parts)
     except (KeyError, IndexError):
-        raise AIRecipeImportError("Usługa AI nie zwróciła żadnej treści.")
+        raise AIRecipeImportError(recipe_message(country_code, "Usługa AI nie zwróciła żadnej treści.", "The AI service did not return any content."))
 
     if not text.strip():
-        raise AIRecipeImportError("Usługa AI nie zwróciła żadnej treści.")
+        raise AIRecipeImportError(recipe_message(country_code, "Usługa AI nie zwróciła żadnej treści.", "The AI service did not return any content."))
     return text
 
 
@@ -312,6 +378,7 @@ async def _call_gemini(
     *,
     timeout_seconds: float = 35.0,
     max_total_seconds: float | None = None,
+    country_code: str = "PL",
 ) -> str:
     """Próbuje kolejnych modeli z GEMINI_MODELS (najpierw główny, potem
     "lite" jako zapasowy), przechodząc do następnego, gdy poprzedni
@@ -324,10 +391,11 @@ async def _call_gemini(
     photo przekazuje tu wyższą wartość niż domyślna, żeby nie odcinać
     faktycznie udanych, tylko nieco wolniejszych odpowiedzi."""
     if not settings.GEMINI_API_KEY:
-        raise AIRecipeImportError(
+        raise AIRecipeImportError(recipe_message(country_code,
             "Funkcja dodawania przepisów przez AI nie jest jeszcze skonfigurowana "
-            "(brak klucza API po stronie serwera). Skontaktuj się z administratorem."
-        )
+            "(brak klucza API po stronie serwera). Skontaktuj się z administratorem.",
+            "AI recipe import is not configured on the server. Please contact the administrator.",
+        ))
 
     unavailable_reasons: list[str] = []
     reason_types: list[str] = []
@@ -345,6 +413,7 @@ async def _call_gemini(
         try:
             return await _call_gemini_model(
                 parts, model, timeout_seconds=min(timeout_seconds, remaining),
+                **_market_kwargs(country_code),
             )
         except _ModelUnavailableError as exc:
             logger.warning("Gemini: %s — próbuję kolejnego modelu, jeśli jest", exc)
@@ -360,27 +429,31 @@ async def _call_gemini(
     # to userowi wprost — "spróbuj za chwilę" byłoby mylące, skoro limit
     # dzienny reali się dopiero następnego dnia.
     if reason_types and all(r == "quota_exhausted" for r in reason_types):
-        raise AIRecipeImportError(
+        raise AIRecipeImportError(recipe_message(country_code,
             "Dzienny limit zapytań do AI został wyczerpany dla wszystkich dostępnych "
-            "modeli. Spróbuj ponownie jutro, albo skontaktuj się z administratorem."
-        )
+            "modeli. Spróbuj ponownie jutro, albo skontaktuj się z administratorem.",
+            "The daily AI request limit has been reached for all available models. Please try tomorrow or contact the administrator.",
+        ))
     if reason_types and all(r == "rate_limited" for r in reason_types):
-        raise AIRecipeImportError(
-            "Zbyt wiele zapytań do AI w krótkim czasie. Odczekaj minutę i spróbuj ponownie."
-        )
+        raise AIRecipeImportError(recipe_message(country_code,
+            "Zbyt wiele zapytań do AI w krótkim czasie. Odczekaj minutę i spróbuj ponownie.",
+            "Too many AI requests in a short time. Please wait a minute and try again.",
+        ))
     if "timeout" in reason_types:
-        raise AIRecipeImportError(
+        raise AIRecipeImportError(recipe_message(country_code,
             "Modele AI nie odpowiedziały w wyznaczonym czasie. "
-            "Przepis nie został dodany i nie pobrano punktów. Spróbuj ponownie za chwilę."
-        )
+            "Przepis nie został dodany i nie pobrano punktów. Spróbuj ponownie za chwilę.",
+            "The AI models did not respond in time. No recipe was added and no points were charged. Please try again shortly.",
+        ))
 
-    raise AIRecipeImportError(
+    raise AIRecipeImportError(recipe_message(country_code,
         f"Usługa AI jest chwilowo niedostępna (wypróbowano {len(GEMINI_MODELS)} modeli, "
-        "wszystkie osiągnęły limit lub są przeciążone). Spróbuj ponownie za chwilę."
-    )
+        "wszystkie osiągnęły limit lub są przeciążone). Spróbuj ponownie za chwilę.",
+        "The AI service is temporarily unavailable. The available models are busy or have reached their limits. Please try again shortly.",
+    ))
 
 
-def _parse_recipe_json(raw_text: str) -> dict:
+def _parse_recipe_json(raw_text: str, *, country_code: str = "PL") -> dict:
     # Na wypadek, gdyby model mimo instrukcji owinął odpowiedź w blok markdown
     # (responseMimeType="application/json" zwykle to eliminuje, ale nie ma
     # gwarancji przy każdym modelu/wersji API).
@@ -388,47 +461,57 @@ def _parse_recipe_json(raw_text: str) -> dict:
     try:
         parsed = json.loads(cleaned)
     except json.JSONDecodeError:
-        raise AIRecipeImportError(
-            "Nie udało się zinterpretować odpowiedzi AI jako przepisu. Spróbuj sformułować to inaczej."
-        )
+        raise AIRecipeImportError(recipe_message(country_code,
+            "Nie udało się zinterpretować odpowiedzi AI jako przepisu. Spróbuj sformułować to inaczej.",
+            "The AI response could not be read as a recipe. Please try rephrasing your request.",
+        ))
 
     if not isinstance(parsed, dict):
-        raise AIRecipeImportError("AI zwróciło niepoprawny format przepisu. Spróbuj ponownie.")
+        raise AIRecipeImportError(recipe_message(country_code, "AI zwróciło niepoprawny format przepisu. Spróbuj ponownie.", "AI returned an invalid recipe format. Please try again."))
     if "error" in parsed:
         raise AIRecipeImportError(parsed["error"])
 
     required = {"name", "meal_type", "ingredients", "instructions"}
     if not required.issubset(parsed.keys()):
-        raise AIRecipeImportError("AI zwróciło niekompletny przepis. Spróbuj ponownie.")
+        raise AIRecipeImportError(recipe_message(country_code, "AI zwróciło niekompletny przepis. Spróbuj ponownie.", "AI returned an incomplete recipe. Please try again."))
 
     return parsed
 
 
-async def extract_recipe_from_text(recipe_text: str, available_products: list[str]) -> dict:
+async def extract_recipe_from_text(
+    recipe_text: str, available_products: list[str], *, country_code: str = "PL",
+) -> dict:
     """Zwraca ustrukturyzowany przepis (dict) rozpoznany z wklejonego tekstu."""
-    prompt = _build_prompt(available_products, context=recipe_text)
-    parts = [{"text": f"{prompt}\n\nTREŚĆ DO ROZPOZNANIA (tekst przepisu):\n{recipe_text}"}]
-    raw = await _call_gemini(parts)
-    return _parse_recipe_json(raw)
+    prompt = _build_prompt(available_products, context=recipe_text, country_code=country_code)
+    label = recipe_message(country_code, "TREŚĆ DO ROZPOZNANIA (tekst przepisu)", "CONTENT TO RECOGNISE (recipe text)")
+    parts = [{"text": f"{prompt}\n\n{label}:\n{recipe_text}"}]
+    raw = await _call_gemini(parts, **_market_kwargs(country_code))
+    return _parse_recipe_json(raw, country_code=country_code)
 
 
 async def revise_recipe_with_ai(
-    recipe: dict, instruction: str, available_products: list[str]
+    recipe: dict, instruction: str, available_products: list[str], *, country_code: str = "PL",
 ) -> dict:
     """Zwraca pełny przepis po jednej zmianie opisanej przez właściciela."""
     original = json.dumps(recipe, ensure_ascii=False)
     context = f"{original}\n{instruction}"
-    prompt = _build_prompt(available_products, context=context)
-    parts = [{"text": (
+    prompt = _build_prompt(available_products, context=context, country_code=country_code)
+    revision = recipe_message(country_code,
         f"{prompt}\n\nISTNIEJĄCY PRZEPIS (JSON):\n{original}\n\n"
         f"POLECENIE WŁAŚCICIELA: {instruction}\n\n"
         "Zmień istniejący przepis zgodnie z poleceniem. Zachowaj pozostałe "
         "składniki i kroki, o ile polecenie nie wymaga ich zmiany. Zwróć "
         "CAŁY przepis w formacie JSON powyżej, nie tylko fragment różnic. "
-        "Nie dodawaj składników, których nie ma w katalogu."
-    )}]
-    raw = await _call_gemini(parts)
-    return validate_and_clean_recipe_dict(_parse_recipe_json(raw))
+        "Nie dodawaj składników, których nie ma w katalogu.",
+        f"{prompt}\n\nEXISTING RECIPE (JSON):\n{original}\n\n"
+        f"OWNER'S INSTRUCTION: {instruction}\n\n"
+        "Revise the existing recipe as requested. Preserve its other ingredients "
+        "and steps unless the instruction requires changes. Return the WHOLE "
+        "recipe in the JSON format above, not a patch. Do not add ingredients "
+        "that are absent from the catalogue.",
+    )
+    raw = await _call_gemini([{"text": revision}], **_market_kwargs(country_code))
+    return validate_and_clean_recipe_dict(_parse_recipe_json(raw, country_code=country_code), country_code=country_code)
 
 
 def _jsonld_instruction_text(value) -> list[str]:
@@ -484,6 +567,15 @@ def _jsonld_recipe_from_soup(soup) -> dict | None:
             if not match:
                 break
             quantity, unit, name = match.groups()
+            # The absent-unit branch is valid for "2 eggs", not "2 oz chicken".
+            # Leaving oz/tsp in the product name could let fuzzy matching turn
+            # an imperial/household measure into a count of whole products.
+            if unit is None and re.match(
+                r"^(?:oz|ounces?|lbs?|pounds?|cups?|tbsp|tsp|tablespoons?|teaspoons?"
+                r"|fl\.?\s*oz|fluid\s+ounces?|mg|cl|dl)\b", name,
+                flags=re.IGNORECASE,
+            ):
+                break
             ingredients.append({
                 "product_name": name.strip(" ,-"),
                 "quantity": float(quantity.replace(",", ".")),
@@ -521,7 +613,7 @@ def _jsonld_recipe_from_soup(soup) -> dict | None:
     return None
 
 
-async def _fetch_url_text(url: str) -> tuple[str, dict | None]:
+async def _fetch_url_text(url: str, *, country_code: str = "PL") -> tuple[str, dict | None]:
     """Pobiera i wyciąga tekst czytelny dla człowieka ze strony pod danym
     adresem — do rozpoznawania przepisu z linku (blog kulinarny, TikTok,
     Instagram itp.).
@@ -556,7 +648,9 @@ async def _fetch_url_text(url: str) -> tuple[str, dict | None]:
                         "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
                     ),
                     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-                    "Accept-Language": "pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7",
+                    "Accept-Language": recipe_message(country_code,
+                        "pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7", "en-GB,en;q=0.9",
+                    ),
                     "Sec-Fetch-Mode": "navigate",
                     "Sec-Fetch-Dest": "document",
                     "Sec-Fetch-Site": "none",
@@ -578,47 +672,51 @@ async def _fetch_url_text(url: str) -> tuple[str, dict | None]:
                     if status_code in {301, 302, 303, 307, 308}:
                         location = response.headers.get("location")
                         if not location:
-                            raise AIRecipeImportError(
-                                "Strona zwróciła nieprawidłowe przekierowanie."
-                            )
+                            raise AIRecipeImportError(recipe_message(country_code,
+                                "Strona zwróciła nieprawidłowe przekierowanie.", "The page returned an invalid redirect.",
+                            ))
                         current_url = urljoin(current_url, location)
                         continue
                     if status_code != 200:
-                        raise AIRecipeImportError(
+                        raise AIRecipeImportError(recipe_message(country_code,
                             f"Podana strona zwróciła błąd ({status_code}). "
-                            "Sprawdź, czy link jest poprawny."
-                        )
+                            "Sprawdź, czy link jest poprawny.",
+                            f"The page returned an error ({status_code}). Please check the link.",
+                        ))
 
                     content_type = response.headers.get("content-type", "").lower()
                     if content_type and not any(
                         allowed in content_type
                         for allowed in ("text/html", "application/xhtml+xml", "text/plain")
                     ):
-                        raise AIRecipeImportError(
-                            "Podany link nie prowadzi do obsługiwanej strony tekstowej."
-                        )
+                        raise AIRecipeImportError(recipe_message(country_code,
+                            "Podany link nie prowadzi do obsługiwanej strony tekstowej.",
+                            "The link does not lead to a supported text page.",
+                        ))
 
                     body = bytearray()
                     async for chunk in response.aiter_bytes():
                         body.extend(chunk)
                         if len(body) > 2 * 1024 * 1024:
-                            raise AIRecipeImportError(
-                                "Podana strona jest zbyt duża do bezpiecznego przetworzenia."
-                            )
+                            raise AIRecipeImportError(recipe_message(country_code,
+                                "Podana strona jest zbyt duża do bezpiecznego przetworzenia.",
+                                "The page is too large to process safely.",
+                            ))
                     page_bytes = bytes(body)
                     response_encoding = response.charset_encoding or "utf-8"
                     break
             else:
-                raise AIRecipeImportError("Podany link ma zbyt wiele przekierowań.")
+                raise AIRecipeImportError(recipe_message(country_code, "Podany link ma zbyt wiele przekierowań.", "The link has too many redirects."))
     except UnsafeUrlError as exc:
-        raise AIRecipeImportError(str(exc)) from exc
+        raise AIRecipeImportError(recipe_message(country_code, str(exc), "This link cannot be opened safely. Use a public HTTP or HTTPS page.")) from exc
     except httpx.HTTPError as exc:
-        raise AIRecipeImportError(f"Nie udało się otworzyć podanego linku: {exc}") from exc
+        raise AIRecipeImportError(recipe_message(country_code, f"Nie udało się otworzyć podanego linku: {exc}", "The link could not be opened. Please check it and try again.")) from exc
 
     if page_bytes is None:
-        raise AIRecipeImportError(
-            f"Nie udało się pobrać podanej strony (status {status_code})."
-        )
+        raise AIRecipeImportError(recipe_message(country_code,
+            f"Nie udało się pobrać podanej strony (status {status_code}).",
+            f"The page could not be downloaded (status {status_code}).",
+        ))
     page_text = page_bytes.decode(response_encoding, errors="replace")
 
     soup = BeautifulSoup(page_text, "html.parser")
@@ -662,20 +760,21 @@ async def _fetch_url_text(url: str) -> tuple[str, dict | None]:
     if not combined.strip() and structured_recipe is not None:
         return "", structured_recipe
     if not combined.strip():
-        raise AIRecipeImportError(
-            "Nie udało się wyciągnąć żadnej treści z podanego linku."
-        )
+        raise AIRecipeImportError(recipe_message(country_code,
+            "Nie udało się wyciągnąć żadnej treści z podanego linku.", "No content could be read from the link.",
+        ))
     # UWAGA (nowe): jeśli strona zwróciła bardzo mało treści — typowy
     # objaw tego, że np. TikTok pokazał generyczną stronę/wyzwanie
     # zamiast prawdziwej treści filmiku (ochrona przed botami) — lepiej
     # od razu jasno to powiedzieć, niż wysłać AI prawie pustą treść i
     # dostać mylące "nie rozpoznano przepisu", nie wiedząc dlaczego.
     if len(combined.strip()) < 40 and structured_recipe is None:
-        raise AIRecipeImportError(
+        raise AIRecipeImportError(recipe_message(country_code,
             "Nie udało się odczytać treści z tego linku (strona mogła zablokować "
             "automatyczny dostęp). Spróbuj wkleić opis/podpis filmiku bezpośrednio "
-            "jako tekst, w zakładce \"Wklej tekst\"."
-        )
+            "jako tekst, w zakładce \"Wklej tekst\".",
+            "Content could not be read from this link; the page may block automated access. Copy the video's description and paste it in the Paste text tab instead.",
+        ))
     # UWAGA (naprawa — "długo się ładuje i wywala błąd"): treść WYSTARCZAJĄCO
     # długa (>40 znaków) mogła i tak być bezwartościowa — np. strona logowania
     # TikToka, baner "zaakceptuj ciasteczka" albo komunikat "włącz JavaScript"
@@ -701,12 +800,13 @@ async def _fetch_url_text(url: str) -> tuple[str, dict | None]:
     # sygnały naraz to znacznie mocniejszy dowód, że to faktycznie strona
     # blokady, nie prawdziwa treść.
     if signal_hits >= 2 and structured_recipe is None:
-        raise AIRecipeImportError(
+        raise AIRecipeImportError(recipe_message(country_code,
             "Ten link prowadzi do strony logowania/weryfikacji zamiast prawdziwej "
             "treści (typowe zabezpieczenie TikToka przed automatycznym dostępem). "
             "Otwórz filmik w aplikacji TikTok, skopiuj opis pod nim i wklej go "
-            "bezpośrednio jako tekst, w zakładce \"Wklej tekst\"."
-        )
+            "bezpośrednio jako tekst, w zakładce \"Wklej tekst\".",
+            "This link returned a sign-in or verification page instead of the recipe. Open the video in TikTok, copy its description and paste it in the Paste text tab instead.",
+        ))
     return combined, structured_recipe
 
 
@@ -754,11 +854,13 @@ def _extract_desc_fields_from_scripts(soup) -> list[str]:
     return found
 
 
-async def extract_recipe_from_url(url: str, available_products: list[str]) -> dict:
+async def extract_recipe_from_url(
+    url: str, available_products: list[str], *, country_code: str = "PL",
+) -> dict:
     """Rozpoznaje przepis na podstawie treści strony pod danym adresem
     URL (blog kulinarny, TikTok, Instagram itp.) — patrz ograniczenia
     w docstringu `_fetch_url_text`."""
-    page_text, structured_recipe = await _fetch_url_text(url)
+    page_text, structured_recipe = await _fetch_url_text(url, **_market_kwargs(country_code))
     if structured_recipe is not None:
         matched = []
         for ingredient in structured_recipe["ingredients"]:
@@ -773,11 +875,12 @@ async def extract_recipe_from_url(url: str, available_products: list[str]) -> di
         # Nie zgadujemy brakujących produktów, ale przekazujemy AI krótki,
         # merytoryczny JSON-LD zamiast nawigacji/stopki strony.
         page_text = json.dumps(structured_recipe, ensure_ascii=False)
-    return await extract_recipe_from_text(page_text, available_products)
+    return await extract_recipe_from_text(page_text, available_products, **_market_kwargs(country_code))
 
 
 async def extract_recipe_from_photo(
-    photo_base64: str, available_products: list[str], hint: str | None = None
+    photo_base64: str, available_products: list[str], hint: str | None = None,
+    *, country_code: str = "PL",
 ) -> dict:
     """Zwraca ustrukturyzowany przepis (dict) rozpoznany ze zdjęcia (np.
     fotografii karty przepisu, strony książki kucharskiej, albo
@@ -786,9 +889,12 @@ async def extract_recipe_from_photo(
     [hint] to opcjonalna, krótka podpowiedź od użytkownika (np. "to jest
     szarlotka") — pomaga AI, gdy zdjęcie samo w sobie jest niejednoznaczne
     (np. danie trudne do rozpoznania wizualnie)."""
-    prompt = _build_prompt(available_products, context=hint)
+    prompt = _build_prompt(available_products, context=hint, country_code=country_code)
     if hint:
-        prompt += f'\n\nDODATKOWA PODPOWIEDŹ OD UŻYTKOWNIKA (potraktuj jako wskazówkę, co widać na zdjęciu): "{hint}"'
+        prompt += recipe_message(country_code,
+            f'\n\nDODATKOWA PODPOWIEDŹ OD UŻYTKOWNIKA (potraktuj jako wskazówkę, co widać na zdjęciu): "{hint}"',
+            f'\n\nUSER HINT (a clue about the dish in the photo): "{hint}"',
+        )
     parts = [
         # UWAGA: celowo camelCase (inlineData/mimeType) — to bezpieczniejszy,
         # szerzej udokumentowany wariant dla obrazów w Gemini API. Parser
@@ -798,16 +904,16 @@ async def extract_recipe_from_photo(
         {"text": prompt},
     ]
     # Zdjęcie ma dłuższy limit na model, a timeout przełącza na następny.
-    raw = await _call_gemini(parts, timeout_seconds=45.0)
-    return _parse_recipe_json(raw)
+    raw = await _call_gemini(parts, timeout_seconds=45.0, **_market_kwargs(country_code))
+    return _parse_recipe_json(raw, country_code=country_code)
 
 
-def validate_and_clean_recipe_dict(parsed: dict) -> dict:
+def validate_and_clean_recipe_dict(parsed: dict, *, country_code: str = "PL") -> dict:
     """Domyka luki/niepoprawne wartości w odpowiedzi AI zamiast na ślepo
     ufać, że model dokładnie trzymał się instrukcji formatu."""
     name = parsed.get("name")
     if not isinstance(name, str) or not name.strip():
-        raise AIRecipeImportError("AI nie podało nazwy przepisu. Spróbuj ponownie.")
+        raise AIRecipeImportError(recipe_message(country_code, "AI nie podało nazwy przepisu. Spróbuj ponownie.", "AI did not provide a recipe name. Please try again."))
     parsed["name"] = name.strip()[:300]
     for key in ("description", "cuisine"):
         value = parsed.get(key)
@@ -831,21 +937,37 @@ def validate_and_clean_recipe_dict(parsed: dict) -> dict:
         parsed[key] = value if value is not None and 0 <= value <= 1440 else None
 
     cleaned_ingredients = []
-    for ing in parsed.get("ingredients", []) if isinstance(parsed.get("ingredients"), list) else []:
+    raw_ingredients = parsed.get("ingredients", [])
+    malformed = not isinstance(raw_ingredients, list)
+    for ing in raw_ingredients if isinstance(raw_ingredients, list) else []:
         if not isinstance(ing, dict):
+            malformed = True
             continue
         unit = ing.get("unit")
         if unit not in ALLOWED_UNITS:
+            malformed = True
             continue
         try:
             qty = float(ing.get("quantity"))
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, OverflowError):
+            malformed = True
             continue
         product_name = ing.get("product_name")
         if not math.isfinite(qty) or qty <= 0 or not isinstance(product_name, str) or not product_name.strip():
+            malformed = True
             continue
         cleaned_ingredients.append({"product_name": product_name.strip(), "quantity": qty, "unit": unit})
+    if malformed:
+        raise AIRecipeImportError(recipe_message(country_code,
+            "Nie można zapisać niepełnego przepisu: składnik ma nieprawidłową nazwę, ilość lub jednostkę. Popraw treść i spróbuj ponownie.",
+            "An incomplete recipe cannot be saved: an ingredient has an invalid name, quantity or unit. Correct the source and try again.",
+        ))
     parsed["ingredients"] = cleaned_ingredients
+    try:
+        validate_ingredient_names(parsed["name"], [item["product_name"] for item in cleaned_ingredients],
+                                  country_code=country_code)
+    except HTTPException as exc:
+        raise AIRecipeImportError(str(exc.detail)) from exc
 
     instructions = parsed.get("instructions")
     seasonings = parsed.get("suggested_seasonings")

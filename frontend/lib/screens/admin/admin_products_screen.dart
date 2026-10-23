@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../services/api_client.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
+import '../../l10n/market_locale.dart';
+import '../../l10n/catalog_labels.dart';
 
 /// Panel moderacji produktów zgłoszonych przez użytkowników.
 ///
@@ -10,30 +12,53 @@ import '../../utils/error_utils.dart';
 /// która go dodała — może go już używać w dzienniku, ale nie zaśmieca
 /// katalogu pozostałym.
 class AdminProductsScreen extends StatefulWidget {
-  const AdminProductsScreen({super.key});
+  const AdminProductsScreen({super.key, this.market = 'PL', this.client});
+
+  final String market;
+  final ApiClient? client;
 
   @override
   State<AdminProductsScreen> createState() => _AdminProductsScreenState();
 }
 
 class _AdminProductsScreenState extends State<AdminProductsScreen> {
-  final ApiClient _client = ApiClient();
+  late ApiClient _client;
+  int _loadGeneration = 0;
+  int _viewGeneration = 0;
   List<dynamic> _products = [];
   bool _isLoading = true;
   String? _loadError;
   final Set<String> _busy = {};
 
   @override
+  void didUpdateWidget(covariant AdminProductsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.market != widget.market ||
+        oldWidget.client != widget.client) {
+      _viewGeneration++;
+      _client = widget.client ?? ApiClient();
+      _products = [];
+      _busy.clear();
+      _load();
+    }
+  }
+
+  @override
   void initState() {
     super.initState();
+    _client = widget.client ?? ApiClient();
     _load();
   }
 
   Future<void> _load() async {
+    final generation = ++_loadGeneration;
+    bool isCurrent() => mounted && generation == _loadGeneration;
     setState(() => _isLoading = true);
     try {
-      final response = await _client.get('/products/admin/pending');
-      if (!mounted) return;
+      final response = await _client.get(
+        '/products/admin/pending?market=${widget.market}',
+      );
+      if (!isCurrent()) return;
       if (response is! List)
         throw const FormatException('Nieprawidłowa odpowiedź serwera');
       setState(() {
@@ -41,19 +66,21 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
         _loadError = null;
       });
     } catch (e) {
-      if (!mounted) return;
-      setState(() => _loadError = friendlyError(e));
+      if (!isCurrent()) return;
+      setState(() => _loadError = friendlyError(e, strings: context.strings));
     } finally {
       // finally, żeby kółko zniknęło niezależnie od wyniku żądania.
-      if (mounted) setState(() => _isLoading = false);
+      if (isCurrent()) setState(() => _isLoading = false);
     }
   }
 
   Future<void> _review(String id, bool approve) async {
+    if (_busy.contains(id)) return;
+    final generation = _viewGeneration;
     setState(() => _busy.add(id));
     try {
       await _client.post('/products/admin/$id/review?approve=$approve');
-      if (!mounted) return;
+      if (!mounted || generation != _viewGeneration) return;
       setState(() {
         _products.removeWhere((p) => p['id'] == id);
         _busy.remove(id);
@@ -64,19 +91,21 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
           SnackBar(
             duration: const Duration(seconds: 3),
             content: Text(
-              approve ? 'Produkt dodany do katalogu' : 'Produkt odrzucony',
+              approve
+                  ? context.strings.adminProductApproved
+                  : context.strings.adminProductRejected,
             ),
           ),
         );
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || generation != _viewGeneration) return;
       setState(() => _busy.remove(id));
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
+            content: Text(friendlyError(e, strings: context.strings)),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -86,7 +115,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Zgłoszone produkty')),
+      appBar: AppBar(title: Text(context.strings.adminProductsTitle)),
       body:
           _isLoading
               ? const Center(child: CircularProgressIndicator())
@@ -101,7 +130,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
                       const SizedBox(height: 12),
                       FilledButton(
                         onPressed: _load,
-                        child: const Text('Spróbuj ponownie'),
+                        child: Text(context.strings.productsRetry),
                       ),
                     ],
                   ),
@@ -121,7 +150,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Brak produktów oczekujących na sprawdzenie.',
+                        context.strings.adminProductsEmpty,
                         textAlign: TextAlign.center,
                         style: TextStyle(color: AppTheme.textSecondary),
                       ),
@@ -129,7 +158,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
                       TextButton.icon(
                         onPressed: _load,
                         icon: const Icon(Icons.refresh),
-                        label: const Text('Odśwież zgłoszenia'),
+                        label: Text(context.strings.adminProductsRefresh),
                       ),
                     ],
                   ),
@@ -168,8 +197,10 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
                             [
                               if ((p['brand'] as String?)?.isNotEmpty ?? false)
                                 p['brand'],
-                              '${p['submitted_price'] ?? '—'} zł',
-                              p['unit'] ?? '',
+                              '${p['submitted_price'] ?? '—'} ${widget.market == 'GB' ? 'GBP' : 'zł'}',
+                              context.strings.unitLabel(
+                                p['unit'] as String? ?? '',
+                              ),
                             ].join(' · '),
                             style: TextStyle(
                               fontSize: 12,
@@ -179,11 +210,13 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
                           const SizedBox(height: 6),
                           Text(
                             nutrition == null
-                                ? 'Bez wartości odżywczych'
-                                : 'Na 100 g: ${nutrition['kcal']} kcal · '
-                                    'B ${nutrition['protein']} · '
-                                    'T ${nutrition['fat']} · '
-                                    'W ${nutrition['carbs']}',
+                                ? context.strings.adminNoNutrition
+                                : context.strings.adminProductNutrition(
+                                  '${nutrition['kcal'] ?? '—'}',
+                                  '${nutrition['protein'] ?? '—'}',
+                                  '${nutrition['fat'] ?? '—'}',
+                                  '${nutrition['carbs'] ?? '—'}',
+                                ),
                             style: TextStyle(
                               fontSize: 11,
                               color: AppTheme.textSecondary,
@@ -197,7 +230,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
                                   onPressed:
                                       isBusy ? null : () => _review(id, false),
                                   child: Text(
-                                    'Odrzuć',
+                                    context.strings.adminReject,
                                     style: TextStyle(
                                       color: AppTheme.errorColor,
                                     ),
@@ -219,7 +252,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
                                               color: Colors.white,
                                             ),
                                           )
-                                          : const Text('Akceptuj'),
+                                          : Text(context.strings.adminApprove),
                                 ),
                               ),
                             ],

@@ -16,6 +16,9 @@ import 'providers/promotion_provider.dart';
 import 'services/share_intent_handler.dart';
 import 'services/push_service.dart';
 import 'services/api_client.dart';
+import 'services/shopping_list_service.dart';
+import 'utils/market_money.dart';
+import 'l10n/market_locale.dart';
 import 'providers/wellness_provider.dart';
 
 void main() async {
@@ -92,10 +95,10 @@ Future<void> _bootstrap() async {
   // może zatrzymać pierwszej klatki aplikacji. Ekrany korzystające z
   // polskich nazw dat mają własne wartości zapasowe.
   try {
-    await initializeDateFormatting(
-      'pl_PL',
-      null,
-    ).timeout(const Duration(seconds: 3));
+    await Future.wait([
+      initializeDateFormatting('pl_PL', null),
+      initializeDateFormatting('en_GB', null),
+    ]).timeout(const Duration(seconds: 3));
   } catch (error) {
     debugPrint('Nie udało się zainicjalizować polskich dat: $error');
   }
@@ -134,13 +137,79 @@ Future<void> _bootstrap() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => StoreProvider()),
-        ChangeNotifierProvider(create: (_) => MealPlanProvider()),
-        ChangeNotifierProvider(create: (_) => ShoppingListProvider()),
-        ChangeNotifierProvider(create: (_) => FoodLogProvider()),
-        ChangeNotifierProvider(create: (_) => WellnessProvider()),
-        ChangeNotifierProvider(create: (_) => PromotionProvider()),
+        ChangeNotifierProvider(
+          create:
+              (_) => AuthProvider(
+                errorStrings:
+                    () => stringsForAccountCountry(
+                      WidgetsBinding
+                          .instance
+                          .platformDispatcher
+                          .locale
+                          .countryCode,
+                    ),
+              ),
+        ),
+        ChangeNotifierProvider(
+          create:
+              (context) => StoreProvider(
+                errorStrings:
+                    () => stringsForAccountCountry(
+                      context.read<AuthProvider>().currentUser?.countryCode,
+                    ),
+              ),
+        ),
+        ChangeNotifierProvider(
+          create:
+              (context) => MealPlanProvider(
+                errorStrings:
+                    () => stringsForAccountCountry(
+                      context.read<AuthProvider>().currentUser?.countryCode,
+                    ),
+              ),
+        ),
+        ChangeNotifierProvider(
+          create:
+              (context) => ShoppingListProvider(
+                errorStrings:
+                    () => stringsForAccountCountry(
+                      context.read<AuthProvider>().currentUser?.countryCode,
+                    ),
+                shoppingListService: ShoppingListService(
+                  expectedCurrencyCode:
+                      () => currencyForAccountCountry(
+                        context.read<AuthProvider>().currentUser?.countryCode,
+                      ),
+                ),
+              ),
+        ),
+        ChangeNotifierProvider(
+          create:
+              (context) => FoodLogProvider(
+                errorStrings:
+                    () => stringsForAccountCountry(
+                      context.read<AuthProvider>().currentUser?.countryCode,
+                    ),
+              ),
+        ),
+        ChangeNotifierProvider(
+          create:
+              (context) => WellnessProvider(
+                errorStrings:
+                    () => stringsForAccountCountry(
+                      context.read<AuthProvider>().currentUser?.countryCode,
+                    ),
+              ),
+        ),
+        ChangeNotifierProvider(
+          create:
+              (context) => PromotionProvider(
+                errorStrings:
+                    () => stringsForAccountCountry(
+                      context.read<AuthProvider>().currentUser?.countryCode,
+                    ),
+              ),
+        ),
       ],
       child: const SmartMealPlannerApp(),
     ),

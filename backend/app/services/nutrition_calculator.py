@@ -434,6 +434,8 @@ def calculate_calorie_needs(
     age: int,
     gender: str,
     activity_level: str,
+    *,
+    country_code: str = "PL",
 ) -> dict[str, int]:
     """Liczy dzienne zapotrzebowanie kaloryczne wzorem Mifflin-St Jeor —
     tym samym standardem, na którym opiera się większość popularnych
@@ -452,16 +454,18 @@ def calculate_calorie_needs(
     zwrócić bezsensowny wynik.
     """
     if weight_kg <= 0 or weight_kg > 400:
-        raise InvalidCalorieCalculatorInput("Nieprawidłowa waga.")
+        raise InvalidCalorieCalculatorInput("Invalid weight." if country_code == "GB" else "Nieprawidłowa waga.")
     if height_cm <= 0 or height_cm > 280:
-        raise InvalidCalorieCalculatorInput("Nieprawidłowy wzrost.")
+        raise InvalidCalorieCalculatorInput("Invalid height." if country_code == "GB" else "Nieprawidłowy wzrost.")
     if age <= 0 or age > 130:
-        raise InvalidCalorieCalculatorInput("Nieprawidłowy wiek.")
+        raise InvalidCalorieCalculatorInput("Invalid age." if country_code == "GB" else "Nieprawidłowy wiek.")
     if gender not in ("male", "female"):
-        raise InvalidCalorieCalculatorInput("Płeć musi być 'male' albo 'female'.")
+        raise InvalidCalorieCalculatorInput("Gender must be 'male' or 'female'." if country_code == "GB" else "Płeć musi być 'male' albo 'female'.")
     if activity_level not in ACTIVITY_MULTIPLIERS:
         raise InvalidCalorieCalculatorInput(
-            f"Nieznany poziom aktywności — dozwolone: {', '.join(ACTIVITY_MULTIPLIERS)}."
+            (f"Unknown activity level — allowed values: {', '.join(ACTIVITY_MULTIPLIERS)}."
+             if country_code == "GB" else
+             f"Nieznany poziom aktywności — dozwolone: {', '.join(ACTIVITY_MULTIPLIERS)}.")
         )
 
     # Wzór Mifflin-St Jeor (uznawany za dokładniejszy niż starszy wzór

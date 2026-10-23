@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import '../l10n/market_locale.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../utils/barcode_utils.dart';
+import '../utils/scanner_camera_lifecycle.dart';
+import '../widgets/manual_barcode_dialog.dart';
 
 /// Rozpoznawanie odbywa się na urządzeniu, bez wysyłania klatek do serwera.
 Future<String?> scanBarcode(BuildContext context) {
@@ -13,38 +16,68 @@ Future<String?> scanBarcode(BuildContext context) {
 }
 
 class BarcodeScannerScreen extends StatefulWidget {
-  const BarcodeScannerScreen({super.key});
+  final MobileScannerController? controller;
+  const BarcodeScannerScreen({super.key, this.controller});
 
   @override
   State<BarcodeScannerScreen> createState() => _BarcodeScannerScreenState();
 }
 
 class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
-  final MobileScannerController _scanner = MobileScannerController(
-    facing: CameraFacing.back,
-    lensType: CameraLensType.normal,
-    detectionSpeed: DetectionSpeed.normal,
-    autoZoom: true, // Obsługiwane na Androidzie; iOS ma tryb zbliżeń poniżej.
-    formats: [
-      BarcodeFormat.ean8,
-      BarcodeFormat.ean13,
-      BarcodeFormat.upcA,
-      BarcodeFormat.upcE,
-    ],
-  );
+  late final MobileScannerController _scanner =
+      widget.controller ??
+      MobileScannerController(
+        autoStart: false,
+        facing: CameraFacing.back,
+        lensType: CameraLensType.normal,
+        detectionSpeed: DetectionSpeed.normal,
+        autoZoom:
+            true, // Obsługiwane na Androidzie; iOS ma tryb zbliżeń poniżej.
+        formats: [
+          BarcodeFormat.ean8,
+          BarcodeFormat.ean13,
+          BarcodeFormat.upcA,
+          BarcodeFormat.upcE,
+        ],
+      );
   final BarcodeScanConfirmation _confirmation = BarcodeScanConfirmation();
   bool _resultHandled = false;
+  bool _manualEntryOpen = false;
   bool _closeRange = false;
   double _zoom = 1;
+  late final ScannerCameraLifecycle _camera;
+
+  @override
+  void initState() {
+    super.initState();
+    _camera = ScannerCameraLifecycle(
+      _scanner,
+      onPause: _confirmation.reset,
+      onStarted: _resetCameraControls,
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && (widget.controller == null || _scanner.autoStart)) {
+        _camera.start();
+      }
+    });
+  }
+
+  void _resetCameraControls() {
+    if (!mounted || (!_closeRange && _zoom == 1)) return;
+    setState(() {
+      _closeRange = false;
+      _zoom = 1;
+    });
+  }
 
   @override
   void dispose() {
-    _scanner.dispose();
+    _camera.dispose();
     super.dispose();
   }
 
   void _onScan(BarcodeCapture capture) {
-    if (_resultHandled || !mounted) return;
+    if (_resultHandled || !mounted || !_camera.canDetect) return;
     final candidates = <String>{};
     for (final result in capture.barcodes) {
       final barcode = normalizeScannedBarcode(result.rawValue);
@@ -71,9 +104,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Ten aparat nie obsługuje przybliżenia.'),
-          ),
+          SnackBar(content: Text(context.strings.scanZoomUnavailable)),
         );
       }
     }
@@ -101,11 +132,9 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
           best == CameraLensType.normal ||
           !supported.contains(best)) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Przybliż kod przyciskiem 2× lub odsuń telefon.'),
-            ),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(context.strings.scanZoomHint)));
         }
         return;
       }
@@ -115,64 +144,39 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
       if (mounted) setState(() => _closeRange = true);
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Nie udało się przełączyć obiektywu.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(context.strings.scanLensFailed)));
       }
     }
   }
 
   Future<void> _enterManually() async {
-    final controller = TextEditingController();
-    final value = await showDialog<String>(
-      context: context,
-      builder:
-          (dialogContext) => AlertDialog(
-            title: const Text('Wpisz kod kreskowy'),
-            content: TextField(
-              controller: controller,
-              autofocus: true,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'EAN/UPC',
-                hintText: '8–14 cyfr',
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Anuluj'),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.pop(dialogContext, controller.text),
-                child: const Text('Wyszukaj'),
-              ),
-            ],
-          ),
-    );
-    controller.dispose();
-    if (!mounted || value == null) return;
-
-    final barcode = normalizeScannedBarcode(value);
-    if (barcode == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Kod musi zawierać od 8 do 14 cyfr.')),
-      );
-      return;
+    if (_manualEntryOpen || _resultHandled) return;
+    _manualEntryOpen = true;
+    try {
+      await _camera.suspend();
+      if (!mounted) return;
+      final barcode = await showManualBarcodeDialog(context);
+      if (!mounted || barcode == null) return;
+      _resultHandled = true;
+      Navigator.of(context).pop(barcode);
+    } finally {
+      _manualEntryOpen = false;
+      if (mounted && !_resultHandled) await _camera.resume();
     }
-    _resultHandled = true;
-    Navigator.of(context).pop(barcode);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Skanuj kod kreskowy')),
+      appBar: AppBar(title: Text(context.strings.productsScan)),
       body: Stack(
         fit: StackFit.expand,
         children: [
           MobileScanner(
             controller: _scanner,
+            useAppLifecycleState: false,
             onDetect: _onScan,
             tapToFocus: true,
             errorBuilder:
@@ -180,7 +184,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                   child: Padding(
                     padding: const EdgeInsets.all(24),
                     child: Text(
-                      'Nie można uruchomić aparatu. Sprawdź uprawnienie do kamery albo wpisz kod ręcznie.\n$error',
+                      context.strings.scanCameraError(error.toString()),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -211,10 +215,10 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text(
-                        'Skieruj aparat na kod. Dotknij obrazu, aby ustawić ostrość.',
+                      Text(
+                        context.strings.scanGuide,
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white),
+                        style: const TextStyle(color: Colors.white),
                       ),
                       const SizedBox(height: 10),
                       Wrap(
@@ -239,7 +243,9 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                               color: Colors.white,
                             ),
                             label: Text(
-                              _closeRange ? 'Zwykły' : 'Z bliska',
+                              _closeRange
+                                  ? context.strings.scanNormal
+                                  : context.strings.scanCloseUp,
                               style: const TextStyle(color: Colors.white),
                             ),
                           ),
@@ -249,9 +255,9 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                               Icons.flashlight_on,
                               color: Colors.white,
                             ),
-                            label: const Text(
-                              'Latarka',
-                              style: TextStyle(color: Colors.white),
+                            label: Text(
+                              context.strings.scanTorch,
+                              style: const TextStyle(color: Colors.white),
                             ),
                           ),
                         ],
@@ -259,9 +265,9 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                       TextButton.icon(
                         onPressed: _enterManually,
                         icon: const Icon(Icons.keyboard, color: Colors.white),
-                        label: const Text(
-                          'Wpisz kod ręcznie',
-                          style: TextStyle(color: Colors.white),
+                        label: Text(
+                          context.strings.scanManual,
+                          style: const TextStyle(color: Colors.white),
                         ),
                       ),
                     ],

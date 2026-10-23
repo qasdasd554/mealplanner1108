@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/market_locale.dart';
 import '../../services/ad_gate_service.dart';
 import '../../theme/app_theme.dart';
 
@@ -14,14 +15,15 @@ import '../../theme/app_theme.dart';
 /// do końca (można wpuścić do Śledzenia), `false`/`null` w każdym innym
 /// przypadku (użytkownik zrezygnował albo reklama się nie załadowała).
 class AdGateScreen extends StatefulWidget {
-  const AdGateScreen({super.key});
+  final AdGateService? service;
+  const AdGateScreen({super.key, this.service});
 
   @override
   State<AdGateScreen> createState() => _AdGateScreenState();
 }
 
 class _AdGateScreenState extends State<AdGateScreen> {
-  final AdGateService _adGateService = AdGateService();
+  late final AdGateService _adGateService = widget.service ?? AdGateService();
   bool _isLoadingAd = false;
   String? _error;
 
@@ -40,8 +42,7 @@ class _AdGateScreenState extends State<AdGateScreen> {
     } else {
       setState(() {
         _isLoadingAd = false;
-        _error =
-            'Nie udało się załadować reklamy. Sprawdź połączenie z internetem i spróbuj ponownie.';
+        _error = context.strings.adGateFailed;
       });
     }
   }
@@ -70,7 +71,7 @@ class _AdGateScreenState extends State<AdGateScreen> {
               ),
               const SizedBox(height: 24),
               Text(
-                'Obejrzyj krótką reklamę',
+                context.strings.adGateTitle,
                 style: Theme.of(
                   context,
                 ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
@@ -78,8 +79,7 @@ class _AdGateScreenState extends State<AdGateScreen> {
               ),
               const SizedBox(height: 12),
               Text(
-                'Żeby przejść do Dziennika, obejrzyj krótką reklamę wideo do końca. '
-                'To ograniczenie nie dotyczy kont Premium — tam Dziennik jest zawsze bez reklam.',
+                context.strings.adGateBody,
                 style: TextStyle(color: AppTheme.textSecondary),
                 textAlign: TextAlign.center,
               ),
@@ -108,7 +108,9 @@ class _AdGateScreenState extends State<AdGateScreen> {
                           )
                           : const Icon(Icons.play_arrow),
                   label: Text(
-                    _isLoadingAd ? 'Ładowanie reklamy...' : 'Obejrzyj reklamę',
+                    _isLoadingAd
+                        ? context.strings.adGateLoading
+                        : context.strings.adGateWatch,
                   ),
                 ),
               ),
@@ -118,7 +120,7 @@ class _AdGateScreenState extends State<AdGateScreen> {
                     _isLoadingAd
                         ? null
                         : () => Navigator.of(context).pop(false),
-                child: const Text('Nie teraz'),
+                child: Text(context.strings.adGateLater),
               ),
             ],
           ),

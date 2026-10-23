@@ -1,0 +1,2602 @@
+{
+  "scanPantryAmountHint": "Choose an amount in grams or millilitres",
+  "foodEntryTitle": "Add a meal",
+  "foodEntryFromPlan": "From plan",
+  "foodEntryFromRecipes": "From recipes",
+  "foodEntryProducts": "Products",
+  "foodEntryServingsQuestion": "How many servings did you eat?",
+  "foodEntryMealFailed": "Could not add the meal",
+  "foodEntryProductFailed": "Could not add the product",
+  "foodEntryMealType": "Meal type",
+  "foodEntryAddDiary": "Add to diary",
+  "foodEntryNoPlan": "You do not have an active meal plan yet.\nCreate a plan in Home to log its meals\nwith one tap.",
+  "foodEntryNoPlannedMeals": "No meals planned for the selected day.",
+  "foodEntryRecipesFailed": "Could not load recipes",
+  "foodEntryRecipeSearch": "Search recipes...",
+  "foodEntryNoResults": "No results.",
+  "foodEntryServings": "Number of servings",
+  "foodEntryAdjustIngredients": "Adjust ingredients",
+  "foodEntryRepeatFailed": "Could not repeat the entry",
+  "foodEntryRepeat": "Add again",
+  "foodEntryMissingProduct": "Product missing? Add it to the catalogue",
+  "foodEntrySaveFailed": "Could not add the entry",
+  "foodEntryChooseCatalogue": "Choose from catalogue",
+  "foodEntryProductName": "Product / meal name",
+  "foodEntryNameHint": "Enter a name or choose a suggestion",
+  "foodEntryNameRequired": "Enter a name",
+  "foodEntryPortion": "Serving (g/ml, optional)",
+  "foodEntryCalories": "Calories (kcal)",
+  "foodEntryRequired": "Required",
+  "foodEntryProtein": "Protein (g)",
+  "foodEntryCarbs": "Carbs (g)",
+  "foodEntryFat": "Fat (g)",
+  "foodEntrySave": "Save to diary",
+  "foodEntryInvalidNumber": "Enter a valid, non-negative number.",
+  "foodEntryInvalidPortion": "Enter an amount above 0 (max. 1000000).",
+  "scanZoomUnavailable": "This camera does not support zoom.",
+  "scanZoomHint": "Use 2× zoom or move the phone further away.",
+  "scanLensFailed": "Could not switch camera lenses.",
+  "scanEnterCode": "Enter a barcode",
+  "scanCodeHint": "8–14 digits",
+  "scanBatchCodeHint": "8, 12, 13 or 14 digits",
+  "scanSearch": "Search",
+  "scanCodeInvalidLength": "The code must contain 8–14 digits.",
+  "scanCodeInvalid": "The code is invalid. Check the digits.",
+  "scanDuplicate": "This product is already in this batch.",
+  "scanGuide": "Point the camera at a barcode. Tap the image to focus.",
+  "scanNormal": "Normal",
+  "scanCloseUp": "Close-up",
+  "scanTorch": "Torch",
+  "scanManual": "Enter code manually",
+  "scanNormalLens": "Normal lens",
+  "scanCloseUpMode": "Close-up mode",
+  "scanZoomTwo": "Zoom 2×",
+  "scanZoomOne": "Zoom 1×",
+  "scanMissing": "Not found. Tap to add the product from photos.",
+  "scanMissingNutrition": "Product found, but calories or macros are missing. Tap to complete the data from label photos.",
+  "scanMissingPackage": "Product found, but the whole-pack size is missing. Tap to read it from a label photo.",
+  "scanCorrectNutrition": "Calories or macros are missing. Tap to correct the data.",
+  "scanCorrectPackage": "The whole-pack size could not be read. Tap to update the photos or enter the amount manually.",
+  "scanAddedPantry": "Added to pantry",
+  "scanAddedDiary": "Added to diary",
+  "scanNutritionUnconfirmed": "The server did not confirm the product's nutrition values.",
+  "scanAlreadyCatalogue": "Already in the catalogue",
+  "scanAddedCatalogue": "Added to catalogue",
+  "scanAlreadySubmitted": "Product already submitted",
+  "scanWaitLookup": "Wait for all codes to be recognised.",
+  "scanFirstProduct": "Scan at least one product first.",
+  "scanCompleteMissing": "Complete or retry unrecognised products.",
+  "scanChooseDestinations": "Choose at least one destination for the whole batch.",
+  "scanBatchTitle": "Batch scanning",
+  "scanFinish": "Finish",
+  "scanBatchGuide": "Scan the next products. Choose destinations once for the whole batch.",
+  "scanBatchEmpty": "Scanned products will appear here.",
+  "scanPremiumPreview": "Premium feature preview",
+  "scanPreviewTitle": "Scan your whole shop in one go",
+  "scanPreviewBody": "The camera stays open and recognised products appear in one list. Choose destinations at the end and confirm everything once.",
+  "scanSampleYogurt": "Natural yoghurt",
+  "scanSamplePasta": "Wholewheat pasta",
+  "scanSampleYogurtMacro": "100 g: 62 kcal · P 4 g · F 3 g · C 5 g",
+  "scanSamplePastaMacro": "100 g: 348 kcal · P 13 g · F 3 g · C 65 g",
+  "scanAllDestinations": "Add all to",
+  "scanTrial": "Try Premium for 7 days",
+  "scanPreviewNoCamera": "This is a preview — the camera has not been started.",
+  "scanMealTypeAll": "Meal type for all products",
+  "scanAdding": "Adding products…",
+  "scanRecognising": "Recognising…",
+  "scanReady": "Ready to add with the batch",
+  "scanSaving": "Adding…",
+  "scanDone": "Done",
+  "scanTapComplete": "Tap to complete product details",
+  "scanTapRetry": "Error. Tap to retry.",
+  "scanWhere": "Where would you like to add this product?",
+  "scanMultiHint": "You can select several destinations at once.",
+  "scanNutritionMissingHint": "Complete nutrition values were not found. After choosing a destination, you can complete the data from packaging photos.",
+  "scanDiaryDestination": "Add to diary",
+  "scanDiaryDestinationHint": "Choose an amount and meal type",
+  "scanCatalogueDestination": "Add to product catalogue",
+  "scanCatalogueDestinationHint": "Check the name, brand and nutrition",
+  "scanPantryDestination": "Add to pantry",
+  "scanPantryDestinationHint": "Save as 1 whole pack",
+  "scanNext": "Next",
+  "catalogueNutritionMissing": "Complete nutrition values could not be found online. Complete the data from packaging photos.",
+  "catalogueIncomplete": "This product does not have nutrition values yet. Add it to the catalogue with label data to use it in the diary.",
+  "catalogueProductSearch": "Search products...",
+  "catalogueNoMatch": "No products match your search.",
+  "autocompleteCatalogue": "app catalogue",
+  "autocompleteScanned": "previously scanned",
+  "autocompleteHint": "You can choose a suggestion or keep your own name.",
+  "foodEntryPlanDate": "Your active plan does not cover the selected date ({date}).",
+  "@foodEntryPlanDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "foodEntryKcalServing": "{kcal} kcal / serving",
+  "@foodEntryKcalServing": {
+    "placeholders": {
+      "kcal": {
+        "type": "String"
+      }
+    }
+  },
+  "scanCameraError": "The camera could not be started. Check camera permission or enter the code manually.\n{error}",
+  "@scanCameraError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "scanBatchCameraError": "The camera could not be started. Check camera permission.\n{error}",
+  "@scanBatchCameraError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "scanRetryError": "{error} Tap to try again.",
+  "@scanRetryError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "scanRetrySavedError": "{error} Completed destinations will not be added again. Tap to retry.",
+  "@scanRetrySavedError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "scanAddedPoints": "Added to catalogue (+{points} pt)",
+  "@scanAddedPoints": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "scanAddedCount": "Added {count} products.",
+  "@scanAddedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scanAddedPartial": "Added {saved} of {total}. Tap failed items to try again.",
+  "@scanAddedPartial": {
+    "placeholders": {
+      "saved": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "scanQueueCount": "Recognising products · {count} waiting",
+  "@scanQueueCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scanDoneCount": "Done · {count} products",
+  "@scanDoneCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scanAddAllCount": "Add all ({count})",
+  "@scanAddAllCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scanCodeLabel": "Code: {code}",
+  "@scanCodeLabel": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "scanDestinationsCount": "Add to {count} destinations",
+  "@scanDestinationsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPantryAddedName": "{name} added to pantry.",
+  "@scanPantryAddedName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryCustomWater": "Custom amount",
+  "rewardProductSemantics": "Reward: one Premium point for adding a new, unique product to the catalogue.",
+  "rewardProductTitle": "Earn 1 Premium point",
+  "rewardProductBody": "Scan a barcode or manually add a new, unique product to the catalogue.",
+  "rewardProductPoint": "+1 pt",
+  "productsMarketUnavailable": "A verified price list is not available for this market.",
+  "@@locale": "en",
+  "home": "Home",
+  "recipes": "Recipes",
+  "shopping": "Shopping",
+  "diary": "Food diary",
+  "premium": "Premium",
+  "profile": "Profile",
+  "add": "Add",
+  "newPlan": "New plan",
+  "planMeals": "Plan your meals",
+  "productDatabase": "Food database",
+  "checkPrices": "Check prices",
+  "promotions": "Offers",
+  "currentOffers": "Current offers",
+  "pantry": "Pantry",
+  "whatYouHaveAtHome": "What you have at home",
+  "planArchive": "Archived plans",
+  "scanBarcode": "Scan a barcode",
+  "batchScan": "Scan multiple products",
+  "addRecipeWithAi": "Add a recipe with AI",
+  "addMeal": "Add a meal",
+  "addToPantry": "Add to pantry",
+  "barcodeDestinations": "Add to your food diary, food database or pantry",
+  "whatToAdd": "What would you like to add?",
+  "scanProduct": "Scan a product",
+  "batchDestinationHint": "Choose where to save the whole batch and confirm once",
+  "aiRecipeSources": "From a photo, text or link",
+  "recordCaloriesAndMacros": "Record calories and macros",
+  "premiumTwoPoints": "PREMIUM · 2 PTS",
+  "recipeLoadError": "Could not load recipes: {error}",
+  "recipeLoadMoreError": "Could not load more recipes: {error}",
+  "recipeImportInProgress": "AI is adding your recipe",
+  "recipeAuthorRanking": "Recipe creator leaderboard",
+  "recipeSearchHint": "Recipe, creator or ingredient...",
+  "clearSearch": "Clear search",
+  "recipeFavourites": "Favourites",
+  "recipeMine": "Mine",
+  "recipeNew": "New",
+  "recipeCommunity": "Community",
+  "moreFilters": "More",
+  "loadingMore": "Loading…",
+  "showMoreRecipes": "Show more recipes",
+  "addRecipe": "Add a recipe",
+  "withAi": "With AI",
+  "takeRecipePhoto": "Take a photo",
+  "recipePhotoHint": "Of a recipe or a finished dish",
+  "pasteText": "Paste text",
+  "pasteLink": "Paste a link",
+  "addManually": "Add manually",
+  "filters": "Filters",
+  "clearFilters": "Clear",
+  "sortRecipes": "Sort by",
+  "sortAlphabetically": "Alphabetical",
+  "sortCaloriesLow": "Calories: lowest first",
+  "sortCaloriesHigh": "Calories: highest first",
+  "sortQuickest": "Quickest first",
+  "recipeDiet": "Diet",
+  "allRecipes": "All",
+  "recipeMealType": "Meal type",
+  "filterBreakfast": "Breakfast",
+  "filterLunch": "Lunch",
+  "filterDinner": "Dinner",
+  "filterSnacks": "Snacks",
+  "filterDesserts": "Desserts",
+  "recipeDifficulty": "Difficulty",
+  "anyDifficulty": "Any",
+  "filterEasy": "Easy",
+  "filterMedium": "Medium",
+  "filterHard": "Hard",
+  "showResults": "Show results",
+  "recipeCardSummary": "{minutes} min • {calories} kcal/serving",
+  "noRecipes": "No recipes found",
+  "noRecipesHint": "Check the recipe, creator or ingredient name.",
+  "mealBreakfast": "breakfast",
+  "mealLunch": "lunch",
+  "mealDinner": "dinner",
+  "mealSnack": "snack",
+  "mealDessert": "dessert",
+  "difficultyEasy": "easy",
+  "difficultyMedium": "medium",
+  "difficultyHard": "hard",
+  "dietNoRestrictions": "No restrictions",
+  "dietVegetarian": "Vegetarian",
+  "dietVegan": "Vegan",
+  "dietGlutenFree": "Gluten-free",
+  "dietKeto": "Keto",
+  "dietHighProtein": "High-protein",
+  "dietNoRestrictionsDescription": "Eat all the foods you enjoy",
+  "dietVegetarianDescription": "Meals without meat or fish",
+  "dietVeganDescription": "100% plant-based meals",
+  "dietGlutenFreeDescription": "Meals without gluten",
+  "dietKetoDescription": "Low-carbohydrate meals",
+  "dietHighProteinDescription": "For active lifestyles and building muscle",
+  "planStatusActive": "active",
+  "planStatusDraft": "draft",
+  "planStatusCompleted": "completed",
+  "planStatusArchived": "archived",
+  "authCaptchaRequired": "Please confirm you are not a robot first.",
+  "authLoginFailed": "Sign-in failed",
+  "authWelcomeBack": "Welcome back!",
+  "authLoginPrompt": "Sign in to your account",
+  "authEmail": "Email",
+  "authEnterEmail": "Enter your email address",
+  "authEnterValidEmail": "Enter a valid email address",
+  "authPassword": "Password",
+  "authEnterPassword": "Enter your password",
+  "authPasswordMinSix": "Your password must contain at least 6 characters",
+  "authSignIn": "Sign in",
+  "authForgotPasswordQuestion": "Forgot your password?",
+  "authOr": "or",
+  "authContinueApple": "Continue with Apple",
+  "authContinueGoogle": "Continue with Google",
+  "authNoAccount": "Don't have an account?",
+  "authRegister": "Sign up",
+  "authDocumentOpenFailed": "Could not open: {url}",
+  "@authDocumentOpenFailed": {
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "authAcceptTermsRequired": "Accept the terms to create an account.",
+  "authRegistrationFailed": "Registration failed",
+  "authCreateAccount": "Create an account",
+  "authJoinPlanner": "Join Meal Planner and plan smarter",
+  "authDisplayName": "Name / Username",
+  "authEnterName": "Enter your name",
+  "authRepeatPassword": "Repeat password",
+  "authConfirmPassword": "Confirm your password",
+  "authPasswordsMismatch": "The passwords do not match",
+  "authAcceptPrefix": "I accept the ",
+  "authTerms": "terms of use",
+  "authAnd": " and ",
+  "authPrivacyPolicy": "privacy policy",
+  "authAlreadyAccount": "Already have an account?",
+  "authValidEmailRequired": "Enter a valid email address.",
+  "authCodeSixDigits": "The code must contain exactly 6 digits.",
+  "authNewPasswordMinEight": "Your new password must contain at least 8 characters.",
+  "authPasswordChanged": "Your password has been changed. Sign in with your new password.",
+  "authForgotPasswordTitle": "Forgot password",
+  "authResetDescription": "Enter your email address and we will send you a password reset code.",
+  "authEmailAddress": "Email address",
+  "authSendCode": "Send code",
+  "authResetCodeSentTo": "If an account with the address {email} exists, we have sent it a 6-digit code. Enter the code below along with your new password.",
+  "@authResetCodeSentTo": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "authCode": "Code",
+  "authNewPassword": "New password",
+  "authChangePassword": "Change password",
+  "authUseDifferentEmail": "Use a different email",
+  "authNewCodeSent": "A new code has been sent.",
+  "authCodeSendFailed": "Could not send the code.",
+  "authVerifyEmailTitle": "Verify your email",
+  "authVerificationSentTo": "We have sent a 6-digit code to\n{email}",
+  "@authVerificationSentTo": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "authVerify": "Verify",
+  "authResendCode": "Send code again",
+  "onboardingAllergenGluten": "Gluten",
+  "onboardingAllergenLactose": "Lactose",
+  "onboardingAllergenNuts": "Nuts",
+  "onboardingAllergenEggs": "Eggs",
+  "onboardingAllergenSoy": "Soya",
+  "onboardingAllergenCelery": "Celery",
+  "onboardingAllergenFish": "Fish",
+  "onboardingAllergenShellfish": "Shellfish",
+  "onboardingSelectStoreRequired": "Choose your preferred shop!",
+  "onboardingPreferencesSaveFailed": "Could not save your preferences",
+  "onboardingBack": "Back",
+  "onboardingDone": "Done!",
+  "onboardingNext": "Next",
+  "onboardingStoreTitle": "Where do you shop?",
+  "onboardingStoreDescription": "Choose the shop you use most often. We will tailor your meal plan and products to its range.",
+  "onboardingStoresLoadFailed": "Could not load shops:\n{error}",
+  "@onboardingStoresLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingAllergensTitle": "Do you have any allergies?",
+  "onboardingAllergensDescription": "Choose the ingredients you cannot eat. Recipes containing these allergens will not be suggested.",
+  "onboardingDietTitle": "Choose your diet",
+  "onboardingDietDescription": "We will tailor recipe recommendations to the way you eat.",
+  "onboardingHouseholdTitle": "How many people do you cook for?",
+  "onboardingHouseholdDescription": "We will adjust ingredient quantities in recipes and portions on your shopping list automatically.",
+  "onboardingCookingForMyself": "I only cook for myself",
+  "onboardingHouseholdCount": "People in your household: {count}",
+  "@onboardingHouseholdCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingProfileTitle": "Your profile and goal",
+  "onboardingProfileDescription": "Would you like to calculate your calorie needs and enter your weight, height and goal now? You can also do this later in your profile.",
+  "onboardingOpenCalorieCalculator": "Open the calorie calculator",
+  "onboardingProfileOptional": "This step is optional. Choose ‘Next’ to skip it.",
+  "onboardingPantryTitle": "What is in your pantry?",
+  "onboardingPantryDescription": "Add the products you already have at home to help you find recipes without extra shopping.",
+  "onboardingAddPantryProducts": "Add products to your pantry",
+  "onboardingPantryOptional": "You can skip this step.",
+  "onboardingPremiumOrPoints": "PREMIUM • OR POINTS",
+  "onboardingAiTitle": "Have a recipe? Add it in moments",
+  "onboardingAiDescription": "In Recipes, choose ‘Add recipe’. AI will prepare the ingredients and steps from:",
+  "onboardingAiImport": "Import a recipe with AI",
+  "onboardingAiPhoto": "A photo",
+  "onboardingAiPhotoDescription": "Photograph a written recipe or a finished dish.",
+  "onboardingAiText": "Text",
+  "onboardingAiTextDescription": "Paste a description or just enter the name of a dish.",
+  "onboardingAiLink": "A link",
+  "onboardingAiLinkDescription": "Paste a website address or share it from another app.",
+  "onboardingAiShareExample": "For example, in TikTok choose ‘Share’ → Meal Planner Polska. Once your recipe is ready, you can ask AI to change it, for example to make it lactose-free.",
+  "onboardingAiPointCosts": "Adding a recipe costs 2 points without a Premium subscription. Editing it with AI afterwards costs 1 point.",
+  "welcomeAllSet": "You are all set!",
+  "welcomePointsIntro": "Here are {points} premium points to get you started — our thanks for creating an account and setting up the app.",
+  "@welcomePointsIntro": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "welcomeAiPointDescription": "For 2 points, AI can turn a link or photo into a recipe for you.",
+  "welcomeTryNow": "Try it now",
+  "welcomeScanFirstProduct": "Scan your first product",
+  "welcomeAddRecipeLink": "Add a recipe from a link",
+  "welcomeStart": "Let's get started",
+  "priceCompareTitle": "Price comparison",
+  "priceCompareSourcesTooltip": "Price and brand sources",
+  "priceCompareRetry": "Try again",
+  "priceCompareEmpty": "No prices available to compare.",
+  "priceCompareIntro": "We compare the cost of the whole shopping list. “~” means an estimated price. Check current prices and availability with your chosen shop.",
+  "priceCompareSwitchSuccess": "Plan switched to {storeName}",
+  "@priceCompareSwitchSuccess": {
+    "placeholders": {
+      "storeName": {
+        "type": "String"
+      }
+    }
+  },
+  "priceCompareSwitchError": "Could not switch the shop",
+  "priceCompareLoadError": "Could not load the comparison: {error}",
+  "@priceCompareLoadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "priceCompareCurrencyError": "Prices in different currencies cannot be compared. Refresh the data and try again.",
+  "priceCompareCheapestEstimate": "Lowest estimate",
+  "priceCompareCheapest": "Cheapest",
+  "priceCompareIncomplete": "Incomplete basket • prices missing for {count} products",
+  "@priceCompareIncomplete": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "priceCompareProductCount": "{count, plural, one{1 product} other{{count} products}}",
+  "@priceCompareProductCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "priceCompareEstimatedPrices": "estimated prices",
+  "priceCompareSavings": "difference up to {amount}",
+  "@priceCompareSavings": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "priceCompareExpandHint": "tap to view the list",
+  "priceCompareMissing": "Prices unavailable for: {names}. The total only includes items with a price.",
+  "@priceCompareMissing": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "priceCompareEstimate": "estimated price",
+  "shoppingSubstituteFailed": "Could not replace the product.",
+  "@shoppingSubstituteFailed": {
+    "description": "Substitution failed; keep the picker open and do not claim success."
+  },
+  "shoppingSubstitutePack": "{quantity} {unit} pack",
+  "@shoppingSubstitutePack": {
+    "description": "The substitute price refers to this local package, not the whole recipe requirement.",
+    "placeholders": {
+      "quantity": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "priceCompareUnpricedTotal": "Total unavailable",
+  "priceCompareMissingUnpriced": "Prices unavailable for: {names}. The whole basket cannot be priced yet.",
+  "@priceCompareMissingUnpriced": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "priceComparePackages": "To buy: {count} × {quantity} {unit}",
+  "@priceComparePackages": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "quantity": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "priceCompareVerified": "price checked on {date}",
+  "@priceCompareVerified": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "priceCompareSwitchStore": "Switch plan to this shop",
+  "priceCompareSourceTitle": "Where do prices come from?",
+  "priceCompareSourceBody": "The comparison uses product prices in the catalogue for your market. A price without a checked date is an estimate, not a confirmed shop offer. Each price shows its quantity and unit. “~” marks estimates. Confirm current prices and availability with the shop. Prices in PLN and GBP are never compared or converted.",
+  "priceCompareSourceClose": "Got it",
+  "priceCompareUnitPack": "pack",
+  "priceCompareUnitServing": "serving",
+  "priceCompareUnitPiece": "pcs",
+  "priceCompareUnitTeaspoon": "tsp",
+  "priceCompareUnitCup": "cup",
+  "homeBatchCompleted": "Processed: {count} products.",
+  "homeShopFallback": "Shop",
+  "homeGreeting": "Hi, {name}!",
+  "homeUserFallback": "there",
+  "homeCookingToday": "What are we cooking today?",
+  "homeQuickActions": "Quick actions",
+  "homePlanLoading": "Loading your meal plan…",
+  "homePlanLoadError": "Could not load your meal plan.",
+  "homeNextPlan": "Your next meal plan",
+  "homeActivePlan": "Your active meal plan",
+  "homeDetails": "Details",
+  "homePlanChip": "Plan {day}/{month} · {days} days",
+  "homeNutritionLoading": "Loading calories and macros…",
+  "homeNutritionError": "Could not load calories and macros.",
+  "homeEatenToday": "Eaten today",
+  "homeProtein": "Protein",
+  "homeFat": "Fat",
+  "homeCarbsShort": "Carbs",
+  "homeRetry": "Try again",
+  "homeTipOfTheDay": "TIP OF THE DAY",
+  "homeHydration": "Hydration",
+  "homeDataLoading": "Loading data…",
+  "homeDataError": "Could not load the data",
+  "homeWaterProgress": "{amount} of {goal} ml · {percent}% of goal",
+  "homeWeeklyContest": "Weekly challenge",
+  "homeWeeklyContestHint": "Add the most recipes this week and earn premium points — 3 for 1st place, 2 for 2nd and 1 for 3rd.",
+  "homePlanStarts": "Plan starts on {date}",
+  "homePlanDay": "Day {day} of {days}",
+  "homeViewPlan": "View plan",
+  "homeNoPlan": "No active meal plan",
+  "homeNoPlanHint": "Generate a balanced meal plan, keep costs down and create a smart shopping list.",
+  "homeCreatePlan": "Create a new meal plan",
+  "homeAiPointsTitle": "You have points for an AI recipe import",
+  "homeAiPointsHint": "Add a recipe from a photo, text or link — no subscription needed.",
+  "homeTryAction": "Try it",
+  "homeBatchTitle": "Scanning several products?",
+  "homeBatchHint": "With Premium, scan the whole batch without closing the camera.",
+  "homeViewPremium": "Explore Premium",
+  "homeAutoWeekTitle": "Let next week plan itself",
+  "homeAutoWeekHint": "Premium prepares a weekly meal plan and an optional shopping list.",
+  "homeCheckAction": "Take a look",
+  "homeHideHint": "Dismiss",
+  "planSelectStoreRequired": "Choose a shop before generating your plan!",
+  "planStoreMarketError": "Choose a shop available for your account's country. Refresh the shops and try again.",
+  "planKcalValidation": "Enter between 800 and 6000 kcal per person per day.",
+  "planGenerateError": "Could not generate the plan",
+  "planFreeLimitTitle": "Free account limit",
+  "planUnderstood": "Got it",
+  "planViewPremium": "View Premium",
+  "planReadyTitle": "Your plan is ready",
+  "planReadyFor": "Your {days}-day plan for {people, plural, =1{1 person} other{{people} people}} is ready.",
+  "@planReadyFor": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "people": {
+        "type": "int"
+      }
+    }
+  },
+  "planEstimatedBudget": "Estimated minimum shopping cost",
+  "planShoppingLimitReached": "Your plan is ready, but you have already used this week's free shopping list. Create another list next week or with Premium.",
+  "planStandardWeeklyLimit": "Standard account: one new plan a week",
+  "planWeeklyLimitExplanation": "Your limit resets on Monday. Deleting a plan does not reset it. Premium lets you create unlimited plans.",
+  "planExplorePremium": "Explore Premium",
+  "planViewAction": "View plan",
+  "planNewTitle": "New meal plan",
+  "planChooseStore": "Choose a shop",
+  "planPriceEstimateHint": "The plan cost is an estimate. Check current product prices and availability with your chosen shop.",
+  "planDurationTitle": "Plan duration: {days} days",
+  "@planDurationTitle": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "planDays": "{days} days",
+  "@planDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "planOneDay": "1 day",
+  "planHouseholdTitle": "Cooking for: {people, plural, =1{1 person} other{{people} people}}",
+  "@planHouseholdTitle": {
+    "placeholders": {
+      "people": {
+        "type": "int"
+      }
+    }
+  },
+  "planHouseholdHint": "From 1 to 8 people. Taken from your profile by default; changes only apply to this plan.",
+  "planMealTypes": "Meal types",
+  "planDailyCalories": "Daily calorie goal",
+  "planCaloriesField": "Target kcal / day / person",
+  "planCaloriesExample": "e.g. 2000",
+  "planCaloriesHint": "Uses your calculator goal; defaults to 2000 kcal if none is saved.",
+  "planBudgetOptional": "Maximum budget (optional)",
+  "planBudgetField": "Maximum budget",
+  "planBudgetExample": "e.g. 150.00",
+  "planIncludePantry": "Include pantry",
+  "planPantryHint": "Products you already have appear at the end of the list for £0. Any missing quantity is still added to your shopping.",
+  "planIngredientPreferences": "Likes / Dislikes",
+  "planIngredientPreferencesHint": "Premium · one tailored meal a day",
+  "planGenerating": "Generating...",
+  "planGenerate": "Generate plan!",
+  "planGeneratingTitle": "Putting together your meal plan...",
+  "planGeneratingHint": "We reuse ingredients across meals to reduce your shopping cost.",
+  "planActivated": "Plan confirmed! Your shopping list has been generated.",
+  "planGenericError": "Something went wrong",
+  "planSwapTitle": "Replace: {recipeName}",
+  "@planSwapTitle": {
+    "placeholders": {
+      "recipeName": {
+        "type": "String"
+      }
+    }
+  },
+  "planSwapSearch": "Find a dish",
+  "planSwapSearchHint": "Enter a recipe name",
+  "planSwapLoadError": "Could not load recipes. Please try again.",
+  "planSwapNoAlternatives": "No other dishes in this category",
+  "planSwapNoSearchResults": "No dishes found with this name",
+  "planSwapSuccess": "Recipe replaced",
+  "planSwapError": "Could not replace the recipe",
+  "planFinishedTitle": "Plan finished",
+  "planArchivePremiumRequired": "Archive previews are available with Premium.",
+  "planFinishedHint": "This plan has finished.",
+  "planOpenArchive": "Open archive",
+  "planCreateNew": "Create a new plan",
+  "planViewTitle": "Meal plan",
+  "planNotFound": "No meal plan found. Generate a new plan.",
+  "planStoreFallback": "Shop",
+  "planDeleteTitle": "Delete plan",
+  "planDeleteQuestion": "Are you sure you want to delete this meal plan? On a standard account, deleting a plan does not reset the limit of one new plan a week.",
+  "planCancel": "Cancel",
+  "planDeleteError": "Could not delete the plan",
+  "planDelete": "Delete",
+  "planDay": "Day {day}",
+  "@planDay": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "planResumeArchive": "Archive · resume plan",
+  "planChangeSettings": "Change settings",
+  "planActivate": "Confirm plan",
+  "planGoShopping": "Go to shopping",
+  "manualRecipeDiscardTitle": "Discard changes?",
+  "@manualRecipeDiscardTitle": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "manualRecipeUnsaved": "The recipe details you entered have not been saved yet.",
+  "@manualRecipeUnsaved": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "manualRecipeStay": "Stay",
+  "@manualRecipeStay": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "manualRecipeDiscard": "Discard",
+  "@manualRecipeDiscard": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "manualRecipeNutritionRequired": "This product is missing nutritional values. Choose another result or add the product to the database with the details from its label.",
+  "@manualRecipeNutritionRequired": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "manualRecipeIngredientRequired": "Add at least one ingredient",
+  "@manualRecipeIngredientRequired": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "manualRecipeStepRequired": "Add at least one preparation step",
+  "@manualRecipeStepRequired": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "manualRecipeTitle": "Add a recipe manually",
+  "@manualRecipeTitle": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "manualRecipeName": "Recipe name",
+  "@manualRecipeName": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "manualRecipeNameRequired": "Enter a name",
+  "@manualRecipeNameRequired": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "manualRecipeDescription": "Short description (optional)",
+  "@manualRecipeDescription": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "manualRecipeMealType": "Meal type",
+  "@manualRecipeMealType": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "manualRecipePreparationMinutes": "Preparation (min)",
+  "@manualRecipePreparationMinutes": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "manualRecipeCookingMinutes": "Cooking (min)",
+  "@manualRecipeCookingMinutes": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "manualRecipeServings": "Servings",
+  "@manualRecipeServings": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "manualRecipeIngredients": "Ingredients",
+  "@manualRecipeIngredients": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "manualRecipeNoIngredients": "No ingredients added",
+  "@manualRecipeNoIngredients": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "manualRecipeSteps": "Preparation steps",
+  "@manualRecipeSteps": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "manualRecipeAddStep": "Add a step",
+  "@manualRecipeAddStep": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "manualRecipeStepHint": "Describe this step...",
+  "@manualRecipeStepHint": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "manualRecipeSubmitToCatalogue": "Submit to the shared catalogue",
+  "@manualRecipeSubmitToCatalogue": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "manualRecipePublicHint": "Once approved by an administrator, it will be visible to everyone and count towards the weekly competition.",
+  "@manualRecipePublicHint": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "manualRecipeSave": "Save recipe",
+  "@manualRecipeSave": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "manualRecipeChooseIngredient": "Choose an ingredient",
+  "@manualRecipeChooseIngredient": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "manualRecipeIngredientSearch": "Search the catalogue and product database...",
+  "@manualRecipeIngredientSearch": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "manualRecipeIngredientSearchHint": "Enter at least 2 characters to find an ingredient.",
+  "@manualRecipeIngredientSearchHint": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "manualRecipeIngredientNotFound": "Product not found. First add it to the product database with the nutritional values from its label.",
+  "@manualRecipeIngredientNotFound": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "manualRecipeLabelRequired": "Label details required",
+  "@manualRecipeLabelRequired": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "manualRecipeNutritionMissing": "Nutritional values are incomplete",
+  "@manualRecipeNutritionMissing": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipePhotoLoadFailed": "Could not load the photo",
+  "@aiRecipePhotoLoadFailed": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipeChooseGallery": "Choose from gallery",
+  "@aiRecipeChooseGallery": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipeServerUnavailable": "AI import is not available on the server yet. Complete the backend deployment on Render.",
+  "@aiRecipeServerUnavailable": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipePremiumOrPointsTitle": "You need Premium or points",
+  "@aiRecipePremiumOrPointsTitle": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipeCancel": "Cancel",
+  "@aiRecipeCancel": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipeBuyPoints": "Buy points",
+  "@aiRecipeBuyPoints": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipeBackToApp": "Back to the app",
+  "@aiRecipeBackToApp": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipeTitle": "Add a recipe with AI",
+  "@aiRecipeTitle": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipePhoto": "Photo",
+  "@aiRecipePhoto": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipeLink": "Link",
+  "@aiRecipeLink": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipeAccepting": "Submitting your recipe...",
+  "@aiRecipeAccepting": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipeAcceptingHint": "You can get back to using the app in a moment.",
+  "@aiRecipeAcceptingHint": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipePreparing": "Your recipe is being prepared",
+  "@aiRecipePreparing": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipeReady": "Your recipe is ready",
+  "@aiRecipeReady": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipeRecognitionFailed": "Could not recognise the recipe",
+  "@aiRecipeRecognitionFailed": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipeBackgroundHint": "You can leave this screen. We will let you know the result in the app and, if push notifications are enabled, on your phone too.",
+  "@aiRecipeBackgroundHint": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipeFindInMine": "You can also find it in the My recipes tab.",
+  "@aiRecipeFindInMine": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipeRetrySentence": "Please try again.",
+  "@aiRecipeRetrySentence": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipeOpen": "Open recipe",
+  "@aiRecipeOpen": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipeEditOnePoint": "Adjust with AI · 1 pt",
+  "@aiRecipeEditOnePoint": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipeAddAnother": "Add another recipe",
+  "@aiRecipeAddAnother": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipePasteTextTitle": "Paste your recipe text",
+  "@aiRecipePasteTextTitle": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipeTextDescription": "Paste a recipe from your notes, a message or a website — AI will recognise its ingredients and steps. Or just enter a dish name (such as \"chicken soup\" or \"lasagne\") and AI will create a complete recipe from scratch.",
+  "@aiRecipeTextDescription": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipeTextHint": "e.g. \"chicken soup\", or a full recipe with ingredients and steps...",
+  "@aiRecipeTextHint": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipeRecognise": "Recognise recipe",
+  "@aiRecipeRecognise": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipePhotoTitle": "Take a recipe photo",
+  "@aiRecipePhotoTitle": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipePhotoDescription": "Photograph a recipe card, a cookbook page or a finished dish — AI will then estimate a likely recipe.",
+  "@aiRecipePhotoDescription": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipeTapAddPhoto": "Tap to add a photo",
+  "@aiRecipeTapAddPhoto": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipePasteLinkTitle": "Paste a recipe link",
+  "@aiRecipePasteLinkTitle": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipeLinkDescription": "Food blog, TikTok, Instagram — AI will try to recognise the recipe from the page content. If the recipe is only spoken in a video and not included in its description, recognition may not work.",
+  "@aiRecipeLinkDescription": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipePremiumFeature": "Premium feature",
+  "@aiRecipePremiumFeature": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipePremiumDescription": "Add your own recipes with AI from text or a photo with an active Premium subscription — or for 2 premium points without a subscription.",
+  "@aiRecipePremiumDescription": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "aiRecipePremiumHint": "Explore the other Premium features or buy a points pack.",
+  "@aiRecipePremiumHint": {
+    "description": "Recipe creation screen display text. API identifiers and point costs remain unchanged."
+  },
+  "shoppingStoresLoadFailed": "Could not load the stores.",
+  "@shoppingStoresLoadFailed": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingChooseStore": "Choose a store for the new list",
+  "@shoppingChooseStore": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingCreateFailed": "Could not create the shopping list.",
+  "@shoppingCreateFailed": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingShareTitle": "Share shopping list",
+  "@shoppingShareTitle": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingShareHint": "Enter the username of the person you want to share the list with. They need a Meal Planner Polska account and must accept the invitation before they can view the list.",
+  "@shoppingShareHint": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingUsername": "Username",
+  "@shoppingUsername": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingSendInvite": "Send invitation",
+  "@shoppingSendInvite": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingInviteSent": "Invitation sent to {nickname}",
+  "@shoppingInviteSent": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot.",
+    "placeholders": {
+      "nickname": {
+        "type": "String"
+      }
+    }
+  },
+  "shoppingMergeTitle": "Merge shopping lists",
+  "@shoppingMergeTitle": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingMergeHint": "Choose the {storeName} lists you want to merge with the current list. The previous lists will be removed from Shopping, but your meal plans will stay unchanged.",
+  "@shoppingMergeHint": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot.",
+    "placeholders": {
+      "storeName": {
+        "type": "String"
+      }
+    }
+  },
+  "shoppingListNumber": "List {number}",
+  "@shoppingListNumber": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "shoppingListDate": "{day}/{month} · {count} items",
+  "@shoppingListDate": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot.",
+    "placeholders": {
+      "day": {
+        "type": "int"
+      },
+      "month": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shoppingMerge": "Merge",
+  "@shoppingMerge": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingMergeSuccess": "Lists merged",
+  "@shoppingMergeSuccess": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingMergeFailed": "Could not merge the lists",
+  "@shoppingMergeFailed": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingChooseSubstitute": "Choose a substitute",
+  "@shoppingChooseSubstitute": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingSubstituteFor": "For product: {name}",
+  "@shoppingSubstituteFor": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "shoppingPriceUnknown": "Price unavailable",
+  "@shoppingPriceUnknown": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingSubstituteChanged": "Replaced with: {name}",
+  "@shoppingSubstituteChanged": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "shoppingListTitle": "Shopping list",
+  "@shoppingListTitle": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingCreateAndAdd": "Create a list and add a product",
+  "@shoppingCreateAndAdd": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingAddProduct": "Add a product to the list",
+  "@shoppingAddProduct": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingInvites": "Invitations",
+  "@shoppingInvites": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingShare": "Share",
+  "@shoppingShare": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingRefresh": "Refresh",
+  "@shoppingRefresh": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingDeleteList": "Delete list",
+  "@shoppingDeleteList": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingMergeLists": "Merge lists",
+  "@shoppingMergeLists": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingCompare": "Compare",
+  "@shoppingCompare": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingExport": "Export",
+  "@shoppingExport": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingInPantry": "In your pantry",
+  "@shoppingInPantry": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingOther": "Other",
+  "@shoppingOther": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingPantryCount": "You already have {count} items · {amount}",
+  "@shoppingPantryCount": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "shoppingBoughtCount": "{checked} of {total} bought",
+  "@shoppingBoughtCount": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot.",
+    "placeholders": {
+      "checked": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "shoppingDeleteTitle": "Delete list {number}?",
+  "@shoppingDeleteTitle": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "shoppingDeleteHint": "The shopping list for {storeName} and all its items will be permanently deleted. Your meal plan will stay unchanged. Deleting a list does not reset the weekly limit on a standard account.",
+  "@shoppingDeleteHint": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot.",
+    "placeholders": {
+      "storeName": {
+        "type": "String"
+      }
+    }
+  },
+  "shoppingDelete": "Delete",
+  "@shoppingDelete": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingDeleted": "List deleted",
+  "@shoppingDeleted": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingDeleteFailed": "Could not delete the list",
+  "@shoppingDeleteFailed": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingHaveEverything": "You have everything on the list",
+  "@shoppingHaveEverything": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingCompleteHint": "Move the products you bought to your pantry so the app can suggest recipes using what you have at home.",
+  "@shoppingCompleteHint": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingMovePantry": "Move to pantry",
+  "@shoppingMovePantry": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingCompleteWithoutPantry": "Finish without moving",
+  "@shoppingCompleteWithoutPantry": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingCompleteFailed": "Could not complete the list",
+  "@shoppingCompleteFailed": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingCompleteMoved": "Shopping complete. {count} products were moved to your pantry.",
+  "@shoppingCompleteMoved": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shoppingCompleteSuccess": "Shopping complete.",
+  "@shoppingCompleteSuccess": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingProgressCount": "{checked} of {total} items",
+  "@shoppingProgressCount": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot.",
+    "placeholders": {
+      "checked": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "shoppingEverythingBought": "Everything bought",
+  "@shoppingEverythingBought": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingUnknownRemaining": "From ~{amount} · some prices unavailable",
+  "@shoppingUnknownRemaining": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "shoppingRemaining": "Left to pay: ~{amount}",
+  "@shoppingRemaining": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "shoppingBasketTotal": "in basket: {basket} of ~{total}",
+  "@shoppingBasketTotal": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot.",
+    "placeholders": {
+      "basket": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "shoppingItemSaveFailed": "Could not save the item.",
+  "@shoppingItemSaveFailed": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingPackageBuy": "Buy: {count} × {quantity} {unit}",
+  "@shoppingPackageBuy": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "quantity": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "shoppingSubstituteBadge": "SUBSTITUTE",
+  "@shoppingSubstituteBadge": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingPromotionBadge": "OFFER -{percent}%",
+  "@shoppingPromotionBadge": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot.",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "shoppingEmptyTitle": "No active shopping list",
+  "@shoppingEmptyTitle": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingEmptyHint": "Tap +, choose a store and add your first product. You can also generate a list from a meal plan.",
+  "@shoppingEmptyHint": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingListInvites": "List invitations",
+  "@shoppingListInvites": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "shoppingEstimatedTotal": "Estimated cost: {amount}",
+  "@shoppingEstimatedTotal": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "shoppingFriendReadOnly": "Friend's list preview — read-only",
+  "@shoppingFriendReadOnly": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "priceCompareListSwitchStore": "Switch list to this shop",
+  "priceCompareListSwitchSuccess": "List switched to {storeName}",
+  "@priceCompareListSwitchSuccess": {
+    "placeholders": {
+      "storeName": {
+        "type": "String"
+      }
+    }
+  },
+  "shoppingNoItems": "No items on the list",
+  "@shoppingNoItems": {
+    "description": "Shopping list display label. Currency and package data come from the response snapshot."
+  },
+  "productsTitle": "Products",
+  "productsPriceSources": "Price and brand sources",
+  "productsShopTab": "Shop",
+  "productsCatalogueTab": "Catalogue",
+  "productsMineTab": "My products",
+  "productsScan": "Scan barcode",
+  "productsBatchScan": "Scan multiple products",
+  "productsBrandSearch": "Search for a product or brand…",
+  "productsClear": "Clear",
+  "productsRetry": "Try again",
+  "productsNotFound": "No products found.",
+  "productsShowMore": "Show more",
+  "productsSearch": "Search for a product...",
+  "productsNoShop": "No shop selected",
+  "productsChooseShop": "To browse products and prices, select a shop in your profile or from the list above.",
+  "productsError": "Something went wrong",
+  "productsEmpty": "No products",
+  "productsChangeSearch": "Try a different search.",
+  "productsUnknown": "Unknown product",
+  "productsUnavailable": "unavailable",
+  "productsDeleteTitle": "Delete product?",
+  "productsCancel": "Cancel",
+  "productsDelete": "Delete",
+  "productsAdd": "Add product",
+  "productsNothingSubmitted": "You haven't submitted any products yet.",
+  "productsSubmitHint": "Tap “Add product” below to submit something\nmissing from the catalogue.",
+  "productsApproved": "In catalogue",
+  "productsRejected": "Rejected",
+  "productsPending": "Awaiting approval",
+  "productsEdit": "Edit",
+  "productsEstimatedPrice": "estimated price",
+  "productsUnknownQuantity": "/ quantity unknown",
+  "diaryTitle": "Calorie diary",
+  "diaryLoadError": "Couldn't load your diary.",
+  "diaryPreviousDay": "Previous day",
+  "diaryNextDay": "Next day",
+  "diaryToday": "Back to today",
+  "diaryRemainingKcal": "kcal remaining",
+  "diaryActivity": "Add activity",
+  "diaryActivityName": "What did you do?",
+  "diaryActivityHint": "e.g. running, cycling, gym",
+  "diaryBurnedCalories": "Calories burned",
+  "diaryOptionalDuration": "Duration (optional)",
+  "diaryActivityInvalid": "Enter an activity name and calories burned.",
+  "diaryRecipeNoIngredients": "This recipe has no ingredients to edit.",
+  "diaryUpdatedNutrition": "Entry nutrition updated",
+  "diarySaveError": "Couldn't save your changes",
+  "diaryEditAmount": "Edit amount",
+  "diaryInvalidAmount": "Enter a valid amount",
+  "diarySave": "Save",
+  "diaryAmountUpdated": "Amount and nutrition updated",
+  "diaryAmountSaveError": "Couldn't save the amount",
+  "diaryLoadingWater": "Loading hydration…",
+  "diaryWaterError": "Couldn't load hydration.",
+  "diaryHydration": "Hydration",
+  "diaryUndoGlass": "Undo a glass",
+  "diaryWaterQuestion": "How much did you drink?",
+  "diaryWaterHint": "e.g. 300",
+  "diaryWaterInvalid": "Enter the number of millilitres.",
+  "diaryGlass": "Glass",
+  "diaryBottle": "Bottle",
+  "diaryProtein": "Protein",
+  "diaryCarbs": "Carbs",
+  "diaryFat": "Fat",
+  "diaryMacroTargets": "Suggested split for your calorie goal",
+  "diaryNoMeals": "No meals logged for this day.",
+  "diaryDeleteMeal": "Delete meal?",
+  "diaryRemoveEntry": "Remove from diary",
+  "amountPositive": "Enter an amount greater than zero",
+  "amountClose": "Close",
+  "amountQuick": "Quick selection",
+  "amountQuickHint": "Tap an option to select it straight away.",
+  "amountCustom": "Custom amount",
+  "amountUnit": "Unit",
+  "amountQuantity": "Amount",
+  "amountChoose": "Select amount",
+  "amountApproximate": "approx. ",
+  "measurePack": "pack",
+  "measureServing": "serving",
+  "measurePiece": "item",
+  "measureTeaspoon": "teaspoon",
+  "measureGlass": "glass",
+  "measureGrams": "grams",
+  "measureMillilitres": "millilitres",
+  "nutritionMissing": "Nutrition unavailable",
+  "productsProcessed": "Processed: {count} products.",
+  "@productsProcessed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "productsLoadFailed": "Couldn't load products: {error}",
+  "@productsLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "productsDeleteMessage": "“{name}” will be removed from your submissions. This cannot be undone.",
+  "@productsDeleteMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "productsShopBrand": "Shop brand: {brand}",
+  "@productsShopBrand": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
+  "productsBrand": "Product brand: {brand}",
+  "@productsBrand": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
+  "productsCheckedOn": "price checked {date}",
+  "@productsCheckedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryTodayDate": "Today, {date}",
+  "@diaryTodayDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryActivityCalories": "+{calories} from activity",
+  "@diaryActivityCalories": {
+    "placeholders": {
+      "calories": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryWaterProgress": "{amount} of {goal} ml",
+  "@diaryWaterProgress": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryDeleteMessage": "“{name}” will be removed from your diary.",
+  "@diaryDeleteMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryAmountTimes": "Amount: {amount}×",
+  "@diaryAmountTimes": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryPortionSize": "1 serving = {amount} {unit}",
+  "@diaryPortionSize": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "nutritionMacroLine": "{kcal} kcal  •  P {protein} g  •  F {fat} g  •  C {carbs} g",
+  "@nutritionMacroLine": {
+    "placeholders": {
+      "kcal": {
+        "type": "String"
+      },
+      "protein": {
+        "type": "String"
+      },
+      "fat": {
+        "type": "String"
+      },
+      "carbs": {
+        "type": "String"
+      }
+    }
+  },
+  "productFormEdit": "Edit product",
+  "productFormAdd": "Add your product",
+  "productFormVisibility": "You can use this product straight away. Other users will see it after an administrator approves it.",
+  "productFormManualAfterScan": "You can still enter the details manually. The barcode has been kept.",
+  "productFormCatalogFilled": "Found in the catalogue — details filled in automatically.",
+  "productFormScanFilled": "Product found — name, brand and nutrition filled in.",
+  "productFormEditSaved": "Saved. An administrator will review the changes again.",
+  "productFormAdded": "Product added. You can use it now; others will see it once an administrator approves it.",
+  "productFormAlreadyExists": "This product is already in the catalogue. You do not need to add it again.",
+  "productFormCloseExisting": "Close — product already in catalogue",
+  "productFormName": "Product name *",
+  "productFormNameHint": "Enter a name or choose a suggestion",
+  "productFormNameRequired": "Enter a product name",
+  "productFormBrandOptional": "Brand (optional)",
+  "productFormBrand": "Brand",
+  "productFormPrice": "Price seen in the shop (optional)",
+  "productFormPriceError": "Enter a valid price (over 0, up to 10,000).",
+  "productFormUnit": "Unit",
+  "productFormPack": "Whole pack size",
+  "productFormPackExample": "e.g. 150",
+  "productFormPackHelp": "Enter the net weight or volume of the whole pack, not a serving. If it is unknown, leave this blank — the pack option will not be shown.",
+  "productFormPackError": "Enter a pack size over 0 and up to 100,000 g/ml, or leave it blank.",
+  "productFormNutritionHelp": "Without complete nutrition, you can still use the product on a shopping list. Complete the nutrition before adding it to your food diary.",
+  "productFormCalories": "Calories",
+  "productFormProtein": "Protein",
+  "productFormFat": "Fat",
+  "productFormCarbs": "Carbs",
+  "productFormShops": "Which shops sell it? (optional)",
+  "productFormShopsHelp": "You can select several. It will appear in these shops only after approval.",
+  "productFormSaveChanges": "Save changes",
+  "productFormSave": "Add product",
+  "productFormNumberError": "Enter a valid number.",
+  "productFormRequestFailed": "Could not save the product. Your details have been kept — please try again.",
+  "productLabelTitle": "Add missing product details",
+  "productLabelTakePhoto": "Take a photo",
+  "productLabelGallery": "Choose from gallery",
+  "productLabelBothPhotos": "Add both photos: the front and the nutrition label.",
+  "productLabelNameError": "Check the product name (2–300 characters).",
+  "productLabelReading": "Reading the label…",
+  "productLabelRead": "Read label",
+  "productLabelFront": "Front of pack",
+  "productLabelNutrition": "Nutrition label",
+  "productLabelReview": "Check the details before saving",
+  "productLabelConfirm": "Confirm and save",
+  "productLabelMissingNutrition": "Enter kcal, protein, fat and carbs per 100 g/ml.",
+  "productLabelReadFailed": "Could not read the label. Your photos have been kept — please try again.",
+  "productLabelPhotoFailed": "Could not open the photo. Check camera or gallery access and try again.",
+  "productFormBrandError": "The brand can have up to 200 characters.",
+  "productFormScanned": "Scanned: {code} (change)",
+  "@productFormScanned": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "productFormTypicalPrice": "Typical price range: {minimum}–{maximum} PLN",
+  "@productFormTypicalPrice": {
+    "placeholders": {
+      "minimum": {
+        "type": "String"
+      },
+      "maximum": {
+        "type": "String"
+      }
+    }
+  },
+  "productFormReward": "Product added • +{points} Premium point",
+  "@productFormReward": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "productFormBalance": " • balance: {points}",
+  "@productFormBalance": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "productFormNutrition": "Nutrition per 100 {unit} (optional)",
+  "@productFormNutrition": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "productLabelIntro": "Details are missing for barcode {code}. Two clear photos can fill them in without typing everything.",
+  "@productLabelIntro": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "productLabelPer100": "Values per 100 {unit}",
+  "@productLabelPer100": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "productFormNumberRange": "Enter a number from 0 to {maximum}.",
+  "@productFormNumberRange": {
+    "placeholders": {
+      "maximum": {
+        "type": "String"
+      }
+    }
+  },
+  "productFormChooseUnit": "Choose grams or millilitres for the pack size.",
+  "productFormLookupFailed": "Could not look up the product. The barcode has been kept — you can enter the details manually.",
+  "detailTikTokFailed": "Could not open the TikTok profile.",
+  "detailAiUpdated": "Your recipe has been updated with AI.",
+  "detailAiAction": "Adjust recipe with AI · 1 point",
+  "detailRecipeAuthor": "the recipe author",
+  "detailTime": "Time",
+  "detailServings": "Servings",
+  "detailNutrition": "Nutrition",
+  "detailPerServing": "per serving",
+  "detailChange": "Change",
+  "detailLoading": "Loading ingredients and method…",
+  "detailRetry": "Try loading the details again",
+  "detailTemporary": "Temporary variation",
+  "detailTemporaryHelp": "The original recipe has not changed. Saving will recalculate the nutrition for your new ingredients.",
+  "detailSaveVariant": "Save variation to Mine",
+  "detailUndo": "Undo changes",
+  "detailIngredient": "Ingredient",
+  "detailPastaTitle": "Tip: measure pasta without scales",
+  "detailPastaHelp": "Hold dry pasta between two fingers in a circle roughly the diameter of a Polish 5 zł coin — about one serving (80–100 g) per person.",
+  "detailMethod": "Method",
+  "detailAlsoAdd": "You could also add",
+  "detailSeasoningHelp": "optional seasonings for extra flavour",
+  "detailFiber": "Fibre",
+  "variantTitle": "Edit ingredients",
+  "variantHelp": "These changes are temporary. The original recipe will stay unchanged.",
+  "variantAlreadyAdded": "This product is already on the list.",
+  "variantRemove": "Remove ingredient",
+  "variantApply": "Apply temporarily",
+  "variantQuantityError": "Enter an amount greater than zero, up to {maximum}.",
+  "aiEditTitle": "Adjust recipe with AI",
+  "aiEditPromptLabel": "What would you like to change or add?",
+  "aiEditPromptHint": "e.g. replace chicken with tofu and update the method",
+  "aiEditBuyPoints": "Buy points",
+  "aiEditSubmit": "Update recipe · 1 point",
+  "detailFavoriteError": "Could not update your favourites",
+  "detailRemoveFavorite": "Remove from favourites",
+  "detailAddFavorite": "Add to favourites",
+  "detailDeleteTitle": "Delete recipe?",
+  "detailDeletePublicHelp": "This recipe is public. Deleting it also removes it from shopping lists and plans that use it. This cannot be undone.",
+  "detailDeleteHelp": "This cannot be undone.",
+  "detailDeleteFailed": "Could not delete the recipe",
+  "detailDelete": "Delete recipe",
+  "detailPublishTitle": "Publish recipe?",
+  "detailPublishHelp": "An administrator will review your recipe. Once approved, it will be visible to other users.",
+  "detailPublishSubmit": "Publish",
+  "detailPublishSent": "Recipe submitted — awaiting administrator approval.",
+  "detailPublishFailed": "Could not publish the recipe.",
+  "detailPublish": "Publish recipe",
+  "detailShopping": "Shopping list for this dish",
+  "detailChooseShop": "Choose a shop in your profile first",
+  "detailPhotoSent": "Thank you! Your photo will appear once an administrator approves it.",
+  "detailPhotoReplaceHelp": "This recipe already has a photo. If yours is approved, it will replace the current one.",
+  "detailPhotoSending": "Sending…",
+  "detailPhotoReplace": "Suggest another photo",
+  "detailPhotoAdd": "Add photo",
+  "detailAiPhoto": "Illustrative image generated by AI",
+  "detailSavedVariant": "Saved to Mine as “{name}”.",
+  "@detailSavedVariant": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "detailAddedBy": "Added by {name}",
+  "@detailAddedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "variantAmount": "Amount ({unit})",
+  "@variantAmount": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "variantBrand": "Brand: {brand}",
+  "@variantBrand": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      }
+    }
+  },
+  "aiEditIntro": "Describe what to change in “{name}”. For example, ask for a dairy-free version or add a particular ingredient.",
+  "@aiEditIntro": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "aiEditCost": "A successful update costs 1 Premium point. Your balance: {points} points.",
+  "@aiEditCost": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "detailExistingLists": "You already have {count} {word} — add to an existing list or create a new one.",
+  "@detailExistingLists": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "word": {
+        "type": "String"
+      }
+    }
+  },
+  "detailListItems": "{count} items",
+  "@detailListItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "variantSearchHint": "Enter a product name",
+  "detailAddToList": "Add to shopping list",
+  "detailCreateList": "Create a new list",
+  "@variantQuantityError": {
+    "placeholders": {
+      "maximum": {
+        "type": "int"
+      }
+    }
+  },
+  "productsOnlineCatalogue": "Online catalogue — local availability may vary",
+  "commentsLoadFailed": "Could not load comments",
+  "commentsPhotoFailed": "Could not load the photo",
+  "commentsCamera": "Take a photo",
+  "commentsGallery": "Choose from gallery",
+  "commentsDeleteTitle": "Delete this comment?",
+  "commentsDeleteBody": "This cannot be undone.",
+  "commentsCancel": "Cancel",
+  "commentsDelete": "Delete",
+  "commentsDeleteFailed": "Could not delete the comment",
+  "commentsLikeFailed": "Could not save your like",
+  "commentsJustNow": "just now",
+  "commentsTitle": "Comments and photos",
+  "commentsFirst": "Be the first to comment on this recipe",
+  "commentsHint": "Share a thought or a cooking tip…",
+  "commentsPhoto": "Add photo",
+  "commentsAdd": "Add",
+  "commentsDeleteTooltip": "Delete comment",
+  "commentsModerateTooltip": "Delete comment (moderation)",
+  "reportTitle": "Report content",
+  "reportReason": "Reason for reporting:",
+  "reportDetails": "Additional details (optional)",
+  "reportSend": "Report",
+  "reportThanks": "Thank you. Our team will review your report.",
+  "reportFailed": "Could not send your report. Please try again.",
+  "reportSpam": "Spam or advertising",
+  "reportInappropriate": "Inappropriate content",
+  "reportHarassment": "Harassment or hate speech",
+  "reportMisinformation": "False information",
+  "reportOther": "Another reason",
+  "blockTitle": "Block this user?",
+  "blockAction": "Block",
+  "blockAuthor": "Block author",
+  "blockFailed": "Could not block the user.",
+  "commentsMinutes": "{count} min ago",
+  "@commentsMinutes": {"placeholders":{"count":{"type":"int"}}},
+  "commentsHours": "{count} hr ago",
+  "@commentsHours": {"placeholders":{"count":{"type":"int"}}},
+  "commentsDays": "{count} days ago",
+  "@commentsDays": {"placeholders":{"count":{"type":"int"}}},
+  "commentsCount": "{count, plural, one{1 comment} other{{count} comments}}",
+  "@commentsCount": {"placeholders":{"count":{"type":"int"}}},
+  "blockBody": "You will no longer see recipes or comments from \"{name}\". You can unblock them at any time in Profile → Blocked users.",
+  "@blockBody": {"placeholders":{"name":{"type":"String"}}},
+  "blockDone": "\"{name}\" has been blocked.",
+  "@blockDone": {"placeholders":{"name":{"type":"String"}}},
+  "profileTitle": "Profile",
+  "profileNone": "Not set",
+  "profileShop": "Shop",
+  "profileUser": "User",
+  "profileExpiryToday": "Your subscription expires today",
+  "profileHealth": "Health and goals",
+  "profileCommunity": "Community",
+  "profileFriends": "Friends",
+  "profileFriendsHint": "Invitations, recipes and shopping lists",
+  "profileSubscription": "Subscription",
+  "profileUpgrade": "Get Premium",
+  "profileUpgradeHint": "Automatic weekly plans, batch scanning and unlimited lists",
+  "profileCompare": "Compare plans",
+  "profilePreferences": "Preferences",
+  "profilePreferredShop": "Preferred shop",
+  "profileDiet": "Diet",
+  "profileHousehold": "People in your household",
+  "profileLikes": "Likes / Dislikes",
+  "profileArchive": "Plan archive",
+  "profileArchiveHint": "Premium · view and reuse",
+  "profileDarkMode": "Dark mode",
+  "profilePrivacy": "Account and privacy",
+  "profileAddUsername": "Add a username",
+  "profileLogout": "Sign out",
+  "profileBlocked": "Blocked users",
+  "profileDelete": "Delete account",
+  "profileAdmin": "Administrator panel",
+  "profileChooseShop": "Choose a shop",
+  "profileHealthTitle": "Weight, height and calorie goal",
+  "profileHealthHint": "Enter your details to calculate BMI and calorie needs",
+  "profileBmiLow": "underweight",
+  "profileBmiNormal": "healthy weight",
+  "profileBmiHigh": "overweight",
+  "profileBmiObese": "obesity",
+  "profileMeasurementDate": "Measurement date",
+  "profileSelect": "Select",
+  "profileWeightInvalid": "Enter a valid weight between 0.1 and 400 kg.",
+  "profileWeightTitle": "Weight tracking",
+  "profileWeightHint": "Save a measurement for the selected day. Saving again updates the entry for that date.",
+  "profileWeightOptional": "Weight (optional)",
+  "profileSaveMeasurement": "Save measurement",
+  "profileStatistics": "Statistics",
+  "profilePhotoFailed": "Could not save the photo",
+  "profileAvatar": "Choose an avatar",
+  "profileGallery": "From gallery",
+  "profileAvatarOr": "or choose an icon",
+  "profileFemale": "Woman",
+  "profileMale": "Man",
+  "profileNicknameTitle": "Change nickname",
+  "profileNickname": "Nickname",
+  "profileSave": "Save",
+  "profileNicknameSaved": "Nickname updated.",
+  "profileNicknameFailed": "Could not change your nickname.",
+  "profileTikTokFailed": "Could not open the TikTok profile.",
+  "profileTikTokAdd": "Add TikTok",
+  "profileTikTokEdit": "Edit TikTok",
+  "profileTikTokUsername": "TikTok username",
+  "profileTikTokPlaceholder": "@yourname",
+  "profileTikTokHelp": "You can also paste the full profile link.",
+  "profileTikTokInvalid": "Use 2–24 characters: letters, numbers, full stops or underscores.",
+  "profileTikTokRemoved": "TikTok username removed.",
+  "profileTikTokSaved": "TikTok profile link added.",
+  "profileTikTokSaveFailed": "Could not save your TikTok username.",
+  "profileDeleteTitle": "Permanently delete your account?",
+  "profileNext": "Continue",
+  "profileDeleteFinal": "Final confirmation",
+  "profileDeleteFinalBody": "Are you sure? This cannot be undone.",
+  "profileDeleteFailed": "Could not delete your account. Please try again.",
+  "profileDietAny": "No restrictions",
+  "profileDietVegetarian": "Vegetarian",
+  "profileDietVegan": "Vegan",
+  "profileDietKeto": "Keto",
+  "profileDietLactose": "Lactose-free",
+  "documentContact": "Contact",
+  "documentEmailBody": "Email us at:",
+  "documentCopy": "Copy address",
+  "documentClose": "Close",
+  "documentOpenFailed": "Could not open the document. Please try again.",
+  "documentTerms": "Terms of Use (EULA)",
+  "documentPrivacy": "Privacy policy",
+  "documentDeletion": "Account deletion information",
+  "documentHelp": "Help",
+  "compareWeekly": "Automatic weekly plan and list",
+  "compareArchive": "Archive and reuse finished plans",
+  "compareLikes": "Likes / Dislikes: one tailored meal a day",
+  "compareAi": "AI recipe import (photo, text, link)",
+  "compareBatch": "Batch scanning without closing the camera",
+  "comparePublish": "Publish recipes in the shared catalogue",
+  "compareTikTok": "TikTok link on your recipes",
+  "compareLists": "Shopping lists from selected recipes",
+  "compareUnlimited": "Unlimited",
+  "compareOneWeek": "1 / week",
+  "compareGenerate": "Meal plan generation",
+  "compareJournal": "Calorie and macro diary",
+  "compareCalculator": "Calorie needs calculator",
+  "compareCatalogue": "Recipe and product catalogue",
+  "comparePrices": "Product price comparison",
+  "profileExpiryDays": "Subscription active for {days, plural, one{1 more day} other{{days} more days}}",
+  "@profileExpiryDays": {"placeholders":{"days":{"type":"int"}}},
+  "profilePeople": "{count, plural, one{1 person} other{{count} people}}",
+  "@profilePeople": {"placeholders":{"count":{"type":"int"}}},
+  "profileWeightSaved": "Saved {weight} kg.",
+  "@profileWeightSaved": {"placeholders":{"weight":{"type":"String"}}},
+  "profileDate": "Date: {date}",
+  "@profileDate": {"placeholders":{"date":{"type":"String"}}},
+  "profileDeleteBody": "This cannot be undone. You will lose all saved meal plans, shopping lists, pantry items, favourite recipes, comments and Premium points. If you have an active subscription, cancel it separately in App Store / Google Play settings — deleting your account does not cancel the subscription.",
+  "premiumTrialBadge": "{days} DAYS FREE*",
+  "@premiumTrialBadge": {"placeholders":{"days":{"type":"int"}}},
+  "premiumCheckTrial": "See free trial",
+  "premiumTrialEligibilityFootnote": "* For eligible accounts. {store} will show availability, the price after your trial and the renewal date before you confirm.",
+  "@premiumTrialEligibilityFootnote": {"placeholders":{"store":{"type":"String"}}},
+  "premiumNotNow": "Not now",
+  "premiumPurchaseError": "There was a problem with your purchase.",
+  "premiumAppleOfferOpenFailed": "The App Store offer could not be opened.",
+  "premiumPaymentsUnavailable": "Purchases are unavailable on this device. Please check your {store} account.",
+  "@premiumPaymentsUnavailable": {"placeholders":{"store":{"type":"String"}}},
+  "premiumSubscriptionPricesUnavailable": "Subscription prices could not be loaded. Please try again shortly.",
+  "premiumPurchaseFailed": "Purchase failed: {error}",
+  "@premiumPurchaseFailed": {"placeholders":{"error":{"type":"String"}}},
+  "premiumUnknownError": "unknown error",
+  "premiumActive": "Premium is active.",
+  "premiumActivated": "Premium is now active. Thank you.",
+  "premiumPurchaseVerificationFailed": "Your purchase could not be verified: {error}",
+  "@premiumPurchaseVerificationFailed": {"placeholders":{"error":{"type":"String"}}},
+  "premiumPointsAdded": "Points added. Your balance is {balance}.",
+  "@premiumPointsAdded": {"placeholders":{"balance":{"type":"int"}}},
+  "premiumPurchaseStartFailed": "Your purchase could not be started: {error}",
+  "@premiumPurchaseStartFailed": {"placeholders":{"error":{"type":"String"}}},
+  "premiumRestoreEmpty": "There are no previous purchases to restore.",
+  "premiumQuickActionPoints": "{subtitle}. Or use {points, plural, one{{points} point} other{{points} points}} without a subscription.",
+  "@premiumQuickActionPoints": {"placeholders":{"subtitle":{"type":"String"},"points":{"type":"int"}}},
+  "premiumAutomaticWeekTitle": "Automatic weekly plan",
+  "premiumAutomaticWeekDescription": "Get a meal plan and an optional shopping list on your chosen day.",
+  "premiumBatchTitle": "Batch barcode scanning",
+  "premiumBatchDescription": "Scan one product after another, then add the whole batch to your chosen destinations.",
+  "premiumUnlimitedPlansTitle": "Unlimited meal plans",
+  "premiumUnlimitedPlansDescription": "Create as many meal plans as you need, with no weekly limit.",
+  "premiumAiRecipesTitle": "AI recipe import",
+  "premiumAiRecipesDescription": "Add your own recipes from pasted text or a photo.",
+  "premiumFullDiaryTitle": "Full Diary history",
+  "premiumFullDiaryDescription": "View your full calorie history beyond the last 30 days.",
+  "premiumUnlimitedListsTitle": "Unlimited shopping lists",
+  "premiumUnlimitedListsDescription": "Create a new shopping list whenever you need one.",
+  "premiumProductName": "Meal Planner Premium",
+  "premiumHeroDescription": "Plan your week, scan your groceries and put together a shopping list in minutes.",
+  "premiumAutomaticWeekSubtitle": "Your weekly plan and optional shopping list, ready each week",
+  "premiumAutomaticWeekRequired": "Automatic weekly planning is available with Premium.",
+  "premiumAiActionTitle": "Add a recipe with AI",
+  "premiumAiActionSubtitle": "Start with a photo, text or link and let AI build the recipe",
+  "premiumBatchActionTitle": "Scan several products in one go",
+  "premiumBatchActionSubtitle": "Choose your destinations and confirm the whole batch",
+  "premiumBatchCompleted": "{count, plural, one{{count} product processed.} other{{count} products processed.}}",
+  "@premiumBatchCompleted": {"placeholders":{"count":{"type":"int"}}},
+  "premiumPublishActionTitle": "Publish your recipes",
+  "premiumPublishActionSubtitle": "Share your recipes with the community",
+  "premiumRecipeListsTitle": "Shopping lists from recipes",
+  "premiumRecipeListsSubtitle": "Unlimited (Standard: 1 per week)",
+  "premiumCookFromPantryTitle": "Cook with what you have",
+  "premiumCookFromPantrySubtitle": "Select the ingredients you have and find matching recipes",
+  "premiumPantryActionTitle": "Your pantry",
+  "premiumPantryActionSubtitle": "Keep track of the food you have at home",
+  "premiumSubscriptionLegal": "Subscriptions renew automatically unless cancelled at least 24 hours before the current period ends. Payment is charged to your {store} account when you confirm your purchase. Manage or cancel your subscription in your store account settings.",
+  "@premiumSubscriptionLegal": {"placeholders":{"store":{"type":"String"}}},
+  "premiumAlreadyActive": "Your Premium subscription is active",
+  "premiumExpiresToday": "Expires today",
+  "premiumDaysRemaining": "{days, plural, one{Active for {days} more day} other{Active for {days} more days}}",
+  "@premiumDaysRemaining": {"placeholders":{"days":{"type":"int"}}},
+  "premiumRetry": "Try again",
+  "premiumWeekly": "Weekly",
+  "premiumMonthly": "Monthly",
+  "premiumMonthlyTrial": "{days, plural, one{{days} day free} other{{days} days free}}",
+  "@premiumMonthlyTrial": {"placeholders":{"days":{"type":"int"}}},
+  "premiumYearly": "Yearly",
+  "premiumYearlySaving": "Save {percent}%",
+  "@premiumYearlySaving": {"placeholders":{"percent":{"type":"int"}}},
+  "premiumTrialDisclosureApple": "Eligible accounts can try Premium free for {days} days. It then renews at the price shown above. You can cancel in your Apple account settings.",
+  "@premiumTrialDisclosureApple": {"placeholders":{"days":{"type":"int"}}},
+  "premiumTrialDisclosureGoogle": "Eligible accounts can try Premium free for {days} days. It then renews at the price shown above. You can cancel in Google Play.",
+  "@premiumTrialDisclosureGoogle": {"placeholders":{"days":{"type":"int"}}},
+  "premiumRestorePurchases": "Restore purchases",
+  "premiumPointsTitle": "Premium points",
+  "premiumPointsBalance": "Your balance: {balance}",
+  "@premiumPointsBalance": {"placeholders":{"balance":{"type":"int"}}},
+  "premiumPointsExplanation": "Import a recipe from a photo, text or link for 2 points. Edit a recipe with AI for 1 point. A subscription is optional.",
+  "premiumPointsPricesUnavailable": "Point package prices could not be loaded.",
+  "premiumPointsAmount": "{points, plural, one{{points} point} other{{points} points}}",
+  "@premiumPointsAmount": {"placeholders":{"points":{"type":"int"}}},
+  "premiumPromotionalPrice": "Offer price: {price}",
+  "@premiumPromotionalPrice": {"placeholders":{"price":{"type":"String"}}},
+  "premiumPointsUses": "{imports, plural, one{{imports} AI import} other{{imports} AI imports}}\nor {edits, plural, one{{edits} AI edit} other{{edits} AI edits}}",
+  "@premiumPointsUses": {"placeholders":{"imports":{"type":"int"},"edits":{"type":"int"}}},
+  "premiumBuyInApple": "Buy in the App Store",
+  "premiumBuyInGoogle": "Buy in Google Play",
+  "premiumPriceAfterTrial": "Then {price} per month",
+  "@premiumPriceAfterTrial": {"placeholders":{"price":{"type":"String"}}},
+  "premiumPriceBeforeCode": "Price before offer code: {price}",
+  "@premiumPriceBeforeCode": {"placeholders":{"price":{"type":"String"}}},
+  "premiumTryFree": "Try for free",
+  "premiumBuy": "Get Premium",
+  "premiumRedeemCode": "Get offer code",
+  "premiumBuyDiscount": "Buy at the offer price",
+  "premiumContextRecipeEyebrow": "PREMIUM FOR RECIPES",
+  "premiumContextRecipeTitle": "Turn an idea into a recipe",
+  "premiumContextRecipeDescription": "Paste a link, add a photo or describe a dish. Get a recipe with ingredients, servings and clear steps.",
+  "premiumContextRecipeBenefitImport": "A recipe from a link, photo or description",
+  "premiumContextRecipeBenefitSteps": "Ingredients and steps put together for you",
+  "premiumContextRecipeBenefitEdit": "Edit recipes with AI",
+  "premiumContextMealPlanEyebrow": "PREMIUM FOR PLANNING",
+  "premiumContextMealPlanTitle": "Plan as many weeks as you need",
+  "premiumContextMealPlanDescription": "Create as many meal plans as you need and fit your meals around your day.",
+  "premiumContextMealPlanBenefitUnlimited": "Unlimited meal plans",
+  "premiumContextMealPlanBenefitWeekly": "An automatic plan for next week",
+  "premiumContextMealPlanBenefitSwap": "Find and swap meals",
+  "premiumContextBarcodeEyebrow": "PREMIUM FOR SCANNING",
+  "premiumContextBarcodeTitle": "Scan your groceries in one go",
+  "premiumContextBarcodeDescription": "Scan products one after another, then add the whole batch to your chosen destinations.",
+  "premiumContextBarcodeBenefitBatch": "Batch barcode scanning",
+  "premiumContextBarcodeBenefitNutrition": "Calories and macros for matched products",
+  "premiumContextBarcodeBenefitDestinations": "Add the batch to your Diary, pantry or catalogue",
+  "premiumContextShoppingEyebrow": "PREMIUM FOR SHOPPING",
+  "premiumContextShoppingTitle": "Create as many shopping lists as you need",
+  "premiumContextShoppingDescription": "Make a separate list for each plan or recipe. Merge lists for the same shop.",
+  "premiumContextShoppingBenefitLists": "Unlimited shopping lists",
+  "premiumContextShoppingBenefitMerge": "Merge lists for the same shop",
+  "premiumContextShoppingBenefitPantry": "Food from your pantry adds no shopping cost",
+  "premiumContextPantryEyebrow": "PREMIUM FOR YOUR PANTRY",
+  "premiumContextPantryTitle": "Use the food you already have",
+  "premiumContextPantryDescription": "Find recipes that use your pantry ingredients and buy only what you need.",
+  "premiumContextPantryBenefitMatch": "Recipes that use your ingredients",
+  "premiumContextPantryBenefitMissing": "Fewer missing ingredients",
+  "premiumContextPantryBenefitWaste": "Less food waste",
+  "premiumContextJournalEyebrow": "PREMIUM FOR YOUR DIARY",
+  "premiumContextJournalTitle": "See your progress over time",
+  "premiumContextJournalDescription": "Look back over a longer period to spot changes in calories, macros, hydration and weight.",
+  "premiumContextJournalBenefitHistory": "Your full Diary history",
+  "premiumContextJournalBenefitCharts": "Calorie, macro and hydration charts",
+  "premiumContextJournalBenefitWeight": "Weight progress over time",
+  "premiumPackageSemantics": "Package",
+  "premiumDiscountSemantics": "{percent} per cent discount",
+  "@premiumDiscountSemantics": {"placeholders":{"percent":{"type":"int"}}},
+  "premiumDiscountRibbon": "SAVE {percent}%",
+  "@premiumDiscountRibbon": {"placeholders":{"percent":{"type":"int"}}},
+  "premiumSeePlans": "See Premium plans",
+  "archiveTitle": "Plan archive",
+  "archiveChooseStart": "When should the plan start?",
+  "archiveChooseDate": "Choose date",
+  "archiveResumeTitle": "Resume plan",
+  "archiveResumeBody": "The same meals for {days} days from {date}. The original plan will stay in the archive. We will create a new shopping list. No AI generation or Premium points needed.",
+  "archiveResume": "Resume",
+  "archiveResumed": "Your plan has been resumed.",
+  "archiveResumeFailed": "Could not resume the plan. Please try again.",
+  "archiveDuration": "{days} days",
+  "archivePremiumHint": "With Premium, completed plans stay in your archive. You can view and resume them without AI generation.",
+  "archiveSeePremium": "See Premium",
+  "archiveCompleted": "Completed plans",
+  "archiveHint": "Use the same meals again from a new date. No AI generation or Premium points needed.",
+  "archiveEmpty": "No completed plans yet. Your active plan will appear here after its last day.",
+  "archivePlanTitle": "{days}-day plan",
+  "archivePreview": "Preview",
+  "archiveResuming": "Resuming…",
+  "automationTitle": "Automatic week",
+  "automationHeading": "Your plan, ready before the week begins",
+  "automationHint": "Each week, we will prepare a 7-day plan based on your goal, preferences and preferred shop.",
+  "automationGenerate": "Generate automatically",
+  "automationPremiumHint": "Only while Premium is active",
+  "automationWeekday": "Day of the week",
+  "automationMonday": "Monday",
+  "automationTuesday": "Tuesday",
+  "automationWednesday": "Wednesday",
+  "automationThursday": "Thursday",
+  "automationFriday": "Friday",
+  "automationSaturday": "Saturday",
+  "automationSunday": "Sunday",
+  "automationHour": "Time",
+  "automationCreateList": "Also create a shopping list",
+  "automationLastPlan": "Last plan created",
+  "automationSave": "Save settings",
+  "automationRun": "Generate now",
+  "automationEnabled": "Automatic week is on.",
+  "automationDisabled": "Automatic week is off.",
+  "automationReady": "Your plan is ready. Find it in Home.",
+  "errorSignIn": "You need to sign in to do this.",
+  "errorTooManyRequests": "Too many attempts. Please try again shortly.",
+  "errorUnavailable": "The service is temporarily unavailable. Please try again shortly.",
+  "errorServerTimeout": "The server did not respond in time. Please try again shortly.",
+  "errorServer": "Something went wrong on our side. Please try again shortly.",
+  "errorOperationTimeout": "This took too long. Please try again shortly.",
+  "errorConnection": "Could not connect to the server. Check your internet connection and try again.",
+  "errorFormat": "Could not read the data. Refresh the screen and try again.",
+  "@archiveResumeBody": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@archiveDuration": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "@archivePlanTitle": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "automationRetry": "Retry",
+  "ingredientPreferencesTitle": "Ingredient preferences",
+  "ingredientPreferencesLimit": "You can choose up to 50 ingredients in each group.",
+  "ingredientPreferencesSavedMessage": "Ingredient preferences saved.",
+  "ingredientPreferencesUnsavedTitle": "Unsaved preferences",
+  "ingredientPreferencesUnsavedBody": "You have unsaved changes. Go back without saving?",
+  "ingredientPreferencesStay": "Stay",
+  "ingredientPreferencesDiscard": "Go back without saving",
+  "ingredientPreferencesEmpty": "No ingredients selected yet.",
+  "ingredientPreferencesRemove": "Remove {name}",
+  "@ingredientPreferencesRemove": {"placeholders": {"name": {"type": "String"}}},
+  "ingredientPreferencesRetry": "Try again",
+  "ingredientPreferencesHint": "We will use your preferences in one meal a day when a matching recipe is available. Allergies and diet take priority.",
+  "ingredientPreferencesLike": "Like",
+  "ingredientPreferencesDislike": "Dislike",
+  "ingredientPreferencesAddLike": "Add to: Like",
+  "ingredientPreferencesAddDislike": "Add to: Dislike",
+  "ingredientPreferencesSearch": "Search ingredients",
+  "ingredientPreferencesMoveHint": "Selecting an ingredient in the other group moves it there.",
+  "ingredientPreferencesRetrySearch": "Search again",
+  "ingredientPreferencesNoResults": "No ingredients match this name.",
+  "ingredientPreferencesSaveError": "Not saved: {error}",
+  "@ingredientPreferencesSaveError": {"placeholders": {"error": {"type": "String"}}},
+  "ingredientPreferencesSaving": "Saving…",
+  "ingredientPreferencesSave": "Save preferences",
+  "ingredientPreferencesSaved": "Preferences saved",
+  "ingredientPreferencesLocked": "Choose ingredients you like and dislike. Premium uses them in one meal a day when a matching recipe is available.",
+  "ingredientPreferencesPremium": "View Premium",
+  "blockedUsersTitle": "Blocked users",
+  "blockedUsersEmpty": "You have not blocked anyone yet.",
+  "blockedUsersUnknown": "User",
+  "blockedUsersUnblock": "Unblock",
+  "blockedUsersUnblocked": "Unblocked \"{name}\". You can see their content again.",
+  "@blockedUsersUnblocked": {"placeholders": {"name": {"type": "String"}}},
+  "calculatorTitle": "Calorie calculator",
+  "calculatorIntro": "Enter your details to calculate your daily calorie needs (the Mifflin–St Jeor formula, also used by Poland's NFZ calorie calculator).",
+  "calculatorWeight": "Weight (kg)",
+  "calculatorHeight": "Height (cm)",
+  "calculatorAge": "Age (years)",
+  "calculatorSex": "Sex",
+  "calculatorFemale": "Female",
+  "calculatorMale": "Male",
+  "calculatorActivity": "Physical activity level",
+  "calculatorSedentary": "Sedentary",
+  "calculatorSedentaryHint": "Little or no exercise",
+  "calculatorLight": "Lightly active",
+  "calculatorLightHint": "Exercise 1–3 days a week",
+  "calculatorModerate": "Moderately active",
+  "calculatorModerateHint": "Exercise 3–5 days a week",
+  "calculatorActive": "Active",
+  "calculatorActiveHint": "Exercise 6–7 days a week",
+  "calculatorVeryActive": "Very active",
+  "calculatorVeryActiveHint": "Physical work and daily training",
+  "calculatorNumbersRequired": "Enter numbers in all fields (weight, height and age).",
+  "calculatorCalculate": "Calculate calorie needs",
+  "calculatorSaveFailed": "Could not save your goal.",
+  "calculatorGoalSaved": "Goal saved: {kcal} kcal/day",
+  "@calculatorGoalSaved": {"placeholders": {"kcal": {"type": "int"}}},
+  "calculatorChooseGoal": "Choose your goal",
+  "calculatorGoalHint": "Tap a tile to select it, or fine-tune it with the slider below.",
+  "calculatorLoss": "Weight loss",
+  "calculatorMaintenance": "Maintain",
+  "calculatorGain": "Weight gain",
+  "calculatorCustomGoal": "Your target: {kcal} kcal/day",
+  "@calculatorCustomGoal": {"placeholders": {"kcal": {"type": "int"}}},
+  "calculatorMacros": "Estimated macronutrient split",
+  "calculatorProtein": "Protein",
+  "calculatorFat": "Fat",
+  "calculatorCarbs": "Carbs",
+  "calculatorSaveGoal": "Save as my goal",
+  "socialInviteTitle": "Invite a friend",
+  "socialIdentifier": "Username or email",
+  "socialSend": "Send",
+  "socialInvitationSent": "Invitation sent.",
+  "socialInvitationAccepted": "Invitation accepted.",
+  "socialInvitationDeclined": "Invitation declined.",
+  "socialInvitationCancelled": "Invitation cancelled.",
+  "socialFriends": "Friends",
+  "socialInvite": "Invite",
+  "socialRetry": "Try again",
+  "socialIncoming": "Invitations for you",
+  "socialYourFriends": "Your friends",
+  "socialNoFriends": "You do not have any friends yet. Send your first invitation.",
+  "socialFriendSubtitle": "Recipes and shopping list",
+  "socialOutgoing": "Sent invitations",
+  "socialAwaitingResponse": "Awaiting a response",
+  "socialDecline": "Decline",
+  "socialAccept": "Accept",
+  "socialNoFriendRecipes": "This friend does not have any saved recipes yet.",
+  "socialRecipeSummary": "{minutes} min • {meal}",
+  "socialNoFriendLists": "This friend does not have an active shopping list right now.",
+  "socialShareAccepted": "Accepted — the list will appear in your shared lists.",
+  "socialSharesTitle": "Shopping list invitations",
+  "socialNoPendingShares": "No pending invitations.",
+  "socialSharedListInvitation": "{name} shared a shopping list with you",
+  "socialSomeone": "Someone",
+  "socialShareRespond": "Tap to respond",
+  "socialShareAccept": "Accept",
+  "@socialRecipeSummary": {"placeholders":{"minutes":{"type":"int"},"meal":{"type":"String"}}},
+  "@socialSharedListInvitation": {"placeholders":{"name":{"type":"String"}}},
+  "notificationsTitle": "Notifications",
+  "notificationsLoadFailed": "Could not load notifications",
+  "notificationsMarkAllFailed": "Could not mark all notifications as read",
+  "notificationsPlanEnded": "This plan has ended.",
+  "notificationsRecipeOpenFailed": "Could not open the recipe",
+  "notificationsJustNow": "just now",
+  "notificationsMinutes": "{count} min ago",
+  "notificationsHours": "{count} hr ago",
+  "notificationsDays": "{count, plural, =1{1 day ago} other{{count} days ago}}",
+  "notificationsMarkAll": "Mark all as read",
+  "notificationsEmpty": "No notifications",
+  "@notificationsMinutes": {"placeholders":{"count":{"type":"int"}}},
+  "@notificationsHours": {"placeholders":{"count":{"type":"int"}}},
+  "@notificationsDays": {"placeholders":{"count":{"type":"int"}}},
+  "releasePromptTitle": "An update is available",
+  "releasePromptRequired": "This version is no longer supported. Update the app to continue.",
+  "releasePromptStoreError": "Could not open the app store.",
+  "releasePromptChanges": "• Improved shopping lists made from recipe ingredients and shop price comparisons.\n• Improved recipe imports so missing ingredients are not silently left out.\n• Reduced unnecessary screen refreshes and paused animations in hidden tabs.\n• Improved app startup and camera handling; scanning no longer interrupts manual barcode entry.\n• Improved first-time setup and made sign-in verification and account switching more stable.",
+  "releasePromptApple": "Open App Store",
+  "releasePromptGoogle": "Open Google Play",
+  "releasePromptLater": "Later",
+  "pantryAddProduct": "Add product",
+  "pantryEmpty": "Your pantry is empty. Add the products you have at home to quickly find out what you can cook.",
+  "pantryEnterAmount": "Tap to enter an amount",
+  "pantryRemove": "Remove from pantry",
+  "pantryScanBarcode": "Scan a barcode",
+  "pantryScanMany": "Scan multiple products",
+  "pantrySearchHint": "Search for a product...",
+  "pantrySearchStart": "Enter a product name.",
+  "pantrySearchEmpty": "No results.",
+  "pantrySaved": "Added \"{name}\" to pantry.",
+  "@pantrySaved": {"placeholders":{"name":{"type":"String"}}},
+  "matchTitle": "Cook from my pantry",
+  "matchPremium": "Premium feature",
+  "matchPremiumBody": "Matching recipes to what you have in your pantry is available with an active Premium subscription.",
+  "matchSeePremium": "See Premium",
+  "matchSelectOne": "Select at least one ingredient.",
+  "matchEmptyPantry": "Your pantry is empty. Add the products you have at home to find matching recipes.",
+  "matchAddPantry": "Add a product to pantry",
+  "matchSelected": "Selected {selected} of {total}",
+  "@matchSelected": {"placeholders":{"selected":{"type":"int"},"total":{"type":"int"}}},
+  "matchDeselect": "Deselect all",
+  "matchSelectAll": "Select all",
+  "matchSearch": "Find recipes ({count})",
+  "@matchSearch": {"placeholders":{"count":{"type":"int"}}},
+  "matchGenerate": "Generate a new recipe with AI",
+  "matchResultsTitle": "Matching recipes",
+  "matchResultsEmpty": "No recipes in the catalogue match the selected ingredients. You can generate a new recipe with AI instead.",
+  "matchOtherAi": "Nothing suitable? Generate with AI",
+  "matchReady": "Ready to cook",
+  "matchMissing": "Missing: {ingredients}",
+  "@matchMissing": {"placeholders":{"ingredients":{"type":"String"}}},
+  "matchSelectPrompt": "Generate a recipe for a dish using mainly these ingredients I have at home: {ingredients}. You may add at most 2–3 commonly available ingredients, such as salt, spices or olive oil.",
+  "@matchSelectPrompt": {"placeholders":{"ingredients":{"type":"String"}}},
+  "matchResultsPrompt": "Generate a recipe for a dish using MAINLY these ingredients I have at home: {ingredients}. You may add at most 2-3 extra commonly available ingredients (e.g. salt, spices, olive oil), if needed.",
+  "@matchResultsPrompt": {"placeholders":{"ingredients":{"type":"String"}}},
+  "leaderTitle": "Recipe author ranking",
+  "leaderWeek": "This week",
+  "leaderAll": "All time",
+  "leaderEmptyWeek": "No one has added an approved recipe\nthis week yet. Be the first!",
+  "leaderEmptyAll": "No one has added an approved recipe\nto the shared catalogue yet.",
+  "leaderCount": "{count} {noun}",
+  "@leaderCount": {"placeholders":{"count":{"type":"int"},"noun":{"type":"String"}}},
+  "leaderRecipeSingular": "recipe",
+  "leaderRecipeFew": "recipes",
+  "leaderRecipeMany": "recipes",
+  "adGateTitle": "Watch a short advert",
+  "adGateBody": "To open the Diary, watch a short video advert to the end. This does not apply to Premium accounts — their Diary is always ad-free.",
+  "adGateFailed": "Could not load the advert. Check your internet connection and try again.",
+  "adGateLoading": "Loading advert...",
+  "adGateWatch": "Watch advert",
+  "adGateLater": "Not now",
+  "promosTitle": "Promotions",
+  "promosAll": "All",
+  "promosFailed": "Could not load promotions.",
+  "promosLoyalty": "Loyalty card required",
+  "promosEmpty": "No active promotions at the moment.",
+  "statsTitle": "Statistics",
+  "statsWeight": "Weight change",
+  "statsWeightEmpty": "Add at least one measurement in your profile.",
+  "statsAverageCalories": "Average calories",
+  "statsHydration": "Hydration",
+  "statsFavorite": "Favourite meal",
+  "statsNoData": "No data",
+  "statsDailyCalories": "Daily calories",
+  "statsCaloriesEmpty": "Add meals in the Diary to see the chart.",
+  "statsCalories": "Calories",
+  "statsDailyMacros": "Daily macros",
+  "statsMacrosEmpty": "Macros will appear after you add meals.",
+  "statsProtein": "Protein",
+  "statsFat": "Fat",
+  "statsCarbs": "Carbohydrates",
+  "statsDailyWater": "Daily hydration",
+  "statsWaterEmpty": "Log water in the Diary to see the chart.",
+  "statsWater": "Water",
+  "statsRecentDays": "Recently logged days",
+  "statsRecentEmpty": "Logged meals and hydration will appear here.",
+  "statsWeekly": "Insights from the last 7 days",
+  "statsPremiumTitle": "Full report with Premium",
+  "statsPremiumBody": "Unlock calorie, hydration and weight analysis with practical insights each week.",
+  "statsPremiumAction": "View full report",
+  "statsDailyMacroLine": "{kcal} kcal  •  P {protein} g  •  F {fat} g  •  C {carbs} g",
+  "@statsDailyMacroLine": {"placeholders":{"kcal":{"type":"String"},"protein":{"type":"String"},"fat":{"type":"String"},"carbs":{"type":"String"}}},
+  "statsWaterLine": "Water: {amount} ml",
+  "@statsWaterLine": {"placeholders":{"amount":{"type":"int"}}},
+  "statsMaximum": "Maximum: {amount} {unit}",
+  "@statsMaximum": {"placeholders":{"amount":{"type":"String"},"unit":{"type":"String"}}},
+  "insightRegularity": "Consistency: {count} of 7 days",
+  "@insightRegularity": {"placeholders":{"count":{"type":"int"}}},
+  "insightEnough": "You now have enough data to compare weeks.",
+  "insightMoreDays": "Log {count} more days for a more accurate report.",
+  "@insightMoreDays": {"placeholders":{"count":{"type":"int"}}},
+  "insightCalories": "Average {count} kcal per day",
+  "@insightCalories": {"placeholders":{"count":{"type":"int"}}},
+  "insightCaloriesDetail": "Compare weekly averages rather than judging a single day.",
+  "insightWaterMissing": "Hydration data is missing",
+  "insightWaterAverage": "Average {amount} ml of water",
+  "@insightWaterAverage": {"placeholders":{"amount":{"type":"int"}}},
+  "insightWaterEveryDay": "Hydration was logged every day this week.",
+  "insightWaterDays": "Hydration was logged on {count} of 7 days.",
+  "@insightWaterDays": {"placeholders":{"count":{"type":"int"}}},
+  "insightWeightStable": "No significant weight change",
+  "insightWeightChange": "Weight change {amount} kg",
+  "@insightWeightChange": {"placeholders":{"amount":{"type":"String"}}},
+  "insightWeightDetail": "Comparison of the first and last measurements from the past 7 days.",
+  "cookingTipsTitle": "Cooking tips",
+  "splashSubtitle": "Plan meals wisely and save",
+  "onboardingStoresEmpty": "No shops are available. Try again.",
+  "authCaptchaUnavailable": "Could not load verification. Check your connection.",
+  "authCaptchaRetry": "Retry",
+  "authCaptchaContinue": "Continue anyway",
+  "authCaptchaRefresh": "Refresh verification",
+  "adminProductsTitle": "Submitted products",
+  "adminProductsEmpty": "No products are awaiting review.",
+  "adminProductsRefresh": "Refresh submissions",
+  "adminProductApproved": "Product added to catalogue",
+  "adminProductRejected": "Product rejected",
+  "adminNoNutrition": "No nutritional information",
+  "adminProductNutrition": "Per 100 g: {kcal} kcal · P {protein} · F {fat} · C {carbs}",
+  "adminReject": "Reject",
+  "adminApprove": "Approve",
+  "adminAllRecipesTitle": "All user recipes",
+  "adminRecipesEmpty": "No recipes have been added by users.",
+  "adminShowMore": "Show more",
+  "adminPublic": "Public",
+  "adminPending": "Pending",
+  "adminRejected": "Rejected",
+  "adminPrivate": "Private",
+  "adminUnknownAuthor": "Unknown author",
+  "adminDeleteRecipeTooltip": "Delete recipe",
+  "adminDeleteRecipeTitle": "Delete recipe?",
+  "adminDeleteRecipeBody": "You will delete \"{name}\", its comments and its links to shopping lists and meal plans used by other users. This cannot be undone.",
+  "adminRecipeFallback": "this recipe",
+  "@adminProductNutrition": {"placeholders": {"kcal": {"type": "String"}, "protein": {"type": "String"}, "fat": {"type": "String"}, "carbs": {"type": "String"}}},
+  "@adminDeleteRecipeBody": {"placeholders": {"name": {"type": "String"}}},
+  "adminUsersTitle": "Users",
+  "adminUsersSearch": "Search by email or name…",
+  "adminUsersOnlyBanned": "Banned accounts only",
+  "adminUsersEmpty": "No results.",
+  "adminUsersUnnamed": "Unnamed",
+  "adminUsersVersion": "Version: {version}",
+  "adminUsersReason": "Reason: {reason}",
+  "adminUsersBanTitle": "Ban {name}?",
+  "adminUsersBanBody": "This account will lose access to the app immediately, even if it is currently signed in. No data will be deleted, and the ban can be reversed.",
+  "adminUsersReasonLabel": "Reason (visible to the user)",
+  "adminUsersBan": "Ban",
+  "adminUsersUnban": "Unban",
+  "adminUsersBanned": "Account banned",
+  "adminUsersUnbanned": "Account unbanned",
+  "adminCommentsTitle": "Comments",
+  "adminCommentsSearch": "Search comment text, author or recipe…",
+  "adminCommentsEmpty": "No comments.",
+  "adminCommentsRecipe": "on: {name}",
+  "adminCommentsPhotoOnly": "(photo only)",
+  "adminCommentsEmptyText": "(empty)",
+  "adminCommentsHasPhoto": "includes a photo",
+  "adminCommentsDelete": "Delete comment",
+  "adminCommentsDeleteTitle": "Delete comment?",
+  "adminCommentsDeleteBody": "This cannot be undone.",
+  "adminCommentsDeleted": "Comment deleted",
+  "adminPhotosTitle": "Photos awaiting review",
+  "adminPhotosEmpty": "No photos are awaiting review.",
+  "adminPhotosApproved": "Photo approved",
+  "adminPhotosRejected": "Photo rejected",
+  "adminPhotosRecipe": "Recipe",
+  "adminPhotosUnknownSubmitter": "unknown",
+  "adminPhotosSubmittedBy": "Submitted by: {name}",
+  "adminPhotosReplaceWarning": "Please note: this recipe already has a photo — approving this one will replace it.",
+  "adminPhotosLoadError": "Could not load the photo",
+  "@adminUsersVersion": {"placeholders":{"version":{"type":"String"}}},
+  "@adminUsersReason": {"placeholders":{"reason":{"type":"String"}}},
+  "@adminUsersBanTitle": {"placeholders":{"name":{"type":"String"}}},
+  "@adminCommentsRecipe": {"placeholders":{"name":{"type":"String"}}},
+  "@adminPhotosSubmittedBy": {"placeholders":{"name":{"type":"String"}}},
+  "adminPhotosApprove": "Approve",
+  "adminMainTitle": "Admin panel",
+  "adminMainBroadcastSent": "Sent to {count} users.",
+  "adminMainReportsTitle": "Content reports",
+  "adminMainReportsHelp": "Recipes and comments reported by users as spam, harassment or other breaches of the terms.",
+  "adminMainReportsEmpty": "No unresolved reports.",
+  "adminMainRecipeType": "Recipe",
+  "adminMainCommentType": "Comment",
+  "adminMainReportDetails": "Details from reporter: {details}",
+  "adminMainAuthor": "Author: {email}",
+  "adminMainReporter": "Reported by: {email}",
+  "adminMainDismiss": "Dismiss report",
+  "adminMainDeleteContent": "Delete content",
+  "adminMainResolve": "Mark as resolved",
+  "adminMainBroadcastTitle": "Send a notification to everyone",
+  "adminMainBroadcastHelp": "This goes to EVERY user’s in-app notifications — it cannot be undone. Check the text before sending.",
+  "adminMainBroadcastHint": "Notification text...",
+  "adminMainBroadcastSend": "Send to everyone",
+  "adminMainPromotionsLoadFailed": "Could not load pending promotions.",
+  "adminMainScanSummary": "Found {found}; queued {queued} for approval.",
+  "adminMainScanPending": "Scanning is continuing on the server. You can leave this panel; results will appear in the review queue.",
+  "adminMainPromotionApproved": "Promotion approved",
+  "adminMainPromotionRejected": "Promotion rejected",
+  "adminMainActionFailed": "Could not complete the action",
+  "adminMainRecipesLoadFailed": "Could not load pending recipes.",
+  "adminMainReportsLoadFailed": "Could not load reports.",
+  "adminMainDeleteContentTitle": "Delete the reported content?",
+  "adminMainDeleteContentHelp": "The comment or recipe will be permanently deleted and the report closed. This cannot be undone.",
+  "adminMainContentDeleted": "Content deleted; report closed",
+  "adminMainReportResolved": "Report marked as resolved",
+  "adminMainReportDismissed": "Report dismissed",
+  "adminMainRecipeApproved": "Recipe approved",
+  "adminMainRecipeRejected": "Recipe rejected",
+  "adminMainRecipesTitle": "Recipes awaiting approval",
+  "adminMainRecipesHelp": "Recipes submitted by Premium users to the shared public catalogue.",
+  "adminMainRecipesEmpty": "No recipes are awaiting approval.",
+  "adminMainRecipeMeta": "{mealType} • {servings} servings • {difficulty}",
+  "adminMainRecipePreview": "Tap to check ingredients, instructions, photo and macros",
+  "adminMainApprove": "Approve",
+  "adminMainAiTitle": "AI service status",
+  "adminMainAiHelp": "Checks that the Gemini key works and that token/request limits have not been reached, for each model separately.",
+  "adminMainAiCheck": "Check AI status",
+  "adminMainAiKeyMissing": "The API key is not configured.",
+  "adminMainScanTitle": "Scan promotional leaflets",
+  "adminMainScanHelp": "AI searches online for the shop’s current leaflet and recognises its promotions. Results go to the approval queue below — nothing changes automatically.",
+  "adminMainUkScanUnavailable": "UK promotion sources are being prepared. The Polish leaflet scanner does not create GBP promotions.",
+  "adminMainScanShop": "Scan {store}",
+  "adminMainScanningShop": "Scanning {store} is continuing in the background. You can leave this panel.",
+  "adminMainPendingTitle": "Awaiting approval",
+  "adminMainPromotionsEmpty": "No promotions are awaiting approval.",
+  "adminMainProductsNav": "Products",
+  "adminMainUserRecipesNav": "User recipes",
+  "campaignTitle": "Campaigns",
+  "campaignRequired": "Fill in the name, dates, shop offer configuration and recipient.",
+  "campaignConfirmGoogle": "Confirm the Google Play offer",
+  "campaignConfirmApple": "Confirm the App Store offer",
+  "campaignConfirmPoints": "Enable only after setting a temporary price for this points pack in {store} for all users. The in-app price comes directly from the store.",
+  "campaignConfirmPremium": "Enable only when the specified store offer is active, has exactly this discount and covers the right product. The app does not change the price itself.",
+  "campaignConfirm": "Confirm",
+  "campaignDeleteTitle": "Delete campaign?",
+  "campaignDeleteBody": "Campaign “{name}” will be removed from this panel. You must disable the store offer separately.",
+  "campaignMarketGb": "Market: United Kingdom • GBP • Europe/London",
+  "campaignMarketPl": "Market: Poland • PLN • Europe/Warsaw",
+  "campaignHeading": "Premium and points promotion",
+  "campaignHelp": "Ribbons appear on the icons in the Premium panel. An iOS subscription opens an Apple offer code; Android selects a Google Play offer. For points, set a temporary product price for everyone in the relevant store.",
+  "campaignName": "Campaign name",
+  "campaignStore": "Store",
+  "campaignOffer": "Offer",
+  "campaignSubscription": "Premium subscription",
+  "campaignPoints": "Premium points",
+  "campaignProduct": "Product covered by offer",
+  "campaignDiscount": "Discount",
+  "campaignAudience": "Audience",
+  "campaignEveryone": "Everyone",
+  "campaignOneUser": "One user",
+  "campaignEmail": "User email",
+  "campaignDates": "Choose dates",
+  "campaignAppleUrl": "Apple offer code link",
+  "campaignAppleUrlHelp": "Link: apps.apple.com/redeem?ctx=offercodes…",
+  "campaignBasePlan": "Google Play: base plan ID",
+  "campaignAndroidOffer": "Google Play: offer ID",
+  "campaignPointsHelp": "First schedule a temporary price reduction for this points pack in {store}. The campaign displays a ribbon, but the price always comes directly from the store.",
+  "campaignSaving": "Saving…",
+  "campaignCreate": "Create campaign (disabled)",
+  "campaignSaved": "Saved campaigns",
+  "campaignEmpty": "No campaigns.",
+  "campaignActive": "Active",
+  "campaignDeleteTooltip": "Delete campaign",
+  "adminMarketLabel": "Catalogue market",
+  "adminMarketBusy": "Wait for the current operation to finish.",
+  "adminMarketHelp": "Changes the data view, not your account’s country.",
+  "adminMarketPl": "Poland",
+  "adminMarketGb": "United Kingdom",
+  "@adminMainBroadcastSent": {"placeholders":{"count":{"type":"String"}}},
+  "@adminMainReportDetails": {"placeholders":{"details":{"type":"String"}}},
+  "@adminMainAuthor": {"placeholders":{"email":{"type":"String"}}},
+  "@adminMainReporter": {"placeholders":{"email":{"type":"String"}}},
+  "@adminMainScanSummary": {"placeholders":{"found":{"type":"String"},"queued":{"type":"String"}}},
+  "@adminMainRecipeMeta": {"placeholders":{"mealType":{"type":"String"},"servings":{"type":"String"},"difficulty":{"type":"String"}}},
+  "@adminMainScanShop": {"placeholders":{"store":{"type":"String"}}},
+  "@adminMainScanningShop": {"placeholders":{"store":{"type":"String"}}},
+  "@campaignConfirmPoints": {"placeholders":{"store":{"type":"String"}}},
+  "@campaignDeleteBody": {"placeholders":{"name":{"type":"String"}}},
+  "@campaignPointsHelp": {"placeholders":{"store":{"type":"String"}}},
+  "approvalRecipePending": "This recipe is awaiting your approval for the shared catalogue",
+  "approvalRecipeApprove": "Approve",
+  "approvalRecipeApproved": "Recipe approved",
+  "approvalRecipeRejected": "Recipe rejected",
+  "approvalRecipeFailed": "Could not complete the action",
+  "shoppingAddQueryHint": "Enter any item…",
+  "shoppingAddCustom": "Add the item you entered",
+  "shoppingAddMatches": "Matching products from the catalogue and previous scans",
+  "shoppingAddMinimumQuery": "Enter at least 2 characters to search for a product.",
+  "shoppingAddNoResults": "No product with this name was found.",
+  "shoppingAddSuccess": "Added: {name}",
+  "shoppingAddCustomFailed": "Could not add the item",
+  "shoppingAddProductFailed": "Could not add the product",
+  "shoppingAddProductFallback": "Product",
+  "shoppingAddCatalogSource": "App catalogue",
+  "shoppingAddCacheSource": "Previously scanned",
+  "exportListHeading": "My shopping list: {store}",
+  "exportListSubject": "Shopping list - {store}",
+  "exportListTitle": "Export list",
+  "exportListCopy": "Copy to clipboard",
+  "exportListCopied": "Copied to clipboard!",
+  "exportListOpenApp": "Open {name}",
+  "exportListAppMissing": "This app is not installed.",
+  "exportListAppFailed": "Could not open the app.",
+  "@shoppingAddSuccess": {"placeholders":{"name":{"type":"String"}}},
+  "@exportListHeading": {"placeholders":{"store":{"type":"String"}}},
+  "@exportListSubject": {"placeholders":{"store":{"type":"String"}}},
+  "@exportListOpenApp": {"placeholders":{"name":{"type":"String"}}},
+  "exportListComingSoon": "Coming soon",
+  "diarySignInView": "Sign in to view your diary.",
+  "diarySignInAdd": "Sign in to add an entry.",
+  "authStoredSessionFailed": "We could not restore your saved session. Please try signing in again."
+}

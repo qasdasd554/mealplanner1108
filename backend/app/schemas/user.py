@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
@@ -40,6 +41,7 @@ class UserCreate(BaseModel):
     email: str
     password: str
     display_name: str | None = None
+    device_region: str | None = None
     preferred_store_id: uuid.UUID | None = None
     dietary_preferences: dict | None = None
     household_size: int = Field(default=1, ge=1, le=8)
@@ -54,6 +56,7 @@ class UserResponse(BaseModel):
     id: uuid.UUID
     email: str
     display_name: str | None = None
+    country_code: Literal["PL", "GB"] = "PL"
     tiktok_username: str | None = None
     preferred_store_id: uuid.UUID | None = None
     dietary_preferences: dict | None = None
@@ -94,6 +97,11 @@ class UserResponse(BaseModel):
     # premium wracało z 403 — użytkownik widział aktywne premium, którego
     # nie dało się użyć.
     has_premium_access: bool = False
+
+    @field_validator("country_code", mode="before")
+    @classmethod
+    def legacy_country_defaults_to_poland(cls, value):
+        return "PL" if value is None else value
 
     @field_validator("ingredient_preferences", mode="before")
     @classmethod

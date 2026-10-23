@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../l10n/market_locale.dart';
 
 /// Ekran wpisania 6-cyfrowego kodu weryfikacyjnego wysłanego na maila
 /// przy rejestracji. Pokazywany OD RAZU po udanej rejestracji (patrz
@@ -33,9 +34,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),
-            content: Text('Kod musi mieć dokładnie 6 cyfr.'),
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(context.strings.authCodeSixDigits),
           ),
         );
       return;
@@ -76,8 +77,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
           duration: const Duration(seconds: 3),
           content: Text(
             success
-                ? 'Nowy kod został wysłany.'
-                : (authProvider.errorMessage ?? 'Nie udało się wysłać kodu.'),
+                ? context.strings.authNewCodeSent
+                : (authProvider.errorMessage ??
+                    context.strings.authCodeSendFailed),
           ),
           backgroundColor:
               success ? AppTheme.primaryColor : AppTheme.errorColor,
@@ -116,14 +118,14 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                         ),
                         const SizedBox(height: 24),
                         Text(
-                          'Potwierdź swój e-mail',
+                          context.strings.authVerifyEmailTitle,
                           style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(fontWeight: FontWeight.bold),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'Wysłaliśmy 6-cyfrowy kod na adres\n$email',
+                          context.strings.authVerificationSentTo(email),
                           style: TextStyle(color: AppTheme.textSecondary),
                           textAlign: TextAlign.center,
                         ),
@@ -159,7 +161,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                                         color: Colors.white,
                                       ),
                                     )
-                                    : const Text('Potwierdź'),
+                                    : Text(context.strings.authVerify),
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -174,7 +176,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                                       strokeWidth: 2,
                                     ),
                                   )
-                                  : const Text('Wyślij kod ponownie'),
+                                  : Text(context.strings.authResendCode),
                         ),
                       ],
                     ),

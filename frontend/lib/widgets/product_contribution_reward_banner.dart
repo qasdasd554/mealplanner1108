@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
+import '../l10n/market_locale.dart';
 
 class ProductContributionRewardBanner extends StatelessWidget {
   final bool compact;
@@ -11,8 +12,7 @@ class ProductContributionRewardBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     const accent = Color(0xFFE3A008);
     return Semantics(
-      label:
-          'Nagroda: jeden punkt Premium za dodanie nowego, unikalnego produktu do bazy.',
+      label: context.strings.rewardProductSemantics,
       child: Container(
         width: double.infinity,
         padding: EdgeInsets.symmetric(
@@ -46,7 +46,7 @@ class ProductContributionRewardBanner extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Zyskaj 1 punkt Premium',
+                    context.strings.rewardProductTitle,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w700,
                       color: AppTheme.textPrimary,
@@ -54,7 +54,7 @@ class ProductContributionRewardBanner extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Zeskanuj kod lub dodaj ręcznie nowy, unikalny produkt do bazy.',
+                    context.strings.rewardProductBody,
                     style: TextStyle(
                       fontSize: compact ? 11 : 12,
                       height: 1.3,
@@ -71,9 +71,9 @@ class ProductContributionRewardBanner extends StatelessWidget {
                 color: accent,
                 borderRadius: BorderRadius.circular(999),
               ),
-              child: const Text(
-                '+1 pkt',
-                style: TextStyle(
+              child: Text(
+                context.strings.rewardProductPoint,
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 11,
                   fontWeight: FontWeight.w800,

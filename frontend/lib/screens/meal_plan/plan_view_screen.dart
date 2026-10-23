@@ -1,6 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/catalog_labels.dart';
+import '../../l10n/market_locale.dart';
+import '../../l10n/recipe_content.dart';
 import '../../providers/meal_plan_provider.dart';
 import '../../providers/store_provider.dart';
 import '../../providers/auth_provider.dart';
@@ -13,7 +18,8 @@ import '../../widgets/decorative_circles.dart';
 
 class PlanViewScreen extends StatefulWidget {
   final MealPlan? archivedPlan;
-  const PlanViewScreen({super.key, this.archivedPlan});
+  final RecipeService? recipeService;
+  const PlanViewScreen({super.key, this.archivedPlan, this.recipeService});
 
   @override
   State<PlanViewScreen> createState() => _PlanViewScreenState();
@@ -21,7 +27,13 @@ class PlanViewScreen extends StatefulWidget {
 
 class _PlanViewScreenState extends State<PlanViewScreen> {
   int _selectedDay = 1;
-  final RecipeService _recipeService = RecipeService();
+  late final RecipeService _recipeService;
+
+  @override
+  void initState() {
+    super.initState();
+    _recipeService = widget.recipeService ?? RecipeService();
+  }
 
   Future<void> _activatePlan(String planId) async {
     final mealPlanProvider = Provider.of<MealPlanProvider>(
@@ -35,11 +47,9 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
-            const SnackBar(
-              duration: Duration(seconds: 3),
-              content: Text(
-                'Plan został zatwierdzony! Lista zakupów wygenerowana.',
-              ),
+            SnackBar(
+              duration: const Duration(seconds: 3),
+              content: Text(context.strings.planActivated),
               backgroundColor: AppTheme.primaryColor,
             ),
           );
@@ -50,7 +60,10 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
           ..showSnackBar(
             SnackBar(
               duration: const Duration(seconds: 3),
-              content: Text(mealPlanProvider.errorMessage ?? 'Wystąpił błąd'),
+              content: Text(
+                mealPlanProvider.errorMessage ??
+                    context.strings.planGenericError,
+              ),
               backgroundColor: AppTheme.errorColor,
             ),
           );
@@ -62,6 +75,7 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
   // raz, więc wpisywanie tekstu nie wysyła kolejnych żądań do serwera.
   Future<void> _openSwapBottomSheet(MealPlanEntry entry, String planId) async {
     final searchController = TextEditingController();
+    ModalRoute<dynamic>? sheetRoute;
     final recipesFuture = _recipeService.getRecipes(
       mealType: entry.recipe.mealType,
     );
@@ -73,131 +87,144 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder:
-          (sheetContext) => StatefulBuilder(
-            builder:
-                (sheetContext, setSheetState) => Padding(
-                  padding: EdgeInsets.only(
-                    bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
-                  ),
-                  child: SizedBox(
-                    height: MediaQuery.sizeOf(sheetContext).height * 0.78,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Zamień: ${entry.recipe.name}',
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style:
-                                    Theme.of(sheetContext).textTheme.titleLarge,
+      builder: (sheetContext) {
+        sheetRoute = ModalRoute.of(sheetContext);
+        return StatefulBuilder(
+          builder:
+              (sheetContext, setSheetState) => Padding(
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
+                ),
+                child: SizedBox(
+                  height: MediaQuery.sizeOf(sheetContext).height * 0.78,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              context.strings.planSwapTitle(
+                                entry.recipe.displayName(context),
                               ),
-                              const SizedBox(height: 12),
-                              TextField(
-                                controller: searchController,
-                                autofocus: true,
-                                onChanged: (_) => setSheetState(() {}),
-                                decoration: InputDecoration(
-                                  labelText: 'Szukaj dania',
-                                  hintText: 'Wpisz nazwę przepisu',
-                                  prefixIcon: const Icon(Icons.search),
-                                  suffixIcon:
-                                      searchController.text.isEmpty
-                                          ? null
-                                          : IconButton(
-                                            icon: const Icon(Icons.clear),
-                                            onPressed: () {
-                                              searchController.clear();
-                                              setSheetState(() {});
-                                            },
-                                          ),
-                                  border: const OutlineInputBorder(),
-                                ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style:
+                                  Theme.of(sheetContext).textTheme.titleLarge,
+                            ),
+                            const SizedBox(height: 12),
+                            TextField(
+                              controller: searchController,
+                              autofocus: true,
+                              onChanged: (_) => setSheetState(() {}),
+                              decoration: InputDecoration(
+                                labelText: context.strings.planSwapSearch,
+                                hintText: context.strings.planSwapSearchHint,
+                                prefixIcon: const Icon(Icons.search),
+                                suffixIcon:
+                                    searchController.text.isEmpty
+                                        ? null
+                                        : IconButton(
+                                          icon: const Icon(Icons.clear),
+                                          onPressed: () {
+                                            searchController.clear();
+                                            setSheetState(() {});
+                                          },
+                                        ),
+                                border: const OutlineInputBorder(),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                        Expanded(
-                          child: FutureBuilder<List<Recipe>>(
-                            future: recipesFuture,
-                            builder: (sheetContext, snapshot) {
-                              if (snapshot.connectionState !=
-                                  ConnectionState.done) {
-                                return const Center(
-                                  child: CircularProgressIndicator(),
-                                );
-                              }
-                              if (snapshot.hasError) {
-                                return const Center(
-                                  child: Text(
-                                    'Nie udało się pobrać przepisów. Spróbuj ponownie.',
-                                    textAlign: TextAlign.center,
-                                  ),
-                                );
-                              }
-                              final needle =
-                                  searchController.text.trim().toLowerCase();
-                              final recipes =
-                                  (snapshot.data ?? <Recipe>[])
-                                      .where(
-                                        (r) =>
-                                            r.id != entry.recipe.id &&
-                                            r.name.toLowerCase().contains(
-                                              needle,
-                                            ),
-                                      )
-                                      .toList();
-                              if (recipes.isEmpty) {
-                                return Center(
-                                  child: Text(
-                                    needle.isEmpty
-                                        ? 'Brak innych dań w tej kategorii'
-                                        : 'Nie znaleziono dania o tej nazwie',
-                                    textAlign: TextAlign.center,
-                                  ),
-                                );
-                              }
-                              return ListView.builder(
-                                itemCount: recipes.length,
-                                itemBuilder: (sheetContext, index) {
-                                  final recipe = recipes[index];
-                                  return ListTile(
-                                    leading: SizedBox(
-                                      width: 40,
-                                      height: 40,
-                                      child: RecipePhoto(
-                                        recipe: recipe,
-                                        borderRadius: BorderRadius.circular(6),
-                                        showAiBadge: false,
-                                      ),
-                                    ),
-                                    title: Text(recipe.name),
-                                    subtitle: Text(
-                                      '${recipe.totalTimeMin} min • ${recipe.difficulty}',
-                                    ),
-                                    trailing: const Icon(Icons.chevron_right),
-                                    onTap:
-                                        () => Navigator.of(
-                                          sheetContext,
-                                        ).pop(recipe),
-                                  );
-                                },
+                      ),
+                      Expanded(
+                        child: FutureBuilder<List<Recipe>>(
+                          future: recipesFuture,
+                          builder: (sheetContext, snapshot) {
+                            if (snapshot.connectionState !=
+                                ConnectionState.done) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
                               );
-                            },
-                          ),
+                            }
+                            if (snapshot.hasError) {
+                              return Center(
+                                child: Text(
+                                  context.strings.planSwapLoadError,
+                                  textAlign: TextAlign.center,
+                                ),
+                              );
+                            }
+                            final needle =
+                                searchController.text.trim().toLowerCase();
+                            final recipes =
+                                (snapshot.data ?? <Recipe>[])
+                                    .where(
+                                      (r) =>
+                                          r.id != entry.recipe.id &&
+                                          r
+                                              .displayName(context)
+                                              .toLowerCase()
+                                              .contains(needle),
+                                    )
+                                    .toList();
+                            if (recipes.isEmpty) {
+                              return Center(
+                                child: Text(
+                                  needle.isEmpty
+                                      ? context.strings.planSwapNoAlternatives
+                                      : context.strings.planSwapNoSearchResults,
+                                  textAlign: TextAlign.center,
+                                ),
+                              );
+                            }
+                            return ListView.builder(
+                              itemCount: recipes.length,
+                              itemBuilder: (sheetContext, index) {
+                                final recipe = recipes[index];
+                                return ListTile(
+                                  leading: SizedBox(
+                                    width: 40,
+                                    height: 40,
+                                    child: RecipePhoto(
+                                      recipe: recipe,
+                                      borderRadius: BorderRadius.circular(6),
+                                      showAiBadge: false,
+                                    ),
+                                  ),
+                                  title: Text(recipe.displayName(context)),
+                                  subtitle: Text(
+                                    '${recipe.totalTimeMin} min • ${context.strings.difficultyLabel(recipe.difficulty)}',
+                                  ),
+                                  trailing: const Icon(Icons.chevron_right),
+                                  onTap:
+                                      () => Navigator.of(
+                                        sheetContext,
+                                      ).pop(recipe),
+                                );
+                              },
+                            );
+                          },
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
-          ),
+              ),
+        );
+      },
     );
-    searchController.dispose();
+    // `showModalBottomSheet` resolves on pop, before the reverse animation
+    // removes its TextField. Keep its controller alive until the route itself
+    // is disposed; the recipe swap can proceed without waiting for animation.
+    final route = sheetRoute;
+    if (route == null) {
+      searchController.dispose();
+    } else {
+      unawaited(route.completed.then<void>((_) => searchController.dispose()));
+    }
     if (picked == null || !mounted) return;
     final provider = Provider.of<MealPlanProvider>(context, listen: false);
     final success = await provider.swapRecipe(
@@ -211,8 +238,8 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
         duration: const Duration(seconds: 3),
         content: Text(
           success
-              ? 'Przepis został zamieniony'
-              : provider.errorMessage ?? 'Nie udało się zamienić przepisu',
+              ? context.strings.planSwapSuccess
+              : provider.errorMessage ?? context.strings.planSwapError,
         ),
         backgroundColor: success ? AppTheme.primaryColor : AppTheme.errorColor,
       ),
@@ -232,7 +259,7 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
         ((plan.isArchived && !premium) ||
             (!plan.isArchived && plan.isExpiredAt(DateTime.now())))) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Plan zakończony')),
+        appBar: AppBar(title: Text(context.strings.planFinishedTitle)),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
@@ -241,8 +268,8 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
               children: [
                 Text(
                   plan.isArchived
-                      ? 'Podgląd archiwum jest dostępny z Premium.'
-                      : 'Ten plan już się zakończył.',
+                      ? context.strings.planArchivePremiumRequired
+                      : context.strings.planFinishedHint,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
@@ -251,7 +278,11 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
                       () => Navigator.of(
                         context,
                       ).pushNamed(premium ? '/plan/archive' : '/plan/config'),
-                  child: Text(premium ? 'Otwórz archiwum' : 'Utwórz nowy plan'),
+                  child: Text(
+                    premium
+                        ? context.strings.planOpenArchive
+                        : context.strings.planCreateNew,
+                  ),
                 ),
               ],
             ),
@@ -262,10 +293,8 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
 
     if (plan == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Plan posiłków')),
-        body: const Center(
-          child: Text('Nie znaleziono planu posiłków. Wygeneruj nowy plan.'),
-        ),
+        appBar: AppBar(title: Text(context.strings.planViewTitle)),
+        body: Center(child: Text(context.strings.planNotFound)),
       );
     }
 
@@ -273,7 +302,7 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
       try {
         return storeProvider.stores.firstWhere((s) => s.id == id).name;
       } catch (_) {
-        return 'Sklep';
+        return context.strings.planStoreFallback;
       }
     }
 
@@ -297,7 +326,7 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
       appBar: AppBar(
         title: Column(
           children: [
-            const Text('Plan posiłków'),
+            Text(context.strings.planViewTitle),
             Text(
               storeName,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -309,7 +338,7 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
         ),
         actions: [
           IconButton(
-            tooltip: 'Archiwum planów',
+            tooltip: context.strings.planArchive,
             icon: const Icon(Icons.inventory_2_outlined),
             onPressed: () => Navigator.of(context).pushNamed('/plan/archive'),
           ),
@@ -320,24 +349,20 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
               showDialog(
                 context: context,
                 builder:
-                    (context) => AlertDialog(
-                      title: const Text('Usuń plan'),
-                      content: const Text(
-                        'Czy na pewno chcesz usunąć ten plan posiłków? '
-                        'Na koncie standardowym usunięcie nie odnawia limitu '
-                        'jednego nowego planu tygodniowo.',
-                      ),
+                    (dialogContext) => AlertDialog(
+                      title: Text(context.strings.planDeleteTitle),
+                      content: Text(context.strings.planDeleteQuestion),
                       actions: [
                         TextButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: const Text('Anuluj'),
+                          onPressed: () => Navigator.of(dialogContext).pop(),
+                          child: Text(context.strings.planCancel),
                         ),
                         TextButton(
                           style: TextButton.styleFrom(
                             foregroundColor: AppTheme.errorColor,
                           ),
                           onPressed: () async {
-                            Navigator.of(context).pop();
+                            Navigator.of(dialogContext).pop();
                             // UWAGA (naprawa): wcześniej ekran zamykał się
                             // ZAWSZE, niezależnie od tego, czy usunięcie
                             // faktycznie się powiodło — błąd był cicho
@@ -347,7 +372,7 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
                             final success = await mealPlanProvider.deletePlan(
                               plan.id,
                             );
-                            if (!mounted) return;
+                            if (!context.mounted) return;
                             if (success) {
                               Navigator.of(context).pop();
                             } else {
@@ -358,13 +383,13 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
                                     duration: const Duration(seconds: 3),
                                     content: Text(
                                       mealPlanProvider.errorMessage ??
-                                          'Nie udało się usunąć planu',
+                                          context.strings.planDeleteError,
                                     ),
                                   ),
                                 );
                             }
                           },
-                          child: const Text('Usuń'),
+                          child: Text(context.strings.planDelete),
                         ),
                       ],
                     ),
@@ -405,17 +430,17 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
                       ),
                       _buildMacroStat(
                         '${totalProtein.round()}g',
-                        'białko',
+                        context.strings.homeProtein.toLowerCase(),
                         AppTheme.secondaryColor,
                       ),
                       _buildMacroStat(
                         '${totalFat.round()}g',
-                        'tłuszcz',
+                        context.strings.homeFat.toLowerCase(),
                         const Color(0xFFE0A62E),
                       ),
                       _buildMacroStat(
                         '${totalCarbs.round()}g',
-                        'węgl.',
+                        context.strings.homeCarbsShort.toLowerCase(),
                         const Color(0xFF3B82F6),
                       ),
                     ],
@@ -461,7 +486,7 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
                           ),
                           alignment: Alignment.center,
                           child: Text(
-                            'Dzień $day',
+                            context.strings.planDay(day),
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color:
@@ -529,7 +554,11 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
                                                   CrossAxisAlignment.start,
                                               children: [
                                                 Text(
-                                                  entry.mealSlot.toUpperCase(),
+                                                  context.strings
+                                                      .mealTypeLabel(
+                                                        entry.mealSlot,
+                                                      )
+                                                      .toUpperCase(),
                                                   style: const TextStyle(
                                                     color:
                                                         AppTheme.primaryColor,
@@ -540,7 +569,9 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
                                                 ),
                                                 const SizedBox(height: 4),
                                                 Text(
-                                                  entry.recipe.name,
+                                                  entry.recipe.displayName(
+                                                    context,
+                                                  ),
                                                   style: Theme.of(context)
                                                       .textTheme
                                                       .titleLarge
@@ -608,7 +639,7 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
                                 () => Navigator.of(
                                   context,
                                 ).pushNamed('/plan/archive'),
-                            label: const Text('Archiwum · wznów plan'),
+                            label: Text(context.strings.planResumeArchive),
                           )
                           : plan.status == 'draft'
                           ? Row(
@@ -620,14 +651,16 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
                                       context,
                                     ).pushReplacementNamed('/plan/config');
                                   },
-                                  child: const Text('Zmień parametry'),
+                                  child: Text(
+                                    context.strings.planChangeSettings,
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 16),
                               Expanded(
                                 child: ElevatedButton(
                                   onPressed: () => _activatePlan(plan.id),
-                                  child: const Text('Zatwierdź plan'),
+                                  child: Text(context.strings.planActivate),
                                 ),
                               ),
                             ],
@@ -636,7 +669,7 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
                             onPressed: () {
                               Navigator.of(context).pushNamed('/shopping');
                             },
-                            child: const Text('Przejdź do zakupów'),
+                            child: Text(context.strings.planGoShopping),
                           ),
                 ),
               ],
@@ -648,22 +681,26 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
   }
 
   Widget _buildMacroStat(String value, String label, Color color) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: color,
+    return Expanded(
+      child: Column(
+        children: [
+          Text(
+            value,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
           ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-        ),
-      ],
+          const SizedBox(height: 2),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+          ),
+        ],
+      ),
     );
   }
 }

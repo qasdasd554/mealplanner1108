@@ -1,4 +1,6 @@
 import 'package:image_picker/image_picker.dart';
+import '../../l10n/market_locale.dart';
+import '../../utils/retained_dialog.dart';
 
 import '../../utils/error_utils.dart';
 
@@ -39,10 +41,18 @@ import '../../widgets/installed_app_version.dart';
 /// Odmiana słowa "dzień" — w polskim wystarczy rozróżnić TYLKO liczbę 1
 /// (dzień) od wszystkich pozostałych (dni), w przeciwieństwie do wielu
 /// innych rzeczowników z trójstopniową odmianą (1/2-4/5+).
-String _dayWord(int days) => days == 1 ? 'dzień' : 'dni';
+String _dietLabel(BuildContext context, String code) => switch (code) {
+  "Bez ograniczeń" => context.strings.profileDietAny,
+  "Wegetariańska" => context.strings.profileDietVegetarian,
+  "Wegańska" => context.strings.profileDietVegan,
+  "Keto" => context.strings.profileDietKeto,
+  "Bez laktozy" => context.strings.profileDietLactose,
+  _ => code,
+};
 
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+  final WeightLogService? weightLogService;
+  const ProfileScreen({super.key, this.weightLogService});
 
   @override
   Widget build(BuildContext context) {
@@ -55,11 +65,11 @@ class ProfileScreen extends StatelessWidget {
     final tiktokUsername = hasPremiumAccess ? (user?.tiktokUsername ?? '') : '';
 
     String getStoreName(String? id) {
-      if (id == null) return 'Brak';
+      if (id == null) return context.strings.profileNone;
       try {
         return storeProvider.stores.firstWhere((s) => s.id == id).name;
       } catch (_) {
-        return 'Sklep';
+        return context.strings.profileShop;
       }
     }
 
@@ -70,7 +80,7 @@ class ProfileScreen extends StatelessWidget {
         user?.dietaryPreferences?['diet'] as String? ?? 'Bez ograniczeń';
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profil')),
+      appBar: AppBar(title: Text(context.strings.profileTitle)),
       body: Stack(
         children: [
           const DecorativeCircles(),
@@ -133,7 +143,8 @@ class ProfileScreen extends StatelessWidget {
                             children: [
                               Flexible(
                                 child: Text(
-                                  user?.displayName ?? 'Użytkownik',
+                                  user?.displayName ??
+                                      context.strings.profileUser,
                                   maxLines: 2,
                                   textAlign: TextAlign.center,
                                   overflow: TextOverflow.ellipsis,
@@ -184,9 +195,10 @@ class ProfileScreen extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           user!.premiumDaysRemaining == 0
-                              ? 'Subskrypcja wygasa dziś'
-                              : 'Subskrypcja aktywna jeszcze przez ${user.premiumDaysRemaining} '
-                                  '${_dayWord(user.premiumDaysRemaining!)}',
+                              ? context.strings.profileExpiryToday
+                              : context.strings.profileExpiryDays(
+                                user.premiumDaysRemaining!,
+                              ),
                           style: TextStyle(
                             fontSize: 12,
                             color: AppTheme.textSecondary,
@@ -204,25 +216,25 @@ class ProfileScreen extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 _ProfileSection(
-                  title: 'Zdrowie i cele',
+                  title: context.strings.profileHealth,
                   icon: Icons.monitor_heart_outlined,
                   children: [
                     _buildCalorieCalculatorTile(context),
                     const SizedBox(height: 16),
-                    const _WeightTrackerCard(),
+                    _WeightTrackerCard(service: weightLogService),
                   ],
                 ),
                 const SizedBox(height: 12),
 
                 _ProfileSection(
-                  title: 'Społeczność',
+                  title: context.strings.profileCommunity,
                   icon: Icons.people_alt_outlined,
                   children: [
                     _buildProfileSettingTile(
                       context,
                       icon: Icons.group_outlined,
-                      title: 'Znajomi',
-                      value: 'Zaproszenia, przepisy i listy zakupów',
+                      title: context.strings.profileFriends,
+                      value: context.strings.profileFriendsHint,
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
@@ -236,7 +248,7 @@ class ProfileScreen extends StatelessWidget {
                 const SizedBox(height: 12),
 
                 _ProfileSection(
-                  title: 'Subskrypcja',
+                  title: context.strings.profileSubscription,
                   icon: Icons.workspace_premium_outlined,
                   children: [
                     // Baner "Zostań Premium" — widoczny TYLKO dla kont bez
@@ -281,8 +293,8 @@ class ProfileScreen extends StatelessWidget {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
-                                      'Zostań Premium',
+                                    Text(
+                                      context.strings.profileUpgrade,
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold,
@@ -291,7 +303,7 @@ class ProfileScreen extends StatelessWidget {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      'Automatyczny plan tygodnia, seryjne skanowanie i listy bez limitu',
+                                      context.strings.profileUpgradeHint,
                                       style: TextStyle(
                                         color: Colors.white.withOpacity(0.85),
                                         fontSize: 12,
@@ -319,7 +331,7 @@ class ProfileScreen extends StatelessWidget {
                     // wszystkich: dla kont bez Premium to zachęta do zakupu, dla
                     // kont Premium potwierdzenie, co dokładnie zyskują.
                     Text(
-                      'Porównanie planów',
+                      context.strings.profileCompare,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -331,14 +343,14 @@ class ProfileScreen extends StatelessWidget {
                 const SizedBox(height: 12),
 
                 _ProfileSection(
-                  title: 'Preferencje',
+                  title: context.strings.profilePreferences,
                   icon: Icons.tune,
                   children: [
                     // Karta Sklepu
                     _buildProfileSettingTile(
                       context,
                       icon: Icons.storefront_outlined,
-                      title: 'Preferowany sklep',
+                      title: context.strings.profilePreferredShop,
                       value: storeName,
                       onTap: () {
                         _showStorePicker(context, authProvider, storeProvider);
@@ -350,8 +362,8 @@ class ProfileScreen extends StatelessWidget {
                     _buildProfileSettingTile(
                       context,
                       icon: Icons.restaurant_outlined,
-                      title: 'Rodzaj diety',
-                      value: diet,
+                      title: context.strings.profileDiet,
+                      value: _dietLabel(context, diet),
                       onTap: () {
                         _showDietPicker(context, authProvider, diet);
                       },
@@ -362,8 +374,10 @@ class ProfileScreen extends StatelessWidget {
                     _buildProfileSettingTile(
                       context,
                       icon: Icons.people_outline,
-                      title: 'Liczba osób w gospodarstwie',
-                      value: '${householdSizeForPlan(user?.householdSize)} os.',
+                      title: context.strings.profileHousehold,
+                      value: context.strings.profilePeople(
+                        householdSizeForPlan(user?.householdSize),
+                      ),
                       onTap: () {
                         _showHouseholdSizePicker(
                           context,
@@ -385,7 +399,7 @@ class ProfileScreen extends StatelessWidget {
                           Icons.favorite_border,
                           color: AppTheme.primaryColor,
                         ),
-                        title: const Text('Lubię / Nie lubię'),
+                        title: Text(context.strings.profileLikes),
                         subtitle: Text(
                           'Premium',
                           style: TextStyle(
@@ -407,8 +421,8 @@ class ProfileScreen extends StatelessWidget {
                     _buildProfileSettingTile(
                       context,
                       icon: Icons.inventory_2_outlined,
-                      title: 'Archiwum planów',
-                      value: 'Premium · podgląd i wznowienie',
+                      title: context.strings.profileArchive,
+                      value: context.strings.profileArchiveHint,
                       onTap:
                           () =>
                               Navigator.of(context).pushNamed('/plan/archive'),
@@ -437,7 +451,7 @@ class ProfileScreen extends StatelessWidget {
                               const SizedBox(width: 16),
                               Expanded(
                                 child: Text(
-                                  'Tryb ciemny',
+                                  context.strings.profileDarkMode,
                                   style: Theme.of(context).textTheme.titleLarge
                                       ?.copyWith(fontSize: 15),
                                 ),
@@ -458,7 +472,7 @@ class ProfileScreen extends StatelessWidget {
                 const SizedBox(height: 12),
 
                 _ProfileSection(
-                  title: 'Konto i prywatność',
+                  title: context.strings.profilePrivacy,
                   icon: Icons.manage_accounts_outlined,
                   children: [
                     const AppDocumentLinks(showAccountHelp: true),
@@ -471,7 +485,7 @@ class ProfileScreen extends StatelessWidget {
                         title: 'TikTok',
                         value:
                             tiktokUsername.isEmpty
-                                ? 'Dodaj nazwę użytkownika'
+                                ? context.strings.profileAddUsername
                                 : '@$tiktokUsername',
                         onTap:
                             () => _showTikTokUsernameDialog(
@@ -535,7 +549,7 @@ class ProfileScreen extends StatelessWidget {
                           ).pushNamedAndRemoveUntil('/login', (route) => false);
                         }
                       },
-                      child: const Text('Wyloguj się'),
+                      child: Text(context.strings.profileLogout),
                     ),
                     const SizedBox(height: 12),
 
@@ -549,7 +563,7 @@ class ProfileScreen extends StatelessWidget {
                           ),
                         );
                       },
-                      label: const Text('Zablokowani użytkownicy'),
+                      label: Text(context.strings.profileBlocked),
                     ),
                     const SizedBox(height: 24),
 
@@ -562,7 +576,7 @@ class ProfileScreen extends StatelessWidget {
                       onPressed:
                           () => _showDeleteAccountDialog(context, authProvider),
                       child: Text(
-                        'Usuń konto',
+                        context.strings.profileDelete,
                         style: TextStyle(
                           color: AppTheme.errorColor.withOpacity(0.7),
                         ),
@@ -611,9 +625,9 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 14),
-            const Expanded(
+            Expanded(
               child: Text(
-                'Panel administratora',
+                context.strings.profileAdmin,
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
               ),
             ),
@@ -647,7 +661,7 @@ class ProfileScreen extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Wybierz sklep',
+                    context.strings.profileChooseShop,
                     style: Theme.of(ctx).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 16),
@@ -695,34 +709,41 @@ class ProfileScreen extends StatelessWidget {
       ),
       builder: (ctx) {
         return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Rodzaj diety', style: Theme.of(ctx).textTheme.titleLarge),
-                const SizedBox(height: 16),
-                ...diets.map(
-                  (diet) => ListTile(
-                    title: Text(diet),
-                    trailing:
-                        currentDiet == diet
-                            ? const Icon(
-                              Icons.check,
-                              color: AppTheme.primaryColor,
-                            )
-                            : null,
-                    onTap: () async {
-                      Navigator.pop(ctx);
-                      final currentPrefs =
-                          auth.currentUser?.dietaryPreferences ?? {};
-                      final newPrefs = Map<String, dynamic>.from(currentPrefs);
-                      newPrefs['diet'] = diet;
-                      await auth.updateProfile(dietaryPreferences: newPrefs);
-                    },
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    context.strings.profileDiet,
+                    style: Theme.of(ctx).textTheme.titleLarge,
                   ),
-                ),
-              ],
+                  const SizedBox(height: 16),
+                  ...diets.map(
+                    (diet) => ListTile(
+                      title: Text(_dietLabel(context, diet)),
+                      trailing:
+                          currentDiet == diet
+                              ? const Icon(
+                                Icons.check,
+                                color: AppTheme.primaryColor,
+                              )
+                              : null,
+                      onTap: () async {
+                        Navigator.pop(ctx);
+                        final currentPrefs =
+                            auth.currentUser?.dietaryPreferences ?? {};
+                        final newPrefs = Map<String, dynamic>.from(
+                          currentPrefs,
+                        );
+                        newPrefs['diet'] = diet;
+                        await auth.updateProfile(dietaryPreferences: newPrefs);
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -749,14 +770,14 @@ class ProfileScreen extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Liczba osób w gospodarstwie',
+                    context.strings.profileHousehold,
                     style: Theme.of(ctx).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 16),
                   ...List.generate(8, (index) {
                     final size = index + 1;
                     return ListTile(
-                      title: Text('$size os.'),
+                      title: Text(context.strings.profilePeople(size)),
                       trailing:
                           currentSize == size
                               ? const Icon(
@@ -826,16 +847,16 @@ class ProfileScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    'Waga, wzrost i cel kaloryczny',
+                  Text(
+                    context.strings.profileHealthTitle,
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                   ),
                   const SizedBox(height: 3),
                   Text(
                     bmi == null
-                        ? 'Uzupełnij dane, aby obliczyć BMI i zapotrzebowanie'
+                        ? context.strings.profileHealthHint
                         : '${weight!.toStringAsFixed(1)} kg · BMI '
-                            '${bmi.toStringAsFixed(1)} — ${_bmiLabel(bmi)}',
+                            '${bmi.toStringAsFixed(1)} — ${_bmiLabel(context, bmi)}',
                     style: TextStyle(
                       fontSize: 11,
                       color: AppTheme.textSecondary,
@@ -855,11 +876,11 @@ class ProfileScreen extends StatelessWidget {
 
   /// Nazwa przedziału BMI wg WHO — bez oceniania, bo BMI nie uwzględnia
   /// budowy ciała ani masy mięśniowej.
-  String _bmiLabel(double bmi) {
-    if (bmi < 18.5) return 'niedowaga';
-    if (bmi < 25) return 'waga prawidłowa';
-    if (bmi < 30) return 'nadwaga';
-    return 'otyłość';
+  String _bmiLabel(BuildContext context, double bmi) {
+    if (bmi < 18.5) return context.strings.profileBmiLow;
+    if (bmi < 25) return context.strings.profileBmiNormal;
+    if (bmi < 30) return context.strings.profileBmiHigh;
+    return context.strings.profileBmiObese;
   }
 
   Widget _buildProfileSettingTile(
@@ -950,14 +971,15 @@ class _ProfileSection extends StatelessWidget {
 }
 
 class _WeightTrackerCard extends StatefulWidget {
-  const _WeightTrackerCard();
+  final WeightLogService? service;
+  const _WeightTrackerCard({this.service});
 
   @override
   State<_WeightTrackerCard> createState() => _WeightTrackerCardState();
 }
 
 class _WeightTrackerCardState extends State<_WeightTrackerCard> {
-  final WeightLogService _service = WeightLogService();
+  late final WeightLogService _service = widget.service ?? WeightLogService();
   final TextEditingController _controller = TextEditingController();
   DateTime _selectedDate = DateTime.now();
   List<WeightLogEntry> _logs = const [];
@@ -995,7 +1017,7 @@ class _WeightTrackerCardState extends State<_WeightTrackerCard> {
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = friendlyError(error);
+        _error = friendlyError(error, strings: context.strings);
       });
     }
   }
@@ -1007,9 +1029,9 @@ class _WeightTrackerCardState extends State<_WeightTrackerCard> {
       initialDate: _selectedDate.isAfter(now) ? now : _selectedDate,
       firstDate: DateTime(now.year - 10),
       lastDate: now,
-      helpText: 'Data pomiaru',
-      cancelText: 'Anuluj',
-      confirmText: 'Wybierz',
+      helpText: context.strings.profileMeasurementDate,
+      cancelText: context.strings.commentsCancel,
+      confirmText: context.strings.profileSelect,
     );
     if (selected != null && mounted) {
       setState(() {
@@ -1026,13 +1048,11 @@ class _WeightTrackerCardState extends State<_WeightTrackerCard> {
     final weight = double.tryParse(
       _controller.text.trim().replaceAll(',', '.'),
     );
-    if (weight == null || weight <= 0 || weight > 400) {
+    if (weight == null || !weight.isFinite || weight <= 0 || weight > 400) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            content: Text('Podaj prawidłową wagę od 0,1 do 400 kg.'),
-          ),
+          SnackBar(content: Text(context.strings.profileWeightInvalid)),
         );
       return;
     }
@@ -1047,13 +1067,21 @@ class _WeightTrackerCardState extends State<_WeightTrackerCard> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          SnackBar(content: Text('Zapisano ${weight.toStringAsFixed(1)} kg.')),
+          SnackBar(
+            content: Text(
+              context.strings.profileWeightSaved(weight.toStringAsFixed(1)),
+            ),
+          ),
         );
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text(friendlyError(error))));
+        ..showSnackBar(
+          SnackBar(
+            content: Text(friendlyError(error, strings: context.strings)),
+          ),
+        );
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -1065,8 +1093,8 @@ class _WeightTrackerCardState extends State<_WeightTrackerCard> {
       first.day == second.day;
 
   String _dateLabel(DateTime date) =>
-      '${date.day.toString().padLeft(2, '0')}.'
-      '${date.month.toString().padLeft(2, '0')}.${date.year}';
+      '${date.day.toString().padLeft(2, '0')}${context.strings.localeName.startsWith('en') ? '/' : '.'}'
+      '${date.month.toString().padLeft(2, '0')}${context.strings.localeName.startsWith('en') ? '/' : '.'}${date.year}';
 
   @override
   Widget build(BuildContext context) {
@@ -1080,13 +1108,13 @@ class _WeightTrackerCardState extends State<_WeightTrackerCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Row(
+          Row(
             children: [
               Icon(Icons.show_chart, color: AppTheme.primaryColor),
               SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Śledzenie wagi',
+                  context.strings.profileWeightTitle,
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                 ),
               ),
@@ -1094,7 +1122,7 @@ class _WeightTrackerCardState extends State<_WeightTrackerCard> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Zapisz pomiar dla wybranego dnia. Ponowny zapis poprawi wpis z tej samej daty.',
+            context.strings.profileWeightHint,
             style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
           ),
           const SizedBox(height: 14),
@@ -1105,7 +1133,9 @@ class _WeightTrackerCardState extends State<_WeightTrackerCard> {
               icon: const Icon(Icons.calendar_today_outlined, size: 17),
               label: FittedBox(
                 fit: BoxFit.scaleDown,
-                child: Text('Data: ${_dateLabel(_selectedDate)}'),
+                child: Text(
+                  context.strings.profileDate(_dateLabel(_selectedDate)),
+                ),
               ),
             ),
           ),
@@ -1114,8 +1144,8 @@ class _WeightTrackerCardState extends State<_WeightTrackerCard> {
             controller: _controller,
             enabled: !_saving,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              labelText: 'Waga (opcjonalnie)',
+            decoration: InputDecoration(
+              labelText: context.strings.profileWeightOptional,
               suffixText: 'kg',
             ),
           ),
@@ -1133,7 +1163,7 @@ class _WeightTrackerCardState extends State<_WeightTrackerCard> {
                       ),
                     )
                     : const Icon(Icons.add_chart, size: 18),
-            label: const Text('Zapisz pomiar'),
+            label: Text(context.strings.profileSaveMeasurement),
           ),
           const SizedBox(height: 8),
           OutlinedButton.icon(
@@ -1142,7 +1172,7 @@ class _WeightTrackerCardState extends State<_WeightTrackerCard> {
                   MaterialPageRoute(builder: (_) => const StatisticsScreen()),
                 ),
             icon: const Icon(Icons.insights_outlined, size: 18),
-            label: const Text('Statystyki'),
+            label: Text(context.strings.profileStatistics),
           ),
           if (_loading) ...[
             const SizedBox(height: 14),
@@ -1177,6 +1207,7 @@ Future<void> _pickAvatarPhoto(
   ImageSource source,
 ) async {
   final messenger = ScaffoldMessenger.of(context);
+  final strings = context.strings;
   try {
     final picker = ImagePicker();
     final picked = await picker.pickImage(
@@ -1198,7 +1229,7 @@ Future<void> _pickAvatarPhoto(
           SnackBar(
             duration: const Duration(seconds: 3),
             content: Text(
-              authProvider.errorMessage ?? 'Nie udało się zapisać zdjęcia',
+              authProvider.errorMessage ?? strings.profilePhotoFailed,
             ),
           ),
         );
@@ -1209,7 +1240,7 @@ Future<void> _pickAvatarPhoto(
       ..showSnackBar(
         SnackBar(
           duration: const Duration(seconds: 3),
-          content: Text(friendlyError(e)),
+          content: Text(friendlyError(e, strings: context.strings)),
         ),
       );
   }
@@ -1291,7 +1322,7 @@ void _showAvatarPicker(BuildContext context, AuthProvider authProvider) {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Wybierz awatar',
+                context.strings.profileAvatar,
                 style: Theme.of(sheetContext).textTheme.titleLarge,
               ),
               const SizedBox(height: 24),
@@ -1302,12 +1333,12 @@ void _showAvatarPicker(BuildContext context, AuthProvider authProvider) {
                 children: [
                   photoOption(
                     Icons.camera_alt,
-                    'Zrób zdjęcie',
+                    context.strings.commentsCamera,
                     ImageSource.camera,
                   ),
                   photoOption(
                     Icons.photo_library,
-                    'Z galerii',
+                    context.strings.profileGallery,
                     ImageSource.gallery,
                   ),
                 ],
@@ -1316,15 +1347,15 @@ void _showAvatarPicker(BuildContext context, AuthProvider authProvider) {
               const Divider(),
               const SizedBox(height: 12),
               Text(
-                'albo wybierz ikonę',
+                context.strings.profileAvatarOr,
                 style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
               ),
               const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  option('female', 'Kobieta'),
-                  option('male', 'Mężczyzna'),
+                  option('female', context.strings.profileFemale),
+                  option('male', context.strings.profileMale),
                 ],
               ),
               const SizedBox(height: 16),
@@ -1343,24 +1374,24 @@ void _showEditNicknameDialog(BuildContext context, AuthProvider authProvider) {
   final controller = TextEditingController(
     text: authProvider.currentUser?.displayName ?? '',
   );
-  showDialog(
+  showRetainedDialog<void>(
     context: context,
     builder: (dialogContext) {
       return AlertDialog(
-        title: const Text('Zmień pseudonim'),
+        title: Text(context.strings.profileNicknameTitle),
         content: TextField(
           controller: controller,
           autofocus: true,
           maxLength: 200,
-          decoration: const InputDecoration(
-            labelText: 'Pseudonim',
+          decoration: InputDecoration(
+            labelText: context.strings.profileNickname,
             border: OutlineInputBorder(),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Anuluj'),
+            child: Text(context.strings.commentsCancel),
           ),
           FilledButton(
             onPressed: () async {
@@ -1378,14 +1409,14 @@ void _showEditNicknameDialog(BuildContext context, AuthProvider authProvider) {
                       duration: const Duration(seconds: 3),
                       content: Text(
                         success
-                            ? 'Pseudonim zaktualizowany.'
-                            : 'Nie udało się zmienić pseudonimu.',
+                            ? context.strings.profileNicknameSaved
+                            : context.strings.profileNicknameFailed,
                       ),
                     ),
                   );
               }
             },
-            child: const Text('Zapisz'),
+            child: Text(context.strings.profileSave),
           ),
         ],
       );
@@ -1400,7 +1431,7 @@ Future<void> _openTikTokProfile(BuildContext context, String username) async {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(content: Text('Nie udało się otworzyć profilu TikTok.')),
+        SnackBar(content: Text(context.strings.profileTikTokFailed)),
       );
   }
 }
@@ -1414,13 +1445,17 @@ void _showTikTokUsernameDialog(
   String? validationError;
   var saving = false;
 
-  showDialog<void>(
+  showRetainedDialog<void>(
     context: context,
     builder: (dialogContext) {
       return StatefulBuilder(
         builder: (_, setDialogState) {
           return AlertDialog(
-            title: Text(current.isEmpty ? 'Dodaj TikTok' : 'Edytuj TikTok'),
+            title: Text(
+              current.isEmpty
+                  ? context.strings.profileTikTokAdd
+                  : context.strings.profileTikTokEdit,
+            ),
             content: TextField(
               controller: controller,
               autofocus: true,
@@ -1429,9 +1464,9 @@ void _showTikTokUsernameDialog(
               autocorrect: false,
               textInputAction: TextInputAction.done,
               decoration: InputDecoration(
-                labelText: 'Nazwa użytkownika TikTok',
-                hintText: '@twojanazwa',
-                helperText: 'Możesz wkleić także pełny link do profilu.',
+                labelText: context.strings.profileTikTokUsername,
+                hintText: context.strings.profileTikTokPlaceholder,
+                helperText: context.strings.profileTikTokHelp,
                 errorText: validationError,
                 border: const OutlineInputBorder(),
               ),
@@ -1452,7 +1487,7 @@ void _showTikTokUsernameDialog(
               TextButton(
                 onPressed:
                     saving ? null : () => Navigator.of(dialogContext).pop(),
-                child: const Text('Anuluj'),
+                child: Text(context.strings.commentsCancel),
               ),
               FilledButton(
                 onPressed:
@@ -1474,7 +1509,11 @@ void _showTikTokUsernameDialog(
                           dimension: 18,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                        : Text(current.isEmpty ? 'Dodaj' : 'Zapisz'),
+                        : Text(
+                          current.isEmpty
+                              ? context.strings.commentsAdd
+                              : context.strings.profileSave,
+                        ),
               ),
             ],
           );
@@ -1511,9 +1550,7 @@ Future<void> _saveTikTokUsername({
           !value.contains('..'));
   if (!valid) {
     setDialogState(() {
-      onValidationChanged(
-        'Wpisz 2–24 znaki: litery, cyfry, kropki lub podkreślenia.',
-      );
+      onValidationChanged(dialogContext.strings.profileTikTokInvalid);
     });
     return;
   }
@@ -1532,8 +1569,8 @@ Future<void> _saveTikTokUsername({
           SnackBar(
             content: Text(
               value.isEmpty
-                  ? 'Usunięto nazwę TikTok.'
-                  : 'Dodano odnośnik do profilu TikTok.',
+                  ? dialogContext.strings.profileTikTokRemoved
+                  : dialogContext.strings.profileTikTokSaved,
             ),
           ),
         );
@@ -1542,7 +1579,8 @@ Future<void> _saveTikTokUsername({
     setDialogState(() {
       onSavingChanged(false);
       onValidationChanged(
-        authProvider.errorMessage ?? 'Nie udało się zapisać nazwy TikTok.',
+        authProvider.errorMessage ??
+            dialogContext.strings.profileTikTokSaveFailed,
       );
     });
   }
@@ -1556,18 +1594,12 @@ void _showDeleteAccountDialog(BuildContext context, AuthProvider authProvider) {
     context: context,
     builder: (dialogContext) {
       return AlertDialog(
-        title: const Text('Usunąć konto na stałe?'),
-        content: const Text(
-          'Ta operacja jest NIEODWRACALNA. Stracisz wszystkie zapisane plany '
-          'posiłków, listy zakupów, spiżarnię, ulubione przepisy, komentarze '
-          'i punkty premium. Jeśli masz aktywną subskrypcję, pamiętaj, żeby '
-          'anulować ją osobno w ustawieniach App Store / Google Play — '
-          'usunięcie konta samo jej nie anuluje.',
-        ),
+        title: Text(context.strings.profileDeleteTitle),
+        content: Text(context.strings.profileDeleteBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Anuluj'),
+            child: Text(context.strings.commentsCancel),
           ),
           TextButton(
             style: TextButton.styleFrom(foregroundColor: AppTheme.errorColor),
@@ -1575,7 +1607,7 @@ void _showDeleteAccountDialog(BuildContext context, AuthProvider authProvider) {
               Navigator.of(dialogContext).pop();
               _showFinalDeleteConfirmation(context, authProvider);
             },
-            child: const Text('Dalej'),
+            child: Text(context.strings.profileNext),
           ),
         ],
       );
@@ -1591,12 +1623,12 @@ void _showFinalDeleteConfirmation(
     context: context,
     builder: (dialogContext) {
       return AlertDialog(
-        title: const Text('Ostatnie potwierdzenie'),
-        content: const Text('Na pewno? Tej operacji nie da się cofnąć.'),
+        title: Text(context.strings.profileDeleteFinal),
+        content: Text(context.strings.profileDeleteFinalBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Anuluj'),
+            child: Text(context.strings.commentsCancel),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: AppTheme.errorColor),
@@ -1612,17 +1644,15 @@ void _showFinalDeleteConfirmation(
                   ScaffoldMessenger.of(context)
                     ..hideCurrentSnackBar()
                     ..showSnackBar(
-                      const SnackBar(
+                      SnackBar(
                         duration: Duration(seconds: 3),
-                        content: Text(
-                          'Nie udało się usunąć konta. Spróbuj ponownie.',
-                        ),
+                        content: Text(context.strings.profileDeleteFailed),
                       ),
                     );
                 }
               }
             },
-            child: const Text('Usuń konto'),
+            child: Text(context.strings.profileDelete),
           ),
         ],
       );

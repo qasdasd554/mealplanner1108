@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../utils/lookup_market_context.dart';
+import '../l10n/market_locale.dart';
 
 import '../models/barcode_lookup_result.dart';
 import '../services/product_name_lookup_service.dart';
@@ -15,6 +17,7 @@ class ProductNameAutocompleteField extends StatefulWidget {
   final String? hintText;
   final String? Function(String?)? validator;
   final int? maxLength;
+  final ProductNameLookupService? service;
 
   const ProductNameAutocompleteField({
     super.key,
@@ -24,6 +27,7 @@ class ProductNameAutocompleteField extends StatefulWidget {
     this.hintText,
     this.validator,
     this.maxLength,
+    this.service,
   });
 
   @override
@@ -33,7 +37,11 @@ class ProductNameAutocompleteField extends StatefulWidget {
 
 class _ProductNameAutocompleteFieldState
     extends State<ProductNameAutocompleteField> {
-  final ProductNameLookupService _service = ProductNameLookupService();
+  late final ProductNameLookupService _service =
+      widget.service ??
+      ProductNameLookupService(
+        accountCountry: () => context.registeredLookupCountry,
+      );
   Timer? _debounce;
   List<BarcodeLookupResult> _results = const [];
   bool _loading = false;
@@ -143,12 +151,14 @@ class _ProductNameAutocompleteFieldState
                 final result = _results[index];
                 final details = <String>[
                   if (result.brand?.trim().isNotEmpty == true) result.brand!,
-                  if (result.kcalPer100 != null)
+                  if (result.kcalPer100 != null &&
+                      result.kcalPer100!.isFinite &&
+                      result.kcalPer100! >= 0)
                     '${result.kcalPer100!.round()} kcal / 100${result.unit == 'ml' || result.unit == 'l' ? 'ml' : 'g'}',
                   result.source == 'catalog'
-                      ? 'katalog aplikacji'
+                      ? context.strings.autocompleteCatalogue
                       : result.source == 'neon_cache'
-                      ? 'wcześniej zeskanowany'
+                      ? context.strings.autocompleteScanned
                       : 'Open Food Facts',
                 ];
                 return ListTile(
@@ -174,7 +184,7 @@ class _ProductNameAutocompleteFieldState
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Text(
-              'Możesz wybrać podpowiedź albo pozostawić własną nazwę.',
+              context.strings.autocompleteHint,
               style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
             ),
           ),

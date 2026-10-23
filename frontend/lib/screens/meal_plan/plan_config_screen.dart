@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
+import '../../l10n/catalog_labels.dart';
+import '../../l10n/market_locale.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/store_provider.dart';
 import '../../providers/meal_plan_provider.dart';
+import '../../services/contextual_premium_offer_service.dart';
+import '../../models/premium_offer.dart';
 import '../../models/store.dart';
 import '../../models/meal_plan.dart';
 import '../../config/constants.dart';
@@ -12,6 +16,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/decorative_circles.dart';
 import '../profile/premium_screen.dart';
 import '../../utils/plan_defaults.dart';
+import '../../utils/market_money.dart';
 
 class PlanConfigScreen extends StatefulWidget {
   const PlanConfigScreen({super.key});
@@ -34,6 +39,15 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
   // na wizytę gości, którzy jedzą inaczej niż zwykle).
   String _selectedDiet = 'Bez ograniczeń';
 
+  String get _currencyCode => currencyForAccountCountry(
+    context.read<AuthProvider>().currentUser?.countryCode,
+  );
+
+  bool _storeMatchesAccount(Store store) =>
+      store.countryCode ==
+          (context.read<AuthProvider>().currentUser?.countryCode ?? 'PL') &&
+      store.currencyCode == _currencyCode;
+
   @override
   void initState() {
     super.initState();
@@ -49,7 +63,11 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
           authProvider.currentUser!.preferredStoreId!,
         );
         setState(() {
-          _selectedStore = storeProvider.selectedStore;
+          final preferred = storeProvider.selectedStore;
+          _selectedStore =
+              preferred != null && _storeMatchesAccount(preferred)
+                  ? preferred
+                  : null;
         });
       }
       // Domyślna dieta — z profilu użytkownika, ale edytowalna tylko dla
@@ -86,11 +104,19 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),
-            content: Text('Wybierz sklep przed wygenerowaniem planu!'),
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(context.strings.planSelectStoreRequired),
             backgroundColor: AppTheme.errorColor,
           ),
+        );
+      return;
+    }
+    if (!_storeMatchesAccount(_selectedStore!)) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(context.strings.planStoreMarketError)),
         );
       return;
     }
@@ -105,9 +131,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
       targetKcal = int.tryParse(_kcalController.text);
     }
     if (targetKcal == null || targetKcal < 800 || targetKcal > 6000) {
-      setState(
-        () => _kcalError = 'Wpisz od 800 do 6000 kcal na osobę dziennie.',
-      );
+      setState(() => _kcalError = context.strings.planKcalValidation);
       return;
     }
     setState(() => _kcalError = null);
@@ -143,7 +167,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
         await _showBudgetConfirmation(mealPlanProvider.currentPlan);
       } else {
         final errorMsg =
-            mealPlanProvider.errorMessage ?? 'Nie udało się wygenerować planu';
+            mealPlanProvider.errorMessage ?? context.strings.planGenerateError;
         // Błąd limitu darmowego konta wspomina Premium w treści (patrz backend).
         final isLimitError = errorMsg.contains('Premium');
 
@@ -162,12 +186,12 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  title: const Text('Limit darmowego konta'),
+                  title: Text(context.strings.planFreeLimitTitle),
                   content: Text(errorMsg),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.of(ctx).pop(),
-                      child: const Text('Rozumiem'),
+                      child: Text(context.strings.planUnderstood),
                     ),
                     FilledButton(
                       onPressed: () {
@@ -178,7 +202,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                           ),
                         );
                       },
-                      child: const Text('Zobacz Premium'),
+                      child: Text(context.strings.planViewPremium),
                     ),
                   ],
                 ),
@@ -202,7 +226,15 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
   /// utworzenia planu — zanim użytkownik przejdzie do jego pełnego
   /// widoku — zamiast chować tę informację na osobnym ekranie.
   Future<void> _showBudgetConfirmation(MealPlan? plan) async {
-    final budget = plan?.estimatedMinBudget;
+    // A numeric budget has no exchange information. Show it only for the same
+    // selected, country-validated store that generated this plan.
+    final budget =
+        plan?.storeId == _selectedStore?.id &&
+                _selectedStore != null &&
+                _storeMatchesAccount(_selectedStore!)
+            ? plan?.estimatedMinBudget
+            : null;
+    final currency = _currencyCode;
 
     await showDialog<void>(
       context: context,
@@ -212,15 +244,14 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
-            title: const Text('Plan gotowy'),
+            title: Text(context.strings.planReadyTitle),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Twój plan na $_durationDays dni dla '
-                    '${_householdSize == 1 ? "1 osoby" : "$_householdSize osób"} jest gotowy.',
+                    context.strings.planReadyFor(_durationDays, _householdSize),
                   ),
                   const SizedBox(height: 16),
                   if (budget != null)
@@ -235,7 +266,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Szacowany minimalny koszt zakupów',
+                            context.strings.planEstimatedBudget,
                             style: TextStyle(
                               fontSize: 12,
                               color: AppTheme.textSecondary,
@@ -243,7 +274,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '${budget.toStringAsFixed(2)} zł',
+                            formatMarketMoney(budget, currencyCode: currency),
                             style: const TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
@@ -255,11 +286,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                     ),
                   if (plan?.shoppingListLimitReached ?? false) ...[
                     const SizedBox(height: 12),
-                    const Text(
-                      'Plan jest gotowy, ale w tym tygodniu wykorzystano już '
-                      'darmowy limit jednej nowej listy zakupów. Kolejną listę '
-                      'utworzysz w przyszłym tygodniu lub z Premium.',
-                    ),
+                    Text(context.strings.planShoppingLimitReached),
                   ],
                   for (final warning
                       in plan?.preferenceWarnings ?? <String>[]) ...[
@@ -296,16 +323,16 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'Konto standardowe: jeden nowy plan tygodniowo',
-                                  style: TextStyle(
+                                Text(
+                                  context.strings.planStandardWeeklyLimit,
+                                  style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 13,
                                   ),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  'Limit odnawia się w poniedziałek. Usunięcie planu go nie odnawia. Premium pozwala tworzyć plany bez limitu.',
+                                  context.strings.planWeeklyLimitExplanation,
                                   style: TextStyle(
                                     color: AppTheme.textSecondary,
                                     fontSize: 12,
@@ -334,14 +361,19 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                       MaterialPageRoute(builder: (_) => const PremiumScreen()),
                     );
                   },
-                  child: const Text('Poznaj Premium'),
+                  child: Text(context.strings.planExplorePremium),
                 ),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   Navigator.of(ctx).pop();
+                  await ContextualPremiumOfferService.maybeShow(
+                    context,
+                    PremiumOfferContext.mealPlan,
+                  );
+                  if (!mounted) return;
                   Navigator.of(context).pushReplacementNamed('/plan/view');
                 },
-                child: const Text('Zobacz plan'),
+                child: Text(context.strings.planViewAction),
               ),
             ],
           ),
@@ -352,9 +384,10 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
   Widget build(BuildContext context) {
     final storeProvider = Provider.of<StoreProvider>(context);
     final mealPlanProvider = Provider.of<MealPlanProvider>(context);
+    final stores = storeProvider.stores.where(_storeMatchesAccount).toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Nowy plan posiłków')),
+      appBar: AppBar(title: Text(context.strings.planNewTitle)),
       body: Stack(
         children: [
           const DecorativeCircles(),
@@ -376,7 +409,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                     children: [
                       // 1. Sklep
                       Text(
-                        'Wybierz sklep',
+                        context.strings.planChooseStore,
                         style: Theme.of(context).textTheme.headlineMedium
                             ?.copyWith(fontWeight: FontWeight.bold),
                       ),
@@ -390,9 +423,9 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                                 )
                                 : ListView.builder(
                                   scrollDirection: Axis.horizontal,
-                                  itemCount: storeProvider.stores.length,
+                                  itemCount: stores.length,
                                   itemBuilder: (context, index) {
-                                    final store = storeProvider.stores[index];
+                                    final store = stores[index];
                                     final isSelected =
                                         _selectedStore?.id == store.id;
 
@@ -465,8 +498,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                       ).animate().fadeIn(),
                       const SizedBox(height: 8),
                       Text(
-                        'Koszt planu jest szacunkiem. Ceny i dostępność '
-                        'produktów potwierdź w wybranym sklepie.',
+                        context.strings.planPriceEstimateHint,
                         style: TextStyle(
                           fontSize: 12,
                           color: AppTheme.textSecondary,
@@ -476,7 +508,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
 
                       // 2. Czas trwania planu
                       Text(
-                        'Czas trwania planu: $_durationDays dni',
+                        context.strings.planDurationTitle(_durationDays),
                         style: Theme.of(context).textTheme.headlineMedium
                             ?.copyWith(fontWeight: FontWeight.bold),
                       ),
@@ -499,7 +531,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                               divisions: 13,
                               activeColor: AppTheme.primaryColor,
                               inactiveColor: AppTheme.backgroundColor,
-                              label: '$_durationDays dni',
+                              label: context.strings.planDays(_durationDays),
                               onChanged: (value) {
                                 setState(() {
                                   _durationDays = value.toInt();
@@ -513,21 +545,21 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    '1 dzień',
+                                    context.strings.planOneDay,
                                     style: TextStyle(
                                       color: AppTheme.textSecondary,
                                       fontSize: 12,
                                     ),
                                   ),
                                   Text(
-                                    '7 dni',
+                                    context.strings.planDays(7),
                                     style: TextStyle(
                                       color: AppTheme.textSecondary,
                                       fontSize: 12,
                                     ),
                                   ),
                                   Text(
-                                    '14 dni',
+                                    context.strings.planDays(14),
                                     style: TextStyle(
                                       color: AppTheme.textSecondary,
                                       fontSize: 12,
@@ -544,7 +576,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                       // (patrz initState), ale można ją tu zmienić bez trwałej
                       // zmiany preferencji zapisanych w profilu.
                       Text(
-                        'Dieta',
+                        context.strings.recipeDiet,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 8),
@@ -562,7 +594,9 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                                 final isSelected =
                                     _selectedDiet == diet['name'];
                                 return ChoiceChip(
-                                  label: Text(diet['name']!),
+                                  label: Text(
+                                    context.strings.dietName(diet['name']!),
+                                  ),
                                   selected: isSelected,
                                   selectedColor: AppTheme.primaryTintColor,
                                   labelStyle: TextStyle(
@@ -588,14 +622,13 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
 
                       // 2b. Liczba osób
                       Text(
-                        'Dla ilu osób gotujesz: $_householdSize'
-                        '${_householdSize == 1 ? " osoba" : (_householdSize < 5 ? " osoby" : " osób")}',
+                        context.strings.planHouseholdTitle(_householdSize),
                         style: Theme.of(context).textTheme.headlineMedium
                             ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Od 1 do 8 osób. Domyślnie z profilu — zmiana dotyczy tylko tego planu.',
+                        context.strings.planHouseholdHint,
                         style: TextStyle(
                           color: AppTheme.textSecondary,
                           fontSize: 12,
@@ -652,7 +685,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
 
                       // 3. Typy posiłków
                       Text(
-                        'Typy posiłków',
+                        context.strings.planMealTypes,
                         style: Theme.of(context).textTheme.headlineMedium
                             ?.copyWith(fontWeight: FontWeight.bold),
                       ),
@@ -678,7 +711,9 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                                   type,
                                 );
                                 return FilterChip(
-                                  label: Text(type),
+                                  label: Text(
+                                    context.strings.mealTypeLabel(type),
+                                  ),
                                   selected: isSelected,
                                   onSelected: (selected) {
                                     setState(() {
@@ -714,7 +749,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
 
                       // 4. Cel kaloryczny
                       Text(
-                        'Cel kaloryczny dziennie',
+                        context.strings.planDailyCalories,
                         style: Theme.of(context).textTheme.headlineMedium
                             ?.copyWith(fontWeight: FontWeight.bold),
                       ),
@@ -727,11 +762,10 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                             setState(() => _kcalError = null);
                         },
                         decoration: InputDecoration(
-                          labelText: 'Docelowe kcal / dzień / osoba',
-                          hintText: 'np. 2000',
+                          labelText: context.strings.planCaloriesField,
+                          hintText: context.strings.planCaloriesExample,
                           suffixText: 'kcal',
-                          helperText:
-                              'Cel z kalkulatora; bez zapisanego celu: 2000 kcal.',
+                          helperText: context.strings.planCaloriesHint,
                           helperMaxLines: 2,
                           errorText: _kcalError,
                           errorMaxLines: 2,
@@ -741,7 +775,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
 
                       // 5. Budżet (opcjonalnie)
                       Text(
-                        'Maksymalny budżet (opcjonalnie)',
+                        context.strings.planBudgetOptional,
                         style: Theme.of(context).textTheme.headlineMedium
                             ?.copyWith(fontWeight: FontWeight.bold),
                       ),
@@ -751,10 +785,10 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                         keyboardType: const TextInputType.numberWithOptions(
                           decimal: true,
                         ),
-                        decoration: const InputDecoration(
-                          labelText: 'Maksymalny budżet',
-                          hintText: 'np. 150.00',
-                          suffixText: 'PLN',
+                        decoration: InputDecoration(
+                          labelText: context.strings.planBudgetField,
+                          hintText: context.strings.planBudgetExample,
+                          suffixText: _currencyCode,
                         ),
                       ).animate().fadeIn(delay: 300.ms),
                       const SizedBox(height: 20),
@@ -780,14 +814,11 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                           Icons.kitchen_outlined,
                           color: AppTheme.primaryColor,
                         ),
-                        title: const Text(
-                          'Uwzględnij spiżarnię',
-                          style: TextStyle(fontWeight: FontWeight.w600),
+                        title: Text(
+                          context.strings.planIncludePantry,
+                          style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
-                        subtitle: const Text(
-                          'Posiadane produkty trafią na koniec listy za 0 zł. '
-                          'Brakującą ilość nadal dodamy do zakupów.',
-                        ),
+                        subtitle: Text(context.strings.planPantryHint),
                       ).animate().fadeIn(delay: 325.ms),
                       const SizedBox(height: 48),
 
@@ -798,9 +829,9 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                           Icons.favorite_border,
                           color: AppTheme.primaryColor,
                         ),
-                        title: const Text('Lubię / Nie lubię'),
+                        title: Text(context.strings.planIngredientPreferences),
                         subtitle: Text(
-                          'Premium · jedno dopasowane danie dziennie',
+                          context.strings.planIngredientPreferencesHint,
                           style: TextStyle(
                             color:
                                 AppTheme.isDark
@@ -822,8 +853,8 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                             mealPlanProvider.isGenerating ? null : _generate,
                         child: Text(
                           mealPlanProvider.isGenerating
-                              ? 'Generowanie...'
-                              : 'Wygeneruj plan!',
+                              ? context.strings.planGenerating
+                              : context.strings.planGenerate,
                         ),
                       ).animate().fadeIn(delay: 400.ms),
                     ],
@@ -845,12 +876,12 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                           ),
                           const SizedBox(height: 24),
                           Text(
-                            'Układamy Twój optymalny plan posiłków...',
+                            context.strings.planGeneratingTitle,
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Maksymalizujemy ponowne wykorzystanie składników, aby zmniejszyć cenę zakupów.',
+                            context.strings.planGeneratingHint,
                             style: TextStyle(color: AppTheme.textSecondary),
                             textAlign: TextAlign.center,
                           ),

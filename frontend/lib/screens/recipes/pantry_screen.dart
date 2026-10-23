@@ -1,6 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../../l10n/market_locale.dart';
+import '../../l10n/recipe_content.dart';
+import '../../l10n/measure_labels.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/shopping_list_provider.dart';
@@ -23,18 +26,29 @@ import '../../widgets/product_amount_picker.dart';
 /// aktualizować ją na bieżąco.
 class PantryScreen extends StatefulWidget {
   final bool openAddOnStart;
+  final PantryService? service;
+  final ProductSearchService? searchService;
 
-  const PantryScreen({super.key, this.openAddOnStart = false});
+  const PantryScreen({
+    super.key,
+    this.openAddOnStart = false,
+    this.service,
+    this.searchService,
+  });
 
   @override
   State<PantryScreen> createState() => _PantryScreenState();
 }
 
 class _PantryScreenState extends State<PantryScreen> {
-  final PantryService _pantryService = PantryService();
+  late final PantryService _pantryService = widget.service ?? PantryService();
   List<PantryItem> _items = [];
   bool _isLoading = true;
   String? _errorMessage;
+  final Set<String> _deletingIds = {};
+  // Row IDs, not product IDs: re-adding the same product creates a new UUID.
+  // Keep completed deletions hidden from late refreshes for this screen's life.
+  final Set<String> _deletedIds = {};
 
   void _refreshShoppingLists() {
     final shopping = context.read<ShoppingListProvider>();
@@ -60,14 +74,26 @@ class _PantryScreenState extends State<PantryScreen> {
     try {
       final items = await _pantryService.getPantry();
       if (!mounted) return;
-      setState(() => _items = items);
+      setState(
+        () =>
+            _items =
+                items
+                    .where(
+                      (item) =>
+                          !_deletingIds.contains(item.id) &&
+                          !_deletedIds.contains(item.id),
+                    )
+                    .toList(),
+      );
     } catch (e) {
       if (!mounted) return;
       // UWAGA (naprawa wzorca błędu): pokazujemy PRAWDZIWY komunikat
       // błędu zamiast po cichu zostawiać pustą listę — wcześniejsza
       // wersja ekranu wyboru składników cicho łykała błędy (catch (_)),
       // co uniemożliwiało zdiagnozowanie prawdziwej przyczyny problemów.
-      setState(() => _errorMessage = friendlyError(e));
+      setState(
+        () => _errorMessage = friendlyError(e, strings: context.strings),
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -77,22 +103,35 @@ class _PantryScreenState extends State<PantryScreen> {
     // Optymistyczne usunięcie z UI, z przywróceniem przy błędzie —
     // czuje się natychmiastowe, bez migania stanu ładowania.
     final removedIndex = _items.indexOf(item);
-    setState(() => _items.remove(item));
+    if (_deletingIds.contains(item.id)) return;
+    setState(() {
+      _deletingIds.add(item.id);
+      _items.remove(item);
+    });
     try {
       await _pantryService.deleteItem(item.id);
-      if (mounted) _refreshShoppingLists();
+      if (!mounted) return;
+      _deletedIds.add(item.id);
+      _refreshShoppingLists();
     } catch (e) {
       if (!mounted) return;
-      setState(() => _items.insert(removedIndex, item));
+      setState(() {
+        // Other optimistic removals or a refresh may have changed the list.
+        if (!_items.any((existing) => existing.id == item.id)) {
+          _items.insert(removedIndex.clamp(0, _items.length), item);
+        }
+      });
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
+            content: Text(friendlyError(e, strings: context.strings)),
             backgroundColor: AppTheme.errorColor,
           ),
         );
+    } finally {
+      _deletingIds.remove(item.id);
     }
   }
 
@@ -127,7 +166,7 @@ class _PantryScreenState extends State<PantryScreen> {
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
+            content: Text(friendlyError(e, strings: context.strings)),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -142,7 +181,11 @@ class _PantryScreenState extends State<PantryScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => _AddToPantrySheet(pantryService: _pantryService),
+      builder:
+          (context) => _AddToPantrySheet(
+            pantryService: _pantryService,
+            searchService: widget.searchService,
+          ),
     );
     if (added == true) {
       _load();
@@ -153,11 +196,11 @@ class _PantryScreenState extends State<PantryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Spiżarnia')),
+      appBar: AppBar(title: Text(context.strings.pantry)),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddDialog,
         icon: const Icon(Icons.add),
-        label: const Text('Dodaj produkt'),
+        label: Text(context.strings.pantryAddProduct),
       ),
       body: SafeArea(
         child: RefreshIndicator(
@@ -182,7 +225,7 @@ class _PantryScreenState extends State<PantryScreen> {
                           const SizedBox(height: 16),
                           OutlinedButton(
                             onPressed: _load,
-                            child: const Text('Spróbuj ponownie'),
+                            child: Text(context.strings.productsRetry),
                           ),
                         ],
                       ),
@@ -207,7 +250,7 @@ class _PantryScreenState extends State<PantryScreen> {
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'Spiżarnia jest pusta. Dodaj produkty, które masz w domu, żeby móc szybko sprawdzić, co z nich ugotować.',
+                              context.strings.pantryEmpty,
                               textAlign: TextAlign.center,
                               style: TextStyle(color: AppTheme.textSecondary),
                             ),
@@ -224,16 +267,16 @@ class _PantryScreenState extends State<PantryScreen> {
                       return Card(
                         margin: const EdgeInsets.only(bottom: 8),
                         child: ListTile(
-                          leading: Icon(
+                          leading: const Icon(
                             Icons.check_circle,
                             color: AppTheme.primaryColor,
                           ),
-                          title: Text(item.product.name),
+                          title: Text(item.product.displayName(context)),
                           subtitle: Text(
                             item.quantity != null
                                 ? '${formatQuantity(item.quantity!, item.unit ?? item.product.unit)} '
-                                    '${productMeasureLabel(item.unit ?? item.product.unit)}'
-                                : 'Dotknij, aby wpisać ilość',
+                                    '${context.strings.measureQuantityLabel(item.unit ?? item.product.unit, fallback: productMeasureLabel(item.unit ?? item.product.unit), amount: item.quantity)}'
+                                : context.strings.pantryEnterAmount,
                             style: TextStyle(
                               color:
                                   item.quantity != null
@@ -249,7 +292,7 @@ class _PantryScreenState extends State<PantryScreen> {
                           trailing: IconButton(
                             icon: const Icon(Icons.close),
                             onPressed: () => _delete(item),
-                            tooltip: 'Usuń ze spiżarni',
+                            tooltip: context.strings.pantryRemove,
                           ),
                         ),
                       );
@@ -267,43 +310,55 @@ class _PantryScreenState extends State<PantryScreen> {
 /// odświeżałby się poprawnie przy wpisywaniu tekstu.
 class _AddToPantrySheet extends StatefulWidget {
   final PantryService pantryService;
+  final ProductSearchService? searchService;
 
-  const _AddToPantrySheet({required this.pantryService});
+  const _AddToPantrySheet({required this.pantryService, this.searchService});
 
   @override
   State<_AddToPantrySheet> createState() => _AddToPantrySheetState();
 }
 
 class _AddToPantrySheetState extends State<_AddToPantrySheet> {
-  final ProductSearchService _searchService = ProductSearchService();
+  late final ProductSearchService _searchService =
+      widget.searchService ?? ProductSearchService();
   final TextEditingController _controller = TextEditingController();
   List<Product> _results = [];
   bool _isSearching = false;
   bool _isSaving = false;
+  int _searchGeneration = 0;
 
   Future<void> _search(String query) async {
+    final generation = ++_searchGeneration;
     if (query.trim().length < 2) {
-      setState(() => _results = []);
+      setState(() {
+        _results = [];
+        _isSearching = false;
+      });
       return;
     }
-    setState(() => _isSearching = true);
+    setState(() {
+      _results = [];
+      _isSearching = true;
+    });
     try {
       final results = await _searchService.search(query);
-      if (!mounted) return;
+      if (!mounted || generation != _searchGeneration) return;
       setState(() => _results = results);
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || generation != _searchGeneration) return;
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
+            content: Text(friendlyError(e, strings: context.strings)),
             backgroundColor: AppTheme.errorColor,
           ),
         );
     } finally {
-      if (mounted) setState(() => _isSearching = false);
+      if (mounted && generation == _searchGeneration) {
+        setState(() => _isSearching = false);
+      }
     }
   }
 
@@ -328,7 +383,7 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text('Dodano "${product.name}" do spiżarni.'),
+            content: Text(context.strings.pantrySaved(product.name)),
           ),
         );
       Navigator.of(context).pop(true);
@@ -340,7 +395,7 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
+            content: Text(friendlyError(e, strings: context.strings)),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -396,7 +451,7 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Dodaj do spiżarni',
+              context.strings.addToPantry,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 12),
@@ -405,7 +460,7 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
               child: OutlinedButton.icon(
                 onPressed: _isSaving ? null : _scanAndAdd,
                 icon: const Icon(Icons.qr_code_scanner),
-                label: const Text('Skanuj kod kreskowy'),
+                label: Text(context.strings.pantryScanBarcode),
               ),
             ),
             const SizedBox(height: 8),
@@ -413,21 +468,21 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
               width: double.infinity,
               child: OutlinedButton(
                 onPressed: _isSaving ? null : _scanBatch,
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.qr_code_2, size: 19),
-                    SizedBox(width: 8),
+                    const Icon(Icons.qr_code_2, size: 19),
+                    const SizedBox(width: 8),
                     Flexible(
                       child: Text(
-                        'Skanuj wiele produktów',
+                        context.strings.pantryScanMany,
                         maxLines: 2,
                         textAlign: TextAlign.center,
                       ),
                     ),
-                    SizedBox(width: 8),
-                    PremiumFeatureTag(fontSize: 8),
+                    const SizedBox(width: 8),
+                    const PremiumFeatureTag(fontSize: 8),
                   ],
                 ),
               ),
@@ -438,7 +493,7 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
               autofocus: true,
               onChanged: _search,
               decoration: InputDecoration(
-                hintText: 'Szukaj produktu...',
+                hintText: context.strings.pantrySearchHint,
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -455,8 +510,8 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
                       ? Center(
                         child: Text(
                           _controller.text.trim().length < 2
-                              ? 'Wpisz nazwę produktu.'
-                              : 'Brak wyników.',
+                              ? context.strings.pantrySearchStart
+                              : context.strings.pantrySearchEmpty,
                           style: TextStyle(color: AppTheme.textSecondary),
                         ),
                       )
@@ -465,7 +520,7 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
                         itemBuilder: (context, index) {
                           final product = _results[index];
                           return ListTile(
-                            title: Text(product.name),
+                            title: Text(product.displayName(context)),
                             trailing:
                                 _isSaving
                                     ? const SizedBox(

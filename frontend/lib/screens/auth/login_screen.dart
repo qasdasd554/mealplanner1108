@@ -7,6 +7,7 @@ import 'forgot_password_screen.dart';
 import '../../theme/app_theme.dart';
 import '../../config/api_config.dart';
 import '../../widgets/turnstile_widget.dart';
+import '../../l10n/market_locale.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -75,9 +76,9 @@ class _LoginScreenState extends State<LoginScreen> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(
-          content: Text('Najpierw potwierdź, że nie jesteś robotem.'),
-          duration: Duration(seconds: 3),
+        SnackBar(
+          content: Text(context.strings.authCaptchaRequired),
+          duration: const Duration(seconds: 3),
         ),
       );
     return false;
@@ -105,13 +106,14 @@ class _LoginScreenState extends State<LoginScreen> {
       if (success) {
         Navigator.of(context).pushReplacementNamed(authProvider.postLoginRoute);
       } else {
+        _resetCaptcha();
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
             SnackBar(
               duration: const Duration(seconds: 3),
               content: Text(
-                authProvider.errorMessage ?? 'Logowanie nie powiodło się',
+                authProvider.errorMessage ?? context.strings.authLoginFailed,
               ),
               backgroundColor: AppTheme.errorColor,
               behavior: SnackBarBehavior.floating,
@@ -281,7 +283,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 24),
                       // Tytuł powitalny
                       Text(
-                            'Witaj ponownie!',
+                            context.strings.authWelcomeBack,
                             style: Theme.of(context).textTheme.displaySmall
                                 ?.copyWith(fontWeight: FontWeight.bold),
                             textAlign: TextAlign.center,
@@ -291,7 +293,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           .slideY(begin: 0.2, end: 0),
                       const SizedBox(height: 8),
                       Text(
-                            'Zaloguj się do swojego konta',
+                            context.strings.authLoginPrompt,
                             style: Theme.of(context).textTheme.bodyMedium,
                             textAlign: TextAlign.center,
                           )
@@ -304,18 +306,18 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(
-                          labelText: 'E-mail',
-                          prefixIcon: Icon(Icons.email_outlined),
+                        decoration: InputDecoration(
+                          labelText: context.strings.authEmail,
+                          prefixIcon: const Icon(Icons.email_outlined),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Wprowadź adres e-mail';
+                            return context.strings.authEnterEmail;
                           }
                           if (!RegExp(
                             r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
                           ).hasMatch(value)) {
-                            return 'Wprowadź poprawny adres e-mail';
+                            return context.strings.authEnterValidEmail;
                           }
                           return null;
                         },
@@ -327,7 +329,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         controller: _passwordController,
                         obscureText: _obscurePassword,
                         decoration: InputDecoration(
-                          labelText: 'Hasło',
+                          labelText: context.strings.authPassword,
                           prefixIcon: const Icon(Icons.lock_outline),
                           suffixIcon: IconButton(
                             icon: Icon(
@@ -344,10 +346,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Wprowadź hasło';
+                            return context.strings.authEnterPassword;
                           }
                           if (value.length < 6) {
-                            return 'Hasło musi mieć co najmniej 6 znaków';
+                            return context.strings.authPasswordMinSix;
                           }
                           return null;
                         },
@@ -391,7 +393,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                                   ),
                                 )
-                                : const Text('Zaloguj się'),
+                                : Text(context.strings.authSignIn),
                       ).animate().fadeIn(delay: 600.ms),
                       Align(
                         alignment: Alignment.centerRight,
@@ -403,7 +405,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             );
                           },
-                          child: const Text('Zapomniałeś hasła?'),
+                          child: Text(
+                            context.strings.authForgotPasswordQuestion,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -415,7 +419,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 12),
                             child: Text(
-                              'lub',
+                              context.strings.authOr,
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                           ),
@@ -432,7 +436,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           onPressed:
                               authProvider.isLoading ? null : _submitApple,
                           icon: const Icon(Icons.apple, size: 22),
-                          label: const Text('Kontynuuj z Apple'),
+                          label: Text(context.strings.authContinueApple),
                         ).animate().fadeIn(delay: 680.ms),
                         const SizedBox(height: 12),
                       ],
@@ -461,7 +465,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           onPressed:
                               authProvider.isLoading ? null : _submitGoogle,
                           icon: const Icon(Icons.g_mobiledata, size: 28),
-                          label: const Text('Kontynuuj z Google'),
+                          label: Text(context.strings.authContinueGoogle),
                         ).animate().fadeIn(delay: 700.ms),
                       const SizedBox(height: 16),
 
@@ -472,12 +476,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         },
                         child: RichText(
                           text: TextSpan(
-                            text: 'Nie masz konta?',
+                            text: context.strings.authNoAccount,
                             style: TextStyle(color: AppTheme.textSecondary),
                             children: [
                               TextSpan(
-                                text: 'Zarejestruj się',
-                                style: TextStyle(
+                                text: context.strings.authRegister,
+                                style: const TextStyle(
                                   color: AppTheme.primaryColor,
                                   fontWeight: FontWeight.bold,
                                 ),

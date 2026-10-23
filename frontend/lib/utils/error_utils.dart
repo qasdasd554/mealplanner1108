@@ -1,4 +1,8 @@
 import '../services/api_client.dart';
+import '../l10n/app_localizations.dart';
+
+/// Read account language when an operation completes, without recreating state.
+typedef ErrorStringsResolver = AppLocalizations Function();
 
 /// Zamienia dowolny wyjątek (najczęściej [ApiException]) na czytelny,
 /// przyjazny komunikat do pokazania użytkownikowi.
@@ -12,11 +16,11 @@ import '../services/api_client.dart';
 /// nieprzyjazny prefiks przed skądinąd sensowną wiadomością. Ta funkcja
 /// pokazuje SAMĄ wiadomość, a dla najczęstszych kodów dokłada
 /// przyjazniejszą ramę.
-String friendlyError(Object error) {
+String friendlyError(Object error, {AppLocalizations? strings}) {
   if (error is ApiException) {
     switch (error.statusCode) {
       case 401:
-        return 'Musisz być zalogowany, żeby to zrobić.';
+        return strings?.errorSignIn ?? 'Musisz być zalogowany, żeby to zrobić.';
       case 403:
         return error.message;
       case 404:
@@ -24,18 +28,22 @@ String friendlyError(Object error) {
       case 422:
         return error.message;
       case 429:
-        return 'Zbyt wiele prób w krótkim czasie — spróbuj ponownie za chwilę.';
+        return strings?.errorTooManyRequests ??
+            'Zbyt wiele prób w krótkim czasie — spróbuj ponownie za chwilę.';
       case 503:
-        return 'Usługa jest chwilowo niedostępna. Spróbuj ponownie za chwilę.';
+        return strings?.errorUnavailable ??
+            'Usługa jest chwilowo niedostępna. Spróbuj ponownie za chwilę.';
       case 504:
         // Przekroczony czas oczekiwania. Osobny przypadek, bo ogólny
         // komunikat dla 5xx ("coś poszło nie tak po naszej stronie")
         // sugeruje awarię, a tu zwykle wystarczy powtórzyć — serwer
         // właśnie się wybudza.
-        return 'Serwer nie odpowiedział na czas. Spróbuj ponownie za chwilę.';
+        return strings?.errorServerTimeout ??
+            'Serwer nie odpowiedział na czas. Spróbuj ponownie za chwilę.';
       default:
         if (error.statusCode >= 500) {
-          return 'Coś poszło nie tak po naszej stronie. Spróbuj ponownie za chwilę.';
+          return strings?.errorServer ??
+              'Coś poszło nie tak po naszej stronie. Spróbuj ponownie za chwilę.';
         }
         return error.message;
     }
@@ -45,16 +53,19 @@ String friendlyError(Object error) {
   final text = error.toString();
   final lower = text.toLowerCase();
   if (lower.contains('timeoutexception') || lower.contains('timed out')) {
-    return 'Operacja trwała zbyt długo. Spróbuj ponownie za chwilę.';
+    return strings?.errorOperationTimeout ??
+        'Operacja trwała zbyt długo. Spróbuj ponownie za chwilę.';
   }
   if (lower.contains('socketexception') ||
       lower.contains('clientexception') ||
       lower.contains('failed host lookup') ||
       lower.contains('connection refused')) {
-    return 'Nie udało się połączyć z serwerem. Sprawdź internet i spróbuj ponownie.';
+    return strings?.errorConnection ??
+        'Nie udało się połączyć z serwerem. Sprawdź internet i spróbuj ponownie.';
   }
   if (lower.contains('formatexception')) {
-    return 'Nie udało się odczytać danych. Odśwież ekran i spróbuj ponownie.';
+    return strings?.errorFormat ??
+        'Nie udało się odczytać danych. Odśwież ekran i spróbuj ponownie.';
   }
   return text.startsWith('Exception: ') ? text.substring(11) : text;
 }

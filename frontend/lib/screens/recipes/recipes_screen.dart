@@ -13,6 +13,10 @@ import '../../widgets/premium_feature_tag.dart';
 import 'recipe_leaderboard_screen.dart';
 import 'manual_add_recipe_screen.dart';
 import 'ai_add_recipe_screen.dart';
+import '../../l10n/market_locale.dart';
+import '../../l10n/recipe_content.dart';
+import '../../l10n/catalog_labels.dart';
+import '../../widgets/adaptive_action_tile.dart';
 
 enum _AddRecipeChoice { photo, text, link, manual }
 
@@ -21,15 +25,21 @@ class RecipesScreen extends StatefulWidget {
   // zakładce Premium ("Publikuj przepisy"), żeby nie zmuszać użytkownika
   // do ręcznego przełączania filtra po dotarciu na ten ekran.
   final bool initialMyRecipesOnly;
+  final RecipeService? recipeService;
 
-  const RecipesScreen({super.key, this.initialMyRecipesOnly = false});
+  const RecipesScreen({
+    super.key,
+    this.initialMyRecipesOnly = false,
+    this.recipeService,
+  });
 
   @override
   State<RecipesScreen> createState() => _RecipesScreenState();
 }
 
 class _RecipesScreenState extends State<RecipesScreen> {
-  final RecipeService _recipeService = RecipeService();
+  late final RecipeService _recipeService =
+      widget.recipeService ?? RecipeService();
   RecipeImportJob? _activeImport;
   Timer? _importPollTimer;
   Timer? _searchTimer;
@@ -165,7 +175,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           duration: const Duration(seconds: 3),
-          content: Text('Błąd podczas pobierania przepisów: $e'),
+          content: Text(context.strings.recipeLoadError('$e')),
           backgroundColor: AppTheme.errorColor,
         ),
       );
@@ -228,7 +238,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
       if (mounted && requestVersion == _requestVersion) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Nie udało się wczytać kolejnych przepisów: $e'),
+            content: Text(context.strings.recipeLoadMoreError('$e')),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -244,11 +254,11 @@ class _RecipesScreenState extends State<RecipesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Przepisy'),
+        title: Text(context.strings.recipes),
         actions: [
           if (_activeImport != null)
             IconButton(
-              tooltip: 'Trwa dodawanie przepisu przez AI',
+              tooltip: context.strings.recipeImportInProgress,
               icon: const SizedBox(
                 width: 24,
                 height: 24,
@@ -286,7 +296,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                     Icons.emoji_events,
                     color: Color(0xFFE0A62E),
                   ),
-                  tooltip: 'Ranking autorów przepisów',
+                  tooltip: context.strings.recipeAuthorRanking,
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -311,13 +321,13 @@ class _RecipesScreenState extends State<RecipesScreen> {
               controller: _searchController,
               onChanged: _setSearchQuery,
               decoration: InputDecoration(
-                hintText: 'Nazwa, autor lub składnik...',
+                hintText: context.strings.recipeSearchHint,
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon:
                     _searchQuery.isEmpty
                         ? null
                         : IconButton(
-                          tooltip: 'Wyczyść wyszukiwanie',
+                          tooltip: context.strings.clearSearch,
                           icon: const Icon(Icons.close),
                           onPressed: () {
                             _searchController.clear();
@@ -369,7 +379,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                           _buildQuickToggle(
                             icon: Icons.favorite_border,
                             activeIcon: Icons.favorite,
-                            label: 'Ulubione',
+                            label: context.strings.recipeFavourites,
                             isActive: _favoritesOnly,
                             activeColor: Colors.redAccent,
                             onTap: () {
@@ -380,7 +390,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                           _buildQuickToggle(
                             icon: Icons.person_outline,
                             activeIcon: Icons.person,
-                            label: 'Moje',
+                            label: context.strings.recipeMine,
                             isActive: _myRecipesOnly,
                             activeColor: AppTheme.primaryColor,
                             onTap: () {
@@ -391,7 +401,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                           _buildQuickToggle(
                             icon: Icons.fiber_new_outlined,
                             activeIcon: Icons.fiber_new,
-                            label: 'Nowość',
+                            label: context.strings.recipeNew,
                             isActive: _newOnly,
                             activeColor: AppTheme.accentColor,
                             onTap: () {
@@ -402,7 +412,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                           _buildQuickToggle(
                             icon: Icons.groups_outlined,
                             activeIcon: Icons.groups,
-                            label: 'Społeczność',
+                            label: context.strings.recipeCommunity,
                             isActive: _communityOnly,
                             activeColor: AppTheme.secondaryColor,
                             onTap: () {
@@ -478,7 +488,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      'Więcej',
+                                      context.strings.moreFilters,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
@@ -552,8 +562,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
                                         : const Icon(Icons.expand_more),
                                 label: Text(
                                   _isLoadingMore
-                                      ? 'Wczytywanie…'
-                                      : 'Pokaż więcej przepisów',
+                                      ? context.strings.loadingMore
+                                      : context.strings.showMoreRecipes,
                                 ),
                               ),
                             ),
@@ -568,7 +578,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddRecipeChoice(context),
         icon: const Icon(Icons.add),
-        label: const Text('Dodaj przepis'),
+        label: Text(context.strings.addRecipe),
       ),
     );
   }
@@ -598,10 +608,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 side: BorderSide(color: colorScheme.outlineVariant),
               ),
               clipBehavior: Clip.antiAlias,
-              child: ListTile(
-                leading: Icon(icon),
-                title: Text(title),
-                subtitle: subtitle == null ? null : Text(subtitle),
+              child: AdaptiveActionTile(
+                icon: icon,
+                title: title,
+                subtitle: subtitle,
                 trailing: trailing,
                 onTap: onTap,
               ),
@@ -618,20 +628,20 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Dodaj przepis',
+                    sheetContext.strings.addRecipe,
                     style: Theme.of(sheetContext).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Z pomocą AI',
+                    sheetContext.strings.withAi,
                     style: Theme.of(sheetContext).textTheme.titleMedium,
                   ),
                   optionTile(
                     icon: Icons.photo_camera_outlined,
-                    title: 'Zrób zdjęcie',
-                    subtitle: 'Przepisu albo gotowego dania',
-                    trailing: const PremiumFeatureTag(
-                      label: 'PREMIUM · 2 PKT',
+                    title: sheetContext.strings.takeRecipePhoto,
+                    subtitle: sheetContext.strings.recipePhotoHint,
+                    trailing: PremiumFeatureTag(
+                      label: sheetContext.strings.premiumTwoPoints,
                       fontSize: 8,
                     ),
                     onTap:
@@ -641,9 +651,9 @@ class _RecipesScreenState extends State<RecipesScreen> {
                   ),
                   optionTile(
                     icon: Icons.text_snippet_outlined,
-                    title: 'Wklej tekst',
-                    trailing: const PremiumFeatureTag(
-                      label: 'PREMIUM · 2 PKT',
+                    title: sheetContext.strings.pasteText,
+                    trailing: PremiumFeatureTag(
+                      label: sheetContext.strings.premiumTwoPoints,
                       fontSize: 8,
                     ),
                     onTap:
@@ -653,9 +663,9 @@ class _RecipesScreenState extends State<RecipesScreen> {
                   ),
                   optionTile(
                     icon: Icons.link,
-                    title: 'Wklej link',
-                    trailing: const PremiumFeatureTag(
-                      label: 'PREMIUM · 2 PKT',
+                    title: sheetContext.strings.pasteLink,
+                    trailing: PremiumFeatureTag(
+                      label: sheetContext.strings.premiumTwoPoints,
                       fontSize: 8,
                     ),
                     onTap:
@@ -673,7 +683,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                             sheetContext,
                           ).pop(_AddRecipeChoice.manual),
                       icon: const Icon(Icons.edit_outlined, size: 18),
-                      label: const Text('Dodaj ręcznie'),
+                      label: Text(sheetContext.strings.addManually),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         side: BorderSide(color: colorScheme.outlineVariant),
@@ -832,7 +842,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                         runSpacing: 4,
                         children: [
                           Text(
-                            'Filtry',
+                            sheetContext.strings.filters,
                             style: Theme.of(sheetContext).textTheme.titleLarge,
                           ),
                           if (_moreFiltersActiveCount > 0)
@@ -845,13 +855,13 @@ class _RecipesScreenState extends State<RecipesScreen> {
                                   _sortBy = 'name';
                                 });
                               },
-                              child: const Text('Wyczyść'),
+                              child: Text(sheetContext.strings.clearFilters),
                             ),
                         ],
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Sortowanie',
+                        sheetContext.strings.sortRecipes,
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
                           color: AppTheme.textSecondary,
@@ -864,11 +874,13 @@ class _RecipesScreenState extends State<RecipesScreen> {
                         runSpacing: 8,
                         children: [
                           for (final entry
-                              in const {
-                                'name': 'Alfabetycznie',
-                                'kcal_asc': 'Kalorie: mniej',
-                                'kcal_desc': 'Kalorie: więcej',
-                                'prep_time': 'Czas: najszybsze',
+                              in {
+                                'name': sheetContext.strings.sortAlphabetically,
+                                'kcal_asc':
+                                    sheetContext.strings.sortCaloriesLow,
+                                'kcal_desc':
+                                    sheetContext.strings.sortCaloriesHigh,
+                                'prep_time': sheetContext.strings.sortQuickest,
                               }.entries)
                             ChoiceChip(
                               label: Text(entry.value),
@@ -881,7 +893,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       ),
                       const SizedBox(height: 20),
                       Text(
-                        'Dieta',
+                        sheetContext.strings.recipeDiet,
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
                           color: AppTheme.textSecondary,
@@ -894,7 +906,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                         runSpacing: 8,
                         children: [
                           ChoiceChip(
-                            label: const Text('Wszystkie'),
+                            label: Text(sheetContext.strings.allRecipes),
                             selected: _selectedDietTag == null,
                             onSelected:
                                 (_) => setSheetState(
@@ -906,7 +918,9 @@ class _RecipesScreenState extends State<RecipesScreen> {
                           // "Wszystkie" powyżej, więc zaczynamy od indeksu 1.
                           for (final diet in kDietOptions.skip(1))
                             ChoiceChip(
-                              label: Text(diet['name']!),
+                              label: Text(
+                                sheetContext.strings.dietName(diet['name']!),
+                              ),
                               selected: _selectedDietTag == diet['name'],
                               onSelected:
                                   (_) => setSheetState(
@@ -917,7 +931,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       ),
                       const SizedBox(height: 20),
                       Text(
-                        'Typ posiłku',
+                        sheetContext.strings.recipeMealType,
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
                           color: AppTheme.textSecondary,
@@ -930,7 +944,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                         runSpacing: 8,
                         children: [
                           ChoiceChip(
-                            label: const Text('Wszystkie'),
+                            label: Text(sheetContext.strings.allRecipes),
                             selected: _selectedMealType == null,
                             onSelected:
                                 (_) => setSheetState(
@@ -938,7 +952,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                                 ),
                           ),
                           ChoiceChip(
-                            label: const Text('Śniadania'),
+                            label: Text(sheetContext.strings.filterBreakfast),
                             selected: _selectedMealType == 'śniadanie',
                             onSelected:
                                 (_) => setSheetState(
@@ -946,7 +960,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                                 ),
                           ),
                           ChoiceChip(
-                            label: const Text('Obiady'),
+                            label: Text(sheetContext.strings.filterLunch),
                             selected: _selectedMealType == 'obiad',
                             onSelected:
                                 (_) => setSheetState(
@@ -954,7 +968,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                                 ),
                           ),
                           ChoiceChip(
-                            label: const Text('Kolacje'),
+                            label: Text(sheetContext.strings.filterDinner),
                             selected: _selectedMealType == 'kolacja',
                             onSelected:
                                 (_) => setSheetState(
@@ -962,7 +976,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                                 ),
                           ),
                           ChoiceChip(
-                            label: const Text('Przekąski'),
+                            label: Text(sheetContext.strings.filterSnacks),
                             selected: _selectedMealType == 'przekąska',
                             onSelected:
                                 (_) => setSheetState(
@@ -970,7 +984,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                                 ),
                           ),
                           ChoiceChip(
-                            label: const Text('Desery'),
+                            label: Text(sheetContext.strings.filterDesserts),
                             selected: _selectedMealType == 'deser',
                             onSelected:
                                 (_) => setSheetState(
@@ -981,7 +995,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       ),
                       const SizedBox(height: 20),
                       Text(
-                        'Trudność',
+                        sheetContext.strings.recipeDifficulty,
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
                           color: AppTheme.textSecondary,
@@ -994,7 +1008,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                         runSpacing: 8,
                         children: [
                           ChoiceChip(
-                            label: const Text('Każda'),
+                            label: Text(sheetContext.strings.anyDifficulty),
                             selected: _selectedDifficulty == null,
                             onSelected:
                                 (_) => setSheetState(
@@ -1002,7 +1016,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                                 ),
                           ),
                           ChoiceChip(
-                            label: const Text('Łatwe'),
+                            label: Text(sheetContext.strings.filterEasy),
                             selected: _selectedDifficulty == 'łatwy',
                             onSelected:
                                 (_) => setSheetState(
@@ -1010,7 +1024,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                                 ),
                           ),
                           ChoiceChip(
-                            label: const Text('Średnie'),
+                            label: Text(sheetContext.strings.filterMedium),
                             selected: _selectedDifficulty == 'średni',
                             onSelected:
                                 (_) => setSheetState(
@@ -1018,7 +1032,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                                 ),
                           ),
                           ChoiceChip(
-                            label: const Text('Trudne'),
+                            label: Text(sheetContext.strings.filterHard),
                             selected: _selectedDifficulty == 'trudny',
                             onSelected:
                                 (_) => setSheetState(
@@ -1032,7 +1046,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                         width: double.infinity,
                         child: FilledButton(
                           onPressed: applyAndClose,
-                          child: const Text('Pokaż wyniki'),
+                          child: Text(sheetContext.strings.showResults),
                         ),
                       ),
                     ],
@@ -1127,9 +1141,9 @@ class _RecipesScreenState extends State<RecipesScreen> {
                           color: AppTheme.secondaryColor,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Text(
-                          'Nowość',
-                          style: TextStyle(
+                        child: Text(
+                          context.strings.recipeNew,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
@@ -1153,7 +1167,9 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          recipe.mealType.toUpperCase(),
+                          context.strings
+                              .mealTypeLabel(recipe.mealType)
+                              .toUpperCase(),
                           style: TextStyle(
                             color: AppTheme.primaryColor.withOpacity(0.8),
                             fontSize: 9,
@@ -1163,7 +1179,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          recipe.name,
+                          recipe.displayName(context),
                           style: Theme.of(
                             context,
                           ).textTheme.titleLarge?.copyWith(fontSize: 14),
@@ -1192,7 +1208,14 @@ class _RecipesScreenState extends State<RecipesScreen> {
                               const SizedBox(width: 3),
                               Flexible(
                                 child: Text(
-                                  '${recipe.totalTimeMin} min • ${(recipe.nutritionTotal.kcal / (recipe.servings > 0 ? recipe.servings : 1)).round()} kcal/porcję',
+                                  context.strings.recipeCardSummary(
+                                    recipe.totalTimeMin,
+                                    (recipe.nutritionTotal.kcal /
+                                            (recipe.servings > 0
+                                                ? recipe.servings
+                                                : 1))
+                                        .round(),
+                                  ),
                                   style: TextStyle(
                                     color: AppTheme.textSecondary,
                                     fontSize: 11,
@@ -1217,7 +1240,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                             ),
                           ),
                           child: Text(
-                            recipe.difficulty,
+                            context.strings.difficultyLabel(recipe.difficulty),
                             style: const TextStyle(
                               fontSize: 9,
                               fontWeight: FontWeight.bold,
@@ -1244,12 +1267,12 @@ class _RecipesScreenState extends State<RecipesScreen> {
           Icon(Icons.search_off, size: 64, color: AppTheme.textSecondary),
           const SizedBox(height: 16),
           Text(
-            'Brak przepisów',
+            context.strings.noRecipes,
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
           ),
           const SizedBox(height: 8),
           Text(
-            'Sprawdź nazwę przepisu, autora lub składnika.',
+            context.strings.noRecipesHint,
             style: TextStyle(color: AppTheme.textSecondary),
           ),
         ],

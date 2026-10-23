@@ -9,6 +9,10 @@ from __future__ import annotations
 
 import logging
 import math
+from copy import deepcopy
+from datetime import date
+from decimal import Decimal, localcontext
+from types import SimpleNamespace
 from collections import defaultdict
 from typing import Any
 from uuid import UUID
@@ -26,13 +30,24 @@ from app.models import (
     RecipeIngredient,
     ShoppingList,
     ShoppingListItem,
+    ShoppingListItemRegionalSnapshot,
     StoreDepartment,
     StoreProduct,
+    Store,
     User,
 )
 from app.services.exceptions import MealPlanNotFoundError, ShoppingListNotFoundError
 from app.services.nutrition_calculator import grams_to_quantity, quantity_to_grams
 from app.services.shopping_list_quota import record_shopping_list_creation
+from app.services.regional_requirements import aggregate_regional_requirements, subtract_regional_quantity, RegionalRequirement, to_regional_base_quantity
+from app.services.regional_shopping import (
+    apply_regional_item_quote, load_regional_offers, refresh_regional_items,
+    regional_pantry_coverage,
+    regional_pricing_date,
+    refresh_regional_plan_budget,
+    frozen_regional_purchase_quote,
+)
+from fastapi import HTTPException
 
 logger = logging.getLogger(__name__)
 
@@ -97,10 +112,16 @@ class ShoppingListBuilder:
         meal_plan = await self._load_meal_plan(meal_plan_id)
 
         # ── 2. Agreguj składniki ─────────────────────────────────────
-        aggregated = self._aggregate_ingredients(meal_plan)
+        store = await self.db.get(Store, meal_plan.store_id)
+        is_gb = store is not None and store.country_code == "GB"
+        from app.services.recipe_ingredient_integrity import validate_recipe_ingredients
+        for entry in meal_plan.entries:
+            if entry.recipe is not None:
+                validate_recipe_ingredients(entry.recipe, country_code="GB" if is_gb else "PL")
+        aggregated = self._aggregate_ingredients(meal_plan) if not is_gb else None
 
         # ── 3+4. Przelicz opakowania i ceny ──────────────────────────
-        items_data = await self._resolve_store_details(
+        items_data = await self._resolve_regional_requirements(meal_plan, include_pantry=include_pantry) if is_gb else await self._resolve_store_details(
             aggregated=aggregated,
             store_id=meal_plan.store_id,
             user_id=meal_plan.user_id,
@@ -147,25 +168,86 @@ class ShoppingListBuilder:
         if shopping_list is None:
             raise ShoppingListNotFoundError(shopping_list_id)
 
-        meal_plan_id = shopping_list.meal_plan_id
+        store = await self.db.get(Store, shopping_list.store_id)
+        if store is not None and store.country_code == "GB":
+            # Pantry sync may have split/replaced rows in this same session.
+            # An already loaded items collection is not the current DB state.
+            await self.db.flush()
+            shopping_list = (await self.db.execute(
+                stmt.execution_options(populate_existing=True)
+            )).scalar_one()
 
-        # Usuń tylko pozycje wyliczone z przepisów. Ręczne oraz
-        # zaimportowane przez łączenie list nie mogą zniknąć przy
-        # przeliczeniu planu.
-        for item in list(shopping_list.items):
-            if item.is_generated:
-                await self.db.delete(item)
-        await self.db.flush()
+        meal_plan_id = shopping_list.meal_plan_id
+        checked_regional = {}
+        frozen_regional = {}
+        for item in shopping_list.items:
+            snapshot = item.regional_snapshot
+            if item.is_generated and snapshot is not None:
+                key = (snapshot.product_id, item.required_quantity, item.unit)
+                flag = snapshot.purchase_is_checked if item.is_from_pantry else item.is_checked
+                checked_regional.setdefault(key, []).append(bool(flag))
+                if store is not None and store.country_code == "GB" and item.is_checked and not item.is_from_pantry:
+                    if frozen_regional_purchase_quote(item) is None:
+                        raise HTTPException(status_code=409, detail="Correct the saved purchased package before recalculating this list.")
+                    values = {
+                        column.name: deepcopy(getattr(snapshot, column.name))
+                        for column in ShoppingListItemRegionalSnapshot.__table__.columns
+                        if column.name != "item_id"
+                    }
+                    values["purchase_is_checked"] = True
+                    frozen_regional.setdefault(key, []).append((values, item.estimated_price))
+        manual_extras = {}
+        for item in shopping_list.items:
+            snapshot = item.regional_snapshot
+            if item.is_generated and snapshot is not None and (snapshot.manual_extra_quantity or 0) > 0:
+                key = (snapshot.product_id, item.unit)
+                manual_extras[key] = manual_extras.get(key, Decimal(0)) + snapshot.manual_extra_quantity
 
         # Przebuduj
         meal_plan = await self._load_meal_plan(meal_plan_id)
-        aggregated = self._aggregate_ingredients(meal_plan)
-        items_data = await self._resolve_store_details(
+        store = await self.db.get(Store, meal_plan.store_id)
+        is_gb = store is not None and store.country_code == "GB"
+        from app.services.recipe_ingredient_integrity import validate_recipe_ingredients
+        for entry in meal_plan.entries:
+            if entry.recipe is not None:
+                validate_recipe_ingredients(entry.recipe, country_code="GB" if is_gb else "PL")
+        aggregated = self._aggregate_ingredients(meal_plan) if not is_gb else None
+        items_data = await self._resolve_regional_requirements(
+            meal_plan, include_pantry=(meal_plan.preferences or {}).get("include_pantry", True),
+            manual_extras=manual_extras,
+        ) if is_gb else await self._resolve_store_details(
             aggregated=aggregated,
             store_id=meal_plan.store_id,
             user_id=meal_plan.user_id,
         )
 
+        for item_data in items_data:
+            snapshot = item_data.get("regional_snapshot")
+            if snapshot is not None:
+                key = (snapshot.product_id, item_data["required_quantity"], item_data["unit"])
+                old_flags = checked_regional.get(key, [])
+                flag = old_flags.pop(0) if old_flags else False
+                snapshot.purchase_is_checked = flag
+                if not item_data.get("is_from_pantry"):
+                    item_data["is_checked"] = flag
+                    history = frozen_regional.get(key, [])
+                    if flag and history:
+                        saved, price = history.pop(0)
+                        item_data["regional_snapshot"] = ShoppingListItemRegionalSnapshot(**saved)
+                        item_data["estimated_price"] = price
+                        item_data["custom_name"] = saved["name_en"][:200]
+
+        if any(values for values in frozen_regional.values()):
+            # No old rows have been deleted and no new rows staged. An edited
+            # requirement must not invent a different already-bought package.
+            raise HTTPException(status_code=409, detail="The recipe amounts changed for a purchased item. Correct its purchase state before recalculating.")
+
+        # Delete only after all current GB purchases can be retained safely.
+        # Retained manual/merged rows are not rebuilt from recipe entries.
+        for item in list(shopping_list.items):
+            if item.is_generated:
+                await self.db.delete(item)
+        await self.db.flush()
         for item_data in items_data:
             item = ShoppingListItem(
                 shopping_list_id=shopping_list_id,
@@ -173,10 +255,19 @@ class ShoppingListBuilder:
             )
             self.db.add(item)
 
+        if is_gb:
+            # Generated objects were deleted; retained manual/merged snapshots
+            # must also move to the new store instead of keeping old GBP packs.
+            retained = [item for item in shopping_list.items if not item.is_generated]
+            from types import SimpleNamespace
+            await refresh_regional_items(self.db, SimpleNamespace(items=retained, store_id=meal_plan.store_id))
+            await refresh_regional_plan_budget(self.db, shopping_list)
+
         await self.db.commit()
 
         result = await self.db.execute(
             select(ShoppingList)
+            .execution_options(populate_existing=is_gb)
             .options(selectinload(ShoppingList.items))
             .where(ShoppingList.id == shopping_list_id)
         )
@@ -250,6 +341,18 @@ class ShoppingListBuilder:
         sort_keys: dict[str, int] = {}
 
         for item in shopping_list.items:
+            snapshot = item.regional_snapshot
+            if snapshot is not None:
+                dept_name = "In pantry" if item.is_from_pantry else "Other"
+                sort_keys[dept_name] = 10_000 if item.is_from_pantry else 999
+                grouped[dept_name].append({
+                    "id": item.id, "product_id": snapshot.product_id,
+                    "product_name": snapshot.name_en, "quantity": item.required_quantity,
+                    "unit": item.unit, "package_count": (snapshot.quote_data or {}).get("package_count"),
+                    "estimated_price": item.estimated_price, "is_checked": item.is_checked,
+                    "currency_code": "GBP", "quote_status": snapshot.quote_status,
+                })
+                continue
             store_product_obj = item.store_product
             product = store_product_obj.product if store_product_obj else None
             product_name = product.name if product else (item.custom_name or "Nieznany produkt")
@@ -522,6 +625,114 @@ class ShoppingListBuilder:
             dept_order.get(x.get("department_id"), 999),
         ))
         return items_data
+
+    async def _resolve_regional_requirements(self, meal_plan, *, include_pantry=True, manual_extras=None):
+        requirements = aggregate_regional_requirements(meal_plan)
+        manual_by_key = {}
+        if manual_extras:
+            # Re-aggregate original raw requirements PLUS extras. Replacing a
+            # dictionary entry would discard the recipe when raw units differ.
+            raw_by_product = {}
+            products = {}
+            for product_id, requirement in requirements.items():
+                if not requirement.raw_amounts:
+                    raise ValueError("Shopping ingredient quantity cannot be represented safely")
+                raw_by_product[product_id] = list(requirement.raw_amounts)
+                products[product_id] = requirement.product
+            for (product_id, unit), extra in manual_extras.items():
+                product = products.get(product_id) or await self.db.get(Product, product_id)
+                if product is None:
+                    raise ValueError("A manual shopping addition has no canonical product")
+                products[product_id] = product
+                raw_by_product.setdefault(product_id, []).append((extra, unit))
+                try:
+                    amount, tracked_unit = to_regional_base_quantity(product, extra, unit)
+                except ValueError:
+                    amount, tracked_unit = extra, unit
+                key = (product_id, tracked_unit)
+                manual_by_key[key] = manual_by_key.get(key, Decimal(0)) + amount
+            ingredients = []
+            for product_id, raw_amounts in raw_by_product.items():
+                grouped = {}
+                with localcontext() as arithmetic:
+                    arithmetic.prec = 130
+                    for amount, unit in raw_amounts:
+                        grouped[unit] = grouped.get(unit, Decimal(0)) + amount
+                ingredients.extend(SimpleNamespace(
+                    product_id=product_id, product=products[product_id], quantity=amount, unit=unit,
+                ) for unit, amount in grouped.items())
+            requirements = aggregate_regional_requirements(SimpleNamespace(entries=[SimpleNamespace(
+                servings_multiplier=Decimal(1), recipe=SimpleNamespace(ingredients=ingredients),
+            )]))
+        product_ids = set(requirements)
+        offers = await load_regional_offers(self.db, product_ids, meal_plan.store_id)
+        pantry = {}
+        if include_pantry and product_ids:
+            result = await self.db.execute(select(PantryItem).where(
+                PantryItem.user_id == meal_plan.user_id, PantryItem.product_id.in_(product_ids),
+            ))
+            pantry = {row.product_id: row for row in result.scalars().all()}
+        result = []
+        for requirement in requirements.values():
+            first_result = len(result)
+            product = requirement.product
+            if product is None:
+                raise ValueError("A shopping ingredient has no canonical product")
+            if requirement.quantity is not None:
+                quantities = [(requirement.quantity, requirement.unit)]
+                covered = regional_pantry_coverage(
+                    product, requirement.quantity, requirement.unit, pantry.get(product.id),
+                )
+            else:
+                quantities = (
+                    [(requirement.raw_quantity, requirement.raw_unit)]
+                    if requirement.raw_quantity is not None else list(requirement.raw_amounts)
+                )
+                covered = Decimal(0)
+            if not quantities:
+                raise ValueError("Shopping ingredient quantity cannot be represented safely")
+            if covered > 0:
+                quantities = [(subtract_regional_quantity(requirement.quantity, covered), requirement.unit)]
+                item = ShoppingListItem(is_generated=True, is_checked=False)
+                apply_regional_item_quote(
+                    item, product=product, store_id=meal_plan.store_id,
+                    quantity=covered, unit=requirement.unit, offers=offers,
+                    as_of=regional_pricing_date(), from_pantry=True,
+                )
+                result.append(self._regional_item_data(item))
+            for quantity, unit in quantities:
+                if quantity <= 0:
+                    continue
+                item = ShoppingListItem(is_generated=True, is_checked=False)
+                apply_regional_item_quote(
+                    item, product=product, store_id=meal_plan.store_id,
+                    quantity=quantity, unit=unit, offers=offers, as_of=regional_pricing_date(),
+                )
+                if requirement.quantity is None:
+                    item.estimated_price = None
+                    item.regional_snapshot.quote_status = "unpriced"
+                    item.regional_snapshot.quote_data = None
+                    item.regional_snapshot.offer_id = None
+                result.append(self._regional_item_data(item))
+            for item_data in sorted(result[first_result:], key=lambda value: value["is_from_pantry"]):
+                key = (product.id, item_data["unit"])
+                manual_left = manual_by_key.get(key, Decimal(0))
+                extra = min(manual_left, item_data["required_quantity"])
+                item_data["regional_snapshot"].manual_extra_quantity = extra
+                manual_by_key[key] = subtract_regional_quantity(manual_left, extra)
+        return result
+
+    @staticmethod
+    def _regional_item_data(item):
+        snapshot = item.regional_snapshot
+        item.regional_snapshot = None
+        return {
+            "store_product_id": None, "custom_name": item.custom_name,
+            "required_quantity": item.required_quantity, "unit": item.unit,
+            "estimated_price": item.estimated_price, "department_id": None,
+            "is_checked": item.is_checked, "is_from_pantry": item.is_from_pantry,
+            "is_generated": bool(item.is_generated), "regional_snapshot": snapshot,
+        }
 
     async def _create_shopping_list(
         self,

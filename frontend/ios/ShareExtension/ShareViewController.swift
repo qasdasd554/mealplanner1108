@@ -14,9 +14,9 @@ final class ShareViewController: UIViewController {
     statusLabel.numberOfLines = 0
     statusLabel.textAlignment = .center
     statusLabel.font = .preferredFont(forTextStyle: .headline)
-    statusLabel.text = "Odczytuję link…"
+    statusLabel.text = NSLocalizedString("share_reading", comment: "Reading the shared recipe link")
 
-    doneButton.setTitle("Gotowe", for: .normal)
+    doneButton.setTitle(NSLocalizedString("share_done", comment: "Close the share extension"), for: .normal)
     doneButton.titleLabel?.font = .preferredFont(forTextStyle: .headline)
     doneButton.addTarget(self, action: #selector(finish), for: .touchUpInside)
     doneButton.isHidden = true
@@ -39,7 +39,7 @@ final class ShareViewController: UIViewController {
 
   private func readSharedLink() {
     guard let items = extensionContext?.inputItems as? [NSExtensionItem] else {
-      showResult("Nie otrzymano linku do przepisu.")
+      showResult(NSLocalizedString("share_no_link", comment: "No shared input"))
       return
     }
     let providers = items.flatMap { $0.attachments ?? [] }
@@ -54,28 +54,28 @@ final class ShareViewController: UIViewController {
         return
       }
     }
-    showResult("Udostępnij link do filmu lub strony z przepisem.")
+    showResult(NSLocalizedString("share_prompt", comment: "Unsupported shared content"))
   }
 
   private func saveLink(from text: String?) {
     guard let text,
           let range = text.range(of: #"https?://\S+"#, options: .regularExpression) else {
-      showResult("Nie znaleziono adresu w udostępnionej treści.")
+      showResult(NSLocalizedString("share_no_address", comment: "No address in shared text"))
       return
     }
     let candidate = String(text[range]).trimmingCharacters(in: CharacterSet(charactersIn: ".,;!?)]}"))
     guard let url = URL(string: candidate),
           ["http", "https"].contains(url.scheme?.lowercased() ?? ""),
           url.host != nil else {
-      showResult("Udostępniony adres nie jest poprawnym linkiem.")
+      showResult(NSLocalizedString("share_invalid_address", comment: "Invalid shared URL"))
       return
     }
     guard let sharedDefaults = UserDefaults(suiteName: appGroup) else {
-      showResult("Nie można zapisać linku. Sprawdź App Groups w ustawieniach podpisu aplikacji.")
+      showResult(NSLocalizedString("share_save_failed", comment: "Shared storage unavailable"))
       return
     }
     sharedDefaults.set(url.absoluteString, forKey: pendingUrlKey)
-    showResult("Link zapisany. Otwórz Meal Planner Polska — rozpoznawanie przepisu ruszy automatycznie.")
+    showResult(NSLocalizedString("share_saved", comment: "Recipe link saved for the app"))
   }
 
   private func showResult(_ message: String) {

@@ -10,6 +10,7 @@ dodajemy żadnej nowej zależności/SDK tylko dla tego jednego serwisu.
 from __future__ import annotations
 
 import logging
+from html import escape
 
 import httpx
 
@@ -32,6 +33,7 @@ async def _send_code_email(
     subject: str,
     intro_line: str,
     footer_line: str,
+    country_code: str = 'PL',
 ) -> None:
     """Wspólna logika wysyłki maila z 6-cyfrowym kodem — używana zarówno
     przez weryfikację konta, jak i reset hasła, żeby nie duplikować
@@ -41,7 +43,12 @@ async def _send_code_email(
             "Wysyłka e-maili nie jest skonfigurowana na serwerze (brak RESEND_API_KEY)."
         )
 
-    greeting = f"Cześć {display_name}!" if display_name else "Cześć!"
+    name = escape(display_name) if display_name else None
+    if country_code == 'GB':
+        greeting = f"Hi {name}!" if name else 'Hi!'
+    else:
+        greeting = f"Cześć {name}!" if name else "Cześć!"
+    safe_code = escape(code)
     html = f"""
     <div style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 0 auto;">
         <h2 style="color: #10B981;">Meal Planner Polska</h2>
@@ -49,7 +56,7 @@ async def _send_code_email(
         <p>{intro_line}</p>
         <p style="font-size: 32px; font-weight: bold; letter-spacing: 8px;
                    background: #F3F4F6; padding: 16px 24px; border-radius: 12px;
-                   text-align: center;">{code}</p>
+                   text-align: center;">{safe_code}</p>
         <p style="color: #6B7280; font-size: 14px;">{footer_line}</p>
     </div>
     """
@@ -83,7 +90,7 @@ async def _send_code_email(
         raise EmailSendError("Serwis wysyłki e-maili zwrócił błąd.")
 
 
-async def send_verification_email(to_email: str, code: str, display_name: str | None) -> None:
+async def send_verification_email(to_email: str, code: str, display_name: str | None, *, country_code: str = 'PL') -> None:
     """Wysyła e-mail z kodem weryfikacyjnym (6 cyfr) przy rejestracji.
 
     Rzuca EmailSendError, jeśli wysyłka się nie powiedzie — WYWOŁUJĄCY
@@ -96,26 +103,31 @@ async def send_verification_email(to_email: str, code: str, display_name: str | 
         to_email,
         code,
         display_name,
-        subject="Twój kod weryfikacyjny — Meal Planner Polska",
-        intro_line="Twój kod weryfikacyjny do potwierdzenia konta:",
+        subject=('Your verification code — Meal Planner Polska' if country_code == 'GB' else "Twój kod weryfikacyjny — Meal Planner Polska"),
+        intro_line=('Your verification code to confirm your account:' if country_code == 'GB' else "Twój kod weryfikacyjny do potwierdzenia konta:"),
         footer_line=(
+            'This code is valid for 15 minutes. If you did not try to create an account, ignore this email.'
+            if country_code == 'GB' else
             "Kod jest ważny przez 15 minut. Jeśli to nie Ty próbowałeś/aś "
             "założyć konto, zignoruj tę wiadomość."
         ),
+        country_code=country_code,
     )
 
 
-async def send_password_reset_email(to_email: str, code: str, display_name: str | None) -> None:
+async def send_password_reset_email(to_email: str, code: str, display_name: str | None, *, country_code: str = 'PL') -> None:
     """Wysyła e-mail z kodem do zresetowania hasła."""
     await _send_code_email(
         to_email,
         code,
         display_name,
-        subject="Reset hasła — Meal Planner Polska",
-        intro_line="Otrzymaliśmy prośbę o reset hasła do Twojego konta. Twój kod:",
+        subject=('Password reset — Meal Planner Polska' if country_code == 'GB' else "Reset hasła — Meal Planner Polska"),
+        intro_line=('We received a request to reset your account password. Your code:' if country_code == 'GB' else "Otrzymaliśmy prośbę o reset hasła do Twojego konta. Twój kod:"),
         footer_line=(
+            'This code is valid for 15 minutes. If you did not request a password reset, ignore this email — your password will stay unchanged.'
+            if country_code == 'GB' else
             "Kod jest ważny przez 15 minut. Jeśli to nie Ty prosiłeś/aś "
             "o reset hasła, zignoruj tę wiadomość — Twoje hasło pozostanie bez zmian."
         ),
+        country_code=country_code,
     )
-

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../models/promotion.dart';
 import '../../config/constants.dart';
@@ -16,25 +17,54 @@ import 'admin_campaigns_screen.dart';
 import '../recipes/recipe_detail_screen.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
+import '../../l10n/market_locale.dart';
+import '../../l10n/recipe_content.dart';
+import '../../l10n/catalog_labels.dart';
 import '../../widgets/user_avatar.dart';
+import '../../widgets/admin_market_selector.dart';
+import '../../providers/auth_provider.dart';
 
 /// Panel moderacji produktów, przepisów, zgłoszeń i promocji.
 /// Widoczny wyłącznie dla kont z rolą administratora.
 class AdminPanelScreen extends StatefulWidget {
-  const AdminPanelScreen({super.key});
+  const AdminPanelScreen({
+    super.key,
+    this.promotionService,
+    this.recipeService,
+    this.notificationService,
+    this.moderationService,
+  });
+  final PromotionService? promotionService;
+  final RecipeService? recipeService;
+  final NotificationService? notificationService;
+  final ModerationService? moderationService;
 
   @override
   State<AdminPanelScreen> createState() => _AdminPanelScreenState();
 }
 
 class _AdminPanelScreenState extends State<AdminPanelScreen> {
-  final PromotionService _service = PromotionService();
-  final RecipeService _recipeService = RecipeService();
-  final NotificationService _notificationService = NotificationService();
-  final ModerationService _moderationService = ModerationService();
+  late final PromotionService _service;
+  late final RecipeService _recipeService;
+  late final NotificationService _notificationService;
+  late final ModerationService _moderationService;
   final TextEditingController _broadcastController = TextEditingController();
   bool _isSendingBroadcast = false;
   final List<String> _stores = kPromotionScanStores;
+  String _market = 'PL';
+  int _marketGeneration = 0;
+
+  void _changeMarket(String market) {
+    if (market == _market) return;
+    setState(() {
+      _market = market;
+      _marketGeneration++;
+      _pending = [];
+      _pendingRecipes = [];
+    });
+    _loadPending();
+    _loadPendingRecipes();
+  }
 
   String? _scanningStore;
   bool _isLoadingPending = true;
@@ -66,6 +96,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   @override
   void initState() {
     super.initState();
+    _service = widget.promotionService ?? PromotionService();
+    _recipeService = widget.recipeService ?? RecipeService();
+    _notificationService = widget.notificationService ?? NotificationService();
+    _moderationService = widget.moderationService ?? ModerationService();
     _loadPendingRecipes();
     _loadPending();
     _loadReports();
@@ -82,6 +116,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   /// powiadomienie WEWNĄTRZ aplikacji (dzwoneczek), nie prawdziwy push
   /// (który wymagałby Firebase Cloud Messaging).
   Future<void> _sendBroadcast() async {
+    if (_isSendingBroadcast) return;
     final message = _broadcastController.text.trim();
     if (message.isEmpty) return;
 
@@ -95,7 +130,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text('Wysłano do $sentTo użytkowników.'),
+            content: Text(
+              context.strings.adminMainBroadcastSent(sentTo.toString()),
+            ),
           ),
         );
     } catch (e) {
@@ -105,7 +142,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
+            content: Text(friendlyError(e, strings: context.strings)),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -116,12 +153,12 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
 
   /// Etykiety powodów muszą odpowiadać kReportReasons w
   /// widgets/report_block_menu.dart (i REPORT_REASONS w backendzie).
-  static const Map<String, String> _reasonLabels = {
-    'spam': 'Spam albo reklama',
-    'inappropriate_content': 'Treść nieodpowiednia',
-    'harassment': 'Nękanie albo mowa nienawiści',
-    'misinformation': 'Fałszywe informacje',
-    'other': 'Inny powód',
+  Map<String, String> get _reasonLabels => {
+    'spam': context.strings.reportSpam,
+    'inappropriate_content': context.strings.reportInappropriate,
+    'harassment': context.strings.reportHarassment,
+    'misinformation': context.strings.reportMisinformation,
+    'other': context.strings.reportOther,
   };
 
   Widget _buildReportsSection(BuildContext context) {
@@ -129,13 +166,12 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Zgłoszenia treści',
+          context.strings.adminMainReportsTitle,
           style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 4),
         Text(
-          'Przepisy i komentarze zgłoszone przez użytkowników jako spam, nękanie '
-          'albo inne naruszenie regulaminu.',
+          context.strings.adminMainReportsHelp,
           style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
         ),
         const SizedBox(height: 12),
@@ -168,7 +204,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16),
             child: Text(
-              'Brak nierozpatrzonych zgłoszeń.',
+              context.strings.adminMainReportsEmpty,
               style: TextStyle(color: AppTheme.textSecondary),
             ),
           )
@@ -207,29 +243,33 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        contentType == 'recipe' ? 'Przepis' : 'Komentarz',
+                        contentType == 'recipe'
+                            ? context.strings.adminMainRecipeType
+                            : context.strings.adminMainCommentType,
                         style: TextStyle(
                           fontSize: 12,
                           color: AppTheme.textSecondary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const Spacer(),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppTheme.errorColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          _reasonLabels[reason] ?? reason,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: AppTheme.errorColor,
-                            fontWeight: FontWeight.bold,
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppTheme.errorColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            _reasonLabels[reason] ?? reason,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppTheme.errorColor,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
@@ -249,15 +289,17 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                   if (details != null && details.isNotEmpty) ...[
                     const SizedBox(height: 6),
                     Text(
-                      'Szczegóły od zgłaszającego: $details',
+                      context.strings.adminMainReportDetails(details),
                       style: const TextStyle(fontSize: 12),
                     ),
                   ],
                   const SizedBox(height: 6),
                   Text(
                     [
-                      if (authorEmail != null) 'Autor: $authorEmail',
-                      if (reporterEmail != null) 'Zgłosił: $reporterEmail',
+                      if (authorEmail != null)
+                        context.strings.adminMainAuthor(authorEmail),
+                      if (reporterEmail != null)
+                        context.strings.adminMainReporter(reporterEmail),
                     ].join('  ·  '),
                     style: TextStyle(
                       fontSize: 11,
@@ -280,7 +322,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                             isBusy
                                 ? null
                                 : () => _resolveReport(id, 'dismissed'),
-                        child: const Text('Odrzuć zgłoszenie'),
+                        child: Text(context.strings.adminMainDismiss),
                       ),
                       // Usunięcie SAMEJ TREŚCI. Wcześniej panel pozwalał
                       // wyłącznie zamknąć zgłoszenie, a obraźliwy komentarz
@@ -292,7 +334,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                         ),
                         onPressed:
                             isBusy ? null : () => _deleteReportedContent(id),
-                        child: const Text('Usuń treść'),
+                        child: Text(context.strings.adminMainDeleteContent),
                       ),
                       FilledButton(
                         style: FilledButton.styleFrom(
@@ -312,7 +354,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                                     color: Colors.white,
                                   ),
                                 )
-                                : const Text('Oznacz jako rozpatrzone'),
+                                : Text(context.strings.adminMainResolve),
                       ),
                     ],
                   ),
@@ -329,12 +371,12 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Wyślij powiadomienie do wszystkich',
+          context.strings.adminMainBroadcastTitle,
           style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 4),
         Text(
-          'Trafi do dzwoneczka powiadomień KAŻDEGO użytkownika aplikacji — nieodwracalne, sprawdź treść przed wysłaniem.',
+          context.strings.adminMainBroadcastHelp,
           style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
         ),
         const SizedBox(height: 12),
@@ -342,8 +384,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
           controller: _broadcastController,
           maxLines: 3,
           maxLength: 500,
-          decoration: const InputDecoration(
-            hintText: 'Treść powiadomienia...',
+          decoration: InputDecoration(
+            hintText: context.strings.adminMainBroadcastHint,
             border: OutlineInputBorder(),
           ),
         ),
@@ -362,7 +404,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                       ),
                     )
                     : const Icon(Icons.campaign_outlined),
-            label: const Text('Wyślij do wszystkich'),
+            label: Text(context.strings.adminMainBroadcastSend),
           ),
         ),
       ],
@@ -385,25 +427,26 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       if (!mounted) return;
       setState(() {
         _isCheckingAiStatus = false;
-        _aiStatusError = friendlyError(e);
+        _aiStatusError = friendlyError(e, strings: context.strings);
       });
     }
   }
 
   Future<void> _loadPending() async {
+    final generation = _marketGeneration;
     setState(() {
       _isLoadingPending = true;
       _pendingError = null;
     });
     try {
-      final list = await _service.getPendingPromotions();
-      if (!mounted) return;
+      final list = await _service.getPendingPromotions(market: _market);
+      if (!mounted || generation != _marketGeneration) return;
       setState(() {
         _pending = list;
         _isLoadingPending = false;
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || generation != _marketGeneration) return;
       // UWAGA (naprawa): wcześniej błąd był tu całkowicie połykany —
       // lista po prostu zostawała pusta, bez żadnej wskazówki, że coś
       // poszło nie tak (np. gdy odpowiedź serwera nie dała się
@@ -411,7 +454,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       // zamiast fałszywego "brak promocji do akceptacji".
       setState(() {
         _isLoadingPending = false;
-        _pendingError = 'Nie udało się wczytać listy oczekujących promocji.';
+        _pendingError = context.strings.adminMainPromotionsLoadFailed;
       });
     }
   }
@@ -431,8 +474,11 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             duration: const Duration(seconds: 3),
             content: Text(
               result['status'] == 'completed'
-                  ? 'Znaleziono ${result['found']}, zakolejkowano ${result['queued_for_review']} do akceptacji.'
-                  : 'Skanowanie trwa na serwerze. Możesz wyjść z panelu; wyniki pojawią się w kolejce do akceptacji.',
+                  ? context.strings.adminMainScanSummary(
+                    '${result['found']}',
+                    '${result['queued_for_review']}',
+                  )
+                  : context.strings.adminMainScanPending,
             ),
           ),
         );
@@ -444,7 +490,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
+            content: Text(friendlyError(e, strings: context.strings)),
           ),
         );
     } finally {
@@ -470,7 +516,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
           SnackBar(
             duration: const Duration(seconds: 3),
             content: Text(
-              approve ? 'Promocja zaakceptowana' : 'Promocja odrzucona',
+              approve
+                  ? context.strings.adminMainPromotionApproved
+                  : context.strings.adminMainPromotionRejected,
             ),
           ),
         );
@@ -479,9 +527,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
+          SnackBar(
             duration: Duration(seconds: 3),
-            content: Text('Nie udało się wykonać akcji'),
+            content: Text(context.strings.adminMainActionFailed),
           ),
         );
     } finally {
@@ -500,9 +548,11 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       if (mounted) await _loadPending();
     } catch (error) {
       if (mounted && resumed) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(friendlyError(error))));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(friendlyError(error, strings: context.strings)),
+          ),
+        );
       }
     } finally {
       if (mounted && resumed) setState(() => _scanningStore = null);
@@ -510,23 +560,23 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   }
 
   Future<void> _loadPendingRecipes() async {
+    final generation = _marketGeneration;
     setState(() {
       _isLoadingPendingRecipes = true;
       _pendingRecipesError = null;
     });
     try {
-      final list = await _recipeService.getPendingRecipes();
-      if (!mounted) return;
+      final list = await _recipeService.getPendingRecipes(market: _market);
+      if (!mounted || generation != _marketGeneration) return;
       setState(() {
         _pendingRecipes = list;
         _isLoadingPendingRecipes = false;
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || generation != _marketGeneration) return;
       setState(() {
         _isLoadingPendingRecipes = false;
-        _pendingRecipesError =
-            'Nie udało się wczytać listy oczekujących przepisów.';
+        _pendingRecipesError = context.strings.adminMainRecipesLoadFailed;
       });
     }
   }
@@ -547,7 +597,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       if (!mounted) return;
       setState(() {
         _isLoadingReports = false;
-        _reportsError = 'Nie udało się wczytać zgłoszeń.';
+        _reportsError = context.strings.adminMainReportsLoadFailed;
       });
     }
   }
@@ -557,22 +607,19 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       context: context,
       builder:
           (ctx) => AlertDialog(
-            title: const Text('Usunąć zgłoszoną treść?'),
-            content: const Text(
-              'Komentarz albo przepis zostanie trwale usunięty, a zgłoszenie '
-              'zamknięte. Tej operacji nie da się cofnąć.',
-            ),
+            title: Text(context.strings.adminMainDeleteContentTitle),
+            content: Text(context.strings.adminMainDeleteContentHelp),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(false),
-                child: const Text('Anuluj'),
+                child: Text(context.strings.planCancel),
               ),
               FilledButton(
                 style: FilledButton.styleFrom(
                   backgroundColor: AppTheme.errorColor,
                 ),
                 onPressed: () => Navigator.of(ctx).pop(true),
-                child: const Text('Usuń'),
+                child: Text(context.strings.productsDelete),
               ),
             ],
           ),
@@ -590,9 +637,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
+          SnackBar(
             duration: Duration(seconds: 3),
-            content: Text('Treść usunięta, zgłoszenie zamknięte'),
+            content: Text(context.strings.adminMainContentDeleted),
           ),
         );
     } catch (e) {
@@ -603,7 +650,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
+            content: Text(friendlyError(e, strings: context.strings)),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -626,8 +673,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             duration: const Duration(seconds: 3),
             content: Text(
               status == 'resolved'
-                  ? 'Zgłoszenie oznaczone jako rozpatrzone'
-                  : 'Zgłoszenie odrzucone',
+                  ? context.strings.adminMainReportResolved
+                  : context.strings.adminMainReportDismissed,
             ),
           ),
         );
@@ -639,7 +686,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
+            content: Text(friendlyError(e, strings: context.strings)),
           ),
         );
     }
@@ -663,7 +710,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
           SnackBar(
             duration: const Duration(seconds: 3),
             content: Text(
-              approve ? 'Przepis zaakceptowany' : 'Przepis odrzucony',
+              approve
+                  ? context.strings.adminMainRecipeApproved
+                  : context.strings.adminMainRecipeRejected,
             ),
           ),
         );
@@ -674,7 +723,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
+            content: Text(friendlyError(e, strings: context.strings)),
           ),
         );
     } finally {
@@ -698,7 +747,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Panel administratora')),
+      appBar: AppBar(title: Text(context.strings.adminMainTitle)),
       body: RefreshIndicator(
         onRefresh: () async {
           await Future.wait([
@@ -711,17 +760,28 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
+            AdminMarketSelector(
+              countryCode: _market,
+              isAdmin:
+                  context.watch<AuthProvider>().currentUser?.isAdmin ?? false,
+              isBusy:
+                  _scanningStore != null ||
+                  _busyPromotionIds.isNotEmpty ||
+                  _busyRecipeIds.isNotEmpty,
+              onChanged: _changeMarket,
+            ),
+            const SizedBox(height: 20),
             // Przepisy oczekujące na akceptację do wspólnego katalogu —
             // wcześniej nie było tu żadnej listy, mimo że backend i
             // przyciski akceptacji/odrzucenia (RecipeApprovalBar) już
             // istniały — admin nie miał jak w ogóle odkryć, że coś czeka.
             Text(
-              'Przepisy oczekujące na akceptację',
+              context.strings.adminMainRecipesTitle,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 4),
             Text(
-              'Przepisy zgłoszone przez użytkowników Premium do wspólnego, publicznego katalogu.',
+              context.strings.adminMainRecipesHelp,
               style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
             ),
             const SizedBox(height: 12),
@@ -754,7 +814,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Text(
-                  'Brak przepisów czekających na akceptację.',
+                  context.strings.adminMainRecipesEmpty,
                   style: TextStyle(color: AppTheme.textSecondary),
                 ),
               )
@@ -784,14 +844,16 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      recipe.name,
+                                      recipe.displayName(context),
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                     if (recipe.createdByName != null)
                                       Text(
-                                        'Autor: ${recipe.createdByName}',
+                                        context.strings.adminMainAuthor(
+                                          recipe.createdByName!,
+                                        ),
                                         style: TextStyle(
                                           color: AppTheme.textSecondary,
                                           fontSize: 11,
@@ -808,17 +870,26 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            '${recipe.mealType} • ${recipe.servings} porcji • ${recipe.difficulty}',
+                            context.strings.adminMainRecipeMeta(
+                              context.strings.mealTypeLabel(recipe.mealType),
+                              recipe.servings.toString(),
+                              context.strings.difficultyLabel(
+                                recipe.difficulty,
+                              ),
+                            ),
                             style: TextStyle(
                               color: AppTheme.textSecondary,
                               fontSize: 12,
                             ),
                           ),
-                          if (recipe.description?.trim().isNotEmpty ??
+                          if (recipe
+                                  .displayDescription(context)
+                                  ?.trim()
+                                  .isNotEmpty ??
                               false) ...[
                             const SizedBox(height: 6),
                             Text(
-                              recipe.description!,
+                              recipe.displayDescription(context)!,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -838,7 +909,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
-                                  'Dotknij, aby sprawdzić składniki, instrukcję, zdjęcie i makro',
+                                  context.strings.adminMainRecipePreview,
                                   style: TextStyle(
                                     color: AppTheme.actionPrimaryColor,
                                     fontSize: 11,
@@ -886,7 +957,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                                                   ).colorScheme.onPrimary,
                                             ),
                                           )
-                                          : const Text('Zaakceptuj'),
+                                          : Text(
+                                            context.strings.adminMainApprove,
+                                          ),
                                 ),
                               ),
                             ],
@@ -902,13 +975,12 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             // zanim na wyczerpany limit natrafi prawdziwy użytkownik
             // próbujący dodać przepis przez AI albo zeskanować gazetkę.
             Text(
-              'Stan usługi AI',
+              context.strings.adminMainAiTitle,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 4),
             Text(
-              'Sprawdza, czy klucz Gemini działa i czy limit tokenów/zapytań '
-              'nie został wyczerpany — dla każdego modelu z osobna.',
+              context.strings.adminMainAiHelp,
               style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
             ),
             const SizedBox(height: 12),
@@ -925,7 +997,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                         ),
                       )
                       : const Icon(Icons.health_and_safety_outlined, size: 18),
-              label: const Text('Sprawdź stan AI'),
+              label: Text(context.strings.adminMainAiCheck),
             ),
             if (_aiStatusError != null) ...[
               const SizedBox(height: 10),
@@ -946,7 +1018,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                   ),
                   child: Text(
                     _aiStatus!['summary'] as String? ??
-                        'Klucz API nie jest skonfigurowany.',
+                        context.strings.adminMainAiKeyMissing,
                     style: TextStyle(color: AppTheme.errorColor, fontSize: 13),
                   ),
                 )
@@ -996,48 +1068,49 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             ],
             const SizedBox(height: 32),
             Text(
-              'Skanuj gazetki promocyjne',
+              context.strings.adminMainScanTitle,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 4),
             Text(
-              'AI przeszuka internet w poszukiwaniu aktualnej gazetki danego '
-              'sklepu i rozpozna z niej promocje. Wynik trafi poniżej do '
-              'akceptacji — nic nie zmienia się automatycznie.',
+              context.strings.adminMainScanHelp,
               style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
             ),
             const SizedBox(height: 16),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children:
-                  _stores.map((store) {
-                    final isBusy = _scanningStore == store;
-                    return ElevatedButton.icon(
-                      onPressed:
-                          _scanningStore != null ? null : () => _scan(store),
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 44),
-                      ),
-                      icon:
-                          isBusy
-                              ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                              : const Icon(Icons.search, size: 18),
-                      label: Text('Skanuj $store'),
-                    );
-                  }).toList(),
-            ),
+            if (_market == 'GB')
+              Text(context.strings.adminMainUkScanUnavailable)
+            else
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children:
+                    _stores.map((store) {
+                      final isBusy = _scanningStore == store;
+                      return ElevatedButton.icon(
+                        onPressed:
+                            _scanningStore != null ? null : () => _scan(store),
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(0, 44),
+                        ),
+                        icon:
+                            isBusy
+                                ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                                : const Icon(Icons.search, size: 18),
+                        label: Text(context.strings.adminMainScanShop(store)),
+                      );
+                    }).toList(),
+              ),
             if (_scanningStore != null) ...[
               const SizedBox(height: 8),
               Text(
-                'Skanowanie $_scanningStore trwa w tle. Możesz opuścić panel.',
+                context.strings.adminMainScanningShop(_scanningStore!),
                 style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
               ),
             ],
@@ -1051,7 +1124,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                 // klasa błędu co przy przyciskach zgłoszeń.
                 Expanded(
                   child: Text(
-                    'Oczekujące na akceptację',
+                    context.strings.adminMainPendingTitle,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ),
@@ -1094,7 +1167,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Text(
-                  'Brak promocji czekających na akceptację.',
+                  context.strings.adminMainPromotionsEmpty,
                   style: TextStyle(color: AppTheme.textSecondary),
                 ),
               )
@@ -1219,7 +1292,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                                             color: Colors.white,
                                           ),
                                         )
-                                        : const Text('Zaakceptuj'),
+                                        : Text(
+                                          context.strings.adminMainApprove,
+                                        ),
                               ),
                             ),
                           ],
@@ -1241,7 +1316,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
               children: [
                 OutlinedButton.icon(
                   icon: const Icon(Icons.people_outline, size: 18),
-                  label: const Text('Użytkownicy'),
+                  label: Text(context.strings.adminUsersTitle),
                   onPressed:
                       () => Navigator.of(context).push(
                         MaterialPageRoute(
@@ -1251,7 +1326,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                 ),
                 OutlinedButton.icon(
                   icon: const Icon(Icons.chat_bubble_outline, size: 18),
-                  label: const Text('Komentarze'),
+                  label: Text(context.strings.adminCommentsTitle),
                   onPressed:
                       () => Navigator.of(context).push(
                         MaterialPageRoute(
@@ -1261,7 +1336,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                 ),
                 OutlinedButton.icon(
                   icon: const Icon(Icons.photo_library_outlined, size: 18),
-                  label: const Text('Zdjęcia'),
+                  label: Text(context.strings.adminPhotosTitle),
                   onPressed:
                       () => Navigator.of(context).push(
                         MaterialPageRoute(
@@ -1271,31 +1346,32 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                 ),
                 OutlinedButton.icon(
                   icon: const Icon(Icons.inventory_2_outlined, size: 18),
-                  label: const Text('Produkty'),
+                  label: Text(context.strings.adminMainProductsNav),
                   onPressed:
                       () => Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) => const AdminProductsScreen(),
+                          builder: (_) => AdminProductsScreen(market: _market),
                         ),
                       ),
                 ),
                 OutlinedButton.icon(
                   icon: const Icon(Icons.menu_book_outlined, size: 18),
-                  label: const Text('Przepisy użytkowników'),
+                  label: Text(context.strings.adminMainUserRecipesNav),
                   onPressed:
                       () => Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) => const AdminAllRecipesScreen(),
+                          builder:
+                              (_) => AdminAllRecipesScreen(market: _market),
                         ),
                       ),
                 ),
                 OutlinedButton.icon(
                   icon: const Icon(Icons.local_offer_outlined, size: 18),
-                  label: const Text('Kampanie'),
+                  label: Text(context.strings.campaignTitle),
                   onPressed:
                       () => Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) => const AdminCampaignsScreen(),
+                          builder: (_) => AdminCampaignsScreen(market: _market),
                         ),
                       ),
                 ),

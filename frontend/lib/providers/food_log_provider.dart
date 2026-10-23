@@ -4,11 +4,14 @@ import '../models/food_log.dart';
 import '../services/api_client.dart';
 import '../services/food_log_service.dart';
 import '../services/app_review_service.dart';
+import '../services/premium_offer_success_signal.dart';
+import '../models/premium_offer.dart';
 import '../utils/error_utils.dart';
 
 class FoodLogProvider with ChangeNotifier {
   final FoodLogService _service;
   final Future<String?> Function() _readToken;
+  final ErrorStringsResolver? errorStrings;
   String? _token;
   int _requestGeneration = 0;
   int _sessionGeneration = 0;
@@ -16,6 +19,7 @@ class FoodLogProvider with ChangeNotifier {
   FoodLogProvider({
     FoodLogService? service,
     Future<String?> Function()? readToken,
+    this.errorStrings,
   }) : _service = service ?? FoodLogService(),
        _readToken = readToken ?? ApiClient().getToken;
 
@@ -58,7 +62,9 @@ class FoodLogProvider with ChangeNotifier {
     final token = await _resolveToken();
     if (generation != _requestGeneration) return;
     if (token == null) {
-      _error = 'Musisz być zalogowany, aby zobaczyć dziennik.';
+      _error =
+          errorStrings?.call().diarySignInView ??
+          'Musisz być zalogowany, aby zobaczyć dziennik.';
       notifyListeners();
       return;
     }
@@ -81,7 +87,7 @@ class FoodLogProvider with ChangeNotifier {
       _summary = results[1] as DailySummary;
     } catch (e) {
       if (generation != _requestGeneration) return;
-      _error = friendlyError(e);
+      _error = friendlyError(e, strings: errorStrings?.call());
       _logs = [];
       _summary = null;
     } finally {
@@ -149,7 +155,9 @@ class FoodLogProvider with ChangeNotifier {
     final token = await _resolveToken();
     if (session != _sessionGeneration) return false;
     if (token == null) {
-      _error = 'Musisz być zalogowany, aby dodać wpis.';
+      _error =
+          errorStrings?.call().diarySignInAdd ??
+          'Musisz być zalogowany, aby dodać wpis.';
       notifyListeners();
       return false;
     }
@@ -174,11 +182,12 @@ class FoodLogProvider with ChangeNotifier {
       await _service.addFoodLog(entry.toCreateJson(), token);
       if (session != _sessionGeneration) return false;
       AppReviewSignal.recordSuccess();
+      PremiumOfferSuccessSignal.record(PremiumOfferContext.journal);
       await fetchLogsForDate(_currentDate);
       return true;
     } catch (e) {
       if (session != _sessionGeneration) return false;
-      _error = friendlyError(e);
+      _error = friendlyError(e, strings: errorStrings?.call());
       notifyListeners();
       return false;
     }
@@ -196,7 +205,9 @@ class FoodLogProvider with ChangeNotifier {
     final token = await _resolveToken();
     if (session != _sessionGeneration) return false;
     if (token == null) {
-      _error = 'Musisz być zalogowany, aby dodać wpis.';
+      _error =
+          errorStrings?.call().diarySignInAdd ??
+          'Musisz być zalogowany, aby dodać wpis.';
       notifyListeners();
       return false;
     }
@@ -213,11 +224,12 @@ class FoodLogProvider with ChangeNotifier {
       }, token);
       if (session != _sessionGeneration) return false;
       AppReviewSignal.recordSuccess();
+      PremiumOfferSuccessSignal.record(PremiumOfferContext.journal);
       await fetchLogsForDate(_currentDate);
       return true;
     } catch (e) {
       if (session != _sessionGeneration) return false;
-      _error = friendlyError(e);
+      _error = friendlyError(e, strings: errorStrings?.call());
       notifyListeners();
       return false;
     }
@@ -234,7 +246,9 @@ class FoodLogProvider with ChangeNotifier {
     final token = await _resolveToken();
     if (session != _sessionGeneration) return false;
     if (token == null) {
-      _error = 'Musisz być zalogowany, aby dodać wpis.';
+      _error =
+          errorStrings?.call().diarySignInAdd ??
+          'Musisz być zalogowany, aby dodać wpis.';
       notifyListeners();
       return false;
     }
@@ -248,11 +262,12 @@ class FoodLogProvider with ChangeNotifier {
       );
       if (session != _sessionGeneration) return false;
       AppReviewSignal.recordSuccess();
+      PremiumOfferSuccessSignal.record(PremiumOfferContext.journal);
       await fetchLogsForDate(_currentDate);
       return true;
     } catch (e) {
       if (session != _sessionGeneration) return false;
-      _error = friendlyError(e);
+      _error = friendlyError(e, strings: errorStrings?.call());
       notifyListeners();
       return false;
     }
@@ -297,7 +312,7 @@ class FoodLogProvider with ChangeNotifier {
       return true;
     } catch (e) {
       if (session != _sessionGeneration) return false;
-      _error = friendlyError(e);
+      _error = friendlyError(e, strings: errorStrings?.call());
       notifyListeners();
       return false;
     }
@@ -315,7 +330,7 @@ class FoodLogProvider with ChangeNotifier {
       await fetchLogsForDate(_currentDate);
     } catch (e) {
       if (session != _sessionGeneration) return;
-      _error = friendlyError(e);
+      _error = friendlyError(e, strings: errorStrings?.call());
       notifyListeners();
     }
   }

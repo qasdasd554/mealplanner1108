@@ -19,6 +19,8 @@ from sqlalchemy.orm import selectinload
 
 from app.api.deps import get_current_admin, get_current_user
 from app.core.exceptions import NotFoundException
+from app.core.language import account_text
+from app.core.markets import account_country, MarketCode
 from app.db.session import get_db
 from app.models import (
     BarcodeProductCache,
@@ -30,11 +32,13 @@ from app.models import (
 from app.models.user import User
 from app.schemas.product import (
     ProductResponse,
+    ProductNameSuggestion,
     ProductSubmissionResponse,
     StoreProductResponse,
     SubstituteResponse,
 )
 from app.services import ProductSubstitutionService
+from app.services.store_market_access import get_store_in_account_market
 from app.services.barcode_lookup import (
     BarcodeLookupResult,
     EXPLICIT_NUTRITION_SOURCES,
@@ -55,6 +59,30 @@ from app.services.barcode_lookup import (
 # przy dodawaniu kolejnego endpointu w przyszłości.
 router = APIRouter(dependencies=[Depends(get_current_user)])
 logger = logging.getLogger(__name__)
+
+
+def _external_lookup_context(user: object) -> dict[str, str]:
+    """Only the persisted account market controls external lookup language."""
+    return {"country_code": "GB"} if account_country(user) == "GB" else {}
+
+
+def _without_legacy_prices(response, user: object):
+    """These old ranges are PLN estimates, never a reviewed UK offer."""
+    if account_country(user) == "GB":
+        response.price_min = None
+        response.price_max = None
+    return response
+
+
+async def _validate_submission_stores(db, store_ids, user) -> None:
+    """Submitted store IDs cannot turn a PL price into GBP availability."""
+    for store_id in dict.fromkeys(store_ids):
+        if await get_store_in_account_market(db, store_id, user) is None:
+            raise HTTPException(
+                status_code=400,
+                detail=account_text(user, "Wybierz sklep dostępny w kraju przypisanym do konta.",
+                    "Choose a shop available in your account's country."),
+            )
 
 
 def _visible_product_filter(user_id: UUID):
@@ -127,18 +155,24 @@ def _merge_local_barcode_response(
             return external_value
         return local_value if local_value is not None else external_value
 
+    def physical_package(unit, quantity) -> bool:
+        return (
+            unit in {"g", "ml"} and quantity is not None
+            and math.isfinite(quantity) and 0 < quantity <= 100_000
+        )
+
+    take_external_package = (
+        include_package
+        and not physical_package(local.unit, local.serving_quantity)
+        and physical_package(external.unit, external.serving_quantity)
+    )
+
     return BarcodeLookupResponse(
         found=True,
         source=f"{local.source}_enriched" if local.source else external.source,
         name=local.name or external.name,
         brand=local.brand or external.brand,
-        unit=(
-            external.unit
-            if local.unit == "opak"
-            and include_package and external.serving_quantity is not None
-            and external.unit in {"g", "ml"}
-            else local.unit or external.unit
-        ),
+        unit=external.unit if take_external_package else local.unit or external.unit,
         kcal_per_100=nutrition(local.kcal_per_100, external.kcal_per_100),
         protein_per_100=nutrition(
             local.protein_per_100, external.protein_per_100,
@@ -150,28 +184,9 @@ def _merge_local_barcode_response(
         price_max=local.price_max if local.price_max is not None else external.price_max,
         barcode=local.barcode or external.barcode,
         serving_quantity=(
-            local.serving_quantity
-            if local.serving_quantity is not None
-            else external.serving_quantity if include_package else None
+            external.serving_quantity if take_external_package else local.serving_quantity
         ),
     )
-
-
-class ProductNameSuggestion(BaseModel):
-    found: bool = True
-    source: str
-    name: str
-    brand: str | None = None
-    unit: str = "g"
-    barcode: str | None = None
-    existing_product_id: uuid.UUID | None = None
-    kcal_per_100: float | None = None
-    protein_per_100: float | None = None
-    fat_per_100: float | None = None
-    carbs_per_100: float | None = None
-    price_min: float | None = None
-    price_max: float | None = None
-    serving_quantity: float | None = None
 
 
 class RecipeIngredientProductCreate(BaseModel):
@@ -206,13 +221,14 @@ def _nutrition_values_are_complete(nutrition: dict | None) -> bool:
         return False
 
 
-def _require_complete_recipe_nutrition(nutrition: dict | None) -> None:
+def _require_complete_recipe_nutrition(nutrition: dict | None, *, country_code: str = "PL") -> None:
     """Nie pozwala utrwalić składnika, którego nie da się poprawnie policzyć."""
     if _nutrition_values_are_complete(nutrition):
         return
     raise HTTPException(
         status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-        detail=(
+        detail=("Complete nutrition information was not found. Add the label values before using this product in a recipe."
+            if country_code == "GB" else
             "Nie odnaleziono pełnych wartości odżywczych produktu. "
             "Uzupełnij dane z etykiety przed dodaniem go do przepisu."
         ),
@@ -224,6 +240,8 @@ async def _enrich_recipe_ingredient_product(
     payload: RecipeIngredientProductCreate,
     db: AsyncSession,
     user_id: UUID,
+    *,
+    country_code: str = "PL",
 ) -> Product:
     """Uzupełnia makro i gramaturę przed zapisaniem składnika przepisu."""
     changed = False
@@ -270,9 +288,10 @@ async def _enrich_recipe_ingredient_product(
                 changed = True
 
     if not _nutrition_values_are_complete(product.nutrition_per_100):
-        external = await lookup_barcode_external(barcode) if barcode else None
+        context = {"country_code": "GB"} if country_code == "GB" else {}
+        external = await lookup_barcode_external(barcode, **context) if barcode else None
         if external is None or not has_complete_nutrition(external):
-            by_name = await find_nutrition_by_name(product.name, product.brand, barcode=barcode)
+            by_name = await find_nutrition_by_name(product.name, product.brand, barcode=barcode, **context)
             if by_name is not None:
                 external = (
                     merge_lookup_results(external, by_name)
@@ -304,7 +323,7 @@ async def _enrich_recipe_ingredient_product(
         )
         changed = True
 
-    _require_complete_recipe_nutrition(product.nutrition_per_100)
+    _require_complete_recipe_nutrition(product.nutrition_per_100, country_code=country_code)
 
     if changed:
         await db.commit()
@@ -355,7 +374,7 @@ async def _upsert_barcode_cache(
     await db.commit()
 
 
-async def _persist_barcode_cache_in_background(**values) -> None:
+async def _persist_barcode_cache_in_background(off_product: dict | None = None, **values) -> None:
     """Zapisuje trafienie po wysłaniu odpowiedzi do telefonu.
 
     Użytkownik dostaje wynik z OFF/USDA bez czekania na dodatkowy zapis
@@ -366,6 +385,18 @@ async def _persist_barcode_cache_in_background(**values) -> None:
     try:
         async with async_session_factory() as session:
             await _upsert_barcode_cache(session, **values)
+            # Country availability is a separate OFF fact, not retailer stock.
+            # Save only the product actually requested, after sending the result.
+            if isinstance(off_product, dict):
+                from datetime import datetime, timezone
+                from app.services.barcode_lookup import barcode_variants
+                from app.services.off_catalogue import import_off_catalogue
+
+                if off_product.get("code") in barcode_variants(values["barcode"]):
+                    await import_off_catalogue(
+                        session, [off_product], retrieved_at=datetime.now(timezone.utc),
+                    )
+                    await session.commit()
     except Exception:
         logger.exception("Nie udało się zapisać produktu w cache kodów kreskowych")
 
@@ -390,18 +421,32 @@ async def list_products(
     oczekujące pozostają ukryte, dopóki nie zostaną zatwierdzone.
     """
     query = select(Product).where(_visible_product_filter(current_user.id))
+    if account_country(current_user) == "GB":
+        from app.services.off_availability import product_has_off_uk_evidence
+        from app.services.market_catalog import utc_market_date
+        query = query.where(or_(
+            Product.created_by_user_id == current_user.id,
+            Product.submitted_country_code == "GB",
+            product_has_off_uk_evidence(Product.id, as_of=utc_market_date()),
+        ))
 
     normalized_search = search.strip() if search else ""
     if normalized_search:
         pattern = f"%{normalized_search}%"
-        query = query.where(
-            or_(
-                Product.name.ilike(pattern),
-                Product.brand.ilike(pattern),
-            )
-        )
+        matches = [Product.name.ilike(pattern), Product.brand.ilike(pattern)]
+        if account_country(current_user) == "GB":
+            from app.services.system_content_language import english_system_name_match
+            matches.append(english_system_name_match(Product, normalized_search, kind="ingredients"))
+        query = query.where(or_(*matches))
 
-    query = query.order_by(Product.name).offset(skip).limit(limit)
+    display_name = Product.name
+    if account_country(current_user) == "GB":
+        from app.services.system_content_language import english_system_name_order
+        display_name = english_system_name_order(Product, kind="ingredients")
+    query = query.order_by(display_name)
+    if account_country(current_user) == "GB":
+        query = query.order_by(Product.id)
+    query = query.offset(skip).limit(limit)
 
     result = await db.execute(query)
     return list(result.scalars().all())
@@ -431,7 +476,8 @@ async def lookup_barcode(
 
     normalized_barcode = normalize_barcode(barcode)
     if normalized_barcode is None:
-        raise HTTPException(status_code=400, detail="Nieprawidłowy kod EAN/UPC")
+        raise HTTPException(status_code=400, detail=account_text(current_user,
+            "Nieprawidłowy kod EAN/UPC", "Invalid EAN/UPC barcode."))
 
     # 1. Własny katalog — widoczne to, co widziałby zwykły GET /products
     # (zaakceptowane PLUS własne zgłoszenia), żeby nie pokazywać komuś
@@ -486,7 +532,7 @@ async def lookup_barcode(
             # zapis do katalogu/spiżarni pozostaje zawsze „1 opakowanie”.
             local_response.unit = cached.unit
         if local_response.serving_quantity is not None:
-            return local_response
+            return _without_legacy_prices(local_response, current_user)
         # Nazwa i makro są już lokalne, ale brak gramatury opakowania.
         # Jedno zapytanie do źródła zewnętrznego może ją zweryfikować;
         # jeśli jej tam nie ma, wynik nadal wróci bez opcji „opakowanie”.
@@ -524,17 +570,19 @@ async def lookup_barcode(
                 serving_quantity=cached.serving_quantity,
             )
             if _response_has_complete_nutrition(local_response):
-                return local_response
+                return _without_legacy_prices(local_response, current_user)
 
     # 3. Open Food Facts v3 oraz USDA FoodData Central. UPCitemdb zostało
     # usunięte z aktywnej ścieżki: często zwracało 429 i nie zawiera makro.
-    external = await lookup_barcode_external(normalized_barcode)
+    context = _external_lookup_context(current_user)
+    external = await lookup_barcode_external(normalized_barcode, **context)
     if external is not None:
         if not has_complete_nutrition(external):
             internet_nutrition = await find_nutrition_by_name(
                 external.name,
                 external.brand,
                 barcode=normalized_barcode,
+                **context,
             )
             if internet_nutrition is not None:
                 external = merge_lookup_results(external, internet_nutrition)
@@ -583,14 +631,16 @@ async def lookup_barcode(
             price_max=response.price_max or external.price_max,
             source=response.source or external.source,
             serving_quantity=response.serving_quantity,
+            **({"off_product": external.off_product} if account_country(current_user) == "GB" else {}),
         )
-        return response
+        return _without_legacy_prices(response, current_user)
 
     if local_response is not None:
         internet_nutrition = await find_nutrition_by_name(
             local_response.name or "",
             local_response.brand,
             barcode=normalized_barcode,
+            **context,
         )
         if internet_nutrition is not None:
             local_response = _merge_local_barcode_response(
@@ -623,8 +673,9 @@ async def lookup_barcode(
                 price_max=local_response.price_max or internet_nutrition.price_max,
                 source="name_search_enriched",
                 serving_quantity=local_response.serving_quantity,
+                **({"off_product": internet_nutrition.off_product} if account_country(current_user) == "GB" else {}),
             )
-        return local_response
+        return _without_legacy_prices(local_response, current_user)
 
     return BarcodeLookupResponse(found=False, source=None, name=None)
 
@@ -674,7 +725,8 @@ async def recognize_product_from_label(
 
     barcode = normalize_barcode(payload.barcode)
     if barcode is None:
-        raise HTTPException(status_code=400, detail="Nieprawidłowy kod EAN/UPC")
+        raise HTTPException(status_code=400, detail=account_text(current_user,
+            "Nieprawidłowy kod EAN/UPC", "Invalid EAN/UPC barcode."))
     from app.core.rate_limit import enforce_user_rate_limit, product_label_ai_limiter
 
     enforce_user_rate_limit(
@@ -687,6 +739,7 @@ async def recognize_product_from_label(
             barcode=barcode,
             front_photo_base64=payload.front_photo_base64,
             nutrition_photo_base64=payload.nutrition_photo_base64,
+            **_external_lookup_context(current_user),
         )
     except ProductLabelRecognitionError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
@@ -694,7 +747,7 @@ async def recognize_product_from_label(
     price_min, price_max = price_range_for_product(result["name"])
     result["price_min"] = price_min
     result["price_max"] = price_max
-    return BarcodeLookupResponse(**result)
+    return _without_legacy_prices(BarcodeLookupResponse(**result), current_user)
 
 
 @router.post(
@@ -705,13 +758,15 @@ async def recognize_product_from_label(
 async def confirm_product_label(
     payload: ProductLabelConfirmation,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> BarcodeLookupResponse:
     """Dopiero świadome potwierdzenie użytkownika zasila wspólny cache."""
     from app.services.barcode_lookup import normalize_barcode
 
     barcode = normalize_barcode(payload.barcode)
     if barcode is None:
-        raise HTTPException(status_code=400, detail="Nieprawidłowy kod EAN/UPC")
+        raise HTTPException(status_code=400, detail=account_text(current_user,
+            "Nieprawidłowy kod EAN/UPC", "Invalid EAN/UPC barcode."))
     name = payload.name.strip()
     brand = (payload.brand or "").strip() or None
     price_min, price_max = price_range_for_product(name)
@@ -730,7 +785,7 @@ async def confirm_product_label(
         source="product_label_ai_confirmed",
         serving_quantity=payload.serving_quantity,
     )
-    return BarcodeLookupResponse(
+    return _without_legacy_prices(BarcodeLookupResponse(
         found=True,
         source="neon_cache",
         barcode=barcode,
@@ -744,7 +799,7 @@ async def confirm_product_label(
         carbs_per_100=payload.carbs_per_100,
         price_min=price_min,
         price_max=price_max,
-    )
+    ), current_user)
 
 
 @router.get(
@@ -810,6 +865,7 @@ async def search_products_by_name(
     limit: int = Query(10, ge=1, le=20),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    background_tasks: BackgroundTasks = None,
 ) -> list[ProductNameSuggestion]:
     """Zwraca podpowiedzi bez odbierania możliwości ręcznego wpisania.
 
@@ -853,6 +909,7 @@ async def search_products_by_name(
         })
 
     def add_suggestion(suggestion: ProductNameSuggestion) -> None:
+        suggestion = _without_legacy_prices(suggestion, current_user)
         # Equal names/brands can still be different flavours or pack sizes.
         # Merge catalog/cache fields only when the GTIN identity also agrees.
         key = (
@@ -926,13 +983,26 @@ async def search_products_by_name(
     for suggestion in cache_suggestions[:cache_quota]:
         add_suggestion(suggestion)
 
+    if account_country(current_user) == "GB" and len(suggestions) < limit:
+        from app.services.off_catalogue import search_off_catalogue
+
+        for suggestion in await search_off_catalogue(
+            db, normalized, country_code="GB", limit=limit - len(suggestions),
+        ):
+            add_suggestion(suggestion)
+
     if len(suggestions) < limit:
         from app.services.barcode_lookup import search_products_external
 
         external_results = await search_products_external(
             normalized,
             limit=limit - len(suggestions),
+            **_external_lookup_context(current_user),
         )
+        if account_country(current_user) == "GB" and background_tasks is not None:
+            source_records = [value.off_product for value in external_results if getattr(value, "off_product", None)]
+            if source_records:
+                background_tasks.add_task(_persist_off_catalogue_in_background, source_records)
         for external in external_results:
             add_suggestion(ProductNameSuggestion(
                 source=external.source,
@@ -959,6 +1029,20 @@ async def search_products_by_name(
     return suggestions
 
 
+async def _persist_off_catalogue_in_background(records: list[dict]) -> None:
+    """OFF-only cache write after the HTTP response; no user or shop writes."""
+    from datetime import datetime, timezone
+    from app.db.session import async_session_factory
+    from app.services.off_catalogue import import_off_catalogue
+
+    try:
+        async with async_session_factory() as session:
+            await import_off_catalogue(session, records, retrieved_at=datetime.now(timezone.utc))
+            await session.commit()
+    except Exception:
+        logger.warning("OFF catalogue cache write failed; the live result was retained")
+
+
 @router.post(
     "/recipe-ingredient",
     response_model=ProductResponse,
@@ -982,8 +1066,9 @@ async def resolve_recipe_ingredient_product(
         ))
         existing = result.scalar_one_or_none()
         if existing is None:
-            raise HTTPException(status_code=404, detail="Nie znaleziono produktu")
-        return await _enrich_recipe_ingredient_product(existing, payload, db, current_user.id)
+            raise HTTPException(status_code=404, detail=account_text(current_user,
+                "Nie znaleziono produktu", "Product not found."))
+        return await _enrich_recipe_ingredient_product(existing, payload, db, current_user.id, country_code=account_country(current_user))
 
     name = " ".join(payload.name.split())
     brand = (payload.brand or "").strip() or None
@@ -1008,7 +1093,7 @@ async def resolve_recipe_ingredient_product(
             )
         )
         if same_dimension:
-            return await _enrich_recipe_ingredient_product(existing, payload, db, current_user.id)
+            return await _enrich_recipe_ingredient_product(existing, payload, db, current_user.id, country_code=account_country(current_user))
     result = await db.execute(select(Product).where(
         Product.created_by_user_id == current_user.id,
         Product.review_status == "private",
@@ -1018,7 +1103,7 @@ async def resolve_recipe_ingredient_product(
     ).limit(1))
     existing = result.scalar_one_or_none()
     if existing is not None:
-        return await _enrich_recipe_ingredient_product(existing, payload, db, current_user.id)
+        return await _enrich_recipe_ingredient_product(existing, payload, db, current_user.id, country_code=account_country(current_user))
 
     from app.core.rate_limit import enforce_user_rate_limit, recipe_ingredient_limiter
 
@@ -1037,7 +1122,7 @@ async def resolve_recipe_ingredient_product(
             "carbs": payload.carbs_per_100,
             "fiber": None,
         }
-    _require_complete_recipe_nutrition(nutrition)
+    _require_complete_recipe_nutrition(nutrition, country_code=account_country(current_user))
     from app.services.product_measures import build_measure_options
 
     product = Product(
@@ -1100,10 +1185,12 @@ async def list_my_products(
 async def list_pending_products(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_admin),
+    market: MarketCode | None = None,
 ) -> list[Product]:
     result = await db.execute(
         select(Product)
         .where(Product.review_status == "pending")
+        .where(Product.submitted_country_code == market if market else True)
         .order_by(Product.created_at.desc())
     )
     return list(result.scalars().all())
@@ -1131,7 +1218,8 @@ async def get_product(
     product = result.scalar_one_or_none()
     if product is None:
         raise NotFoundException(
-            detail=f"Produkt o ID {product_id} nie został znaleziony"
+            detail=account_text(current_user,
+                f"Produkt o ID {product_id} nie został znaleziony", f"Product {product_id} was not found.")
         )
     return product
 
@@ -1153,6 +1241,9 @@ async def get_product_substitutes(
 
     Opcjonalnie filtruje zamienniki po dostępności w wybranym sklepie.
     """
+    if store_id is not None:
+        if await get_store_in_account_market(db, store_id, current_user) is None:
+            raise NotFoundException(detail=account_text(current_user, "Sklep nie został znaleziony", "Shop not found."))
     # Sprawdź czy produkt istnieje
     product_result = await db.execute(
         select(Product).where(
@@ -1162,7 +1253,8 @@ async def get_product_substitutes(
     )
     if product_result.scalar_one_or_none() is None:
         raise NotFoundException(
-            detail=f"Produkt o ID {product_id} nie został znaleziony"
+            detail=account_text(current_user,
+                f"Produkt o ID {product_id} nie został znaleziony", f"Product {product_id} was not found.")
         )
 
     if store_id is None:
@@ -1181,6 +1273,7 @@ async def get_product_substitutes(
                 "brand": p.brand,
                 "price": None,
                 "similarity_score": None,
+                "currency_code": "GBP" if account_country(current_user) == "GB" else "PLN",
             }
             for p in result.scalars().all()
         ]
@@ -1205,6 +1298,13 @@ async def get_product_substitutes(
         ):
             continue
         store_prod = r.get("store_product")
+        regional_quote = r.get("regional_quote") if account_country(current_user) == "GB" else None
+        if account_country(current_user) == "GB":
+            # A legacy StoreProduct is not a reviewed British price/pack.
+            if (regional_quote is None or regional_quote.store_id != store_id
+                    or regional_quote.product_id != prod.id
+                    or regional_quote.currency_code != "GBP"):
+                continue
         kcal = None
         if prod.nutrition_per_100 and "kcal" in prod.nutrition_per_100:
             try:
@@ -1213,11 +1313,16 @@ async def get_product_substitutes(
                 pass
         response_list.append({
             "id": prod.id,
-            "name": prod.name,
+            "name": regional_quote.name_en if regional_quote else prod.name,
             "brand": prod.brand,
-            "price": store_prod.price if store_prod else None,
+            "price": regional_quote.price_per_package if regional_quote else (store_prod.price if store_prod else None),
             "kcal": kcal,
-            "similarity_score": r.get("similarity_score")
+            "similarity_score": r.get("similarity_score"),
+            "currency_code": "GBP" if regional_quote else "PLN",
+            "package_quantity": regional_quote.package_quantity if regional_quote else None,
+            "package_unit": regional_quote.unit if regional_quote else None,
+            "price_is_estimated": regional_quote.price_is_estimated if regional_quote else getattr(store_prod, "last_verified", None) is None,
+            "last_verified": regional_quote.last_verified if regional_quote else getattr(store_prod, "last_verified", None),
         })
     return response_list
 
@@ -1304,6 +1409,7 @@ async def submit_product(
     enforce_user_rate_limit(
         product_submission_limiter, current_user.id, "zgłaszanie produktów"
     )
+    await _validate_submission_stores(db, payload.store_ids, current_user)
 
     normalized_barcode = None
     if payload.barcode:
@@ -1311,7 +1417,8 @@ async def submit_product(
 
         normalized_barcode = normalize_barcode(payload.barcode)
         if normalized_barcode is None:
-            raise HTTPException(status_code=400, detail="Nieprawidłowy kod EAN/UPC")
+            raise HTTPException(status_code=400, detail=account_text(current_user,
+                "Nieprawidłowy kod EAN/UPC", "Invalid EAN/UPC barcode."))
 
     contribution_key = _product_contribution_key(
         barcode=normalized_barcode,
@@ -1327,7 +1434,8 @@ async def submit_product(
     if previous_reward is not None:
         raise HTTPException(
             status_code=409,
-            detail="Ten produkt został już przez Ciebie dodany i nagrodzony.",
+            detail=account_text(current_user, "Ten produkt został już przez Ciebie dodany i nagrodzony.",
+                "You have already added this product and received its reward."),
         )
 
     nutrition = None
@@ -1375,6 +1483,7 @@ async def submit_product(
         created_by_user_id=current_user.id,
         review_status="pending",
         submitted_price=payload.price,
+        submitted_country_code=account_country(current_user),
         requested_store_ids=[str(sid) for sid in payload.store_ids] or None,
         barcode=normalized_barcode,
     )
@@ -1389,7 +1498,7 @@ async def submit_product(
             .execution_options(populate_existing=True)
         )
         if locked_user is None:
-            raise HTTPException(status_code=401, detail="Użytkownik nie istnieje")
+            raise HTTPException(status_code=401, detail=account_text(current_user, "Użytkownik nie istnieje", "User not found."))
         db.add(
             ProductContributionReward(
                 user_id=locked_user.id,
@@ -1407,9 +1516,10 @@ async def submit_product(
         await db.rollback()
         raise HTTPException(
             status_code=409,
-            detail=(
+            detail=account_text(current_user,
                 "Produkt z tym kodem kreskowym został już zgłoszony przez kogoś "
-                "innego albo ten produkt został już przez Ciebie nagrodzony."
+                "innego albo ten produkt został już przez Ciebie nagrodzony.",
+                "Someone has already submitted a product with this barcode, or you have already received a reward for this product.",
             ),
         )
     await db.refresh(product)
@@ -1442,6 +1552,7 @@ async def submit_product(
             f'{current_user.display_name or "Użytkownik"} zgłosił(a) produkt '
             f'"{product.name}" — wymaga akceptacji.'
         ),
+        english_message=f'{current_user.display_name or "A user"} submitted product "{product.name}" — approval required.',
     )
     product_response = ProductResponse.model_validate(product)
     return ProductSubmissionResponse(
@@ -1471,11 +1582,14 @@ async def update_own_product(
     """
     product = await db.get(Product, product_id)
     if product is None:
-        raise HTTPException(status_code=404, detail="Nie znaleziono produktu")
+        raise HTTPException(status_code=404, detail=account_text(current_user, "Nie znaleziono produktu", "Product not found."))
     if product.created_by_user_id != current_user.id:
         raise HTTPException(
-            status_code=403, detail="Możesz edytować tylko własne zgłoszenia."
+            status_code=403, detail=account_text(current_user,
+                "Możesz edytować tylko własne zgłoszenia.", "You can only edit your own submissions.")
         )
+
+    await _validate_submission_stores(db, payload.store_ids, current_user)
 
     was_pending = product.review_status == "pending"
 
@@ -1498,7 +1612,8 @@ async def update_own_product(
 
         normalized_barcode = normalize_barcode(payload.barcode)
         if normalized_barcode is None:
-            raise HTTPException(status_code=400, detail="Nieprawidłowy kod EAN/UPC")
+            raise HTTPException(status_code=400, detail=account_text(current_user,
+                "Nieprawidłowy kod EAN/UPC", "Invalid EAN/UPC barcode."))
 
     from app.services.product_measures import build_measure_options
 
@@ -1522,6 +1637,7 @@ async def update_own_product(
     )
     product.nutrition_per_100 = nutrition
     product.submitted_price = payload.price
+    product.submitted_country_code = account_country(current_user)
     product.requested_store_ids = [str(sid) for sid in payload.store_ids] or None
     # Tylko gdy jawnie podane — formularz edycji nie zawsze wysyła kod
     # kreskowy (np. gdy edytujący nie skanował ponownie), więc pusta
@@ -1538,7 +1654,8 @@ async def update_own_product(
         await db.rollback()
         raise HTTPException(
             status_code=409,
-            detail="Ten kod kreskowy jest już przypisany do innego produktu.",
+            detail=account_text(current_user, "Ten kod kreskowy jest już przypisany do innego produktu.",
+                "This barcode is already assigned to another product."),
         )
     await db.refresh(product)
 
@@ -1552,6 +1669,7 @@ async def update_own_product(
                 f'{current_user.display_name or "Użytkownik"} ponownie zgłosił(a) '
                 f'produkt "{product.name}" po edycji — wymaga akceptacji.'
             ),
+            english_message=f'{current_user.display_name or "A user"} resubmitted product "{product.name}" after editing — approval required.',
         )
     return product
 
@@ -1572,10 +1690,11 @@ async def delete_own_product(
     (patrz osobny endpoint admina niżej, jeśli dodany)."""
     product = await db.get(Product, product_id)
     if product is None:
-        raise HTTPException(status_code=404, detail="Nie znaleziono produktu")
+        raise HTTPException(status_code=404, detail=account_text(current_user, "Nie znaleziono produktu", "Product not found."))
     if product.created_by_user_id != current_user.id:
         raise HTTPException(
-            status_code=403, detail="Możesz usunąć tylko własne zgłoszenia."
+            status_code=403, detail=account_text(current_user,
+                "Możesz usunąć tylko własne zgłoszenia.", "You can only delete your own submissions.")
         )
     await db.delete(product)
     await db.commit()
@@ -1595,7 +1714,7 @@ async def review_product(
 ) -> None:
     product = await db.get(Product, product_id)
     if product is None:
-        raise HTTPException(status_code=404, detail="Nie znaleziono produktu")
+        raise HTTPException(status_code=404, detail=account_text(current_user, "Nie znaleziono produktu", "Product not found."))
 
     product.review_status = "approved" if approve else "rejected"
     db.add(product)
@@ -1626,6 +1745,10 @@ async def review_product(
                 async with db.begin_nested():
                     store = await db.get(Store, store_id)
                     if store is None:
+                        continue
+                    submitted_market = getattr(product, "submitted_country_code", None) or "PL"
+                    if account_country(store) != submitted_market:
+                        # Also protects older submissions containing forged IDs.
                         continue
                     existing = await db.execute(
                         select(StoreProduct).where(
@@ -1658,17 +1781,20 @@ async def review_product(
 
     if product.created_by_user_id:
         from app.models.notification import Notification
+        from app.services.notification_language import recipient_text
 
-        n = Notification(
-            user_id=product.created_by_user_id,
-            notification_type="product_reviewed",
-            message=(
-                f'Twój produkt "{product.name}" został '
-                + ("dodany do katalogu." if approve else "odrzucony.")
-            ),
-        )
-        db.add(n)
         try:
+            n = Notification(
+                user_id=product.created_by_user_id,
+                notification_type="product_reviewed",
+                message=await recipient_text(db, product.created_by_user_id,
+                    f'Twój produkt "{product.name}" został '
+                    + ("dodany do katalogu." if approve else "odrzucony."),
+                    f'Your product "{product.name}" has been '
+                    + ("added to the catalogue." if approve else "rejected."),
+                ),
+            )
+            db.add(n)
             await db.commit()
             from app.services.push import is_push_enabled, push_for_notification
 

@@ -13,6 +13,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Notification, Recipe, User, WeeklyContestPayout
+from app.services.notification_language import country_text
 
 logger = logging.getLogger(__name__)
 
@@ -107,12 +108,20 @@ async def process_weekly_contest_payout(db: AsyncSession) -> WeeklyContestPayout
             f"Zwycięzcy poprzedniego tygodnia: {winner_names} — gratulacje! "
             f"Dodawaj przepisy i baw się dobrze w tym tygodniu."
         )
+        winner_names_en = ", ".join(name or "A user" for _, name, _ in winners)
+        english_message = (
+            "A new week of the recipe contest has started! "
+            f"Last week's winners: {winner_names_en} — congratulations! "
+            "Share your recipes and enjoy this week's contest."
+        )
     else:
         message = "Nowy tydzień konkursu przepisów właśnie się zaczął! Dodaj przepis i zawalcz o podium."
+        english_message = "A new week of the recipe contest has started! Share a recipe and compete for a place on the podium."
 
-    all_users = await db.execute(select(User.id))
-    for (user_id,) in all_users.all():
-        db.add(Notification(user_id=user_id, notification_type="weekly_contest", message=message))
+    all_users = await db.execute(select(User.id, User.country_code))
+    for recipient_id, country in all_users.all():
+        db.add(Notification(user_id=recipient_id, notification_type="weekly_contest",
+            message=country_text(country, message, english_message)))
 
     await db.commit()
     return payout

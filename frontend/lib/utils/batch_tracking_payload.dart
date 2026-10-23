@@ -12,9 +12,7 @@ double defaultBarcodeQuantity(BarcodeLookupResult result) {
 const String barcodePackageUnit = 'opak';
 
 bool hasKnownBarcodePackageSize(BarcodeLookupResult result) =>
-    result.servingQuantity != null &&
-    result.servingQuantity! > 0 &&
-    const {'g', 'ml'}.contains(result.unit);
+    result.hasKnownPackageSize;
 
 double barcodePackageNutritionFactor(BarcodeLookupResult result) {
   final packageSize = result.servingQuantity;
@@ -30,6 +28,7 @@ Map<String, dynamic> buildBatchTrackingPayload({
   required BarcodeLookupResult result,
   required String mealType,
   required DateTime date,
+  String? packageLabel,
 }) {
   if (!result.hasCompleteNutrition) {
     throw ArgumentError(
@@ -48,7 +47,7 @@ Map<String, dynamic> buildBatchTrackingPayload({
     'meal_type': mealType,
     'custom_name':
         hasPackage
-            ? '${result.name} (1 opakowanie)'
+            ? '${result.name} (${packageLabel ?? '1 opakowanie'})'
             : '${result.name} (100 $baseUnit)',
     'servings': 1,
     'calories': result.kcalPer100! * nutritionFactor,

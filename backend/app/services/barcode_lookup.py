@@ -7,6 +7,7 @@ import math
 import asyncio
 import time
 import re
+import json
 
 import httpx
 
@@ -35,6 +36,11 @@ _TEXT_SEARCH_CACHE_MAX_ENTRIES = 200
 _text_search_cache: dict[str, tuple[float, list["BarcodeLookupResult"]]] = {}
 
 
+def _off_locale(country_code: str = "PL") -> tuple[str, str]:
+    """OFF uses UK rather than ISO GB; context is not stock availability."""
+    return ("uk", "en") if country_code == "GB" else ("pl", "pl")
+
+
 class BarcodeLookupResult:
     def __init__(
         self,
@@ -51,6 +57,7 @@ class BarcodeLookupResult:
         source: str,
         barcode: str | None = None,
         serving_quantity: float | None = None,
+        off_product: dict | None = None,
     ) -> None:
         self.name = name
         self.brand = brand
@@ -64,6 +71,7 @@ class BarcodeLookupResult:
         self.source = source
         self.barcode = barcode
         self.serving_quantity = serving_quantity
+        self.off_product = off_product
 
 
 def _has_complete_nutrition(result: BarcodeLookupResult) -> bool:
@@ -127,6 +135,11 @@ def _merge_lookup_results(
         # Wyszukiwanie po nazwie może trafić na inną gramaturę tego samego
         # produktu. Uzupełniamy nim makro, ale nigdy rozmiar opakowania.
         serving_quantity=primary.serving_quantity,
+        off_product=primary.off_product or (
+            supplementary.off_product
+            if primary.barcode and supplementary.barcode in barcode_variants(primary.barcode)
+            else None
+        ),
     )
 
 
@@ -201,7 +214,7 @@ def _number(mapping: dict, *keys: str) -> float | None:
             number = float(value)
             if math.isfinite(number) and number >= 0:
                 return number
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, OverflowError):
             continue
     return None
 
@@ -236,18 +249,28 @@ def price_range_for_product(name: str, categories: object = None) -> tuple[float
     return (3.0, 25.0)
 
 
+_METRIC_PACKAGE_QUANTITY = re.compile(
+    r"(?<![\w.,+\-−])(?:([+\-−]?\d+(?:[.,]\d+)?)\s*[x×]\s*)?"
+    r"([+\-−]?\d+(?:[.,]\d+)?)\s*(kg|mg|g|ml|cl|dl|l)\b"
+)
+
+
 def _unit_from_product(product: dict) -> str:
-    unit = str(
-        product.get("product_quantity_unit")
-        or product.get("serving_quantity_unit")
-        or ""
-    ).lower()
-    if not unit:
-        match = re.search(
-            r"\b(kg|mg|g|ml|cl|dl|l)\b",
-            str(product.get("quantity") or "").strip().lower(),
+    package = _metric_package_info(product)
+    if package is not None:
+        return package[1]
+    unit = str(product.get("product_quantity_unit") or "").strip().lower()
+    if unit not in {"g", "kg", "mg", "ml", "cl", "dl", "l"}:
+        # Choose the same metric label segment as the whole-pack parser.
+        # An ounce label may contain a reliable ml equivalent; a serving's
+        # g unit must not turn that whole-pack volume into grams.
+        match = _METRIC_PACKAGE_QUANTITY.search(
+            str(product.get("quantity") or "").strip().lower()
         )
-        unit = match.group(1) if match else ""
+        if match:
+            unit = match.group(3)
+        elif not unit:
+            unit = str(product.get("serving_quantity_unit") or "").strip().lower()
     if unit in {"ml", "cl", "dl", "l"}:
         return "ml"
     if unit in {"piece", "pieces", "szt", "szt."}:
@@ -268,7 +291,12 @@ def _quantity_in_base_unit(value: float, unit: object) -> float:
     return value
 
 
-def _package_quantity_in_base_unit(product: dict) -> float | None:
+def _bounded_package_quantity(value: float) -> float | None:
+    """Match the confirmed-label limit, after every metric conversion."""
+    return value if math.isfinite(value) and 0 < value <= 100_000 else None
+
+
+def _metric_package_info(product: dict) -> tuple[float, str] | None:
     """Zwraca masę/objętość CAŁEGO produktu w g/ml.
 
     OFF rozróżnia pełne `product_quantity` i zalecaną porcję
@@ -278,23 +306,30 @@ def _package_quantity_in_base_unit(product: dict) -> float | None:
     package_quantity = _number(product, "product_quantity")
     package_unit = str(product.get("product_quantity_unit") or "").strip().lower()
     if package_quantity is not None and package_quantity > 0 and package_unit in {"g", "kg", "mg", "ml", "cl", "dl", "l"}:
-        return _quantity_in_base_unit(
+        converted = _quantity_in_base_unit(
             package_quantity, product.get("product_quantity_unit")
         )
+        if _bounded_package_quantity(converted) is not None:
+            return converted, "ml" if package_unit in {"ml", "cl", "dl", "l"} else "g"
     quantity_text = str(product.get("quantity") or "").strip().lower()
     if quantity_text:
         # Przykłady spotykane w OFF: "150 g", "1,5 l", "6 x 100 g".
-        match = re.search(
-            r"(?:(\d+(?:[.,]\d+)?)\s*[x×]\s*)?"
-            r"(\d+(?:[.,]\d+)?)\s*(kg|mg|g|ml|cl|dl|l)\b",
-            quantity_text,
-        )
+        match = _METRIC_PACKAGE_QUANTITY.search(quantity_text)
         if match:
-            multiplier = float((match.group(1) or "1").replace(",", "."))
-            amount = float(match.group(2).replace(",", "."))
-            return multiplier * _quantity_in_base_unit(amount, match.group(3))
+            multiplier = float((match.group(1) or "1").replace(",", ".").replace("−", "-"))
+            amount = float(match.group(2).replace(",", ".").replace("−", "-"))
+            if not all(math.isfinite(value) and value > 0 for value in (multiplier, amount)):
+                return None
+            converted = _bounded_package_quantity(multiplier * _quantity_in_base_unit(amount, match.group(3)))
+            if converted is not None:
+                return converted, "ml" if match.group(3) in {"ml", "cl", "dl", "l"} else "g"
     # `serving_quantity` oznacza porcję, nie całe opakowanie.
     return None
+
+
+def _package_quantity_in_base_unit(product: dict) -> float | None:
+    package = _metric_package_info(product)
+    return package[0] if package is not None else None
 
 
 def _product_from_off_response(data: object, api_version: str) -> dict | None:
@@ -312,15 +347,26 @@ def _product_from_off_response(data: object, api_version: str) -> dict | None:
     return data["product"] if found else None
 
 
-def _result_from_off_product(product: dict) -> BarcodeLookupResult | None:
+def _result_from_off_product(
+    product: dict, *, country_code: str = "PL",
+) -> BarcodeLookupResult | None:
+    name_fields = (
+        (
+            "product_name_en", "product_name",
+            "abbreviated_product_name", "generic_name_en", "generic_name",
+            "product_name_pl", "generic_name_pl",
+        )
+        if country_code == "GB"
+        else (
+            "product_name_pl", "product_name", "product_name_en",
+            "abbreviated_product_name", "generic_name_pl", "generic_name",
+            "generic_name_en",
+        )
+    )
     name = next(
         (
             value.strip()
-            for key in (
-                "product_name_pl", "product_name", "product_name_en",
-                "abbreviated_product_name", "generic_name_pl", "generic_name",
-                "generic_name_en",
-            )
+            for key in name_fields
             if isinstance((value := product.get(key)), str) and value.strip()
         ),
         None,
@@ -332,14 +378,18 @@ def _result_from_off_product(product: dict) -> BarcodeLookupResult | None:
         nutriments = {}
     # Raw keys describe the label's basis, which may be a single serving.
     # Only explicit per-100 values are safe without a confirmed label basis.
-    raw_per_100 = product.get("nutrition_data_per") in {"100g", "100ml"}
+    raw_basis = re.sub(r"\s+", "", str(product.get("nutrition_data_per") or "").lower())
+    raw_per_100 = raw_basis in {"100g", "100ml"}
 
     def nutrient(per_100_key: str, raw_key: str) -> float | None:
         return _number(nutriments, per_100_key, *([raw_key] if raw_per_100 else []))
 
     kcal = nutrient("energy-kcal_100g", "energy-kcal")
     if kcal is None:
-        energy_kj = nutrient("energy_100g", "energy")
+        energy_kj = _number(
+            nutriments, "energy-kj_100g", "energy_100g",
+            *(["energy-kj", "energy"] if raw_per_100 else []),
+        )
         kcal = round(energy_kj / 4.184, 1) if energy_kj is not None else None
     raw_brands = product.get("brands")
     brand = (
@@ -348,6 +398,15 @@ def _result_from_off_product(product: dict) -> BarcodeLookupResult | None:
         else str(raw_brands or "").split(",")[0].strip() or None
     )
     price_min, price_max = price_range_for_product(name, product.get("categories_tags"))
+    off_product = None
+    if country_code == "GB":
+        # Invalid provider JSON must not reintroduce NaN/Infinity through the
+        # optional source record after nutrition/pack values were sanitised.
+        try:
+            json.dumps(product, allow_nan=False)
+            off_product = product
+        except (TypeError, ValueError, OverflowError):
+            pass
     return BarcodeLookupResult(
         name=name,
         brand=brand,
@@ -361,6 +420,7 @@ def _result_from_off_product(product: dict) -> BarcodeLookupResult | None:
         source="open_food_facts",
         barcode=normalize_barcode(str(product.get("code") or "")),
         serving_quantity=_package_quantity_in_base_unit(product),
+        off_product=off_product,
     )
 
 
@@ -368,6 +428,7 @@ async def search_products_external(
     query: str,
     *,
     limit: int = 10,
+    country_code: str = "PL",
 ) -> list[BarcodeLookupResult]:
     """Wyszukuje produkty po nazwie w tej samej bazie co skaner kodów.
 
@@ -379,7 +440,8 @@ async def search_products_external(
     normalized_query = " ".join(query.strip().split())
     if len(normalized_query) < 2:
         return []
-    cache_key = f"{normalized_query.casefold()}\0{limit}"
+    cc, lc = _off_locale(country_code)
+    cache_key = f"{cc}\0{lc}\0{normalized_query.casefold()}\0{limit}"
     cached = _text_search_cache.get(cache_key)
     now = time.monotonic()
     if cached is not None and now - cached[0] < _TEXT_SEARCH_CACHE_TTL_SECONDS:
@@ -388,9 +450,9 @@ async def search_products_external(
     fields = (
         "code,product_name_pl,product_name,product_name_en,"
         "generic_name_pl,generic_name,generic_name_en,"
-        "abbreviated_product_name,brands,nutriments,categories_tags,"
+        "abbreviated_product_name,brands,nutriments,nutrition_data_per,categories_tags,"
         "quantity,product_quantity,product_quantity_unit,serving_quantity,"
-        "serving_quantity_unit"
+        "serving_quantity_unit,countries_tags,stores,last_modified_t,obsolete"
     )
     params = {
         "search_terms": normalized_query,
@@ -401,9 +463,11 @@ async def search_products_external(
         "page_size": str(max(1, min(limit, 20))),
         "sort_by": "unique_scans_n",
         "fields": fields,
-        "lc": "pl",
-        "cc": "pl",
+        "lc": lc,
+        "cc": cc,
     }
+    if country_code == "GB":
+        params.update({"tagtype_0": "countries", "tag_contains_0": "contains", "tag_0": "united-kingdom"})
     headers = {"User-Agent": USER_AGENT, "Accept": "application/json"}
     try:
         async with httpx.AsyncClient(
@@ -418,7 +482,7 @@ async def search_products_external(
         logger.warning("Open Food Facts text search failed for %r: %s", query, exc)
         return []
 
-    results = _results_from_off_search_response(payload, limit=limit)
+    results = _results_from_off_search_response(payload, limit=limit, country_code=country_code)
     if len(_text_search_cache) >= _TEXT_SEARCH_CACHE_MAX_ENTRIES:
         oldest_key = min(
             _text_search_cache,
@@ -434,6 +498,7 @@ async def find_nutrition_by_name(
     brand: str | None = None,
     *,
     barcode: str | None = None,
+    country_code: str = "PL",
 ) -> BarcodeLookupResult | None:
     """Uzupełnia makro przez wyszukiwanie internetowe po nazwie.
 
@@ -447,9 +512,10 @@ async def find_nutrition_by_name(
     if len(clean_name) < 2:
         return None
     query = " ".join(part for part in (clean_brand, clean_name) if part)
-    results = await search_products_external(query, limit=10)
+    context = {"country_code": "GB"} if country_code == "GB" else {}
+    results = await search_products_external(query, limit=10, **context)
     if not results and clean_brand:
-        results = await search_products_external(clean_name, limit=10)
+        results = await search_products_external(clean_name, limit=10, **context)
 
     for candidate in results:
         if not _has_complete_nutrition(candidate):
@@ -473,6 +539,7 @@ def _results_from_off_search_response(
     payload: object,
     *,
     limit: int,
+    country_code: str = "PL",
 ) -> list[BarcodeLookupResult]:
     """Waliduje i deduplikuje odpowiedź pełnotekstowego wyszukiwania."""
     if not isinstance(payload, dict) or not isinstance(payload.get("products"), list):
@@ -483,7 +550,7 @@ def _results_from_off_search_response(
     for product in payload["products"]:
         if not isinstance(product, dict):
             continue
-        result = _result_from_off_product(product)
+        result = _result_from_off_product(product, country_code=country_code)
         if result is None:
             continue
         key = (result.name.casefold(), (result.brand or "").casefold())
@@ -496,17 +563,24 @@ def _results_from_off_search_response(
     return results
 
 
-async def _fetch_off(client: httpx.AsyncClient, barcode: str) -> BarcodeLookupResult | None:
+async def _fetch_off(
+    client: httpx.AsyncClient, barcode: str, *, country_code: str = "PL",
+) -> BarcodeLookupResult | None:
+    cc, lc = _off_locale(country_code)
     params = {
-        "cc": "pl", "lc": "pl",
+        "cc": cc, "lc": lc,
         "fields": (
             "code,product_name_pl,product_name,product_name_en,"
             "generic_name_pl,generic_name,generic_name_en,"
-            "abbreviated_product_name,brands,nutriments,categories_tags,"
+            "abbreviated_product_name,brands,nutriments,nutrition_data_per,categories_tags,"
             "quantity,product_quantity,product_quantity_unit,serving_quantity,"
             "serving_quantity_unit"
         ),
     }
+    if country_code == "GB":
+        # Project country evidence in the same requested product response.
+        # The account/cc parameter alone is never evidence of UK sales.
+        params["fields"] += ",countries_tags,stores,last_modified_t,obsolete"
     # UPC-A jest czasem zapisany w OFF jako EAN-13 z początkowym zerem.
     # Nie pytamy o wszystkie zera GTIN-14: to mnożyłoby ruch bez wartości.
     candidates = [barcode]
@@ -533,7 +607,7 @@ async def _fetch_off(client: httpx.AsyncClient, barcode: str) -> BarcodeLookupRe
                 logger.warning("Open Food Facts lookup failed for %s: %s", candidate, exc)
                 continue
             product = _product_from_off_response(payload, api_version)
-            if product is not None and (result := _result_from_off_product(product)):
+            if product is not None and (result := _result_from_off_product(product, country_code=country_code)):
                 return result
             if (api_version == "v2" and isinstance(payload, dict) and
                     str(payload.get("status")) == "0") or (
@@ -638,7 +712,9 @@ async def _fetch_upcitemdb(client: httpx.AsyncClient, barcode: str) -> BarcodeLo
         return None
 
 
-async def lookup_barcode_external(barcode: str) -> BarcodeLookupResult | None:
+async def lookup_barcode_external(
+    barcode: str, *, country_code: str = "PL",
+) -> BarcodeLookupResult | None:
     """OFF jest źródłem głównym, USDA uzupełnia braki bez opóźniania UI.
 
     Oba bezpłatne źródła startują współbieżnie. To celowe: ścisłe czekanie
@@ -658,8 +734,9 @@ async def lookup_barcode_external(barcode: str) -> BarcodeLookupResult | None:
             await asyncio.sleep(0.35)
             return await _fetch_usda(client, normalized)
 
+        context = {"country_code": "GB"} if country_code == "GB" else {}
         tasks = [
-            asyncio.create_task(_fetch_off(client, normalized)),
+            asyncio.create_task(_fetch_off(client, normalized, **context)),
             asyncio.create_task(fetch_usda_after_off_head_start()),
         ]
         fallback: BarcodeLookupResult | None = None

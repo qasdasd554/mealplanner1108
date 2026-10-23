@@ -6,6 +6,7 @@ import '../../providers/auth_provider.dart';
 import '../../widgets/turnstile_widget.dart';
 import '../../theme/app_theme.dart';
 import '../../config/app_links.dart';
+import '../../l10n/market_locale.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -96,7 +97,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ..showSnackBar(
             SnackBar(
               duration: const Duration(seconds: 3),
-              content: Text('Nie udało się otworzyć: $url'),
+              content: Text(context.strings.authDocumentOpenFailed(url)),
             ),
           );
       }
@@ -114,7 +115,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _termsKey,
         () => _termsHighlighted = true,
         () => _termsHighlighted = false,
-        'Zaakceptuj regulamin, aby założyć konto.',
+        context.strings.authAcceptTermsRequired,
       );
       return;
     }
@@ -123,7 +124,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _captchaKey,
         () => _captchaHighlighted = true,
         () => _captchaHighlighted = false,
-        'Najpierw potwierdź, że nie jesteś robotem.',
+        context.strings.authCaptchaRequired,
       );
       return;
     }
@@ -160,7 +161,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
             SnackBar(
               duration: const Duration(seconds: 3),
               content: Text(
-                authProvider.errorMessage ?? 'Rejestracja nie powiodła się',
+                authProvider.errorMessage ??
+                    context.strings.authRegistrationFailed,
               ),
               backgroundColor: AppTheme.errorColor,
               behavior: SnackBarBehavior.floating,
@@ -208,14 +210,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     children: [
                       // Tytuł powitalny
                       Text(
-                        'Utwórz konto',
+                        context.strings.authCreateAccount,
                         style: Theme.of(context).textTheme.displaySmall
                             ?.copyWith(fontWeight: FontWeight.bold),
                         textAlign: TextAlign.center,
                       ).animate().fadeIn().slideY(begin: 0.2, end: 0),
                       const SizedBox(height: 8),
                       Text(
-                            'Dołącz do Meal Planner i planuj sprytnie',
+                            context.strings.authJoinPlanner,
                             style: Theme.of(context).textTheme.bodyMedium,
                             textAlign: TextAlign.center,
                           )
@@ -227,13 +229,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       // Name Input
                       TextFormField(
                         controller: _nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Imię / Nazwa użytkownika',
-                          prefixIcon: Icon(Icons.person_outline),
+                        decoration: InputDecoration(
+                          labelText: context.strings.authDisplayName,
+                          prefixIcon: const Icon(Icons.person_outline),
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'Wprowadź swoje imię';
+                            return context.strings.authEnterName;
                           }
                           return null;
                         },
@@ -244,18 +246,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(
-                          labelText: 'E-mail',
-                          prefixIcon: Icon(Icons.email_outlined),
+                        decoration: InputDecoration(
+                          labelText: context.strings.authEmail,
+                          prefixIcon: const Icon(Icons.email_outlined),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Wprowadź adres e-mail';
+                            return context.strings.authEnterEmail;
                           }
                           if (!RegExp(
                             r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
                           ).hasMatch(value)) {
-                            return 'Wprowadź poprawny adres e-mail';
+                            return context.strings.authEnterValidEmail;
                           }
                           return null;
                         },
@@ -266,16 +268,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       TextFormField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
-                        decoration: const InputDecoration(
-                          labelText: 'Hasło',
-                          prefixIcon: Icon(Icons.lock_outline),
+                        decoration: InputDecoration(
+                          labelText: context.strings.authPassword,
+                          prefixIcon: const Icon(Icons.lock_outline),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Wprowadź hasło';
+                            return context.strings.authEnterPassword;
                           }
                           if (value.length < 6) {
-                            return 'Hasło musi mieć co najmniej 6 znaków';
+                            return context.strings.authPasswordMinSix;
                           }
                           return null;
                         },
@@ -286,16 +288,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       TextFormField(
                         controller: _confirmPasswordController,
                         obscureText: _obscurePassword,
-                        decoration: const InputDecoration(
-                          labelText: 'Powtórz hasło',
-                          prefixIcon: Icon(Icons.lock_outline),
+                        decoration: InputDecoration(
+                          labelText: context.strings.authRepeatPassword,
+                          prefixIcon: const Icon(Icons.lock_outline),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Potwierdź hasło';
+                            return context.strings.authConfirmPassword;
                           }
                           if (value != _passwordController.text) {
-                            return 'Hasła nie są identyczne';
+                            return context.strings.authPasswordsMismatch;
                           }
                           return null;
                         },
@@ -342,7 +344,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   crossAxisAlignment: WrapCrossAlignment.center,
                                   children: [
                                     Text(
-                                      'Akceptuję ',
+                                      context.strings.authAcceptPrefix,
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: AppTheme.textSecondary,
@@ -351,8 +353,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     GestureDetector(
                                       onTap: () => _openLegal(AppLinks.terms),
                                       child: Text(
-                                        'regulamin',
-                                        style: TextStyle(
+                                        context.strings.authTerms,
+                                        style: const TextStyle(
                                           fontSize: 12,
                                           color: AppTheme.primaryColor,
                                           fontWeight: FontWeight.w600,
@@ -361,7 +363,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       ),
                                     ),
                                     Text(
-                                      ' oraz ',
+                                      context.strings.authAnd,
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: AppTheme.textSecondary,
@@ -370,8 +372,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     GestureDetector(
                                       onTap: () => _openLegal(AppLinks.privacy),
                                       child: Text(
-                                        'politykę prywatności',
-                                        style: TextStyle(
+                                        context.strings.authPrivacyPolicy,
+                                        style: const TextStyle(
                                           fontSize: 12,
                                           color: AppTheme.primaryColor,
                                           fontWeight: FontWeight.w600,
@@ -428,7 +430,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     ),
                                   ),
                                 )
-                                : const Text('Zarejestruj się'),
+                                : Text(context.strings.authRegister),
                       ).animate().fadeIn(delay: 600.ms),
                       const SizedBox(height: 16),
 
@@ -439,12 +441,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         },
                         child: RichText(
                           text: TextSpan(
-                            text: 'Masz już konto?',
+                            text: context.strings.authAlreadyAccount,
                             style: TextStyle(color: AppTheme.textSecondary),
                             children: [
                               TextSpan(
-                                text: 'Zaloguj się',
-                                style: TextStyle(
+                                text: context.strings.authSignIn,
+                                style: const TextStyle(
                                   color: AppTheme.primaryColor,
                                   fontWeight: FontWeight.bold,
                                 ),

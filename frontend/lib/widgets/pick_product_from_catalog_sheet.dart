@@ -1,6 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../utils/lookup_market_context.dart';
+import '../l10n/market_locale.dart';
+import '../l10n/recipe_content.dart';
+import '../l10n/app_localizations.dart';
+import '../l10n/measure_labels.dart';
 
 import '../models/barcode_lookup_result.dart';
 import '../models/product.dart';
@@ -77,6 +82,24 @@ class PickedCatalogProduct {
     final label = labels[unit] ?? unit;
     return '${quantity.toStringAsFixed(digits)} × $label';
   }
+
+  String amountLabelFor(AppLocalizations strings) {
+    if (!strings.localeName.startsWith('en')) return amountLabel;
+    final digits = quantity == quantity.roundToDouble() ? 0 : 1;
+    final label = strings.measureQuantityLabel(
+      unit,
+      fallback: unit,
+      amount: quantity,
+    );
+    final amount = '${quantity.toStringAsFixed(digits)} $label';
+    if (portionSize == null ||
+        portionUnit == null ||
+        const {'g', 'ml'}.contains(unit)) {
+      return amount;
+    }
+    final sizeDigits = portionSize == portionSize!.roundToDouble() ? 0 : 1;
+    return '$amount (${portionSize!.toStringAsFixed(sizeDigits)} $portionUnit)';
+  }
 }
 
 /// Okno wyszukiwania produktu w katalogu — domyka obietnicę złożoną przy
@@ -91,6 +114,8 @@ class PickProductFromCatalogSheet extends StatefulWidget {
   final String? initialBarcode;
   final bool embedded;
   final ValueChanged<PickedCatalogProduct>? onPicked;
+  final ApiClient? client;
+  final BarcodeLookupService? lookupService;
 
   const PickProductFromCatalogSheet({
     super.key,
@@ -98,6 +123,8 @@ class PickProductFromCatalogSheet extends StatefulWidget {
     this.initialBarcode,
     this.embedded = false,
     this.onPicked,
+    this.client,
+    this.lookupService,
   });
 
   @override
@@ -107,8 +134,8 @@ class PickProductFromCatalogSheet extends StatefulWidget {
 
 class _PickProductFromCatalogSheetState
     extends State<PickProductFromCatalogSheet> {
-  final ApiClient _client = ApiClient();
-  final BarcodeLookupService _barcodeLookupService = BarcodeLookupService();
+  late final ApiClient _client;
+  late final BarcodeLookupService _barcodeLookupService;
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounce;
   int _requestGeneration = 0;
@@ -120,6 +147,12 @@ class _PickProductFromCatalogSheetState
   @override
   void initState() {
     super.initState();
+    _client = widget.client ?? ApiClient();
+    _barcodeLookupService =
+        widget.lookupService ??
+        BarcodeLookupService(
+          accountCountry: () => context.registeredLookupCountry,
+        );
     _search('');
     if (widget.initialBarcode != null || widget.scanOnOpen) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -193,7 +226,7 @@ class _PickProductFromCatalogSheetState
       });
     } catch (e) {
       if (!mounted || generation != _requestGeneration) return;
-      setState(() => _error = friendlyError(e));
+      setState(() => _error = friendlyError(e, strings: context.strings));
     } finally {
       if (mounted && generation == _requestGeneration) {
         setState(() => _isLoading = false);
@@ -232,12 +265,9 @@ class _PickProductFromCatalogSheetState
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
-            const SnackBar(
-              duration: Duration(seconds: 4),
-              content: Text(
-                'Nie odnaleziono kompletnych makroskładników w internecie. '
-                'Uzupełnij dane ze zdjęć opakowania.',
-              ),
+            SnackBar(
+              duration: const Duration(seconds: 4),
+              content: Text(context.strings.catalogueNutritionMissing),
             ),
           );
         final recognized = await showProductLabelRecognitionSheet(
@@ -259,13 +289,22 @@ class _PickProductFromCatalogSheetState
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
+            content: Text(friendlyError(e, strings: context.strings)),
           ),
         );
     }
   }
 
   Future<void> _pickLookupResult(BarcodeLookupResult result) async {
+    if (!result.found ||
+        (result.name?.trim().isEmpty ?? true) ||
+        !result.hasCompleteNutrition) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.strings.catalogueIncomplete)),
+      );
+      return;
+    }
     final product = Product(
       id: result.existingProductId ?? '',
       name: result.name!,
@@ -294,7 +333,7 @@ class _PickProductFromCatalogSheetState
     final factor = selection.nutritionFactorPer100();
     _complete(
       PickedCatalogProduct(
-        name: result.name!,
+        name: result.displayName(context) ?? result.name!,
         quantity: selection.quantity,
         unit: selection.measure.code,
         kcal: (result.kcalPer100 ?? 0) * factor,
@@ -325,12 +364,9 @@ class _PickProductFromCatalogSheetState
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 4),
-            content: Text(
-              'Ten produkt nie ma jeszcze wartości odżywczych. '
-              'Dodaj go do bazy z danymi z etykiety, aby użyć go w Dzienniku.',
-            ),
+          SnackBar(
+            duration: const Duration(seconds: 4),
+            content: Text(context.strings.catalogueIncomplete),
           ),
         );
       return;
@@ -344,6 +380,7 @@ class _PickProductFromCatalogSheetState
           found: true,
           source: product.source,
           name: product.name,
+          existingProductId: product.id,
           brand: product.brand,
           unit: product.unit,
           barcode: product.barcode,
@@ -374,7 +411,7 @@ class _PickProductFromCatalogSheetState
 
     _complete(
       PickedCatalogProduct(
-        name: product.name,
+        name: product.displayName(context),
         quantity: selection.quantity,
         unit: selection.measure.code,
         kcal: n.kcal * factor,
@@ -427,14 +464,14 @@ class _PickProductFromCatalogSheetState
             autofocus: widget.initialBarcode == null && !widget.scanOnOpen,
             onChanged: _onQueryChanged,
             decoration: InputDecoration(
-              hintText: 'Szukaj produktu...',
+              hintText: context.strings.catalogueProductSearch,
               prefixIcon: const Icon(Icons.search),
               // Skanowanie tuż obok pola wyszukiwania — szybsza
               // alternatywa dla wpisywania nazwy, gdy opakowanie
               // jest pod ręką.
               suffixIcon: IconButton(
                 icon: const Icon(Icons.barcode_reader),
-                tooltip: 'Skanuj kod kreskowy',
+                tooltip: context.strings.productsScan,
                 onPressed: _scanBarcode,
               ),
             ),
@@ -454,7 +491,7 @@ class _PickProductFromCatalogSheetState
                   : _results.isEmpty
                   ? Center(
                     child: Text(
-                      'Brak produktów pasujących do wyszukiwania.',
+                      context.strings.catalogueNoMatch,
                       style: TextStyle(color: AppTheme.textSecondary),
                     ),
                   )
@@ -465,11 +502,11 @@ class _PickProductFromCatalogSheetState
                     itemBuilder: (context, index) {
                       final p = _results[index];
                       return ListTile(
-                        title: Text(p.name),
+                        title: Text(p.displayName(context)),
                         subtitle: Text(
-                          '${p.nutritionPer100.kcal.round()} kcal / 100${p.unit == 'ml' || p.unit == 'l' ? 'ml' : 'g'}'
+                          '${p.nutritionPer100.knownValue('kcal')?.round() ?? '—'} kcal / 100${p.unit == 'ml' || p.unit == 'l' ? 'ml' : 'g'}'
                           '${p.brand != null && p.brand!.isNotEmpty ? ' · ${p.brand}' : ''}'
-                          '${p.source == 'scan' ? ' · zeskanowany' : ''}',
+                          '${p.source == 'scan' ? ' · ${context.strings.autocompleteScanned}' : ''}',
                         ),
                         onTap: () => _pickProduct(p),
                       );

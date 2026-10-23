@@ -30,7 +30,13 @@ import '../tracker/calorie_tracker_screen.dart';
 import '../../data/cooking_tips.dart';
 import '../../services/app_review_service.dart';
 import '../../services/contextual_premium_offer_service.dart';
+import '../../services/premium_offer_success_signal.dart';
+import '../../services/api_client.dart';
 import 'cooking_tips_screen.dart';
+import '../../l10n/market_locale.dart';
+import '../../l10n/recipe_content.dart';
+import '../../l10n/catalog_labels.dart';
+import '../../widgets/adaptive_action_tile.dart';
 
 class HomeScreen extends StatefulWidget {
   final int initialIndex;
@@ -46,12 +52,14 @@ class _HomeScreenState extends State<HomeScreen> {
   late final List<Widget?> _tabs;
   final _appReview = AppReviewService();
   Timer? _reviewTimer;
+  Timer? _premiumSuccessTimer;
   String? _pendingReviewUserId;
 
   @override
   void initState() {
     super.initState();
     AppReviewSignal.successfulActions.addListener(_queueAppReview);
+    PremiumOfferSuccessSignal.events.addListener(_queuePremiumAfterSuccess);
     _currentIndex = widget.initialIndex.clamp(0, 5);
     // Zakładki tworzymy dopiero przy pierwszym wejściu, ale później
     // zachowujemy ich State. Wcześniej `tabs[_currentIndex]` usuwało ekran
@@ -98,6 +106,26 @@ class _HomeScreenState extends State<HomeScreen> {
     _reviewTimer = Timer(const Duration(seconds: 5), _tryAppReview);
   }
 
+  void _queuePremiumAfterSuccess() {
+    if (!mounted) return;
+    final userId = context.read<AuthProvider>().currentUser?.id;
+    final generation = ApiClient().sessionGeneration;
+    final offerContext = PremiumOfferSuccessSignal.events.value.context;
+    _premiumSuccessTimer?.cancel();
+    _premiumSuccessTimer = Timer(const Duration(seconds: 2), () {
+      if (!mounted ||
+          userId == null ||
+          context.read<AuthProvider>().currentUser?.id != userId ||
+          ApiClient().sessionGeneration != generation ||
+          _currentIndex == 4 ||
+          _currentIndex == 5)
+        return;
+      // maybeShow also checks active route, text entry and app lifecycle.
+      // If the camera/form is still open, drop this optional prompt.
+      ContextualPremiumOfferService.maybeShow(context, offerContext);
+    });
+  }
+
   bool _reviewIsSafe(String userId) {
     return mounted &&
         context.read<AuthProvider>().currentUser?.id == userId &&
@@ -127,6 +155,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     AppReviewSignal.successfulActions.removeListener(_queueAppReview);
+    PremiumOfferSuccessSignal.events.removeListener(_queuePremiumAfterSuccess);
+    _premiumSuccessTimer?.cancel();
     _reviewTimer?.cancel();
     super.dispose();
   }
@@ -154,7 +184,12 @@ class _HomeScreenState extends State<HomeScreen> {
           index: _currentIndex,
           children: List<Widget>.generate(
             _tabs.length,
-            (index) => _tabs[index] ?? const SizedBox.shrink(),
+            // IndexedStack retains hidden tabs, including their repeating
+            // animations. Mute only their tickers while preserving tab State.
+            (index) => TickerMode(
+              enabled: index == _currentIndex,
+              child: _tabs[index] ?? const SizedBox.shrink(),
+            ),
           ),
         ),
         // Stały rozmiar eliminuje dodatkową animację położenia Scaffolda.
@@ -208,9 +243,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         shape: const StadiumBorder(),
                       ),
                       icon: const Icon(Icons.add_circle_outline, size: 18),
-                      label: const Text(
-                        'Dodaj',
-                        style: TextStyle(fontWeight: FontWeight.w700),
+                      label: Text(
+                        context.strings.add,
+                        style: const TextStyle(fontWeight: FontWeight.w700),
                       ),
                     )
                     : const SizedBox.shrink(key: ValueKey('quick-add-hidden')),
@@ -273,12 +308,12 @@ class _HomeScreenState extends State<HomeScreen> {
               BottomNavigationBarItem(
                 icon: _buildNavIcon(Icons.home_outlined, active: false),
                 activeIcon: _buildNavIcon(Icons.home, active: true),
-                label: 'Start',
+                label: context.strings.home,
               ),
               BottomNavigationBarItem(
                 icon: _buildNavIcon(Icons.restaurant_outlined, active: false),
                 activeIcon: _buildNavIcon(Icons.restaurant, active: true),
-                label: 'Przepisy',
+                label: context.strings.recipes,
               ),
               BottomNavigationBarItem(
                 icon: _buildNavIcon(
@@ -286,7 +321,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   active: false,
                 ),
                 activeIcon: _buildNavIcon(Icons.shopping_cart, active: true),
-                label: 'Zakupy',
+                label: context.strings.shopping,
               ),
               BottomNavigationBarItem(
                 icon: _buildNavIcon(
@@ -297,7 +332,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Icons.local_fire_department,
                   active: true,
                 ),
-                label: 'Dziennik',
+                label: context.strings.diary,
               ),
               // Zakładka Premium — bezpośredni dostęp do porównania planów i
               // zakupu subskrypcji, bez konieczności wchodzenia przez Profil.
@@ -310,12 +345,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   Icons.workspace_premium,
                   active: true,
                 ),
-                label: 'Premium',
+                label: context.strings.premium,
               ),
               BottomNavigationBarItem(
                 icon: _buildNavIcon(Icons.person_outline, active: false),
                 activeIcon: _buildNavIcon(Icons.person, active: true),
-                label: 'Profil',
+                label: context.strings.profile,
               ),
             ],
           ),
@@ -342,7 +377,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text('Obsłużono: $completed produktów.')),
+        SnackBar(content: Text(context.strings.homeBatchCompleted(completed))),
       );
   }
 
@@ -364,16 +399,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Co chcesz dodać?',
+                      sheetContext.strings.whatToAdd,
                       style: Theme.of(sheetContext).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 10),
                     _quickAddOption(
                       sheetContext,
                       icon: Icons.barcode_reader,
-                      title: 'Zeskanuj produkt',
-                      subtitle:
-                          'Dodaj do Dziennika, bazy produktów albo spiżarni',
+                      title: sheetContext.strings.scanProduct,
+                      subtitle: sheetContext.strings.barcodeDestinations,
                       onTap: () async {
                         Navigator.pop(sheetContext);
                         await scanProductWithDestination(context);
@@ -382,9 +416,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     _quickAddOption(
                       sheetContext,
                       icon: Icons.qr_code_2,
-                      title: 'Skanuj wiele produktów',
-                      subtitle:
-                          'Jeden cel i jedno zatwierdzenie dla całej serii',
+                      title: sheetContext.strings.batchScan,
+                      subtitle: sheetContext.strings.batchDestinationHint,
                       trailing: const PremiumFeatureTag(),
                       onTap: () {
                         Navigator.pop(sheetContext);
@@ -394,10 +427,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     _quickAddOption(
                       sheetContext,
                       icon: Icons.auto_awesome,
-                      title: 'Dodaj przepis z AI',
-                      subtitle: 'Ze zdjęcia, tekstu albo linku',
-                      trailing: const PremiumFeatureTag(
-                        label: 'PREMIUM · 2 PKT',
+                      title: sheetContext.strings.addRecipeWithAi,
+                      subtitle: sheetContext.strings.aiRecipeSources,
+                      trailing: PremiumFeatureTag(
+                        label: sheetContext.strings.premiumTwoPoints,
                       ),
                       onTap: () {
                         Navigator.pop(sheetContext);
@@ -411,8 +444,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     _quickAddOption(
                       sheetContext,
                       icon: Icons.restaurant_menu,
-                      title: 'Dodaj posiłek',
-                      subtitle: 'Zapisz kalorie i makroskładniki',
+                      title: sheetContext.strings.addMeal,
+                      subtitle: sheetContext.strings.recordCaloriesAndMacros,
                       onTap: () {
                         Navigator.pop(sheetContext);
                         Navigator.of(context).pushNamed('/tracker/add');
@@ -421,7 +454,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     _quickAddOption(
                       sheetContext,
                       icon: Icons.inventory_2_outlined,
-                      title: 'Dodaj do spiżarni',
+                      title: sheetContext.strings.addToPantry,
                       onTap: () {
                         Navigator.pop(sheetContext);
                         Navigator.of(context).push(
@@ -458,17 +491,12 @@ class _HomeScreenState extends State<HomeScreen> {
           side: BorderSide(color: colors.outlineVariant),
         ),
         clipBehavior: Clip.antiAlias,
-        child: ListTile(
-          leading: Icon(icon),
-          title: Text(title, maxLines: 2, overflow: TextOverflow.ellipsis),
-          subtitle:
-              subtitle == null
-                  ? null
-                  : Text(
-                    subtitle,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+        child: AdaptiveActionTile(
+          icon: icon,
+          title: title,
+          subtitle: subtitle,
+          titleMaxLines: 2,
+          subtitleMaxLines: 3,
           trailing: trailing,
           onTap: onTap,
         ),
@@ -564,7 +592,7 @@ class HomeTab extends StatelessWidget {
       try {
         return storeProvider.stores.firstWhere((s) => s.id == id).name;
       } catch (_) {
-        return 'Sklep';
+        return context.strings.homeShopFallback;
       }
     }
 
@@ -612,7 +640,10 @@ class HomeTab extends StatelessWidget {
                               // powitanie ma pełną szerokość dla siebie, a
                               // odznaka jest na osobnej linii pod spodem.
                               Text(
-                                'Cześć, ${user?.displayName ?? 'użytkowniku'}!',
+                                context.strings.homeGreeting(
+                                  user?.displayName ??
+                                      context.strings.homeUserFallback,
+                                ),
                                 style: Theme.of(context).textTheme.displaySmall
                                     ?.copyWith(fontWeight: FontWeight.bold),
                                 maxLines: 1,
@@ -624,7 +655,7 @@ class HomeTab extends StatelessWidget {
                               ],
                               const SizedBox(height: 4),
                               Text(
-                                'Co dziś gotujemy?',
+                                context.strings.homeCookingToday,
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                             ],
@@ -654,7 +685,7 @@ class HomeTab extends StatelessWidget {
                     // siatce 2x2. Przepisy są już w dolnym menu, więc nie
                     // dublujemy tutaj tego samego odnośnika.
                     Text(
-                      'Szybkie akcje',
+                      context.strings.homeQuickActions,
                       style: Theme.of(context).textTheme.headlineMedium
                           ?.copyWith(fontWeight: FontWeight.bold),
                     ),
@@ -674,8 +705,8 @@ class HomeTab extends StatelessWidget {
                       children: [
                         _buildQuickActionCard(
                           context,
-                          title: 'Nowy plan',
-                          subtitle: 'Zaplanuj posiłki',
+                          title: context.strings.newPlan,
+                          subtitle: context.strings.planMeals,
                           icon: Icons.calendar_today_outlined,
                           color: AppTheme.primaryColor,
                           onTap:
@@ -685,8 +716,8 @@ class HomeTab extends StatelessWidget {
                         ),
                         _buildQuickActionCard(
                           context,
-                          title: 'Baza produktów',
-                          subtitle: 'Sprawdź ceny',
+                          title: context.strings.productDatabase,
+                          subtitle: context.strings.checkPrices,
                           icon: Icons.storefront_outlined,
                           color: AppTheme.accentColor,
                           onTap:
@@ -695,8 +726,8 @@ class HomeTab extends StatelessWidget {
                         ),
                         _buildQuickActionCard(
                           context,
-                          title: 'Promocje',
-                          subtitle: 'Aktualne okazje',
+                          title: context.strings.promotions,
+                          subtitle: context.strings.currentOffers,
                           icon: Icons.local_offer_outlined,
                           color: Colors.red,
                           onTap:
@@ -706,8 +737,8 @@ class HomeTab extends StatelessWidget {
                         ),
                         _buildQuickActionCard(
                           context,
-                          title: 'Spiżarnia',
-                          subtitle: 'Co masz w domu',
+                          title: context.strings.pantry,
+                          subtitle: context.strings.whatYouHaveAtHome,
                           icon: Icons.inventory_2_outlined,
                           color: AppTheme.secondaryColor,
                           onTap:
@@ -735,7 +766,7 @@ class HomeTab extends StatelessWidget {
                               context,
                             ).pushNamed('/plan/archive'),
                         icon: const Icon(Icons.inventory_2_outlined, size: 18),
-                        label: const Text('Archiwum planów'),
+                        label: Text(context.strings.planArchive),
                       ),
                     ),
                     if ((!mealPlanProvider.hasLoaded ||
@@ -743,14 +774,14 @@ class HomeTab extends StatelessWidget {
                         mealPlanProvider.plans.isEmpty)
                       _buildDataStateCard(
                         context,
-                        message: 'Wczytywanie planu posiłków…',
+                        message: context.strings.homePlanLoading,
                         loading: true,
                       )
                     else if (mealPlanProvider.errorMessage != null &&
                         mealPlanProvider.plans.isEmpty)
                       _buildDataStateCard(
                         context,
-                        message: 'Nie udało się wczytać planu posiłków.',
+                        message: context.strings.homePlanLoadError,
                         onRetry: mealPlanProvider.loadPlans,
                       )
                     else if (activePlan != null) ...[
@@ -759,8 +790,8 @@ class HomeTab extends StatelessWidget {
                           Expanded(
                             child: Text(
                               activePlan.startsAfter(DateTime.now())
-                                  ? 'Twój najbliższy plan'
-                                  : 'Twój aktywny plan',
+                                  ? context.strings.homeNextPlan
+                                  : context.strings.homeActivePlan,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: Theme.of(context).textTheme.headlineMedium
@@ -772,7 +803,7 @@ class HomeTab extends StatelessWidget {
                             onPressed: () {
                               Navigator.of(context).pushNamed('/plan/view');
                             },
-                            child: const Text('Szczegóły'),
+                            child: Text(context.strings.homeDetails),
                           ),
                         ],
                       ),
@@ -793,8 +824,11 @@ class HomeTab extends StatelessWidget {
                               final isSelected = plan.id == activePlan.id;
                               return ChoiceChip(
                                 label: Text(
-                                  'Plan ${plan.createdAt.toLocal().day}.${plan.createdAt.toLocal().month} '
-                                  '· ${plan.durationDays} dni',
+                                  context.strings.homePlanChip(
+                                    plan.createdAt.toLocal().day,
+                                    plan.createdAt.toLocal().month,
+                                    plan.durationDays,
+                                  ),
                                 ),
                                 selected: isSelected,
                                 onSelected:
@@ -863,14 +897,14 @@ class HomeTab extends StatelessWidget {
         (summary == null && foodLogProvider.error == null)) {
       return _buildDataStateCard(
         context,
-        message: 'Wczytywanie kalorii i makroskładników…',
+        message: context.strings.homeNutritionLoading,
         loading: true,
       );
     }
     if (foodLogProvider.error != null && summary == null) {
       return _buildDataStateCard(
         context,
-        message: 'Nie udało się wczytać kalorii i makroskładników.',
+        message: context.strings.homeNutritionError,
         onRetry: () => foodLogProvider.fetchLogsForDate(DateTime.now()),
       );
     }
@@ -900,7 +934,7 @@ class HomeTab extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Dziś zjedzono',
+                  context.strings.homeEatenToday,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -935,7 +969,7 @@ class HomeTab extends StatelessWidget {
               Expanded(
                 child: _buildMacroBar(
                   context,
-                  'Białko',
+                  context.strings.homeProtein,
                   consumedProtein,
                   targetProtein,
                   AppTheme.secondaryColor,
@@ -945,7 +979,7 @@ class HomeTab extends StatelessWidget {
               Expanded(
                 child: _buildMacroBar(
                   context,
-                  'Tłuszcz',
+                  context.strings.homeFat,
                   consumedFat,
                   targetFat,
                   const Color(0xFFE0A62E),
@@ -955,7 +989,7 @@ class HomeTab extends StatelessWidget {
               Expanded(
                 child: _buildMacroBar(
                   context,
-                  'Węgl.',
+                  context.strings.homeCarbsShort,
                   consumedCarbs,
                   targetCarbs,
                   const Color(0xFF3B82F6),
@@ -1005,7 +1039,7 @@ class HomeTab extends StatelessWidget {
           ),
           if (onRetry != null)
             IconButton(
-              tooltip: 'Spróbuj ponownie',
+              tooltip: context.strings.homeRetry,
               onPressed: () => onRetry(),
               icon: const Icon(Icons.refresh),
             ),
@@ -1132,9 +1166,9 @@ class HomeTab extends StatelessWidget {
   /// każdym odświeżeniu ekranu). Dotknięcie otwiera pełną listę.
   Widget _buildTipOfTheDayCard(BuildContext context) {
     final now = DateTime.now();
-    final dayOfYear = now.difference(DateTime(now.year, 1, 1)).inDays;
-    final tipIndex = dayOfYear % kCookingTips.length;
-    final tip = kCookingTips[tipIndex];
+    final tips = cookingTipsFor(context.strings.localeName);
+    final tipIndex = cookingTipIndexForDate(now);
+    final tip = tips[tipIndex];
 
     return GestureDetector(
       // Przekazujemy indeks porady dnia, żeby lista otworzyła się na NIEJ,
@@ -1173,7 +1207,7 @@ class HomeTab extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'PORADA DNIA',
+                    context.strings.homeTipOfTheDay,
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
@@ -1230,8 +1264,8 @@ class HomeTab extends StatelessWidget {
         context,
         icon: Icons.water_drop,
         color: waterBlue,
-        title: 'Nawodnienie',
-        subtitle: 'Wczytywanie danych…',
+        title: context.strings.homeHydration,
+        subtitle: context.strings.homeDataLoading,
         onTap: () {},
         trailing: const SizedBox(
           width: 22,
@@ -1246,8 +1280,8 @@ class HomeTab extends StatelessWidget {
         context,
         icon: Icons.water_drop,
         color: waterBlue,
-        title: 'Nawodnienie',
-        subtitle: 'Nie udało się wczytać danych',
+        title: context.strings.homeHydration,
+        subtitle: context.strings.homeDataError,
         onTap: () => wellness.loadForDate(DateTime.now()),
         trailing: const Icon(Icons.refresh, color: waterBlue),
       );
@@ -1261,8 +1295,12 @@ class HomeTab extends StatelessWidget {
       context,
       icon: Icons.water_drop,
       color: waterBlue,
-      title: 'Nawodnienie',
-      subtitle: '$ml z $goal ml · ${(progress * 100).round()}% celu',
+      title: context.strings.homeHydration,
+      subtitle: context.strings.homeWaterProgress(
+        ml,
+        goal,
+        (progress * 100).round(),
+      ),
       onTap:
           () => Navigator.of(context).push(
             MaterialPageRoute(builder: (_) => const CalorieTrackerScreen()),
@@ -1329,14 +1367,16 @@ class HomeTab extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    'Konkurs tygodnia',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  Text(
+                    context.strings.homeWeeklyContest,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    'Dodaj najwięcej przepisów w tym tygodniu i zgarnij '
-                    'punkty premium — 3 za 1. miejsce, 2 za 2., 1 za 3.',
+                    context.strings.homeWeeklyContestHint,
                     style: TextStyle(
                       fontSize: 12,
                       color: AppTheme.textSecondary,
@@ -1473,7 +1513,7 @@ class HomeTab extends StatelessWidget {
                   borderRadius: const BorderRadius.all(Radius.circular(12)),
                 ),
                 child: Text(
-                  plan.status.toUpperCase(),
+                  context.strings.planStatusLabel(plan.status).toUpperCase(),
                   style: const TextStyle(
                     color: AppTheme.primaryColor,
                     fontSize: 10,
@@ -1486,8 +1526,11 @@ class HomeTab extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             upcoming && start != null
-                ? 'Plan od ${start.day.toString().padLeft(2, '0')}.${start.month.toString().padLeft(2, '0')}.${start.year}'
-                : 'Dzień $currentDay z ${plan.durationDays}',
+                ? context.strings.homePlanStarts(
+                  '${start.day.toString().padLeft(2, '0')}${context.strings.localeName.startsWith('en') ? '/' : '.'}'
+                  '${start.month.toString().padLeft(2, '0')}${context.strings.localeName.startsWith('en') ? '/' : '.'}${start.year}',
+                )
+                : context.strings.homePlanDay(currentDay, plan.durationDays),
             style: Theme.of(
               context,
             ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
@@ -1512,7 +1555,7 @@ class HomeTab extends StatelessWidget {
                   onPressed: () {
                     Navigator.of(context).pushNamed('/plan/view');
                   },
-                  child: const Text('Zobacz plan'),
+                  child: Text(context.strings.homeViewPlan),
                 ),
               ),
               const SizedBox(width: 12),
@@ -1522,7 +1565,7 @@ class HomeTab extends StatelessWidget {
                     // Przejdź do zakupów
                     Navigator.of(context).pushNamed('/shopping');
                   },
-                  child: const Text('Zakupy'),
+                  child: Text(context.strings.shopping),
                 ),
               ),
             ],
@@ -1563,7 +1606,7 @@ class HomeTab extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    entry.mealSlot.toUpperCase(),
+                    context.strings.mealTypeLabel(entry.mealSlot).toUpperCase(),
                     style: TextStyle(
                       color: AppTheme.primaryColor.withOpacity(0.8),
                       fontSize: 10,
@@ -1573,7 +1616,7 @@ class HomeTab extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    entry.recipe.name,
+                    entry.recipe.displayName(context),
                     style: Theme.of(
                       context,
                     ).textTheme.titleLarge?.copyWith(fontSize: 16),
@@ -1606,7 +1649,7 @@ class HomeTab extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'Brak aktywnego planu posiłków',
+            context.strings.homeNoPlan,
             style: Theme.of(
               context,
             ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
@@ -1614,14 +1657,14 @@ class HomeTab extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Wygeneruj zbilansowany plan posiłków, zminimalizuj koszty i wygeneruj inteligentną listę zakupów.',
+            context.strings.homeNoPlanHint,
             style: Theme.of(context).textTheme.bodyMedium,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pushNamed('/plan/config'),
-            child: const Text('Stwórz nowy plan posiłków'),
+            child: Text(context.strings.homeCreatePlan),
           ),
         ],
       ),
@@ -1679,9 +1722,9 @@ class _ContextualPremiumCardState extends State<_ContextualPremiumCard> {
     if (user.premiumPoints >= 2 && !_dismissed.contains('free_ai')) {
       key = 'free_ai';
       icon = Icons.auto_awesome;
-      title = 'Masz punkty na import przepisu AI';
-      text = 'Dodaj przepis ze zdjęcia, tekstu albo linku — bez subskrypcji.';
-      action = 'Wypróbuj';
+      title = context.strings.homeAiPointsTitle;
+      text = context.strings.homeAiPointsHint;
+      action = context.strings.homeTryAction;
       onTap =
           () => Navigator.of(
             context,
@@ -1689,9 +1732,9 @@ class _ContextualPremiumCardState extends State<_ContextualPremiumCard> {
     } else if (_scanCount >= 2 && !_dismissed.contains('batch_scan')) {
       key = 'batch_scan';
       icon = Icons.qr_code_scanner;
-      title = 'Skanujesz kilka produktów?';
-      text = 'W Premium zeskanujesz całą serię bez zamykania aparatu.';
-      action = 'Zobacz Premium';
+      title = context.strings.homeBatchTitle;
+      text = context.strings.homeBatchHint;
+      action = context.strings.homeViewPremium;
       onTap =
           () => Navigator.of(
             context,
@@ -1699,9 +1742,9 @@ class _ContextualPremiumCardState extends State<_ContextualPremiumCard> {
     } else if (plans.isNotEmpty && !_dismissed.contains('auto_week')) {
       key = 'auto_week';
       icon = Icons.auto_mode_outlined;
-      title = 'Następny tydzień może zrobić się sam';
-      text = 'Premium przygotuje co tydzień plan i opcjonalną listę zakupów.';
-      action = 'Sprawdź';
+      title = context.strings.homeAutoWeekTitle;
+      text = context.strings.homeAutoWeekHint;
+      action = context.strings.homeCheckAction;
       onTap =
           () => Navigator.of(
             context,
@@ -1756,7 +1799,7 @@ class _ContextualPremiumCardState extends State<_ContextualPremiumCard> {
               ),
             ),
             IconButton(
-              tooltip: 'Ukryj',
+              tooltip: context.strings.homeHideHint,
               onPressed: () => _dismiss(key),
               icon: const Icon(Icons.close, size: 18),
             ),

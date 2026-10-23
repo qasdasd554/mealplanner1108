@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import '../l10n/market_locale.dart';
 
 /// Ikona istniejącego pakietu z czytelną szarfą promocyjną.
 /// Procent jest widoczny wyłącznie dla oferty udostępnionej przez sklep.
@@ -20,7 +21,10 @@ class CampaignIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     final discount = discountPercent;
     return Semantics(
-      label: discount == null ? 'Pakiet' : 'Rabat $discount procent',
+      label:
+          discount == null
+              ? context.strings.premiumPackageSemantics
+              : context.strings.premiumDiscountSemantics(discount),
       child: SizedBox(
         width: 82,
         height: 48,
@@ -54,7 +58,7 @@ class CampaignIcon extends StatelessWidget {
                       ],
                     ),
                     child: Text(
-                      'RABAT -$discount%',
+                      context.strings.premiumDiscountRibbon(discount),
                       maxLines: 1,
                       style: const TextStyle(
                         color: Colors.white,

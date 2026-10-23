@@ -27,6 +27,8 @@ class StoreResponse(StoreBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
+    country_code: str = "PL"
+    currency_code: str = "PLN"
     department_order: dict | None = None
     created_at: datetime
 

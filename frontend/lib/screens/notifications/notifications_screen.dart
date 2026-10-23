@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+import '../../l10n/market_locale.dart';
 import '../../providers/meal_plan_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/notification.dart';
@@ -11,15 +13,24 @@ import '../profile/friends_screen.dart';
 import '../shopping/pending_shares_screen.dart';
 
 class NotificationsScreen extends StatefulWidget {
-  const NotificationsScreen({super.key});
+  final NotificationService? service;
+  final RecipeService? recipeService;
+  final Future<void> Function()? clearBadge;
+  const NotificationsScreen({
+    super.key,
+    this.service,
+    this.recipeService,
+    this.clearBadge,
+  });
 
   @override
   State<NotificationsScreen> createState() => _NotificationsScreenState();
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
-  final NotificationService _service = NotificationService();
-  final RecipeService _recipeService = RecipeService();
+  late final NotificationService _service;
+  late final RecipeService _recipeService;
+  late final Future<void> Function() _clearBadge;
   List<AppNotification> _notifications = [];
   bool _isLoading = true;
   String? _error;
@@ -27,6 +38,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   void initState() {
     super.initState();
+    _service = widget.service ?? NotificationService();
+    _recipeService = widget.recipeService ?? RecipeService();
+    _clearBadge = widget.clearBadge ?? PushService().clearBadge;
     _load();
   }
 
@@ -41,12 +55,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         _isLoading = false;
       });
       if (list.every((notification) => notification.isRead)) {
-        await PushService().clearBadge();
+        await _clearBadge();
       }
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = 'Nie udało się załadować powiadomień';
+        _error = context.strings.notificationsLoadFailed;
         _isLoading = false;
       });
     }
@@ -55,7 +69,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Future<void> _markAllRead() async {
     try {
       await _service.markAllAsRead();
-      await PushService().clearBadge();
+      await _clearBadge();
       if (!mounted) return;
       setState(() {
         _notifications =
@@ -80,9 +94,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),
-            content: Text('Nie udało się oznaczyć wszystkich jako przeczytane'),
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(context.strings.notificationsMarkAllFailed),
           ),
         );
     }
@@ -118,7 +132,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
 
     if (_notifications.every((item) => item.isRead)) {
-      await PushService().clearBadge();
+      await _clearBadge();
     }
 
     if (!mounted) return;
@@ -144,7 +158,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         final premium =
             context.read<AuthProvider>().currentUser?.hasPremiumAccess ?? false;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ten plan już się zakończył.')),
+          SnackBar(content: Text(context.strings.notificationsPlanEnded)),
         );
         await Navigator.of(
           context,
@@ -181,9 +195,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),
-            content: Text('Nie udało się otworzyć przepisu'),
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(context.strings.notificationsRecipeOpenFailed),
           ),
         );
     }
@@ -191,10 +205,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   String _relativeTime(DateTime dt) {
     final diff = DateTime.now().difference(dt);
-    if (diff.inMinutes < 1) return 'przed chwilą';
-    if (diff.inHours < 1) return '${diff.inMinutes} min temu';
-    if (diff.inDays < 1) return '${diff.inHours} godz. temu';
-    if (diff.inDays < 7) return '${diff.inDays} dni temu';
+    final strings = context.strings;
+    if (diff.inMinutes < 1) return strings.notificationsJustNow;
+    if (diff.inHours < 1) return strings.notificationsMinutes(diff.inMinutes);
+    if (diff.inDays < 1) return strings.notificationsHours(diff.inHours);
+    if (diff.inDays < 7) return strings.notificationsDays(diff.inDays);
+    if (strings.localeName.startsWith('en'))
+      return DateFormat('dd/MM/yyyy', 'en_GB').format(dt);
     return '${dt.day.toString().padLeft(2, '0')}.${dt.month.toString().padLeft(2, '0')}.${dt.year}';
   }
 
@@ -204,12 +221,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Powiadomienia'),
+        title: Text(context.strings.notificationsTitle),
         actions: [
           if (hasUnread)
             TextButton(
               onPressed: _markAllRead,
-              child: const Text('Oznacz wszystkie'),
+              child: Text(context.strings.notificationsMarkAll),
             ),
         ],
       ),
@@ -239,7 +256,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Brak powiadomień',
+                        context.strings.notificationsEmpty,
                         style: TextStyle(color: AppTheme.textSecondary),
                       ),
                     ],

@@ -1,0 +1,8 @@
+"share_reading" = "Reading link…";
+"share_done" = "Done";
+"share_no_link" = "No recipe link was received.";
+"share_prompt" = "Share a link to a video or a recipe page.";
+"share_no_address" = "No web address was found in the shared content.";
+"share_invalid_address" = "The shared address is not a valid link.";
+"share_save_failed" = "The link could not be saved. Check App Groups in the app's signing settings.";
+"share_saved" = "Link saved. Open Meal Planner Polska — recipe recognition will start automatically.";

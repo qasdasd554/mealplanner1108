@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
+import '../../l10n/market_locale.dart';
 import '../../services/moderation_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
@@ -13,49 +14,55 @@ import '../../utils/error_utils.dart';
 /// nikt nie może samowolnie podmienić zdjęcia w cudzym ani w oficjalnym
 /// przepisie.
 class AdminPhotosScreen extends StatefulWidget {
-  const AdminPhotosScreen({super.key});
+  const AdminPhotosScreen({super.key, this.service});
+
+  final ModerationService? service;
 
   @override
   State<AdminPhotosScreen> createState() => _AdminPhotosScreenState();
 }
 
 class _AdminPhotosScreenState extends State<AdminPhotosScreen> {
-  final ModerationService _service = ModerationService();
+  late final ModerationService _service;
 
   List<Map<String, dynamic>> _photos = [];
   bool _isLoading = true;
   String? _error;
   final Set<String> _busyIds = {};
+  int _loadGeneration = 0;
 
   @override
   void initState() {
     super.initState();
+    _service = widget.service ?? ModerationService();
     _load();
   }
 
   Future<void> _load() async {
+    final generation = ++_loadGeneration;
     setState(() {
       _isLoading = true;
       _error = null;
     });
     try {
       final list = await _service.getPendingPhotos();
-      if (!mounted) return;
+      if (!mounted || generation != _loadGeneration) return;
       setState(() {
         _photos = list;
         _isLoading = false;
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || generation != _loadGeneration) return;
       setState(() {
         _isLoading = false;
-        _error = friendlyError(e);
+        _error = friendlyError(e, strings: context.strings);
       });
     }
   }
 
   Future<void> _decide(Map<String, dynamic> entry, bool approve) async {
     final id = entry['recipe_id'] as String;
+    if (_busyIds.contains(id)) return;
     setState(() => _busyIds.add(id));
     try {
       if (approve) {
@@ -74,7 +81,9 @@ class _AdminPhotosScreenState extends State<AdminPhotosScreen> {
           SnackBar(
             duration: const Duration(seconds: 3),
             content: Text(
-              approve ? 'Zdjęcie zaakceptowane' : 'Zdjęcie odrzucone',
+              approve
+                  ? context.strings.adminPhotosApproved
+                  : context.strings.adminPhotosRejected,
             ),
           ),
         );
@@ -86,7 +95,7 @@ class _AdminPhotosScreenState extends State<AdminPhotosScreen> {
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
+            content: Text(friendlyError(e, strings: context.strings)),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -96,7 +105,7 @@ class _AdminPhotosScreenState extends State<AdminPhotosScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Zdjęcia do akceptacji')),
+      appBar: AppBar(title: Text(context.strings.adminPhotosTitle)),
       body:
           _isLoading
               ? const Center(child: CircularProgressIndicator())
@@ -108,7 +117,7 @@ class _AdminPhotosScreenState extends State<AdminPhotosScreen> {
                     Text(_error!, style: TextStyle(color: AppTheme.errorColor)),
                     TextButton(
                       onPressed: _load,
-                      child: const Text('Spróbuj ponownie'),
+                      child: Text(context.strings.productsRetry),
                     ),
                   ],
                 ),
@@ -116,7 +125,7 @@ class _AdminPhotosScreenState extends State<AdminPhotosScreen> {
               : _photos.isEmpty
               ? Center(
                 child: Text(
-                  'Brak zdjęć oczekujących na akceptację.',
+                  context.strings.adminPhotosEmpty,
                   style: TextStyle(color: AppTheme.textSecondary),
                 ),
               )
@@ -145,7 +154,8 @@ class _AdminPhotosScreenState extends State<AdminPhotosScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  entry['recipe_name'] as String? ?? 'Przepis',
+                                  entry['recipe_name'] as String? ??
+                                      context.strings.adminPhotosRecipe,
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
@@ -153,7 +163,9 @@ class _AdminPhotosScreenState extends State<AdminPhotosScreen> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'Zgłosił: ${entry['submitted_by'] ?? 'nieznany'}',
+                                  context.strings.adminPhotosSubmittedBy(
+                                    '${entry['submitted_by'] ?? context.strings.adminPhotosUnknownSubmitter}',
+                                  ),
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: AppTheme.textSecondary,
@@ -163,7 +175,7 @@ class _AdminPhotosScreenState extends State<AdminPhotosScreen> {
                                   Padding(
                                     padding: const EdgeInsets.only(top: 6),
                                     child: Text(
-                                      'Uwaga: ten przepis ma już zdjęcie — akceptacja je zastąpi.',
+                                      context.strings.adminPhotosReplaceWarning,
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: AppTheme.errorColor,
@@ -184,7 +196,7 @@ class _AdminPhotosScreenState extends State<AdminPhotosScreen> {
                                           isBusy
                                               ? null
                                               : () => _decide(entry, false),
-                                      child: const Text('Odrzuć'),
+                                      child: Text(context.strings.adminReject),
                                     ),
                                     FilledButton(
                                       onPressed:
@@ -202,7 +214,11 @@ class _AdminPhotosScreenState extends State<AdminPhotosScreen> {
                                                       color: Colors.white,
                                                     ),
                                               )
-                                              : const Text('Zaakceptuj'),
+                                              : Text(
+                                                context
+                                                    .strings
+                                                    .adminPhotosApprove,
+                                              ),
                                     ),
                                   ],
                                 ),
@@ -247,7 +263,7 @@ class _AdminPhotosScreenState extends State<AdminPhotosScreen> {
     color: AppTheme.textSecondary.withOpacity(0.1),
     child: Center(
       child: Text(
-        'Nie udało się wczytać zdjęcia',
+        context.strings.adminPhotosLoadError,
         style: TextStyle(color: AppTheme.textSecondary),
       ),
     ),

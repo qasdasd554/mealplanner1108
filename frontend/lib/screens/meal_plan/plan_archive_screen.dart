@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import '../../l10n/market_locale.dart';
 import 'package:provider/provider.dart';
 import '../../models/meal_plan.dart';
 import '../../providers/auth_provider.dart';
@@ -24,6 +26,9 @@ class _PlanArchiveScreenState extends State<PlanArchiveScreen> {
   String? _resumingId;
   List<MealPlan> _plans = [];
   bool _hadPremium = false;
+  String? _accountId;
+  int _accountGeneration = 0;
+  int _loadGeneration = 0;
 
   @override
   void initState() {
@@ -34,34 +39,58 @@ class _PlanArchiveScreenState extends State<PlanArchiveScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final premium =
-        context.watch<AuthProvider>().currentUser?.hasPremiumAccess ?? false;
-    if (premium && !_hadPremium) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _load();
-      });
+    final user = context.watch<AuthProvider>().currentUser;
+    final premium = user?.hasPremiumAccess ?? false;
+    if (_accountId != user?.id || _hadPremium != premium) {
+      _accountId = user?.id;
+      _accountGeneration++;
+      _loadGeneration++;
+      _plans = [];
+      _error = null;
+      _resumingId = null;
+      _loading = true;
+      if (premium) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _load();
+        });
+      }
     }
     _hadPremium = premium;
   }
 
   Future<void> _load() async {
-    if (_resumingId != null) return;
+    if (_resumingId != null || !_hadPremium) return;
+    final account = _accountGeneration;
+    final request = ++_loadGeneration;
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
       final plans = await _service.getArchivedPlans();
-      if (mounted) setState(() => _plans = plans);
+      if (mounted &&
+          account == _accountGeneration &&
+          request == _loadGeneration) {
+        setState(() => _plans = plans);
+      }
     } catch (e) {
-      if (mounted) setState(() => _error = friendlyError(e));
+      if (mounted &&
+          account == _accountGeneration &&
+          request == _loadGeneration) {
+        setState(() => _error = friendlyError(e, strings: context.strings));
+      }
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted &&
+          account == _accountGeneration &&
+          request == _loadGeneration) {
+        setState(() => _loading = false);
+      }
     }
   }
 
   Future<void> _resume(MealPlan plan) async {
     if (_resumingId != null) return;
+    final account = _accountGeneration;
     FocusManager.instance.primaryFocus?.unfocus();
     setState(() => _resumingId = plan.id);
     final now = DateTime.now();
@@ -71,11 +100,11 @@ class _PlanArchiveScreenState extends State<PlanArchiveScreen> {
       initialDate: today,
       firstDate: today,
       lastDate: DateTime(today.year + 2, today.month, today.day),
-      helpText: 'Od kiedy wznowić plan?',
-      cancelText: 'Anuluj',
-      confirmText: 'Wybierz datę',
+      helpText: context.strings.archiveChooseStart,
+      cancelText: context.strings.planCancel,
+      confirmText: context.strings.archiveChooseDate,
     );
-    if (!mounted) return;
+    if (!mounted || account != _accountGeneration) return;
     if (start == null) {
       setState(() => _resumingId = null);
       return;
@@ -85,55 +114,63 @@ class _PlanArchiveScreenState extends State<PlanArchiveScreen> {
           context: context,
           builder:
               (ctx) => AlertDialog(
-                title: const Text('Wznów plan'),
+                title: Text(context.strings.archiveResumeTitle),
                 content: Text(
-                  'Te same posiłki na ${plan.durationDays} dni od ${_date(start)}. '
-                  'Plan pozostanie też w archiwum. Utworzymy nową listę zakupów. '
-                  'Bez generowania AI i bez wydawania punktów.',
+                  context.strings.archiveResumeBody(
+                    plan.durationDays,
+                    _date(start),
+                  ),
                 ),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(ctx, false),
-                    child: const Text('Anuluj'),
+                    child: Text(context.strings.planCancel),
                   ),
                   FilledButton(
                     onPressed: () => Navigator.pop(ctx, true),
-                    child: const Text('Wznów'),
+                    child: Text(context.strings.archiveResume),
                   ),
                 ],
               ),
         ) ??
         false;
-    if (!mounted) return;
+    if (!mounted || account != _accountGeneration) return;
     if (!accepted) {
       setState(() => _resumingId = null);
       return;
     }
     final provider = context.read<MealPlanProvider>();
-    final resumed = await provider.resumePlan(plan.id, start);
-    if (!mounted) return;
+    final strings = context.strings;
+    final resumed = await provider.resumePlan(
+      plan.id,
+      start,
+      errorMessageFor: (error) => friendlyError(error, strings: strings),
+    );
+    if (!mounted || account != _accountGeneration) return;
     setState(() => _resumingId = null);
     if (resumed != null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Plan został wznowiony.')));
+      ).showSnackBar(SnackBar(content: Text(context.strings.archiveResumed)));
       await Navigator.of(context).pushNamed('/plan/view');
     } else {
       setState(
         () =>
             _error =
-                provider.errorMessage ??
-                'Nie udało się wznowić planu. Spróbuj ponownie.',
+                provider.errorMessage ?? context.strings.archiveResumeFailed,
       );
     }
   }
 
-  String _date(DateTime date) =>
-      '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
+  String _date(DateTime date) => DateFormat(
+    context.strings.localeName.startsWith('en') ? 'dd/MM/yyyy' : 'dd.MM.yyyy',
+  ).format(date);
   String _period(MealPlan plan) {
     final start = DateTime.tryParse(plan.startDate ?? '');
     final end = plan.lastDay;
-    if (start == null || end == null) return '${plan.durationDays} dni';
+    if (start == null || end == null) {
+      return context.strings.archiveDuration(plan.durationDays);
+    }
     return '${_date(start)} – ${_date(end)}';
   }
 
@@ -143,7 +180,7 @@ class _PlanArchiveScreenState extends State<PlanArchiveScreen> {
         context.watch<AuthProvider>().currentUser?.hasPremiumAccess ?? false;
     final stores = context.watch<StoreProvider>().stores;
     return Scaffold(
-      appBar: AppBar(title: const Text('Archiwum planów')),
+      appBar: AppBar(title: Text(context.strings.archiveTitle)),
       body: SafeArea(
         child:
             !premium
@@ -155,15 +192,15 @@ class _PlanArchiveScreenState extends State<PlanArchiveScreen> {
                       children: [
                         const PremiumBadge(),
                         const SizedBox(height: 16),
-                        const Text(
-                          'Z Premium zakończone plany pozostają w archiwum. Możesz je przeglądać i wznowić bez generowania przez AI.',
+                        Text(
+                          context.strings.archivePremiumHint,
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 20),
                         FilledButton(
                           onPressed:
                               () => Navigator.of(context).pushNamed('/premium'),
-                          child: const Text('Zobacz Premium'),
+                          child: Text(context.strings.archiveSeePremium),
                         ),
                       ],
                     ),
@@ -177,17 +214,15 @@ class _PlanArchiveScreenState extends State<PlanArchiveScreen> {
                     padding: const EdgeInsets.all(20),
                     physics: const AlwaysScrollableScrollPhysics(),
                     children: [
-                      const Text(
-                        'Zakończone plany',
-                        style: TextStyle(
+                      Text(
+                        context.strings.archiveCompleted,
+                        style: const TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 18,
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                        'Wznów ten sam zestaw posiłków od nowej daty. Nie używamy AI ani punktów Premium.',
-                      ),
+                      Text(context.strings.archiveHint),
                       const SizedBox(height: 16),
                       if (_error != null)
                         Padding(
@@ -207,16 +242,16 @@ class _PlanArchiveScreenState extends State<PlanArchiveScreen> {
                               if (_plans.isEmpty)
                                 TextButton(
                                   onPressed: _load,
-                                  child: const Text('Spróbuj ponownie'),
+                                  child: Text(context.strings.homeRetry),
                                 ),
                             ],
                           ),
                         ),
                       if (_plans.isEmpty && _error == null)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 36),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 36),
                           child: Text(
-                            'Nie masz jeszcze zakończonych planów. Po ostatnim dniu aktywny plan trafi tutaj.',
+                            context.strings.archiveEmpty,
                             textAlign: TextAlign.center,
                           ),
                         ),
@@ -229,7 +264,9 @@ class _PlanArchiveScreenState extends State<PlanArchiveScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Plan na ${plan.durationDays} dni',
+                                  context.strings.archivePlanTitle(
+                                    plan.durationDays,
+                                  ),
                                   style: const TextStyle(
                                     fontSize: 17,
                                     fontWeight: FontWeight.w700,
@@ -243,7 +280,7 @@ class _PlanArchiveScreenState extends State<PlanArchiveScreen> {
                                           .where((s) => s.id == plan.storeId)
                                           .firstOrNull
                                           ?.name ??
-                                      'Sklep',
+                                      context.strings.planStoreFallback,
                                 ),
                                 const SizedBox(height: 12),
                                 Wrap(
@@ -263,7 +300,9 @@ class _PlanArchiveScreenState extends State<PlanArchiveScreen> {
                                                 if (mounted) _load();
                                               }
                                               : null,
-                                      child: const Text('Podgląd'),
+                                      child: Text(
+                                        context.strings.archivePreview,
+                                      ),
                                     ),
                                     FilledButton(
                                       onPressed:
@@ -272,8 +311,10 @@ class _PlanArchiveScreenState extends State<PlanArchiveScreen> {
                                               : null,
                                       child: Text(
                                         _resumingId == plan.id
-                                            ? 'Wznawianie…'
-                                            : 'Wznów plan',
+                                            ? context.strings.archiveResuming
+                                            : context
+                                                .strings
+                                                .archiveResumeTitle,
                                       ),
                                     ),
                                   ],

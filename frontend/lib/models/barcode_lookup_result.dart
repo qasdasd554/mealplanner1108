@@ -39,6 +39,30 @@ class BarcodeLookupResult {
   bool get isFromOwnCatalog =>
       source == 'catalog' || source == 'catalog_enriched';
 
+  /// Legacy lookup ranges are PLN estimates, not currency-neutral prices.
+  /// Keep every identity/nutrition field when hiding them for another market.
+  BarcodeLookupResult withoutPriceEstimates() => BarcodeLookupResult(
+    found: found,
+    source: source,
+    name: name,
+    brand: brand,
+    unit: unit,
+    kcalPer100: kcalPer100,
+    proteinPer100: proteinPer100,
+    fatPer100: fatPer100,
+    carbsPer100: carbsPer100,
+    existingProductId: existingProductId,
+    barcode: barcode,
+    servingQuantity: servingQuantity,
+  );
+
+  bool get hasKnownPackageSize =>
+      servingQuantity != null &&
+      servingQuantity!.isFinite &&
+      servingQuantity! > 0 &&
+      servingQuantity! <= 100000 &&
+      const {'g', 'ml'}.contains(unit);
+
   /// Pełny zestaw wartości potrzebny do zapisania produktu w Śledzeniu.
   /// Stare zera katalogu/cache mogą być brakiem danych. Jawne wartości
   /// z zewnętrznej bazy lub potwierdzonej etykiety obejmują też np. wodę.

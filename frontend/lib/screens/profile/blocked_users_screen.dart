@@ -4,6 +4,7 @@ import '../../providers/auth_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/user_avatar.dart';
 import '../../utils/error_utils.dart';
+import '../../l10n/market_locale.dart';
 
 class BlockedUsersScreen extends StatefulWidget {
   const BlockedUsersScreen({super.key});
@@ -40,7 +41,7 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen> {
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
+            content: Text(friendlyError(e, strings: context.strings)),
           ),
         );
     } finally {
@@ -63,9 +64,7 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen> {
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(
-              'Odblokowano "$name". Znów zobaczysz jej/jego treści.',
-            ),
+            content: Text(context.strings.blockedUsersUnblocked(name)),
           ),
         );
     }
@@ -74,7 +73,7 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Zablokowani użytkownicy')),
+      appBar: AppBar(title: Text(context.strings.blockedUsersTitle)),
       body:
           _isLoading
               ? const Center(child: CircularProgressIndicator())
@@ -92,7 +91,7 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Nie zablokowałeś jeszcze nikogo.',
+                        context.strings.blockedUsersEmpty,
                         style: TextStyle(color: AppTheme.textSecondary),
                         textAlign: TextAlign.center,
                       ),
@@ -106,7 +105,8 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen> {
                 itemBuilder: (context, index) {
                   final entry = _blocked![index];
                   final name =
-                      entry['blocked_display_name'] as String? ?? 'Użytkownik';
+                      entry['blocked_display_name'] as String? ??
+                      context.strings.blockedUsersUnknown;
                   final userId = entry['blocked_user_id'] as String;
                   final avatar = entry['blocked_avatar'] as String?;
                   return Card(
@@ -116,7 +116,7 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen> {
                       title: Text(name),
                       trailing: TextButton(
                         onPressed: () => _unblock(userId, name),
-                        child: const Text('Odblokuj'),
+                        child: Text(context.strings.blockedUsersUnblock),
                       ),
                     ),
                   );

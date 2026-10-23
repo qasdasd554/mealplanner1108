@@ -3,13 +3,15 @@ description: "A smart meal planner mobile application integrated with Polish gro
 publish_to: 'none'
 # Przy każdym kolejnym buildzie sklepowym zwiększ oba numery:
 # wersję iOS przed znakiem `+` oraz kod wersji Androida po `+`.
-version: 1.0.66+267
+version: 1.0.67+268
 
 environment:
   sdk: '>=3.7.0 <4.0.0'
 
 dependencies:
   flutter:
+    sdk: flutter
+  flutter_localizations:
     sdk: flutter
 
   # State Management & DI
@@ -34,6 +36,8 @@ dependencies:
   # Potrzebny bezpośrednio do wyboru konkretnej oferty subskrypcji
   # Google Play (basePlanId + offerId -> offerToken).
   in_app_purchase_android: ^0.5.3
+  # Existing StoreKit SDK, explicit because eligibility is queried directly.
+  in_app_purchase_storekit: 0.4.11+2
   in_app_review: 2.0.12
 
   # Reklamy nagradzane (Śledzenie dla kont bez Premium) — oficjalny
@@ -91,7 +95,9 @@ dependencies:
   shimmer: ^3.0.0
   flutter_svg: ^2.0.10+1
   percent_indicator: ^4.2.3
-  intl: ^0.19.0
+  intl: ^0.20.2
+  # Already present through notifications; explicit for market campaign dates.
+  timezone: 0.10.1
 
   # Icons
   cupertino_icons: ^1.0.6
@@ -102,6 +108,7 @@ dev_dependencies:
   flutter_lints: ^3.0.0
 
 flutter:
+  generate: true
   uses-material-design: true
   assets:
     - assets/recipe_categories/

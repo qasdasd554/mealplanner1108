@@ -11,11 +11,13 @@ from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException
 from sqlalchemy import select, update
 
+from app.core.markets import account_country
 from app.db.session import async_session_factory
 from app.models import Recipe, RecipeImportJob, User
 from app.models.notification import Notification
 from app.schemas.recipe import AIRecipeImportRequest
 from app.services.push import push_for_notification
+from app.services.ai_recipe_import import recipe_message
 
 logger = logging.getLogger(__name__)
 _active_tasks: dict[uuid.UUID, asyncio.Task] = {}
@@ -38,6 +40,8 @@ async def _finish_job(
         job = await db.get(RecipeImportJob, job_id)
         if job is None or job.status == "completed":
             return
+        user = await db.get(User, job.user_id)
+        country = account_country(user)
         job.status = "completed" if recipe is not None else "failed"
         job.recipe_id = recipe.id if recipe is not None else None
         job.error = error[:500] if error else None
@@ -47,8 +51,13 @@ async def _finish_job(
             user_id=job.user_id,
             notification_type=("recipe_import_ready" if recipe else "recipe_import_failed"),
             message=(
-                f'Przepis „{recipe.name[:180]}” jest gotowy w zakładce Moje.'
-                if recipe else f'Nie udało się dodać przepisu: {(error or "spróbuj ponownie")[:380]}'
+                recipe_message(country,
+                    f'Przepis „{recipe.name[:180]}” jest gotowy w zakładce Moje.',
+                    f'Your recipe “{recipe.name[:180]}” is ready in My recipes.',
+                ) if recipe else recipe_message(country,
+                    f'Nie udało się dodać przepisu: {(error or "spróbuj ponownie")[:380]}',
+                    f'Could not add the recipe: {(error or "please try again")[:380]}',
+                )
             ),
             recipe_id=recipe.id if recipe else None,
         )
@@ -76,6 +85,7 @@ async def _heartbeat(job_id: uuid.UUID) -> None:
 async def _process_recipe_import(job_id: uuid.UUID) -> None:
     async with _parallel_imports:
         heartbeat_task: asyncio.Task | None = None
+        country = "PL"
         try:
             async with async_session_factory() as db:
                 claim = await db.execute(
@@ -102,12 +112,15 @@ async def _process_recipe_import(job_id: uuid.UUID) -> None:
                 recipe = existing.scalar_one_or_none()
                 if recipe is None:
                     user = await db.get(User, job.user_id)
+                    country = account_country(user)
                     if user is None or job.payload is None:
                         raise ValueError("Brak danych potrzebnych do importu.")
                     # A queued job may outlive an account ban or loss of
                     # verification. Recheck before contacting paid AI services.
                     if user.is_banned or not user.is_email_verified:
-                        raise HTTPException(status_code=403, detail="Konto nie ma dostępu do importu przepisu.")
+                        raise HTTPException(status_code=403, detail=recipe_message(country,
+                            "Konto nie ma dostępu do importu przepisu.", "This account cannot import recipes.",
+                        ))
                     payload = AIRecipeImportRequest.model_validate(job.payload)
                     from app.api.v1.recipes import _create_ai_recipe
 
@@ -136,7 +149,7 @@ async def _process_recipe_import(job_id: uuid.UUID) -> None:
             if recipe is not None:
                 await _finish_job(job_id, recipe=recipe)
             else:
-                detail = exc.detail if isinstance(exc, HTTPException) else "Spróbuj ponownie później."
+                detail = exc.detail if isinstance(exc, HTTPException) else recipe_message(country, "Spróbuj ponownie później.", "Please try again later.")
                 await _finish_job(job_id, error=str(detail))
         finally:
             if heartbeat_task is not None:

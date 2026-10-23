@@ -3,12 +3,18 @@ import 'package:provider/provider.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
 import '../../providers/shopping_list_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/meal_plan_provider.dart';
 import '../../providers/store_provider.dart';
 import '../../providers/promotion_provider.dart';
 import '../../models/shopping_list.dart';
+import '../../l10n/catalog_labels.dart';
+import '../../l10n/market_locale.dart';
+import '../../utils/market_money.dart';
+import '../../utils/quantity_formatter.dart';
 import '../../services/api_client.dart';
 import '../../services/shopping_list_service.dart';
+import '../../services/price_compare_service.dart';
 import '../../utils/error_utils.dart';
 import '../../config/api_config.dart';
 import '../../theme/app_theme.dart';
@@ -20,7 +26,14 @@ import 'pending_shares_screen.dart';
 
 class ShoppingListScreen extends StatefulWidget {
   final bool isTab;
-  const ShoppingListScreen({super.key, this.isTab = false});
+  final ApiClient? apiClient;
+  final PriceCompareService? priceCompareService;
+  const ShoppingListScreen({
+    super.key,
+    this.isTab = false,
+    this.apiClient,
+    this.priceCompareService,
+  });
 
   @override
   State<ShoppingListScreen> createState() => _ShoppingListScreenState();
@@ -40,13 +53,12 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     super.dispose();
   }
 
-  final ApiClient _apiClient = ApiClient();
-  List<dynamic> _substitutes = [];
-  bool _isLoadingSubstitutes = false;
+  late final ApiClient _apiClient;
 
   @override
   void initState() {
     super.initState();
+    _apiClient = widget.apiClient ?? ApiClient();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
     });
@@ -111,7 +123,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
             SnackBar(
               content: Text(
                 storeProvider.errorMessage ??
-                    'Nie udało się pobrać listy sklepów.',
+                    context.strings.shoppingStoresLoadFailed,
               ),
               backgroundColor: AppTheme.errorColor,
             ),
@@ -134,7 +146,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
                     child: Text(
-                      'Wybierz sklep dla nowej listy',
+                      context.strings.shoppingChooseStore,
                       style: Theme.of(sheetContext).textTheme.titleLarge,
                     ),
                   ),
@@ -173,7 +185,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
             SnackBar(
               content: Text(
                 shoppingProvider.errorMessage ??
-                    'Nie udało się utworzyć listy zakupów.',
+                    context.strings.shoppingCreateFailed,
               ),
               backgroundColor: AppTheme.errorColor,
             ),
@@ -209,15 +221,13 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
       context: context,
       builder:
           (ctx) => AlertDialog(
-            title: const Text('Udostępnij listę zakupów'),
+            title: Text(context.strings.shoppingShareTitle),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Podaj nazwę użytkownika osoby, której chcesz udostępnić listę. '
-                  'Musi ona mieć konto w Meal Planner Polska i zaakceptować '
-                  'zaproszenie, zanim zobaczy listę.',
+                  context.strings.shoppingShareHint,
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
                 ),
                 const SizedBox(height: 16),
@@ -225,10 +235,10 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                   controller: controller,
                   autofocus: true,
                   textCapitalization: TextCapitalization.none,
-                  decoration: const InputDecoration(
-                    labelText: 'Nazwa użytkownika',
-                    prefixIcon: Icon(Icons.person_outline),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: context.strings.shoppingUsername,
+                    prefixIcon: const Icon(Icons.person_outline),
+                    border: const OutlineInputBorder(),
                   ),
                 ),
               ],
@@ -236,11 +246,11 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Anuluj'),
+                child: Text(context.strings.aiRecipeCancel),
               ),
               FilledButton(
                 onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-                child: const Text('Wyślij zaproszenie'),
+                child: Text(context.strings.shoppingSendInvite),
               ),
             ],
           ),
@@ -257,7 +267,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text('Wysłano zaproszenie do $nickname'),
+            content: Text(context.strings.shoppingInviteSent(nickname)),
           ),
         );
     } catch (e) {
@@ -267,7 +277,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
+            content: Text(friendlyError(e, strings: context.strings)),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -293,7 +303,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
           (dialogContext) => StatefulBuilder(
             builder:
                 (dialogContext, setDialogState) => AlertDialog(
-                  title: const Text('Połącz listy zakupów'),
+                  title: Text(context.strings.shoppingMergeTitle),
                   content: SizedBox(
                     width: double.maxFinite,
                     child: Column(
@@ -301,9 +311,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Wybierz listy sklepu ${current.storeName}, które chcesz '
-                          'połączyć z obecną listą. Poprzednie listy znikną z '
-                          'Zakupów, ale plany posiłków pozostaną bez zmian.',
+                          context.strings.shoppingMergeHint(current.storeName),
                         ),
                         const SizedBox(height: 12),
                         ConstrainedBox(
@@ -317,11 +325,16 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                                 contentPadding: EdgeInsets.zero,
                                 value: selected.contains(list.mealPlanId),
                                 title: Text(
-                                  'Lista ${provider.allLists.indexOf(list) + 1}',
+                                  context.strings.shoppingListNumber(
+                                    provider.allLists.indexOf(list) + 1,
+                                  ),
                                 ),
                                 subtitle: Text(
-                                  '${list.createdAt.day}.${list.createdAt.month} '
-                                  '· ${list.totalItems} produktów',
+                                  context.strings.shoppingListDate(
+                                    list.createdAt.day,
+                                    list.createdAt.month,
+                                    list.totalItems,
+                                  ),
                                 ),
                                 onChanged:
                                     (checked) => setDialogState(() {
@@ -341,7 +354,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.of(dialogContext).pop(),
-                      child: const Text('Anuluj'),
+                      child: Text(context.strings.aiRecipeCancel),
                     ),
                     FilledButton(
                       onPressed:
@@ -350,7 +363,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                               : () => Navigator.of(
                                 dialogContext,
                               ).pop(selected.toList()),
-                      child: const Text('Połącz'),
+                      child: Text(context.strings.shoppingMerge),
                     ),
                   ],
                 ),
@@ -369,8 +382,8 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
           duration: const Duration(seconds: 4),
           content: Text(
             success
-                ? 'Listy zostały połączone'
-                : provider.errorMessage ?? 'Nie udało się połączyć list',
+                ? context.strings.shoppingMergeSuccess
+                : provider.errorMessage ?? context.strings.shoppingMergeFailed,
           ),
           backgroundColor: success ? null : AppTheme.errorColor,
         ),
@@ -395,128 +408,234 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     };
   }
 
-  // Pokazuje panel dolny z zamiennikami dla danego produktu
-  void _openSubstitutePicker(ShoppingListItem item, String storeId) async {
-    setState(() {
-      _isLoadingSubstitutes = true;
-      _substitutes = [];
-    });
+  // The request belongs to this opening, not to a modal builder/rebuild.
+  Future<void> _openSubstitutePicker(
+    ShoppingListItem item,
+    String storeId,
+  ) async {
+    final strings = context.strings;
+    final provider = context.read<ShoppingListProvider>();
+    var saving = false;
 
-    showModalBottomSheet(
+    Future<({List<dynamic> items, Object? error})> load() async {
+      if (item.productId == null) return (items: <dynamic>[], error: null);
+      try {
+        final response = await _apiClient.get(
+          '${ApiConfig.products}${item.productId}/substitutes?store_id=$storeId',
+        );
+        final items =
+            (response as List<dynamic>)
+                .where(
+                  (sub) =>
+                      supportedCurrencyCode(
+                        sub['currency_code']?.toString() ?? 'PLN',
+                      ) ==
+                      item.currencyCode,
+                )
+                .toList();
+        return (items: items, error: null);
+      } catch (error) {
+        return (items: <dynamic>[], error: error);
+      }
+    }
+
+    final request = load();
+    await showModalBottomSheet<void>(
       context: context,
       useSafeArea: true,
       backgroundColor: AppTheme.surfaceColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            if (_isLoadingSubstitutes) {
-              if (item.productId == null) {
-                Future.microtask(() {
-                  if (mounted) {
-                    setModalState(() {
-                      _isLoadingSubstitutes = false;
-                      _substitutes = [];
-                    });
-                  }
-                });
-              } else {
-                Future.microtask(() async {
-                  try {
-                    final response = await _apiClient.get(
-                      '${ApiConfig.products}${item.productId}/substitutes?store_id=$storeId',
+      builder:
+          (sheetContext) => StatefulBuilder(
+            builder:
+                (
+                  modalContext,
+                  setModalState,
+                ) => FutureBuilder<({List<dynamic> items, Object? error})>(
+                  future: request,
+                  builder: (resultContext, snapshot) {
+                    if (!snapshot.hasData) {
+                      return const SizedBox(
+                        height: 250,
+                        child: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+                    final result = snapshot.data!;
+                    return Container(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            strings.shoppingChooseSubstitute,
+                            style: Theme.of(resultContext)
+                                .textTheme
+                                .headlineMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            strings.shoppingSubstituteFor(item.productName),
+                            style: TextStyle(color: AppTheme.textSecondary),
+                          ),
+                          const SizedBox(height: 16),
+                          Expanded(
+                            child:
+                                result.error != null
+                                    ? Center(
+                                      child: Text(
+                                        friendlyError(result.error!),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    )
+                                    : ListView.builder(
+                                      itemCount: result.items.length,
+                                      itemBuilder: (rowContext, index) {
+                                        final sub = result.items[index];
+                                        final packageQuantity =
+                                            (sub['package_quantity'] as num?)
+                                                ?.toDouble();
+                                        final packageUnit =
+                                            sub['package_unit'] as String?;
+                                        final hasPackage =
+                                            packageQuantity != null &&
+                                            packageQuantity.isFinite &&
+                                            packageQuantity > 0 &&
+                                            const {
+                                              'g',
+                                              'ml',
+                                            }.contains(packageUnit);
+                                        final subtitle =
+                                            '${sub['brand'] as String? ?? ''}${sub['kcal'] != null ? ' (${sub['kcal']} kcal)' : ''}';
+                                        return ListTile(
+                                          title: Text(sub['name'] as String),
+                                          subtitle: Text(
+                                            item.currencyCode == 'GBP' &&
+                                                    hasPackage
+                                                ? [
+                                                      subtitle,
+                                                      strings
+                                                          .shoppingSubstitutePack(
+                                                            formatQuantity(
+                                                              packageQuantity,
+                                                              packageUnit!,
+                                                            ),
+                                                            packageUnit,
+                                                          ),
+                                                    ]
+                                                    .where(
+                                                      (value) =>
+                                                          value.isNotEmpty,
+                                                    )
+                                                    .join(' · ')
+                                                : subtitle,
+                                          ),
+                                          trailing: Text(
+                                            sub['price'] == null &&
+                                                    item.currencyCode == 'GBP'
+                                                ? strings.shoppingPriceUnknown
+                                                : '${item.currencyCode == 'GBP' && (sub['price_is_estimated'] as bool? ?? true) ? '~' : ''}${formatMarketMoney((sub['price'] as num?)?.toDouble() ?? 0.0, currencyCode: item.currencyCode)}',
+                                            style: const TextStyle(
+                                              color: AppTheme.primaryColor,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          onTap:
+                                              saving
+                                                  ? null
+                                                  : () async {
+                                                    if (saving) return;
+                                                    final name =
+                                                        sub['name'] as String;
+                                                    setModalState(
+                                                      () => saving = true,
+                                                    );
+                                                    try {
+                                                      final saved =
+                                                          await provider
+                                                              .substituteItem(
+                                                                item.id,
+                                                                sub['id']
+                                                                    as String,
+                                                              );
+                                                      if (!mounted ||
+                                                          !modalContext
+                                                              .mounted) {
+                                                        return;
+                                                      }
+                                                      if (saved) {
+                                                        Navigator.of(
+                                                          modalContext,
+                                                        ).pop();
+                                                      } else {
+                                                        setModalState(
+                                                          () => saving = false,
+                                                        );
+                                                      }
+                                                      ScaffoldMessenger.of(
+                                                        context,
+                                                      ).showSnackBar(
+                                                        SnackBar(
+                                                          duration:
+                                                              const Duration(
+                                                                seconds: 3,
+                                                              ),
+                                                          content: Text(
+                                                            saved
+                                                                ? strings
+                                                                    .shoppingSubstituteChanged(
+                                                                      name,
+                                                                    )
+                                                                : provider
+                                                                        .errorMessage ??
+                                                                    strings
+                                                                        .shoppingSubstituteFailed,
+                                                          ),
+                                                          backgroundColor:
+                                                              saved
+                                                                  ? AppTheme
+                                                                      .primaryColor
+                                                                  : AppTheme
+                                                                      .errorColor,
+                                                        ),
+                                                      );
+                                                    } catch (error) {
+                                                      if (!mounted ||
+                                                          !modalContext
+                                                              .mounted) {
+                                                        return;
+                                                      }
+                                                      setModalState(
+                                                        () => saving = false,
+                                                      );
+                                                      ScaffoldMessenger.of(
+                                                        context,
+                                                      ).showSnackBar(
+                                                        SnackBar(
+                                                          content: Text(
+                                                            friendlyError(
+                                                              error,
+                                                            ),
+                                                          ),
+                                                          backgroundColor:
+                                                              AppTheme
+                                                                  .errorColor,
+                                                        ),
+                                                      );
+                                                    }
+                                                  },
+                                        );
+                                      },
+                                    ),
+                          ),
+                        ],
+                      ),
                     );
-                    if (mounted) {
-                      setModalState(() {
-                        _substitutes = response as List<dynamic>;
-                        _isLoadingSubstitutes = false;
-                      });
-                    }
-                  } catch (e) {
-                    if (mounted) {
-                      setModalState(() {
-                        _isLoadingSubstitutes = false;
-                        _substitutes = [];
-                      });
-                    }
-                  }
-                });
-              }
-
-              return const SizedBox(
-                height: 250,
-                child: Center(child: CircularProgressIndicator()),
-              );
-            }
-
-            return Container(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Wybierz zamiennik',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Dla produktu: ${item.productName}',
-                    style: TextStyle(color: AppTheme.textSecondary),
-                  ),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: _substitutes.length,
-                      itemBuilder: (context, index) {
-                        final sub = _substitutes[index];
-                        return ListTile(
-                          title: Text(sub['name'] as String),
-                          subtitle: Text(
-                            '${sub['brand'] as String? ?? ''}${sub['kcal'] != null ? ' (${sub['kcal']} kcal)' : ''}',
-                          ),
-                          trailing: Text(
-                            '${((sub['price'] as num?)?.toDouble() ?? 0.0).toStringAsFixed(2)} zł',
-                            style: const TextStyle(
-                              color: AppTheme.primaryColor,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          onTap: () async {
-                            final provider = Provider.of<ShoppingListProvider>(
-                              this.context,
-                              listen: false,
-                            );
-                            await provider.substituteItem(
-                              item.id,
-                              sub['id'] as String,
-                            );
-                            if (mounted) {
-                              Navigator.of(this.context).pop();
-                              ScaffoldMessenger.of(this.context).showSnackBar(
-                                SnackBar(
-                                  duration: const Duration(seconds: 3),
-                                  content: Text(
-                                    'Zamieniono na: ${sub['name']}',
-                                  ),
-                                  backgroundColor: AppTheme.primaryColor,
-                                ),
-                              );
-                            }
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
+                  },
+                ),
+          ),
     );
   }
 
@@ -524,10 +643,11 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
   Widget build(BuildContext context) {
     final shoppingListProvider = Provider.of<ShoppingListProvider>(context);
     final list = shoppingListProvider.currentList;
+    final compactBritish = list != null && _isCompactBritish(list.currencyCode);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Lista zakupów'),
+        title: Text(context.strings.shoppingListTitle),
         leading:
             widget.isTab
                 ? null
@@ -545,8 +665,8 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
         backgroundColor: AppTheme.primaryColor,
         tooltip:
             list == null
-                ? 'Utwórz listę i dodaj produkt'
-                : 'Dodaj produkt do listy',
+                ? context.strings.shoppingCreateAndAdd
+                : context.strings.shoppingAddProduct,
         child: const Icon(Icons.add, color: Colors.white),
       ),
       body: Stack(
@@ -575,7 +695,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                             children: [
                               _buildActionTile(
                                 icon: Icons.mail_outline,
-                                label: 'Zaproszenia',
+                                label: context.strings.shoppingInvites,
                                 onTap:
                                     () => Navigator.of(context).push(
                                       MaterialPageRoute(
@@ -586,17 +706,17 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                               ),
                               _buildActionTile(
                                 icon: Icons.person_add_alt_outlined,
-                                label: 'Udostępnij',
+                                label: context.strings.shoppingShare,
                                 onTap: () => _showShareDialog(list.id),
                               ),
                               _buildActionTile(
                                 icon: Icons.refresh,
-                                label: 'Odśwież',
+                                label: context.strings.shoppingRefresh,
                                 onTap: _loadData,
                               ),
                               _buildActionTile(
                                 icon: Icons.delete_outline,
-                                label: 'Usuń listę',
+                                label: context.strings.shoppingDeleteList,
                                 color: AppTheme.errorColor,
                                 onTap: () {
                                   final idx = shoppingListProvider.allLists
@@ -634,7 +754,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                                     () =>
                                         _showMergeDialog(shoppingListProvider),
                                 icon: const Icon(Icons.merge_type, size: 18),
-                                label: const Text('Połącz listy'),
+                                label: Text(context.strings.shoppingMergeLists),
                               ),
                             ),
                           ),
@@ -656,14 +776,24 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                             horizontal: 24.0,
                             vertical: 8.0,
                           ),
-                          child: Row(
+                          child: Flex(
+                            direction:
+                                compactBritish
+                                    ? Axis.vertical
+                                    : Axis.horizontal,
+                            crossAxisAlignment:
+                                compactBritish
+                                    ? CrossAxisAlignment.stretch
+                                    : CrossAxisAlignment.center,
                             children: [
-                              Expanded(
+                              Flexible(
+                                flex: compactBritish ? 0 : 1,
+                                fit: FlexFit.tight,
                                 child: ElevatedButton.icon(
                                   icon: const Icon(Icons.store, size: 18),
-                                  label: const Text(
-                                    'Porównaj',
-                                    style: TextStyle(fontSize: 13),
+                                  label: Text(
+                                    context.strings.shoppingCompare,
+                                    style: const TextStyle(fontSize: 13),
                                   ),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppTheme.primaryTintColor,
@@ -677,25 +807,47 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                                     ),
                                     elevation: 0,
                                   ),
-                                  onPressed: () {
-                                    Navigator.of(context).push(
+                                  onPressed: () async {
+                                    final switched = await Navigator.of(
+                                      context,
+                                    ).push<bool>(
                                       MaterialPageRoute(
                                         builder:
-                                            (context) => PriceCompareScreen(
-                                              mealPlanId: list.mealPlanId,
-                                            ),
+                                            (context) =>
+                                                PriceCompareScreen.shoppingList(
+                                                  shoppingListId:
+                                                      list.mealPlanId,
+                                                  currencyCode:
+                                                      list.currencyCode,
+                                                  service:
+                                                      widget
+                                                          .priceCompareService,
+                                                ),
                                       ),
                                     );
+                                    if (!context.mounted || switched != true) {
+                                      return;
+                                    }
+                                    await context
+                                        .read<ShoppingListProvider>()
+                                        .loadAllLists(
+                                          preferredListId: list.mealPlanId,
+                                        );
                                   },
                                 ),
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
+                              SizedBox(
+                                width: compactBritish ? 0 : 12,
+                                height: compactBritish ? 12 : 0,
+                              ),
+                              Flexible(
+                                flex: compactBritish ? 0 : 1,
+                                fit: FlexFit.tight,
                                 child: ElevatedButton.icon(
                                   icon: const Icon(Icons.ios_share, size: 18),
-                                  label: const Text(
-                                    'Eksportuj',
-                                    style: TextStyle(fontSize: 13),
+                                  label: Text(
+                                    context.strings.shoppingExport,
+                                    style: const TextStyle(fontSize: 13),
                                   ),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppTheme.accentTintColor,
@@ -709,11 +861,18 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                                     elevation: 0,
                                   ),
                                   onPressed: () {
+                                    final accountCountry =
+                                        context
+                                            .read<AuthProvider?>()
+                                            ?.currentUser
+                                            ?.countryCode ??
+                                        'PL';
                                     showDialog(
                                       context: context,
                                       builder:
                                           (context) => ExportListDialog(
                                             shoppingList: list,
+                                            accountCountry: accountCountry,
                                           ),
                                     );
                                   },
@@ -758,14 +917,31 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                               color: AppTheme.primaryColor,
                             ),
                             title: Text(
-                              deptName,
+                              items.isNotEmpty &&
+                                      items.every((item) => item.isFromPantry)
+                                  ? context.strings.shoppingInPantry
+                                  : deptName == 'Inne'
+                                  ? context.strings.shoppingOther
+                                  : deptName,
                               style: Theme.of(context).textTheme.titleLarge
                                   ?.copyWith(fontWeight: FontWeight.bold),
                             ),
                             subtitle: Text(
-                              deptName == 'W spiżarni'
-                                  ? '${items.length} produktów już masz · 0 zł'
-                                  : '${items.where((i) => i.isChecked).length} z ${items.length} kupione',
+                              items.isNotEmpty &&
+                                      items.every((item) => item.isFromPantry)
+                                  ? context.strings.shoppingPantryCount(
+                                    items.length,
+                                    list.currencyCode == 'PLN'
+                                        ? '0 zł'
+                                        : formatMarketMoney(
+                                          0,
+                                          currencyCode: list.currencyCode,
+                                        ),
+                                  )
+                                  : context.strings.shoppingBoughtCount(
+                                    items.where((i) => i.isChecked).length,
+                                    items.length,
+                                  ),
                               style: TextStyle(
                                 fontSize: 12,
                                 color: AppTheme.textSecondary,
@@ -889,7 +1065,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Lista ${index + 1}',
+                        context.strings.shoppingListNumber(index + 1),
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
@@ -961,24 +1137,19 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
       context: context,
       builder:
           (dialogContext) => AlertDialog(
-            title: Text('Usunąć listę $number?'),
-            content: Text(
-              'Lista zakupów dla sklepu ${list.storeName} zostanie trwale '
-              'usunięta wraz ze wszystkimi pozycjami. Plan posiłków pozostaje '
-              'bez zmian. Usunięcie nie odnawia tygodniowego limitu tworzenia '
-              'list na koncie standardowym.',
-            ),
+            title: Text(context.strings.shoppingDeleteTitle(number)),
+            content: Text(context.strings.shoppingDeleteHint(list.storeName)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(dialogContext).pop(false),
-                child: const Text('Anuluj'),
+                child: Text(context.strings.aiRecipeCancel),
               ),
               FilledButton(
                 style: FilledButton.styleFrom(
                   backgroundColor: AppTheme.errorColor,
                 ),
                 onPressed: () => Navigator.of(dialogContext).pop(true),
-                child: const Text('Usuń'),
+                child: Text(context.strings.shoppingDelete),
               ),
             ],
           ),
@@ -992,7 +1163,11 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
       ..showSnackBar(
         SnackBar(
           duration: const Duration(seconds: 3),
-          content: Text(ok ? 'Lista usunięta' : 'Nie udało się usunąć listy'),
+          content: Text(
+            ok
+                ? context.strings.shoppingDeleted
+                : context.strings.shoppingDeleteFailed,
+          ),
           backgroundColor: ok ? null : AppTheme.errorColor,
         ),
       );
@@ -1021,7 +1196,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Masz wszystko z listy',
+                  context.strings.shoppingHaveEverything,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
@@ -1033,8 +1208,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            'Przenieś kupione produkty do spiżarni, żeby aplikacja mogła '
-            'podpowiadać przepisy z tego, co masz w domu.',
+            context.strings.shoppingCompleteHint,
             style: TextStyle(
               fontSize: 12,
               color: AppTheme.textSecondary,
@@ -1062,7 +1236,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                         ),
                       )
                       : const Icon(Icons.kitchen, size: 18),
-              label: const Text('Przenieś do spiżarni'),
+              label: Text(context.strings.shoppingMovePantry),
             ),
           ),
           const SizedBox(height: 6),
@@ -1071,7 +1245,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
             child: TextButton(
               onPressed:
                   _isCompleting ? null : () => _completeList(provider, false),
-              child: const Text('Zakończ bez przenoszenia'),
+              child: Text(context.strings.shoppingCompleteWithoutPantry),
             ),
           ),
         ],
@@ -1095,17 +1269,108 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
           duration: const Duration(seconds: 3),
           content: Text(
             moved == null
-                ? (provider.errorMessage ?? 'Nie udało się zakończyć listy')
+                ? (provider.errorMessage ??
+                    context.strings.shoppingCompleteFailed)
                 : moveToPantry
-                ? 'Zakupy zakończone. Do spiżarni trafiło $moved produktów.'
-                : 'Zakupy zakończone.',
+                ? context.strings.shoppingCompleteMoved(moved)
+                : context.strings.shoppingCompleteSuccess,
           ),
           backgroundColor: moved == null ? AppTheme.errorColor : null,
         ),
       );
   }
 
+  bool _isCompactBritish(String currencyCode) {
+    final textScale = MediaQuery.textScalerOf(context).scale(14) / 14;
+    return currencyCode == 'GBP' &&
+        MediaQuery.sizeOf(context).width / textScale < 360;
+  }
+
   Widget _buildSummaryCard(ShoppingList list) {
+    final amountBelow =
+        _isCompactBritish(list.currencyCode) &&
+        list.hasUnknownPrices &&
+        !list.isFullyChecked;
+    final amount = Text(
+      list.isFullyChecked
+          ? context.strings.shoppingEverythingBought
+          : list.hasUnknownPrices
+          ? list.currencyCode == 'GBP' && list.remainingPrice == 0
+              ? context.strings.shoppingPriceUnknown
+              : context.strings.shoppingUnknownRemaining(
+                formatMarketMoney(
+                  list.remainingPrice,
+                  currencyCode: list.currencyCode,
+                ),
+              )
+          : context.strings.shoppingRemaining(
+            formatMarketMoney(
+              list.remainingPrice,
+              currencyCode: list.currencyCode,
+            ),
+          ),
+      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+        color: AppTheme.primaryColor,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+    final overview = Row(
+      children: [
+        CircularPercentIndicator(
+          radius: 45.0,
+          lineWidth: 8.0,
+          percent: list.progress,
+          center: Text(
+            '${(list.progress * 100).toInt()}%',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          progressColor: AppTheme.primaryColor,
+          backgroundColor: AppTheme.backgroundColor,
+          circularStrokeCap: CircularStrokeCap.round,
+        ),
+        const SizedBox(width: 24),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                list.storeName,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                context.strings.shoppingProgressCount(
+                  list.checkedItems,
+                  list.totalItems,
+                ),
+                style: TextStyle(color: AppTheme.textSecondary),
+              ),
+              if (!amountBelow) ...[const SizedBox(height: 8), amount],
+              if (!list.isFullyChecked &&
+                  list.checkedItems > 0 &&
+                  list.totalEstimatedPrice != null) ...[
+                const SizedBox(height: 2),
+                Text(
+                  context.strings.shoppingBasketTotal(
+                    formatMarketMoney(
+                      list.totalEstimatedPrice! - list.remainingPrice,
+                      currencyCode: list.currencyCode,
+                    ),
+                    formatMarketMoney(
+                      list.totalEstimatedPrice!,
+                      currencyCode: list.currencyCode,
+                    ),
+                  ),
+                  style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
     return Container(
       margin: const EdgeInsets.all(24),
       padding: const EdgeInsets.all(20),
@@ -1113,69 +1378,13 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
         color: AppTheme.surfaceColor,
         borderRadius: BorderRadius.all(Radius.circular(20)),
       ),
-      child: Row(
-        children: [
-          // Kołowy wskaźnik postępu (PercentIndicator)
-          CircularPercentIndicator(
-            radius: 45.0,
-            lineWidth: 8.0,
-            percent: list.progress,
-            center: Text(
-              '${(list.progress * 100).toInt()}%',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            progressColor: AppTheme.primaryColor,
-            backgroundColor: AppTheme.backgroundColor,
-            circularStrokeCap: CircularStrokeCap.round,
-          ),
-          const SizedBox(width: 24),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  list.storeName,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${list.checkedItems} z ${list.totalItems} produktów',
-                  style: TextStyle(color: AppTheme.textSecondary),
-                ),
-                const SizedBox(height: 8),
-                // Kwota POZOSTAŁA do zapłaty, nie suma całej listy.
-                // Wcześniej pokazywana była suma z serwera, która nie
-                // zmieniała się przy odhaczaniu — licznik stał w miejscu
-                // mimo wrzucania rzeczy do koszyka.
-                Text(
-                  list.isFullyChecked
-                      ? 'Wszystko kupione'
-                      : list.hasUnknownPrices
-                      ? 'Od ~${list.remainingPrice.toStringAsFixed(2)} zł · część cen nieznana'
-                      : 'Do zapłaty: ~${list.remainingPrice.toStringAsFixed(2)} zł',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: AppTheme.primaryColor,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                if (!list.isFullyChecked && list.checkedItems > 0) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    'w koszyku: ${(list.totalEstimatedPrice - list.remainingPrice).toStringAsFixed(2)} zł '
-                    'z ~${list.totalEstimatedPrice.toStringAsFixed(2)} zł',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: AppTheme.textSecondary,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
+      child:
+          amountBelow
+              ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [overview, const SizedBox(height: 8), amount],
+              )
+              : overview,
     );
   }
 
@@ -1184,10 +1393,15 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     ShoppingListProvider provider,
     String storeId,
   ) {
+    final compactBritish = _isCompactBritish(item.currencyCode);
+    final priceLabel =
+        item.estimatedPrice == null
+            ? null
+            : '${item.currencyCode == 'GBP' && item.priceIsEstimated ? '~' : ''}${formatMarketMoney(item.estimatedPrice!, currencyCode: item.currencyCode)}';
     // Odznaka promocji — sprawdzana z już wczytanej listy promocji
     // (patrz _loadData), bez dodatkowego zapytania sieciowego na każdą pozycję.
     final promotion =
-        item.isFromPantry
+        item.isFromPantry || item.currencyCode != 'PLN'
             ? null
             : Provider.of<PromotionProvider>(
               context,
@@ -1213,7 +1427,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                                 SnackBar(
                                   content: Text(
                                     provider.errorMessage ??
-                                        'Nie udało się zapisać pozycji.',
+                                        context.strings.shoppingItemSaveFailed,
                                   ),
                                 ),
                               );
@@ -1250,7 +1464,24 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
         runSpacing: 4,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          Text('${item.requiredQuantity} ${item.unit}'),
+          Text(
+            item.currencyCode == 'PLN'
+                ? '${item.requiredQuantity} ${item.unit}'
+                : '${formatQuantity(item.requiredQuantity, item.unit)} ${context.strings.unitLabel(item.unit)}',
+          ),
+          if (item.currencyCode == 'GBP' && item.hasReliablePackage)
+            Text(
+              context.strings.shoppingPackageBuy(
+                item.packageCount!,
+                formatQuantity(item.packageQuantity!, item.packageUnit!),
+                item.packageUnit!,
+              ),
+            ),
+          if (compactBritish && priceLabel != null)
+            Text(
+              priceLabel,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
           if (item.brand != null)
             Text(
               '• ${item.brand}',
@@ -1263,9 +1494,9 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                 color: AppTheme.accentColor.withOpacity(0.1),
                 borderRadius: const BorderRadius.all(Radius.circular(6)),
               ),
-              child: const Text(
-                'ZAMIENNIK',
-                style: TextStyle(
+              child: Text(
+                context.strings.shoppingSubstituteBadge,
+                style: const TextStyle(
                   color: AppTheme.accentColor,
                   fontSize: 8,
                   fontWeight: FontWeight.bold,
@@ -1276,8 +1507,8 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
             Tooltip(
               message:
                   promotion.promoDescription ??
-                  '${promotion.regularPrice.toStringAsFixed(2)} zł → '
-                      '${promotion.promoPrice.toStringAsFixed(2)} zł',
+                  '${formatMarketMoney(promotion.regularPrice, currencyCode: item.currencyCode)} → '
+                      '${formatMarketMoney(promotion.promoPrice, currencyCode: item.currencyCode)}',
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
@@ -1285,7 +1516,9 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                   borderRadius: const BorderRadius.all(Radius.circular(6)),
                 ),
                 child: Text(
-                  'PROMOCJA -${promotion.savingsPercent}%',
+                  context.strings.shoppingPromotionBadge(
+                    promotion.savingsPercent,
+                  ),
                   style: const TextStyle(
                     color: Colors.red,
                     fontSize: 8,
@@ -1296,27 +1529,30 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
             ),
         ],
       ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (item.estimatedPrice != null)
-            Text(
-              '${item.estimatedPrice!.toStringAsFixed(2)} zł',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-          if (item.productId != null && !item.isFromPantry) ...[
-            const SizedBox(width: 8),
-            IconButton(
-              icon: Icon(
-                Icons.swap_horiz,
-                size: 20,
-                color: AppTheme.textSecondary,
+      trailing:
+          compactBritish && (item.productId == null || item.isFromPantry)
+              ? null
+              : Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (priceLabel != null && !compactBritish)
+                    Text(
+                      priceLabel,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  if (item.productId != null && !item.isFromPantry) ...[
+                    if (!compactBritish) const SizedBox(width: 8),
+                    IconButton(
+                      icon: Icon(
+                        Icons.swap_horiz,
+                        size: 20,
+                        color: AppTheme.textSecondary,
+                      ),
+                      onPressed: () => _openSubstitutePicker(item, storeId),
+                    ),
+                  ],
+                ],
               ),
-              onPressed: () => _openSubstitutePicker(item, storeId),
-            ),
-          ],
-        ],
-      ),
     );
   }
 
@@ -1334,14 +1570,14 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              'Brak aktywnej listy zakupów',
+              context.strings.shoppingEmptyTitle,
               style: Theme.of(
                 context,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
-              'Kliknij +, wybierz sklep i dodaj pierwszy produkt. Możesz też wygenerować listę z planu posiłków.',
+              context.strings.shoppingEmptyHint,
               textAlign: TextAlign.center,
               style: TextStyle(color: AppTheme.textSecondary),
             ),
@@ -1359,7 +1595,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                     ),
                   ),
               icon: const Icon(Icons.mail_outline, size: 18),
-              label: const Text('Zaproszenia do list'),
+              label: Text(context.strings.shoppingListInvites),
             ),
           ],
         ),

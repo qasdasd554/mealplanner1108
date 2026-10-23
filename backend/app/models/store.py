@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import JSON, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -16,6 +16,14 @@ class Store(Base):
     """Sklep (np. Lidl, Biedronka, Dino)."""
 
     __tablename__ = "stores"
+    __table_args__ = (
+        UniqueConstraint("country_code", "name", name="uq_store_country_name"),
+        CheckConstraint(
+            "(country_code = 'PL' AND currency_code = 'PLN') OR "
+            "(country_code = 'GB' AND currency_code = 'GBP')",
+            name="ck_stores_market_currency",
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -23,7 +31,13 @@ class Store(Base):
         server_default=func.gen_random_uuid(),
     )
     name: Mapped[str] = mapped_column(
-        String(100), unique=True, nullable=False
+        String(100), nullable=False
+    )
+    country_code: Mapped[str] = mapped_column(
+        String(2), default="PL", server_default="PL", nullable=False, index=True
+    )
+    currency_code: Mapped[str] = mapped_column(
+        String(3), default="PLN", server_default="PLN", nullable=False
     )
     logo_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     department_order: Mapped[dict | None] = mapped_column(JSON, nullable=True)

@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_current_admin, get_current_user, get_db
 from app.models.purchase_campaign import PurchaseCampaign
 from app.models.user import User
+from app.core.markets import MarketCode, account_country, requested_market
 
 router = APIRouter()
 
@@ -75,6 +76,7 @@ def _admin_response(campaign: PurchaseCampaign) -> dict:
     return {
         "id": str(campaign.id),
         "name": campaign.name,
+        "country_code": campaign.country_code,
         "kind": campaign.kind,
         "product_id": campaign.product_id,
         "discount_percent": campaign.discount_percent,
@@ -94,8 +96,10 @@ def _admin_response(campaign: PurchaseCampaign) -> dict:
 async def list_campaigns(
     db: AsyncSession = Depends(get_db),
     _admin: User = Depends(get_current_admin),
+    market: MarketCode | None = None,
 ):
-    result = await db.execute(select(PurchaseCampaign).order_by(PurchaseCampaign.created_at.desc()))
+    country = requested_market(_admin, market)
+    result = await db.execute(select(PurchaseCampaign).where(PurchaseCampaign.country_code == country).order_by(PurchaseCampaign.created_at.desc()))
     return [_admin_response(c) for c in result.scalars().all()]
 
 
@@ -104,13 +108,16 @@ async def create_campaign(
     payload: CampaignCreate,
     db: AsyncSession = Depends(get_db),
     _admin: User = Depends(get_current_admin),
+    market: MarketCode | None = None,
 ):
+    country = requested_market(_admin, market)
     target_email = payload.target_email.strip().lower() if payload.audience == "user" and payload.target_email else None
     if target_email:
-        user = await db.scalar(select(User.id).where(func.lower(User.email) == target_email))
+        user = await db.scalar(select(User.id).where(func.lower(User.email) == target_email, User.country_code == country))
         if user is None:
             raise HTTPException(404, "Nie znaleziono użytkownika z tym adresem e-mail")
     campaign = PurchaseCampaign(
+        country_code=country,
         name=payload.name.strip(), kind=payload.kind,
         product_id=payload.product_id,
         discount_percent=payload.discount_percent, audience=payload.audience,
@@ -135,8 +142,10 @@ async def set_campaign_active(
     is_active: bool,
     db: AsyncSession = Depends(get_db),
     _admin: User = Depends(get_current_admin),
+    market: MarketCode | None = None,
 ):
-    campaign = await db.get(PurchaseCampaign, campaign_id)
+    country = requested_market(_admin, market)
+    campaign = await db.scalar(select(PurchaseCampaign).where(PurchaseCampaign.id == campaign_id, PurchaseCampaign.country_code == country))
     if campaign is None:
         raise HTTPException(404, "Nie znaleziono kampanii")
     campaign.is_active = is_active
@@ -149,8 +158,10 @@ async def delete_campaign(
     campaign_id: UUID,
     db: AsyncSession = Depends(get_db),
     _admin: User = Depends(get_current_admin),
+    market: MarketCode | None = None,
 ):
-    campaign = await db.get(PurchaseCampaign, campaign_id)
+    country = requested_market(_admin, market)
+    campaign = await db.scalar(select(PurchaseCampaign).where(PurchaseCampaign.id == campaign_id, PurchaseCampaign.country_code == country))
     if campaign is None:
         raise HTTPException(404, "Nie znaleziono kampanii")
     await db.delete(campaign)
@@ -169,6 +180,7 @@ async def active_campaigns(
     now = datetime.now(timezone.utc)
     result = await db.execute(
         select(PurchaseCampaign).where(
+            PurchaseCampaign.country_code == account_country(current_user),
             PurchaseCampaign.is_active.is_(True),
             PurchaseCampaign.platform == platform,
             PurchaseCampaign.starts_at <= now,

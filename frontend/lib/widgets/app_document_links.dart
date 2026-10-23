@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/market_locale.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -33,12 +34,12 @@ class AppDocumentLinks extends StatelessWidget {
         context: context,
         builder:
             (dialogContext) => AlertDialog(
-              title: const Text('Kontakt'),
-              content: const Column(
+              title: Text(context.strings.documentContact),
+              content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Napisz do nas na adres:'),
+                  Text(context.strings.documentEmailBody),
                   SizedBox(height: 8),
                   SelectableText(AppLinks.contactEmail),
                 ],
@@ -51,11 +52,11 @@ class AppDocumentLinks extends StatelessWidget {
                     );
                     if (dialogContext.mounted) Navigator.pop(dialogContext);
                   },
-                  child: const Text('Kopiuj adres'),
+                  child: Text(context.strings.documentCopy),
                 ),
                 TextButton(
                   onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('Zamknij'),
+                  child: Text(context.strings.documentClose),
                 ),
               ],
             ),
@@ -64,11 +65,7 @@ class AppDocumentLinks extends StatelessWidget {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Nie udało się otworzyć dokumentu. Spróbuj ponownie.',
-            ),
-          ),
+          SnackBar(content: Text(context.strings.documentOpenFailed)),
         );
     }
   }
@@ -86,14 +83,14 @@ class AppDocumentLinks extends StatelessWidget {
         Wrap(
           alignment: WrapAlignment.center,
           children: [
-            link('Regulamin (EULA)', Uri.parse(AppLinks.terms)),
-            link('Polityka prywatności', Uri.parse(AppLinks.privacy)),
+            link(context.strings.documentTerms, Uri.parse(AppLinks.terms)),
+            link(context.strings.documentPrivacy, Uri.parse(AppLinks.privacy)),
             if (showAccountHelp) ...[
               link(
-                'Usuwanie konta — informacje',
+                context.strings.documentDeletion,
                 Uri.parse(AppLinks.accountDeletion),
               ),
-              link('Pomoc', Uri.parse(AppLinks.support)),
+              link(context.strings.documentHelp, Uri.parse(AppLinks.support)),
             ],
           ],
         ),
@@ -101,7 +98,10 @@ class AppDocumentLinks extends StatelessWidget {
         OutlinedButton.icon(
           onPressed: () => _open(context, AppLinks.contact),
           icon: const Icon(Icons.mail_outline, size: 18),
-          label: const Text('Kontakt', textAlign: TextAlign.center),
+          label: Text(
+            context.strings.documentContact,
+            textAlign: TextAlign.center,
+          ),
         ),
         const SizedBox(height: 4),
         const Text(AppLinks.contactEmail, textAlign: TextAlign.center),

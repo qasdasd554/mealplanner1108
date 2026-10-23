@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Integer, String, func
+from sqlalchemy import Boolean, CheckConstraint, DateTime, Integer, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -14,9 +14,11 @@ from app.db.session import Base
 
 class PurchaseCampaign(Base):
     __tablename__ = "purchase_campaigns"
+    __table_args__ = (CheckConstraint("country_code IN ('PL', 'GB')", name="ck_purchase_campaign_country"),)
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(String(120), nullable=False)
+    country_code: Mapped[str] = mapped_column(String(2), nullable=False, default="PL", server_default="PL", index=True)
     kind: Mapped[str] = mapped_column(String(20), nullable=False)  # premium | points
     product_id: Mapped[str] = mapped_column(String(80), nullable=False)
     discount_percent: Mapped[int] = mapped_column(Integer, nullable=False)

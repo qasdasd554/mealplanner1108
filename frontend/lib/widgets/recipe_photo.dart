@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import '../l10n/market_locale.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../models/recipe.dart';
@@ -131,11 +132,11 @@ class _RecipePhotoState extends State<RecipePhoto> {
                       color: Colors.black.withOpacity(0.75),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: const Opacity(
+                    child: Opacity(
                       opacity: 0.5,
                       child: Text(
-                        'Zdjęcie poglądowe, wygenerowane przez AI',
-                        style: TextStyle(
+                        context.strings.detailAiPhoto,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 8,
                           height: 1.1,

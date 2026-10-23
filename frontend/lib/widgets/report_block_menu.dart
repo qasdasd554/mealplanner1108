@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/market_locale.dart';
+import '../utils/retained_dialog.dart';
 import '../providers/auth_provider.dart';
 
 /// Ustalona lista powodów zgłoszenia — musi odpowiadać REPORT_REASONS
@@ -10,6 +12,14 @@ const Map<String, String> kReportReasons = {
   'harassment': 'Nękanie albo mowa nienawiści',
   'misinformation': 'Fałszywe informacje',
   'other': 'Inny powód',
+};
+
+String _reportReasonLabel(BuildContext context, String key) => switch (key) {
+  'spam' => context.strings.reportSpam,
+  'inappropriate_content' => context.strings.reportInappropriate,
+  'harassment' => context.strings.reportHarassment,
+  'misinformation' => context.strings.reportMisinformation,
+  _ => context.strings.reportOther,
 };
 
 /// Okno dialogowe zgłoszenia treści (przepis lub komentarz) —
@@ -25,24 +35,24 @@ Future<void> showReportDialog(
   String selectedReason = 'inappropriate_content';
   final detailsController = TextEditingController();
 
-  final submitted = await showDialog<bool>(
+  final submitted = await showRetainedDialog<bool>(
     context: context,
     builder: (dialogContext) {
       return StatefulBuilder(
         builder: (dialogContext, setState) {
           return AlertDialog(
-            title: const Text('Zgłoś treść'),
+            title: Text(context.strings.reportTitle),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Powód zgłoszenia:'),
+                  Text(context.strings.reportReason),
                   const SizedBox(height: 8),
                   ...kReportReasons.entries.map(
                     (entry) => RadioListTile<String>(
                       contentPadding: EdgeInsets.zero,
-                      title: Text(entry.value),
+                      title: Text(_reportReasonLabel(context, entry.key)),
                       value: entry.key,
                       groupValue: selectedReason,
                       onChanged: (v) => setState(() => selectedReason = v!),
@@ -53,8 +63,8 @@ Future<void> showReportDialog(
                     controller: detailsController,
                     maxLength: 1000,
                     maxLines: 3,
-                    decoration: const InputDecoration(
-                      labelText: 'Dodatkowe szczegóły (opcjonalnie)',
+                    decoration: InputDecoration(
+                      labelText: context.strings.reportDetails,
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -64,11 +74,11 @@ Future<void> showReportDialog(
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(dialogContext).pop(false),
-                child: const Text('Anuluj'),
+                child: Text(context.strings.commentsCancel),
               ),
               FilledButton(
                 onPressed: () => Navigator.of(dialogContext).pop(true),
-                child: const Text('Zgłoś'),
+                child: Text(context.strings.reportSend),
               ),
             ],
           );
@@ -94,8 +104,8 @@ Future<void> showReportDialog(
           duration: const Duration(seconds: 3),
           content: Text(
             success
-                ? 'Dziękujemy za zgłoszenie. Nasz zespół je sprawdzi.'
-                : 'Nie udało się wysłać zgłoszenia. Spróbuj ponownie.',
+                ? context.strings.reportThanks
+                : context.strings.reportFailed,
           ),
         ),
       );
@@ -115,20 +125,17 @@ Future<void> showBlockUserDialog(
     context: context,
     builder:
         (dialogContext) => AlertDialog(
-          title: const Text('Zablokować tego użytkownika?'),
-          content: Text(
-            'Nie będziesz już widzieć przepisów ani komentarzy od "$authorName". '
-            'Możesz cofnąć blokadę w dowolnym momencie w Profil → Zablokowani użytkownicy.',
-          ),
+          title: Text(context.strings.blockTitle),
+          content: Text(context.strings.blockBody(authorName)),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Anuluj'),
+              child: Text(context.strings.commentsCancel),
             ),
             FilledButton(
               style: FilledButton.styleFrom(backgroundColor: Colors.red),
               onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('Zablokuj'),
+              child: Text(context.strings.blockAction),
             ),
           ],
         ),
@@ -147,8 +154,8 @@ Future<void> showBlockUserDialog(
           duration: const Duration(seconds: 3),
           content: Text(
             success
-                ? 'Użytkownik "$authorName" został zablokowany.'
-                : 'Nie udało się zablokować użytkownika.',
+                ? context.strings.blockDone(authorName)
+                : context.strings.blockFailed,
           ),
         ),
       );
@@ -188,20 +195,20 @@ class ReportBlockMenu extends StatelessWidget {
       },
       itemBuilder:
           (context) => [
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'report',
               child: ListTile(
                 leading: Icon(Icons.flag_outlined),
-                title: Text('Zgłoś'),
+                title: Text(context.strings.reportSend),
                 contentPadding: EdgeInsets.zero,
               ),
             ),
             if (authorId != null)
               PopupMenuItem(
                 value: 'block',
-                child: const ListTile(
+                child: ListTile(
                   leading: Icon(Icons.block),
-                  title: Text('Zablokuj autora'),
+                  title: Text(context.strings.blockAuthor),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),

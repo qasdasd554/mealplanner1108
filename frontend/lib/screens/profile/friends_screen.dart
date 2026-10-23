@@ -4,18 +4,21 @@ import '../../models/friend.dart';
 import '../../services/friend_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
+import '../../utils/retained_dialog.dart';
+import '../../l10n/market_locale.dart';
 import '../../widgets/user_avatar.dart';
 import 'friend_detail_screen.dart';
 
 class FriendsScreen extends StatefulWidget {
-  const FriendsScreen({super.key});
+  final FriendService? service;
+  const FriendsScreen({super.key, this.service});
 
   @override
   State<FriendsScreen> createState() => _FriendsScreenState();
 }
 
 class _FriendsScreenState extends State<FriendsScreen> {
-  final _service = FriendService();
+  late final FriendService _service;
   List<FriendEntry>? _friends;
   List<FriendEntry>? _invitations;
   String? _error;
@@ -24,6 +27,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
   @override
   void initState() {
     super.initState();
+    _service = widget.service ?? FriendService();
     _load();
   }
 
@@ -40,37 +44,38 @@ class _FriendsScreenState extends State<FriendsScreen> {
         _invitations = values[1];
       });
     } catch (error) {
-      if (mounted) setState(() => _error = friendlyError(error));
+      if (mounted)
+        setState(() => _error = friendlyError(error, strings: context.strings));
     }
   }
 
   Future<void> _invite() async {
     final controller = TextEditingController();
-    final identifier = await showDialog<String>(
+    final identifier = await showRetainedDialog<String>(
       context: context,
       builder:
           (dialogContext) => AlertDialog(
-            title: const Text('Zaproś znajomego'),
+            title: Text(context.strings.socialInviteTitle),
             content: TextField(
               controller: controller,
               autofocus: true,
               keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                labelText: 'Nazwa użytkownika lub e-mail',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: context.strings.socialIdentifier,
+                border: const OutlineInputBorder(),
               ),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Anuluj'),
+                child: Text(context.strings.commentsCancel),
               ),
               FilledButton(
                 onPressed: () {
                   final value = controller.text.trim();
                   if (value.length >= 2) Navigator.pop(dialogContext, value);
                 },
-                child: const Text('Wyślij'),
+                child: Text(context.strings.socialSend),
               ),
             ],
           ),
@@ -81,9 +86,9 @@ class _FriendsScreenState extends State<FriendsScreen> {
     try {
       await _service.invite(identifier);
       await _load();
-      if (mounted) _message('Zaproszenie zostało wysłane.');
+      if (mounted) _message(context.strings.socialInvitationSent);
     } catch (error) {
-      if (mounted) _message(friendlyError(error));
+      if (mounted) _message(friendlyError(error, strings: context.strings));
     } finally {
       if (mounted) setState(() => _working = false);
     }
@@ -96,7 +101,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
       await _load();
       if (mounted) _message(success);
     } catch (error) {
-      if (mounted) _message(friendlyError(error));
+      if (mounted) _message(friendlyError(error, strings: context.strings));
     } finally {
       if (mounted) setState(() => _working = false);
     }
@@ -118,11 +123,11 @@ class _FriendsScreenState extends State<FriendsScreen> {
         [];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Znajomi')),
+      appBar: AppBar(title: Text(context.strings.socialFriends)),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _working ? null : _invite,
         icon: const Icon(Icons.person_add_alt_1),
-        label: const Text('Zaproś'),
+        label: Text(context.strings.socialInvite),
       ),
       body: RefreshIndicator(
         onRefresh: _load,
@@ -135,7 +140,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                     Center(
                       child: TextButton(
                         onPressed: _load,
-                        child: const Text('Spróbuj ponownie'),
+                        child: Text(context.strings.socialRetry),
                       ),
                     ),
                   ],
@@ -146,7 +151,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                   children: [
                     if (incoming.isNotEmpty) ...[
-                      const _Heading('Zaproszenia do Ciebie'),
+                      _Heading(context.strings.socialIncoming),
                       ...incoming.map(
                         (entry) => _InvitationCard(
                           entry: entry,
@@ -154,25 +159,24 @@ class _FriendsScreenState extends State<FriendsScreen> {
                           onAccept:
                               () => _act(
                                 () => _service.accept(entry.connectionId),
-                                'Zaproszenie zostało przyjęte.',
+                                context.strings.socialInvitationAccepted,
                               ),
                           onDecline:
                               () => _act(
                                 () => _service.declineOrCancel(
                                   entry.connectionId,
                                 ),
-                                'Zaproszenie zostało odrzucone.',
+                                context.strings.socialInvitationDeclined,
                               ),
                         ),
                       ),
                       const SizedBox(height: 18),
                     ],
-                    const _Heading('Twoi znajomi'),
+                    _Heading(context.strings.socialYourFriends),
                     if (_friends!.isEmpty)
-                      const _InfoCard(
+                      _InfoCard(
                         icon: Icons.people_outline,
-                        text:
-                            'Nie masz jeszcze znajomych. Wyślij pierwsze zaproszenie.',
+                        text: context.strings.socialNoFriends,
                       )
                     else
                       ..._friends!.map(
@@ -189,14 +193,18 @@ class _FriendsScreenState extends State<FriendsScreen> {
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            subtitle: const Text('Przepisy i lista zakupów'),
+                            subtitle: Text(
+                              context.strings.socialFriendSubtitle,
+                            ),
                             trailing: const Icon(Icons.chevron_right),
                             onTap:
                                 () => Navigator.of(context).push(
                                   MaterialPageRoute(
                                     builder:
-                                        (_) =>
-                                            FriendDetailScreen(friend: entry),
+                                        (_) => FriendDetailScreen(
+                                          friend: entry,
+                                          service: widget.service,
+                                        ),
                                   ),
                                 ),
                           ),
@@ -204,7 +212,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                       ),
                     if (outgoing.isNotEmpty) ...[
                       const SizedBox(height: 18),
-                      const _Heading('Wysłane zaproszenia'),
+                      _Heading(context.strings.socialOutgoing),
                       ...outgoing.map(
                         (entry) => Card(
                           child: ListTile(
@@ -214,7 +222,9 @@ class _FriendsScreenState extends State<FriendsScreen> {
                               size: 40,
                             ),
                             title: Text(entry.displayName),
-                            subtitle: const Text('Oczekuje na odpowiedź'),
+                            subtitle: Text(
+                              context.strings.socialAwaitingResponse,
+                            ),
                             trailing: TextButton(
                               onPressed:
                                   _working
@@ -223,9 +233,11 @@ class _FriendsScreenState extends State<FriendsScreen> {
                                         () => _service.declineOrCancel(
                                           entry.connectionId,
                                         ),
-                                        'Zaproszenie zostało anulowane.',
+                                        context
+                                            .strings
+                                            .socialInvitationCancelled,
                                       ),
-                              child: const Text('Anuluj'),
+                              child: Text(context.strings.commentsCancel),
                             ),
                           ),
                         ),
@@ -286,12 +298,12 @@ class _InvitationCard extends StatelessWidget {
             ),
           ),
           IconButton(
-            tooltip: 'Odrzuć',
+            tooltip: context.strings.socialDecline,
             onPressed: working ? null : onDecline,
             icon: const Icon(Icons.close),
           ),
           IconButton.filled(
-            tooltip: 'Przyjmij',
+            tooltip: context.strings.socialAccept,
             onPressed: working ? null : onAccept,
             icon: const Icon(Icons.check),
           ),

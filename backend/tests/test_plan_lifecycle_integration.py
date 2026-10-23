@@ -18,6 +18,8 @@ async def test_startup_prepares_existing_neon_schema_idempotently(monkeypatch):
     statements = []
 
     class Connection:
+        dialect = SimpleNamespace(name="postgresql")
+
         async def run_sync(self, callback):
             pass
 
@@ -81,7 +83,7 @@ async def test_push_uses_same_plan_target_as_inapp_notification(monkeypatch):
     send = AsyncMock(return_value=1)
     monkeypatch.setattr(push, "is_push_enabled", lambda: True)
     monkeypatch.setattr(push, "send_push_to_user", send)
-    await push.push_for_notification(object(), notification)
+    await push.push_for_notification(object(), notification, country_code="PL")
     send.assert_awaited_once()
     _, user_id, title, message, data = send.await_args.args
     assert user_id == notification.user_id

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../l10n/market_locale.dart';
+import '../../l10n/recipe_content.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/pantry_service.dart';
@@ -16,7 +18,13 @@ import '../profile/premium_screen.dart';
 /// "jedno dotknięcie = użyj całej spiżarni", z możliwością odznaczenia
 /// tego, czego akurat nie chce się użyć w tym wyszukiwaniu.
 class IngredientMatchSelectScreen extends StatefulWidget {
-  const IngredientMatchSelectScreen({super.key});
+  final PantryService? pantryService;
+  final RecipeService? recipeService;
+  const IngredientMatchSelectScreen({
+    super.key,
+    this.pantryService,
+    this.recipeService,
+  });
 
   @override
   State<IngredientMatchSelectScreen> createState() =>
@@ -25,8 +33,10 @@ class IngredientMatchSelectScreen extends StatefulWidget {
 
 class _IngredientMatchSelectScreenState
     extends State<IngredientMatchSelectScreen> {
-  final PantryService _pantryService = PantryService();
-  final RecipeService _recipeService = RecipeService();
+  late final PantryService _pantryService =
+      widget.pantryService ?? PantryService();
+  late final RecipeService _recipeService =
+      widget.recipeService ?? RecipeService();
 
   List<PantryItem> _pantryItems = [];
   final Set<String> _selectedIds = {};
@@ -62,7 +72,9 @@ class _IngredientMatchSelectScreenState
       // zostawiać pusty ekran — dokładnie ten problem zgłoszony wcześniej
       // ("po wpisaniu produktów nic nie pokazuje") wynikał z tego, że
       // poprzednia wersja tego ekranu całkowicie łykała błędy w ciszy.
-      setState(() => _errorMessage = friendlyError(e));
+      setState(
+        () => _errorMessage = friendlyError(e, strings: context.strings),
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -81,7 +93,7 @@ class _IngredientMatchSelectScreenState
   List<String> get _selectedProductNames =>
       _pantryItems
           .where((item) => _selectedIds.contains(item.product.id))
-          .map((item) => item.product.name)
+          .map((item) => item.product.displayName(context))
           .toList();
 
   bool _ensureAnythingSelected() {
@@ -89,9 +101,9 @@ class _IngredientMatchSelectScreenState
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(
-          duration: Duration(seconds: 3),
-          content: Text('Zaznacz przynajmniej jeden składnik.'),
+        SnackBar(
+          duration: const Duration(seconds: 3),
+          content: Text(context.strings.matchSelectOne),
         ),
       );
     return false;
@@ -100,7 +112,11 @@ class _IngredientMatchSelectScreenState
   Future<void> _openPantry({bool addProductImmediately = false}) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => PantryScreen(openAddOnStart: addProductImmediately),
+        builder:
+            (_) => PantryScreen(
+              openAddOnStart: addProductImmediately,
+              service: widget.pantryService,
+            ),
       ),
     );
     if (mounted) await _loadPantry();
@@ -109,10 +125,7 @@ class _IngredientMatchSelectScreenState
   void _generateWithAi() {
     if (!_ensureAnythingSelected()) return;
     final ingredients = _selectedProductNames.join(', ');
-    final prompt =
-        'Wygeneruj przepis na danie wykorzystujące głównie te składniki, '
-        'które mam w domu: $ingredients. Możesz dodać maksymalnie 2–3 '
-        'powszechnie dostępne składniki, na przykład sól, przyprawy lub oliwę.';
+    final prompt = context.strings.matchSelectPrompt(ingredients);
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => AiAddRecipeScreen(initialText: prompt)),
     );
@@ -120,17 +133,13 @@ class _IngredientMatchSelectScreenState
 
   Future<void> _submit() async {
     if (!_ensureAnythingSelected()) return;
+    // Keep the response and AI fallback tied to the same submitted selection.
+    final submittedIds = _selectedIds.toList();
+    final usedNames = _selectedProductNames;
     setState(() => _isSubmitting = true);
     try {
-      final matches = await _recipeService.matchByIngredients(
-        _selectedIds.toList(),
-      );
+      final matches = await _recipeService.matchByIngredients(submittedIds);
       if (!mounted) return;
-      final usedNames =
-          _pantryItems
-              .where((i) => _selectedIds.contains(i.product.id))
-              .map((i) => i.product.name)
-              .toList();
       Navigator.of(context).push(
         MaterialPageRoute(
           builder:
@@ -147,7 +156,7 @@ class _IngredientMatchSelectScreenState
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
+            content: Text(friendlyError(e, strings: context.strings)),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -170,7 +179,7 @@ class _IngredientMatchSelectScreenState
         false;
     if (!hasPremiumAccess) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Co ugotować z tego, co mam')),
+        appBar: AppBar(title: Text(context.strings.matchTitle)),
         body: Padding(
           padding: const EdgeInsets.all(32.0),
           child: Column(
@@ -191,7 +200,7 @@ class _IngredientMatchSelectScreenState
               ),
               const SizedBox(height: 24),
               Text(
-                'Funkcja Premium',
+                context.strings.matchPremium,
                 style: Theme.of(
                   context,
                 ).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold),
@@ -199,7 +208,7 @@ class _IngredientMatchSelectScreenState
               ),
               const SizedBox(height: 12),
               Text(
-                'Dopasowywanie przepisów do tego, co masz w spiżarni, jest dostępne dla kont z aktywną subskrypcją Premium.',
+                context.strings.matchPremiumBody,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: AppTheme.textSecondary,
@@ -218,7 +227,7 @@ class _IngredientMatchSelectScreenState
                         ),
                       ),
                   icon: const Icon(Icons.workspace_premium),
-                  label: const Text('Zobacz Premium'),
+                  label: Text(context.strings.matchSeePremium),
                 ),
               ),
             ],
@@ -228,7 +237,7 @@ class _IngredientMatchSelectScreenState
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Co ugotować z tego, co mam')),
+      appBar: AppBar(title: Text(context.strings.matchTitle)),
       body: SafeArea(
         child:
             _isLoading
@@ -250,7 +259,7 @@ class _IngredientMatchSelectScreenState
                         const SizedBox(height: 16),
                         OutlinedButton(
                           onPressed: _loadPantry,
-                          child: const Text('Spróbuj ponownie'),
+                          child: Text(context.strings.productsRetry),
                         ),
                       ],
                     ),
@@ -270,7 +279,7 @@ class _IngredientMatchSelectScreenState
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Twoja spiżarnia jest pusta. Dodaj do niej produkty, które masz w domu, żeby dopasować przepisy.',
+                          context.strings.matchEmptyPantry,
                           textAlign: TextAlign.center,
                           style: TextStyle(color: AppTheme.textSecondary),
                         ),
@@ -279,7 +288,7 @@ class _IngredientMatchSelectScreenState
                           onPressed:
                               () => _openPantry(addProductImmediately: true),
                           icon: const Icon(Icons.add),
-                          label: const Text('Dodaj produkt do spiżarni'),
+                          label: Text(context.strings.matchAddPantry),
                         ),
                       ],
                     ),
@@ -296,7 +305,10 @@ class _IngredientMatchSelectScreenState
                         runSpacing: 4,
                         children: [
                           Text(
-                            'Zaznaczono ${_selectedIds.length} z ${_pantryItems.length}',
+                            context.strings.matchSelected(
+                              _selectedIds.length,
+                              _pantryItems.length,
+                            ),
                             style: TextStyle(
                               color: AppTheme.textSecondary,
                               fontSize: 13,
@@ -318,8 +330,8 @@ class _IngredientMatchSelectScreenState
                                 }),
                             child: Text(
                               _selectedIds.length == _pantryItems.length
-                                  ? 'Odznacz wszystko'
-                                  : 'Zaznacz wszystko',
+                                  ? context.strings.matchDeselect
+                                  : context.strings.matchSelectAll,
                             ),
                           ),
                         ],
@@ -337,7 +349,7 @@ class _IngredientMatchSelectScreenState
                           return CheckboxListTile(
                             value: isSelected,
                             onChanged: (_) => _toggle(item.product.id),
-                            title: Text(item.product.name),
+                            title: Text(item.product.displayName(context)),
                             controlAffinity: ListTileControlAffinity.leading,
                             activeColor: AppTheme.primaryColor,
                           );
@@ -362,15 +374,17 @@ class _IngredientMatchSelectScreenState
                                       ),
                                     )
                                     : Text(
-                                      'Szukaj przepisów (${_selectedIds.length})',
+                                      context.strings.matchSearch(
+                                        _selectedIds.length,
+                                      ),
                                     ),
                           ),
                           const SizedBox(height: 8),
                           OutlinedButton.icon(
                             onPressed: _generateWithAi,
                             icon: const Icon(Icons.auto_awesome, size: 18),
-                            label: const Text(
-                              'Wygeneruj nowy przepis przez AI',
+                            label: Text(
+                              context.strings.matchGenerate,
                               maxLines: 2,
                               softWrap: true,
                               textAlign: TextAlign.center,
@@ -384,8 +398,8 @@ class _IngredientMatchSelectScreenState
                               Icons.add_circle_outline,
                               size: 18,
                             ),
-                            label: const Text(
-                              'Dodaj produkt do spiżarni',
+                            label: Text(
+                              context.strings.matchAddPantry,
                               maxLines: 2,
                               softWrap: true,
                               textAlign: TextAlign.center,

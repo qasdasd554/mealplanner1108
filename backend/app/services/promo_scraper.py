@@ -269,7 +269,11 @@ async def scrape_and_update_prices(db: AsyncSession) -> dict:
     """
     summary: dict[str, dict] = {}
 
-    stores_result = await db.execute(select(Store))
+    # All configured scraper URLs are Polish sources with PLN prices.
+    # Lidl GB must never replace Lidl PL in the dictionary keyed by name.
+    stores_result = await db.execute(select(Store).where(
+        Store.country_code == "PL", Store.currency_code == "PLN",
+    ))
     stores_by_name = {s.name: s for s in stores_result.scalars().all()}
 
     products_result = await db.execute(select(Product))

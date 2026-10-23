@@ -2,19 +2,21 @@ import 'package:flutter/material.dart';
 import '../../services/shopping_list_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
+import '../../l10n/market_locale.dart';
 
 /// Zaproszenia do współdzielonych list zakupów, oczekujące na akceptację
 /// — dwuetapowe udostępnianie (patrz backend, ShoppingListShare): druga
 /// strona MUSI świadomie zaakceptować, zanim dostanie dostęp do listy.
 class PendingSharesScreen extends StatefulWidget {
-  const PendingSharesScreen({super.key});
+  final ShoppingListService? service;
+  const PendingSharesScreen({super.key, this.service});
 
   @override
   State<PendingSharesScreen> createState() => _PendingSharesScreenState();
 }
 
 class _PendingSharesScreenState extends State<PendingSharesScreen> {
-  final ShoppingListService _service = ShoppingListService();
+  late final ShoppingListService _service;
   List<ShoppingListShare> _pending = [];
   bool _isLoading = true;
   String? _error;
@@ -22,6 +24,7 @@ class _PendingSharesScreenState extends State<PendingSharesScreen> {
   @override
   void initState() {
     super.initState();
+    _service = widget.service ?? ShoppingListService();
     _load();
   }
 
@@ -40,7 +43,7 @@ class _PendingSharesScreenState extends State<PendingSharesScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = friendlyError(e);
+        _error = friendlyError(e, strings: context.strings);
         _isLoading = false;
       });
     }
@@ -54,11 +57,9 @@ class _PendingSharesScreenState extends State<PendingSharesScreen> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),
-            content: Text(
-              'Zaakceptowano — lista pojawi się jako udostępniona.',
-            ),
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(context.strings.socialShareAccepted),
           ),
         );
     } catch (e) {
@@ -68,7 +69,7 @@ class _PendingSharesScreenState extends State<PendingSharesScreen> {
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
+            content: Text(friendlyError(e, strings: context.strings)),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -87,7 +88,7 @@ class _PendingSharesScreenState extends State<PendingSharesScreen> {
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
+            content: Text(friendlyError(e, strings: context.strings)),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -97,7 +98,7 @@ class _PendingSharesScreenState extends State<PendingSharesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Zaproszenia do list zakupów')),
+      appBar: AppBar(title: Text(context.strings.socialSharesTitle)),
       body: RefreshIndicator(
         onRefresh: _load,
         child:
@@ -112,7 +113,7 @@ class _PendingSharesScreenState extends State<PendingSharesScreen> {
                     Center(
                       child: TextButton(
                         onPressed: _load,
-                        child: const Text('Spróbuj ponownie'),
+                        child: Text(context.strings.socialRetry),
                       ),
                     ),
                   ],
@@ -129,7 +130,7 @@ class _PendingSharesScreenState extends State<PendingSharesScreen> {
                     const SizedBox(height: 12),
                     Center(
                       child: Text(
-                        'Brak oczekujących zaproszeń.',
+                        context.strings.socialNoPendingShares,
                         style: TextStyle(color: AppTheme.textSecondary),
                       ),
                     ),
@@ -145,9 +146,11 @@ class _PendingSharesScreenState extends State<PendingSharesScreen> {
                       child: ListTile(
                         leading: const Icon(Icons.shopping_cart_outlined),
                         title: Text(
-                          '${share.sharedByName ?? "Ktoś"} udostępnił Ci listę zakupów',
+                          context.strings.socialSharedListInvitation(
+                            share.sharedByName ?? context.strings.socialSomeone,
+                          ),
                         ),
-                        subtitle: const Text('Dotknij, aby odpowiedzieć'),
+                        subtitle: Text(context.strings.socialShareRespond),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -156,7 +159,7 @@ class _PendingSharesScreenState extends State<PendingSharesScreen> {
                                 Icons.check_circle,
                                 color: AppTheme.primaryColor,
                               ),
-                              tooltip: 'Zaakceptuj',
+                              tooltip: context.strings.socialShareAccept,
                               onPressed: () => _accept(share),
                             ),
                             IconButton(
@@ -164,7 +167,7 @@ class _PendingSharesScreenState extends State<PendingSharesScreen> {
                                 Icons.cancel_outlined,
                                 color: AppTheme.errorColor,
                               ),
-                              tooltip: 'Odrzuć',
+                              tooltip: context.strings.socialDecline,
                               onPressed: () => _decline(share),
                             ),
                           ],

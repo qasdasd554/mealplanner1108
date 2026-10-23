@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
+import '../utils/lookup_market_context.dart';
+import '../l10n/market_locale.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../screens/barcode_scanner_screen.dart';
 import '../screens/tracker/add_food_entry_screen.dart';
 import '../services/barcode_lookup_service.dart';
 import '../services/pantry_service.dart';
+import '../services/premium_offer_success_signal.dart';
+import '../models/premium_offer.dart';
 import '../models/barcode_lookup_result.dart';
 import '../models/product.dart';
 import '../theme/app_theme.dart';
 import '../utils/error_utils.dart';
+import '../utils/batch_tracking_payload.dart';
 import 'product_label_recognition_sheet.dart';
 import 'product_amount_picker.dart';
 import 'submit_product_sheet.dart';
@@ -20,8 +25,10 @@ enum _BarcodeDestination { tracking, productDatabase, pantry }
 Future<bool> scanProductWithDestination(
   BuildContext context, {
   VoidCallback? onPantryAdded,
+  Future<String?> Function(BuildContext)? scanner,
+  BarcodeLookupService? lookupService,
 }) async {
-  final barcode = await scanBarcode(context);
+  final barcode = await (scanner ?? scanBarcode)(context);
   if (barcode == null || !context.mounted) return false;
   final prefs = await SharedPreferences.getInstance();
   await prefs.setInt(
@@ -30,16 +37,20 @@ Future<bool> scanProductWithDestination(
   );
   if (!context.mounted) return false;
 
-  final lookupService = BarcodeLookupService();
+  final service =
+      lookupService ??
+      BarcodeLookupService(
+        accountCountry: () => context.registeredLookupCountry,
+      );
   BarcodeLookupResult? lookup;
   try {
-    lookup = await lookupService.lookup(barcode);
+    lookup = await service.lookup(barcode);
   } catch (_) {
     // Poszczególne miejsca docelowe pokażą własny komunikat i pozwolą
     // uzupełnić produkt ze zdjęcia, jeśli zewnętrzna baza jest chwilowo
     // niedostępna.
   } finally {
-    lookupService.close();
+    service.close();
   }
   if (!context.mounted) return false;
 
@@ -62,12 +73,12 @@ Future<bool> scanProductWithDestination(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Gdzie dodać produkt?',
+                          context.strings.scanWhere,
                           style: Theme.of(sheetContext).textTheme.titleLarge,
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Możesz zaznaczyć kilka miejsc jednocześnie.',
+                          context.strings.scanMultiHint,
                           style: TextStyle(
                             color: AppTheme.textSecondary,
                             fontSize: 12,
@@ -76,7 +87,7 @@ Future<bool> scanProductWithDestination(
                         const SizedBox(height: 4),
                         Text(
                           lookup?.name == null
-                              ? 'Kod: $barcode'
+                              ? context.strings.scanCodeLabel(barcode)
                               : lookup!.name!,
                           style: Theme.of(sheetContext).textTheme.titleMedium,
                         ),
@@ -90,9 +101,8 @@ Future<bool> scanProductWithDestination(
                           ),
                         const SizedBox(height: 4),
                         Text(
-                          _nutritionSummary(lookup) ??
-                              'Nie odnaleziono kompletnych makroskładników. '
-                                  'Po wybraniu miejsca uzupełnisz dane ze zdjęć opakowania.',
+                          _nutritionSummary(context, lookup) ??
+                              context.strings.scanNutritionMissingHint,
                           style: TextStyle(
                             color: AppTheme.textSecondary,
                             fontSize: 12,
@@ -106,9 +116,9 @@ Future<bool> scanProductWithDestination(
                           secondary: const Icon(
                             Icons.local_fire_department_outlined,
                           ),
-                          title: const Text('Dodaj do Dziennika'),
-                          subtitle: const Text(
-                            'Wybierz ilość i rodzaj posiłku',
+                          title: Text(context.strings.scanDiaryDestination),
+                          subtitle: Text(
+                            context.strings.scanDiaryDestinationHint,
                           ),
                           controlAffinity: ListTileControlAffinity.trailing,
                           onChanged:
@@ -129,9 +139,9 @@ Future<bool> scanProductWithDestination(
                             _BarcodeDestination.productDatabase,
                           ),
                           secondary: const Icon(Icons.inventory_2_outlined),
-                          title: const Text('Dodaj do bazy produktów'),
-                          subtitle: const Text(
-                            'Sprawdź nazwę, markę i makroskładniki',
+                          title: Text(context.strings.scanCatalogueDestination),
+                          subtitle: Text(
+                            context.strings.scanCatalogueDestinationHint,
                           ),
                           controlAffinity: ListTileControlAffinity.trailing,
                           onChanged:
@@ -152,8 +162,12 @@ Future<bool> scanProductWithDestination(
                             _BarcodeDestination.pantry,
                           ),
                           secondary: const Icon(Icons.kitchen_outlined),
-                          title: const Text('Dodaj do spiżarni'),
-                          subtitle: const Text('Zapisz jako 1 całe opakowanie'),
+                          title: Text(context.strings.scanPantryDestination),
+                          subtitle: Text(
+                            lookup != null && hasKnownBarcodePackageSize(lookup)
+                                ? context.strings.scanPantryDestinationHint
+                                : context.strings.scanPantryAmountHint,
+                          ),
                           controlAffinity: ListTileControlAffinity.trailing,
                           onChanged:
                               (selected) => setSheetState(() {
@@ -184,8 +198,10 @@ Future<bool> scanProductWithDestination(
                             icon: const Icon(Icons.check),
                             label: Text(
                               selectedDestinations.length > 1
-                                  ? 'Dodaj do ${selectedDestinations.length} miejsc'
-                                  : 'Dalej',
+                                  ? context.strings.scanDestinationsCount(
+                                    selectedDestinations.length,
+                                  )
+                                  : context.strings.scanNext,
                             ),
                           ),
                         ),
@@ -217,6 +233,9 @@ Future<bool> scanProductWithDestination(
       builder: (_) => SubmitProductSheet(initialBarcode: barcode),
     );
     savedToDatabase = saved == true;
+    if (savedToDatabase) {
+      PremiumOfferSuccessSignal.record(PremiumOfferContext.barcodeScanner);
+    }
     if (!context.mounted) return savedToDatabase;
   }
 
@@ -241,16 +260,17 @@ Future<bool> scanProductWithDestination(
   return savedToDatabase;
 }
 
-String? _nutritionSummary(BarcodeLookupResult? result) {
+String? _nutritionSummary(BuildContext context, BarcodeLookupResult? result) {
   if (result == null || !result.hasCompleteNutrition) return null;
   final basis = result.unit == 'ml' ? '100 ml' : '100 g';
   final values = <String>[
     if (result.kcalPer100 != null) '${result.kcalPer100!.round()} kcal/$basis',
     if (result.proteinPer100 != null)
-      'B ${result.proteinPer100!.toStringAsFixed(1)} g',
-    if (result.fatPer100 != null) 'T ${result.fatPer100!.toStringAsFixed(1)} g',
+      '${context.strings.localeName.startsWith('en') ? 'P' : 'B'} ${result.proteinPer100!.toStringAsFixed(1)} g',
+    if (result.fatPer100 != null)
+      '${context.strings.localeName.startsWith('en') ? 'F' : 'T'} ${result.fatPer100!.toStringAsFixed(1)} g',
     if (result.carbsPer100 != null)
-      'W ${result.carbsPer100!.toStringAsFixed(1)} g',
+      '${context.strings.localeName.startsWith('en') ? 'C' : 'W'} ${result.carbsPer100!.toStringAsFixed(1)} g',
   ];
   return values.isEmpty ? null : values.join(' · ');
 }
@@ -260,7 +280,9 @@ Future<bool> _addBarcodeToPantry(
   String barcode, {
   BarcodeLookupResult? initialResult,
 }) async {
-  final lookupService = BarcodeLookupService();
+  final lookupService = BarcodeLookupService(
+    accountCountry: () => context.registeredLookupCountry,
+  );
   try {
     var result = initialResult ?? await lookupService.lookup(barcode);
     if (!context.mounted) return false;
@@ -308,14 +330,22 @@ Future<bool> _addBarcodeToPantry(
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text('${added.product.name} dodano do spiżarni.')),
+        SnackBar(
+          content: Text(
+            context.strings.scanPantryAddedName(added.product.name),
+          ),
+        ),
       );
     return true;
   } catch (error) {
     if (context.mounted) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text(friendlyError(error))));
+        ..showSnackBar(
+          SnackBar(
+            content: Text(friendlyError(error, strings: context.strings)),
+          ),
+        );
     }
     return false;
   } finally {

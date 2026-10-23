@@ -51,6 +51,23 @@ class ProductCreate(ProductBase):
     pass
 
 
+class ProductNameSuggestion(BaseModel):
+    found: bool = True
+    source: str
+    name: str
+    brand: str | None = None
+    unit: str = "g"
+    barcode: str | None = None
+    existing_product_id: uuid.UUID | None = None
+    kcal_per_100: float | None = None
+    protein_per_100: float | None = None
+    fat_per_100: float | None = None
+    carbs_per_100: float | None = None
+    price_min: float | None = None
+    price_max: float | None = None
+    serving_quantity: float | None = None
+
+
 class ProductResponse(ProductBase):
     """Odpowiedź API — pełne dane produktu."""
 
@@ -70,6 +87,7 @@ class ProductResponse(ProductBase):
     # (StoreProductResponse.price) i tak już używa float — to pole było
     # jedynym wyjątkiem.
     submitted_price: float | None = None
+    submitted_country_code: str = "PL"
     requested_store_ids: list[str] | None = None
     # "scan" oznacza rekord zapamiętany po skanowaniu kodu kreskowego.
     # Dla zwykłych produktów katalogowych pole jest puste.
@@ -93,6 +111,9 @@ class StoreProductResponse(BaseModel):
     product_id: uuid.UUID
     department_id: uuid.UUID | None = None
     price: float
+    # Legacy StoreProduct prices are not reviewed regional SKU quotes. Never
+    # infer GBP solely from a GB viewer or the store record's country.
+    currency_code: str = "PLN"
     # Marka własna sklepu dla tego produktu, jeśli potwierdzona (np.
     # "Mleczna Dolina" dla mleka w Biedronce). Puste = brak marki własnej
     # w tej kategorii w danym sklepie.
@@ -100,6 +121,14 @@ class StoreProductResponse(BaseModel):
     is_available: bool
     last_verified: date | None = None
     product: ProductResponse
+    # Reviewed regional SKU fields; never reinterpret the canonical PL pack.
+    name_en: str | None = None
+    package_quantity: float | None = None
+    package_unit: str | None = None
+    price_is_estimated: bool = True
+    estimate_reason: str | None = None
+    price_source: dict | None = None
+    availability_scope: str | None = None
 class SubstituteResponse(BaseModel):
     """Odpowiedź API — zamiennik z opcjonalną ceną ze sklepu."""
     model_config = ConfigDict(from_attributes=True)
@@ -110,3 +139,8 @@ class SubstituteResponse(BaseModel):
     price: float | None = None
     kcal: int | None = None
     similarity_score: float | None = None
+    currency_code: str = "PLN"
+    package_quantity: float | None = None
+    package_unit: str | None = None
+    price_is_estimated: bool = True
+    last_verified: date | None = None

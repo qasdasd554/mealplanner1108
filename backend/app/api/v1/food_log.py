@@ -20,10 +20,14 @@ from sqlalchemy.orm import selectinload
 
 from app.api.deps import get_current_user, get_db
 from app.core.exceptions import NotFoundException
+from app.core.language import account_text
+from app.core.markets import account_country
+from app.services.system_content_language import recipe_display_name
 from app.models.food_log import FoodLogEntry
 from app.models.meal_plan import MealPlanEntry
 from app.models.recipe import Recipe
 from app.models.user import User
+from app.core.market_clock import market_today
 from app.schemas.food_log import (
     DailySummaryResponse,
     FoodLogEntryCreate,
@@ -47,13 +51,15 @@ def _enforce_history_limit(entry_date: Optional[date], current_user: User) -> No
 
     if is_premium_active(current_user):
         return
-    oldest_allowed = date.today() - timedelta(days=FREE_TIER_HISTORY_DAYS)
+    oldest_allowed = market_today(current_user) - timedelta(days=FREE_TIER_HISTORY_DAYS)
     if entry_date < oldest_allowed:
         raise HTTPException(
             status_code=403,
-            detail=(
+            detail=account_text(current_user,
                 f"Darmowe konto ma dostęp do ostatnich {FREE_TIER_HISTORY_DAYS} dni historii. "
-                "Odblokuj Premium, aby zobaczyć starsze wpisy."
+                "Odblokuj Premium, aby zobaczyć starsze wpisy.",
+                f"Free accounts can view the last {FREE_TIER_HISTORY_DAYS} days of history. "
+                "Unlock Premium to see older entries.",
             ),
         )
 
@@ -71,7 +77,7 @@ def _macros_from_recipe(recipe: Optional[Recipe], servings: float) -> dict:
     }
 
 
-def _to_response(entry: FoodLogEntry) -> FoodLogEntryResponse:
+def _to_response(entry: FoodLogEntry, *, country_code: str = "PL") -> FoodLogEntryResponse:
     """Buduje odpowiedź API, dołączając nazwę przepisu (jeśli wpis go ma)."""
     return FoodLogEntryResponse(
         id=entry.id,
@@ -90,7 +96,7 @@ def _to_response(entry: FoodLogEntry) -> FoodLogEntryResponse:
         portion_size=entry.portion_size,
         portion_unit=entry.portion_unit,
         created_at=entry.created_at,
-        recipe_name=entry.recipe.name if entry.recipe_id and entry.recipe else None,
+        recipe_name=recipe_display_name(entry.recipe, country_code=country_code) if entry.recipe_id and entry.recipe else None,
     )
 
 
@@ -103,7 +109,10 @@ async def create_food_log_entry(
     if not entry_in.recipe_id and not entry_in.custom_name:
         raise HTTPException(
             status_code=400,
-            detail="Podaj przepis (recipe_id) albo własną nazwę posiłku (custom_name)",
+            detail=account_text(current_user,
+                "Podaj przepis (recipe_id) albo własną nazwę posiłku (custom_name)",
+                "Choose a recipe (recipe_id) or enter a meal name (custom_name)",
+            ),
         )
 
     db_entry = FoodLogEntry(**entry_in.model_dump(), user_id=current_user.id)
@@ -121,7 +130,10 @@ async def create_food_log_entry(
         # kończyło się nieobsłużonym błędem 500 zamiast czytelnej
         # odpowiedzi 404.
         if not recipe:
-            raise NotFoundException(detail=f"Nie znaleziono przepisu o ID {db_entry.recipe_id}")
+            raise NotFoundException(detail=account_text(current_user,
+                f"Nie znaleziono przepisu o ID {db_entry.recipe_id}",
+                f"Recipe {db_entry.recipe_id} was not found.",
+            ))
         # Jeśli formularz nie podał gotowych wartości (np. dodanie
         # "z przepisu" bez ręcznego wpisania kalorii), przelicz je
         # automatycznie na podstawie przepisu i liczby porcji.
@@ -148,7 +160,7 @@ async def create_food_log_entry(
     await db.commit()
     await db.refresh(db_entry)
     db_entry.recipe = recipe
-    return _to_response(db_entry)
+    return _to_response(db_entry, country_code=account_country(current_user))
 
 
 @router.get("/", response_model=List[FoodLogEntryResponse])
@@ -171,13 +183,13 @@ async def read_food_log_entries(
 
         if not is_premium_active(current_user):
             query = query.where(
-                FoodLogEntry.date >= date.today() - timedelta(days=FREE_TIER_HISTORY_DAYS)
+                FoodLogEntry.date >= market_today(current_user) - timedelta(days=FREE_TIER_HISTORY_DAYS)
             )
     query = query.order_by(FoodLogEntry.created_at)
 
     result = await db.execute(query)
     entries = result.scalars().all()
-    return [_to_response(e) for e in entries]
+    return [_to_response(e, country_code=account_country(current_user)) for e in entries]
 
 
 @router.get("/summary", response_model=DailySummaryResponse)
@@ -199,7 +211,7 @@ async def get_daily_summary(
     result = await db.execute(query)
     entries = result.scalars().all()
 
-    responses = [_to_response(e) for e in entries]
+    responses = [_to_response(e, country_code=account_country(current_user)) for e in entries]
     summary = DailySummaryResponse(
         date=entry_date,
         entries=responses,
@@ -232,10 +244,10 @@ async def get_recent_food_log_entries(
 
     if not is_premium_active(current_user):
         query = query.where(
-            FoodLogEntry.date >= date.today() - timedelta(days=FREE_TIER_HISTORY_DAYS)
+            FoodLogEntry.date >= market_today(current_user) - timedelta(days=FREE_TIER_HISTORY_DAYS)
         )
     result = await db.execute(query)
-    return [_to_response(entry) for entry in result.scalars().all()]
+    return [_to_response(entry, country_code=account_country(current_user)) for entry in result.scalars().all()]
 
 
 class FoodLogNutritionUpdate(BaseModel):
@@ -280,9 +292,11 @@ async def update_food_log_entry_nutrition(
     """
     entry = await db.get(FoodLogEntry, entry_id)
     if not entry:
-        raise HTTPException(status_code=404, detail="Nie znaleziono wpisu w dzienniku")
+        raise HTTPException(status_code=404, detail=account_text(current_user,
+            "Nie znaleziono wpisu w dzienniku", "Diary entry not found."))
     if entry.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Brak uprawnień do edycji tego wpisu")
+        raise HTTPException(status_code=403, detail=account_text(current_user,
+            "Brak uprawnień do edycji tego wpisu", "You cannot edit this diary entry."))
 
     entry.calories = payload.calories
     entry.protein = payload.protein
@@ -312,9 +326,11 @@ async def delete_food_log_entry(
 ):
     entry = await db.get(FoodLogEntry, entry_id)
     if not entry:
-        raise HTTPException(status_code=404, detail="Nie znaleziono wpisu w dzienniku")
+        raise HTTPException(status_code=404, detail=account_text(current_user,
+            "Nie znaleziono wpisu w dzienniku", "Diary entry not found."))
     if entry.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Brak uprawnień do usunięcia tego wpisu")
+        raise HTTPException(status_code=403, detail=account_text(current_user,
+            "Brak uprawnień do usunięcia tego wpisu", "You cannot delete this diary entry."))
 
     await db.delete(entry)
     await db.commit()
@@ -357,11 +373,13 @@ async def create_from_meal_plan_entry(
     plan_entry = result.scalar_one_or_none()
 
     if not plan_entry:
-        raise HTTPException(status_code=404, detail="Nie znaleziono pozycji planu posiłków")
+        raise HTTPException(status_code=404, detail=account_text(current_user,
+            "Nie znaleziono pozycji planu posiłków", "Meal plan entry not found."))
 
     if plan_entry.meal_plan.user_id != current_user.id:
         raise HTTPException(
-            status_code=403, detail="Brak uprawnień do tej pozycji planu posiłków"
+            status_code=403, detail=account_text(current_user,
+                "Brak uprawnień do tej pozycji planu posiłków", "You do not have access to this meal plan entry.")
         )
 
     # UWAGA (naprawa poważnej niespójności): wcześniej domyślna liczba
@@ -412,4 +430,4 @@ async def create_from_meal_plan_entry(
     await db.commit()
     await db.refresh(db_entry)
     db_entry.recipe = plan_entry.recipe
-    return _to_response(db_entry)
+    return _to_response(db_entry, country_code=account_country(current_user))

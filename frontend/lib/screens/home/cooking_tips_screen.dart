@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/market_locale.dart';
 import '../../data/cooking_tips.dart';
 import '../../theme/app_theme.dart';
 
@@ -66,14 +67,15 @@ class _CookingTipsScreenState extends State<CookingTipsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final tips = cookingTipsFor(context.strings.localeName);
     return Scaffold(
-      appBar: AppBar(title: const Text('Porady kulinarne')),
+      appBar: AppBar(title: Text(context.strings.cookingTipsTitle)),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
-            children: List.generate(kCookingTips.length, (index) {
-              final tip = kCookingTips[index];
+            children: List.generate(tips.length, (index) {
+              final tip = tips[index];
               final isHighlighted =
                   _highlightVisible && index == widget.highlightIndex;
               return AnimatedContainer(

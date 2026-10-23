@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../../l10n/market_locale.dart';
+import '../../l10n/recipe_content.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/food_log_provider.dart';
@@ -8,6 +10,9 @@ import '../../providers/meal_plan_provider.dart';
 import '../../models/meal_plan.dart';
 import '../../models/food_log.dart';
 import '../../models/barcode_lookup_result.dart';
+import '../../services/api_client.dart';
+import '../../services/product_name_lookup_service.dart';
+import '../../l10n/catalog_labels.dart';
 import '../../services/recipe_service.dart';
 import '../../models/recipe.dart';
 import '../../theme/app_theme.dart';
@@ -22,8 +27,15 @@ String _pickedAmountUnit(PickedCatalogProduct picked) => picked.unit;
 
 class AddFoodEntryScreen extends StatefulWidget {
   final String? initialBarcode;
+  final RecipeService? recipeService;
+  final ApiClient? productClient;
 
-  const AddFoodEntryScreen({super.key, this.initialBarcode});
+  const AddFoodEntryScreen({
+    super.key,
+    this.initialBarcode,
+    this.recipeService,
+    this.productClient,
+  });
 
   @override
   State<AddFoodEntryScreen> createState() => _AddFoodEntryScreenState();
@@ -53,16 +65,16 @@ class _AddFoodEntryScreenState extends State<AddFoodEntryScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dodaj posiłek'),
+        title: Text(context.strings.foodEntryTitle),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppTheme.primaryColor,
           labelColor: AppTheme.primaryColor,
           unselectedLabelColor: AppTheme.textSecondary,
-          tabs: const [
-            Tab(text: 'Z planu'),
-            Tab(text: 'Z przepisów'),
-            Tab(text: 'Produkty'),
+          tabs: [
+            Tab(text: context.strings.foodEntryFromPlan),
+            Tab(text: context.strings.foodEntryFromRecipes),
+            Tab(text: context.strings.foodEntryProducts),
           ],
         ),
       ),
@@ -70,8 +82,11 @@ class _AddFoodEntryScreenState extends State<AddFoodEntryScreen>
         controller: _tabController,
         children: [
           const _PlanTab(),
-          const _RecipesTab(),
-          _ProductsTab(initialBarcode: widget.initialBarcode),
+          _RecipesTab(service: widget.recipeService),
+          _ProductsTab(
+            initialBarcode: widget.initialBarcode,
+            client: widget.productClient,
+          ),
         ],
       ),
     );
@@ -115,11 +130,11 @@ class _PlanTabState extends State<_PlanTab> {
           (ctx) => StatefulBuilder(
             builder:
                 (ctx, setDialogState) => AlertDialog(
-                  title: Text(entry.recipe.name),
+                  title: Text(entry.recipe.displayName(context)),
                   content: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text('Ile porcji zjadłeś/-aś?'),
+                      Text(context.strings.foodEntryServingsQuestion),
                       const SizedBox(height: 12),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -162,11 +177,11 @@ class _PlanTabState extends State<_PlanTab> {
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(ctx, false),
-                      child: const Text('Anuluj'),
+                      child: Text(context.strings.productsCancel),
                     ),
                     FilledButton(
                       onPressed: () => Navigator.pop(ctx, true),
-                      child: const Text('Dodaj'),
+                      child: Text(context.strings.add),
                     ),
                   ],
                 ),
@@ -187,7 +202,9 @@ class _PlanTabState extends State<_PlanTab> {
           ..showSnackBar(
             SnackBar(
               duration: const Duration(seconds: 3),
-              content: Text(provider.error ?? 'Nie udało się dodać posiłku'),
+              content: Text(
+                provider.error ?? context.strings.foodEntryMealFailed,
+              ),
             ),
           );
       }
@@ -208,7 +225,7 @@ class _PlanTabState extends State<_PlanTab> {
       ),
       builder: (_) => const PickProductFromCatalogSheet(scanOnOpen: true),
     );
-    if (picked == null || !mounted) return;
+    if (picked == null || !context.mounted) return;
 
     var mealType = 'Przekąska';
     final selectedType = await showDialog<String>(
@@ -223,22 +240,24 @@ class _PlanTabState extends State<_PlanTab> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${picked.amountLabel} · '
+                        '${picked.amountLabelFor(context.strings)} · '
                         '${picked.kcal.round()} kcal',
                         style: TextStyle(color: AppTheme.textSecondary),
                       ),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<String>(
                         value: mealType,
-                        decoration: const InputDecoration(
-                          labelText: 'Rodzaj posiłku',
+                        decoration: InputDecoration(
+                          labelText: context.strings.foodEntryMealType,
                         ),
                         items:
                             _mealTypes
                                 .map(
                                   (type) => DropdownMenuItem(
                                     value: type,
-                                    child: Text(type),
+                                    child: Text(
+                                      context.strings.diaryMealTypeLabel(type),
+                                    ),
                                   ),
                                 )
                                 .toList(),
@@ -253,17 +272,17 @@ class _PlanTabState extends State<_PlanTab> {
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(dialogContext),
-                      child: const Text('Anuluj'),
+                      child: Text(context.strings.productsCancel),
                     ),
                     FilledButton(
                       onPressed: () => Navigator.pop(dialogContext, mealType),
-                      child: const Text('Dodaj do dziennika'),
+                      child: Text(context.strings.foodEntryAddDiary),
                     ),
                   ],
                 ),
           ),
     );
-    if (selectedType == null || !mounted) return;
+    if (selectedType == null || !context.mounted) return;
 
     final success = await provider.addManualEntry(
       mealType: selectedType,
@@ -277,7 +296,7 @@ class _PlanTabState extends State<_PlanTab> {
       portionSize: picked.portionSize,
       portionUnit: picked.portionUnit,
     );
-    if (!mounted) return;
+    if (!context.mounted) return;
     if (success) {
       Navigator.pop(context);
     } else {
@@ -286,7 +305,9 @@ class _PlanTabState extends State<_PlanTab> {
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(provider.error ?? 'Nie udało się dodać produktu'),
+            content: Text(
+              provider.error ?? context.strings.foodEntryProductFailed,
+            ),
           ),
         );
     }
@@ -309,7 +330,7 @@ class _PlanTabState extends State<_PlanTab> {
               child: OutlinedButton.icon(
                 onPressed: () => _scanBarcodeAndLog(context, provider),
                 icon: const Icon(Icons.barcode_reader, size: 20),
-                label: const Text('Skanuj kod kreskowy'),
+                label: Text(context.strings.productsScan),
               ),
             ),
           ),
@@ -322,6 +343,7 @@ class _PlanTabState extends State<_PlanTab> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       // UWAGA (naprawa): wcześniej ładowało dane TYLKO gdy lista była
       // pusta — nawet w ramach tej samej sesji, jeśli użytkownik wrócił
       // na ten ekran po zmianie planu (np. usunął stary, wygenerował
@@ -399,10 +421,9 @@ class _PlanTabState extends State<_PlanTab> {
       return _withBarcodeButton(
         context,
         foodLogProvider,
-        const _EmptyHint(
+        _EmptyHint(
           icon: Icons.calendar_today_outlined,
-          text:
-              'Nie masz jeszcze aktywnego planu posiłków.\nUtwórz plan w zakładce "Start", żeby móc\nlogować z niego posiłki jednym dotknięciem.',
+          text: context.strings.foodEntryNoPlan,
         ),
       );
     }
@@ -418,9 +439,9 @@ class _PlanTabState extends State<_PlanTab> {
         foodLogProvider,
         _EmptyHint(
           icon: Icons.event_busy_outlined,
-          text:
-              'Twój aktywny plan nie obejmuje wybranej daty '
-              '(${targetDate.day.toString().padLeft(2, '0')}.${targetDate.month.toString().padLeft(2, '0')}).',
+          text: context.strings.foodEntryPlanDate(
+            '${targetDate.day.toString().padLeft(2, '0')}.${targetDate.month.toString().padLeft(2, '0')}',
+          ),
         ),
       );
     }
@@ -430,9 +451,9 @@ class _PlanTabState extends State<_PlanTab> {
       return _withBarcodeButton(
         context,
         foodLogProvider,
-        const _EmptyHint(
+        _EmptyHint(
           icon: Icons.no_meals_outlined,
-          text: 'Brak zaplanowanych posiłków na wybrany dzień.',
+          text: context.strings.foodEntryNoPlannedMeals,
         ),
       );
     }
@@ -459,8 +480,12 @@ class _PlanTabState extends State<_PlanTab> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        entry.mealSlot[0].toUpperCase() +
-                            entry.mealSlot.substring(1),
+                        context.strings.diaryMealTypeLabel(
+                          entry.mealSlot.isEmpty
+                              ? ''
+                              : entry.mealSlot[0].toUpperCase() +
+                                  entry.mealSlot.substring(1),
+                        ),
                         style: TextStyle(
                           fontSize: 12,
                           color: AppTheme.textSecondary,
@@ -468,7 +493,7 @@ class _PlanTabState extends State<_PlanTab> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        entry.recipe.name,
+                        entry.recipe.displayName(context),
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -492,7 +517,7 @@ class _PlanTabState extends State<_PlanTab> {
                         color: AppTheme.primaryColor,
                         size: 28,
                       ),
-                      tooltip: 'Dodaj do dziennika',
+                      tooltip: context.strings.foodEntryAddDiary,
                       onPressed:
                           () => _pickServingsAndLog(
                             context,
@@ -514,23 +539,26 @@ class _PlanTabState extends State<_PlanTab> {
 /// i bez żadnej listy. Teraz przeszukuje bazę ~80 przepisów i pozwala dodać
 /// wybrany do dziennika z podaniem liczby porcji.
 class _RecipesTab extends StatefulWidget {
-  const _RecipesTab();
+  final RecipeService? service;
+  const _RecipesTab({this.service});
 
   @override
   State<_RecipesTab> createState() => _RecipesTabState();
 }
 
 class _RecipesTabState extends State<_RecipesTab> {
-  final RecipeService _service = RecipeService();
+  late final RecipeService _service;
   final TextEditingController _searchController = TextEditingController();
   List<Recipe> _results = [];
   bool _loading = false;
   String? _error;
   Timer? _debounce;
+  int _searchGeneration = 0;
 
   @override
   void initState() {
     super.initState();
+    _service = widget.service ?? RecipeService();
     _search('');
   }
 
@@ -542,25 +570,27 @@ class _RecipesTabState extends State<_RecipesTab> {
   // odpytywać serwera przy każdym pojedynczym znaku.
   void _onSearchChanged(String query) {
     _debounce?.cancel();
+    _searchGeneration++;
     _debounce = Timer(const Duration(milliseconds: 350), () => _search(query));
   }
 
   Future<void> _search(String query) async {
+    final generation = ++_searchGeneration;
     setState(() => _loading = true);
     try {
       final results = await _service.getRecipes(
         search: query.isEmpty ? null : query,
       );
-      if (!mounted) return;
+      if (!mounted || generation != _searchGeneration) return;
       setState(() {
         _results = results;
         _error = null;
         _loading = false;
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || generation != _searchGeneration) return;
       setState(() {
-        _error = 'Nie udało się załadować przepisów';
+        _error = context.strings.foodEntryRecipesFailed;
         _loading = false;
       });
     }
@@ -641,7 +671,8 @@ class _RecipesTabState extends State<_RecipesTab> {
                 SnackBar(
                   duration: const Duration(seconds: 3),
                   content: Text(
-                    foodLogProvider.error ?? 'Nie udało się dodać posiłku',
+                    foodLogProvider.error ??
+                        context.strings.foodEntryMealFailed,
                   ),
                 ),
               );
@@ -668,7 +699,7 @@ class _RecipesTabState extends State<_RecipesTab> {
           SnackBar(
             duration: const Duration(seconds: 3),
             content: Text(
-              foodLogProvider.error ?? 'Nie udało się dodać posiłku',
+              foodLogProvider.error ?? context.strings.foodEntryMealFailed,
             ),
           ),
         );
@@ -690,9 +721,9 @@ class _RecipesTabState extends State<_RecipesTab> {
           padding: const EdgeInsets.all(16),
           child: TextField(
             controller: _searchController,
-            decoration: const InputDecoration(
-              hintText: 'Szukaj przepisu...',
-              prefixIcon: Icon(Icons.search),
+            decoration: InputDecoration(
+              hintText: context.strings.foodEntryRecipeSearch,
+              prefixIcon: const Icon(Icons.search),
             ),
             onChanged: _onSearchChanged,
             onSubmitted: _search,
@@ -709,9 +740,9 @@ class _RecipesTabState extends State<_RecipesTab> {
                   : _error != null
                   ? _EmptyHint(icon: Icons.error_outline, text: _error!)
                   : _results.isEmpty
-                  ? const _EmptyHint(
+                  ? _EmptyHint(
                     icon: Icons.search_off,
-                    text: 'Brak wyników.',
+                    text: context.strings.foodEntryNoResults,
                   )
                   : ListView.separated(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -735,7 +766,7 @@ class _RecipesTabState extends State<_RecipesTab> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        recipe.name,
+                                        recipe.displayName(context),
                                         style: const TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w600,
@@ -749,7 +780,14 @@ class _RecipesTabState extends State<_RecipesTab> {
                                         // dosłowny podpis "/ porcja" pokazywał wartość
                                         // 2-4x za wysoką. Zabezpieczenie przed servings=0
                                         // (Infinity.round() rzuca wyjątkiem w Dart).
-                                        '${(recipe.nutritionTotal.kcal / (recipe.servings > 0 ? recipe.servings : 1)).round()} kcal / porcja',
+                                        context.strings.foodEntryKcalServing(
+                                          (recipe.nutritionTotal.kcal /
+                                                  (recipe.servings > 0
+                                                      ? recipe.servings
+                                                      : 1))
+                                              .round()
+                                              .toString(),
+                                        ),
                                         style: TextStyle(
                                           fontSize: 13,
                                           color: AppTheme.textSecondary,
@@ -818,12 +856,12 @@ class _LogRecipeSheetState extends State<_LogRecipeSheet> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              widget.recipe.name,
+              widget.recipe.displayName(context),
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 20),
             Text(
-              'Rodzaj posiłku',
+              context.strings.foodEntryMealType,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 8),
@@ -832,7 +870,7 @@ class _LogRecipeSheetState extends State<_LogRecipeSheet> {
               children:
                   _mealTypes.map((t) {
                     return ChoiceChip(
-                      label: Text(t),
+                      label: Text(context.strings.diaryMealTypeLabel(t)),
                       selected: _mealType == t,
                       selectedColor: AppTheme.primaryTintColor,
                       onSelected: (_) => setState(() => _mealType = t),
@@ -841,7 +879,7 @@ class _LogRecipeSheetState extends State<_LogRecipeSheet> {
             ),
             const SizedBox(height: 20),
             Text(
-              'Liczba porcji',
+              context.strings.foodEntryServings,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             Row(
@@ -878,7 +916,7 @@ class _LogRecipeSheetState extends State<_LogRecipeSheet> {
                     'mealType': _mealType,
                     'servings': _servings,
                   }),
-              child: const Text('Dodaj do dziennika'),
+              child: Text(context.strings.foodEntryAddDiary),
             ),
             const SizedBox(height: 6),
             // Druga, opcjonalna ścieżka: skorygować składniki przed
@@ -895,7 +933,7 @@ class _LogRecipeSheetState extends State<_LogRecipeSheet> {
                       'editIngredients': true,
                     }),
                 icon: const Icon(Icons.tune, size: 18),
-                label: const Text('Dopasuj składniki'),
+                label: Text(context.strings.foodEntryAdjustIngredients),
               ),
             ),
           ],
@@ -935,8 +973,9 @@ class _EmptyHint extends StatelessWidget {
 /// ── Zakładka "Ręcznie" ──────────────────────────────────────────────
 class _ProductsTab extends StatefulWidget {
   final String? initialBarcode;
+  final ApiClient? client;
 
-  const _ProductsTab({this.initialBarcode});
+  const _ProductsTab({this.initialBarcode, this.client});
 
   @override
   State<_ProductsTab> createState() => _ProductsTabState();
@@ -975,7 +1014,9 @@ class _ProductsTabState extends State<_ProductsTab> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text(provider.error ?? 'Nie udało się powtórzyć wpisu'),
+          content: Text(
+            provider.error ?? context.strings.foodEntryRepeatFailed,
+          ),
         ),
       );
   }
@@ -995,22 +1036,24 @@ class _ProductsTabState extends State<_ProductsTab> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${picked.amountLabel} · '
+                        '${picked.amountLabelFor(context.strings)} · '
                         '${picked.kcal.round()} kcal',
                         style: TextStyle(color: AppTheme.textSecondary),
                       ),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<String>(
                         value: mealType,
-                        decoration: const InputDecoration(
-                          labelText: 'Rodzaj posiłku',
+                        decoration: InputDecoration(
+                          labelText: context.strings.foodEntryMealType,
                         ),
                         items:
                             _mealTypes
                                 .map(
                                   (type) => DropdownMenuItem(
                                     value: type,
-                                    child: Text(type),
+                                    child: Text(
+                                      context.strings.diaryMealTypeLabel(type),
+                                    ),
                                   ),
                                 )
                                 .toList(),
@@ -1025,11 +1068,11 @@ class _ProductsTabState extends State<_ProductsTab> {
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(dialogContext),
-                      child: const Text('Anuluj'),
+                      child: Text(context.strings.productsCancel),
                     ),
                     FilledButton(
                       onPressed: () => Navigator.pop(dialogContext, mealType),
-                      child: const Text('Dodaj do dziennika'),
+                      child: Text(context.strings.foodEntryAddDiary),
                     ),
                   ],
                 ),
@@ -1060,7 +1103,9 @@ class _ProductsTabState extends State<_ProductsTab> {
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
-            content: Text(provider.error ?? 'Nie udało się dodać produktu'),
+            content: Text(
+              provider.error ?? context.strings.foodEntryProductFailed,
+            ),
           ),
         );
     }
@@ -1090,7 +1135,7 @@ class _ProductsTabState extends State<_ProductsTab> {
                           ),
                           const SizedBox(width: 7),
                           Text(
-                            'Dodaj ponownie',
+                            context.strings.foodEntryRepeat,
                             style: Theme.of(context).textTheme.titleSmall
                                 ?.copyWith(fontWeight: FontWeight.w700),
                           ),
@@ -1131,7 +1176,7 @@ class _ProductsTabState extends State<_ProductsTab> {
                                     ),
                                     const SizedBox(height: 3),
                                     Text(
-                                      '${entry.calories.round()} kcal · ${entry.mealType}',
+                                      '${entry.calories.round()} kcal · ${context.strings.diaryMealTypeLabel(entry.mealType)}',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
@@ -1154,6 +1199,7 @@ class _ProductsTabState extends State<_ProductsTab> {
             Expanded(
               child: PickProductFromCatalogSheet(
                 embedded: true,
+                client: widget.client,
                 initialBarcode: widget.initialBarcode,
                 onPicked: (product) => unawaited(_pickAndLog(product)),
               ),
@@ -1179,8 +1225,8 @@ class _ProductsTabState extends State<_ProductsTab> {
                           builder: (_) => const SubmitProductSheet(),
                         ),
                     icon: const Icon(Icons.add_box_outlined, size: 18),
-                    label: const Text(
-                      'Nie ma produktu? Dodaj go do bazy',
+                    label: Text(
+                      context.strings.foodEntryMissingProduct,
                       maxLines: 2,
                       softWrap: true,
                       textAlign: TextAlign.center,
@@ -1202,7 +1248,8 @@ class _ProductsTabState extends State<_ProductsTab> {
 }
 
 class ManualEntryForm extends StatefulWidget {
-  const ManualEntryForm({super.key});
+  final ProductNameLookupService? nameLookupService;
+  const ManualEntryForm({super.key, this.nameLookupService});
 
   @override
   State<ManualEntryForm> createState() => _ManualEntryFormState();
@@ -1218,6 +1265,7 @@ class _ManualEntryFormState extends State<ManualEntryForm> {
   final _proteinController = TextEditingController();
   final _carbsController = TextEditingController();
   final _fatController = TextEditingController();
+  String _portionUnit = 'g';
 
   final List<String> _mealTypes = [
     'Śniadanie',
@@ -1231,18 +1279,15 @@ class _ManualEntryFormState extends State<ManualEntryForm> {
     setState(() {
       if (result.name != null) _nameController.text = result.name!;
       _portionController.text = '100';
-      if (result.kcalPer100 != null) {
-        _caloriesController.text = result.kcalPer100!.round().toString();
-      }
-      if (result.proteinPer100 != null) {
-        _proteinController.text = result.proteinPer100!.toStringAsFixed(1);
-      }
-      if (result.carbsPer100 != null) {
-        _carbsController.text = result.carbsPer100!.toStringAsFixed(1);
-      }
-      if (result.fatPer100 != null) {
-        _fatController.text = result.fatPer100!.toStringAsFixed(1);
-      }
+      _portionUnit = const {'ml', 'l'}.contains(result.unit) ? 'ml' : 'g';
+      String number(double? value, int digits) =>
+          value != null && value.isFinite && value >= 0
+              ? value.toStringAsFixed(digits)
+              : '';
+      _caloriesController.text = number(result.kcalPer100, 0);
+      _proteinController.text = number(result.proteinPer100, 1);
+      _carbsController.text = number(result.carbsPer100, 1);
+      _fatController.text = number(result.fatPer100, 1);
     });
   }
 
@@ -1258,25 +1303,26 @@ class _ManualEntryFormState extends State<ManualEntryForm> {
   }
 
   Future<void> _submit() async {
+    if (_isSubmitting) return;
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isSubmitting = true);
 
     final provider = Provider.of<FoodLogProvider>(context, listen: false);
-    // Porcja (g/ml) nie ma osobnej kolumny w backendzie — dopisujemy ją do
-    // nazwy, żeby informacja nie ginęła (np. "Owsianka (300g)").
-    final portionText = _portionController.text.trim();
-    final name =
-        portionText.isEmpty
-            ? _nameController.text.trim()
-            : '${_nameController.text.trim()} (${portionText}g)';
+    // Preserve a physical amount in the existing structured API fields,
+    // rather than appending a misleading gram suffix to the product name.
+    final portion = _parseNumber(_portionController.text);
 
     final success = await provider.addManualEntry(
       mealType: _mealType,
-      foodName: name,
-      calories: double.tryParse(_caloriesController.text) ?? 0,
-      protein: double.tryParse(_proteinController.text) ?? 0,
-      carbs: double.tryParse(_carbsController.text) ?? 0,
-      fat: double.tryParse(_fatController.text) ?? 0,
+      foodName: _nameController.text.trim(),
+      calories: _parseNumber(_caloriesController.text)!,
+      protein: _parseNumber(_proteinController.text) ?? 0,
+      carbs: _parseNumber(_carbsController.text) ?? 0,
+      fat: _parseNumber(_fatController.text) ?? 0,
+      amountValue: portion,
+      amountUnit: portion == null ? null : _portionUnit,
+      portionSize: portion == null ? null : 1,
+      portionUnit: portion == null ? null : _portionUnit,
     );
 
     if (!mounted) return;
@@ -1290,10 +1336,31 @@ class _ManualEntryFormState extends State<ManualEntryForm> {
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(provider.error ?? 'Nie udało się dodać wpisu'),
+            content: Text(
+              provider.error ?? context.strings.foodEntrySaveFailed,
+            ),
           ),
         );
     }
+  }
+
+  double? _parseNumber(String value) {
+    final number = double.tryParse(value.trim().replaceAll(',', '.'));
+    return number != null && number.isFinite ? number : null;
+  }
+
+  String? _validateNumber(
+    String? value,
+    double maximum, {
+    bool required = false,
+  }) {
+    if (value == null || value.trim().isEmpty) {
+      return required ? context.strings.foodEntryRequired : null;
+    }
+    final number = _parseNumber(value);
+    return number == null || number < 0 || number > maximum
+        ? context.strings.foodEntryInvalidNumber
+        : null;
   }
 
   @override
@@ -1305,10 +1372,15 @@ class _ManualEntryFormState extends State<ManualEntryForm> {
         children: [
           DropdownButtonFormField<String>(
             value: _mealType,
-            decoration: const InputDecoration(labelText: 'Rodzaj posiłku'),
+            decoration: InputDecoration(
+              labelText: context.strings.foodEntryMealType,
+            ),
             items:
                 _mealTypes.map((type) {
-                  return DropdownMenuItem(value: type, child: Text(type));
+                  return DropdownMenuItem(
+                    value: type,
+                    child: Text(context.strings.diaryMealTypeLabel(type)),
+                  );
                 }).toList(),
             onChanged: (val) {
               if (val != null) setState(() => _mealType = val);
@@ -1339,18 +1411,14 @@ class _ManualEntryFormState extends State<ManualEntryForm> {
                 );
                 if (picked == null || !mounted) return;
                 setState(() {
-                  _nameController.text =
-                      picked.unit == 'opak'
-                          ? '${picked.name} (${picked.amountLabel})'
-                          : picked.name;
-                  _portionController.text =
-                      picked.unit == 'opak'
-                          ? ''
-                          : picked.quantity.toStringAsFixed(
-                            picked.quantity == picked.quantity.roundToDouble()
-                                ? 0
-                                : 1,
-                          );
+                  _nameController.text = picked.name;
+                  _portionUnit =
+                      picked.portionUnit ?? (picked.unit == 'ml' ? 'ml' : 'g');
+                  final physicalAmount =
+                      picked.quantity * (picked.portionSize ?? 1);
+                  _portionController.text = physicalAmount.toStringAsFixed(
+                    physicalAmount == physicalAmount.roundToDouble() ? 0 : 1,
+                  );
                   _caloriesController.text = picked.kcal.round().toString();
                   _proteinController.text = picked.protein.toStringAsFixed(1);
                   _fatController.text = picked.fat.toStringAsFixed(1);
@@ -1358,17 +1426,22 @@ class _ManualEntryFormState extends State<ManualEntryForm> {
                 });
               },
               icon: const Icon(Icons.search, size: 18),
-              label: const Text('Wybierz z katalogu'),
+              label: Text(context.strings.foodEntryChooseCatalogue),
             ),
           ),
           const SizedBox(height: 12),
           ProductNameAutocompleteField(
             controller: _nameController,
-            labelText: 'Nazwa produktu / dania',
-            hintText: 'Wpisz nazwę lub wybierz podpowiedź',
+            service: widget.nameLookupService,
+            maxLength: 255,
+            labelText: context.strings.foodEntryProductName,
+            hintText: context.strings.foodEntryNameHint,
             onSelected: _applySuggestedProduct,
             validator:
-                (val) => val == null || val.isEmpty ? 'Podaj nazwę' : null,
+                (val) =>
+                    val == null || val.trim().isEmpty
+                        ? context.strings.foodEntryNameRequired
+                        : null,
           ),
           const SizedBox(height: 16),
           Row(
@@ -1376,22 +1449,34 @@ class _ManualEntryFormState extends State<ManualEntryForm> {
               Expanded(
                 child: TextFormField(
                   controller: _portionController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Porcja (g/ml, opcjonalnie)',
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
                   ),
+                  decoration: InputDecoration(
+                    labelText: context.strings.foodEntryPortion,
+                    suffixText: _portionUnit,
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) return null;
+                    final number = _parseNumber(value);
+                    return number == null || number <= 0 || number > 1000000
+                        ? context.strings.foodEntryInvalidPortion
+                        : null;
+                  },
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: TextFormField(
                   controller: _caloriesController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Kalorie (kcal)',
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: context.strings.foodEntryCalories,
                   ),
                   validator:
-                      (val) => val == null || val.isEmpty ? 'Wymagane' : null,
+                      (value) => _validateNumber(value, 10000, required: true),
                 ),
               ),
             ],
@@ -1402,24 +1487,39 @@ class _ManualEntryFormState extends State<ManualEntryForm> {
               Expanded(
                 child: TextFormField(
                   controller: _proteinController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Białko (g)'),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: context.strings.foodEntryProtein,
+                  ),
+                  validator: (value) => _validateNumber(value, 2000),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: TextFormField(
                   controller: _carbsController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Węgle (g)'),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: context.strings.foodEntryCarbs,
+                  ),
+                  validator: (value) => _validateNumber(value, 2000),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: TextFormField(
                   controller: _fatController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Tłuszcz (g)'),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: context.strings.foodEntryFat,
+                  ),
+                  validator: (value) => _validateNumber(value, 2000),
                 ),
               ),
             ],
@@ -1437,7 +1537,7 @@ class _ManualEntryFormState extends State<ManualEntryForm> {
                         color: Colors.white,
                       ),
                     )
-                    : const Text('Zapisz do dziennika'),
+                    : Text(context.strings.foodEntrySave),
           ),
         ],
       ),

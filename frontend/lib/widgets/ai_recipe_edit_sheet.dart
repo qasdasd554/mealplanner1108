@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../l10n/market_locale.dart';
+import '../l10n/recipe_content.dart';
 import 'package:provider/provider.dart';
 
 import '../models/recipe.dart';
@@ -9,25 +11,31 @@ import '../theme/app_theme.dart';
 import '../utils/error_utils.dart';
 
 /// Zwraca zmieniony przepis albo null, jeśli użytkownik zamknął okno.
-Future<Recipe?> showAiRecipeEditSheet(BuildContext context, Recipe recipe) {
+Future<Recipe?> showAiRecipeEditSheet(
+  BuildContext context,
+  Recipe recipe, {
+  RecipeService? service,
+}) {
   return showModalBottomSheet<Recipe>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    builder: (_) => _AiRecipeEditSheet(recipe: recipe),
+    builder: (_) => _AiRecipeEditSheet(recipe: recipe, service: service),
   );
 }
 
 class _AiRecipeEditSheet extends StatefulWidget {
   final Recipe recipe;
+  final RecipeService? service;
 
-  const _AiRecipeEditSheet({required this.recipe});
+  const _AiRecipeEditSheet({required this.recipe, this.service});
 
   @override
   State<_AiRecipeEditSheet> createState() => _AiRecipeEditSheetState();
 }
 
 class _AiRecipeEditSheetState extends State<_AiRecipeEditSheet> {
+  late final RecipeService _service = widget.service ?? RecipeService();
   final _controller = TextEditingController();
   bool _saving = false;
   String? _error;
@@ -46,16 +54,14 @@ class _AiRecipeEditSheetState extends State<_AiRecipeEditSheet> {
       _error = null;
     });
     try {
-      final updated = await RecipeService().editRecipeWithAi(
-        widget.recipe.id,
-        prompt,
-      );
+      final updated = await _service.editRecipeWithAi(widget.recipe.id, prompt);
       if (!mounted) return;
       await context.read<AuthProvider>().loadProfile();
       if (!mounted) return;
       Navigator.of(context).pop(updated);
     } catch (error) {
-      if (mounted) setState(() => _error = friendlyError(error));
+      if (mounted)
+        setState(() => _error = friendlyError(error, strings: context.strings));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -75,16 +81,16 @@ class _AiRecipeEditSheetState extends State<_AiRecipeEditSheet> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Dostosuj przepis z AI',
+              context.strings.aiEditTitle,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
             Text(
-              'Napisz, co zmienić w „${widget.recipe.name}”. Możesz np. poprosić o wersję bez mleka albo dodać konkretny składnik.',
+              context.strings.aiEditIntro(widget.recipe.displayName(context)),
             ),
             const SizedBox(height: 12),
             Text(
-              'Udana zmiana kosztuje 1 punkt premium. Masz: $points pkt.',
+              context.strings.aiEditCost(points),
               style: TextStyle(color: AppTheme.textSecondary),
             ),
             const SizedBox(height: 16),
@@ -95,11 +101,10 @@ class _AiRecipeEditSheetState extends State<_AiRecipeEditSheet> {
               minLines: 3,
               maxLines: 5,
               maxLength: 1000,
-              decoration: const InputDecoration(
-                labelText: 'Co zmienić lub dodać?',
-                hintText:
-                    'Np. zamień kurczaka na tofu i zmień kroki przygotowania',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: context.strings.aiEditPromptLabel,
+                hintText: context.strings.aiEditPromptHint,
+                border: const OutlineInputBorder(),
               ),
             ),
             if (_error != null) ...[
@@ -117,7 +122,7 @@ class _AiRecipeEditSheetState extends State<_AiRecipeEditSheet> {
                   );
                 },
                 icon: const Icon(Icons.workspace_premium_outlined),
-                label: const Text('Kup punkty'),
+                label: Text(context.strings.aiEditBuyPoints),
               ),
             SizedBox(
               width: double.infinity,
@@ -130,7 +135,7 @@ class _AiRecipeEditSheetState extends State<_AiRecipeEditSheet> {
                           width: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                        : const Text('Zmień przepis · 1 pkt'),
+                        : Text(context.strings.aiEditSubmit),
               ),
             ),
           ],

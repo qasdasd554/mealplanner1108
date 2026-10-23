@@ -4,6 +4,7 @@ import '../../providers/auth_provider.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
+import '../../l10n/market_locale.dart';
 
 /// Kalkulator dziennego zapotrzebowania kalorycznego — analogicznie do
 /// kalkulatora BMI/kalorii NFZ (diety.nfz.gov.pl). Liczy trzy wartości
@@ -11,7 +12,8 @@ import '../../utils/error_utils.dart';
 /// użytkownik wybiera jedną jako swój cel (kafelek) albo dostraja
 /// suwakiem, po czym zapisuje wynik do profilu.
 class CalorieCalculatorScreen extends StatefulWidget {
-  const CalorieCalculatorScreen({super.key});
+  final AuthService? service;
+  const CalorieCalculatorScreen({super.key, this.service});
 
   @override
   State<CalorieCalculatorScreen> createState() =>
@@ -19,7 +21,7 @@ class CalorieCalculatorScreen extends StatefulWidget {
 }
 
 class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
-  final AuthService _authService = AuthService();
+  late final AuthService _authService;
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _resultSectionKey = GlobalKey();
   final _weightController = TextEditingController();
@@ -36,37 +38,38 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
   // dowolna wartość ustawiona suwakiem pomiędzy nimi.
   double? _selectedGoal;
 
-  static const List<Map<String, String>> _activityOptions = [
+  List<Map<String, String>> get _activityOptions => [
     {
       'value': 'sedentary',
-      'label': 'Siedzący tryb życia',
-      'desc': 'Mało lub brak ćwiczeń',
+      'label': context.strings.calculatorSedentary,
+      'desc': context.strings.calculatorSedentaryHint,
     },
     {
       'value': 'light',
-      'label': 'Lekka aktywność',
-      'desc': 'Trening 1–3 dni/tydzień',
+      'label': context.strings.calculatorLight,
+      'desc': context.strings.calculatorLightHint,
     },
     {
       'value': 'moderate',
-      'label': 'Umiarkowana aktywność',
-      'desc': 'Trening 3–5 dni/tydzień',
+      'label': context.strings.calculatorModerate,
+      'desc': context.strings.calculatorModerateHint,
     },
     {
       'value': 'active',
-      'label': 'Duża aktywność',
-      'desc': 'Trening 6–7 dni/tydzień',
+      'label': context.strings.calculatorActive,
+      'desc': context.strings.calculatorActiveHint,
     },
     {
       'value': 'very_active',
-      'label': 'Bardzo duża aktywność',
-      'desc': 'Praca fizyczna + codzienny trening',
+      'label': context.strings.calculatorVeryActive,
+      'desc': context.strings.calculatorVeryActiveHint,
     },
   ];
 
   @override
   void initState() {
     super.initState();
+    _authService = widget.service ?? AuthService();
     // Wstępnie wypełnij tym, co użytkownik podał wcześniej (jeśli
     // kiedykolwiek korzystał z kalkulatora) — nie zaczynamy od zera
     // przy każdej wizycie.
@@ -95,9 +98,7 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
     final age = int.tryParse(_ageController.text);
 
     if (weight == null || height == null || age == null) {
-      setState(
-        () => _error = 'Wypełnij wszystkie pola liczbami (waga, wzrost, wiek).',
-      );
+      setState(() => _error = context.strings.calculatorNumbersRequired);
       return;
     }
 
@@ -138,7 +139,7 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = friendlyError(e);
+        _error = friendlyError(e, strings: context.strings);
         _isCalculating = false;
       });
     }
@@ -174,7 +175,9 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
           ..hideCurrentSnackBar()
           ..showSnackBar(
             SnackBar(
-              content: Text(auth.errorMessage ?? 'Nie udało się zapisać celu.'),
+              content: Text(
+                auth.errorMessage ?? context.strings.calculatorSaveFailed,
+              ),
               backgroundColor: AppTheme.errorColor,
             ),
           );
@@ -185,7 +188,9 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text('Cel zapisany: ${_selectedGoal!.round()} kcal/dzień'),
+            content: Text(
+              context.strings.calculatorGoalSaved(_selectedGoal!.round()),
+            ),
           ),
         );
       Navigator.of(context).pop(true);
@@ -196,7 +201,7 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
+            content: Text(friendlyError(e, strings: context.strings)),
           ),
         );
     } finally {
@@ -207,9 +212,7 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Kalkulator zapotrzebowania kalorycznego'),
-      ),
+      appBar: AppBar(title: Text(context.strings.calculatorTitle)),
       body: SafeArea(
         // UWAGA (naprawa — ten sam błąd co w plan_config_screen.dart i
         // plan_view_screen.dart): przycisk "Oblicz zapotrzebowanie" jest
@@ -223,9 +226,7 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Podaj swoje dane, żeby obliczyć dzienne zapotrzebowanie kaloryczne '
-                '(wzór Mifflin-St Jeor — ten sam standard, na którym opiera się '
-                'm.in. kalkulator NFZ).',
+                context.strings.calculatorIntro,
                 style: TextStyle(color: AppTheme.textSecondary),
               ),
               const SizedBox(height: 24),
@@ -238,7 +239,9 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
-                      decoration: const InputDecoration(labelText: 'Waga (kg)'),
+                      decoration: InputDecoration(
+                        labelText: context.strings.calculatorWeight,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -246,8 +249,8 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
                     child: TextField(
                       controller: _heightController,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'Wzrost (cm)',
+                      decoration: InputDecoration(
+                        labelText: context.strings.calculatorHeight,
                       ),
                     ),
                   ),
@@ -257,16 +260,27 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
               TextField(
                 controller: _ageController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Wiek (lata)'),
+                decoration: InputDecoration(
+                  labelText: context.strings.calculatorAge,
+                ),
               ),
               const SizedBox(height: 16),
 
-              Text('Płeć', style: Theme.of(context).textTheme.titleSmall),
+              Text(
+                context.strings.calculatorSex,
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
               const SizedBox(height: 8),
               SegmentedButton<String>(
-                segments: const [
-                  ButtonSegment(value: 'female', label: Text('Kobieta')),
-                  ButtonSegment(value: 'male', label: Text('Mężczyzna')),
+                segments: [
+                  ButtonSegment(
+                    value: 'female',
+                    label: Text(context.strings.calculatorFemale),
+                  ),
+                  ButtonSegment(
+                    value: 'male',
+                    label: Text(context.strings.calculatorMale),
+                  ),
                 ],
                 selected: {_gender},
                 onSelectionChanged: (s) => setState(() => _gender = s.first),
@@ -274,7 +288,7 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
               const SizedBox(height: 20),
 
               Text(
-                'Poziom aktywności fizycznej',
+                context.strings.calculatorActivity,
                 style: Theme.of(context).textTheme.titleSmall,
               ),
               const SizedBox(height: 8),
@@ -367,7 +381,7 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
                               color: Colors.white,
                             ),
                           )
-                          : const Text('Oblicz zapotrzebowanie'),
+                          : Text(context.strings.calculatorCalculate),
                 ),
               ),
 
@@ -386,33 +400,61 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
 
     return [
       SizedBox(key: _resultSectionKey, height: 28),
-      Text('Wybierz swój cel', style: Theme.of(context).textTheme.titleMedium),
+      Text(
+        context.strings.calculatorChooseGoal,
+        style: Theme.of(context).textTheme.titleMedium,
+      ),
       const SizedBox(height: 4),
       Text(
-        'Dotknij kafelek, żeby go wybrać, albo dostrój suwakiem poniżej.',
+        context.strings.calculatorGoalHint,
         style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
       ),
       const SizedBox(height: 12),
-      Row(
-        children: [
-          Expanded(
-            child: _buildGoalTile('Redukcja', loss, Icons.trending_down),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: _buildGoalTile(
-              'Utrzymanie',
+      LayoutBuilder(
+        builder: (context, constraints) {
+          final stacked =
+              constraints.maxWidth < 320 &&
+              MediaQuery.textScalerOf(context).scale(12) > 14.4;
+          final choices = [
+            _buildGoalTile(
+              context.strings.calculatorLoss,
+              loss,
+              Icons.trending_down,
+            ),
+            _buildGoalTile(
+              context.strings.calculatorMaintenance,
               maintenance,
               Icons.trending_flat,
             ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(child: _buildGoalTile('Przyrost', gain, Icons.trending_up)),
-        ],
+            _buildGoalTile(
+              context.strings.calculatorGain,
+              gain,
+              Icons.trending_up,
+            ),
+          ];
+          return Flex(
+            key: const ValueKey('calculator-goals'),
+            direction: stacked ? Axis.vertical : Axis.horizontal,
+            crossAxisAlignment:
+                stacked
+                    ? CrossAxisAlignment.stretch
+                    : CrossAxisAlignment.center,
+            children: [
+              for (var index = 0; index < choices.length; index++) ...[
+                if (index > 0)
+                  SizedBox(width: stacked ? 0 : 8, height: stacked ? 8 : 0),
+                if (stacked)
+                  choices[index]
+                else
+                  Expanded(child: choices[index]),
+              ],
+            ],
+          );
+        },
       ),
       const SizedBox(height: 24),
       Text(
-        'Własna wartość: ${_selectedGoal!.round()} kcal/dzień',
+        context.strings.calculatorCustomGoal(_selectedGoal!.round()),
         style: const TextStyle(fontWeight: FontWeight.bold),
         textAlign: TextAlign.center,
       ),
@@ -444,7 +486,7 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
         child: Column(
           children: [
             Text(
-              'Orientacyjny podział makroskładników',
+              context.strings.calculatorMacros,
               style: TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 13,
@@ -452,28 +494,33 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildMacroPrediction(
-                  'Białko',
-                  _selectedGoal! * 0.25 / 4,
-                  '25%',
-                  AppTheme.secondaryColor,
-                ),
-                _buildMacroPrediction(
-                  'Tłuszcz',
-                  _selectedGoal! * 0.30 / 9,
-                  '30%',
-                  const Color(0xFFE0A62E),
-                ),
-                _buildMacroPrediction(
-                  'Węgl.',
-                  _selectedGoal! * 0.45 / 4,
-                  '45%',
-                  const Color(0xFF3B82F6),
-                ),
-              ],
+            SizedBox(
+              width: double.infinity,
+              child: Wrap(
+                alignment: WrapAlignment.spaceAround,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                runSpacing: 12,
+                children: [
+                  _buildMacroPrediction(
+                    context.strings.calculatorProtein,
+                    _selectedGoal! * 0.25 / 4,
+                    '25%',
+                    AppTheme.secondaryColor,
+                  ),
+                  _buildMacroPrediction(
+                    context.strings.calculatorFat,
+                    _selectedGoal! * 0.30 / 9,
+                    '30%',
+                    const Color(0xFFE0A62E),
+                  ),
+                  _buildMacroPrediction(
+                    context.strings.calculatorCarbs,
+                    _selectedGoal! * 0.45 / 4,
+                    '45%',
+                    const Color(0xFF3B82F6),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -494,7 +541,7 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
                       color: Colors.white,
                     ),
                   )
-                  : const Text('Zapisz jako mój cel'),
+                  : Text(context.strings.calculatorSaveGoal),
         ),
       ),
       const SizedBox(height: 8),

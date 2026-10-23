@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.notification import Notification
 from app.models.user import User
+from app.services.notification_language import country_text
 
 
 async def notify_admins_pending_review(
@@ -21,6 +22,7 @@ async def notify_admins_pending_review(
     notification_type: str,
     message: str,
     recipe_id: UUID | None = None,
+    english_message: str | None = None,
 ) -> int:
     """Zapisuje powiadomienie dla każdego administratora i wysyła push.
 
@@ -28,17 +30,17 @@ async def notify_admins_pending_review(
     nie może cofnąć zgłoszenia użytkownika ani ukryć go w panelu admina.
     """
 
-    admins_result = await db.execute(select(User.id).where(User.role == "admin"))
-    admin_ids = list(admins_result.scalars().all())
-    if not admin_ids:
+    admins_result = await db.execute(select(User.id, User.country_code).where(User.role == "admin"))
+    admins = list(admins_result.all())
+    if not admins:
         return 0
 
     notifications: list[Notification] = []
-    for admin_id in admin_ids:
+    for admin_id, country in admins:
         notification = Notification(
             user_id=admin_id,
             notification_type=notification_type,
-            message=message,
+            message=country_text(country, message, english_message or message),
             recipe_id=recipe_id,
         )
         notifications.append(notification)

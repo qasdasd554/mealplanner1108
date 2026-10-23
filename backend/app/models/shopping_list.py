@@ -128,6 +128,10 @@ class ShoppingListItem(Base):
     substituted_for_product: Mapped["Product | None"] = relationship(
         "Product", foreign_keys=[substituted_for]
     )
+    regional_snapshot: Mapped["ShoppingListItemRegionalSnapshot | None"] = relationship(
+        "ShoppingListItemRegionalSnapshot", back_populates="item", uselist=False,
+        lazy="joined", cascade="all, delete-orphan", single_parent=True,
+    )
 
     def __repr__(self) -> str:
         return (

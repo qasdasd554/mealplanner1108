@@ -1,6 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+
+import '../../l10n/market_locale.dart';
+import '../../l10n/recipe_content.dart';
+import '../../l10n/measure_labels.dart';
+import '../../utils/market_money.dart';
+import '../../utils/quantity_formatter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
@@ -30,7 +36,15 @@ import '../batch_barcode_scanner_screen.dart';
 /// sklepem, a zgłoszenie takiego powiązania nie ma. Druga zakładka
 /// domyka tę lukę.
 class ProductsScreen extends StatefulWidget {
-  const ProductsScreen({super.key});
+  final ProductSearchService? catalogueService;
+  final StoreService? storeService;
+  final ApiClient? client;
+  const ProductsScreen({
+    super.key,
+    this.catalogueService,
+    this.storeService,
+    this.client,
+  });
 
   @override
   State<ProductsScreen> createState() => _ProductsScreenState();
@@ -80,7 +94,7 @@ class _ProductsScreenState extends State<ProductsScreen>
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text('Obsłużono: $completed produktów.')),
+        SnackBar(content: Text(context.strings.productsProcessed(completed))),
       );
   }
 
@@ -88,20 +102,20 @@ class _ProductsScreenState extends State<ProductsScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Produkty'),
+        title: Text(context.strings.productsTitle),
         actions: [
           IconButton(
-            tooltip: 'Źródła cen i marek',
+            tooltip: context.strings.productsPriceSources,
             onPressed: () => showPriceSourceInfo(context),
             icon: const Icon(Icons.info_outline),
           ),
         ],
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
-            Tab(text: 'Sklep'),
-            Tab(text: 'Katalog'),
-            Tab(text: 'Moje'),
+          tabs: [
+            Tab(text: context.strings.productsShopTab),
+            Tab(text: context.strings.productsCatalogueTab),
+            Tab(text: context.strings.productsMineTab),
           ],
         ),
       ),
@@ -117,8 +131,8 @@ class _ProductsScreenState extends State<ProductsScreen>
                 FilledButton.icon(
                   onPressed: _scanBarcode,
                   icon: const Icon(Icons.barcode_reader),
-                  label: const Text(
-                    'Skanuj kod kreskowy',
+                  label: Text(
+                    context.strings.productsScan,
                     maxLines: 2,
                     textAlign: TextAlign.center,
                   ),
@@ -126,21 +140,21 @@ class _ProductsScreenState extends State<ProductsScreen>
                 const SizedBox(height: 6),
                 OutlinedButton(
                   onPressed: _scanBatch,
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.qr_code_2, size: 19),
-                      SizedBox(width: 8),
+                      const Icon(Icons.qr_code_2, size: 19),
+                      const SizedBox(width: 8),
                       Flexible(
                         child: Text(
-                          'Skanuj wiele produktów',
+                          context.strings.productsBatchScan,
                           maxLines: 2,
                           textAlign: TextAlign.center,
                         ),
                       ),
-                      SizedBox(width: 8),
-                      PremiumFeatureTag(fontSize: 8),
+                      const SizedBox(width: 8),
+                      const PremiumFeatureTag(fontSize: 8),
                     ],
                   ),
                 ),
@@ -151,9 +165,12 @@ class _ProductsScreenState extends State<ProductsScreen>
             child: TabBarView(
               controller: _tabController,
               children: [
-                const _StoreProductsTab(),
-                const _CatalogProductsTab(),
-                _MyProductsTab(key: ValueKey(_myProductsRefresh)),
+                _StoreProductsTab(service: widget.storeService),
+                _CatalogProductsTab(service: widget.catalogueService),
+                _MyProductsTab(
+                  key: ValueKey(_myProductsRefresh),
+                  client: widget.client,
+                ),
               ],
             ),
           ),
@@ -166,7 +183,8 @@ class _ProductsScreenState extends State<ProductsScreen>
 /// Pełny katalog żywieniowy. Trafiają tu także produkty restauracyjne i
 /// składniki niezwiązane z konkretnym supermarketem.
 class _CatalogProductsTab extends StatefulWidget {
-  const _CatalogProductsTab();
+  final ProductSearchService? service;
+  const _CatalogProductsTab({this.service});
 
   @override
   State<_CatalogProductsTab> createState() => _CatalogProductsTabState();
@@ -175,7 +193,7 @@ class _CatalogProductsTab extends StatefulWidget {
 class _CatalogProductsTabState extends State<_CatalogProductsTab> {
   static const int _pageSize = 50;
 
-  final ProductSearchService _service = ProductSearchService();
+  late final ProductSearchService _service;
   final TextEditingController _searchController = TextEditingController();
   final List<Product> _products = [];
   Timer? _searchDebounce;
@@ -187,6 +205,7 @@ class _CatalogProductsTabState extends State<_CatalogProductsTab> {
   @override
   void initState() {
     super.initState();
+    _service = widget.service ?? ProductSearchService();
     _load(reset: true);
   }
 
@@ -223,7 +242,7 @@ class _CatalogProductsTabState extends State<_CatalogProductsTab> {
       });
     } catch (e) {
       if (!mounted || generation != _requestGeneration) return;
-      setState(() => _error = friendlyError(e));
+      setState(() => _error = friendlyError(e, strings: context.strings));
     } finally {
       if (mounted && generation == _requestGeneration) {
         setState(() => _isLoading = false);
@@ -251,13 +270,13 @@ class _CatalogProductsTabState extends State<_CatalogProductsTab> {
             onChanged: _onSearchChanged,
             textInputAction: TextInputAction.search,
             decoration: InputDecoration(
-              hintText: 'Szukaj produktu lub marki…',
+              hintText: context.strings.productsBrandSearch,
               prefixIcon: const Icon(Icons.search),
               suffixIcon:
                   _searchController.text.isEmpty
                       ? null
                       : IconButton(
-                        tooltip: 'Wyczyść',
+                        tooltip: context.strings.productsClear,
                         onPressed: () {
                           _searchController.clear();
                           _load(reset: true);
@@ -277,7 +296,7 @@ class _CatalogProductsTabState extends State<_CatalogProductsTab> {
       return const Center(child: CircularProgressIndicator());
     }
     if (_error != null && _products.isEmpty) {
-      return Center(
+      return _ScrollableProductMessage(
         child: Padding(
           padding: const EdgeInsets.all(32),
           child: Column(
@@ -287,7 +306,7 @@ class _CatalogProductsTabState extends State<_CatalogProductsTab> {
               const SizedBox(height: 12),
               ElevatedButton(
                 onPressed: () => _load(reset: true),
-                child: const Text('Spróbuj ponownie'),
+                child: Text(context.strings.productsRetry),
               ),
             ],
           ),
@@ -295,7 +314,7 @@ class _CatalogProductsTabState extends State<_CatalogProductsTab> {
       );
     }
     if (_products.isEmpty) {
-      return const Center(child: Text('Nie znaleziono produktów.'));
+      return Center(child: Text(context.strings.productsNotFound));
     }
 
     return RefreshIndicator(
@@ -315,7 +334,7 @@ class _CatalogProductsTabState extends State<_CatalogProductsTab> {
                           dimension: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                        : const Text('Pokaż więcej'),
+                        : Text(context.strings.productsShowMore),
               ),
             );
           }
@@ -365,7 +384,7 @@ class _CatalogProductTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  product.name,
+                  product.displayName(context),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -385,10 +404,7 @@ class _CatalogProductTile extends StatelessWidget {
                 ],
                 const SizedBox(height: 4),
                 Text(
-                  '${nutrition.kcal.toStringAsFixed(0)} kcal · '
-                  'B ${nutrition.protein.toStringAsFixed(1)} g · '
-                  'T ${nutrition.fat.toStringAsFixed(1)} g · '
-                  'W ${nutrition.carbs.toStringAsFixed(1)} g / 100$baseUnit',
+                  '${context.strings.nutritionMacroLine(nutrition.knownValue('kcal')?.toStringAsFixed(0) ?? '—', nutrition.knownValue('protein')?.toStringAsFixed(1) ?? '—', nutrition.knownValue('fat')?.toStringAsFixed(1) ?? '—', nutrition.knownValue('carbs')?.toStringAsFixed(1) ?? '—')} / 100$baseUnit',
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
                 ),
               ],
@@ -402,14 +418,15 @@ class _CatalogProductTile extends StatelessWidget {
 
 /// Dawna zawartość ekranu — katalog produktów wybranego sklepu.
 class _StoreProductsTab extends StatefulWidget {
-  const _StoreProductsTab();
+  final StoreService? service;
+  const _StoreProductsTab({this.service});
 
   @override
   State<_StoreProductsTab> createState() => _StoreProductsTabState();
 }
 
 class _StoreProductsTabState extends State<_StoreProductsTab> {
-  final StoreService _storeService = StoreService();
+  late final StoreService _storeService;
 
   List<StoreProduct> _products = [];
   bool _isLoading = false;
@@ -422,6 +439,7 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
   @override
   void initState() {
     super.initState();
+    _storeService = widget.service ?? StoreService();
     WidgetsBinding.instance.addPostFrameCallback((_) => _initStoreAndLoad());
   }
 
@@ -473,13 +491,34 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
         search: search,
       );
       if (!mounted || generation != _requestGeneration) return;
+      final stores = context.read<StoreProvider>().stores;
+      final store = stores.where((s) => s.id == storeId).firstOrNull;
+      // Legacy shop rows without explicit currency are PLN. A GB viewer must
+      // never turn them into GBP by merely changing the currency symbol.
+      if (store == null ||
+          list.any(
+            (row) =>
+                row.storeId != storeId ||
+                row.currencyCode != store.currencyCode ||
+                !const {'PLN', 'GBP'}.contains(row.currencyCode) ||
+                !row.price.isFinite ||
+                row.price < 0 ||
+                (row.currencyCode == 'GBP' &&
+                    (row.price == 0 || !row.hasRegionalPackage)),
+          )) {
+        setState(() {
+          _products = [];
+          _error = context.strings.productsMarketUnavailable;
+        });
+        return;
+      }
       setState(() {
         _products = list;
       });
     } catch (e) {
       if (!mounted || generation != _requestGeneration) return;
       setState(() {
-        _error = 'Nie udało się pobrać produktów: $e';
+        _error = context.strings.productsLoadFailed(e.toString());
       });
     } finally {
       if (mounted && generation == _requestGeneration) {
@@ -508,7 +547,7 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
               );
             },
             decoration: InputDecoration(
-              hintText: 'Szukaj produktu...',
+              hintText: context.strings.productsSearch,
               prefixIcon: const Icon(Icons.search),
               contentPadding: const EdgeInsets.symmetric(vertical: 12),
               fillColor: AppTheme.surfaceColor.withOpacity(0.5),
@@ -524,9 +563,9 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
               child: DropdownButtonFormField<String>(
                 value: _selectedStoreId,
                 isExpanded: true,
-                decoration: const InputDecoration(
-                  labelText: 'Sklep',
-                  prefixIcon: Icon(Icons.storefront_outlined),
+                decoration: InputDecoration(
+                  labelText: context.strings.productsShopTab,
+                  prefixIcon: const Icon(Icons.storefront_outlined),
                 ),
                 dropdownColor: AppTheme.surfaceColor,
                 items:
@@ -562,9 +601,8 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
     if (_selectedStoreId == null) {
       return _buildMessageState(
         icon: Icons.storefront_outlined,
-        title: 'Brak wybranego sklepu',
-        subtitle:
-            'Aby przeglądać produkty i ceny, wybierz sklep w swoim profilu lub z listy powyżej.',
+        title: context.strings.productsNoShop,
+        subtitle: context.strings.productsChooseShop,
       );
     }
 
@@ -575,11 +613,11 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
     if (_error != null) {
       return _buildMessageState(
         icon: Icons.error_outline,
-        title: 'Coś poszło nie tak',
+        title: context.strings.productsError,
         subtitle: _error!,
         action: ElevatedButton(
           onPressed: _loadProducts,
-          child: const Text('Spróbuj ponownie'),
+          child: Text(context.strings.productsRetry),
         ),
       );
     }
@@ -587,8 +625,8 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
     if (_products.isEmpty) {
       return _buildMessageState(
         icon: Icons.search_off,
-        title: 'Brak produktów',
-        subtitle: 'Spróbuj zmienić wyszukiwaną frazę.',
+        title: context.strings.productsEmpty,
+        subtitle: context.strings.productsChangeSearch,
       );
     }
 
@@ -604,7 +642,31 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
 
   Widget _buildProductTile(StoreProduct sp) {
     final product = sp.product;
-    final kcal = product?.nutritionPer100.kcal;
+    final regional = sp.currencyCode == 'GBP';
+    // The canonical food's nutrition is not label evidence for a retailer SKU.
+    final kcal = regional ? null : product?.nutritionPer100.knownValue('kcal');
+    final english = context.strings.localeName.startsWith('en');
+    final verifiedLabel =
+        regional && sp.priceIsEstimated
+            ? context.strings.productsEstimatedPrice
+            : !english
+            ? storePriceVerificationLabel(sp)
+            : sp.lastVerified == null
+            ? context.strings.productsEstimatedPrice
+            : context.strings.productsCheckedOn(
+              '${sp.lastVerified!.day.toString().padLeft(2, '0')}/${sp.lastVerified!.month.toString().padLeft(2, '0')}/${sp.lastVerified!.year}',
+            );
+    final quantityLabel =
+        regional && sp.hasRegionalPackage
+            ? '/ ${formatQuantity(sp.packageQuantity!, sp.packageUnit!)} ${sp.packageUnit!}'
+            : !english
+            ? storePriceQuantityLabel(product)
+            : product == null ||
+                !product.defaultQuantity.isFinite ||
+                product.defaultQuantity <= 0 ||
+                product.unit.trim().isEmpty
+            ? context.strings.productsUnknownQuantity
+            : '/ ${formatQuantity(product.defaultQuantity, product.unit)} ${context.strings.measureQuantityLabel(product.unit, fallback: product.unit, amount: product.defaultQuantity)}';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -639,7 +701,8 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  product?.name ?? 'Nieznany produkt',
+                  (regional ? sp.nameEn : product?.displayName(context)) ??
+                      context.strings.productsUnknown,
                   style: Theme.of(
                     context,
                   ).textTheme.titleLarge?.copyWith(fontSize: 15),
@@ -650,13 +713,14 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
                 Text(
                   [
                     if (sp.storeBrandName != null)
-                      'Marka w sklepie: ${sp.storeBrandName}'
+                      context.strings.productsShopBrand(sp.storeBrandName!)
                     else if (product?.brand != null)
-                      'Marka produktu: ${product!.brand}',
+                      context.strings.productsBrand(product!.brand!),
                     if (kcal != null)
                       '${kcal.toInt()} kcal / 100${product?.unit == 'ml' || product?.unit == 'l' ? 'ml' : 'g'}',
-                    storePriceVerificationLabel(sp),
-                    if (!sp.isAvailable) 'niedostępny',
+                    verifiedLabel,
+                    if (regional) context.strings.productsOnlineCatalogue,
+                    if (!sp.isAvailable) context.strings.productsUnavailable,
                   ].join(' • '),
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                 ),
@@ -670,8 +734,8 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  '${sp.lastVerified == null ? '~ ' : ''}'
-                  '${sp.price.toStringAsFixed(2)} zł',
+                  '${(regional ? sp.priceIsEstimated : sp.lastVerified == null) ? '~ ' : ''}'
+                  '${formatMarketMoney(sp.price, currencyCode: sp.currencyCode)}',
                   textAlign: TextAlign.end,
                   style: const TextStyle(
                     color: AppTheme.primaryColor,
@@ -680,7 +744,7 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
                   ),
                 ),
                 Text(
-                  storePriceQuantityLabel(product),
+                  quantityLabel,
                   textAlign: TextAlign.end,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -700,7 +764,7 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
     required String subtitle,
     Widget? action,
   }) {
-    return Center(
+    return _ScrollableProductMessage(
       child: Padding(
         padding: const EdgeInsets.all(32.0),
         child: Column(
@@ -730,14 +794,15 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
 /// Zakładka „Moje” — produkty zgłoszone przez zalogowanego użytkownika,
 /// niezależnie od tego, czy zostały już zatwierdzone.
 class _MyProductsTab extends StatefulWidget {
-  const _MyProductsTab({super.key});
+  final ApiClient? client;
+  const _MyProductsTab({super.key, this.client});
 
   @override
   State<_MyProductsTab> createState() => _MyProductsTabState();
 }
 
 class _MyProductsTabState extends State<_MyProductsTab> {
-  final ApiClient _client = ApiClient();
+  late final ApiClient _client;
   List<Product> _products = [];
   bool _isLoading = true;
   String? _error;
@@ -745,6 +810,7 @@ class _MyProductsTabState extends State<_MyProductsTab> {
   @override
   void initState() {
     super.initState();
+    _client = widget.client ?? ApiClient();
     _load();
   }
 
@@ -764,7 +830,7 @@ class _MyProductsTabState extends State<_MyProductsTab> {
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() => _error = friendlyError(e));
+      setState(() => _error = friendlyError(e, strings: context.strings));
     } finally {
       // finally, żeby kółko zniknęło niezależnie od wyniku żądania —
       // ten sam wzorzec, którego brakowało w panelu admina zanim go
@@ -806,20 +872,20 @@ class _MyProductsTabState extends State<_MyProductsTab> {
       context: context,
       builder:
           (ctx) => AlertDialog(
-            title: const Text('Usunąć produkt?'),
+            title: Text(context.strings.productsDeleteTitle),
             content: Text(
-              'Usuniesz "${p.name}" ze swoich zgłoszeń. Tej operacji nie da się cofnąć.',
+              context.strings.productsDeleteMessage(p.displayName(context)),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Anuluj'),
+                child: Text(context.strings.productsCancel),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
                 child: Text(
-                  'Usuń',
-                  style: TextStyle(color: AppTheme.errorColor),
+                  context.strings.productsDelete,
+                  style: const TextStyle(color: AppTheme.errorColor),
                 ),
               ),
             ],
@@ -837,7 +903,7 @@ class _MyProductsTabState extends State<_MyProductsTab> {
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
+            content: Text(friendlyError(e, strings: context.strings)),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -851,13 +917,13 @@ class _MyProductsTabState extends State<_MyProductsTab> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openSubmitSheet,
         icon: const Icon(Icons.add),
-        label: const Text('Dodaj produkt'),
+        label: Text(context.strings.productsAdd),
       ),
       body:
           _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _error != null
-              ? Center(
+              ? _ScrollableProductMessage(
                 child: Padding(
                   padding: const EdgeInsets.all(32),
                   child: Column(
@@ -877,14 +943,14 @@ class _MyProductsTabState extends State<_MyProductsTab> {
                       const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: _load,
-                        child: const Text('Spróbuj ponownie'),
+                        child: Text(context.strings.productsRetry),
                       ),
                     ],
                   ),
                 ),
               )
               : _products.isEmpty
-              ? Center(
+              ? _ScrollableProductMessage(
                 child: Padding(
                   padding: const EdgeInsets.all(32),
                   child: Column(
@@ -897,13 +963,13 @@ class _MyProductsTabState extends State<_MyProductsTab> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Nie zgłosiłeś/aś jeszcze żadnego produktu.',
+                        context.strings.productsNothingSubmitted,
                         textAlign: TextAlign.center,
                         style: TextStyle(color: AppTheme.textSecondary),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Dotknij „Dodaj produkt” poniżej, żeby zgłosić coś,\nczego nie ma w katalogu.',
+                        context.strings.productsSubmitHint,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: AppTheme.textSecondary,
@@ -927,9 +993,9 @@ class _MyProductsTabState extends State<_MyProductsTab> {
 
   Widget _buildTile(Product p) {
     final (label, color) = switch (p.reviewStatus) {
-      'approved' => ('W katalogu', AppTheme.primaryColor),
-      'rejected' => ('Odrzucony', AppTheme.errorColor),
-      _ => ('Oczekuje na akceptację', AppTheme.textSecondary),
+      'approved' => (context.strings.productsApproved, AppTheme.primaryColor),
+      'rejected' => (context.strings.productsRejected, AppTheme.errorColor),
+      _ => (context.strings.productsPending, AppTheme.textSecondary),
     };
 
     return Container(
@@ -947,7 +1013,7 @@ class _MyProductsTabState extends State<_MyProductsTab> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  p.name,
+                  p.displayName(context),
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
@@ -959,8 +1025,15 @@ class _MyProductsTabState extends State<_MyProductsTab> {
                 Text(
                   [
                     if (p.brand != null && p.brand!.isNotEmpty) p.brand!,
-                    if (p.submittedPrice != null)
-                      '${p.submittedPrice!.toStringAsFixed(2)} zł',
+                    if (p.submittedPrice != null &&
+                        p.submittedPrice!.isFinite &&
+                        const {'PL', 'GB'}.contains(p.submittedCountryCode))
+                      formatMarketMoney(
+                        p.submittedPrice!,
+                        currencyCode: currencyForAccountCountry(
+                          p.submittedCountryCode,
+                        ),
+                      ),
                   ].join(' · '),
                   style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                 ),
@@ -992,17 +1065,17 @@ class _MyProductsTabState extends State<_MyProductsTab> {
             children: [
               IconButton(
                 icon: const Icon(Icons.edit_outlined, size: 20),
-                tooltip: 'Edytuj',
+                tooltip: context.strings.productsEdit,
                 visualDensity: VisualDensity.compact,
                 onPressed: () => _editProduct(p),
               ),
               IconButton(
-                icon: Icon(
+                icon: const Icon(
                   Icons.delete_outline,
                   size: 20,
                   color: AppTheme.errorColor,
                 ),
-                tooltip: 'Usuń',
+                tooltip: context.strings.productsDelete,
                 visualDensity: VisualDensity.compact,
                 onPressed: () => _deleteProduct(p),
               ),
@@ -1012,4 +1085,14 @@ class _MyProductsTabState extends State<_MyProductsTab> {
       ),
     );
   }
+}
+
+/// Error/empty content keeps its centred appearance, but remains reachable
+/// when the header, keyboard or larger text leaves little vertical space.
+class _ScrollableProductMessage extends StatelessWidget {
+  final Widget child;
+  const _ScrollableProductMessage({required this.child});
+  @override
+  Widget build(BuildContext context) =>
+      Center(child: SingleChildScrollView(primary: false, child: child));
 }

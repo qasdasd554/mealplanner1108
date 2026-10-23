@@ -71,7 +71,11 @@ bool _containsAny(String value, Iterable<String> words) =>
 /// użyteczne niż techniczny wybór 1 g / 1 ml.
 double recommendedPortionQuantity(Product product) {
   for (final option in product.measureOptions) {
-    if (option.code == 'porcja' && option.baseQuantity > 0) {
+    if (option.code == 'porcja' &&
+        option.baseUnit == productBaseUnit(product.name, product.unit) &&
+        option.baseQuantity.isFinite &&
+        option.baseQuantity > 0 &&
+        option.baseQuantity <= 1000000) {
       return option.baseQuantity;
     }
   }
@@ -214,6 +218,7 @@ double recommendedPortionQuantity(Product product) {
     portion = 200;
   } else if (product.unit == 'opak' &&
       product.servingQuantity != null &&
+      product.servingQuantity!.isFinite &&
       product.servingQuantity! > 0) {
     portion =
         product.servingQuantity! <= 350
@@ -234,7 +239,10 @@ List<ProductMeasureOption> effectiveMeasureOptions(Product product) {
   final baseUnit = productBaseUnit(product.name, product.unit);
   final result = <ProductMeasureOption>[];
   final packageSize = product.servingQuantity;
-  if (packageSize != null && packageSize > 0) {
+  if (packageSize != null &&
+      packageSize.isFinite &&
+      packageSize > 0 &&
+      packageSize <= 1000000) {
     result.add(
       ProductMeasureOption(
         code: 'opak',
@@ -248,7 +256,11 @@ List<ProductMeasureOption> effectiveMeasureOptions(Product product) {
   // zapisywały sztuczne „opakowanie = 100 g”; dlatego opakowanie zawsze
   // odbudowujemy wyłącznie z servingQuantity, zamiast ufać staremu JSON-owi.
   for (final option in product.measureOptions) {
-    if (option.code == 'opak' ||
+    if (!option.baseQuantity.isFinite ||
+        option.baseQuantity <= 0 ||
+        option.baseQuantity > 1000000 ||
+        option.baseUnit != baseUnit ||
+        option.code == 'opak' ||
         option.code == 'g' ||
         option.code == 'ml' ||
         result.any((existing) => existing.code == option.code)) {
@@ -330,7 +342,13 @@ List<ProductMeasureOption> effectiveMeasureOptions(Product product) {
       }
     }
   }
-  return result;
+  // A reviewed API measure takes precedence over an approximate fallback.
+  // Duplicate codes otherwise make one "glass" represent two different sizes.
+  final unique = <String, ProductMeasureOption>{};
+  for (final option in result) {
+    unique.putIfAbsent(option.code, () => option);
+  }
+  return unique.values.toList();
 }
 
 String formatMeasureAmount(double quantity, ProductMeasureOption option) {

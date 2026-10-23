@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/market_locale.dart';
 import '../models/recipe.dart';
 import '../services/recipe_service.dart';
 import '../theme/app_theme.dart';
@@ -33,19 +34,16 @@ class _RecipePublishButtonState extends State<RecipePublishButton> {
       context: context,
       builder:
           (ctx) => AlertDialog(
-            title: const Text('Opublikować przepis?'),
-            content: const Text(
-              'Przepis trafi do kolejki oczekującej na akceptację administratora. '
-              'Po zatwierdzeniu będzie widoczny dla wszystkich użytkowników aplikacji.',
-            ),
+            title: Text(context.strings.detailPublishTitle),
+            content: Text(context.strings.detailPublishHelp),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Anuluj'),
+                child: Text(context.strings.planCancel),
               ),
               FilledButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('Opublikuj'),
+                child: Text(context.strings.detailPublishSubmit),
               ),
             ],
           ),
@@ -65,11 +63,9 @@ class _RecipePublishButtonState extends State<RecipePublishButton> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),
-            content: Text(
-              'Przepis zgłoszony — czeka na akceptację administratora.',
-            ),
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(context.strings.detailPublishSent),
           ),
         );
       Navigator.of(context).pop(true);
@@ -79,9 +75,9 @@ class _RecipePublishButtonState extends State<RecipePublishButton> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),
-            content: Text('Nie udało się opublikować przepisu.'),
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(context.strings.detailPublishFailed),
           ),
         );
     }
@@ -111,7 +107,7 @@ class _RecipePublishButtonState extends State<RecipePublishButton> {
                     ),
                   )
                   : const Icon(Icons.public, size: 18),
-          label: const Text('Opublikuj przepis'),
+          label: Text(context.strings.detailPublish),
         ),
       ),
     );

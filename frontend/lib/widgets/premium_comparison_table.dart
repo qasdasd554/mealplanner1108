@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/market_locale.dart';
 import '../theme/app_theme.dart';
 
 /// Tabela porównawcza Premium vs Standard — lista funkcji z wartościami
@@ -13,20 +14,24 @@ import '../theme/app_theme.dart';
 class PremiumComparisonTable extends StatelessWidget {
   const PremiumComparisonTable({super.key});
 
-  static const List<(String, Object, Object)> _comparisonRows = [
-    ('Automatyczny plan i lista co tydzień', true, false),
-    ('Archiwum i wznowienie zakończonych planów', true, false),
-    ('Lubię / Nie lubię: jedno dopasowane danie dziennie', true, false),
-    ('Import przepisu przez AI (zdjęcie, tekst, link)', true, false),
-    ('Seryjne skanowanie produktów bez zamykania aparatu', true, false),
-    ('Publikacja przepisów we wspólnym katalogu', true, false),
-    ('Odnośnik TikTok przy własnych przepisach', true, false),
-    ('Listy zakupów z wybranych przepisów', 'Bez limitu', '1 / tydzień'),
-    ('Generowanie planu posiłków', true, true),
-    ('Dziennik kalorii i makroskładników', true, true),
-    ('Kalkulator zapotrzebowania kalorycznego', true, true),
-    ('Baza przepisów i produktów', true, true),
-    ('Porównywarka cen produktów', true, true),
+  List<(String, Object, Object)> _comparisonRows(BuildContext context) => [
+    (context.strings.compareWeekly, true, false),
+    (context.strings.compareArchive, true, false),
+    (context.strings.compareLikes, true, false),
+    (context.strings.compareAi, true, false),
+    (context.strings.compareBatch, true, false),
+    (context.strings.comparePublish, true, false),
+    (context.strings.compareTikTok, true, false),
+    (
+      context.strings.compareLists,
+      context.strings.compareUnlimited,
+      context.strings.compareOneWeek,
+    ),
+    (context.strings.compareGenerate, true, true),
+    (context.strings.compareJournal, true, true),
+    (context.strings.compareCalculator, true, true),
+    (context.strings.compareCatalogue, true, true),
+    (context.strings.comparePrices, true, true),
   ];
 
   Widget _buildCell(Object value) {
@@ -88,7 +93,7 @@ class PremiumComparisonTable extends StatelessWidget {
             ),
           ),
           const Divider(height: 1),
-          for (final row in _comparisonRows)
+          for (final row in _comparisonRows(context))
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               child: Row(

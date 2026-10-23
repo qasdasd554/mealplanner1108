@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/lookup_market_context.dart';
 import 'package:provider/provider.dart';
 
 import '../services/barcode_lookup_service.dart';
@@ -9,6 +10,12 @@ import '../providers/auth_provider.dart';
 import '../screens/barcode_scanner_screen.dart';
 import 'product_contribution_reward_banner.dart';
 import '../services/api_client.dart';
+import '../services/product_name_lookup_service.dart';
+import '../l10n/market_locale.dart';
+import 'product_form_fields_row.dart';
+import '../l10n/catalog_labels.dart';
+import '../utils/market_money.dart';
+import '../utils/product_form_validation.dart';
 import '../theme/app_theme.dart';
 import '../utils/error_utils.dart';
 import 'product_name_autocomplete_field.dart';
@@ -26,12 +33,20 @@ class SubmitProductSheet extends StatefulWidget {
   final Product? editing;
   final bool autoStartBarcodeScan;
   final String? initialBarcode;
+  final ApiClient? client;
+  final BarcodeLookupService? lookupService;
+  final ProductNameLookupService? nameLookupService;
+  final Future<String?> Function(BuildContext)? scanner;
 
   const SubmitProductSheet({
     super.key,
     this.editing,
     this.autoStartBarcodeScan = false,
     this.initialBarcode,
+    this.client,
+    this.lookupService,
+    this.nameLookupService,
+    this.scanner,
   });
 
   @override
@@ -39,7 +54,12 @@ class SubmitProductSheet extends StatefulWidget {
 }
 
 class _SubmitProductSheetState extends State<SubmitProductSheet> {
-  final BarcodeLookupService _barcodeLookupService = BarcodeLookupService();
+  late final BarcodeLookupService _barcodeLookupService =
+      widget.lookupService ??
+      BarcodeLookupService(
+        accountCountry: () => context.registeredLookupCountry,
+      );
+  late final ApiClient _client = widget.client ?? ApiClient();
   final _formKey = GlobalKey<FormState>();
   late final _name = TextEditingController(text: widget.editing?.name ?? '');
   late final _brand = TextEditingController(text: widget.editing?.brand ?? '');
@@ -47,42 +67,63 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
     text: widget.editing?.submittedPrice?.toStringAsFixed(2) ?? '',
   );
   late final _kcal = TextEditingController(
-    text: _prefillNum(widget.editing?.nutritionPer100.knownValue('kcal')),
+    text: formatProductFormNumber(
+      widget.editing?.nutritionPer100.knownValue('kcal'),
+    ),
   );
   late final _protein = TextEditingController(
-    text: _prefillNum(
+    text: formatProductFormNumber(
       widget.editing?.nutritionPer100.knownValue('protein'),
-      decimals: 1,
     ),
   );
   late final _fat = TextEditingController(
-    text: _prefillNum(
+    text: formatProductFormNumber(
       widget.editing?.nutritionPer100.knownValue('fat'),
-      decimals: 1,
     ),
   );
   late final _carbs = TextEditingController(
-    text: _prefillNum(
+    text: formatProductFormNumber(
       widget.editing?.nutritionPer100.knownValue('carbs'),
-      decimals: 1,
     ),
   );
 
-  /// Zachowujemy jawne zero, ale brak danych pozostawiamy pusty.
-  static String _prefillNum(double? value, {int decimals = 0}) {
-    if (value == null || !value.isFinite || value < 0) return '';
-    return value.toStringAsFixed(decimals);
-  }
-
   late String _unit = widget.editing?.unit ?? 'szt';
   late final _serving = TextEditingController(
-    text: _prefillNum(widget.editing?.servingQuantity, decimals: 1),
+    text: formatProductFormNumber(widget.editing?.servingQuantity),
   );
-  String _servingUnit = 'g';
-  late bool _showNutrition = (widget.editing?.nutritionPer100.kcal ?? 0) > 0;
+  late String? _servingUnit = _initialServingUnit(widget.editing);
+  late bool _showNutrition = const [
+    'kcal',
+    'protein',
+    'fat',
+    'carbs',
+  ].any((key) => widget.editing?.nutritionPer100.knownValue(key) != null);
   bool _isSaving = false;
 
   bool get _isEditing => widget.editing != null;
+
+  static String? _initialServingUnit(Product? product) {
+    if (product == null) return 'g';
+    if (product.unit == 'ml' || product.unit == 'l') return 'ml';
+    if (product.unit == 'g' || product.unit == 'kg') return 'g';
+    for (final measure in product.measureOptions) {
+      if (measure.code == 'opak' &&
+          const {'g', 'ml'}.contains(measure.baseUnit) &&
+          measure.baseQuantity.isFinite &&
+          measure.baseQuantity > 0) {
+        return measure.baseUnit;
+      }
+    }
+    // Legacy pack/item records without physical metadata are ambiguous.
+    // Ask for g/ml instead of silently relabelling their stored quantity.
+    return null;
+  }
+
+  String get _country =>
+      widget.editing?.submittedCountryCode ??
+      context.read<AuthProvider>().currentUser?.countryCode ??
+      'PL';
+  String get _currency => currencyForAccountCountry(_country);
 
   /// Sklepy zaznaczone do zaproponowania — OPCJONALNE. Przy edycji
   /// odczytujemy z requestedStoreIds, jeśli backend je zna; API zwraca
@@ -96,6 +137,8 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
   /// jest edytowalne ręcznie — tylko przez ponowne zeskanowanie.
   String? _barcode;
   bool _isScanning = false;
+  int _lookupGeneration = 0;
+  String? _dataBarcode;
   double? _priceMin;
   double? _priceMax;
   String? _existingProductId;
@@ -107,6 +150,7 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
       _selectedStoreIds.addAll(widget.editing!.requestedStoreIds!);
     }
     _barcode = widget.editing?.barcode ?? widget.initialBarcode;
+    _dataBarcode = widget.editing?.barcode;
     if (widget.initialBarcode != null || widget.autoStartBarcodeScan) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
@@ -138,27 +182,31 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
   }
 
   double? _parse(TextEditingController c) {
-    final t = c.text.trim().replaceAll(',', '.');
-    return t.isEmpty ? null : double.tryParse(t);
+    return parseProductFormNumber(c.text);
   }
 
   void _applyNameSuggestion(BarcodeLookupResult result) {
+    if (_isSaving) return;
+    // A deliberate selection wins over any outstanding barcode response.
+    _lookupGeneration++;
     const supportedUnits = {'szt', 'g', 'kg', 'ml', 'l'};
     setState(() {
+      _isScanning = false;
       if (result.name != null) _name.text = result.name!;
-      if (result.brand?.trim().isNotEmpty == true) {
-        _brand.text = result.brand!;
-      }
-      if (supportedUnits.contains(result.unit)) _unit = result.unit;
+      _brand.text = result.brand ?? '';
+      _unit = supportedUnits.contains(result.unit) ? result.unit : 'szt';
       // Kod kreskowy nie dowodzi gramatury opakowania. Zachowujemy bazową
       // jednostkę z etykiety/OFF; backend i tak zapisze fizyczny produkt,
       // a opcja „opakowanie” pojawi się dopiero przy znanej masie netto.
-      if (result.servingQuantity != null) {
-        _serving.text = _prefillNum(result.servingQuantity, decimals: 1);
-      }
+      _serving.text =
+          const {'g', 'ml'}.contains(result.unit)
+              ? formatProductFormNumber(result.servingQuantity)
+              : '';
       _servingUnit =
           const {'g', 'ml'}.contains(result.unit) ? result.unit : 'g';
-      _barcode = result.barcode ?? _barcode;
+      _barcode = result.barcode;
+      _dataBarcode = result.barcode;
+      _existingProductId = _isEditing ? null : result.existingProductId;
       _priceMin = result.priceMin;
       _priceMax = result.priceMax;
 
@@ -169,24 +217,19 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
           result.carbsPer100 != null;
       if (hasNutrition) {
         _showNutrition = true;
-        if (result.kcalPer100 != null) {
-          _kcal.text = result.kcalPer100!.toStringAsFixed(0);
-        }
-        if (result.proteinPer100 != null) {
-          _protein.text = result.proteinPer100!.toStringAsFixed(1);
-        }
-        if (result.fatPer100 != null) {
-          _fat.text = result.fatPer100!.toStringAsFixed(1);
-        }
-        if (result.carbsPer100 != null) {
-          _carbs.text = result.carbsPer100!.toStringAsFixed(1);
-        }
       }
+      // An explicit product selection replaces identity-specific metadata.
+      // Missing values from B must never retain A's nutrition or pack size.
+      _kcal.text = formatProductFormNumber(result.kcalPer100);
+      _protein.text = formatProductFormNumber(result.proteinPer100);
+      _fat.text = formatProductFormNumber(result.fatPer100);
+      _carbs.text = formatProductFormNumber(result.carbsPer100);
     });
   }
 
   Future<void> _scanBarcode() async {
-    final code = await scanBarcode(context);
+    if (_isSaving || _isScanning) return;
+    final code = await (widget.scanner ?? scanBarcode)(context);
     if (code == null || !mounted) return;
 
     await _lookupBarcode(code);
@@ -194,31 +237,53 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
 
   Future<void> _lookupBarcode(String code) async {
     if (!mounted) return;
+    final generation = ++_lookupGeneration;
 
     setState(() {
+      // A changed barcode identifies another product, even if its lookup
+      // later fails. Never submit A's nutrition/pack under B's barcode.
+      if (_dataBarcode != null && _dataBarcode != code) {
+        for (final controller in [
+          _name,
+          _brand,
+          _price,
+          _serving,
+          _kcal,
+          _protein,
+          _fat,
+          _carbs,
+        ]) {
+          controller.clear();
+        }
+        _selectedStoreIds.clear();
+        _unit = 'szt';
+        _servingUnit = 'g';
+        _priceMin = null;
+        _priceMax = null;
+      }
+      _existingProductId = null;
+      _dataBarcode = code;
       _barcode = code;
       _isScanning = true;
     });
 
     try {
       var result = await _barcodeLookupService.lookup(code);
-      if (!mounted) return;
+      if (!mounted || generation != _lookupGeneration) return;
 
       if (!result.found || !result.hasCompleteNutrition) {
         final recognized = await showProductLabelRecognitionSheet(
           context,
           barcode: code,
         );
-        if (!mounted) return;
+        if (!mounted || generation != _lookupGeneration) return;
         if (recognized == null) {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
-              const SnackBar(
-                duration: Duration(seconds: 3),
-                content: Text(
-                  'Możesz nadal wpisać dane ręcznie. Kod zostanie zachowany.',
-                ),
+              SnackBar(
+                duration: const Duration(seconds: 3),
+                content: Text(context.strings.productFormManualAfterScan),
               ),
             );
           return;
@@ -232,7 +297,7 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
         _existingProductId = _isEditing ? null : result.existingProductId;
         _unit = const {'g', 'ml'}.contains(result.unit) ? result.unit : 'g';
         if (result.servingQuantity != null) {
-          _serving.text = _prefillNum(result.servingQuantity, decimals: 1);
+          _serving.text = formatProductFormNumber(result.servingQuantity);
         }
         _servingUnit =
             const {'g', 'ml'}.contains(result.unit) ? result.unit : 'g';
@@ -252,16 +317,16 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
         if (hasNutrition) {
           _showNutrition = true;
           if (_kcal.text.trim().isEmpty && result.kcalPer100 != null) {
-            _kcal.text = result.kcalPer100!.toStringAsFixed(0);
+            _kcal.text = formatProductFormNumber(result.kcalPer100);
           }
           if (_protein.text.trim().isEmpty && result.proteinPer100 != null) {
-            _protein.text = result.proteinPer100!.toStringAsFixed(1);
+            _protein.text = formatProductFormNumber(result.proteinPer100);
           }
           if (_fat.text.trim().isEmpty && result.fatPer100 != null) {
-            _fat.text = result.fatPer100!.toStringAsFixed(1);
+            _fat.text = formatProductFormNumber(result.fatPer100);
           }
           if (_carbs.text.trim().isEmpty && result.carbsPer100 != null) {
-            _carbs.text = result.carbsPer100!.toStringAsFixed(1);
+            _carbs.text = formatProductFormNumber(result.carbsPer100);
           }
         }
       });
@@ -273,13 +338,13 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
             duration: const Duration(seconds: 3),
             content: Text(
               result.isFromOwnCatalog
-                  ? 'Znaleziono w katalogu — dane wypełnione automatycznie.'
-                  : 'Znaleziono produkt — nazwa, marka i makro zostały uzupełnione.',
+                  ? context.strings.productFormCatalogFilled
+                  : context.strings.productFormScanFilled,
             ),
           ),
         );
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || generation != _lookupGeneration) return;
       // Nieudane wyszukiwanie NIE blokuje ręcznego wypełnienia — kod
       // został już zapisany w _barcode, więc i tak trafi do zgłoszenia.
       ScaffoldMessenger.of(context)
@@ -287,16 +352,37 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
+            content: Text(
+              context.strings.localeName.startsWith('en')
+                  ? context.strings.productFormLookupFailed
+                  : friendlyError(e, strings: context.strings),
+            ),
           ),
         );
     } finally {
-      if (mounted) setState(() => _isScanning = false);
+      if (mounted && generation == _lookupGeneration) {
+        setState(() => _isScanning = false);
+      }
     }
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (_isSaving || _isScanning) return;
+    final invalidNutrition = [_kcal, _protein, _fat, _carbs].any(
+      (field) =>
+          !validProductFormNumber(
+            field.text,
+            maximum: field == _kcal ? 2000 : 200,
+          ),
+    );
+    if (invalidNutrition && !_showNutrition) {
+      setState(() => _showNutrition = true);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _validateForm();
+      });
+      return;
+    }
+    if (!_validateForm()) return;
 
     setState(() => _isSaving = true);
     try {
@@ -309,6 +395,8 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
         if (_parse(_protein) != null) 'protein_per_100': _parse(_protein),
         if (_parse(_fat) != null) 'fat_per_100': _parse(_fat),
         if (_parse(_carbs) != null) 'carbs_per_100': _parse(_carbs),
+        // The server validates store market membership. Do not erase prior
+        // selections merely because the lazy shop list has not loaded yet.
         'store_ids': _selectedStoreIds.toList(),
         if (_barcode != null) 'barcode': _barcode,
         if (_parse(_serving) != null) 'serving_quantity': _parse(_serving),
@@ -317,9 +405,9 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
       var pointsAwarded = 0;
       int? premiumPoints;
       if (_isEditing) {
-        await ApiClient().put('/products/${widget.editing!.id}', body: body);
+        await _client.put('/products/${widget.editing!.id}', body: body);
       } else {
-        final response = await ApiClient().post('/products/submit', body: body);
+        final response = await _client.post('/products/submit', body: body);
         if (response is Map<String, dynamic>) {
           pointsAwarded = (response['points_awarded'] as num?)?.toInt() ?? 0;
           premiumPoints = (response['premium_points'] as num?)?.toInt();
@@ -338,12 +426,13 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
             duration: const Duration(seconds: 4),
             content: Text(
               _isEditing
-                  ? 'Zapisano. Zmiany trafiają ponownie do sprawdzenia przez administratora.'
+                  ? context.strings.productFormEditSaved
                   : pointsAwarded > 0
-                  ? 'Produkt dodany • +$pointsAwarded punkt Premium'
-                      '${premiumPoints == null ? '' : ' • saldo: $premiumPoints'}'
-                  : 'Produkt dodany. Możesz go już używać; pozostali zobaczą '
-                      'go po zatwierdzeniu przez administratora.',
+                  ? context.strings.productFormReward(pointsAwarded) +
+                      (premiumPoints == null
+                          ? ''
+                          : context.strings.productFormBalance(premiumPoints))
+                  : context.strings.productFormAdded,
             ),
           ),
         );
@@ -355,11 +444,26 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
+            content: Text(
+              context.strings.localeName.startsWith('en')
+                  ? context.strings.productFormRequestFailed
+                  : friendlyError(e, strings: context.strings),
+            ),
             backgroundColor: AppTheme.errorColor,
           ),
         );
     }
+  }
+
+  bool _validateForm() {
+    final invalid = _formKey.currentState!.validateGranularly();
+    if (invalid.isEmpty) return true;
+    Scrollable.ensureVisible(
+      invalid.first.context,
+      alignment: 0.2,
+      duration: const Duration(milliseconds: 200),
+    );
+    return false;
   }
 
   @override
@@ -390,28 +494,18 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                 20,
                 20,
                 20,
-                20 + MediaQuery.of(context).padding.bottom,
+                20 + MediaQuery.of(context).viewPadding.bottom,
               ),
               children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: AppTheme.textSecondary.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 18),
                 Text(
-                  _isEditing ? 'Edytuj produkt' : 'Dodaj własny produkt',
+                  _isEditing
+                      ? context.strings.productFormEdit
+                      : context.strings.productFormAdd,
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Produkt będzie od razu dostępny dla Ciebie. Pozostali '
-                  'użytkownicy zobaczą go po zatwierdzeniu przez administratora.',
+                  context.strings.productFormVisibility,
                   style: TextStyle(
                     fontSize: 12,
                     color: AppTheme.textSecondary,
@@ -430,7 +524,7 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
-                    onPressed: _isScanning ? null : _scanBarcode,
+                    onPressed: _isScanning || _isSaving ? null : _scanBarcode,
                     icon:
                         _isScanning
                             ? const SizedBox(
@@ -442,7 +536,7 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                     label: Text(
                       _barcode == null
                           ? 'Skanuj kod kreskowy'
-                          : 'Zeskanowano: $_barcode (zmień)',
+                          : context.strings.productFormScanned(_barcode!),
                       maxLines: 2,
                       softWrap: true,
                       textAlign: TextAlign.center,
@@ -461,17 +555,15 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                         color: AppTheme.primaryColor.withOpacity(0.35),
                       ),
                     ),
-                    child: const Row(
+                    child: Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.check_circle_outline,
                           color: AppTheme.primaryColor,
                         ),
-                        SizedBox(width: 10),
+                        const SizedBox(width: 10),
                         Expanded(
-                          child: Text(
-                            'Ten produkt jest już zapisany w bazie. Nie trzeba dodawać go ponownie.',
-                          ),
+                          child: Text(context.strings.productFormAlreadyExists),
                         ),
                       ],
                     ),
@@ -479,29 +571,47 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                   const SizedBox(height: 12),
                 ],
                 ProductNameAutocompleteField(
+                  service: widget.nameLookupService,
                   controller: _name,
                   maxLength: 300,
-                  labelText: 'Nazwa produktu *',
-                  hintText: 'Wpisz nazwę lub wybierz podpowiedź',
+                  labelText: context.strings.productFormName,
+                  hintText: context.strings.productFormNameHint,
                   onSelected: _applyNameSuggestion,
                   validator:
                       (v) =>
-                          (v == null || v.trim().length < 2)
-                              ? 'Podaj nazwę produktu'
+                          (v == null ||
+                                  v.trim().length < 2 ||
+                                  v.trim().length > 300)
+                              ? context.strings.productFormNameRequired
                               : null,
                 ),
                 TextFormField(
                   controller: _brand,
                   maxLength: 200,
-                  decoration: const InputDecoration(
-                    labelText: 'Marka (opcjonalnie)',
-                    border: OutlineInputBorder(),
+                  validator:
+                      (value) =>
+                          (value?.trim().length ?? 0) > 200
+                              ? context.strings.productFormBrandError
+                              : null,
+                  decoration: InputDecoration(
+                    labelText: context.strings.productFormBrandOptional,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 8),
-                if (_priceMin != null && _priceMax != null) ...[
+                // Lookup price ranges are legacy PLN estimates, not GBP.
+                if (_country == 'PL' &&
+                    _priceMin != null &&
+                    _priceMax != null &&
+                    _priceMin!.isFinite &&
+                    _priceMax!.isFinite &&
+                    _priceMin! >= 0 &&
+                    _priceMax! >= _priceMin!) ...[
                   Text(
-                    'Typowy zakres cen: ${_priceMin!.toStringAsFixed(0)}–${_priceMax!.toStringAsFixed(0)} zł',
+                    context.strings.productFormTypicalPrice(
+                      _priceMin!.toStringAsFixed(0),
+                      _priceMax!.toStringAsFixed(0),
+                    ),
                     style: TextStyle(
                       color: AppTheme.textSecondary,
                       fontWeight: FontWeight.w600,
@@ -509,113 +619,115 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                   ),
                   const SizedBox(height: 8),
                 ],
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: TextFormField(
-                        controller: _price,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        decoration: const InputDecoration(
-                          labelText: 'Cena widoczna w sklepie (opcjonalnie)',
-                          suffixText: 'zł',
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (v) {
-                          final d = _parse(_price);
-                          if (v != null &&
-                              v.trim().isNotEmpty &&
-                              (d == null || d <= 0)) {
-                            return 'Podaj prawidłową cenę';
-                          }
-                          return null;
-                        },
-                      ),
+                ProductFormFieldsRow(
+                  firstFlex: 2,
+                  first: TextFormField(
+                    controller: _price,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: DropdownButtonFormField<String>(
-                        value: _unit,
-                        decoration: const InputDecoration(
-                          labelText: 'Jedn.',
-                          border: OutlineInputBorder(),
-                        ),
-                        items:
-                            [
-                                  'szt',
-                                  'g',
-                                  'kg',
-                                  'ml',
-                                  'l',
-                                  if (_isEditing && _unit == 'opak') 'opak',
-                                ]
-                                .map(
-                                  (u) => DropdownMenuItem(
-                                    value: u,
-                                    child: Text(u),
-                                  ),
-                                )
-                                .toList(),
-                        onChanged: (v) => setState(() => _unit = v ?? 'szt'),
-                      ),
+                    decoration: InputDecoration(
+                      labelText: context.strings.productFormPrice,
+                      errorMaxLines: 3,
+                      suffixText: _currency == 'GBP' ? '£' : 'zł',
+                      border: const OutlineInputBorder(),
                     ),
-                  ],
+                    validator: (v) {
+                      if (!validProductFormNumber(
+                        v ?? '',
+                        maximum: 10000,
+                        allowZero: false,
+                      )) {
+                        return context.strings.productFormPriceError;
+                      }
+                      return null;
+                    },
+                  ),
+                  second: DropdownButtonFormField<String>(
+                    isExpanded: true,
+                    value: _unit,
+                    decoration: InputDecoration(
+                      labelText: context.strings.productFormUnit,
+                      border: const OutlineInputBorder(),
+                    ),
+                    items:
+                        [
+                              'szt',
+                              'g',
+                              'kg',
+                              'ml',
+                              'l',
+                              if (_isEditing &&
+                                  !const {
+                                    'szt',
+                                    'g',
+                                    'kg',
+                                    'ml',
+                                    'l',
+                                  }.contains(_unit))
+                                _unit,
+                            ]
+                            .map(
+                              (u) => DropdownMenuItem(
+                                value: u,
+                                child: Text(context.strings.unitLabel(u)),
+                              ),
+                            )
+                            .toList(),
+                    onChanged: (v) => setState(() => _unit = v ?? 'szt'),
+                  ),
                 ),
                 const SizedBox(height: 14),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: TextFormField(
-                        controller: _serving,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        decoration: const InputDecoration(
-                          labelText: 'Masa całego opakowania',
-                          hintText: 'np. 150',
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty)
-                            return null;
-                          final parsed = _parse(_serving);
-                          return parsed == null || parsed <= 0
-                              ? 'Podaj wartość większą od zera'
-                              : null;
-                        },
-                      ),
+                ProductFormFieldsRow(
+                  firstFlex: 2,
+                  first: TextFormField(
+                    controller: _serving,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: DropdownButtonFormField<String>(
-                        value: _servingUnit,
-                        decoration: const InputDecoration(
-                          labelText: 'Jedn.',
-                          border: OutlineInputBorder(),
-                        ),
-                        items: const [
-                          DropdownMenuItem(value: 'g', child: Text('g')),
-                          DropdownMenuItem(value: 'ml', child: Text('ml')),
-                        ],
-                        onChanged:
-                            (value) => setState(
-                              () => _servingUnit = value ?? _servingUnit,
-                            ),
-                      ),
+                    decoration: InputDecoration(
+                      labelText: context.strings.productFormPack,
+                      errorMaxLines: 3,
+                      hintText: context.strings.productFormPackExample,
+                      border: const OutlineInputBorder(),
                     ),
-                  ],
+                    validator: (value) {
+                      return !validProductFormNumber(
+                            value ?? '',
+                            maximum: 100000,
+                            allowZero: false,
+                          )
+                          ? context.strings.productFormPackError
+                          : null;
+                    },
+                  ),
+                  second: DropdownButtonFormField<String>(
+                    isExpanded: true,
+                    value: _servingUnit,
+                    validator:
+                        (value) =>
+                            _serving.text.trim().isNotEmpty && value == null
+                                ? context.strings.productFormChooseUnit
+                                : null,
+                    decoration: InputDecoration(
+                      errorMaxLines: 4,
+                      labelText: context.strings.productFormUnit,
+                      border: const OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 'g', child: Text('g')),
+                      DropdownMenuItem(value: 'ml', child: Text('ml')),
+                    ],
+                    onChanged:
+                        (value) => setState(
+                          () => _servingUnit = value ?? _servingUnit,
+                        ),
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.only(top: 6),
                   child: Text(
-                    'Podaj masę netto całego opakowania, nie wielkość porcji. '
-                    'Jeśli jej nie znasz, zostaw pole puste — aplikacja nie '
-                    'pokaże wtedy opcji „opakowanie”.',
+                    context.strings.productFormPackHelp,
                     style: TextStyle(
                       color: AppTheme.textSecondary,
                       fontSize: 12,
@@ -642,10 +754,12 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
-                            'Wartości odżywcze na 100 g (opcjonalnie)',
+                            context.strings.productFormNutrition(
+                              _servingUnit ?? 'g/ml',
+                            ),
                             maxLines: 2,
                             softWrap: true,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
                               color: AppTheme.primaryColor,
@@ -659,8 +773,7 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                 if (_showNutrition) ...[
                   const SizedBox(height: 6),
                   Text(
-                    'Bez tych danych produkt doda 0 kcal do dziennika — '
-                    'nadal jednak przyda się na liście zakupów.',
+                    context.strings.productFormNutritionHelp,
                     style: TextStyle(
                       fontSize: 11,
                       color: AppTheme.textSecondary,
@@ -669,17 +782,41 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                   const SizedBox(height: 10),
                   Row(
                     children: [
-                      Expanded(child: _numField(_kcal, 'Kalorie', 'kcal')),
+                      Expanded(
+                        child: _numField(
+                          _kcal,
+                          context.strings.productFormCalories,
+                          'kcal',
+                        ),
+                      ),
                       const SizedBox(width: 10),
-                      Expanded(child: _numField(_protein, 'Białko', 'g')),
+                      Expanded(
+                        child: _numField(
+                          _protein,
+                          context.strings.productFormProtein,
+                          'g',
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 10),
                   Row(
                     children: [
-                      Expanded(child: _numField(_fat, 'Tłuszcze', 'g')),
+                      Expanded(
+                        child: _numField(
+                          _fat,
+                          context.strings.productFormFat,
+                          'g',
+                        ),
+                      ),
                       const SizedBox(width: 10),
-                      Expanded(child: _numField(_carbs, 'Węglow.', 'g')),
+                      Expanded(
+                        child: _numField(
+                          _carbs,
+                          context.strings.productFormCarbs,
+                          'g',
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -706,7 +843,7 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'W jakich sklepach ma być dostępny? (opcjonalnie)',
+                          context.strings.productFormShops,
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -715,8 +852,7 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Można zaznaczyć kilka. Widoczność w wybranych '
-                          'sklepach pojawi się dopiero po akceptacji.',
+                          context.strings.productFormShopsHelp,
                           style: TextStyle(
                             fontSize: 11,
                             color: AppTheme.textSecondary,
@@ -727,23 +863,32 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                           spacing: 8,
                           runSpacing: 4,
                           children:
-                              storeProvider.stores.map((store) {
-                                final selected = _selectedStoreIds.contains(
-                                  store.id,
-                                );
-                                return FilterChip(
-                                  label: Text(store.name),
-                                  selected: selected,
-                                  onSelected:
-                                      (v) => setState(() {
-                                        if (v) {
-                                          _selectedStoreIds.add(store.id);
-                                        } else {
-                                          _selectedStoreIds.remove(store.id);
-                                        }
-                                      }),
-                                );
-                              }).toList(),
+                              storeProvider.stores
+                                  .where(
+                                    (store) =>
+                                        store.countryCode == _country &&
+                                        store.currencyCode == _currency,
+                                  )
+                                  .map((store) {
+                                    final selected = _selectedStoreIds.contains(
+                                      store.id,
+                                    );
+                                    return FilterChip(
+                                      label: Text(store.name),
+                                      selected: selected,
+                                      onSelected:
+                                          (v) => setState(() {
+                                            if (v) {
+                                              _selectedStoreIds.add(store.id);
+                                            } else {
+                                              _selectedStoreIds.remove(
+                                                store.id,
+                                              );
+                                            }
+                                          }),
+                                    );
+                                  })
+                                  .toList(),
                         ),
                       ],
                     );
@@ -751,10 +896,11 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                 ),
                 const SizedBox(height: 22),
                 SizedBox(
-                  height: 48,
+                  // Let larger text wrap without clipping the existing action.
+                  width: double.infinity,
                   child: FilledButton(
                     onPressed:
-                        _isSaving
+                        _isSaving || _isScanning
                             ? null
                             : (_existingProductId != null
                                 ? () => Navigator.of(context).pop(false)
@@ -771,10 +917,10 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                             )
                             : Text(
                               _existingProductId != null
-                                  ? 'Zamknij — produkt jest już w bazie'
+                                  ? context.strings.productFormCloseExisting
                                   : (_isEditing
-                                      ? 'Zapisz zmiany'
-                                      : 'Dodaj produkt'),
+                                      ? context.strings.productFormSaveChanges
+                                      : context.strings.productFormSave),
                             ),
                   ),
                 ),
@@ -791,9 +937,20 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
     return TextFormField(
       controller: c,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      validator:
+          (value) =>
+              validProductFormNumber(
+                    value ?? '',
+                    maximum: c == _kcal ? 2000 : 200,
+                  )
+                  ? null
+                  : context.strings.productFormNumberRange(
+                    c == _kcal ? '2000' : '200',
+                  ),
       decoration: InputDecoration(
         labelText: label,
         suffixText: suffix,
+        errorMaxLines: 3,
         border: const OutlineInputBorder(),
         isDense: true,
       ),

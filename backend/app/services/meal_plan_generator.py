@@ -68,8 +68,38 @@ from app.services.exceptions import (
 )
 from app.services.nutrition_calculator import NutritionCalculator
 from app.services.shopping_list_builder import ShoppingListBuilder
+from app.services.store_market_access import get_store_in_account_market
+from app.core.markets import account_country
+from app.core.market_clock import market_today
+from app.services.market_catalog import (
+    recipe_market_availability,
+    recipe_has_reviewed_uk_offers,
+    reviewed_uk_offer_conditions,
+    utc_market_date,
+)
+from app.models.regional_product_offer import RegionalProductOffer
 
 logger = logging.getLogger(__name__)
+
+
+def _shopping_list_budget_query(shopping_list_id: UUID, country_code: str):
+    """A complete UK checkout estimate, or unknown; PL keeps its old sum."""
+    from app.models import ShoppingListItem
+    from sqlalchemy import case, func
+
+    if country_code == "GB":
+        missing = func.sum(case((and_(
+            ShoppingListItem.is_from_pantry.is_(False),
+            ShoppingListItem.estimated_price.is_(None),
+        ), 1), else_=0))
+        total_expression = case((or_(
+            func.count(ShoppingListItem.id) == 0, missing > 0,
+        ), None), else_=func.coalesce(func.sum(ShoppingListItem.estimated_price), 0))
+    else:
+        total_expression = func.coalesce(func.sum(ShoppingListItem.estimated_price), 0)
+    return select(total_expression).where(
+        ShoppingListItem.shopping_list_id == shopping_list_id
+    )
 
 # ── Typy posiłków i domyślna dystrybucja ────────────────────────────
 MEAL_TYPES: list[str] = ["śniadanie", "obiad", "kolacja", "przekąska", "deser"]
@@ -286,7 +316,7 @@ class MealPlanGenerator:
             store_id: identyfikator sklepu (do weryfikacji dostępności).
             duration_days: ile dni obejmuje plan.
             meals_per_day: ile posiłków dziennie (1-5).
-            max_budget: opcjonalny budżet w PLN.
+            max_budget: opcjonalny budżet w walucie kraju konta (PLN/GBP).
             preferences: opcjonalne preferencje (np. ``{'diet': 'vegetarian'}``).
             household_size: dla ilu osób gotować w TYM planie — nadpisuje
                 (tylko na potrzeby tego planu, bez trwałej zmiany profilu)
@@ -305,6 +335,8 @@ class MealPlanGenerator:
 
         # Krok 1 — profil użytkownika
         user, allergen_ids = await self._load_user_profile(user_id)
+        if await get_store_in_account_market(self.db, store_id, user) is None:
+            raise StoreNotFoundError(store_id)
         household_size = effective_household_size(user, household_size)
         target_kcal = effective_target_kcal(user, target_kcal)
         liked_ids, disliked_ids = active_ingredient_preferences(user)
@@ -319,6 +351,7 @@ class MealPlanGenerator:
             store_id=store_id,
             diet=preferences.get("diet"),
             user_id=user_id,
+            country_code=account_country(user),
         )
         pantry_product_ids = (
             await self._load_pantry_product_ids(user_id)
@@ -367,7 +400,7 @@ class MealPlanGenerator:
             duration_days=duration_days,
             meals_per_day=meals_per_day,
             entries_data=entries_data,
-            start_date=start_date,
+            start_date=start_date or market_today(user),
         )
         meal_plan.preferences = {
             **preferences,
@@ -392,13 +425,8 @@ class MealPlanGenerator:
                 include_pantry=include_pantry,
             )
 
-            from app.models import ShoppingListItem
-            from sqlalchemy import func
-
             total_result = await self.db.execute(
-                select(func.coalesce(func.sum(ShoppingListItem.estimated_price), 0)).where(
-                    ShoppingListItem.shopping_list_id == shopping_list.id
-                )
+                _shopping_list_budget_query(shopping_list.id, account_country(user))
             )
             meal_plan.estimated_min_budget = total_result.scalar_one()
         await self.db.commit()
@@ -484,6 +512,7 @@ class MealPlanGenerator:
         store_id: UUID,
         diet: str | None = None,
         user_id: UUID | None = None,
+        country_code: str = "PL",
     ) -> list[Recipe]:
         """Zwraca przepisy kwalifikujące się do planu.
 
@@ -501,6 +530,12 @@ class MealPlanGenerator:
                 selectinload(Recipe.tags),
             )
         )
+
+        # An empty or unmapped ingredient list is not proof of UK availability.
+        # Keep the historical Polish selection unchanged.
+        as_of = utc_market_date() if country_code == "GB" else None
+        if country_code == "GB":
+            stmt = stmt.where(recipe_market_availability(country_code, store_id=store_id, as_of=as_of))
 
         # NAPRAWA NIESPÓJNOŚCI WIDOCZNOŚCI: katalog przepisów stosuje filtr
         # "oficjalny LUB własny LUB publiczny" (_visibility_filter
@@ -558,16 +593,33 @@ class MealPlanGenerator:
         result = await self.db.execute(stmt)
         all_recipes: Sequence[Recipe] = result.scalars().unique().all()
 
-        # Pobranie identyfikatorów produktów dostępnych w sklepie
-        avail_stmt = select(StoreProduct.product_id).where(
-            and_(
-                StoreProduct.store_id == store_id,
-                StoreProduct.is_available.is_(True),
-                StoreProduct.withdrawn_at.is_(None),
+        offers = []
+        off_ids = set()
+        if country_code == "GB":
+            # Country-level OFF reports and reviewed retailer offers are
+            # separate evidence. Neither creates a price for an unknown SKU.
+            product_ids = {ingredient.product_id for recipe in all_recipes
+                           for ingredient in recipe.ingredients if not ingredient.is_optional}
+            if product_ids:
+                offers = (await self.db.execute(select(RegionalProductOffer).where(
+                    RegionalProductOffer.store_id == store_id,
+                    RegionalProductOffer.product_id.in_(product_ids),
+                    *reviewed_uk_offer_conditions(as_of=as_of),
+                ))).scalars().all()
+            from app.services.off_availability import off_available_product_ids
+            off_ids = await off_available_product_ids(self.db, product_ids, as_of=as_of)
+            available_product_ids = set()
+        else:
+            # Pobranie identyfikatorów produktów dostępnych w polskim sklepie.
+            avail_stmt = select(StoreProduct.product_id).where(
+                and_(
+                    StoreProduct.store_id == store_id,
+                    StoreProduct.is_available.is_(True),
+                    StoreProduct.withdrawn_at.is_(None),
+                )
             )
-        )
-        avail_result = await self.db.execute(avail_stmt)
-        available_product_ids: set[UUID] = {row[0] for row in avail_result.all()}
+            avail_result = await self.db.execute(avail_stmt)
+            available_product_ids: set[UUID] = {row[0] for row in avail_result.all()}
 
         # Pobranie mapowania produkt → alergeny
         if allergen_ids:
@@ -583,7 +635,13 @@ class MealPlanGenerator:
         for recipe in all_recipes:
             if self._recipe_has_allergen(recipe, allergen_ids, product_allergens):
                 continue
-            if not self._recipe_ingredients_available(recipe, available_product_ids):
+            if country_code == "GB":
+                available = recipe_has_reviewed_uk_offers(
+                    recipe, offers, store_id=store_id, as_of=as_of, off_product_ids=off_ids,
+                )
+            else:
+                available = self._recipe_ingredients_available(recipe, available_product_ids)
+            if not available:
                 continue
             eligible.append(recipe)
 

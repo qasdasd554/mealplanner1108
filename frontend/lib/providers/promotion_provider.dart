@@ -2,32 +2,46 @@ import 'package:flutter/foundation.dart';
 import '../models/promotion.dart';
 import '../services/promotion_service.dart';
 import '../utils/error_utils.dart';
+import '../l10n/app_localizations.dart';
 
 class PromotionProvider with ChangeNotifier {
-  final PromotionService _service = PromotionService();
+  final PromotionService _service;
+  final ErrorStringsResolver? errorStrings;
+  PromotionProvider({PromotionService? service, this.errorStrings})
+    : _service = service ?? PromotionService();
 
   List<Promotion> _promotions = [];
   bool _isLoading = false;
   String? _error;
   String? _loadedForStore;
+  int _loadGeneration = 0;
 
   List<Promotion> get promotions => _promotions;
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  Future<void> loadPromotions({String? storeName}) async {
+  Future<void> loadPromotions({
+    String? storeName,
+    AppLocalizations? strings,
+  }) async {
+    final generation = ++_loadGeneration;
     _isLoading = true;
     _error = null;
     notifyListeners();
     try {
-      _promotions = await _service.getPromotions(storeName: storeName);
+      final promotions = await _service.getPromotions(storeName: storeName);
+      if (generation != _loadGeneration) return;
+      _promotions = promotions;
       _loadedForStore = storeName;
     } catch (e) {
-      _error = friendlyError(e);
+      if (generation != _loadGeneration) return;
+      _error = friendlyError(e, strings: strings ?? errorStrings?.call());
       _promotions = [];
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (generation == _loadGeneration) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
@@ -56,10 +70,17 @@ class PromotionProvider with ChangeNotifier {
 
   /// Czyści cały stan — wywoływane przy wylogowaniu.
   void clear() {
+    _loadGeneration++;
     _promotions = [];
     _isLoading = false;
     _error = null;
     _loadedForStore = null;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _loadGeneration++;
+    super.dispose();
   }
 }

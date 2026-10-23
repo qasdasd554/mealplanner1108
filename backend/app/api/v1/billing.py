@@ -10,6 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, get_db
+from app.core.language import account_text
 from app.models.processed_apple_purchase import ProcessedApplePurchase
 from app.models.user import User
 
@@ -57,7 +58,8 @@ async def verify_purchase(
     właściwego sklepu.
     """
     if payload.product_id not in _VALID_PRODUCT_IDS:
-        raise HTTPException(status_code=400, detail="Nieznany identyfikator subskrypcji.")
+        raise HTTPException(status_code=400, detail=account_text(current_user,
+            "Nieznany identyfikator subskrypcji.", "Unknown subscription product."))
 
     from app.core.premium import is_premium_active
 
@@ -81,7 +83,9 @@ async def verify_purchase(
     if not result["is_active"]:
         raise HTTPException(
             status_code=422,
-            detail="Ten zakup nie jest aktywną subskrypcją (może być wygasła albo anulowana).",
+            detail=account_text(current_user,
+                "Ten zakup nie jest aktywną subskrypcją (może być wygasła albo anulowana).",
+                "This purchase is not an active subscription (it may have expired or been cancelled)."),
         )
 
     current_user.is_premium = True
@@ -101,6 +105,7 @@ async def verify_purchase(
             db,
             current_user.id,
             "Premium aktywne! Masz teraz dostęp do wszystkich funkcji aplikacji.",
+            english_message="Premium is active! You now have access to all app features.",
         )
     return current_user
 
@@ -151,7 +156,8 @@ async def verify_points_purchase(
     (żeby nie przyznać punktów dwa razy za TĘ SAMĄ transakcję) zapewnia
     tabela ProcessedApplePurchase, sprawdzana/zapisywana tutaj."""
     if payload.product_id not in _POINTS_PACKAGE_AMOUNTS:
-        raise HTTPException(status_code=400, detail="Nieznany pakiet punktów.")
+        raise HTTPException(status_code=400, detail=account_text(current_user,
+            "Nieznany pakiet punktów.", "Unknown points package."))
 
     points_to_add = _POINTS_PACKAGE_AMOUNTS[payload.product_id]
 
@@ -163,7 +169,8 @@ async def verify_points_purchase(
         except PurchaseVerificationError as exc:
             raise HTTPException(status_code=422, detail=str(exc))
         if not result["is_purchased"]:
-            raise HTTPException(status_code=422, detail="Ten zakup nie został potwierdzony przez Apple.")
+            raise HTTPException(status_code=422, detail=account_text(current_user,
+                "Ten zakup nie został potwierdzony przez Apple.", "This purchase was not confirmed by Apple."))
 
         # Sprawdzenie idempotencji — Apple nie ma "consumptionState", więc
         # to MY musimy pamiętać, które transakcje już rozliczyliśmy.
@@ -173,7 +180,8 @@ async def verify_points_purchase(
             )
         )
         if existing.scalar_one_or_none() is not None:
-            raise HTTPException(status_code=422, detail="Ten zakup został już wcześniej rozliczony.")
+            raise HTTPException(status_code=422, detail=account_text(current_user,
+                "Ten zakup został już wcześniej rozliczony.", "This purchase has already been processed."))
 
         current_user.premium_points += points_to_add
         db.add(ProcessedApplePurchase(transaction_id=payload.purchase_token))
@@ -193,12 +201,14 @@ async def verify_points_purchase(
         raise HTTPException(status_code=422, detail=str(exc))
 
     if not result["is_purchased"]:
-        raise HTTPException(status_code=422, detail="Ten zakup nie został potwierdzony przez Google.")
+        raise HTTPException(status_code=422, detail=account_text(current_user,
+            "Ten zakup nie został potwierdzony przez Google.", "This purchase was not confirmed by Google."))
     if result["is_consumed"]:
         # Ten SAM token już wcześniej doliczył punkty — nie przyznajemy
         # ich drugi raz (np. gdyby aplikacja wywołała ten endpoint
         # dwukrotnie dla tego samego zakupu).
-        raise HTTPException(status_code=422, detail="Ten zakup został już wcześniej rozliczony.")
+        raise HTTPException(status_code=422, detail=account_text(current_user,
+            "Ten zakup został już wcześniej rozliczony.", "This purchase has already been processed."))
 
     current_user.premium_points += points_to_add
     await db.commit()
@@ -208,6 +218,7 @@ async def verify_points_purchase(
         current_user.id,
         f"Doładowano {points_to_add} punktów premium. "
         f"Masz ich teraz {current_user.premium_points}.",
+        english_message=f"Added {points_to_add} Premium points. Your balance is now {current_user.premium_points}.",
     )
 
     try:
@@ -227,7 +238,7 @@ async def verify_points_purchase(
     await db.refresh(current_user)
     return VerifyPointsPurchaseResponse(premium_points=current_user.premium_points)
 
-async def _notify(db, user_id, message: str, ntype: str = "billing") -> None:
+async def _notify(db, user_id, message: str, ntype: str = "billing", *, english_message: str | None = None) -> None:
     """Tworzy powiadomienie i (jeśli włączony) wysyła push.
 
     Wydzielone, bo billing przyznaje premium i punkty w kilku miejscach,
@@ -237,7 +248,10 @@ async def _notify(db, user_id, message: str, ntype: str = "billing") -> None:
     """
     try:
         from app.models.notification import Notification
+        from app.services.notification_language import recipient_text
 
+        if english_message is not None:
+            message = await recipient_text(db, user_id, message, english_message)
         n = Notification(user_id=user_id, notification_type=ntype, message=message)
         db.add(n)
         await db.commit()

@@ -11,8 +11,9 @@ import '../utils/error_utils.dart';
 /// dolanie wody odświeża całą listę posiłków.
 class WellnessProvider with ChangeNotifier {
   final WellnessService _service;
+  final ErrorStringsResolver? errorStrings;
 
-  WellnessProvider({WellnessService? service})
+  WellnessProvider({WellnessService? service, this.errorStrings})
     : _service = service ?? WellnessService();
 
   DailyWellness _data = DailyWellness.empty();
@@ -43,7 +44,7 @@ class WellnessProvider with ChangeNotifier {
       _data = data;
     } catch (e) {
       if (generation != _requestGeneration) return;
-      _errorMessage = friendlyError(e);
+      _errorMessage = friendlyError(e, strings: errorStrings?.call());
       // Przy błędzie pokazujemy stan pusty zamiast poprzedniego dnia —
       // stare dane wyglądałyby jak prawdziwe i wprowadzały w błąd.
       _data = DailyWellness.empty();
@@ -90,7 +91,7 @@ class WellnessProvider with ChangeNotifier {
         activities: _data.activities,
         totalKcalBurned: _data.totalKcalBurned,
       );
-      _errorMessage = friendlyError(e);
+      _errorMessage = friendlyError(e, strings: errorStrings?.call());
       notifyListeners();
     }
   }
@@ -113,7 +114,7 @@ class WellnessProvider with ChangeNotifier {
       return true;
     } catch (e) {
       if (generation != _requestGeneration) return false;
-      _errorMessage = friendlyError(e);
+      _errorMessage = friendlyError(e, strings: errorStrings?.call());
       notifyListeners();
       return false;
     }
@@ -128,7 +129,7 @@ class WellnessProvider with ChangeNotifier {
       return true;
     } catch (e) {
       if (generation != _requestGeneration) return false;
-      _errorMessage = friendlyError(e);
+      _errorMessage = friendlyError(e, strings: errorStrings?.call());
       notifyListeners();
       return false;
     }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/market_locale.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -194,7 +195,7 @@ class _SplashScreenState extends State<SplashScreen> {
               const SizedBox(height: 8),
               // Podtytuł
               Text(
-                'Planuj posiłki mądrze i oszczędzaj',
+                context.strings.splashSubtitle,
                 style: Theme.of(
                   context,
                 ).textTheme.bodyMedium?.copyWith(color: AppTheme.textSecondary),

@@ -24,7 +24,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.core.markets import account_country
 from app.models.device_token import DeviceToken
+from app.models.user import User
 
 logger = logging.getLogger(__name__)
 
@@ -202,7 +204,35 @@ _TITLES: dict[str, str] = {
 }
 
 
-async def push_for_notification(db: AsyncSession, notification) -> None:
+_TITLES_EN = {
+    "recipe_comment": "New comment",
+    "comment_like": "Someone liked your comment",
+    "billing": "Meal Planner Polska",
+    "shopping_list_share": "A shopping list has been shared with you",
+    "shopping_list_accepted": "Invitation accepted",
+    "weekly_contest": "Weekly recipe contest",
+    "recipe_photo": "Recipe photo",
+    "recipe_approved": "Recipe approved",
+    "recipe_rejected": "Recipe rejected",
+    "recipe_import_ready": "Your recipe is ready",
+    "recipe_import_failed": "Recipe import failed",
+    "promotion_pending_approval": "Promotion awaiting review",
+    "recipe_pending_approval": "Recipe awaiting review",
+    "product_pending_approval": "Product awaiting review",
+    "photo_pending_approval": "Photo awaiting review",
+    "content_report_pending": "New content report",
+    "product_reviewed": "Your submitted product",
+    "broadcast": "Meal Planner Polska",
+    "admin_broadcast": "Meal Planner Polska",
+    "friend_invitation": "New friend request",
+    "friend_accepted": "Friend request accepted",
+    "weekly_plan_ready": "Your weekly plan is ready",
+    "weekly_plan_failed": "Your weekly plan needs attention",
+    "meal_plan_expiring": "Your meal plan ends soon",
+}
+
+
+async def push_for_notification(db: AsyncSession, notification, *, country_code: str | None = None) -> None:
     """Wysyła push odpowiadający powiadomieniu zapisanemu w bazie.
 
     Wołane PO `db.commit()` na powiadomieniu — gdyby wysyłka szła przed
@@ -212,13 +242,20 @@ async def push_for_notification(db: AsyncSession, notification) -> None:
     """
     if not is_push_enabled():
         return
-    title = _TITLES.get(notification.notification_type, "Meal Planner Polska")
     data = {"type": notification.notification_type}
     if notification.recipe_id:
         data["recipe_id"] = str(notification.recipe_id)
     if getattr(notification, "meal_plan_id", None):
         data["meal_plan_id"] = str(notification.meal_plan_id)
     try:
+        # Most callers have only the persisted notification. Resolve the
+        # recipient, not the actor/request/admin catalogue market. A caller
+        # already holding that recipient may pass its saved country directly.
+        country = country_code if country_code is not None else account_country(
+            await db.get(User, notification.user_id)
+        )
+        titles = _TITLES_EN if country == "GB" else _TITLES
+        title = titles.get(notification.notification_type, "Meal Planner Polska")
         await send_push_to_user(db, notification.user_id, title, notification.message, data)
     except Exception:
         logger.exception("Nieoczekiwany błąd przy wysyłce push — pomijam.")

@@ -6,21 +6,25 @@ import '../../models/shopping_list.dart';
 import '../../services/friend_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
+import '../../l10n/market_locale.dart';
+import '../../l10n/recipe_content.dart';
+import '../../l10n/catalog_labels.dart';
 import '../../widgets/user_avatar.dart';
 import '../recipes/recipe_detail_screen.dart';
 import '../shopping/dish_shopping_list_screen.dart';
 
 class FriendDetailScreen extends StatefulWidget {
   final FriendEntry friend;
+  final FriendService? service;
 
-  const FriendDetailScreen({super.key, required this.friend});
+  const FriendDetailScreen({super.key, required this.friend, this.service});
 
   @override
   State<FriendDetailScreen> createState() => _FriendDetailScreenState();
 }
 
 class _FriendDetailScreenState extends State<FriendDetailScreen> {
-  final _service = FriendService();
+  late final FriendService _service;
   List<Recipe>? _recipes;
   List<ShoppingList>? _shoppingLists;
   String? _error;
@@ -28,6 +32,7 @@ class _FriendDetailScreenState extends State<FriendDetailScreen> {
   @override
   void initState() {
     super.initState();
+    _service = widget.service ?? FriendService();
     _load();
   }
 
@@ -44,7 +49,8 @@ class _FriendDetailScreenState extends State<FriendDetailScreen> {
         _shoppingLists = values[1] as List<ShoppingList>;
       });
     } catch (error) {
-      if (mounted) setState(() => _error = friendlyError(error));
+      if (mounted)
+        setState(() => _error = friendlyError(error, strings: context.strings));
     }
   }
 
@@ -65,8 +71,11 @@ class _FriendDetailScreenState extends State<FriendDetailScreen> {
               Expanded(child: Text(widget.friend.displayName)),
             ],
           ),
-          bottom: const TabBar(
-            tabs: [Tab(text: 'Przepisy'), Tab(text: 'Lista zakupów')],
+          bottom: TabBar(
+            tabs: [
+              Tab(text: context.strings.recipes),
+              Tab(text: context.strings.shoppingListTitle),
+            ],
           ),
         ),
         body:
@@ -93,9 +102,9 @@ class _RecipeList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (recipes.isEmpty) {
-      return const _EmptyState(
+      return _EmptyState(
         icon: Icons.menu_book_outlined,
-        text: 'Ten znajomy nie ma jeszcze zapisanych przepisów.',
+        text: context.strings.socialNoFriendRecipes,
       );
     }
     return ListView.separated(
@@ -111,10 +120,15 @@ class _RecipeList extends StatelessWidget {
               child: const Icon(Icons.restaurant_menu),
             ),
             title: Text(
-              recipe.name,
+              recipe.displayName(context),
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
-            subtitle: Text('${recipe.totalTimeMin} min • ${recipe.mealType}'),
+            subtitle: Text(
+              context.strings.socialRecipeSummary(
+                recipe.totalTimeMin,
+                context.strings.mealTypeLabel(recipe.mealType),
+              ),
+            ),
             trailing: const Icon(Icons.chevron_right),
             onTap:
                 () => Navigator.of(context).push(
@@ -138,9 +152,9 @@ class _ShoppingLists extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (lists.isEmpty) {
-      return const _EmptyState(
+      return _EmptyState(
         icon: Icons.shopping_cart_outlined,
-        text: 'Ten znajomy nie ma teraz aktywnej listy zakupów.',
+        text: context.strings.socialNoFriendLists,
       );
     }
     return ListView.separated(
@@ -159,7 +173,12 @@ class _ShoppingLists extends StatelessWidget {
               list.storeName,
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
-            subtitle: Text('${list.checkedItems} z ${list.totalItems} kupione'),
+            subtitle: Text(
+              context.strings.shoppingBoughtCount(
+                list.checkedItems,
+                list.totalItems,
+              ),
+            ),
             trailing: const Icon(Icons.visibility_outlined),
             onTap:
                 () => Navigator.of(context).push(
@@ -217,7 +236,7 @@ class _ErrorState extends StatelessWidget {
           const SizedBox(height: 12),
           FilledButton(
             onPressed: onRetry,
-            child: const Text('Spróbuj ponownie'),
+            child: Text(context.strings.socialRetry),
           ),
         ],
       ),

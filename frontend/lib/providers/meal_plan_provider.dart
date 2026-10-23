@@ -7,8 +7,9 @@ import '../utils/error_utils.dart';
 
 class MealPlanProvider with ChangeNotifier {
   final MealPlanService _mealPlanService;
+  final ErrorStringsResolver? errorStrings;
 
-  MealPlanProvider({MealPlanService? service})
+  MealPlanProvider({MealPlanService? service, this.errorStrings})
     : _mealPlanService = service ?? MealPlanService();
 
   MealPlan? _currentPlan;
@@ -84,7 +85,7 @@ class MealPlanProvider with ChangeNotifier {
       }
     } catch (e) {
       if (session != _sessionGeneration) return;
-      _errorMessage = friendlyError(e);
+      _errorMessage = friendlyError(e, strings: errorStrings?.call());
     } finally {
       if (session == _sessionGeneration) {
         _isRefreshing = false;
@@ -111,7 +112,7 @@ class MealPlanProvider with ChangeNotifier {
       if (session != _sessionGeneration || detail != _detailGeneration) return;
       _currentPlan = null;
       _lastPlanLoadNotFound = e is ApiException && e.statusCode == 404;
-      _errorMessage = friendlyError(e);
+      _errorMessage = friendlyError(e, strings: errorStrings?.call());
     } finally {
       if (session == _sessionGeneration && detail == _detailGeneration) {
         _isLoading = false;
@@ -137,14 +138,18 @@ class MealPlanProvider with ChangeNotifier {
       return true;
     } catch (e) {
       if (session != _sessionGeneration) return false;
-      _errorMessage = friendlyError(e);
+      _errorMessage = friendlyError(e, strings: errorStrings?.call());
       _isGenerating = false;
       notifyListeners();
       return false;
     }
   }
 
-  Future<MealPlan?> resumePlan(String planId, DateTime startDate) async {
+  Future<MealPlan?> resumePlan(
+    String planId,
+    DateTime startDate, {
+    String Function(Object error)? errorMessageFor,
+  }) async {
     if (_isLoading) return null;
     final session = _sessionGeneration;
     _isLoading = true;
@@ -158,7 +163,9 @@ class MealPlanProvider with ChangeNotifier {
       return plan;
     } catch (e) {
       if (session != _sessionGeneration) return null;
-      _errorMessage = friendlyError(e);
+      _errorMessage =
+          errorMessageFor?.call(e) ??
+          friendlyError(e, strings: errorStrings?.call());
       return null;
     } finally {
       if (session == _sessionGeneration) {
@@ -180,7 +187,7 @@ class MealPlanProvider with ChangeNotifier {
       return true;
     } catch (e) {
       if (session != _sessionGeneration) return false;
-      _errorMessage = friendlyError(e);
+      _errorMessage = friendlyError(e, strings: errorStrings?.call());
       return false;
     } finally {
       if (session == _sessionGeneration) {
@@ -215,7 +222,7 @@ class MealPlanProvider with ChangeNotifier {
       return true;
     } catch (e) {
       if (session != _sessionGeneration) return false;
-      _errorMessage = friendlyError(e);
+      _errorMessage = friendlyError(e, strings: errorStrings?.call());
       return false;
     } finally {
       if (session == _sessionGeneration) {
@@ -243,7 +250,7 @@ class MealPlanProvider with ChangeNotifier {
       return true;
     } catch (e) {
       if (session != _sessionGeneration) return false;
-      _errorMessage = friendlyError(e);
+      _errorMessage = friendlyError(e, strings: errorStrings?.call());
       return false;
     } finally {
       if (session == _sessionGeneration) {
@@ -268,7 +275,7 @@ class MealPlanProvider with ChangeNotifier {
       return true;
     } catch (e) {
       if (session != _sessionGeneration) return false;
-      _errorMessage = friendlyError(e);
+      _errorMessage = friendlyError(e, strings: errorStrings?.call());
       return false;
     } finally {
       if (session == _sessionGeneration) {

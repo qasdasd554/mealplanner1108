@@ -18,6 +18,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_admin, get_current_user, get_db
+from app.core.markets import account_country, MarketCode
 from app.models.promotion import Promotion
 from app.models.store import Store
 from app.models.product import Product, StoreProduct
@@ -43,7 +44,11 @@ async def create_promotion_scan_job(
     from app.services.promo_ai_scanner import _AGGREGATOR_SLUGS
     if store_name not in _AGGREGATOR_SLUGS:
         raise HTTPException(422, "Ten sklep nie ma skonfigurowanego skanera gazetek.")
-    store = await db.scalar(select(Store.id).where(Store.name == store_name))
+    # This scanner reads Polish flyers; an identically named UK chain is
+    # not the same store or currency. Do not infer market from its name.
+    store = await db.scalar(select(Store.id).where(
+        Store.name == store_name, Store.country_code == "PL", Store.currency_code == "PLN",
+    ))
     if store is None:
         raise HTTPException(404, "Nie znaleziono sklepu.")
     # Jeden aktywny skan na sklep, także przy ponowieniu POST po utracie sieci.
@@ -97,6 +102,10 @@ async def list_promotions(
 ):
     """Zwraca aktywne promocje ważne dziś, opcjonalnie filtrowane po
     sklepie i/lub nazwie produktu."""
+    # Existing promotion rows/sources are PLN-only and have no market
+    # provenance. They must not be presented as offers in a British store.
+    if account_country(current_user) == "GB":
+        return []
     today = date.today()
     query = select(Promotion).where(
         Promotion.is_active.is_(True),
@@ -123,6 +132,8 @@ async def check_promotion(
     """Sprawdza, czy dany produkt ma dziś aktywną promocję (w podanym
     sklepie albo we wszystkich). Zwraca listę pasujących promocji — pustą,
     jeśli żadnej nie znaleziono."""
+    if account_country(current_user) == "GB":
+        return []
     today = date.today()
     query = select(Promotion).where(
         Promotion.is_active.is_(True),
@@ -221,7 +232,9 @@ async def trigger_ai_scan(
 async def _scan_and_queue_promotions(store_name: str, db: AsyncSession) -> dict:
     from app.services.promo_ai_scanner import PromoAIScanError, find_promotions_for_store
 
-    store_result = await db.execute(select(Store).where(Store.name == store_name))
+    store_result = await db.execute(select(Store).where(
+        Store.name == store_name, Store.country_code == "PL", Store.currency_code == "PLN",
+    ))
     store = store_result.scalar_one_or_none()
     if store is None:
         raise HTTPException(status_code=404, detail=f"Sklep '{store_name}' nie istnieje w bazie")
@@ -393,6 +406,7 @@ async def _notify_admins_pending_promotions(db: AsyncSession, store_name: str, c
         db,
         notification_type="promotion_pending_approval",
         message=message,
+        english_message=f"AI found {count} new promotions in the {store_name} leaflet — approval required.",
     )
 
 
@@ -404,9 +418,14 @@ async def _notify_admins_pending_promotions(db: AsyncSession, store_name: str, c
 async def list_pending_promotions(
     current_user: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
+    market: MarketCode | None = None,
 ):
     """Zwraca wszystkie promocje znalezione przez AI, które jeszcze nie
     zostały zaakceptowane ani odrzucone."""
+    # The current flyer pipeline only produces Polish offers. Do not re-label
+    # pending PLN offers as UK data in the administrator's selected context.
+    if market == "GB":
+        return []
     result = await db.execute(
         select(Promotion)
         .where(Promotion.review_status == "pending")
@@ -446,7 +465,9 @@ async def approve_promotion(
     promotion.review_status = "approved"
 
     if promotion.promo_type == "price_cut":
-        store_result = await db.execute(select(Store).where(Store.name == promotion.store_name))
+        store_result = await db.execute(select(Store).where(
+            Store.name == promotion.store_name, Store.country_code == "PL", Store.currency_code == "PLN",
+        ))
         store = store_result.scalar_one_or_none()
         if store:
             sp_result = await db.execute(

@@ -39,20 +39,43 @@ class ShoppingListShare {
 }
 
 class ShoppingListService {
-  final ApiClient _client = ApiClient();
+  final ApiClient _client;
+  final String? Function()? _expectedCurrencyCode;
+
+  ShoppingListService({
+    ApiClient? client,
+    String? Function()? expectedCurrencyCode,
+  }) : _client = client ?? ApiClient(),
+       _expectedCurrencyCode = expectedCurrencyCode;
+
+  ShoppingList _parseList(
+    dynamic response,
+    String? currencyAtRequest, {
+    bool requireAccountCurrency = false,
+  }) {
+    if (_expectedCurrencyCode?.call() != currencyAtRequest) {
+      throw const FormatException('Account market changed during request');
+    }
+    return ShoppingList.fromJson(
+      response as Map<String, dynamic>,
+      expectedCurrencyCode: requireAccountCurrency ? currencyAtRequest : null,
+    );
+  }
 
   Future<ShoppingList> getShoppingList(String listId) async {
+    final currency = _expectedCurrencyCode?.call();
     final response = await _client.get('${ApiConfig.shoppingLists}$listId');
-    return ShoppingList.fromJson(response as Map<String, dynamic>);
+    return _parseList(response, currency);
   }
 
   /// Twoje zarządzalne listy zakupów (utworzone z wybranych przepisów) —
   /// te, do których można dopisywać kolejne przepisy.
   Future<List<ShoppingList>> getMyLists() async {
+    final currency = _expectedCurrencyCode?.call();
     final response = await _client.get('${ApiConfig.shoppingLists}mine');
-    return (response as List)
-        .map((e) => ShoppingList.fromJson(e as Map<String, dynamic>))
-        .toList();
+    // This endpoint also includes accepted shares. Each list keeps its own
+    // currency; never add their amounts together or relabel a friend's list.
+    return (response as List).map((e) => _parseList(e, currency)).toList();
   }
 
   /// Usuwa listę zakupów; tygodniowy limit utworzeń pozostaje zużyty.
@@ -102,20 +125,22 @@ class ShoppingListService {
   /// Tworzy pustą listę, aby użytkownik mógł rozpocząć zakupy od
   /// przycisku „+”, bez wcześniejszego układania planu posiłków.
   Future<ShoppingList> createEmptyList(String storeId) async {
+    final currency = _expectedCurrencyCode?.call();
     final response = await _client.post(
       '${ApiConfig.shoppingLists}empty',
       body: {'store_id': storeId},
     );
-    return ShoppingList.fromJson(response as Map<String, dynamic>);
+    return _parseList(response, currency, requireAccountCurrency: true);
   }
 
   /// Łączy co najmniej dwie własne listy z tego samego sklepu.
   Future<ShoppingList> mergeLists(List<String> listIds) async {
+    final currency = _expectedCurrencyCode?.call();
     final response = await _client.post(
       '${ApiConfig.shoppingLists}merge',
       body: {'list_ids': listIds},
     );
-    return ShoppingList.fromJson(response as Map<String, dynamic>);
+    return _parseList(response, currency, requireAccountCurrency: true);
   }
 
   /// Kończy listę; `moveToPantry` przenosi odhaczone produkty do spiżarni.
@@ -160,6 +185,7 @@ class ShoppingListService {
     required String storeId,
     String? existingListId,
   }) async {
+    final currency = _expectedCurrencyCode?.call();
     final body = <String, dynamic>{
       'recipe_ids': recipeIds,
       'store_id': storeId,
@@ -169,7 +195,7 @@ class ShoppingListService {
       '${ApiConfig.shoppingLists}from-recipes',
       body: body,
     );
-    return ShoppingList.fromJson(response as Map<String, dynamic>);
+    return _parseList(response, currency, requireAccountCurrency: true);
   }
 
   /// Udostępnia listę zakupów innemu użytkownikowi po adresie e-mail —

@@ -11,6 +11,8 @@ import '../../widgets/premium_feature_tag.dart';
 import 'welcome_bonus_screen.dart';
 import '../recipes/pantry_screen.dart';
 import '../tracker/calorie_calculator_screen.dart';
+import '../../l10n/market_locale.dart';
+import '../../l10n/catalog_labels.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -22,6 +24,7 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
+  bool _isSaving = false;
 
   // Preferencje wybrane podczas onboarding
   Store? _selectedStore;
@@ -42,11 +45,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<Map<String, String>> _dietsList = kDietOptions;
 
+  String _allergenLabel(String id, String fallback) => switch (id) {
+    'gluten' => context.strings.onboardingAllergenGluten,
+    'laktoza' => context.strings.onboardingAllergenLactose,
+    'orzechy' => context.strings.onboardingAllergenNuts,
+    'jaja' => context.strings.onboardingAllergenEggs,
+    'soja' => context.strings.onboardingAllergenSoy,
+    'seler' => context.strings.onboardingAllergenCelery,
+    'ryby' => context.strings.onboardingAllergenFish,
+    'skorupiaki' => context.strings.onboardingAllergenShellfish,
+    _ => fallback,
+  };
+
   @override
   void initState() {
     super.initState();
     // Załaduj sklepy z serwera na początku onboarding
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       Provider.of<StoreProvider>(context, listen: false).loadStores();
     });
   }
@@ -58,6 +74,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _nextPage() {
+    if (_isSaving) return;
     if (_currentPage < 6) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
@@ -69,6 +86,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _previousPage() {
+    if (_isSaving) return;
     if (_currentPage > 0) {
       _pageController.previousPage(
         duration: const Duration(milliseconds: 300),
@@ -78,19 +96,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _finishOnboarding() async {
+    if (_isSaving) return;
     if (_selectedStore == null) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),
-            content: Text('Wybierz swój preferowany sklep!'),
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(context.strings.onboardingSelectStoreRequired),
             backgroundColor: AppTheme.errorColor,
           ),
         );
       return;
     }
 
+    setState(() => _isSaving = true);
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final success = await authProvider.saveOnboardingPreferences(
       storeId: _selectedStore!.id,
@@ -115,6 +135,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Navigator.of(context).pushReplacementNamed('/home');
         }
       } else {
+        setState(() => _isSaving = false);
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
@@ -122,7 +143,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               duration: const Duration(seconds: 3),
               content: Text(
                 authProvider.errorMessage ??
-                    'Nie udało się zapisać preferencji',
+                    context.strings.onboardingPreferencesSaveFailed,
               ),
               backgroundColor: AppTheme.errorColor,
             ),
@@ -182,9 +203,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     // Przycisk "Wstecz"
                     if (_currentPage > 0)
                       TextButton(
-                        onPressed: _previousPage,
+                        onPressed: _isSaving ? null : _previousPage,
                         child: Text(
-                          'Wstecz',
+                          context.strings.onboardingBack,
                           style: TextStyle(color: AppTheme.textSecondary),
                         ),
                       )
@@ -193,11 +214,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
                     // Przycisk "Dalej" / "Gotowe"
                     ElevatedButton(
-                      onPressed: _nextPage,
+                      onPressed: _isSaving ? null : _nextPage,
                       style: ElevatedButton.styleFrom(
                         minimumSize: const Size(120, 48),
                       ),
-                      child: Text(_currentPage == 6 ? 'Gotowe!' : 'Dalej'),
+                      child: Text(
+                        _currentPage == 6
+                            ? context.strings.onboardingDone
+                            : context.strings.onboardingNext,
+                      ),
                     ),
                   ],
                 ),
@@ -233,26 +258,44 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Gdzie robisz zakupy?',
+            context.strings.onboardingStoreTitle,
             style: Theme.of(context).textTheme.displaySmall,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
           Text(
-            'Wybierz sklep, w którym najczęściej robisz zakupy. Dostosujemy plan posiłków i produkty pod ten konkretny asortyment.',
+            context.strings.onboardingStoreDescription,
             style: Theme.of(context).textTheme.bodyMedium,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 32),
           if (storeProvider.isLoading)
             const Expanded(child: Center(child: CircularProgressIndicator()))
-          else if (storeProvider.errorMessage != null)
+          else if (storeProvider.errorMessage != null ||
+              storeProvider.stores.isEmpty)
             Expanded(
               child: Center(
-                child: Text(
-                  'Błąd wczytywania sklepów:\n${storeProvider.errorMessage}',
-                  style: const TextStyle(color: Colors.red),
-                  textAlign: TextAlign.center,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        storeProvider.errorMessage != null
+                            ? context.strings.onboardingStoresLoadFailed(
+                              storeProvider.errorMessage!,
+                            )
+                            : context.strings.onboardingStoresEmpty,
+                        style: const TextStyle(color: Colors.red),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        onPressed: storeProvider.loadStores,
+                        icon: const Icon(Icons.refresh),
+                        label: Text(context.strings.productsRetry),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             )
@@ -347,13 +390,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Czy masz jakieś alergie?',
+            context.strings.onboardingAllergensTitle,
             style: Theme.of(context).textTheme.displaySmall,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
           Text(
-            'Wybierz składniki, których nie możesz jeść. Przepisy zawierające te alergeny nie będą sugerowane.',
+            context.strings.onboardingAllergensDescription,
             style: Theme.of(context).textTheme.bodyMedium,
             textAlign: TextAlign.center,
           ),
@@ -402,7 +445,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       children: [
                         Flexible(
                           child: Text(
-                            allergen['name']!,
+                            _allergenLabel(allergen['id']!, allergen['name']!),
                             style: Theme.of(
                               context,
                             ).textTheme.titleLarge?.copyWith(
@@ -436,13 +479,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Wybierz swoją dietę',
+            context.strings.onboardingDietTitle,
             style: Theme.of(context).textTheme.displaySmall,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
           Text(
-            'Dostosujemy rekomendacje przepisów do Twojego stylu żywieniowego.',
+            context.strings.onboardingDietDescription,
             style: Theme.of(context).textTheme.bodyMedium,
             textAlign: TextAlign.center,
           ),
@@ -481,12 +524,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                diet['name']!,
+                                context.strings.dietName(diet['name']!),
                                 style: Theme.of(context).textTheme.titleLarge,
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                diet['desc']!,
+                                context.strings.dietDescription(diet['name']!),
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                             ],
@@ -513,18 +556,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget _buildHouseholdStep() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: _centeredScrollableStep(
         children: [
           Text(
-            'Dla ilu osób gotujesz?',
+            context.strings.onboardingHouseholdTitle,
             style: Theme.of(context).textTheme.displaySmall,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
           Text(
-            'Automatycznie dopasujemy ilości składników w przepisach oraz porcje w liście zakupowej.',
+            context.strings.onboardingHouseholdDescription,
             style: Theme.of(context).textTheme.bodyMedium,
             textAlign: TextAlign.center,
           ),
@@ -572,8 +613,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           const SizedBox(height: 16),
           Text(
             _householdSize == 1
-                ? 'Gotuję tylko dla siebie'
-                : 'Liczba osób w gospodarstwie: $_householdSize',
+                ? context.strings.onboardingCookingForMyself
+                : context.strings.onboardingHouseholdCount(_householdSize),
             style: Theme.of(context).textTheme.bodyMedium,
             textAlign: TextAlign.center,
           ),
@@ -594,13 +635,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ),
         const SizedBox(height: 16),
         Text(
-          'Twój profil i cel',
+          context.strings.onboardingProfileTitle,
           style: Theme.of(context).textTheme.displaySmall,
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 12),
         Text(
-          'Chcesz teraz obliczyć zapotrzebowanie kaloryczne i uzupełnić wagę, wzrost oraz cel? Możesz też zrobić to później w profilu.',
+          context.strings.onboardingProfileDescription,
           style: Theme.of(context).textTheme.bodyMedium,
           textAlign: TextAlign.center,
         ),
@@ -615,8 +656,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             if (mounted) setState(() {});
           },
           icon: const Icon(Icons.calculate_outlined),
-          label: const Text(
-            'Otwórz kalkulator zapotrzebowania',
+          label: Text(
+            context.strings.onboardingOpenCalorieCalculator,
             maxLines: 2,
             softWrap: true,
             textAlign: TextAlign.center,
@@ -624,7 +665,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ),
         const SizedBox(height: 18),
         Text(
-          'Ten krok jest opcjonalny. Wybierz „Dalej”, aby go pominąć.',
+          context.strings.onboardingProfileOptional,
           style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
         ),
       ],
@@ -635,9 +676,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget _buildPantryStep() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: _centeredScrollableStep(
         children: [
           Align(
             child: Container(
@@ -656,13 +695,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
           const SizedBox(height: 28),
           Text(
-            'Co masz w spiżarni?',
+            context.strings.onboardingPantryTitle,
             style: Theme.of(context).textTheme.displaySmall,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
           Text(
-            'Dodaj produkty, które masz już w domu. Dzięki temu łatwiej znajdziesz przepisy bez dodatkowych zakupów.',
+            context.strings.onboardingPantryDescription,
             style: Theme.of(context).textTheme.bodyMedium,
             textAlign: TextAlign.center,
           ),
@@ -674,8 +713,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ).push(MaterialPageRoute(builder: (_) => const PantryScreen()));
             },
             icon: const Icon(Icons.add),
-            label: const Text(
-              'Dodaj produkty do spiżarni',
+            label: Text(
+              context.strings.onboardingAddPantryProducts,
               maxLines: 2,
               softWrap: true,
               textAlign: TextAlign.center,
@@ -683,12 +722,29 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            'Ten krok możesz pominąć.',
+            context.strings.onboardingPantryOptional,
             style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
             textAlign: TextAlign.center,
           ),
         ],
       ),
+    );
+  }
+
+  // Keep the original centering when content fits; short viewports can scroll.
+  Widget _centeredScrollableStep({required List<Widget> children}) {
+    return LayoutBuilder(
+      builder:
+          (context, constraints) => SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: children,
+              ),
+            ),
+          ),
     );
   }
 
@@ -729,18 +785,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           color: AppTheme.primaryColor,
         ),
         const SizedBox(height: 10),
-        const Center(
-          child: PremiumFeatureTag(label: 'PREMIUM • LUB PUNKTY', fontSize: 10),
+        Center(
+          child: PremiumFeatureTag(
+            label: context.strings.onboardingPremiumOrPoints,
+            fontSize: 10,
+          ),
         ),
         const SizedBox(height: 18),
         Text(
-          'Masz przepis? Dodaj go w chwilę',
+          context.strings.onboardingAiTitle,
           style: Theme.of(context).textTheme.displaySmall,
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 12),
         Text(
-          'W zakładce Przepisy wybierz „Dodaj przepis”. AI przygotuje składniki i kroki na podstawie:',
+          context.strings.onboardingAiDescription,
           style: Theme.of(context).textTheme.bodyMedium,
           textAlign: TextAlign.center,
         ),
@@ -758,7 +817,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Import przepisu z AI',
+                context.strings.onboardingAiImport,
                 style: TextStyle(
                   color: AppTheme.actionAccentColor,
                   fontWeight: FontWeight.w800,
@@ -768,32 +827,30 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               const SizedBox(height: 6),
               option(
                 Icons.photo_camera_outlined,
-                'Zdjęcia',
-                'Sfotografuj kartkę z przepisem albo gotowe danie.',
+                context.strings.onboardingAiPhoto,
+                context.strings.onboardingAiPhotoDescription,
               ),
               option(
                 Icons.text_snippet_outlined,
-                'Tekstu',
-                'Wklej opis lub wpisz samą nazwę potrawy.',
+                context.strings.onboardingAiText,
+                context.strings.onboardingAiTextDescription,
               ),
               option(
                 Icons.link,
-                'Linku',
-                'Wklej adres strony lub udostępnij go z innej aplikacji.',
+                context.strings.onboardingAiLink,
+                context.strings.onboardingAiLinkDescription,
               ),
             ],
           ),
         ),
         const SizedBox(height: 16),
         Text(
-          'Przykład: w TikToku wybierz „Udostępnij” → Meal Planner Polska. '
-          'Gdy przepis będzie gotowy, możesz poprosić AI o zmianę, np. wersję bez laktozy.',
+          context.strings.onboardingAiShareExample,
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         const SizedBox(height: 10),
         Text(
-          'Dodanie przepisu kosztuje 2 punkty bez subskrypcji Premium. '
-          'Późniejsza zmiana przez AI kosztuje 1 punkt.',
+          context.strings.onboardingAiPointCosts,
           style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
         ),
       ],

@@ -11,6 +11,7 @@ from sqlalchemy.orm import selectinload
 
 from app.api.deps import get_current_user
 from app.core.exceptions import NotFoundException
+from app.core.language import account_text
 from app.db.session import get_db
 from app.models import PantryItem, Product, User
 from app.schemas.product import ProductResponse
@@ -125,7 +126,8 @@ async def add_pantry_items(
     żeby dało się bezpiecznie wysłać całą listę zakupów naraz bez
     martwienia się, czy coś już tam jest."""
     if not payload.product_ids:
-        raise HTTPException(status_code=400, detail="Podaj przynajmniej jeden produkt")
+        raise HTTPException(status_code=400, detail=account_text(current_user,
+            "Podaj przynajmniej jeden produkt", "Choose at least one product."))
 
     # Sprawdź, które z podanych produktów faktycznie istnieją w katalogu.
     existing_products = await db.execute(
@@ -200,22 +202,26 @@ async def add_pantry_item_from_barcode(
         if not is_premium_active(current_user):
             raise HTTPException(
                 status_code=403,
-                detail="Skanowanie seryjne jest dostępne w Premium.",
+                detail=account_text(current_user,
+                    "Skanowanie seryjne jest dostępne w Premium.", "Batch scanning requires Premium."),
             )
 
     if payload.quantity <= 0:
-        raise HTTPException(status_code=400, detail="Ilość musi być większa od zera")
+        raise HTTPException(status_code=400, detail=account_text(current_user,
+            "Ilość musi być większa od zera", "Quantity must be greater than zero."))
     if payload.unit not in {
         "g", "kg", "ml", "l", "szt", "opak", "porcja", "lyzeczka", "szklanka"
     }:
-        raise HTTPException(status_code=400, detail="Nieprawidłowa jednostka")
+        raise HTTPException(status_code=400, detail=account_text(current_user,
+            "Nieprawidłowa jednostka", "Invalid unit."))
 
     from app.api.v1.products import lookup_barcode
     from app.services.barcode_lookup import barcode_variants, normalize_barcode
 
     barcode = normalize_barcode(payload.barcode)
     if barcode is None:
-        raise HTTPException(status_code=400, detail="Nieprawidłowy kod EAN/UPC")
+        raise HTTPException(status_code=400, detail=account_text(current_user,
+            "Nieprawidłowy kod EAN/UPC", "Invalid EAN/UPC barcode."))
     lookup = await lookup_barcode(
         barcode=barcode,
         background_tasks=BackgroundTasks(),
@@ -235,7 +241,8 @@ async def add_pantry_item_from_barcode(
         and any((value or 0) > 0 for value in client_values)
     )
     if not lookup_found and not client_fallback:
-        raise NotFoundException(detail="Nie znaleziono produktu o tym kodzie kreskowym.")
+        raise NotFoundException(detail=account_text(current_user,
+            "Nie znaleziono produktu o tym kodzie kreskowym.", "No product was found for this barcode."))
 
     # Skaner seryjny może uzupełnić starszy, niepełny rekord Neon danymi
     # pobranymi bezpośrednio z Open Food Facts. Nie tracimy ich podczas
@@ -276,7 +283,8 @@ async def add_pantry_item_from_barcode(
         product.review_status == "approved"
         or product.created_by_user_id == current_user.id
     ):
-        raise NotFoundException(detail="Nie znaleziono produktu o tym kodzie kreskowym.")
+        raise NotFoundException(detail=account_text(current_user,
+            "Nie znaleziono produktu o tym kodzie kreskowym.", "No product was found for this barcode."))
     if product is None:
         from app.services.product_measures import build_measure_options
 
@@ -293,9 +301,11 @@ async def add_pantry_item_from_barcode(
         if item_unit == "opak" and package_size is None:
             raise HTTPException(
                 status_code=422,
-                detail=(
+                detail=account_text(current_user,
                     "Nie znamy masy całego opakowania. Uzupełnij ją ze zdjęcia "
-                    "etykiety albo wybierz gramy lub mililitry."
+                    "etykiety albo wybierz gramy lub mililitry.",
+                    "The whole package size is unknown. Add it from a label photo "
+                    "or choose grams or millilitres.",
                 ),
             )
         nutrition = {
@@ -334,9 +344,11 @@ async def add_pantry_item_from_barcode(
         if item_unit == "opak" and package_size is None and product.serving_quantity is None:
             raise HTTPException(
                 status_code=422,
-                detail=(
+                detail=account_text(current_user,
                     "Nie znamy masy całego opakowania. Uzupełnij ją ze zdjęcia "
-                    "etykiety albo wybierz gramy lub mililitry."
+                    "etykiety albo wybierz gramy lub mililitry.",
+                    "The whole package size is unknown. Add it from a label photo "
+                    "or choose grams or millilitres.",
                 ),
             )
         if product.serving_quantity is None and package_size is not None:
@@ -418,14 +430,16 @@ async def update_pantry_item_quantity(
     )
     item = result.scalar_one_or_none()
     if item is None:
-        raise NotFoundException(detail="Nie znaleziono tego produktu w Twojej spiżarni.")
+        raise NotFoundException(detail=account_text(current_user,
+            "Nie znaleziono tego produktu w Twojej spiżarni.", "This product was not found in your pantry."))
 
     item.quantity = payload.quantity
     if payload.unit is not None:
         if payload.unit not in {
             "g", "kg", "ml", "l", "szt", "opak", "porcja", "lyzeczka", "szklanka"
         }:
-            raise HTTPException(status_code=400, detail="Nieprawidłowa jednostka")
+            raise HTTPException(status_code=400, detail=account_text(current_user,
+                "Nieprawidłowa jednostka", "Invalid unit."))
         item.unit = payload.unit
     await db.flush()
     await sync_product_in_shopping_lists(db, current_user.id, item.product_id)
@@ -445,7 +459,8 @@ async def delete_pantry_item(
     )
     item = result.scalar_one_or_none()
     if item is None:
-        raise NotFoundException(detail="Nie znaleziono tego produktu w Twojej spiżarni.")
+        raise NotFoundException(detail=account_text(current_user,
+            "Nie znaleziono tego produktu w Twojej spiżarni.", "This product was not found in your pantry."))
 
     product_id = item.product_id
     await db.delete(item)

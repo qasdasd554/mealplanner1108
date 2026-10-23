@@ -2,6 +2,7 @@
 
 from app.db.session import Base
 from app.models.barcode_cache import BarcodeProductCache
+from app.models.off_catalogue_product import OffCatalogueProduct
 from app.models.meal_plan import MealPlan, MealPlanEntry
 from app.models.meal_plan_creation import MealPlanCreation
 from app.models.device_token import DeviceToken
@@ -15,6 +16,8 @@ from app.models.product import (
     StoreProduct,
 )
 from app.models.product_contribution_reward import ProductContributionReward
+from app.models.regional_product_offer import RegionalProductOffer
+from app.models.shopping_list_regional_snapshot import ShoppingListItemRegionalSnapshot
 from app.models.recipe import Recipe, RecipeIngredient, RecipeTag
 from app.models.recipe_import_job import RecipeImportJob
 from app.models.promotion_scan_job import PromotionScanJob
@@ -46,7 +49,10 @@ __all__ = [
     "Allergen",
     "ProductAllergen",
     "BarcodeProductCache",
+    "OffCatalogueProduct",
     "ProductContributionReward",
+    "RegionalProductOffer",
+    "ShoppingListItemRegionalSnapshot",
     # Recipe
     "Recipe",
     "RecipeImportJob",

@@ -57,7 +57,11 @@ async def restore_expired_promotion_prices(db: AsyncSession) -> int:
 
     restored = 0
     for promo in expired:
-        store_result = await db.execute(select(Store).where(Store.name == promo.store_name))
+        # Existing promotion sources/amounts are Polish (PLN). Same-named
+        # British stores must not receive the restoration or cause ambiguity.
+        store_result = await db.execute(select(Store).where(
+            Store.name == promo.store_name, Store.country_code == "PL", Store.currency_code == "PLN",
+        ))
         store = store_result.scalar_one_or_none()
         if store:
             sp_result = await db.execute(

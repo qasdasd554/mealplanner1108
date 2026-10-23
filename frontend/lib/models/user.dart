@@ -1,6 +1,11 @@
+import '../services/account_market.dart';
+
 class User {
   final String id;
   final String email;
+
+  /// Assigned once by the backend. There is deliberately no profile-edit field.
+  final String countryCode;
   final String? displayName;
   final String? tiktokUsername;
   final String? preferredStoreId;
@@ -33,6 +38,7 @@ class User {
   User({
     required this.id,
     required this.email,
+    this.countryCode = 'PL',
     this.displayName,
     this.tiktokUsername,
     this.preferredStoreId,
@@ -113,6 +119,7 @@ class User {
     return User(
       id: json['id'] as String,
       email: json['email'] as String,
+      countryCode: normalizeAccountCountry(json['country_code'] as String?),
       displayName: json['display_name'] as String?,
       tiktokUsername: json['tiktok_username'] as String?,
       preferredStoreId: json['preferred_store_id'] as String?,
@@ -165,6 +172,7 @@ class User {
     return User(
       id: id ?? this.id,
       email: email ?? this.email,
+      countryCode: countryCode,
       displayName: displayName ?? this.displayName,
       tiktokUsername: tiktokUsername ?? this.tiktokUsername,
       preferredStoreId: preferredStoreId ?? this.preferredStoreId,
@@ -176,6 +184,9 @@ class User {
       gender: gender ?? this.gender,
       activityLevel: activityLevel ?? this.activityLevel,
       dailyKcalGoal: dailyKcalGoal ?? this.dailyKcalGoal,
+      avatar: avatar,
+      avatarPhotoBase64: avatarPhotoBase64,
+      isEmailVerified: isEmailVerified,
       role: role ?? this.role,
       isPremium: isPremium ?? this.isPremium,
       hasPremiumAccessFromServer:

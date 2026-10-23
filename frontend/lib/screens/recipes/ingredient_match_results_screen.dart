@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../l10n/market_locale.dart';
+import '../../l10n/recipe_content.dart';
 import '../../services/recipe_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/recipe_photo.dart';
@@ -25,10 +27,7 @@ class IngredientMatchResultsScreen extends StatelessWidget {
 
   void _generateWithAi(BuildContext context) {
     final ingredientsList = usedProductNames.join(', ');
-    final prompt =
-        'Wygeneruj przepis na danie wykorzystujące GŁÓWNIE te składniki, '
-        'które mam w domu: $ingredientsList. Możesz dodać maksymalnie 2-3 dodatkowe, '
-        'powszechnie dostępne składniki (np. sól, przyprawy, oliwę), jeśli są potrzebne.';
+    final prompt = context.strings.matchResultsPrompt(ingredientsList);
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => AiAddRecipeScreen(initialText: prompt)),
     );
@@ -39,7 +38,7 @@ class IngredientMatchResultsScreen extends StatelessWidget {
     final hasFullMatches = matches.any((m) => m.isFullMatch);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Dopasowane przepisy')),
+      appBar: AppBar(title: Text(context.strings.matchResultsTitle)),
       body: SafeArea(
         child: Column(
           children: [
@@ -59,9 +58,7 @@ class IngredientMatchResultsScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                'Nie znaleziono żadnego przepisu w bazie pasującego do '
-                                'wybranych składników. Możesz zamiast tego wygenerować '
-                                'nowy przepis przez AI.',
+                                context.strings.matchResultsEmpty,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(color: AppTheme.textSecondary),
                               ),
@@ -90,8 +87,8 @@ class IngredientMatchResultsScreen extends StatelessWidget {
                         ? OutlinedButton.icon(
                           onPressed: () => _generateWithAi(context),
                           icon: const Icon(Icons.auto_awesome, size: 18),
-                          label: const Text(
-                            'Żaden nie pasuje? Wygeneruj przez AI',
+                          label: Text(
+                            context.strings.matchOtherAi,
                             maxLines: 2,
                             softWrap: true,
                             textAlign: TextAlign.center,
@@ -100,8 +97,8 @@ class IngredientMatchResultsScreen extends StatelessWidget {
                         : FilledButton.icon(
                           onPressed: () => _generateWithAi(context),
                           icon: const Icon(Icons.auto_awesome, size: 18),
-                          label: const Text(
-                            'Wygeneruj nowy przepis przez AI',
+                          label: Text(
+                            context.strings.matchGenerate,
                             maxLines: 2,
                             softWrap: true,
                             textAlign: TextAlign.center,
@@ -132,22 +129,25 @@ class IngredientMatchResultsScreen extends StatelessWidget {
                   : null,
         ),
         clipBehavior: Clip.antiAlias,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: Stack(
           children: [
-            SizedBox(
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
               width: 90,
               child: RecipePhoto(recipe: match.recipe, showAiBadge: false),
             ),
-            Expanded(
+            ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 90),
               child: Padding(
-                padding: const EdgeInsets.all(12.0),
+                padding: const EdgeInsets.fromLTRB(102, 12, 12, 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      match.recipe.name,
+                      match.recipe.displayName(context),
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
@@ -159,25 +159,29 @@ class IngredientMatchResultsScreen extends StatelessWidget {
                     if (match.isFullMatch)
                       Row(
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.check_circle,
                             size: 14,
                             color: AppTheme.primaryColor,
                           ),
                           const SizedBox(width: 4),
-                          Text(
-                            'Możesz ugotować teraz',
-                            style: TextStyle(
-                              color: AppTheme.primaryColor,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
+                          Expanded(
+                            child: Text(
+                              context.strings.matchReady,
+                              style: const TextStyle(
+                                color: AppTheme.primaryColor,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12,
+                              ),
                             ),
                           ),
                         ],
                       )
                     else
                       Text(
-                        'Brakuje: ${match.missingIngredientNames.join(", ")}',
+                        context.strings.matchMissing(
+                          match.missingIngredientNames.join(', '),
+                        ),
                         style: TextStyle(
                           color: AppTheme.textSecondary,
                           fontSize: 12,

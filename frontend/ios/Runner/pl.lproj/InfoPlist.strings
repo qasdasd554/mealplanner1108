@@ -1,0 +1,2 @@
+"NSCameraUsageDescription" = "Aplikacja używa aparatu do skanowania kodów kreskowych oraz robienia zdjęć przepisów, komentarzy i zdjęcia profilowego.";
+"NSPhotoLibraryUsageDescription" = "Aplikacja potrzebuje dostępu do zdjęć, żeby wybrać zdjęcie przepisu, komentarza albo zdjęcie profilowe z galerii.";

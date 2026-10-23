@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
+import 'package:in_app_purchase_storekit/store_kit_2_wrappers.dart';
 
 import '../config/api_config.dart';
+import '../utils/subscription_presentation.dart';
 import 'api_client.dart';
 
 /// Bezpieczne (też na web) wykrycie platformy — w przeciwieństwie do
@@ -43,6 +45,15 @@ class BillingService {
   /// urządzeniu (np. brak konta Google Play, urządzenie bez usług
   /// Google itp. — rzadkie, ale możliwe).
   Future<bool> isAvailable() => _iap.isAvailable();
+
+  Future<bool> hasSevenDayFreeTrial(ProductDetails product) =>
+      confirmedSevenDayTrial(
+        product,
+        appleEligibility:
+            defaultTargetPlatform == TargetPlatform.iOS
+                ? SK2Product.isIntroductoryOfferEligible
+                : null,
+      );
 
   /// Pobiera prawdziwe, lokalne ceny (uwzględniające walutę i podatki
   /// danego kraju) dla obu planów subskrypcji.

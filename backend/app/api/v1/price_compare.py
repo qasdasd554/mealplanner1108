@@ -12,21 +12,33 @@ tak samo, korzystając z tych samych funkcji konwersji jednostek co
 import math
 import uuid
 from datetime import date
+from decimal import Decimal
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import aliased, selectinload
 
 from app.api.deps import get_current_user, get_db
+from app.core.markets import account_country
 from app.models.meal_plan import MealPlan, MealPlanEntry
+from app.db.uk_store_catalog import UK_STORES
 from app.models.recipe import Recipe, RecipeIngredient
 from app.models.product import Product, StoreProduct
 from app.models.store import Store
 from app.models.user import User
+from app.models.pantry import PantryItem
+from app.models.regional_product_offer import RegionalProductOffer
 from app.services.nutrition_calculator import grams_to_quantity, quantity_to_grams
+from app.services.regional_requirements import aggregate_regional_requirements, subtract_regional_quantity
+from app.services.regional_offer_pricing import select_uk_offer_quote
+from app.services.market_catalog import reviewed_uk_offer_conditions, utc_market_date
+from app.services.regional_shopping import (
+    regional_pantry_coverage, regional_snapshot_requirement,
+    frozen_regional_purchase_quote,
+)
 
 router = APIRouter()
 
@@ -40,17 +52,28 @@ class PriceCompareItem(BaseModel):
     store_brand_name: str | None = None
     price_is_estimated: bool = True
     last_verified: date | None = None
+    regional_offer_id: uuid.UUID | None = None
+    package_quantity: float | None = None
+    package_unit: str | None = None
+    package_count: int | None = None
+    purchased_quantity: float | None = None
+    price_per_package: float | None = None
+    price_source: dict | None = None
+    offer_fingerprint: str | None = None
+    is_from_pantry: bool = False
+    is_checked: bool = False
 
 class PriceCompareStoreResult(BaseModel):
     store_id: uuid.UUID
     store_name: str
-    total_price: float
+    total_price: float | None
     is_cheapest: bool
     savings_vs_most_expensive: float
     items: List[PriceCompareItem]
     has_estimated_prices: bool = True
     is_complete: bool = True
     missing_products: List[str] = Field(default_factory=list)
+    currency_code: str = "PLN"
 
 
 def _positive_finite_float(value) -> float | None:
@@ -60,6 +83,253 @@ def _positive_finite_float(value) -> float | None:
     except (TypeError, ValueError, OverflowError):
         return None
     return number if math.isfinite(number) and number > 0 else None
+
+
+async def _compare_uk_prices(db, meal_plan, stores) -> list[PriceCompareStoreResult]:
+    """Price exact aggregated requirements using reviewed local whole packs.
+
+    PL package/default quantities and name-based mass/volume guesses never
+    enter this branch. Missing provenance or quantity is unknown, not £0.
+    """
+    requirements = aggregate_regional_requirements(meal_plan)
+    if not requirements:
+        return []
+    as_of = utc_market_date()
+    offers = (await db.execute(select(RegionalProductOffer).where(
+        RegionalProductOffer.store_id.in_([store.id for store in stores]),
+        RegionalProductOffer.product_id.in_(list(requirements)),
+        *reviewed_uk_offer_conditions(as_of=as_of),
+    ))).scalars().all()
+    pantry = {}
+    if (meal_plan.preferences or {}).get("include_pantry", True):
+        pantry = {row.product_id: row for row in (await db.execute(select(PantryItem).where(
+            PantryItem.user_id == meal_plan.user_id,
+            PantryItem.product_id.in_(list(requirements)),
+        ))).scalars().all()}
+    by_pair: dict[tuple[uuid.UUID, uuid.UUID], list] = {}
+    by_id = {offer.id: offer for offer in offers}
+    for offer in offers:
+        by_pair.setdefault((offer.store_id, offer.product_id), []).append(offer)
+    results = []
+    for store in stores:
+        total = Decimal("0.00")
+        items = []
+        missing = []
+        for product_id, requirement in requirements.items():
+            quote = None
+            if requirement.quantity is not None and requirement.unit is not None:
+                covered = regional_pantry_coverage(
+                    requirement.product, requirement.quantity, requirement.unit,
+                    pantry.get(product_id),
+                ) if requirement.product is not None else Decimal(0)
+                if covered > 0:
+                    items.append(PriceCompareItem(
+                        product_name=requirement.product.name,
+                        quantity_needed=float(covered), unit=requirement.unit,
+                        price_in_store=0, price_is_estimated=False, is_from_pantry=True,
+                    ))
+                purchase_quantity = subtract_regional_quantity(requirement.quantity, covered)
+                if purchase_quantity <= 0:
+                    continue
+                quote = select_uk_offer_quote(
+                    by_pair.get((store.id, product_id), []), product_id=product_id,
+                    store_id=store.id, quantity=purchase_quantity,
+                    unit=requirement.unit, as_of=as_of,
+                )
+            if quote is None:
+                missing.append(requirement.product.name if requirement.product else str(product_id))
+                continue
+            total += quote.total_price
+            items.append(PriceCompareItem(
+                product_name=quote.name_en,
+                quantity_needed=float(quote.required_quantity), unit=quote.unit,
+                price_in_store=float(quote.total_price),
+                price_is_estimated=quote.price_is_estimated,
+                last_verified=quote.last_verified,
+                regional_offer_id=quote.offer_id,
+                package_quantity=float(quote.package_quantity), package_unit=quote.unit,
+                package_count=quote.package_count,
+                purchased_quantity=float(quote.purchased_quantity),
+                price_per_package=float(quote.price_per_package),
+                price_source=quote.price_source,
+                offer_fingerprint=by_id[quote.offer_id].fingerprint,
+            ))
+        results.append(PriceCompareStoreResult(
+            store_id=store.id, store_name=store.name,
+            total_price=float(total) if not missing else None,
+            is_cheapest=False, savings_vs_most_expensive=0,
+            items=items,
+            has_estimated_prices=bool(missing) or any(item.price_is_estimated for item in items),
+            is_complete=not missing, missing_products=sorted(set(missing)),
+            currency_code="GBP",
+        ))
+    complete = [result.total_price for result in results if result.is_complete]
+    if complete:
+        cheapest, most_expensive = min(complete), max(complete)
+        for result in results:
+            if result.is_complete:
+                result.is_cheapest = result.total_price == cheapest
+                result.savings_vs_most_expensive = round(most_expensive - result.total_price, 2)
+    results.sort(key=lambda value: (
+        not value.is_complete,
+        value.total_price if value.total_price is not None else float("inf"),
+        value.store_name,
+    ))
+    return results
+
+@router.get("/shopping-list/{list_id}", response_model=List[PriceCompareStoreResult])
+async def compare_shopping_list_prices(
+    list_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Compare persisted UK shopping rows, not their old recipe requirements.
+
+    Public shopping IDs are meal_plan_id. Accepted collaborators retain the
+    list's GBP market even when their own account belongs to Poland. Reading
+    this endpoint never rebuilds a plan, subtracts pantry stock or changes a
+    purchased package. Separate row partitions keep the same whole-pack
+    semantics as the list-specific store switch.
+    """
+    from app.api.v1.shopping_lists import _get_shopping_list_or_404
+
+    shopping = await _get_shopping_list_or_404(list_id, current_user, db, refresh=True)
+    if shopping.status not in {"pending", "in_progress"}:
+        raise HTTPException(status_code=409, detail="Only an open shopping list can compare stores.")
+    plan = await db.get(MealPlan, shopping.meal_plan_id)
+    owner = await db.get(User, plan.user_id) if plan is not None else None
+    source = shopping.store
+    if (owner is not None and account_country(owner) == "PL" and source is not None
+            and source.country_code == "PL" and source.currency_code == "PLN"
+            and plan.store_id == shopping.store_id):
+        return await _compare_polish_list_prices(db, shopping)
+    if (owner is None or owner.country_code != "GB" or source is None
+            or source.country_code != "GB" or source.currency_code != "GBP"
+            or plan.store_id != shopping.store_id):
+        raise HTTPException(status_code=404, detail="Shopping list not found in the UK market.")
+    rows = list(shopping.items)
+    if not rows:
+        return []
+
+    stores = list((await db.execute(select(Store).where(
+        Store.country_code == "GB", Store.currency_code == "GBP",
+        Store.id.in_([store.id for store in UK_STORES]),
+    ).order_by(Store.name))).scalars().all())
+    requirements = {item.id: regional_snapshot_requirement(item) for item in rows}
+    product_ids = {value[0] for value in requirements.values() if value is not None}
+    as_of = utc_market_date()
+    offers = list((await db.execute(select(RegionalProductOffer).where(
+        RegionalProductOffer.store_id.in_([store.id for store in stores]),
+        RegionalProductOffer.product_id.in_(product_ids),
+        *reviewed_uk_offer_conditions(as_of=as_of),
+    ))).scalars().all()) if product_ids and stores else []
+    by_pair = {}
+    fingerprints = {}
+    for offer in offers:
+        by_pair.setdefault((offer.store_id, offer.product_id), []).append(offer)
+        fingerprints[offer.id] = offer.fingerprint
+
+    results = []
+    for store in stores:
+        total, items, missing = Decimal("0.00"), [], []
+        for item in rows:
+            snapshot = item.regional_snapshot
+            name = snapshot.name_en if snapshot is not None else item.custom_name
+            name = name or "Unknown product"
+            requirement = requirements[item.id]
+            if item.is_from_pantry:
+                if (requirement is None or snapshot.quote_status != "pantry"
+                        or not item.is_checked or item.estimated_price != Decimal(0)):
+                    missing.append(name)
+                    continue
+                _, quantity, unit = requirement
+                items.append(PriceCompareItem(
+                    product_name=name, quantity_needed=float(quantity), unit=unit,
+                    price_in_store=0, price_is_estimated=False,
+                    is_from_pantry=True, is_checked=True,
+                ))
+                continue
+            if item.is_checked:
+                quote = frozen_regional_purchase_quote(item, as_of=as_of)
+                fingerprint = (snapshot.quote_data or {}).get("offer_fingerprint") if snapshot else None
+            elif requirement is not None:
+                product_id, quantity, unit = requirement
+                quote = select_uk_offer_quote(
+                    by_pair.get((store.id, product_id), []), product_id=product_id,
+                    store_id=store.id, quantity=quantity, unit=unit, as_of=as_of,
+                )
+                fingerprint = fingerprints.get(quote.offer_id) if quote else None
+            else:
+                quote, fingerprint = None, None
+            if quote is None:
+                missing.append(name)
+                continue
+            total += quote.total_price
+            items.append(PriceCompareItem(
+                product_name=quote.name_en, quantity_needed=float(quote.required_quantity),
+                unit=quote.unit, price_in_store=float(quote.total_price),
+                price_is_estimated=quote.price_is_estimated, last_verified=quote.last_verified,
+                regional_offer_id=quote.offer_id, package_quantity=float(quote.package_quantity),
+                package_unit=quote.unit, package_count=quote.package_count,
+                purchased_quantity=float(quote.purchased_quantity),
+                price_per_package=float(quote.price_per_package), price_source=quote.price_source,
+                offer_fingerprint=fingerprint, is_checked=item.is_checked,
+            ))
+        results.append(PriceCompareStoreResult(
+            store_id=store.id, store_name=store.name,
+            total_price=None if missing else float(total),
+            is_cheapest=False, savings_vs_most_expensive=0, items=items,
+            has_estimated_prices=bool(missing) or any(item.price_is_estimated for item in items),
+            is_complete=not missing, missing_products=sorted(set(missing)), currency_code="GBP",
+        ))
+    complete = [result.total_price for result in results if result.is_complete]
+    if complete:
+        cheapest, highest = min(complete), max(complete)
+        for result in results:
+            if result.is_complete:
+                result.is_cheapest = result.total_price == cheapest
+                result.savings_vs_most_expensive = round(highest - result.total_price, 2)
+    results.sort(key=lambda result: (
+        not result.is_complete,
+        result.total_price if result.total_price is not None else float("inf"),
+        result.store_name,
+    ))
+    return results
+
+
+async def _compare_polish_list_prices(db, shopping):
+    from app.services.polish_list_prices import quote_polish_list
+    if not shopping.items:
+        return []
+    stores = list((await db.execute(select(Store).where(
+        Store.country_code == "PL", Store.currency_code == "PLN",
+    ).order_by(Store.name))).scalars().all())
+    quotes = await quote_polish_list(db, shopping, stores)
+    results = []
+    for store in stores:
+        quoted = quotes[store.id]
+        missing = [
+            (item.store_product.product.name if item.store_product else item.custom_name) or "Nieznany produkt"
+            for item, _, quote in quoted if quote is None
+        ]
+        items = [PriceCompareItem(**quote) for _, _, quote in quoted if quote is not None]
+        total = round(sum(item.price_in_store for item in items), 2)
+        results.append(PriceCompareStoreResult(
+            store_id=store.id, store_name=store.name, currency_code="PLN",
+            total_price=None if missing else total, is_cheapest=False,
+            savings_vs_most_expensive=0, items=items, is_complete=not missing,
+            has_estimated_prices=bool(missing) or any(item.price_is_estimated for item in items),
+            missing_products=sorted(set(missing)),
+        ))
+    complete = [row.total_price for row in results if row.is_complete]
+    if complete:
+        for row in results:
+            if row.is_complete:
+                row.is_cheapest = row.total_price == min(complete)
+                row.savings_vs_most_expensive = round(max(complete) - row.total_price, 2)
+    results.sort(key=lambda row: (not row.is_complete, row.total_price if row.total_price is not None else math.inf, row.store_name))
+    return results
+
 
 @router.get("/{meal_plan_id}", response_model=List[PriceCompareStoreResult])
 async def compare_prices(
@@ -87,9 +357,31 @@ async def compare_prices(
     from app.api.v1.meal_plans import _ensure_plan_access
     _ensure_plan_access(meal_plan, current_user)
 
-    stores = (await db.execute(select(Store))).scalars().all()
+    # Ownership was verified above: the persisted owner's market is the
+    # source of truth, never a device hint or a client-supplied store name.
+    country = account_country(current_user)
+    currency = "GBP" if country == "GB" else "PLN"
+    planned_store = aliased(Store)
+    plan_matches_market = exists(
+        select(1).select_from(MealPlan)
+        .join(planned_store, planned_store.id == MealPlan.store_id)
+        .where(
+            MealPlan.id == meal_plan_id,
+            MealPlan.user_id == current_user.id,
+            planned_store.country_code == country,
+            planned_store.currency_code == currency,
+        )
+        .correlate(None)
+    )
+    stores = (await db.execute(select(Store).where(
+        Store.country_code == country,
+        Store.currency_code == currency,
+        plan_matches_market,
+    ))).scalars().all()
     if not stores:
         return []
+    if country == "GB":
+        return await _compare_uk_prices(db, meal_plan, stores)
 
     # ── Agreguj wymagane ilości SKŁADNIKÓW we wspólnej bazie (gramy/ml) ──
     # Wcześniej sumowanie zakładało, że jednostki zawsze się zgadzają
@@ -259,6 +551,7 @@ async def compare_prices(
                 has_estimated_prices=res["has_estimated_prices"],
                 is_complete=res["is_complete"],
                 missing_products=res["missing_products"],
+                currency_code=currency,
             )
         )
 

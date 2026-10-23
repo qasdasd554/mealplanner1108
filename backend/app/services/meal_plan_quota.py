@@ -9,6 +9,7 @@ from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.premium import is_premium_active
+from app.core.markets import account_country
 from app.models.meal_plan_creation import MealPlanCreation
 from app.models.user import User
 from app.services.shopping_list_quota import calendar_week_start
@@ -18,7 +19,7 @@ async def can_create_meal_plan(db: AsyncSession, *, user: User) -> bool:
     """Sprawdza limit, blokując dany tydzień do końca transakcji."""
     if is_premium_active(user):
         return True
-    week = calendar_week_start()
+    week = calendar_week_start(country_code=account_country(user))
     await db.execute(
         text("SELECT pg_advisory_xact_lock(hashtext(:key))"),
         {"key": f"meal-plan:{user.id}:{week.isoformat()}"},
@@ -37,9 +38,12 @@ async def ensure_can_create_meal_plan(db: AsyncSession, *, user: User) -> None:
         raise HTTPException(
             status_code=403,
             detail=(
-                "Konto standardowe może wygenerować jeden plan posiłków "
-                "w tygodniu (poniedziałek–niedziela). Usunięcie planu "
-                "nie odnawia limitu. Premium pozwala tworzyć plany bez limitu."
+                ("A Standard account can create one meal plan per week (Monday–Sunday). "
+                 "Deleting a plan does not reset the limit. Premium includes unlimited plans.")
+                if account_country(user) == "GB" else
+                ("Konto standardowe może wygenerować jeden plan posiłków "
+                 "w tygodniu (poniedziałek–niedziela). Usunięcie planu "
+                 "nie odnawia limitu. Premium pozwala tworzyć plany bez limitu.")
             ),
         )
 
@@ -52,6 +56,6 @@ async def record_meal_plan_creation(
     db.add(MealPlanCreation(
         user_id=user.id,
         meal_plan_id=meal_plan_id,
-        week_start=calendar_week_start(),
+        week_start=calendar_week_start(country_code=account_country(user)),
     ))
     await db.flush()

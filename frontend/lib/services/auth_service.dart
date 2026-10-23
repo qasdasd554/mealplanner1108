@@ -4,11 +4,21 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import '../models/user.dart';
 import 'api_client.dart';
+import 'account_market.dart';
 import '../config/api_config.dart';
 
 class AuthService {
   final ApiClient _client;
-  AuthService({ApiClient? client}) : _client = client ?? ApiClient();
+  final String? Function() _deviceRegion;
+
+  AuthService({ApiClient? client, String? Function()? deviceRegion})
+    : _client = client ?? ApiClient(),
+      _deviceRegion =
+          deviceRegion ??
+          (() => PlatformDispatcher.instance.locale.countryCode);
+
+  Map<String, String> _registrationMarket() =>
+      registrationMarketFields(_deviceRegion());
   void invalidateSession() => _client.invalidateSession();
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   bool _googleInitialized = false;
@@ -44,6 +54,9 @@ class AuthService {
       body: {
         'email': email,
         'password': password,
+        // Pre-authentication message language only; the server keeps the
+        // existing account's persisted market after successful sign-in.
+        ..._registrationMarket(),
         // Token bramki CAPTCHA — pomijany, gdy bramka jest wyłączona
         // (pusty klucz w ApiConfig.turnstileSiteKey).
         if (captchaToken != null && captchaToken.isNotEmpty)
@@ -83,6 +96,7 @@ class AuthService {
         'email': email,
         'password': password,
         'display_name': displayName,
+        ..._registrationMarket(),
         if (captchaToken != null && captchaToken.isNotEmpty)
           'turnstile_token': captchaToken,
       },
@@ -146,6 +160,7 @@ class AuthService {
       ApiConfig.authGoogle,
       body: {
         'id_token': idToken,
+        ..._registrationMarket(),
         if (captchaToken != null && captchaToken.isNotEmpty)
           'turnstile_token': captchaToken,
       },
@@ -176,7 +191,7 @@ class AuthService {
 
       final response = await _client.post(
         ApiConfig.authGoogle,
-        body: {'id_token': idToken},
+        body: {'id_token': idToken, ..._registrationMarket()},
       );
       final token = AuthToken.fromJson(response as Map<String, dynamic>);
       await _client.setSession(
@@ -233,6 +248,7 @@ class AuthService {
       ApiConfig.authApple,
       body: {
         'identity_token': identityToken,
+        ..._registrationMarket(),
         if (fullName.isNotEmpty) 'full_name': fullName,
         if (captchaToken != null && captchaToken.isNotEmpty)
           'turnstile_token': captchaToken,
@@ -285,7 +301,10 @@ class AuthService {
 
   /// Prosi o wysłanie kodu resetu hasła — działa BEZ logowania.
   Future<void> forgotPassword(String email) async {
-    await _client.post(ApiConfig.authForgotPassword, body: {'email': email});
+    await _client.post(
+      ApiConfig.authForgotPassword,
+      body: {'email': email, ..._registrationMarket()},
+    );
   }
 
   /// Ustawia nowe hasło na podstawie kodu z forgotPassword — też bez
@@ -297,7 +316,12 @@ class AuthService {
   }) async {
     await _client.post(
       ApiConfig.authResetPassword,
-      body: {'email': email, 'code': code, 'new_password': newPassword},
+      body: {
+        'email': email,
+        'code': code,
+        'new_password': newPassword,
+        ..._registrationMarket(),
+      },
     );
   }
 
@@ -390,9 +414,11 @@ class AuthService {
   /// udanym wywołaniu.
   /// Odbiera jednorazowe punkty powitalne. Zwraca liczbę przyznanych
   /// punktów (0, jeśli konto już je odebrało — to NIE jest błąd).
-  Future<int> claimOnboardingBonus() async {
+  Future<int> claimOnboardingBonus({void Function(int)? onTotalPoints}) async {
     final response = await _client.post('/users/me/onboarding-bonus');
     if (response is Map<String, dynamic>) {
+      final balance = response['total_points'];
+      if (balance is int && balance >= 0) onTotalPoints?.call(balance);
       return (response['points'] as int?) ?? 0;
     }
     return 0;

@@ -1,6 +1,25 @@
 import 'package:flutter/material.dart';
+import '../l10n/market_locale.dart';
 
 Future<void> showPriceSourceInfo(BuildContext context) {
+  if (context.strings.localeName.startsWith('en')) {
+    return showDialog<void>(
+      context: context,
+      builder:
+          (dialogContext) => AlertDialog(
+            title: Text(context.strings.priceCompareSourceTitle),
+            content: SingleChildScrollView(
+              child: Text(context.strings.priceCompareSourceBody),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: Text(context.strings.priceCompareSourceClose),
+              ),
+            ],
+          ),
+    );
+  }
   return showDialog<void>(
     context: context,
     builder:

@@ -108,6 +108,7 @@ class Product {
   // patrz app/models/product.py po stronie backendu.
   final String reviewStatus;
   final double? submittedPrice;
+  final String submittedCountryCode;
   final List<String>? requestedStoreIds;
   final String? source;
 
@@ -124,6 +125,7 @@ class Product {
     this.imageUrl,
     this.reviewStatus = 'approved',
     this.submittedPrice,
+    this.submittedCountryCode = 'PL',
     this.requestedStoreIds,
     this.source,
   });
@@ -149,6 +151,7 @@ class Product {
       imageUrl: json['image_url'] as String?,
       reviewStatus: json['review_status'] as String? ?? 'approved',
       submittedPrice: (json['submitted_price'] as num?)?.toDouble(),
+      submittedCountryCode: json['submitted_country_code'] as String? ?? 'PL',
       requestedStoreIds: (json['requested_store_ids'] as List?)?.cast<String>(),
       source: json['source'] as String?,
     );
@@ -161,6 +164,7 @@ class StoreProduct {
   final String productId;
   final String? departmentId;
   final double price;
+  final String currencyCode;
   // Marka własna sklepu (np. "Mleczna Dolina"), jeśli potwierdzona.
   // Wcześniej to pole w ogóle nie było tu parsowane — mimo że backend
   // je zwracał — więc ekran produktów nigdy nie mógł go pokazać.
@@ -168,6 +172,11 @@ class StoreProduct {
   final bool isAvailable;
   final DateTime? lastVerified;
   final Product? product;
+  final String? nameEn;
+  final double? packageQuantity;
+  final String? packageUnit;
+  final bool priceIsEstimated;
+  final String? availabilityScope;
 
   StoreProduct({
     required this.id,
@@ -175,11 +184,26 @@ class StoreProduct {
     required this.productId,
     this.departmentId,
     required this.price,
+    this.currencyCode = 'PLN',
     this.storeBrandName,
     required this.isAvailable,
     this.lastVerified,
     this.product,
+    this.nameEn,
+    this.packageQuantity,
+    this.packageUnit,
+    this.priceIsEstimated = true,
+    this.availabilityScope,
   });
+
+  bool get hasRegionalPackage =>
+      nameEn?.trim().isNotEmpty == true &&
+      packageQuantity != null &&
+      packageQuantity!.isFinite &&
+      packageQuantity! > 0 &&
+      packageQuantity! <= 999999.999 &&
+      const {'g', 'ml'}.contains(packageUnit) &&
+      availabilityScope == 'online_catalogue';
 
   factory StoreProduct.fromJson(Map<String, dynamic> json) {
     return StoreProduct(
@@ -188,6 +212,12 @@ class StoreProduct {
       productId: json['product_id'] as String,
       departmentId: json['department_id'] as String?,
       price: (json['price'] as num? ?? 0.0).toDouble(),
+      currencyCode: json['currency_code'] as String? ?? 'PLN',
+      nameEn: json['name_en'] as String?,
+      packageQuantity: (json['package_quantity'] as num?)?.toDouble(),
+      packageUnit: json['package_unit'] as String?,
+      priceIsEstimated: json['price_is_estimated'] as bool? ?? true,
+      availabilityScope: json['availability_scope'] as String?,
       storeBrandName: json['store_brand_name'] as String?,
       isAvailable: json['is_available'] as bool? ?? true,
       lastVerified:

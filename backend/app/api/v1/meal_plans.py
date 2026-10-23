@@ -29,6 +29,10 @@ from app.schemas.meal_plan import (
 )
 from app.services import MealPlanGenerator, ShoppingListBuilder
 from app.core.premium import is_premium_active
+from app.core.market_clock import market_today
+from app.core.markets import account_country
+from app.services.store_market_access import get_store_in_account_market
+from app.services.market_catalog import ensure_recipe_available_in_market
 from app.services.meal_plan_lifecycle import (
     CURRENT_STATUSES,
     WARSAW,
@@ -76,12 +80,12 @@ def _ensure_plan_access(plan: MealPlan, user: User, *, editable: bool = False) -
     if plan.status == "archived":
         if plan.archived_at is None:
             # Techniczne plany będące właścicielem samodzielnej listy zakupów.
-            raise NotFoundException(detail="Plan posiłków nie został znaleziony.")
+            raise NotFoundException(detail=("Meal plan not found." if account_country(user) == "GB" else "Plan posiłków nie został znaleziony."))
         if not is_premium_active(user):
-            raise HTTPException(status_code=403, detail="Archiwum planów jest dostępne w Premium.")
+            raise HTTPException(status_code=403, detail=("Plan archives are available with Premium." if account_country(user) == "GB" else "Archiwum planów jest dostępne w Premium."))
         if editable:
             raise HTTPException(status_code=409, detail="Wznów plan z archiwum, aby ponownie z niego korzystać.")
-    elif plan.status not in CURRENT_STATUSES or plan_has_expired(plan):
+    elif plan.status not in CURRENT_STATUSES or plan_has_expired(plan, country_code=account_country(user)):
         raise NotFoundException(detail="Ten plan posiłków już się zakończył.")
 
 
@@ -216,7 +220,7 @@ async def list_meal_plans(
         )
         .order_by(MealPlan.created_at.desc())
     )
-    return [plan for plan in result.unique().scalars().all() if not plan_has_expired(plan)]
+    return [plan for plan in result.unique().scalars().all() if not plan_has_expired(plan, country_code=account_country(current_user))]
 
 
 @router.get(
@@ -229,7 +233,7 @@ async def list_archived_meal_plans(
     db: AsyncSession = Depends(get_db),
 ) -> list[MealPlan]:
     if not is_premium_active(current_user):
-        raise HTTPException(status_code=403, detail="Archiwum planów jest dostępne w Premium.")
+        raise HTTPException(status_code=403, detail=("Plan archives are available with Premium." if account_country(current_user) == "GB" else "Archiwum planów jest dostępne w Premium."))
     await process_due_meal_plans(db, user_id=current_user.id, send_reminders=False)
     result = await db.execute(
         select(MealPlan)
@@ -284,7 +288,7 @@ async def update_weekly_automation(
     if payload.enabled and not is_premium_active(current_user):
         raise HTTPException(
             status_code=403,
-            detail="Automatyczny tydzień jest dostępny w Premium.",
+            detail=("Automatic weekly planning is available with Premium." if account_country(current_user) == "GB" else "Automatyczny tydzień jest dostępny w Premium."),
         )
     result = await db.execute(
         select(WeeklyPlanAutomation).where(
@@ -318,7 +322,7 @@ async def run_weekly_automation_now(
     from app.services.weekly_plan_automation import generate_for_user
 
     if not is_premium_active(current_user):
-        raise HTTPException(status_code=403, detail="Ta funkcja wymaga Premium.")
+        raise HTTPException(status_code=403, detail=("This feature requires Premium." if account_country(current_user) == "GB" else "Ta funkcja wymaga Premium."))
     enforce_user_rate_limit(
         meal_plan_generation_limiter,
         current_user.id,
@@ -388,9 +392,9 @@ async def resume_meal_plan(
 ) -> MealPlan:
     """Kopiuje posiłki do nowego okresu, bez AI i bez zużycia punktów."""
     if not is_premium_active(current_user):
-        raise HTTPException(status_code=403, detail="Wznawianie planów jest dostępne w Premium.")
-    if payload.start_date < datetime.now(WARSAW).date():
-        raise HTTPException(status_code=422, detail="Data rozpoczęcia nie może być wcześniejsza niż dzisiaj.")
+        raise HTTPException(status_code=403, detail=("Resuming plans is available with Premium." if account_country(current_user) == "GB" else "Wznawianie planów jest dostępne w Premium."))
+    if payload.start_date < market_today(current_user):
+        raise HTTPException(status_code=422, detail=("The start date cannot be before today." if account_country(current_user) == "GB" else "Data rozpoczęcia nie może być wcześniejsza niż dzisiaj."))
     from app.core.rate_limit import enforce_user_rate_limit, meal_plan_generation_limiter
 
     enforce_user_rate_limit(meal_plan_generation_limiter, current_user.id, "wznawianie planu")
@@ -402,11 +406,13 @@ async def resume_meal_plan(
     )
     archived = result.scalar_one_or_none()
     if archived is None:
-        raise NotFoundException(detail="Plan posiłków nie został znaleziony.")
+        raise NotFoundException(detail=("Meal plan not found." if account_country(current_user) == "GB" else "Plan posiłków nie został znaleziony."))
     if archived.status != "archived" or archived.archived_at is None:
-        raise HTTPException(status_code=409, detail="Można wznowić tylko plan z archiwum.")
+        raise HTTPException(status_code=409, detail=("Only archived plans can be resumed." if account_country(current_user) == "GB" else "Można wznowić tylko plan z archiwum."))
     if not archived.entries:
-        raise HTTPException(status_code=409, detail="Ten plan nie ma już posiłków do wznowienia.")
+        raise HTTPException(status_code=409, detail=("This plan no longer has any meals to resume." if account_country(current_user) == "GB" else "Ten plan nie ma już posiłków do wznowienia."))
+    if await get_store_in_account_market(db, archived.store_id, current_user) is None:
+        raise NotFoundException(detail=("The shop for this plan is not available in your account country." if account_country(current_user) == "GB" else "Sklep tego planu nie jest dostępny w kraju tego konta."))
     preferences = deepcopy(archived.preferences) if isinstance(archived.preferences, dict) else {}
     previous_people = _stored_household_size(preferences.get("household_size"))
     scale = Decimal("1")
@@ -415,7 +421,7 @@ async def resume_meal_plan(
         preferences["household_size"] = 8
         warnings = preferences.get("preference_warnings", [])
         warnings = [value for value in warnings if isinstance(value, str)] if isinstance(warnings, list) else []
-        preferences["preference_warnings"] = [*warnings, "Plan dostosowaliśmy do limitu 8 osób."]
+        preferences["preference_warnings"] = [*warnings, ("We adjusted the plan to the limit of 8 people." if account_country(current_user) == "GB" else "Plan dostosowaliśmy do limitu 8 osób.")]
     elif previous_people is None:
         preferences["household_size"] = min(8, _stored_household_size(current_user.household_size) or 1)
     resumed = MealPlan(
@@ -488,10 +494,7 @@ async def update_meal_plan_store(
         raise NotFoundException(detail=f"Plan posiłków o ID {plan_id} nie został znaleziony")
     _ensure_plan_access(plan, current_user, editable=True)
 
-    from app.models import Store
-
-    store_result = await db.execute(select(Store).where(Store.id == payload.store_id))
-    if store_result.scalar_one_or_none() is None:
+    if await get_store_in_account_market(db, payload.store_id, current_user) is None:
         raise HTTPException(status_code=404, detail="Sklep nie został znaleziony")
 
     plan.store_id = payload.store_id
@@ -644,6 +647,7 @@ async def swap_recipe_in_plan(
 
     recipe = await db.get(Recipe, payload.recipe_id)
     await ensure_recipe_access(db, recipe, current_user)
+    await ensure_recipe_available_in_market(db, recipe, current_user, store_id=plan.store_id)
 
     # Zamień przepis
     entry.recipe_id = payload.recipe_id

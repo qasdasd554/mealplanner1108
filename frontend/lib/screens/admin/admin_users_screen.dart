@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/market_locale.dart';
 import '../../services/moderation_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
@@ -11,14 +12,16 @@ import '../../widgets/user_avatar.dart';
 /// w odróżnieniu od "Zablokuj autora" dostępnego zwykłym użytkownikom,
 /// które tylko ukrywa cudze treści przed jedną osobą.
 class AdminUsersScreen extends StatefulWidget {
-  const AdminUsersScreen({super.key});
+  const AdminUsersScreen({super.key, this.service});
+
+  final ModerationService? service;
 
   @override
   State<AdminUsersScreen> createState() => _AdminUsersScreenState();
 }
 
 class _AdminUsersScreenState extends State<AdminUsersScreen> {
-  final ModerationService _service = ModerationService();
+  late final ModerationService _service;
   final TextEditingController _searchController = TextEditingController();
 
   List<Map<String, dynamic>> _users = [];
@@ -26,10 +29,12 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   bool _onlyBanned = false;
   String? _error;
   final Set<String> _busyIds = {};
+  int _loadGeneration = 0;
 
   @override
   void initState() {
     super.initState();
+    _service = widget.service ?? ModerationService();
     _load();
   }
 
@@ -40,6 +45,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   }
 
   Future<void> _load() async {
+    final generation = ++_loadGeneration;
     setState(() {
       _isLoading = true;
       _error = null;
@@ -49,44 +55,48 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
         search: _searchController.text,
         onlyBanned: _onlyBanned,
       );
-      if (!mounted) return;
+      if (!mounted || generation != _loadGeneration) return;
       setState(() {
         _users = list;
         _isLoading = false;
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || generation != _loadGeneration) return;
       setState(() {
         _isLoading = false;
-        _error = friendlyError(e);
+        _error = friendlyError(e, strings: context.strings);
       });
     }
   }
 
   Future<void> _confirmBan(Map<String, dynamic> user) async {
-    final reasonController = TextEditingController();
+    if (_busyIds.contains(user['id'])) return;
+    var reason = '';
     final confirmed = await showDialog<bool>(
       context: context,
       builder:
           (dialogContext) => AlertDialog(
-            title: Text('Zablokować ${user['display_name'] ?? user['email']}?'),
+            scrollable: true,
+            title: Text(
+              context.strings.adminUsersBanTitle(
+                '${user['display_name'] ?? user['email']}',
+              ),
+            ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Konto straci dostęp do aplikacji natychmiast — również '
-                  'jeśli jest właśnie zalogowane. Dane nie zostaną usunięte, '
-                  'blokadę można cofnąć.',
-                  style: TextStyle(fontSize: 13),
+                Text(
+                  context.strings.adminUsersBanBody,
+                  style: const TextStyle(fontSize: 13),
                 ),
                 const SizedBox(height: 12),
                 TextField(
-                  controller: reasonController,
+                  onChanged: (value) => reason = value,
                   maxLength: 500,
-                  decoration: const InputDecoration(
-                    labelText: 'Powód (widoczny dla użytkownika)',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: context.strings.adminUsersReasonLabel,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
               ],
@@ -94,23 +104,21 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(dialogContext).pop(false),
-                child: const Text('Anuluj'),
+                child: Text(context.strings.planCancel),
               ),
               FilledButton(
                 style: FilledButton.styleFrom(
                   backgroundColor: AppTheme.errorColor,
                 ),
                 onPressed: () => Navigator.of(dialogContext).pop(true),
-                child: const Text('Zablokuj'),
+                child: Text(context.strings.adminUsersBan),
               ),
             ],
           ),
     );
 
-    final reason = reasonController.text.trim();
-    reasonController.dispose();
     if (confirmed != true || !mounted) return;
-    await _setBanned(user, true, reason: reason);
+    await _setBanned(user, true, reason: reason.trim());
   }
 
   Future<void> _setBanned(
@@ -119,6 +127,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     String? reason,
   }) async {
     final id = user['id'] as String;
+    if (_busyIds.contains(id)) return;
     setState(() => _busyIds.add(id));
     try {
       if (banned) {
@@ -140,7 +149,11 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(banned ? 'Konto zablokowane' : 'Konto odblokowane'),
+            content: Text(
+              banned
+                  ? context.strings.adminUsersBanned
+                  : context.strings.adminUsersUnbanned,
+            ),
           ),
         );
     } catch (e) {
@@ -151,7 +164,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
+            content: Text(friendlyError(e, strings: context.strings)),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -161,7 +174,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Użytkownicy')),
+      appBar: AppBar(title: Text(context.strings.adminUsersTitle)),
       body: Column(
         children: [
           Padding(
@@ -172,7 +185,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                   controller: _searchController,
                   onSubmitted: (_) => _load(),
                   decoration: InputDecoration(
-                    hintText: 'Szukaj po e-mailu lub nazwie…',
+                    hintText: context.strings.adminUsersSearch,
                     prefixIcon: const Icon(Icons.search),
                     border: const OutlineInputBorder(),
                     suffixIcon: IconButton(
@@ -184,13 +197,15 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    FilterChip(
-                      label: const Text('Tylko zablokowani'),
-                      selected: _onlyBanned,
-                      onSelected: (v) {
-                        setState(() => _onlyBanned = v);
-                        _load();
-                      },
+                    Flexible(
+                      child: FilterChip(
+                        label: Text(context.strings.adminUsersOnlyBanned),
+                        selected: _onlyBanned,
+                        onSelected: (v) {
+                          setState(() => _onlyBanned = v);
+                          _load();
+                        },
+                      ),
                     ),
                   ],
                 ),
@@ -212,7 +227,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                           ),
                           TextButton(
                             onPressed: _load,
-                            child: const Text('Spróbuj ponownie'),
+                            child: Text(context.strings.productsRetry),
                           ),
                         ],
                       ),
@@ -220,7 +235,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                     : _users.isEmpty
                     ? Center(
                       child: Text(
-                        'Brak wyników.',
+                        context.strings.adminUsersEmpty,
                         style: TextStyle(color: AppTheme.textSecondary),
                       ),
                     )
@@ -246,7 +261,8 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                                 size: 44,
                               ),
                               title: Text(
-                                u['display_name'] as String? ?? 'Bez nazwy',
+                                u['display_name'] as String? ??
+                                    context.strings.adminUsersUnnamed,
                               ),
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -257,8 +273,10 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                                   ),
                                   if (u['app_version'] != null)
                                     Text(
-                                      'Wersja: ${u['app_version']}'
-                                      '${u['platform'] == null ? '' : ' • ${u['platform']}'}',
+                                      context.strings.adminUsersVersion(
+                                            '${u['app_version']}',
+                                          ) +
+                                          '${u['platform'] == null ? '' : ' • ${u['platform']}'}',
                                       style: TextStyle(
                                         fontSize: 11,
                                         color: AppTheme.textSecondary,
@@ -266,7 +284,9 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                                     ),
                                   if (isBanned && u['ban_reason'] != null)
                                     Text(
-                                      'Powód: ${u['ban_reason']}',
+                                      context.strings.adminUsersReason(
+                                        '${u['ban_reason']}',
+                                      ),
                                       style: TextStyle(
                                         fontSize: 11,
                                         color: AppTheme.errorColor,
@@ -298,7 +318,9 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                                                     ? _setBanned(u, false)
                                                     : _confirmBan(u),
                                         child: Text(
-                                          isBanned ? 'Odblokuj' : 'Zablokuj',
+                                          isBanned
+                                              ? context.strings.adminUsersUnban
+                                              : context.strings.adminUsersBan,
                                         ),
                                       ),
                             ),

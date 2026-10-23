@@ -5,6 +5,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/premium_feature_tag.dart';
 import '../../widgets/barcode_destination_sheet.dart';
 import '../recipes/ai_add_recipe_screen.dart';
+import '../../l10n/market_locale.dart';
 
 /// Ekran pokazywany raz, zaraz po ukończeniu onboardingu — informuje
 /// o punktach powitalnych.
@@ -48,7 +49,7 @@ class WelcomeBonusScreen extends StatelessWidget {
                     .shimmer(duration: 900.ms, color: gold.withOpacity(0.5)),
                 const SizedBox(height: 28),
                 Text(
-                  'Wszystko gotowe!',
+                  context.strings.welcomeAllSet,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -56,9 +57,7 @@ class WelcomeBonusScreen extends StatelessWidget {
                 ).animate().fadeIn(delay: 200.ms),
                 const SizedBox(height: 10),
                 Text(
-                  'Na start dorzucamy Ci $points punkty premium — '
-                  'to nasze podziękowanie za założenie konta '
-                  'i skonfigurowanie aplikacji.',
+                  context.strings.welcomePointsIntro(points),
                   style: TextStyle(color: AppTheme.textSecondary, height: 1.5),
                   textAlign: TextAlign.center,
                 ).animate().fadeIn(delay: 350.ms),
@@ -76,8 +75,7 @@ class WelcomeBonusScreen extends StatelessWidget {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          'Za 2 punkty dodasz przepis z dowolnego linku '
-                          'lub zdjęcia — zrobi to za Ciebie AI.',
+                          context.strings.welcomeAiPointDescription,
                           style: TextStyle(
                             fontSize: 13,
                             color: AppTheme.textPrimary,
@@ -90,7 +88,7 @@ class WelcomeBonusScreen extends StatelessWidget {
                 ).animate().fadeIn(delay: 500.ms),
                 const SizedBox(height: 22),
                 Text(
-                  'Wypróbuj teraz',
+                  context.strings.welcomeTryNow,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -101,7 +99,7 @@ class WelcomeBonusScreen extends StatelessWidget {
                   child: OutlinedButton.icon(
                     onPressed: () => scanProductWithDestination(context),
                     icon: const Icon(Icons.barcode_reader),
-                    label: const Text('Zeskanuj pierwszy produkt'),
+                    label: Text(context.strings.welcomeScanFirstProduct),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -116,22 +114,22 @@ class WelcomeBonusScreen extends StatelessWidget {
                                     const AiAddRecipeScreen(initialTabIndex: 2),
                           ),
                         ),
-                    child: const Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.link),
-                        SizedBox(width: 8),
+                        const Icon(Icons.link),
+                        const SizedBox(width: 8),
                         Flexible(
                           child: Text(
-                            'Dodaj przepis z linku',
+                            context.strings.welcomeAddRecipeLink,
                             maxLines: 2,
                             textAlign: TextAlign.center,
                           ),
                         ),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         PremiumFeatureTag(
-                          label: 'PREMIUM · 2 PKT',
+                          label: context.strings.premiumTwoPoints,
                           fontSize: 8,
                         ),
                       ],
@@ -145,7 +143,7 @@ class WelcomeBonusScreen extends StatelessWidget {
                     onPressed:
                         () =>
                             Navigator.of(context).pushReplacementNamed('/home'),
-                    child: const Text('Zaczynamy'),
+                    child: Text(context.strings.welcomeStart),
                   ),
                 ).animate().fadeIn(delay: 650.ms),
               ],

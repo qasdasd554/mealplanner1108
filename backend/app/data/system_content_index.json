@@ -1,0 +1,1428 @@
+{
+  "recipes": {
+    "1a053aec-2567-5257-8bdb-0fed274ef180": {
+      "source": "Makaron z cukinią i tuńczykiem",
+      "description": "Lekki makaron ze świeżą cukinią i tuńczykiem w oliwie — szybki obiad na ciepłe dni.",
+      "en_GB": "Courgette and tuna pasta",
+      "detail_sha256": "669b9f1656b4c79744bd958fb0220bc3a19418748f30e358fc9ff1ec07bb2c62"
+    },
+    "8ec98cc2-c2d7-5119-b7a9-df8819c14615": {
+      "source": "Pieczony dorsz z zielonym groszkiem",
+      "description": "Delikatny dorsz pieczony z cytryną, podawany z lekko duszonym groszkiem.",
+      "en_GB": "Baked cod with peas",
+      "detail_sha256": "a72188a2582288635158ea01f319525270396704b392381de0b2ec6f2f234567"
+    },
+    "d43fc8c6-643e-577b-9dbd-ce50b29dbdb7": {
+      "source": "Placki z twarogiem na słodko",
+      "description": "Puszyste placki na bazie twarogu — pożywne, słodkie śniadanie.",
+      "en_GB": "Sweet quark pancakes",
+      "detail_sha256": "c5b507ab08d68bc224ad00351099fc037665ea36ea9646cffe584571b627df9a"
+    },
+    "15a3b032-31b6-597e-8f84-83c7d4921cbf": {
+      "source": "Zupa krem z zielonego groszku",
+      "description": "Aksamitna, wiosenna zupa krem — szybka i lekka.",
+      "en_GB": "Creamy pea soup",
+      "detail_sha256": "092587fea5cb4f06393a238ac44890adab930da11526ca62458d1dfb1cbf3d5b"
+    },
+    "470f567b-dd28-582a-b5b2-ea1b9654921f": {
+      "source": "Stir-fry ryżowy z kurczakiem i warzywami",
+      "description": "Szybkie danie z jednej patelni — kurczak i chrupiące warzywa w sosie sojowym.",
+      "en_GB": "Chicken and vegetable stir-fry with rice",
+      "detail_sha256": "9beb2f185efe6943117ddaf9458c834d6edc0aed828de10ea83e736455c6b847"
+    },
+    "6b0985d9-f511-58eb-b456-ec250d70db05": {
+      "source": "Owsianka z orzechami włoskimi na mleku migdałowym",
+      "description": "Sycące, roślinne śniadanie z chrupiącymi orzechami.",
+      "en_GB": "Almond milk porridge with walnuts",
+      "detail_sha256": "82e045e7b07e5f1b553382ae75088e72a152c95a999b8366cd492b7260fc64ad"
+    },
+    "0fc49f78-13f5-59e1-a091-6cf3bb0f03c5": {
+      "source": "Fit burger z kurczaka",
+      "description": "Domowy burger z grillowanym kurczakiem zamiast smażonej wołowiny.",
+      "en_GB": "Lighter chicken burger",
+      "detail_sha256": "87f291197025e7b2df4ff3a4439d3e23900f1ad6b3323cc31d3cc07a46d5e35e"
+    },
+    "6e4a5e93-73e7-55d7-9539-829712eaa0bd": {
+      "source": "Sałatka cezar z kurczakiem",
+      "description": "Klasyczna sałatka z grillowanym kurczakiem i parmezanem, w lżejszej wersji.",
+      "en_GB": "Chicken Caesar salad",
+      "detail_sha256": "a76280d1b836a19dcb03049a1e60502239cd1ce62505b5fc8dece10662b6f5c0"
+    },
+    "d99b1027-c471-5b6c-bb66-b2eb6cc9ea95": {
+      "source": "Omlet bananowy na słodko",
+      "description": "Puszysty omlet bez dodatku cukru, słodzony dojrzałym bananem.",
+      "en_GB": "Sweet banana omelette",
+      "detail_sha256": "73ab734fdcf4758c0abc4faef89e610273c7a61e6e7929ff022724bca1f9cc3c"
+    },
+    "71e0cca1-ee92-5b5f-9500-cf6293071c84": {
+      "source": "Owsianka na noc z chia i owocami",
+      "description": "Przygotowana wieczorem, gotowa rano — owsianka na zimno z nasionami chia.",
+      "en_GB": "Overnight oats with chia and fruit",
+      "detail_sha256": "2d454edd8b0e2bb39c41244275b47a01291f0e304524ed98c31d55535b42758b"
+    },
+    "f209a2d7-b1b6-50c0-9d77-f845f29a6d06": {
+      "source": "Sałatka z wędzonym łososiem, mango i awokado",
+      "description": "Orzeźwiająca sałatka łącząca wędzonego łososia ze słodyczą mango.",
+      "en_GB": "Smoked salmon, mango and avocado salad",
+      "detail_sha256": "f0bce2ae8db5fd9acf60a902bcb7150c67b2e992c154a475bfb74dafa88f1528"
+    },
+    "fc97571c-29fe-5f11-bee8-2991bea1041e": {
+      "source": "Makaron z brokułem w sosie śmietanowym",
+      "description": "Kremowy makaron z brokułem i parmezanem — sycący wegetariański obiad.",
+      "en_GB": "Pasta with broccoli in a cream sauce",
+      "detail_sha256": "7688644df7885854aba39b8257fec3d3c96f6b3dc8cf80abb856cd3100942db5"
+    },
+    "d790e41d-5ba4-5cae-96c6-332b6db6d5f0": {
+      "source": "Tost z awokado i mozzarellą",
+      "description": "Szybkie, sycące śniadanie na chrupiącym pieczywie.",
+      "en_GB": "Avocado and mozzarella toast",
+      "detail_sha256": "46f87c9130035b2c83e811faacebeb2a44d5a8733395b3f9017951031e2f3963"
+    },
+    "c4e69873-de7b-5b4d-8a1e-0f344205a1c8": {
+      "source": "Granola na słono z jajkiem i pomidorkami",
+      "description": "Nietypowe, sycące śniadanie — chrupiąca granola w wytrawnej wersji.",
+      "en_GB": "Savoury granola with eggs and tomatoes",
+      "detail_sha256": "5d4c857c83732135efacb4e105998a614cc689bc417a88e1939d51f56bd5a70a"
+    },
+    "91d0bfd3-aad3-5059-8a8a-260906fb40fa": {
+      "source": "Dorsz na parze z warzywami i ziemniakami",
+      "description": "Lekkostrawny obiad gotowany na parze — bez dodatku tłuszczu.",
+      "en_GB": "Steamed cod with vegetables and potatoes",
+      "detail_sha256": "d540c99973702ea22a57ce0337046ddb34f39d5272202c6e99ff9f899a4ca20b"
+    },
+    "14597160-687f-594d-960e-2116302f62da": {
+      "source": "Kanapki z szynką, serem i sałatą",
+      "description": "Klasyczne, sycące kanapki na szybkie śniadanie lub lunch do pracy.",
+      "en_GB": "Ham, cheese and lettuce sandwiches",
+      "detail_sha256": "8cfca23f499a6ebd562ef31db59b8565a54f5b46895e75d8828770a16f99ff9f"
+    },
+    "ed3dfc6e-8763-52ab-9ffb-55905bbeec3a": {
+      "source": "Sałatka z makaronem, brokułem i wędzonym łososiem",
+      "description": "Sycąca sałatka makaronowa idealna do zabrania ze sobą do pracy.",
+      "en_GB": "Pasta salad with broccoli and smoked salmon",
+      "detail_sha256": "6ec836f61b5ebce237d204dfb5a90567311d35bb1b42045b98f8f22760b6e36a"
+    },
+    "769febda-8d71-53ea-bea6-98cad2722d73": {
+      "source": "Szybka zupa curry z ciecierzycą",
+      "description": "Rozgrzewająca, aromatyczna zupa gotowa w niecałe pół godziny.",
+      "en_GB": "Quick curried chickpea soup",
+      "detail_sha256": "a5368318e9081868030b5340da7dd3c7f20aad3880aaa4f40970e90de61332e0"
+    },
+    "755c9798-8791-594d-9f31-cac96d75f06b": {
+      "source": "Jabłko z masłem orzechowym",
+      "description": "Szybka i pożywna przekąska na słodko.",
+      "en_GB": "Apple with peanut butter",
+      "detail_sha256": "adf6c7349d3af2f79a2b2d428add1ddaa39be6f88f116aa993c892bf512a6550"
+    },
+    "1ddef48c-c6e3-5098-9f0e-03647a431400": {
+      "source": "Marchewki z hummusem",
+      "description": "Chrupiące marchewki maczane w kremowym hummusie.",
+      "en_GB": "Carrots with hummus",
+      "detail_sha256": "fa5022ba92a344cc32dc90c4a640bcf90900efcfec1f44db197fe921a5d2bd69"
+    },
+    "a9edc426-a80d-592b-af24-9eb3a2d0a790": {
+      "source": "Jogurt naturalny z malinami",
+      "description": "Lekka przekąska białkowa.",
+      "en_GB": "Natural yoghurt with raspberries",
+      "detail_sha256": "376cff805d2336c8043584adb4f542e777a46df1fa2f21e5adb4a66abee16857"
+    },
+    "c04c58c9-32e2-594d-adaf-f9257c3a5b32": {
+      "source": "Owsianka na mleku migdałowym",
+      "description": "Owsianka na mleku roślinnym z bananem.",
+      "en_GB": "Almond milk porridge",
+      "detail_sha256": "45a9efe32c0a07511e56d03464537dee1413f1549daa1735f947606d1ba339fc"
+    },
+    "41584c72-88f8-5675-b6a1-30bc402cf2b9": {
+      "source": "Sałatka grecka",
+      "description": "Klasyczna sałatka z fetą i oliwkami.",
+      "en_GB": "Greek salad",
+      "detail_sha256": "34111006741d8a791c85a9b60ead6e5c62dfabd77f1778ceb539d5c5d66b9a32"
+    },
+    "f11a8950-5bf9-5ac2-b307-3121b9c3ef54": {
+      "source": "Jajecznica z pomidorami",
+      "description": "Klasyczna jajecznica z dojrzałymi pomidorami, podawana z pieczywem.",
+      "en_GB": "Scrambled eggs with tomatoes",
+      "detail_sha256": "1b7e6dc952d64820177509d0159eb1728969105c120f75aa05c5c50c14c2fe15"
+    },
+    "a6295184-163e-5dfd-a8f1-7636882062b7": {
+      "source": "Kanapki z szynką i serem",
+      "description": "Proste kanapki na śniadanie z szynką, serem i warzywami.",
+      "en_GB": "Ham and cheese sandwiches",
+      "detail_sha256": "1df5c5b33a2ba245697057cf59095725e8ccd155d8c08341c7a1b52f30735988"
+    },
+    "b4f0bb03-d708-5547-97bb-103de90dc1ec": {
+      "source": "Owsianka z jogurtem",
+      "description": "Ciepła owsianka z jogurtem naturalnym, idealna na pożywne śniadanie.",
+      "en_GB": "Porridge with yoghurt",
+      "detail_sha256": "b1de00d138e6f5390a240c18103840f0d5d837c6f1f424d875d4fbab77538e1d"
+    },
+    "46b868b2-2be7-567f-b2a2-b4bc1fae7cc1": {
+      "source": "Kotlet schabowy z ziemniakami",
+      "description": "Tradycyjny polski kotlet schabowy w panierce, podawany z ziemniakami.",
+      "en_GB": "Breaded pork cutlet with potatoes",
+      "detail_sha256": "1073883962e39cd49d9ea2a9325f511f9ecb616ffd766349abc1f3fef1a9b0ca"
+    },
+    "7ee92d0e-17ec-51af-8150-9d1ae65c7da7": {
+      "source": "Spaghetti bolognese",
+      "description": "Klasyczne spaghetti z mięsnym sosem bolońskim na passacie pomidorowej.",
+      "en_GB": "Spaghetti Bolognese",
+      "detail_sha256": "7f2ea2f478fb9832d6199b163304498fc2826686e3c53b424ea3dfdeeb405d95"
+    },
+    "59bec371-a592-5387-8388-af9822d28da9": {
+      "source": "Kurczak z ryżem i warzywami",
+      "description": "Lekki obiad — grillowana pierś z kurczaka z ryżem i warzywami.",
+      "en_GB": "Chicken with rice and vegetables",
+      "detail_sha256": "029994a4ca6218a07f022440f764c1bc754256d295b0fea99c11f693928e01de"
+    },
+    "db344e04-3f19-5a6f-a246-b57588fc012f": {
+      "source": "Zupa pomidorowa z makaronem",
+      "description": "Domowa zupa pomidorowa na passacie, podawana z drobnym makaronem.",
+      "en_GB": "Tomato soup with pasta",
+      "detail_sha256": "4190b9064cccc17fec7a21d386e4d5add797882aa89aaa4050995eb04a177269"
+    },
+    "b7aef4b2-c6a5-5f65-b09a-35b5fdc51958": {
+      "source": "Sałatka z łososiem",
+      "description": "Lekka sałatka z wędzonym łososiem, ogórkiem i pomidorami.",
+      "en_GB": "Salmon salad",
+      "detail_sha256": "4ebaf506c95d62a5a972c22c9f73cd3c03c676286c168b86d8d5e7a75e8ecb64"
+    },
+    "724873c2-9f8e-540b-b0d8-e174f9bfc567": {
+      "source": "Naleśniki z serem",
+      "description": "Delikatne naleśniki nadziewane twarogiem z masłem.",
+      "en_GB": "Quark-filled pancakes",
+      "detail_sha256": "efc8db858c6bb475a0887f53eece21f56e29532e4643a71854dacd95b306c3c4"
+    },
+    "c5ac116e-8f12-5012-87bb-5463dfc3bbc1": {
+      "source": "Tosty z jajkiem i awokado",
+      "description": "Chrupiące tosty z jajkiem sadzonym i kremowym awokado.",
+      "en_GB": "Egg and avocado toast",
+      "detail_sha256": "b29b9d3176058954bb0fcbc1fbd10d227595bfa7b514334b74038b3d5c119364"
+    },
+    "28fc4da5-422c-5382-8ada-5ef1baa38a2c": {
+      "source": "Shakshuka",
+      "description": "Jajka gotowane w pikantnym sosie pomidorowym z papryką i cebulą.",
+      "en_GB": "Shakshuka",
+      "detail_sha256": "18686e9a4377b793ee0b099380ac683de0e488d226d9b355ef22c79e5ee0cbd2"
+    },
+    "398c64af-a143-5970-81ce-a7a658698267": {
+      "source": "Pad Thai z kurczakiem",
+      "description": "Klasyczny tajski makaron smażony z kurczakiem, orzeszkami i limonką.",
+      "en_GB": "Chicken Pad Thai",
+      "detail_sha256": "54a9a047aefcffa44bd69700f0730137d0946dbe59ab9647bb3fdc26a2c3f0fa"
+    },
+    "5b86bd7a-2211-5b46-afbe-5a577c6797a7": {
+      "source": "Bowl z quinoa i awokado",
+      "description": "Zdrowa miska z quinoa, świeżym awokado, pomidorkami i hummusem.",
+      "en_GB": "Quinoa and avocado bowl",
+      "detail_sha256": "d92c93db57a05df10f0400804f1448cd6efa267eb2b5bb3c1f526bb4a3f50fe3"
+    },
+    "77999fdc-bd24-501e-b186-fa3272960311": {
+      "source": "Risotto z grzybami leśnymi",
+      "description": "Kremowe risotto z mieszanką grzybów leśnych i parmezanem.",
+      "en_GB": "Wild mushroom risotto",
+      "detail_sha256": "08734a7439762cbab82c6f4daa6b4cc0ef58af8379c95c16adf475c448ccff41"
+    },
+    "7e2019e7-4d18-554b-867f-04227f3f6269": {
+      "source": "Overnight oats z chia i owocami",
+      "description": "Owsianka przygotowana wieczorem — rano gotowa do jedzenia z owocami.",
+      "en_GB": "Overnight oats with chia and fruit",
+      "detail_sha256": "f3c7dedb7e9fa4c9a344c360503403944d868da88cfb2efa66247af4acef566b"
+    },
+    "589e0c80-ba08-599b-ade4-3de652e05695": {
+      "source": "Jajka na twardo z awokado i tostem",
+      "description": "Pożywne śniadanie białkowe z kremowym awokado.",
+      "en_GB": "Hard-boiled eggs with avocado and toast",
+      "detail_sha256": "278aa425d097723ab47a8e202dc6fb32429eec9848922399db6062dd996debf6"
+    },
+    "0c1d3e54-9b86-55c3-9a3c-0ac389bedb1d": {
+      "source": "Granola owsiana z miodem i orzechami",
+      "description": "Domowa granola — chrupiąca, słodka, świetna z jogurtem.",
+      "en_GB": "Oat granola with honey and nuts",
+      "detail_sha256": "fab06126d571de785c413f7112fa7320c4e6bc5565c2b975a55a33ad88663b7f"
+    },
+    "8db60146-69af-56fe-a294-c74025b4ee3b": {
+      "source": "Kanapki z pastą jajeczną",
+      "description": "Klasyczna pasta jajeczna na kanapki, gotowa w 10 minut.",
+      "en_GB": "Egg spread sandwiches",
+      "detail_sha256": "a12d3d92d85f6921851e94937e09e1b6eface5fd2bfd89ad2b0d57973c90318d"
+    },
+    "59a5939a-627b-5d9e-bc3e-18295e79f567": {
+      "source": "Placki jaglane na słodko",
+      "description": "Placuszki z kaszy jaglanej — lekkostrawne śniadanie bez glutenu.",
+      "en_GB": "Sweet millet pancakes",
+      "detail_sha256": "b5ff3577d5305b6a122ceeb8ce1b68aeb0fb2cc9ce6a351d400a3c340b91eb7f"
+    },
+    "c6653ad4-8642-58f3-b88f-3986697f985e": {
+      "source": "Omlet z warzywami",
+      "description": "Puszysty omlet z papryką, cebulą i serem.",
+      "en_GB": "Vegetable omelette",
+      "detail_sha256": "de23d6daa9d472135a65cc3d98d8b3550b772c89a0621a47715c84033c20b04c"
+    },
+    "2c6f3f3b-948c-56d8-9e36-eebe5d3b4785": {
+      "source": "Musli z mlekiem kokosowym i mango",
+      "description": "Egzotyczne, orzeźwiające śniadanie na zimno.",
+      "en_GB": "Muesli with coconut milk and mango",
+      "detail_sha256": "e2e7015163d415d60a0a1e421836edeb4ce8bd496801fe096a6bb229bc3c0568"
+    },
+    "569057a6-85a0-5cd8-b8e3-eb4a63519ab7": {
+      "source": "Tost francuski z cynamonem",
+      "description": "Słodkie śniadanie na weekend — chrupiący na zewnątrz, miękki w środku.",
+      "en_GB": "Cinnamon French toast",
+      "detail_sha256": "90e356eda276f65b432dc34a5a70320dd7d7040f94601f12b818d45455ef121b"
+    },
+    "c31d2370-9494-544c-aafc-93c4c8359d8b": {
+      "source": "Smoothie bowl bananowo-truskawkowe",
+      "description": "Gęste smoothie w misce, podane z dodatkami do chrupania.",
+      "en_GB": "Banana and strawberry smoothie bowl",
+      "detail_sha256": "61e18f50c804bfff6f8d59a7f0833511b162262b5f33cac378cab3b574e8517f"
+    },
+    "0f79b1e7-31c4-508f-abfd-25530b507ca2": {
+      "source": "Kanapka z hummusem i warzywami",
+      "description": "Lekka, roślinna kanapka na szybkie śniadanie.",
+      "en_GB": "Hummus and vegetable sandwich",
+      "detail_sha256": "1cfe5f24c7dd70204f106f9617183e1304fabd8a72091a70fc814655d260e407"
+    },
+    "4b99c3d3-abfe-570d-b484-6e2f6394363e": {
+      "source": "Owsianka z masłem orzechowym i bananem",
+      "description": "Sycąca owsianka na słodko, pełna energii na cały poranek.",
+      "en_GB": "Porridge with peanut butter and banana",
+      "detail_sha256": "64571d6ba99f51f02299d960de7e1771428f8d31b5aa51e4b284ea36a6ff29ec"
+    },
+    "9478a09e-09d6-56a9-abb2-2311261441b9": {
+      "source": "Jajka sadzone z pomidorami i bazylią",
+      "description": "Proste śniadanie na patelni — gotowe w 10 minut.",
+      "en_GB": "Fried eggs with tomatoes and basil",
+      "detail_sha256": "bcb1ec04ad7da7ae14953425b5aa66cf81e1bc17b646f179485566e858a96a7f"
+    },
+    "77505aa1-2038-5bab-a7a1-37b357838f46": {
+      "source": "Naleśniki jaglane z owocami",
+      "description": "Cienkie naleśniki bez glutenu, na bazie kaszy jaglanej.",
+      "en_GB": "Millet pancakes with fruit",
+      "detail_sha256": "55815ead68dc60a6711fec66e5958182a83e351f17d67eeb3f840cc5a05f4a32"
+    },
+    "ee2c3d1e-5379-5295-8d90-276113fd86d8": {
+      "source": "Makaron z brokułami i parmezanem",
+      "description": "Prosty, kremowy makaron — idealny na szybki obiad.",
+      "en_GB": "Pasta with broccoli and Parmesan",
+      "detail_sha256": "02aaae7303458cec038ef2aa5f201e7c9577a355e388e92a5f6a8477df532cc4"
+    },
+    "a910ad86-f2df-5b47-91d0-98bc557d742d": {
+      "source": "Krem z brokułów",
+      "description": "Aksamitna zupa krem, gotowa w pół godziny.",
+      "en_GB": "Creamy broccoli soup",
+      "detail_sha256": "6045fc5aed93863798360a2086a0a004ef329abcfe9ced6140423b60c42dbb1b"
+    },
+    "ca1f669e-e4b1-5684-b882-d908f0ada1bf": {
+      "source": "Krem z kalafiora",
+      "description": "Delikatna, kremowa zupa — świetna baza na chłodniejsze dni.",
+      "en_GB": "Creamy cauliflower soup",
+      "detail_sha256": "2e4b86057c6a35e5f39c2404050816c6b4b20d3a27efc005aa2da289e79f3717"
+    },
+    "0f61c083-e864-519d-973f-7ce5808434b5": {
+      "source": "Zupa krem z pieczarek",
+      "description": "Klasyczna zupa pieczarkowa w wersji kremowej.",
+      "en_GB": "Creamy mushroom soup",
+      "detail_sha256": "d0c9b06fe3e1f86bec692bf8548c25970905200f87e2c2bf9ed11c7b6aec85a5"
+    },
+    "44edb02e-2868-5aad-a3cd-5f7f687a3345": {
+      "source": "Zupa jarzynowa z porem",
+      "description": "Rozgrzewająca zupa warzywna na bulionie.",
+      "en_GB": "Vegetable soup with leek",
+      "detail_sha256": "b1eb5b41ee557d82a3533944bca9022e3ccade57a5d0371c93d6c6487e59c90c"
+    },
+    "d0b29f2a-2e29-5346-9add-80a00f261a2e": {
+      "source": "Kurczak curry z ryżem",
+      "description": "Aromatyczne curry z mlekiem kokosowym — łagodne i sycące.",
+      "en_GB": "Chicken curry with rice",
+      "detail_sha256": "0c5dd68d37cd1538693f68cec37690ff12d96f49b144f5b10f82a4bd58d73b6a"
+    },
+    "d2c365e5-eb1b-51d3-9d87-40ed496f9f2a": {
+      "source": "Gulasz wołowo-wieprzowy",
+      "description": "Gęsty, rozgrzewający gulasz duszony powoli.",
+      "en_GB": "Beef and pork stew",
+      "detail_sha256": "d2f11af1a60fa767edd91edb90d171740583685f94a99d36117d0e0441463b4c"
+    },
+    "b15211a9-db8a-50ce-963c-df2735cf92c3": {
+      "source": "Chili con carne",
+      "description": "Pikantne, sycące danie jednogarnkowe z fasolą.",
+      "en_GB": "Chilli con carne",
+      "detail_sha256": "b3e2be75ea5e0983fd85995ad93f71392fa1b496999209d9dccdcbd3b61fd508"
+    },
+    "e57a77c7-c21d-50d2-9ebb-4671f6feae62": {
+      "source": "Tacos z indykiem",
+      "description": "Meksykański klasyk — chrupiące tortille z pikantnym nadzieniem.",
+      "en_GB": "Turkey tacos",
+      "detail_sha256": "d6b9ee158f480f1bcbc31cedd7e140a010d7b12cafee01351e11dbb8222a361a"
+    },
+    "fbceebbf-fdac-5b0d-8a1e-0c5c148142f7": {
+      "source": "Burrito bowl z kurczakiem",
+      "description": "Kolorowa miska w stylu meksykańskim, pełna sycących składników.",
+      "en_GB": "Chicken burrito bowl",
+      "detail_sha256": "09d6cae6985cc9e5202190738ed53738553e92ef5d69575b941c8b38b6760bff"
+    },
+    "932e2fa6-5646-5c79-ba66-a1944b8a2c41": {
+      "source": "Makaron z tuńczykiem i pomidorami",
+      "description": "Szybki obiad z puszki — gotowy w 20 minut.",
+      "en_GB": "Tuna and tomato pasta",
+      "detail_sha256": "2ba83f271402208f34f94bd99db83f995c4a0a2ea09c84b3727dfcf61af826e8"
+    },
+    "04b92d3c-bf59-5c71-b75c-5508dad1eee7": {
+      "source": "Sałatka z kurczakiem i awokado",
+      "description": "Sycąca sałatka obiadowa, bogata w białko i zdrowe tłuszcze.",
+      "en_GB": "Chicken and avocado salad",
+      "detail_sha256": "af7dc286d6da7605ca6b3e5aea1877210dbe765ac32eb8b62422a33d361bf4dc"
+    },
+    "b5075784-71ca-55c0-a06c-f40386a68c69": {
+      "source": "Sałatka z ciecierzycą i fetą",
+      "description": "Roślinna sałatka pełna białka, śródziemnomorski klimat.",
+      "en_GB": "Chickpea and feta salad",
+      "detail_sha256": "edd82615902f9f6d35809db4a33c2bccf38b9d31cca7b90e61269780d9a44fa4"
+    },
+    "a7ec4a38-8952-52fe-8b33-1d2942092695": {
+      "source": "Soczewica po indyjsku (dal)",
+      "description": "Rozgrzewające, roślinne danie jednogarnkowe z curry.",
+      "en_GB": "Indian-style lentil dal",
+      "detail_sha256": "b6a6025df46084e1248f3e59d6e422b34a7da3596a1cb0b5ded7651e9e6c8a11"
+    },
+    "15e96d38-09f4-511d-9a78-d184fffa6eed": {
+      "source": "Kotlety mielone z indyka",
+      "description": "Lekkie kotlety z drobiu, dobra alternatywa dla klasycznych mielonych.",
+      "en_GB": "Turkey mince patties",
+      "detail_sha256": "7905f2a725eeecd3ebbe6a00474ba59260f6f2bb81d4f4f57a7136975f530439"
+    },
+    "2c624dee-4767-581b-a92f-2b9856a9eff7": {
+      "source": "Kurczak pieczony z warzywami",
+      "description": "Jednogarnkowy obiad prosto z piekarnika.",
+      "en_GB": "Roast chicken with vegetables",
+      "detail_sha256": "95097785bdc66e72f62f4bf1f5e07c062c213fcaf33c7a8d83134509d7bc6029"
+    },
+    "53a5a6cd-e9ab-5f31-a5bf-822e66dc1e7b": {
+      "source": "Dorsz pieczony z cytryną i ziołami",
+      "description": "Lekki obiad rybny — gotowy w pół godziny.",
+      "en_GB": "Cod baked with lemon and herbs",
+      "detail_sha256": "76f7f35d80fc8448cbd2810daa2cd07a2fcbb99e80311ec93f2f5fc8b5b82880"
+    },
+    "fc5ee50f-1091-5f4b-a80a-a28a3f1bf4de": {
+      "source": "Krewetki curry z ryżem",
+      "description": "Szybkie, aromatyczne danie w azjatyckim stylu.",
+      "en_GB": "Prawn curry with rice",
+      "detail_sha256": "d841d626c530c1af9cead4118bd4f5c30e2d27b576e724fffe0b232007245e69"
+    },
+    "783dba78-6154-5291-99ea-a5202445a6e9": {
+      "source": "Placki ziemniaczane",
+      "description": "Chrupiące placki, klasyka polskiej kuchni.",
+      "en_GB": "Potato pancakes",
+      "detail_sha256": "f28be7c8fd2b5bdd6b35339c5516b2ccc56125a4c21076293e1162b87080cfb1"
+    },
+    "a2c91d72-d3e9-59d8-b78f-db9b472481b6": {
+      "source": "Bigos szybki",
+      "description": "Uproszczona wersja klasycznego bigosu na obiad w tydzień.",
+      "en_GB": "Quick bigos",
+      "detail_sha256": "fccb50edb77661ccbbc09c525f620dec6d2bff2c12f1fd4a77d51ca6e1b34e84"
+    },
+    "efe248e8-006a-5550-8f37-50f052e6c3f2": {
+      "source": "Pierogi leniwe",
+      "description": "Twarogowe kluski — szybsze niż tradycyjne pierogi.",
+      "en_GB": "Lazy quark dumplings",
+      "detail_sha256": "857076a07f376512806e83a294f7285da3dea25156b91c53f02d9b967e83887e"
+    },
+    "12b3ccac-44fe-5883-a726-dd3d51880f47": {
+      "source": "Kotlety schabowe z kapustą pekińską",
+      "description": "Wariacja klasycznego kotleta z lekką surówką.",
+      "en_GB": "Pork cutlets with Chinese cabbage",
+      "detail_sha256": "4739b9938f850d04aaf3a1bbd35995ca68bab37256e36c5ca6beec570cb7115f"
+    },
+    "fa0cc5d6-1e39-5db5-bdf0-5d4018f76149": {
+      "source": "Makaron z cukinią i parmezanem",
+      "description": "Lekki, letni makaron — gotowy w kwadrans.",
+      "en_GB": "Courgette and Parmesan pasta",
+      "detail_sha256": "b7243580cda68ebbd670b836025cf065a1a0d84732bc52b28634801af5fd4329"
+    },
+    "aada2940-9574-5b23-a23e-7030f7d2b021": {
+      "source": "Risotto z krewetkami",
+      "description": "Kremowe risotto z owocami morza.",
+      "en_GB": "Prawn risotto",
+      "detail_sha256": "184659575567ff3b52ef96854a7c090a24d96d002378b3848080a28fb3285bd5"
+    },
+    "7760a7bf-c07f-56e8-b1e4-8c59b54fc225": {
+      "source": "Kasza gryczana z pieczarkami i cebulą",
+      "description": "Sycące, wegetariańskie danie w tradycyjnym, polskim stylu.",
+      "en_GB": "Buckwheat with mushrooms and onion",
+      "detail_sha256": "df8421b0d1adb32902bb310158dfb9d5b223ae2257229ae8b1efa1c708252c13"
+    },
+    "5725b5c2-eaa5-5f7c-8c64-d4ca428bec52": {
+      "source": "Zapiekanka z cukinii i sera",
+      "description": "Lekka zapiekanka warzywna z piekarnika.",
+      "en_GB": "Courgette and cheese bake",
+      "detail_sha256": "299ec6a9af6a7041276d4088686ddd31d999774dc5ac2bb4705c783210672851"
+    },
+    "1b91ab9f-7b8d-5caf-aac4-a8a73b6007b2": {
+      "source": "Bakłażan zapiekany po grecku",
+      "description": "Aromatyczny, roślinny obiad w śródziemnomorskim stylu.",
+      "en_GB": "Greek-style baked aubergine",
+      "detail_sha256": "8f26a663c06bf6be71493f9c248c530f12fb0987d2083539de42a538d0fadd6e"
+    },
+    "7149e822-7654-59c8-a8e3-81890685533f": {
+      "source": "Sałatka z tuńczykiem i jajkiem",
+      "description": "Lekka, białkowa kolacja gotowa w 15 minut.",
+      "en_GB": "Tuna and egg salad",
+      "detail_sha256": "ca34de98a055c68372a00074f288edd0fcedb8c85cc7c23b7cd2f3509c12c464"
+    },
+    "be56627e-b725-549a-812e-03e9e2f31e30": {
+      "source": "Kanapki caprese",
+      "description": "Włoska klasyka na kanapce — pomidor, mozzarella, bazylia.",
+      "en_GB": "Caprese sandwiches",
+      "detail_sha256": "229908c825230dcc08c91c973c6bb4bc6d5cb8639afd95189b4f3c4041cfe0ae"
+    },
+    "1c821110-1d90-5e44-825b-bd77a2e6ba2e": {
+      "source": "Sałatka caprese",
+      "description": "Prosta, elegancka sałatka na ciepłe wieczory.",
+      "en_GB": "Caprese salad",
+      "detail_sha256": "7c0b5d3a1f098ff8b37c3920c4516a657ddeafed887129c7fca833f4d0d6bcb2"
+    },
+    "ec67eb34-af7b-50b4-88d3-6e8cdd2713b2": {
+      "source": "Omlet na słono z serem i szczypiorkiem",
+      "description": "Prosta, szybka kolacja na słono.",
+      "en_GB": "Savoury cheese and chive omelette",
+      "detail_sha256": "dae576acb3773fc088b1a44feece955357f2f5563ef9db7c386b302ecc1e67ca"
+    },
+    "95b35fc0-3ab0-5e4d-9453-5f20724ea012": {
+      "source": "Tost z hummusem i warzywami",
+      "description": "Roślinna, lekka kolacja gotowa w kilka minut.",
+      "en_GB": "Hummus and vegetable toast",
+      "detail_sha256": "525afa736d3ba6ce9f2e4f0a5eb403749ea938460e6e9d54dd2c0520928517a3"
+    },
+    "9c05677e-a735-56ab-a085-5507e041567e": {
+      "source": "Sałatka z soczewicy i fety",
+      "description": "Sycąca, roślinna sałatka na kolację.",
+      "en_GB": "Lentil and feta salad",
+      "detail_sha256": "50d7b1d8cf21b4d10600ce2a04a6ef9ff5ef5aac7f99e32a6a8d969392ab57fb"
+    },
+    "c4176f35-313b-5816-bc3c-cbae1148d14a": {
+      "source": "Wrap z kurczakiem i warzywami",
+      "description": "Zawijana kolacja — szybka i syta.",
+      "en_GB": "Chicken and vegetable wrap",
+      "detail_sha256": "ada8b333f5eb3f24bfcafaf8c4a650cc6d3eb0912c5caf345cb1a8cbfd94c72c"
+    },
+    "4aad26dc-491e-58a4-860d-169f97fa446c": {
+      "source": "Quesadilla z serem",
+      "description": "Chrupiąca, meksykańska przekąska na kolację.",
+      "en_GB": "Cheese quesadilla",
+      "detail_sha256": "10eff40b602aa7e4b9ed27ba9b29a64dd238ba7dfe4c9e2f20b819b381916d0b"
+    },
+    "42c2799a-a69e-5097-baa1-5e7c20a89279": {
+      "source": "Zupa krem z brokuła i sera",
+      "description": "Kremowa, rozgrzewająca zupa na wieczór.",
+      "en_GB": "Creamy broccoli and cheese soup",
+      "detail_sha256": "0f8bb4ccd666039cc0c4b7b057937c5d19d79da07820791f3f7ffd6ef5e1c20c"
+    },
+    "6fa98cd6-f081-53aa-9a67-2ab63be67bc1": {
+      "source": "Kanapki z pastą z ciecierzycy",
+      "description": "Roślinna pasta kanapkowa — sycąca i pełna błonnika.",
+      "en_GB": "Chickpea spread sandwiches",
+      "detail_sha256": "ab8b923afba4bf28f982b3740c3b66b709d3eb58f5dbb8ede653c7dab0598b8f"
+    },
+    "209c3bed-af69-52aa-9c6b-0f89d559c9dc": {
+      "source": "Sałatka grecka z krewetkami",
+      "description": "Sycąca wersja sałatki greckiej z owocami morza.",
+      "en_GB": "Greek salad with prawns",
+      "detail_sha256": "d4760b36eb84f793e19a9b405e55e06f1829c47b06ec99e8411f938fbbc8b3fe"
+    },
+    "b64e7f9a-e56d-5afd-8d44-0a4f1f760fad": {
+      "source": "Zupa krem porowa",
+      "description": "Delikatna, elegancka zupa na kolację.",
+      "en_GB": "Creamy leek soup",
+      "detail_sha256": "6ab3aea4933a185a7399ab9ae1376490acf4dcc095c807d5ea9755efb86f4f78"
+    },
+    "d7cf84d9-38e4-58df-96fa-67797eadc6a9": {
+      "source": "Tosty z pastą jajeczną i szczypiorkiem",
+      "description": "Klasyczna kanapkowa pasta na kolację.",
+      "en_GB": "Toast with egg spread and chives",
+      "detail_sha256": "305579b785ea19954968fb45fd235ea92f2d858fcf141531ddd33c321e19d3d0"
+    },
+    "74104ff2-cd44-5a52-a85c-5745154a92d8": {
+      "source": "Sałatka z awokado i jajkiem",
+      "description": "Kremowa, sycąca sałatka wieczorna.",
+      "en_GB": "Avocado and egg salad",
+      "detail_sha256": "5665585dea11973377089a00befe56211e02332a9798e8d604ab5978bd680337"
+    },
+    "8f6fb737-de3b-550b-b438-c8c2dd4d3963": {
+      "source": "Pieczone chipsy z kalafiora",
+      "description": "Chrupiąca, zdrowa alternatywa dla chipsów.",
+      "en_GB": "Baked cauliflower crisps",
+      "detail_sha256": "7b503cdce3987dc6c46248518827c06d7671c45e89c2034901c039db685d38ef"
+    },
+    "95274b72-f88c-5d13-a6b9-2e30733ace6d": {
+      "source": "Kulki mocy owsiano-orzechowe",
+      "description": "Domowa przekąska energetyczna bez pieczenia.",
+      "en_GB": "Oat and nut energy balls",
+      "detail_sha256": "7caf51034315aeb0bfeb158353d1ea51b35001dd94bbccb4e0f2dce602e7714d"
+    },
+    "a2cdb279-14d7-5041-8c06-946e3792f1db": {
+      "source": "Pieczona chrupiąca ciecierzyca",
+      "description": "Chrupiąca, przyprawiona przekąska zamiast chipsów.",
+      "en_GB": "Crispy roast chickpeas",
+      "detail_sha256": "f964241278fc6a62ee65628022afea1244e0176450407e53546e71fda4aa4134"
+    },
+    "a4c78632-3bd4-586e-8e5e-8cd12bedb0b3": {
+      "source": "Smoothie mango-bananowe",
+      "description": "Orzeźwiające, owocowe smoothie na szybką przekąskę.",
+      "en_GB": "Mango and banana smoothie",
+      "detail_sha256": "6041ec9b879dd0b10829d43de1908729ee01ca4cba4924166e3525d8435c5470"
+    },
+    "6930a8b4-c3b7-5e95-919a-b65016203592": {
+      "source": "Jogurt z granolą i miodem",
+      "description": "Prosta, słodka przekąska na każdą porę dnia.",
+      "en_GB": "Yoghurt with granola and honey",
+      "detail_sha256": "bd84f0229bf238ac8c30d3d303131f118efc4c32b473f00d2328f7e845d791d3"
+    },
+    "d99b4d0e-e07f-5f92-aee6-77dc687baa3a": {
+      "source": "Sałatka owocowa",
+      "description": "Kolorowa mieszanka świeżych owoców.",
+      "en_GB": "Fruit salad",
+      "detail_sha256": "66b54ae734d32b2fb3ae8644e4b761a81440c84df0fc4f6da252f61d955d71c5"
+    },
+    "db84cd7b-5862-5580-93ee-7b5a709adcca": {
+      "source": "Guacamole z warzywami",
+      "description": "Kremowy, meksykański dip z chrupiącymi warzywami do maczania.",
+      "en_GB": "Guacamole with vegetables",
+      "detail_sha256": "ca6d0fbf96de408623c42ec889e530108f62d573dbafd1859e53cb06a23eef8e"
+    },
+    "c863242f-75a0-5797-94f6-4d83699ff416": {
+      "source": "Musli batoniki owsiane",
+      "description": "Domowe batoniki zbożowe — świetne na wynos.",
+      "en_GB": "Oat muesli bars",
+      "detail_sha256": "a2f3a0ccf9489239400f5d590056e82835f0313083dd2c79c28bdae8be33f9bd"
+    },
+    "c880b76c-0d51-5ac6-b7e9-37e6e35430fe": {
+      "source": "Tost z awokado i pomidorem",
+      "description": "Prosty, w pełni roślinny tost — szybkie śniadanie.",
+      "en_GB": "Avocado and tomato toast",
+      "detail_sha256": "92578c026b493781a78ffcc78e982b15b1ab175253690e2ee58153d46853af79"
+    },
+    "37537c67-3fc6-5cf2-861b-b0107ca86263": {
+      "source": "Curry z ciecierzycą i szpinakiem",
+      "description": "Rozgrzewające, w pełni roślinne curry — sycące i szybkie.",
+      "en_GB": "Chickpea and spinach curry",
+      "detail_sha256": "21339016c3533aaf15e7df03dec95454a692a7186c0fa013a0944e4bb266ea42"
+    },
+    "de804b96-24c5-5e16-a2bb-a3f76aaf8392": {
+      "source": "Sałatka z ciecierzycą i awokado",
+      "description": "Sycąca, w pełni roślinna sałatka na kolację.",
+      "en_GB": "Chickpea and avocado salad",
+      "detail_sha256": "4c7497c17b7f6e8071705ecc20ffde25ec8f8a0dc062f5fdabc9da111b75e9bb"
+    },
+    "cf6c18c6-bfc3-5b80-b676-2f47dc2ac88f": {
+      "source": "Makaron z pomidorami i bazylią",
+      "description": "Klasyczny, w pełni roślinny makaron pomodoro.",
+      "en_GB": "Tomato and basil pasta",
+      "detail_sha256": "da73c4509b8156f5d7640f7de2b4838545660ca4d2af3c300f70a78acb95000d"
+    },
+    "fef808dd-f283-5b27-9c0a-52ecff35858f": {
+      "source": "Kasza gryczana z warzywami",
+      "description": "Sycąca, w pełni roślinna kasza z warzywami na patelni.",
+      "en_GB": "Buckwheat with vegetables",
+      "detail_sha256": "506ca16dc42a93192cc0a76ef726b7604349a65eddaa2c954911edfba6fb354b"
+    },
+    "644406b6-bee2-5da4-b050-1efd1ff1da18": {
+      "source": "Awokado z jajkiem sadzonym",
+      "description": "Niskowęglowodanowe śniadanie bez pieczywa.",
+      "en_GB": "Avocado with fried eggs",
+      "detail_sha256": "98d85db91262c773aa27c8c04131effbe3e32474205112b010dff56034d68d97"
+    },
+    "8403654e-b581-58f0-a9b6-e1410e1f7b1f": {
+      "source": "Kurczak z masłem ziołowym i brokułem",
+      "description": "Niskowęglowodanowy, wysokobiałkowy obiad.",
+      "en_GB": "Chicken with herb butter and broccoli",
+      "detail_sha256": "ec6c225b4dd90c71aff751a2e2494eaad795e1144f181f115713e1c841714e45"
+    },
+    "9f1da5ac-f8f8-5411-a931-c62e85fee34d": {
+      "source": "Jajka na twardo",
+      "description": "Najprostsza, wysokobiałkowa przekąska niskowęglowodanowa.",
+      "en_GB": "Hard-boiled eggs",
+      "detail_sha256": "dc08306606906929d17549e5d50cb814b26fde9b67e48186735e4f82a75f998d"
+    },
+    "bd49465a-6329-5ae2-9d30-789658bb2b8e": {
+      "source": "Oliwki z serem feta",
+      "description": "Śródziemnomorska, niskowęglowodanowa przekąska.",
+      "en_GB": "Olives with feta",
+      "detail_sha256": "22cc10330b6dede94eaa19b8f0ee2b466989b9b2dbadd70832baca2e367c9da8"
+    },
+    "9ce542e4-202d-5772-ba43-0a43baff60d5": {
+      "source": "Twaróg z miodem",
+      "description": "Prosta, wysokobiałkowa przekąska na słodko.",
+      "en_GB": "Quark with honey",
+      "detail_sha256": "3a821ee1b4af316e5379c51bdf617719b6db5558c5844d43551b7fba58b535c9"
+    },
+    "762e2a80-f4a7-52f4-82a2-8b0db789bd90": {
+      "source": "Szynka z serem",
+      "description": "Szybka, wysokobiałkowa przekąska bez gotowania.",
+      "en_GB": "Ham with cheese",
+      "detail_sha256": "acae7ef06f3b71a39da7eeb1388a6c1fc1fa1fc6a077d3ad884ff585a7e1d161"
+    },
+    "e8e9eceb-ff92-54cc-96ce-2b92250af818": {
+      "source": "Jogurt z orzechami",
+      "description": "Prosta, wysokobiałkowa przekąska.",
+      "en_GB": "Yoghurt with nuts",
+      "detail_sha256": "f75e47f1903cd7dd581d504730dbb4b8ab67ccece4545edcc1492e671f43fdbc"
+    },
+    "c736ce38-9ced-50a6-acbb-52c827c2094f": {
+      "source": "Sałatka z tuńczyka i ogórkiem",
+      "description": "Lekka, wysokobiałkowa przekąska bez gotowania.",
+      "en_GB": "Tuna and cucumber salad",
+      "detail_sha256": "b69bad8fe1f2024c8c50bfd8ec85755cc6a2c7f9771a1dee3ef672ec59b5dc49"
+    },
+    "ccf5dda8-d37d-5ec3-b06a-dca7d9b36702": {
+      "source": "Mandarynkowe skrzydełka z airfryera",
+      "description": "Soczyste skrzydełka w cytrusowej glazurze z tamari.",
+      "en_GB": "Air fryer mandarin chicken wings",
+      "detail_sha256": "5e5bbd8097f5a8b7adc5fef33b7e37f0898e29192bb0a84be3db7e9cde15d0a9"
+    },
+    "289b9403-45b9-5819-8826-77a8ef18c9d3": {
+      "source": "Łosoś teriyaki z fasolką z airfryera",
+      "description": "Łosoś i świeża fasolka przygotowane razem w jednym koszu.",
+      "en_GB": "Air fryer teriyaki salmon with green beans",
+      "detail_sha256": "b90cbd5cfb41cd41b1da27df9b67d27723e8afb258cac534a27b005ba12105d4"
+    },
+    "f7773aa5-4ed9-548b-898e-bd1f08f83e3e": {
+      "source": "Paluszki z dorsza w panko z airfryera",
+      "description": "Domowe paluszki rybne z chrupiącą panierką panko.",
+      "en_GB": "Air fryer panko cod fingers",
+      "detail_sha256": "1d28157a0e3657e81f8bf6430ce442524d7f59049d5b9dfb2aa75d93b5efbbb4"
+    },
+    "abea3214-ff82-599d-8445-51771f7078f9": {
+      "source": "Krewetki kokosowe z airfryera",
+      "description": "Krewetki w lekkiej panierce kokosowej z sosem sweet chili.",
+      "en_GB": "Air fryer coconut prawns",
+      "detail_sha256": "a16cc1e2739b5405d15c781b3a90d5784602d7fb40985e66e8dd2e8236999dfc"
+    },
+    "db842b56-5d1a-5605-b544-2423cec71a16": {
+      "source": "Polędwiczka w musztardzie francuskiej z airfryera",
+      "description": "Delikatna wieprzowina z ziarnistą musztardą i szałwią.",
+      "en_GB": "Air fryer pork tenderloin with wholegrain mustard",
+      "detail_sha256": "16d464e5a9b74d275a45b23c6b097bb2cea0a1b34d8228d6c3f318725a81e3c8"
+    },
+    "403f1a1f-d8d4-5ab4-abe1-7c3c6e67791f": {
+      "source": "Kofty z indyka z miętowym skyrem",
+      "description": "Aromatyczne kofty z chudego indyka i chłodny sos miętowy.",
+      "en_GB": "Turkey koftas with mint skyr",
+      "detail_sha256": "5ca0ad2316ba9af921ecd3ad047715824eb5547469e423c1d336775e836c10aa"
+    },
+    "d574e639-4ef4-566f-b6d8-e8c0c3e90bb9": {
+      "source": "Chrupiące tofu w sosie pomarańczowym",
+      "description": "Kostki tofu z cytrusowym sosem i sezamem.",
+      "en_GB": "Crispy tofu in orange sauce",
+      "detail_sha256": "1de445d1a92964cdc1628ee7b67fe0b540d105566f1bbc3553368f1faa102511"
+    },
+    "e62e32b6-38fb-565f-b158-e7559a245e67": {
+      "source": "Falafel z airfryera z sosem tahini",
+      "description": "Ziołowe kulki z ciecierzycy bez smażenia w głębokim tłuszczu.",
+      "en_GB": "Air fryer falafel with tahini sauce",
+      "detail_sha256": "3e84d83f04b3525c60a50e20d9df252eba597ecd56ff84ad4db487441e7b7c7f"
+    },
+    "1abded16-336b-5ef7-98d0-cbdc29c7c1e4": {
+      "source": "Frytki z halloumi z dipem granatowym",
+      "description": "Chrupiące słupki halloumi z kwaśno-słodkim dipem.",
+      "en_GB": "Halloumi fries with pomegranate dip",
+      "detail_sha256": "25ea691239e51d1b645c055ec9503baa50260692e5fcca7b6268616e6646d457"
+    },
+    "2eeb4a5a-74e5-56f1-a001-1dcb104c2006": {
+      "source": "Arancini z mozzarellą z airfryera",
+      "description": "Kulki ryżowe z ciągnącym serem i chrupiącą panierką.",
+      "en_GB": "Air fryer mozzarella arancini",
+      "detail_sha256": "eb657ff61bcb8666b847366893964a58dcfeeaaf4f350b47f9e25b384ad8c1d6"
+    },
+    "1218b581-db34-5dc6-8a84-c533ac2441ff": {
+      "source": "Chrupiące gnocchi z pesto rosso",
+      "description": "Złociste gnocchi z suszonym pomidorem i świeżą bazylią.",
+      "en_GB": "Crispy gnocchi with pesto rosso",
+      "detail_sha256": "29ac3f26c1f7bdb86f2095c643cd4070eb79cd18db6e18cfd4470095be77213b"
+    },
+    "54c61382-dea6-5271-b0c5-6c291a58c9d1": {
+      "source": "Portobello ze szpinakiem i ricottą",
+      "description": "Duże kapelusze pieczarek z kremowym, ziołowym farszem.",
+      "en_GB": "Portobello mushrooms with spinach and ricotta",
+      "detail_sha256": "873a9ae918e4518a7eabb28e364ab4121386a9675a78ed5025df6e8426a690fd"
+    },
+    "63f1a2a7-e152-56eb-bfc3-d714cd15c8c2": {
+      "source": "Mini calzone z salami i żółtą papryką",
+      "description": "Małe kieszonki z ciasta z wyrazistym włoskim nadzieniem.",
+      "en_GB": "Mini calzones with salami and yellow pepper",
+      "detail_sha256": "e357bad9f0cf45d603742026bd9be19f7ada1773ecb0fbc7a9ceaae007748432"
+    },
+    "1e1346b7-90d1-5379-9db1-6fa7fc49242e": {
+      "source": "Placki z cukinii i pecorino z airfryera",
+      "description": "Warzywne placki z wyrazistym owczym serem.",
+      "en_GB": "Air fryer courgette and pecorino fritters",
+      "detail_sha256": "68da96ddda527966071dc7f1b90d89052d4a1f695b43ebd5d904a89a243fbcec"
+    },
+    "1af5b3b7-2180-5033-88cc-d4ba839d7d3d": {
+      "source": "Bataty hasselback z fetą i harissą",
+      "description": "Nacinane bataty z pikantną harissą i słoną fetą.",
+      "en_GB": "Hasselback sweet potatoes with feta and harissa",
+      "detail_sha256": "1363a9f12d61edf4560ff71a6be349ca1aa863580bef14bd2097ded1df9805bc"
+    },
+    "656c2a92-cc06-577f-a251-35ff49f47eff": {
+      "source": "Brukselka balsamiczna z orzechami pekan",
+      "description": "Skarmelizowana brukselka z chrupiącymi orzechami.",
+      "en_GB": "Balsamic Brussels sprouts with pecans",
+      "detail_sha256": "c8d63e2d080ed5eb83944e450267db4fd5ab2693033c75053f9f1337ee4f07cd"
+    },
+    "5d413b6c-3bde-542e-88de-9a559e8c31ca": {
+      "source": "Marchewkowe frytki zaatar z hummusem",
+      "description": "Pieczone słupki marchewki z aromatyczną mieszanką ziół.",
+      "en_GB": "Za'atar carrot fries with hummus",
+      "detail_sha256": "6113b8cbe87938b0efdaa7334addb98ed3074bc56a99ec334568d43ea3cd8b8a"
+    },
+    "0bc945f9-8342-5d84-a3b0-972485b9c1f1": {
+      "source": "Frytki z polenty z sosem marinara",
+      "description": "Złociste paluszki polenty do maczania w sosie pomidorowym.",
+      "en_GB": "Polenta fries with marinara sauce",
+      "detail_sha256": "bb61d9f981760837806fd794bfd785e748ba715d6b01ae353f4fc297e858bbd4"
+    },
+    "5de972f2-183c-5156-805f-746ce414b694": {
+      "source": "Brokułowe kąski z cheddarem",
+      "description": "Miękkie w środku, rumiane kąski z brokułu i sera.",
+      "en_GB": "Broccoli and Cheddar bites",
+      "detail_sha256": "26b68520bd6226c28c2c1283d91054a6f104f0d0a1a8830c55930ca49fd5998e"
+    },
+    "1a0e4f77-aced-56f9-b6c3-77d9892074c8": {
+      "source": "Wędzona kukurydza z limonką z airfryera",
+      "description": "Kolby kukurydzy z limonką i dymnym aromatem papryki.",
+      "en_GB": "Air fryer smoky corn with lime",
+      "detail_sha256": "14d4a4152d1801efae103c93d67d5b1f8b46dff0777d3e967ccc4ca465b124f6"
+    },
+    "be2451d0-791c-5750-a44f-7b60f50740a9": {
+      "source": "Jabłkowe crumble z airfryera",
+      "description": "Ciepłe jabłka pod kruszonką z płatków i orzechów.",
+      "en_GB": "Air fryer apple crumble",
+      "detail_sha256": "dba66fcc0a06dd9ad2492cbbee2ec1d2acd44132294ed8ed0704ce0b5c7de758"
+    },
+    "6bfb9318-302b-5351-83fc-4cae424081b9": {
+      "source": "Gruszki z serem pleśniowym i pekanami",
+      "description": "Pieczone gruszki z kremowym serem i chrupiącymi orzechami.",
+      "en_GB": "Pears with mould-ripened cheese and pecans",
+      "detail_sha256": "86245224d2c9ff3e5be363e1e2af439a1b197d96fdb494fd7414fac7bf07de1d"
+    },
+    "15e3ae67-96e9-56f4-b2ce-fb3ed3dd02df": {
+      "source": "Pomarańczowe serniczki ze skyru",
+      "description": "Małe serniczki ze skyru pachnące świeżą pomarańczą.",
+      "en_GB": "Mini orange skyr cheesecakes",
+      "detail_sha256": "2edd2ec846f1e8826257096711b51e61d6438d2e8e07d381a5bd209c7aebc7dc"
+    },
+    "e013e9f4-1519-51ef-9b75-2539ee4a4df7": {
+      "source": "Bananowo-kakaowe muffinki z airfryera",
+      "description": "Wilgotne muffinki słodzone dojrzałym bananem i daktylami.",
+      "en_GB": "Air fryer banana and cocoa muffins",
+      "detail_sha256": "8163b304485ca29191b37ecaed2ca14d2d0666bd00aea1bbc33f1e8532879021"
+    },
+    "e5b69f8c-346f-5227-90a3-2433a7ea3708": {
+      "source": "Brzoskwiniowe rożki z ciasta francuskiego",
+      "description": "Kruche rożki z brzoskwinią, migdałami i wanilią.",
+      "en_GB": "Peach puff pastry turnovers",
+      "detail_sha256": "29f301374cfc479ae84f10d278901827463b6e5b807f02e7de69eb7bc0af9026"
+    }
+  },
+  "ingredients": {
+    "c16683e3-c5bb-508b-b17d-ecfea391c805": {
+      "source": "Awokado",
+      "en_GB": "Avocado"
+    },
+    "f8ece7f3-9cd6-5290-a9fa-698c0eaa3ece": {
+      "source": "Bakłażan",
+      "en_GB": "Aubergine"
+    },
+    "08b69a35-1fa2-5573-947d-16401e84f895": {
+      "source": "Banan",
+      "en_GB": "Banana"
+    },
+    "006ae069-31ed-52c6-8ec3-fd2b46db4450": {
+      "source": "Bataty",
+      "en_GB": "Sweet potatoes"
+    },
+    "e512f47e-1f43-532c-9f47-988523face15": {
+      "source": "Bazylia suszona",
+      "en_GB": "Dried basil"
+    },
+    "f0c7bb76-5a57-5d47-88b8-30bf637a21d8": {
+      "source": "Bazylia świeża",
+      "en_GB": "Fresh basil"
+    },
+    "c5d65d64-51e9-5ffc-98d6-17d6cb6f037a": {
+      "source": "Borówki",
+      "en_GB": "Blueberries"
+    },
+    "5dbca956-7b18-52e8-a5b4-b282a589a80b": {
+      "source": "Brokuł",
+      "en_GB": "Broccoli"
+    },
+    "cdf51d65-efb6-5ba3-827d-ea59af592dd1": {
+      "source": "Brukselka",
+      "en_GB": "Brussels sprouts"
+    },
+    "bef47689-1424-55a7-8495-5cbff4a760ca": {
+      "source": "Brzoskwinie",
+      "en_GB": "Peaches"
+    },
+    "4bdde9b2-4ac9-59bd-84bb-68f02b97428f": {
+      "source": "Budyń waniliowy",
+      "en_GB": "Vanilla pudding powder"
+    },
+    "13805734-9c35-5020-b845-9db6001abede": {
+      "source": "Bulion warzywny",
+      "en_GB": "Vegetable stock"
+    },
+    "3b6c357a-3dc8-5695-b875-746a53d751ec": {
+      "source": "Bułka kajzerka",
+      "en_GB": "Kaiser roll"
+    },
+    "41179e0a-be10-5fd3-8e0a-7485df45c8d5": {
+      "source": "Bułka tarta",
+      "en_GB": "Breadcrumbs"
+    },
+    "c15376d5-34e3-50d2-94fa-a9f0a4f8a304": {
+      "source": "Bułka tarta panko",
+      "en_GB": "Panko breadcrumbs"
+    },
+    "8016280f-9856-524e-836b-9191400bc9ac": {
+      "source": "Cebula",
+      "en_GB": "Onion"
+    },
+    "dc03210f-a6cb-5f2d-9aec-195e95761eb5": {
+      "source": "Chili suszone",
+      "en_GB": "Dried chilli"
+    },
+    "79303edd-d9f3-5c43-b145-466720e00afe": {
+      "source": "Chleb pszenny",
+      "en_GB": "White bread"
+    },
+    "76e199e0-af54-5c6e-88a1-4075145f565b": {
+      "source": "Ciasto francuskie",
+      "en_GB": "Puff pastry"
+    },
+    "83d43234-da51-547a-b5c6-a30959b3ecbf": {
+      "source": "Ciasto na pizzę",
+      "en_GB": "Pizza dough"
+    },
+    "4cb8727d-35b2-5752-bdcd-9ffcf9d854fa": {
+      "source": "Ciecierzyca konserwowa",
+      "en_GB": "Tinned chickpeas"
+    },
+    "8f1a4823-cd20-575a-abc0-7e8150f25415": {
+      "source": "Cukier",
+      "en_GB": "Sugar"
+    },
+    "f0f7e238-3cc7-5691-9aef-a3ec55f20df2": {
+      "source": "Cukinia",
+      "en_GB": "Courgette"
+    },
+    "675c07f4-816d-5db5-88cb-7e8f38cb1f7e": {
+      "source": "Curry w proszku",
+      "en_GB": "Curry powder"
+    },
+    "a01008dc-3676-549a-8858-3a7191d461a4": {
+      "source": "Cynamon",
+      "en_GB": "Cinnamon"
+    },
+    "30dee60b-6773-5005-8e2e-5edf08048648": {
+      "source": "Cytryna",
+      "en_GB": "Lemon"
+    },
+    "27407a17-4c81-5419-bcf7-f6536c0a6265": {
+      "source": "Czosnek",
+      "en_GB": "Garlic"
+    },
+    "9534e124-536c-52ec-8c6f-0700f37eb5d1": {
+      "source": "Daktyle suszone",
+      "en_GB": "Dried dates"
+    },
+    "e9e2a3a5-a49e-5145-8584-4ecf66a698b5": {
+      "source": "Dorsz filet",
+      "en_GB": "Cod fillet"
+    },
+    "298f104b-0b1b-568b-abcd-2cb0bc3fe0ce": {
+      "source": "Fasola konserwowa",
+      "en_GB": "Tinned beans"
+    },
+    "8a65b4bc-a60b-5edf-bf6d-d1b4f380bca4": {
+      "source": "Fasola szparagowa świeża",
+      "en_GB": "Fresh green beans"
+    },
+    "9f6cca1c-47b2-554a-8e8e-4b5b12ef3aa9": {
+      "source": "Filet z indyka",
+      "en_GB": "Turkey fillet"
+    },
+    "7313d41d-289d-554f-86b7-6176382c7fa9": {
+      "source": "Gnocchi ziemniaczane",
+      "en_GB": "Potato gnocchi"
+    },
+    "07c1b746-4b1d-52a5-9771-900327cc9634": {
+      "source": "Groszek zielony mrożony",
+      "en_GB": "Frozen peas"
+    },
+    "805773f9-38b7-50fb-87e6-b79f8753b4df": {
+      "source": "Gruszki",
+      "en_GB": "Pears"
+    },
+    "7e4fd315-9468-5c31-9c56-e30626b7da13": {
+      "source": "Harissa",
+      "en_GB": "Harissa"
+    },
+    "3d031750-0b97-55ac-bb4f-023971a20541": {
+      "source": "Hummus",
+      "en_GB": "Hummus"
+    },
+    "5e63d88b-366c-571e-a8ac-583a5609debc": {
+      "source": "Imbir świeży",
+      "en_GB": "Fresh ginger"
+    },
+    "c6445274-3365-546f-8729-7fc51b76dc18": {
+      "source": "Jabłka",
+      "en_GB": "Apples"
+    },
+    "cef85b7e-cf1f-5b02-84f1-64f55209ac8c": {
+      "source": "Jajka",
+      "en_GB": "Eggs"
+    },
+    "a15726ee-ab67-5765-b280-a027dbd0f9e5": {
+      "source": "Jogurt grecki",
+      "en_GB": "Greek yoghurt"
+    },
+    "0a92f321-13ee-5a51-a017-8f42c35e1963": {
+      "source": "Jogurt naturalny",
+      "en_GB": "Natural yoghurt"
+    },
+    "2399cb86-fccb-549d-914f-d9bb9ba501ab": {
+      "source": "Kakao ciemne",
+      "en_GB": "Dark cocoa powder"
+    },
+    "59d76661-f88d-52c7-b385-0a36aeda506f": {
+      "source": "Kalafior",
+      "en_GB": "Cauliflower"
+    },
+    "d4633375-8ff5-564f-b541-64d3c80f6539": {
+      "source": "Kapusta pekińska",
+      "en_GB": "Chinese cabbage"
+    },
+    "f37b3f71-90d9-5b3b-9133-4bd49617e107": {
+      "source": "Kasza gryczana",
+      "en_GB": "Buckwheat groats"
+    },
+    "8483d7fb-165a-5f56-b3b3-8b88537fbfa8": {
+      "source": "Kasza jaglana",
+      "en_GB": "Millet"
+    },
+    "e83e16ff-d606-5844-93bc-006dd0f7e1e6": {
+      "source": "Kiełbasa śląska",
+      "en_GB": "Silesian sausage"
+    },
+    "e5da791a-5cd2-5395-bdfc-df1314fab283": {
+      "source": "Kmin rzymski",
+      "en_GB": "Cumin"
+    },
+    "a816a3b8-7ea7-5924-811e-bde6a75e0c9f": {
+      "source": "Kolendra świeża",
+      "en_GB": "Fresh coriander"
+    },
+    "5b75bdf4-0bce-5d6e-a839-10a7c45d1f11": {
+      "source": "Krem balsamiczny",
+      "en_GB": "Balsamic glaze"
+    },
+    "8e19950e-3d13-5144-910e-3c00ed28175e": {
+      "source": "Krewetki mrożone",
+      "en_GB": "Frozen prawns"
+    },
+    "e32f58bd-c5ce-5da5-b51f-ade7514e2dcc": {
+      "source": "Kukurydza kolba",
+      "en_GB": "Corn on the cob"
+    },
+    "b2a734b3-dd6b-5e34-9ff4-d2baa769bbb6": {
+      "source": "Limonka",
+      "en_GB": "Lime"
+    },
+    "8cca272d-414c-5e8f-a044-0ddef8f5e2b3": {
+      "source": "Makaron penne",
+      "en_GB": "Penne pasta"
+    },
+    "40b525b7-8f25-58b4-96dd-f25045a6a762": {
+      "source": "Maliny",
+      "en_GB": "Raspberries"
+    },
+    "784cc01f-0915-5aeb-95ed-b982a9ac94bc": {
+      "source": "Mandarynki",
+      "en_GB": "Mandarins"
+    },
+    "a2c8cd35-9259-5548-bdbb-1657f9b80ebf": {
+      "source": "Mango",
+      "en_GB": "Mango"
+    },
+    "2b63a301-61b6-5736-a444-7929f35e1c23": {
+      "source": "Marchew",
+      "en_GB": "Carrot"
+    },
+    "89bf7d5e-1cf8-5b33-8c78-1e68a240569e": {
+      "source": "Masło extra",
+      "en_GB": "Butter"
+    },
+    "ce838162-6aca-53ad-9025-7ef8f8f9af8c": {
+      "source": "Masło orzechowe",
+      "en_GB": "Peanut butter"
+    },
+    "4c37b4e4-89c6-598d-8e68-4f97e32f8bef": {
+      "source": "Melasa z granatu",
+      "en_GB": "Pomegranate molasses"
+    },
+    "c2ddd14e-92b2-5bea-ad20-eccaef23d7ed": {
+      "source": "Mielone wieprzowo-wołowe",
+      "en_GB": "Pork and beef mince"
+    },
+    "e809f0b5-5d6f-5879-8b10-6f31e0bf32c7": {
+      "source": "Migdały płatki",
+      "en_GB": "Flaked almonds"
+    },
+    "c09e2f7d-8a14-56f9-8e07-947cc5c291c9": {
+      "source": "Miód",
+      "en_GB": "Honey"
+    },
+    "b172e08b-c8e1-5ab9-bccc-52888c5fcaf9": {
+      "source": "Mięso mielone z indyka",
+      "en_GB": "Turkey mince"
+    },
+    "aa6b1af3-fd64-58a6-9935-411376422787": {
+      "source": "Mięta świeża",
+      "en_GB": "Fresh mint"
+    },
+    "527c542c-dae3-52d1-b75f-d7a4e76204a3": {
+      "source": "Mleko 2%",
+      "en_GB": "Milk (2% fat)"
+    },
+    "edbd1a0f-8c09-53fe-833b-cfb8b35334da": {
+      "source": "Mleko kokosowe",
+      "en_GB": "Coconut milk"
+    },
+    "5c64ab06-cb48-5942-a888-ff8fe96cb9a1": {
+      "source": "Mleko migdałowe",
+      "en_GB": "Almond milk"
+    },
+    "18fb3018-050e-56bc-8c2f-055cf005cb91": {
+      "source": "Mozzarella",
+      "en_GB": "Mozzarella"
+    },
+    "10e29658-6504-5aa0-aabd-4835ddb1391e": {
+      "source": "Mrożone warzywa mieszanka",
+      "en_GB": "Frozen mixed vegetables"
+    },
+    "05ed527d-4a43-52b4-9750-0fb7386e5668": {
+      "source": "Mrożony szpinak",
+      "en_GB": "Frozen spinach"
+    },
+    "c9627249-6da5-54b5-8a66-8bbf277ceb61": {
+      "source": "Musztarda",
+      "en_GB": "Mustard"
+    },
+    "0778400e-cfac-5c05-9373-a9a784d2f1c3": {
+      "source": "Musztarda francuska",
+      "en_GB": "Wholegrain mustard"
+    },
+    "5b36cc6d-05d2-5cfa-ba57-dfe6aff5c3ea": {
+      "source": "Mąka migdałowa",
+      "en_GB": "Almond flour"
+    },
+    "fda48b0e-7fc4-5175-80ff-3ac0503f22c1": {
+      "source": "Mąka pszenna",
+      "en_GB": "Wheat flour"
+    },
+    "99a3b772-42a7-5162-9a66-15d725a05b72": {
+      "source": "Mąka z ciecierzycy",
+      "en_GB": "Chickpea flour"
+    },
+    "f31db480-7a95-53eb-b320-25068281cf56": {
+      "source": "Nasiona chia",
+      "en_GB": "Chia seeds"
+    },
+    "5f7d29fd-59af-5579-bd4d-eae3fd2847d5": {
+      "source": "Natka pietruszki",
+      "en_GB": "Parsley"
+    },
+    "ec5a5f94-ac34-5223-9ff1-1ae9e72d6851": {
+      "source": "Ocet balsamiczny",
+      "en_GB": "Balsamic vinegar"
+    },
+    "f069ad9f-c14b-58ae-b4b8-9b01ce8e318c": {
+      "source": "Ogórek",
+      "en_GB": "Cucumber"
+    },
+    "bc031d92-b687-50de-afb7-5c6f33ba539e": {
+      "source": "Olej rzepakowy",
+      "en_GB": "Rapeseed oil"
+    },
+    "4faa4e87-088e-5393-a242-49ebebbd24bf": {
+      "source": "Oliwa z oliwek",
+      "en_GB": "Olive oil"
+    },
+    "20eb9d33-1702-5327-8408-746c0281c62b": {
+      "source": "Oliwki czarne",
+      "en_GB": "Black olives"
+    },
+    "f83c4324-e329-58d2-9652-13a60f59ef90": {
+      "source": "Oregano",
+      "en_GB": "Oregano"
+    },
+    "7e778235-85d4-5e09-80a2-544ea531a2ee": {
+      "source": "Orzechy laskowe",
+      "en_GB": "Hazelnuts"
+    },
+    "fb74868d-706b-5edd-a9e3-6842d1640bf2": {
+      "source": "Orzechy pekan",
+      "en_GB": "Pecans"
+    },
+    "e201df78-d8c1-5300-abc6-f529f5c8ad35": {
+      "source": "Orzechy włoskie",
+      "en_GB": "Walnuts"
+    },
+    "69061f34-df52-51c1-bdb0-2cbdef1f0496": {
+      "source": "Papryka czerwona",
+      "en_GB": "Red pepper"
+    },
+    "8bbaa226-1e25-50d0-9f28-3adf6dec4f70": {
+      "source": "Papryka słodka",
+      "en_GB": "Sweet paprika"
+    },
+    "9fe2a947-e967-5c88-9b85-24f50f991e88": {
+      "source": "Papryka żółta",
+      "en_GB": "Yellow pepper"
+    },
+    "286f114f-e30e-5165-ac42-b039a8c03714": {
+      "source": "Parmezan",
+      "en_GB": "Parmesan"
+    },
+    "a977d3c1-d044-5146-ad5b-5dcb284980aa": {
+      "source": "Passata pomidorowa",
+      "en_GB": "Tomato passata"
+    },
+    "89402425-b3fb-5923-9165-4de8f48fa06c": {
+      "source": "Pesto rosso",
+      "en_GB": "Pesto rosso"
+    },
+    "6a1ab3fe-08b9-533d-85c6-fd9bd37808a0": {
+      "source": "Pieczarki",
+      "en_GB": "Button mushrooms"
+    },
+    "c414452a-060c-5dd6-ae36-a0e69b5350b9": {
+      "source": "Pieczarki portobello",
+      "en_GB": "Portobello mushrooms"
+    },
+    "c11cc4fe-f4dc-5500-ba5f-179225f27915": {
+      "source": "Pieprz czarny mielony",
+      "en_GB": "Ground black pepper"
+    },
+    "1cbd3dae-3a1e-5cd0-9667-d711fdaa72a4": {
+      "source": "Pierś z kurczaka",
+      "en_GB": "Chicken breast"
+    },
+    "84bac1cc-308a-5655-bd00-b44e2197f14c": {
+      "source": "Polenta",
+      "en_GB": "Polenta"
+    },
+    "87a4bb58-b963-57b1-a02b-7a261b547a31": {
+      "source": "Polędwiczka wieprzowa",
+      "en_GB": "Pork tenderloin"
+    },
+    "02baa653-fe01-5c1d-9741-d500894d7850": {
+      "source": "Pomarańcze",
+      "en_GB": "Oranges"
+    },
+    "16992b07-2016-5743-b482-daad7c3650a3": {
+      "source": "Pomidorki koktajlowe",
+      "en_GB": "Cherry tomatoes"
+    },
+    "b9f4f095-5fe5-52e4-9d98-2ac43d67f43c": {
+      "source": "Pomidory",
+      "en_GB": "Tomatoes"
+    },
+    "452f123c-6535-5ebb-bb11-f9ebfc5d26a7": {
+      "source": "Pomidory krojone",
+      "en_GB": "Chopped tomatoes"
+    },
+    "abdda4f3-3045-56cd-9a49-55dc548a50b1": {
+      "source": "Por",
+      "en_GB": "Leek"
+    },
+    "6205b10f-ceaf-5484-b1dc-43a49bcb6a23": {
+      "source": "Proszek do pieczenia",
+      "en_GB": "Baking powder"
+    },
+    "c65508d5-139b-5f92-9850-1507938eb5e5": {
+      "source": "Płatki owsiane",
+      "en_GB": "Oats"
+    },
+    "f4dfd92a-ac3f-5e2f-91ee-5734991fb25d": {
+      "source": "Quinoa",
+      "en_GB": "Quinoa"
+    },
+    "68a18a15-2953-5330-bf99-850238a78bf6": {
+      "source": "Ricotta",
+      "en_GB": "Ricotta"
+    },
+    "b43bb415-b571-530c-b035-8e0657346795": {
+      "source": "Ryż arborio",
+      "en_GB": "Arborio rice"
+    },
+    "79f74590-432c-5394-a626-7bbb48d66151": {
+      "source": "Ryż biały",
+      "en_GB": "White rice"
+    },
+    "53b5c258-d3ef-5fb7-9f90-ba323d5c61ac": {
+      "source": "Salami",
+      "en_GB": "Salami"
+    },
+    "2a5a08dd-4d85-51b0-96d5-b73d222628d5": {
+      "source": "Sałata lodowa",
+      "en_GB": "Iceberg lettuce"
+    },
+    "5ff518f4-4815-59a0-a789-46b88a3ee950": {
+      "source": "Schab wieprzowy",
+      "en_GB": "Pork loin"
+    },
+    "1118681b-c432-58d1-8603-7721f1f17976": {
+      "source": "Ser cheddar",
+      "en_GB": "Cheddar cheese"
+    },
+    "64de81eb-fd41-5f64-9ad4-e7a6c5c09552": {
+      "source": "Ser feta",
+      "en_GB": "Feta cheese"
+    },
+    "a4ab49a4-01f8-5358-bc5d-725b999e67c4": {
+      "source": "Ser halloumi",
+      "en_GB": "Halloumi cheese"
+    },
+    "4f51405e-d34a-5940-8225-1cdaa0854bf6": {
+      "source": "Ser pecorino",
+      "en_GB": "Pecorino cheese"
+    },
+    "1f4bf8ee-5693-5ec6-a2b6-3f37fb7dde96": {
+      "source": "Ser pleśniowy",
+      "en_GB": "Mould-ripened cheese"
+    },
+    "1379c501-e084-5772-b324-a62ea5ef13f7": {
+      "source": "Ser żółty gouda",
+      "en_GB": "Gouda cheese"
+    },
+    "6fe463ab-c457-5de9-875f-6f6c5ec5b597": {
+      "source": "Sezam",
+      "en_GB": "Sesame seeds"
+    },
+    "ab8c9119-6813-57df-b103-ce395472bb40": {
+      "source": "Skrobia kukurydziana",
+      "en_GB": "Cornflour"
+    },
+    "8d4286c0-164e-5f8d-85bc-514c399113f3": {
+      "source": "Skrzydełka z kurczaka",
+      "en_GB": "Chicken wings"
+    },
+    "a3500370-78c0-5902-93bf-a13843723fa7": {
+      "source": "Skyr naturalny",
+      "en_GB": "Natural skyr"
+    },
+    "d868c1c5-407c-5b80-a294-da71bfca97ca": {
+      "source": "Soczewica czerwona",
+      "en_GB": "Red lentils"
+    },
+    "55b6346b-6647-5715-bb32-68c1ca875dd2": {
+      "source": "Sos marinara",
+      "en_GB": "Marinara sauce"
+    },
+    "00316a81-bfd2-5697-ba96-348d7f8d9542": {
+      "source": "Sos sojowy",
+      "en_GB": "Soy sauce"
+    },
+    "dff0d997-b999-5e9f-9533-d1b71cdbf5a4": {
+      "source": "Sos sweet chili",
+      "en_GB": "Sweet chilli sauce"
+    },
+    "ec845ae2-6d70-5469-b6fb-bda207482882": {
+      "source": "Sos tamari",
+      "en_GB": "Tamari sauce"
+    },
+    "a90eeba6-8042-5b20-8d35-3f09e6f75b0a": {
+      "source": "Sos teriyaki",
+      "en_GB": "Teriyaki sauce"
+    },
+    "3eb7e5af-302b-5e67-83f5-478fdefd3c98": {
+      "source": "Szałwia świeża",
+      "en_GB": "Fresh sage"
+    },
+    "72bfc3c3-682b-5653-b9b9-31666bc033f0": {
+      "source": "Szczypiorek",
+      "en_GB": "Chives"
+    },
+    "4224428e-c42d-52e6-bcc2-cf347516f4d8": {
+      "source": "Szpinak świeży",
+      "en_GB": "Fresh spinach"
+    },
+    "ffb83174-d780-5f4f-9e5f-797798a5fd1a": {
+      "source": "Szynka konserwowa",
+      "en_GB": "Cooked ham"
+    },
+    "26709c55-eb1d-524c-a760-0aca767bd924": {
+      "source": "Sól",
+      "en_GB": "Salt"
+    },
+    "e5d569de-0f8b-51a7-aba7-71cd6b0780c7": {
+      "source": "Tahini",
+      "en_GB": "Tahini"
+    },
+    "3359d5b2-02ac-5402-bba6-66e345c92530": {
+      "source": "Tofu naturalne",
+      "en_GB": "Plain tofu"
+    },
+    "fa285d67-f8b9-5035-b15a-9d0714b489a6": {
+      "source": "Tortilla pszenna",
+      "en_GB": "Wheat tortilla"
+    },
+    "bbbef588-d23e-52f9-972b-323d063acba2": {
+      "source": "Truskawki",
+      "en_GB": "Strawberries"
+    },
+    "e5ff756e-2516-5ba4-a58a-19a937dc82a9": {
+      "source": "Tuńczyk w sosie własnym",
+      "en_GB": "Tuna in its own juice"
+    },
+    "54905985-9bcd-5d5a-b7a3-f95800c32a6b": {
+      "source": "Twaróg półtłusty",
+      "en_GB": "Semi-fat quark"
+    },
+    "8c4b0ebc-5c13-52e2-9176-2743d513fcc1": {
+      "source": "Wanilia (cukier waniliowy)",
+      "en_GB": "Vanilla sugar"
+    },
+    "a79271a0-2af5-5e74-a5b1-62dc085e8ee4": {
+      "source": "Wiórki kokosowe",
+      "en_GB": "Desiccated coconut"
+    },
+    "91deeec4-fb11-5064-9ed0-d421c097fcba": {
+      "source": "Za'atar",
+      "en_GB": "Za'atar"
+    },
+    "90b0cc09-9eb2-5ee1-a7cf-b0fee19e0744": {
+      "source": "Ziemniaki",
+      "en_GB": "Potatoes"
+    },
+    "0c4b99ff-9dc6-5c51-a267-62b73c0af1e8": {
+      "source": "Łosoś filet",
+      "en_GB": "Salmon fillet"
+    },
+    "0afb1396-74ed-59f2-948e-34828cf3747a": {
+      "source": "Łosoś wędzony",
+      "en_GB": "Smoked salmon"
+    },
+    "d2099836-9015-530e-91b7-ab21724c0aa6": {
+      "source": "Śmietana 18%",
+      "en_GB": "Soured cream (18% fat)"
+    },
+    "6c2d972e-16cd-55a4-9d52-b851d2446ca7": {
+      "source": "Śmietana 30%",
+      "en_GB": "Cream (30% fat)"
+    }
+  }
+}

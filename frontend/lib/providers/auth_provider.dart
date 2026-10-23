@@ -6,12 +6,15 @@ import '../models/user.dart';
 import '../services/auth_service.dart';
 import '../services/api_client.dart';
 import '../utils/error_utils.dart';
+import '../l10n/app_localizations.dart';
+import '../l10n/market_locale.dart';
 import '../services/push_service.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService _authService;
   final Future<String?> Function() _readToken;
   final Future<void> Function() _unregisterPush;
+  final ErrorStringsResolver? errorStrings;
 
   User? _currentUser;
   bool _isAuthenticated = false;
@@ -24,6 +27,8 @@ class AuthProvider with ChangeNotifier {
   bool _disposed = false;
   bool _explicitLogout = false;
   bool _logoutInProgress = false;
+  ({int session, Future<void> future})? _profileLoad;
+  int _profileRequestGeneration = 0;
 
   User? get currentUser => _currentUser;
   bool get isAuthenticated => _isAuthenticated;
@@ -31,10 +36,16 @@ class AuthProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
+  AppLocalizations? get _currentErrorStrings =>
+      _currentUser != null
+          ? stringsForAccountCountry(_currentUser!.countryCode)
+          : errorStrings?.call();
+
   AuthProvider({
     AuthService? service,
     Future<String?> Function()? readToken,
     Future<void> Function()? unregisterPush,
+    this.errorStrings,
   }) : _authService = service ?? AuthService(),
        _readToken = readToken ?? ApiClient().getToken,
        _unregisterPush = unregisterPush ?? PushService().unregister {
@@ -81,6 +92,15 @@ class AuthProvider with ChangeNotifier {
           await loadProfile();
         }
       }
+    } catch (error) {
+      if (session != _sessionGeneration) return;
+      // A restored/temporarily unavailable Android Keystore must not leave
+      // SplashScreen awaiting a failed initialization forever. Keep the
+      // stored credentials intact; a storage read error is not a logout.
+      _errorMessage =
+          _currentErrorStrings?.authStoredSessionFailed ??
+          'Nie udało się odtworzyć zapisanej sesji. Spróbuj zalogować się ponownie.';
+      debugPrint('Session initialization failed (${error.runtimeType}).');
     } finally {
       _isInitialized = true;
       notifyListeners();
@@ -93,7 +113,7 @@ class AuthProvider with ChangeNotifier {
     String? captchaToken,
   }) async {
     if (_isLoading || _logoutInProgress) return false;
-    final session = _sessionGeneration;
+    final session = ++_sessionGeneration;
     _setLoading(true);
     _clearError();
     try {
@@ -103,9 +123,11 @@ class AuthProvider with ChangeNotifier {
       _isAuthenticated = true;
       notifyListeners();
       await loadProfile();
+      if (session != _sessionGeneration) return false;
       _setLoading(false);
       return true;
     } catch (e) {
+      if (session != _sessionGeneration) return false;
       // UWAGA (naprawa): friendlyError() dla kodu 401 domyślnie pokazuje
       // "Musisz być zalogowany, żeby to zrobić" — sensowne dla WYGASŁEJ
       // SESJI gdzieś indziej w aplikacji, ale kompletnie mylące akurat
@@ -118,7 +140,7 @@ class AuthProvider with ChangeNotifier {
       if (e is ApiException && e.statusCode == 401) {
         _setErrorMessage(e.message);
       } else {
-        _setErrorMessage(friendlyError(e));
+        _setErrorMessage(friendlyError(e, strings: _currentErrorStrings));
       }
       _setLoading(false);
       return false;
@@ -129,7 +151,7 @@ class AuthProvider with ChangeNotifier {
   /// jeśli użytkownik anulował okno logowania (bez pokazywania błędu).
   Future<bool> loginWithGoogle({String? captchaToken}) async {
     if (_isLoading || _logoutInProgress) return false;
-    final session = _sessionGeneration;
+    final session = ++_sessionGeneration;
     _setLoading(true);
     _clearError();
     try {
@@ -145,10 +167,12 @@ class AuthProvider with ChangeNotifier {
       _isAuthenticated = true;
       notifyListeners();
       await loadProfile();
+      if (session != _sessionGeneration) return false;
       _setLoading(false);
       return true;
     } catch (e) {
-      _setErrorMessage(friendlyError(e));
+      if (session != _sessionGeneration) return false;
+      _setErrorMessage(friendlyError(e, strings: _currentErrorStrings));
       _setLoading(false);
       return false;
     }
@@ -158,7 +182,7 @@ class AuthProvider with ChangeNotifier {
   /// `true` po sukcesie, `false` jeśli użytkownik anulował okno logowania.
   Future<bool> loginWithApple({String? captchaToken}) async {
     if (_isLoading || _logoutInProgress) return false;
-    final session = _sessionGeneration;
+    final session = ++_sessionGeneration;
     _setLoading(true);
     _clearError();
     try {
@@ -174,10 +198,12 @@ class AuthProvider with ChangeNotifier {
       _isAuthenticated = true;
       notifyListeners();
       await loadProfile();
+      if (session != _sessionGeneration) return false;
       _setLoading(false);
       return true;
     } catch (e) {
-      _setErrorMessage(friendlyError(e));
+      if (session != _sessionGeneration) return false;
+      _setErrorMessage(friendlyError(e, strings: _currentErrorStrings));
       _setLoading(false);
       return false;
     }
@@ -190,7 +216,7 @@ class AuthProvider with ChangeNotifier {
     String? captchaToken,
   }) async {
     if (_isLoading || _logoutInProgress) return false;
-    final session = _sessionGeneration;
+    final session = ++_sessionGeneration;
     _setLoading(true);
     _clearError();
     try {
@@ -210,20 +236,45 @@ class AuthProvider with ChangeNotifier {
       // CAPTCHA (jednorazowy, zużyty już przy rejestracji), więc przy
       // włączonej bramce zawsze kończyło się błędem.
       await loadProfile();
+      if (session != _sessionGeneration) return false;
       _setLoading(false);
       return currentUser != null;
     } catch (e) {
-      _setErrorMessage(friendlyError(e));
+      if (session != _sessionGeneration) return false;
+      _setErrorMessage(friendlyError(e, strings: _currentErrorStrings));
       _setLoading(false);
       return false;
     }
   }
 
-  Future<void> loadProfile() async {
+  /// Only lifecycle/background reads may share a pending snapshot. Mutations
+  /// (purchases, verification, earned points) must request a fresh profile.
+  Future<void> loadProfileInBackground() {
+    if (_disposed || _logoutInProgress) return Future<void>.value();
     final session = _sessionGeneration;
+    final running = _profileLoad;
+    if (running != null && running.session == session) return running.future;
+    return loadProfile();
+  }
+
+  Future<void> loadProfile() {
+    if (_disposed || _logoutInProgress) return Future<void>.value();
+    final session = _sessionGeneration;
+    final request = ++_profileRequestGeneration;
+    late final Future<void> pending;
+    pending = _loadProfileForSession(session, request).whenComplete(() {
+      if (identical(_profileLoad?.future, pending)) _profileLoad = null;
+    });
+    _profileLoad = (session: session, future: pending);
+    return pending;
+  }
+
+  Future<void> _loadProfileForSession(int session, int request) async {
+    bool isCurrent() =>
+        session == _sessionGeneration && request == _profileRequestGeneration;
     try {
       final user = await _authService.getProfile();
-      if (session != _sessionGeneration) return;
+      if (!isCurrent()) return;
       _currentUser = user;
       _schedulePremiumExpiryRefresh();
       notifyListeners();
@@ -239,7 +290,7 @@ class AuthProvider with ChangeNotifier {
         unawaited(PushService().registerForUser());
       }
     } catch (e) {
-      if (session != _sessionGeneration) return;
+      if (!isCurrent()) return;
       if (e is ApiException && e.statusCode == 401) {
         // UWAGA (naprawa — zgłoszone jednorazowe, niewyjaśnione
         // wylogowanie): wcześniej POJEDYNCZY błąd 401 z JAKIEGOKOLWIEK
@@ -258,10 +309,10 @@ class AuthProvider with ChangeNotifier {
         // kosztuje w tym przypadku, a chroni przed niepotrzebnym
         // wylogowaniem przy czysto przejściowym problemie.
         await Future.delayed(const Duration(seconds: 2));
-        if (session != _sessionGeneration) return;
+        if (!isCurrent()) return;
         try {
           final user = await _authService.getProfile();
-          if (session != _sessionGeneration) return;
+          if (!isCurrent()) return;
           _currentUser = user;
           _schedulePremiumExpiryRefresh();
           notifyListeners();
@@ -270,7 +321,7 @@ class AuthProvider with ChangeNotifier {
           }
           return;
         } catch (retryError) {
-          if (session != _sessionGeneration) return;
+          if (!isCurrent()) return;
           if (retryError is ApiException && retryError.statusCode == 401) {
             await logout();
           }
@@ -306,35 +357,42 @@ class AuthProvider with ChangeNotifier {
   /// odświeża przy okazji profil, żeby currentUser.isEmailVerified było
   /// aktualne od razu, bez osobnego wywołania loadProfile().
   Future<bool> verifyEmail(String code) async {
+    final session = _sessionGeneration;
     _clearError();
     try {
       await _authService.verifyEmail(code);
+      if (session != _sessionGeneration) return false;
       await loadProfile();
-      return true;
+      return session == _sessionGeneration;
     } catch (e) {
-      _setErrorMessage(friendlyError(e));
+      if (session != _sessionGeneration) return false;
+      _setErrorMessage(friendlyError(e, strings: _currentErrorStrings));
       return false;
     }
   }
 
   Future<bool> resendVerificationCode() async {
+    final session = _sessionGeneration;
     _clearError();
     try {
       await _authService.resendVerificationCode();
-      return true;
+      return session == _sessionGeneration;
     } catch (e) {
-      _setErrorMessage(friendlyError(e));
+      if (session != _sessionGeneration) return false;
+      _setErrorMessage(friendlyError(e, strings: _currentErrorStrings));
       return false;
     }
   }
 
   Future<bool> forgotPassword(String email) async {
+    final session = _sessionGeneration;
     _clearError();
     try {
       await _authService.forgotPassword(email);
-      return true;
+      return session == _sessionGeneration;
     } catch (e) {
-      _setErrorMessage(friendlyError(e));
+      if (session != _sessionGeneration) return false;
+      _setErrorMessage(friendlyError(e, strings: _currentErrorStrings));
       return false;
     }
   }
@@ -344,6 +402,7 @@ class AuthProvider with ChangeNotifier {
     required String code,
     required String newPassword,
   }) async {
+    final session = _sessionGeneration;
     _clearError();
     try {
       await _authService.resetPassword(
@@ -351,9 +410,10 @@ class AuthProvider with ChangeNotifier {
         code: code,
         newPassword: newPassword,
       );
-      return true;
+      return session == _sessionGeneration;
     } catch (e) {
-      _setErrorMessage(friendlyError(e));
+      if (session != _sessionGeneration) return false;
+      _setErrorMessage(friendlyError(e, strings: _currentErrorStrings));
       return false;
     }
   }
@@ -397,7 +457,7 @@ class AuthProvider with ChangeNotifier {
       return true;
     } catch (e) {
       if (session != _sessionGeneration) return false;
-      _setErrorMessage(friendlyError(e));
+      _setErrorMessage(friendlyError(e, strings: _currentErrorStrings));
       return false;
     }
   }
@@ -416,9 +476,18 @@ class AuthProvider with ChangeNotifier {
     double? heightCm,
     int? dailyKcalGoal,
   }) async {
+    if (_isLoading || _logoutInProgress || _disposed) return false;
+    final session = _sessionGeneration;
+    final submittedAllergens = List<String>.of(allergenIds);
+    _lastBonusPoints = 0;
+    _clearError();
     _setLoading(true);
     try {
-      // 1. Zapisz profil (sklep, dieta, household)
+      // preferredStoreId is also the existing onboarding-complete marker.
+      // Save allergens first so a failed required step cannot prematurely
+      // send a returning user past onboarding on the next app launch.
+      await _authService.updateAllergens(submittedAllergens);
+      if (session != _sessionGeneration) return false;
       final profileSaved = await updateProfile(
         preferredStoreId: storeId,
         dietaryPreferences: {'diet': diet},
@@ -427,31 +496,39 @@ class AuthProvider with ChangeNotifier {
         heightCm: heightCm,
         dailyKcalGoal: dailyKcalGoal,
       );
-      if (!profileSaved) {
-        _setLoading(false);
-        return false;
-      }
-      // 2. Zapisz alergeny
-      await _authService.updateAllergens(allergenIds);
+      if (!profileSaved || session != _sessionGeneration) return false;
 
       // Punkty powitalne. Wywołujemy bezwarunkowo — serwer sam pilnuje,
       // żeby przyznać je tylko raz, więc powtórne przejście onboardingu
       // niczego nie dosypie (patrz claim_onboarding_bonus w backendzie).
       try {
-        _lastBonusPoints = await _authService.claimOnboardingBonus();
+        final awarded = await _authService.claimOnboardingBonus(
+          onTotalPoints: (balance) {
+            if (session != _sessionGeneration || _currentUser == null) return;
+            // The POST already committed this authoritative balance. Do not
+            // hide awarded points if the optional follow-up GET is offline.
+            _profileRequestGeneration++;
+            _currentUser = _currentUser!.copyWith(premiumPoints: balance);
+            notifyListeners();
+          },
+        );
+        if (session != _sessionGeneration) return false;
+        _lastBonusPoints = awarded;
       } catch (_) {
+        if (session != _sessionGeneration) return false;
         // Bonus to dodatek — jego niepowodzenie NIE może przerwać
         // onboardingu ani zablokować wejścia do aplikacji.
         _lastBonusPoints = 0;
       }
 
       await loadProfile();
-      _setLoading(false);
-      return true;
+      return session == _sessionGeneration;
     } catch (e) {
-      _setErrorMessage(friendlyError(e));
-      _setLoading(false);
+      if (session == _sessionGeneration)
+        _setErrorMessage(friendlyError(e, strings: _currentErrorStrings));
       return false;
+    } finally {
+      if (session == _sessionGeneration) _setLoading(false);
     }
   }
 
@@ -480,6 +557,7 @@ class AuthProvider with ChangeNotifier {
     _sessionGeneration++;
     _explicitLogout = true;
     _currentUser = null;
+    _lastBonusPoints = 0;
     _premiumExpiryTimer?.cancel();
     _isAuthenticated = false;
     _isLoading = false;
@@ -514,47 +592,56 @@ class AuthProvider with ChangeNotifier {
   /// jak logout(), więc ekran logowania pojawia się natychmiast — nie ma
   /// już żadnego tokenu ani profilu, do których dałoby się wrócić.
   Future<bool> deleteAccount() async {
-    if (_isLoading) return false;
+    if (_isLoading || _logoutInProgress) return false;
+    var operationSession = _sessionGeneration;
     _setLoading(true);
     _clearError();
     try {
       await _unregisterPush();
+      if (operationSession != _sessionGeneration) return false;
       await _authService.deleteAccount();
+      if (operationSession != _sessionGeneration) return false;
       _authService.invalidateSession();
-      _sessionGeneration++;
+      operationSession = ++_sessionGeneration;
       _explicitLogout = true;
       await _authService.logout();
+      if (operationSession != _sessionGeneration) return false;
       _currentUser = null;
       _premiumExpiryTimer?.cancel();
       _isAuthenticated = false;
       notifyListeners();
       return true;
     } catch (e) {
-      _setErrorMessage(friendlyError(e));
+      if (operationSession != _sessionGeneration) return false;
+      _setErrorMessage(friendlyError(e, strings: _currentErrorStrings));
       return false;
     } finally {
-      _setLoading(false);
+      if (operationSession == _sessionGeneration) _setLoading(false);
     }
   }
 
   Future<bool> blockUser(String userId) async {
+    final session = _sessionGeneration;
     _clearError();
     try {
       await _authService.blockUser(userId);
-      return true;
+      return session == _sessionGeneration;
     } catch (e) {
-      _setErrorMessage(friendlyError(e));
+      if (session != _sessionGeneration) return false;
+      _setErrorMessage(friendlyError(e, strings: _currentErrorStrings));
       return false;
     }
   }
 
   Future<bool> unblockUser(String userId) async {
+    final session = _sessionGeneration;
     _clearError();
     try {
       await _authService.unblockUser(userId);
-      return true;
+      return session == _sessionGeneration;
     } catch (e) {
-      _setErrorMessage(friendlyError(e));
+      if (session != _sessionGeneration) return false;
+      _setErrorMessage(friendlyError(e, strings: _currentErrorStrings));
       return false;
     }
   }
@@ -568,6 +655,7 @@ class AuthProvider with ChangeNotifier {
     required String reason,
     String? details,
   }) async {
+    final session = _sessionGeneration;
     _clearError();
     try {
       await _authService.reportRecipe(
@@ -575,9 +663,10 @@ class AuthProvider with ChangeNotifier {
         reason: reason,
         details: details,
       );
-      return true;
+      return session == _sessionGeneration;
     } catch (e) {
-      _setErrorMessage(friendlyError(e));
+      if (session != _sessionGeneration) return false;
+      _setErrorMessage(friendlyError(e, strings: _currentErrorStrings));
       return false;
     }
   }
@@ -588,6 +677,7 @@ class AuthProvider with ChangeNotifier {
     required String reason,
     String? details,
   }) async {
+    final session = _sessionGeneration;
     _clearError();
     try {
       await _authService.reportComment(
@@ -596,9 +686,10 @@ class AuthProvider with ChangeNotifier {
         reason: reason,
         details: details,
       );
-      return true;
+      return session == _sessionGeneration;
     } catch (e) {
-      _setErrorMessage(friendlyError(e));
+      if (session != _sessionGeneration) return false;
+      _setErrorMessage(friendlyError(e, strings: _currentErrorStrings));
       return false;
     }
   }

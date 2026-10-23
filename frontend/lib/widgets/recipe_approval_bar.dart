@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/market_locale.dart';
 import '../models/recipe.dart';
 import '../providers/auth_provider.dart';
 import '../services/recipe_service.dart';
@@ -12,18 +13,33 @@ import '../theme/app_theme.dart';
 class RecipeApprovalBar extends StatefulWidget {
   final Recipe recipe;
 
-  const RecipeApprovalBar({super.key, required this.recipe});
+  const RecipeApprovalBar({super.key, required this.recipe, this.service});
+
+  final RecipeService? service;
 
   @override
   State<RecipeApprovalBar> createState() => _RecipeApprovalBarState();
 }
 
 class _RecipeApprovalBarState extends State<RecipeApprovalBar> {
-  final RecipeService _service = RecipeService();
+  late final RecipeService _service = widget.service ?? RecipeService();
   bool _isBusy = false;
   String? _resolvedAs;
+  int _generation = 0;
+
+  @override
+  void didUpdateWidget(covariant RecipeApprovalBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.recipe.id != widget.recipe.id) {
+      _generation++;
+      _isBusy = false;
+      _resolvedAs = null;
+    }
+  }
 
   Future<void> _act(bool approve) async {
+    if (_isBusy || _resolvedAs != null) return;
+    final generation = _generation;
     setState(() => _isBusy = true);
     try {
       if (approve) {
@@ -31,7 +47,7 @@ class _RecipeApprovalBarState extends State<RecipeApprovalBar> {
       } else {
         await _service.rejectRecipe(widget.recipe.id);
       }
-      if (!mounted) return;
+      if (!mounted || generation != _generation) return;
       setState(() => _resolvedAs = approve ? 'public' : 'rejected');
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
@@ -39,22 +55,26 @@ class _RecipeApprovalBarState extends State<RecipeApprovalBar> {
           SnackBar(
             duration: const Duration(seconds: 3),
             content: Text(
-              approve ? 'Przepis zaakceptowany' : 'Przepis odrzucony',
+              approve
+                  ? context.strings.approvalRecipeApproved
+                  : context.strings.approvalRecipeRejected,
             ),
           ),
         );
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || generation != _generation) return;
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),
-            content: Text('Nie udało się wykonać akcji'),
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(context.strings.approvalRecipeFailed),
           ),
         );
     } finally {
-      if (mounted) setState(() => _isBusy = false);
+      if (mounted && generation == _generation) {
+        setState(() => _isBusy = false);
+      }
     }
   }
 
@@ -87,10 +107,13 @@ class _RecipeApprovalBarState extends State<RecipeApprovalBar> {
                 size: 20,
               ),
               const SizedBox(width: 8),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Ten przepis czeka na Twoją akceptację do wspólnego katalogu',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  context.strings.approvalRecipePending,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
                 ),
               ),
             ],
@@ -105,7 +128,7 @@ class _RecipeApprovalBarState extends State<RecipeApprovalBar> {
                     foregroundColor: AppTheme.errorColor,
                     side: const BorderSide(color: AppTheme.errorColor),
                   ),
-                  child: const Text('Odrzuć'),
+                  child: Text(context.strings.adminReject),
                 ),
               ),
               const SizedBox(width: 12),
@@ -122,7 +145,7 @@ class _RecipeApprovalBarState extends State<RecipeApprovalBar> {
                               color: Colors.white,
                             ),
                           )
-                          : const Text('Zaakceptuj'),
+                          : Text(context.strings.approvalRecipeApprove),
                 ),
               ),
             ],

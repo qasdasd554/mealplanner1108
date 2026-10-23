@@ -122,8 +122,10 @@ class PromotionService {
 
   /// Lista promocji znalezionych przez AI, czekających na akceptację
   /// administratora.
-  Future<List<Promotion>> getPendingPromotions() async {
-    final response = await _client.get('/promotions/pending');
+  Future<List<Promotion>> getPendingPromotions({String? market}) async {
+    final query =
+        market == null ? '' : '?market=${Uri.encodeQueryComponent(market)}';
+    final response = await _client.get('/promotions/pending$query');
     if (response is List) {
       return response
           .map((e) => Promotion.fromJson(e as Map<String, dynamic>))

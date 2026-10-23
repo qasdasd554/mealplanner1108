@@ -88,9 +88,9 @@ def test_sqlite_adapter_preserves_production_uuid_defaults(db):
         assert model.__tablename__ in compiled
 
 
-def make_plan(db, *, premium=False, status="active", start=None, duration=7):
-    user = User(id=uuid4(), email=f"{uuid4()}@example.com", password_hash="test", role="user", is_premium=premium)
-    store = Store(id=uuid4(), name=f"Store-{uuid4()}")
+def make_plan(db, *, premium=False, status="active", start=None, duration=7, country="PL"):
+    user = User(id=uuid4(), email=f"{uuid4()}@example.com", password_hash="test", role="user", is_premium=premium, country_code=country)
+    store = Store(id=uuid4(), name=f"Store-{uuid4()}", country_code=country, currency_code="GBP" if country == "GB" else "PLN")
     recipe = Recipe(id=uuid4(), name="Owsianka", meal_type="śniadanie", nutrition_total={"kcal": 300})
     db.session.add_all([user, store, recipe])
     db.session.flush()
@@ -120,6 +120,27 @@ def test_end_is_midnight_after_last_day_and_dst_is_elapsed_24_hours():
     assert lifecycle.plan_expires_at(plan) == datetime(2026, 10, 25, 23, tzinfo=timezone.utc)
     assert lifecycle.plan_has_expired(plan, now=datetime(2026, 10, 25, 22, 59, tzinfo=timezone.utc)) is False
     assert lifecycle.plan_has_expired(plan, now=datetime(2026, 10, 25, 23, tzinfo=timezone.utc)) is True
+
+
+def test_uk_worker_and_api_do_not_end_plan_at_polish_midnight(db):
+    user, plan, *_ = make_plan(db, country="GB", start=date(2026, 10, 19))
+    early = datetime(2026, 10, 25, 23, 30, tzinfo=timezone.utc)
+    result = asyncio.run(lifecycle.process_due_meal_plans(db, now=early, send_reminders=False))
+    assert result.removed == 0 and plan.status == "active"
+    assert not lifecycle.plan_has_expired(plan, now=early, country_code="GB")
+    result = asyncio.run(lifecycle.process_due_meal_plans(db, now=datetime(2026, 10, 26, tzinfo=timezone.utc), send_reminders=False))
+    assert result.removed == 1 and plan.status == "expired"
+
+
+def test_uk_reminder_is_english_and_uses_london_expiry(db, monkeypatch):
+    user, plan, *_ = make_plan(db, country="GB", start=date(2026, 10, 19))
+    async def no_external_push(*args):
+        pass
+    monkeypatch.setattr(lifecycle, "push_for_notification", no_external_push)
+    result = asyncio.run(lifecycle.process_due_meal_plans(db, now=datetime(2026, 10, 25, tzinfo=timezone.utc)))
+    assert result.reminders == 1
+    note = db.session.scalar(select(Notification))
+    assert "Your meal plan ends on 25/10/2026" in note.message
 
 
 def test_reminder_is_atomic_once_and_only_last_24_hours(db, monkeypatch):
@@ -331,10 +352,10 @@ def test_failure_for_one_plan_does_not_prevent_others(db, monkeypatch):
     _, broken, *_ = make_plan(db)
     _, healthy, *_ = make_plan(db, premium=True)
     original = lifecycle.plan_expires_at
-    def maybe_fail(plan):
+    def maybe_fail(plan, **kwargs):
         if plan.id == broken.id:
             raise RuntimeError("broken legacy row")
-        return original(plan)
+        return original(plan, **kwargs)
     monkeypatch.setattr(lifecycle, "plan_expires_at", maybe_fail)
     result = asyncio.run(lifecycle.process_due_meal_plans(db, now=original(healthy)))
     assert result.archived == 1 and healthy.status == "archived"

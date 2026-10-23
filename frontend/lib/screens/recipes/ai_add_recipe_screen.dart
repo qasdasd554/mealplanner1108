@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/market_locale.dart';
 import '../../models/recipe_import_job.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/recipe_service.dart';
@@ -26,6 +27,7 @@ class AiAddRecipeScreen extends StatefulWidget {
   final String? initialText;
   final int initialTabIndex;
   final bool autoStartImport;
+  final RecipeService? recipeService;
 
   const AiAddRecipeScreen({
     super.key,
@@ -33,6 +35,7 @@ class AiAddRecipeScreen extends StatefulWidget {
     this.initialText,
     this.initialTabIndex = 0,
     this.autoStartImport = false,
+    this.recipeService,
   });
 
   @override
@@ -42,7 +45,7 @@ class AiAddRecipeScreen extends StatefulWidget {
 class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
-  final RecipeService _recipeService = RecipeService();
+  late final RecipeService _recipeService;
   final TextEditingController _textController = TextEditingController();
   final TextEditingController _urlController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
@@ -56,6 +59,7 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
   @override
   void initState() {
     super.initState();
+    _recipeService = widget.recipeService ?? RecipeService();
     _tabController = TabController(length: 3, vsync: this);
     if (widget.initialUrl != null && widget.initialUrl!.isNotEmpty) {
       _urlController.text = widget.initialUrl!;
@@ -152,9 +156,9 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),
-            content: Text('Nie udało się pobrać zdjęcia'),
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(context.strings.aiRecipePhotoLoadFailed),
           ),
         );
     }
@@ -169,7 +173,7 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
               children: [
                 ListTile(
                   leading: const Icon(Icons.photo_camera_outlined),
-                  title: const Text('Zrób zdjęcie'),
+                  title: Text(context.strings.takeRecipePhoto),
                   onTap: () {
                     Navigator.pop(ctx);
                     _pickImage(ImageSource.camera);
@@ -177,7 +181,7 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
                 ),
                 ListTile(
                   leading: const Icon(Icons.photo_library_outlined),
-                  title: const Text('Wybierz z galerii'),
+                  title: Text(context.strings.aiRecipeChooseGallery),
                   onTap: () {
                     Navigator.pop(ctx);
                     _pickImage(ImageSource.gallery);
@@ -270,15 +274,11 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
     if (e is ApiException &&
         e.statusCode == 404 &&
         e.message.toLowerCase() == 'not found') {
-      setState(
-        () =>
-            _error =
-                'Serwer nie ma jeszcze funkcji importu AI. Dokończ wdrożenie backendu na Renderze.',
-      );
+      setState(() => _error = context.strings.aiRecipeServerUnavailable);
       return;
     }
     setState(() {
-      _error = friendlyError(e);
+      _error = friendlyError(e, strings: context.strings);
     });
   }
 
@@ -288,12 +288,12 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
       context: context,
       builder:
           (ctx) => AlertDialog(
-            title: const Text('Potrzebujesz Premium albo punktów'),
+            title: Text(context.strings.aiRecipePremiumOrPointsTitle),
             content: Text(message),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Anuluj'),
+                child: Text(context.strings.aiRecipeCancel),
               ),
               FilledButton(
                 onPressed: () {
@@ -302,7 +302,7 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
                     MaterialPageRoute(builder: (_) => const PremiumScreen()),
                   );
                 },
-                child: const Text('Kup punkty'),
+                child: Text(context.strings.aiRecipeBuyPoints),
               ),
             ],
           ),
@@ -341,27 +341,30 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            tooltip: 'Wróć do aplikacji',
+            tooltip: context.strings.aiRecipeBackToApp,
             icon: const Icon(Icons.arrow_back),
             onPressed: _leaveImport,
           ),
-          title: const Text('Dodaj przepis przez AI'),
+          title: Text(context.strings.aiRecipeTitle),
           bottom:
               _currentJob != null
                   ? null
                   : TabBar(
                     controller: _tabController,
                     labelColor: AppTheme.primaryColor,
-                    tabs: const [
+                    tabs: [
                       Tab(
-                        text: 'Wklej tekst',
-                        icon: Icon(Icons.text_snippet_outlined),
+                        text: context.strings.pasteText,
+                        icon: const Icon(Icons.text_snippet_outlined),
                       ),
                       Tab(
-                        text: 'Zdjęcie',
-                        icon: Icon(Icons.photo_camera_outlined),
+                        text: context.strings.aiRecipePhoto,
+                        icon: const Icon(Icons.photo_camera_outlined),
                       ),
-                      Tab(text: 'Link', icon: Icon(Icons.link)),
+                      Tab(
+                        text: context.strings.aiRecipeLink,
+                        icon: const Icon(Icons.link),
+                      ),
                     ],
                   ),
         ),
@@ -394,12 +397,12 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
             const CircularProgressIndicator(color: AppTheme.primaryColor),
             const SizedBox(height: 24),
             Text(
-              'Przyjmuję przepis...',
+              context.strings.aiRecipeAccepting,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
             Text(
-              'Za chwilę możesz wrócić do korzystania z aplikacji.',
+              context.strings.aiRecipeAcceptingHint,
               style: TextStyle(color: AppTheme.textSecondary),
               textAlign: TextAlign.center,
             ),
@@ -433,20 +436,20 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
             const SizedBox(height: 20),
             Text(
               active
-                  ? 'Twój przepis jest przygotowywany'
+                  ? context.strings.aiRecipePreparing
                   : job.status == 'completed'
-                  ? 'Przepis jest gotowy'
-                  : 'Nie udało się rozpoznać przepisu',
+                  ? context.strings.aiRecipeReady
+                  : context.strings.aiRecipeRecognitionFailed,
               style: Theme.of(context).textTheme.titleLarge,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               active
-                  ? 'Możesz wyjść z tego ekranu. O wyniku poinformujemy Cię w aplikacji, a przy włączonych pushach także na telefonie.'
+                  ? context.strings.aiRecipeBackgroundHint
                   : job.status == 'completed'
-                  ? 'Znajdziesz go też w zakładce Moje.'
-                  : (job.error ?? 'Spróbuj ponownie.'),
+                  ? context.strings.aiRecipeFindInMine
+                  : (job.error ?? context.strings.aiRecipeRetrySentence),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
@@ -467,11 +470,15 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
                   } catch (error) {
                     if (!mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(friendlyError(error))),
+                      SnackBar(
+                        content: Text(
+                          friendlyError(error, strings: context.strings),
+                        ),
+                      ),
                     );
                   }
                 },
-                child: const Text('Otwórz przepis'),
+                child: Text(context.strings.aiRecipeOpen),
               ),
             if (job.status == 'completed' && job.recipeId != null) ...[
               const SizedBox(height: 8),
@@ -496,28 +503,32 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
                   } catch (error) {
                     if (!mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(friendlyError(error))),
+                      SnackBar(
+                        content: Text(
+                          friendlyError(error, strings: context.strings),
+                        ),
+                      ),
                     );
                   }
                 },
                 icon: const Icon(Icons.auto_awesome_outlined),
-                label: const Text('Dostosuj z AI · 1 pkt'),
+                label: Text(context.strings.aiRecipeEditOnePoint),
               ),
             ],
             if (job.status == 'completed')
               TextButton(
                 onPressed: () => setState(() => _currentJob = null),
-                child: const Text('Dodaj kolejny przepis'),
+                child: Text(context.strings.aiRecipeAddAnother),
               ),
             if (!active && job.status != 'completed')
               OutlinedButton(
                 onPressed: () => setState(() => _currentJob = null),
-                child: const Text('Spróbuj ponownie'),
+                child: Text(context.strings.homeRetry),
               ),
             if (active)
               TextButton(
                 onPressed: _leaveImport,
-                child: const Text('Wróć do aplikacji'),
+                child: Text(context.strings.aiRecipeBackToApp),
               ),
           ],
         ),
@@ -542,14 +553,12 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Wklej treść przepisu',
+            context.strings.aiRecipePasteTextTitle,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 4),
           Text(
-            'Wklej gotowy przepis (z notatnika, wiadomości, strony internetowej) — '
-            'AI rozpozna składniki i kroki. Albo po prostu wpisz samą nazwę dania '
-            '(np. "rosół" albo "lasagne") — AI ułoży dla Ciebie cały przepis od zera.',
+            context.strings.aiRecipeTextDescription,
             style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
           ),
           const SizedBox(height: 16),
@@ -575,8 +584,7 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
                     maxLength,
                   }) => null,
               decoration: InputDecoration(
-                hintText:
-                    'np. "rosół" albo pełny przepis ze składnikami i krokami...',
+                hintText: context.strings.aiRecipeTextHint,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -595,7 +603,7 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
             width: double.infinity,
             child: ElevatedButton(
               onPressed: _submitText,
-              child: const Text('Rozpoznaj przepis'),
+              child: Text(context.strings.aiRecipeRecognise),
             ),
           ),
         ],
@@ -610,13 +618,12 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Zrób zdjęcie przepisu',
+            context.strings.aiRecipePhotoTitle,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 4),
           Text(
-            'Zdjęcie karty przepisu, strony książki kucharskiej, albo '
-            'gotowego dania — AI oszacuje wtedy prawdopodobny przepis.',
+            context.strings.aiRecipePhotoDescription,
             style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
           ),
           const SizedBox(height: 16),
@@ -667,7 +674,7 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'Dotknij, aby dodać zdjęcie',
+                                context.strings.aiRecipeTapAddPhoto,
                                 style: TextStyle(color: AppTheme.textSecondary),
                               ),
                             ],
@@ -688,7 +695,7 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
             width: double.infinity,
             child: ElevatedButton(
               onPressed: _pickedImage != null ? _submitPhoto : null,
-              child: const Text('Rozpoznaj przepis'),
+              child: Text(context.strings.aiRecipeRecognise),
             ),
           ),
         ],
@@ -703,14 +710,12 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Wklej link do przepisu',
+            context.strings.aiRecipePasteLinkTitle,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 4),
           Text(
-            'Blog kulinarny, TikTok, Instagram — AI spróbuje rozpoznać przepis '
-            'na podstawie treści strony. Jeśli przepis pada wyłącznie w mowie '
-            'w nagraniu (nie ma go w opisie), rozpoznanie może się nie udać.',
+            context.strings.aiRecipeLinkDescription,
             style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
           ),
           const SizedBox(height: 24),
@@ -737,7 +742,7 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
             width: double.infinity,
             child: ElevatedButton(
               onPressed: _submitUrl,
-              child: const Text('Rozpoznaj przepis'),
+              child: Text(context.strings.aiRecipeRecognise),
             ),
           ),
         ],
@@ -747,7 +752,7 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
 
   Widget _buildPaywall(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Dodaj przepis przez AI')),
+      appBar: AppBar(title: Text(context.strings.aiRecipeTitle)),
       body: Padding(
         padding: const EdgeInsets.all(32.0),
         child: Column(
@@ -768,7 +773,7 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
             ),
             const SizedBox(height: 24),
             Text(
-              'Funkcja Premium',
+              context.strings.aiRecipePremiumFeature,
               style: Theme.of(
                 context,
               ).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold),
@@ -776,9 +781,7 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
             ),
             const SizedBox(height: 12),
             Text(
-              'Dodawanie własnych przepisów przez AI (z tekstu albo zdjęcia) '
-              'jest dostępne dla kont z aktywną subskrypcją Premium — albo za 2 punkty premium, '
-              'bez subskrypcji.',
+              context.strings.aiRecipePremiumDescription,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: AppTheme.textSecondary,
@@ -788,7 +791,7 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
             ),
             const SizedBox(height: 8),
             Text(
-              'Zobacz, co jeszcze zyskujesz z Premium, albo kup pakiet punktów.',
+              context.strings.aiRecipePremiumHint,
               textAlign: TextAlign.center,
               style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
             ),
@@ -802,7 +805,7 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
                   );
                 },
                 icon: const Icon(Icons.workspace_premium),
-                label: const Text('Zobacz Premium'),
+                label: Text(context.strings.homeViewPremium),
               ),
             ),
           ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/market_locale.dart';
 import '../models/recipe.dart';
 import '../services/recipe_service.dart';
 import '../theme/app_theme.dart';
@@ -25,25 +26,23 @@ class _RecipeDeleteButtonState extends State<RecipeDeleteButton> {
       context: context,
       builder:
           (ctx) => AlertDialog(
-            title: const Text('Usunąć przepis?'),
+            title: Text(context.strings.detailDeleteTitle),
             content: Text(
               widget.recipe.visibility == 'public'
-                  ? 'Ten przepis jest widoczny dla wszystkich — usunięcie go '
-                      'usunie go też z list zakupów i planów innych osób, które '
-                      'go używały. Tej operacji nie da się cofnąć.'
-                  : 'Tej operacji nie da się cofnąć.',
+                  ? context.strings.detailDeletePublicHelp
+                  : context.strings.detailDeleteHelp,
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Anuluj'),
+                child: Text(context.strings.planCancel),
               ),
               FilledButton(
                 style: FilledButton.styleFrom(
                   backgroundColor: AppTheme.errorColor,
                 ),
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('Usuń'),
+                child: Text(context.strings.planDelete),
               ),
             ],
           ),
@@ -61,9 +60,9 @@ class _RecipeDeleteButtonState extends State<RecipeDeleteButton> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),
-            content: Text('Nie udało się usunąć przepisu'),
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(context.strings.detailDeleteFailed),
           ),
         );
     }
@@ -94,7 +93,7 @@ class _RecipeDeleteButtonState extends State<RecipeDeleteButton> {
                     ),
                   )
                   : const Icon(Icons.delete_outline, size: 18),
-          label: const Text('Usuń przepis'),
+          label: Text(context.strings.detailDelete),
         ),
       ),
     );

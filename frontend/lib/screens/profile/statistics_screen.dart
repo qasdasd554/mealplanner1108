@@ -1,6 +1,8 @@
 import 'dart:math' as math;
+import 'package:intl/intl.dart';
 
 import 'package:flutter/material.dart';
+import '../../l10n/market_locale.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/weight_log.dart';
@@ -12,15 +14,28 @@ import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
 import 'premium_screen.dart';
 
+String _statisticsDate(
+  BuildContext context,
+  DateTime date, {
+  bool short = false,
+}) {
+  final british = context.strings.localeName.startsWith('en');
+  return DateFormat(
+    british ? (short ? 'd/M' : 'dd/MM/yyyy') : (short ? 'd.M' : 'dd.MM.yyyy'),
+  ).format(date);
+}
+
 class StatisticsScreen extends StatefulWidget {
-  const StatisticsScreen({super.key});
+  final WellnessStatisticsService? service;
+  const StatisticsScreen({super.key, this.service});
 
   @override
   State<StatisticsScreen> createState() => _StatisticsScreenState();
 }
 
 class _StatisticsScreenState extends State<StatisticsScreen> {
-  final WellnessStatisticsService _service = WellnessStatisticsService();
+  late final WellnessStatisticsService _service =
+      widget.service ?? WellnessStatisticsService();
   WellnessStatistics? _statistics;
   String? _error;
   bool _loading = true;
@@ -40,7 +55,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       final result = await _service.getStatistics();
       if (mounted) setState(() => _statistics = result);
     } catch (error) {
-      if (mounted) setState(() => _error = friendlyError(error));
+      if (mounted)
+        setState(() => _error = friendlyError(error, strings: context.strings));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -49,7 +65,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Statystyki')),
+      appBar: AppBar(title: Text(context.strings.statsTitle)),
       body:
           _loading
               ? const Center(child: CircularProgressIndicator())
@@ -64,7 +80,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                       const SizedBox(height: 12),
                       FilledButton(
                         onPressed: _load,
-                        child: const Text('Spróbuj ponownie'),
+                        child: Text(context.strings.productsRetry),
                       ),
                     ],
                   ),
@@ -99,13 +115,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       padding: const EdgeInsets.all(16),
       children: [
         _section(
-          title: 'Zmiana wagi',
+          title: context.strings.statsWeight,
           icon: Icons.monitor_weight_outlined,
           child:
               statistics.weights.isEmpty
-                  ? const _EmptyText(
-                    'Dodaj co najmniej jeden pomiar w profilu.',
-                  )
+                  ? _EmptyText(context.strings.statsWeightEmpty)
                   : _WeightChart(weights: statistics.weights),
         ),
         const SizedBox(height: 14),
@@ -114,18 +128,18 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           runSpacing: 10,
           children: [
             _summaryTile(
-              'Średnio kcal',
+              context.strings.statsAverageCalories,
               '${statistics.averageCalories.toStringAsFixed(0)} kcal',
               Icons.local_fire_department_outlined,
             ),
             _summaryTile(
-              'Nawodnienie',
+              context.strings.statsHydration,
               '${statistics.averageWaterMl} ml',
               Icons.water_drop_outlined,
             ),
             _summaryTile(
-              'Ulubiony posiłek',
-              statistics.favoriteMeal ?? 'Brak danych',
+              context.strings.statsFavorite,
+              statistics.favoriteMeal ?? context.strings.statsNoData,
               Icons.favorite_outline,
             ),
           ],
@@ -134,19 +148,17 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         _weeklyInsights(statistics),
         const SizedBox(height: 14),
         _section(
-          title: 'Kalorie dziennie',
+          title: context.strings.statsDailyCalories,
           icon: Icons.local_fire_department_outlined,
           child:
               !hasCalories
-                  ? const _EmptyText(
-                    'Dodaj posiłki w Dzienniku, aby zobaczyć wykres.',
-                  )
+                  ? _EmptyText(context.strings.statsCaloriesEmpty)
                   : _TrendChart(
                     labels: chartLabels,
                     unit: 'kcal',
                     series: [
                       _ChartSeries(
-                        label: 'Kalorie',
+                        label: context.strings.statsCalories,
                         color: AppTheme.accentColor,
                         values: chartDays.map((day) => day.calories).toList(),
                       ),
@@ -155,29 +167,27 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         ),
         const SizedBox(height: 14),
         _section(
-          title: 'Makroskładniki dziennie',
+          title: context.strings.statsDailyMacros,
           icon: Icons.pie_chart_outline,
           child:
               !hasMacros
-                  ? const _EmptyText(
-                    'Makroskładniki pojawią się po dodaniu posiłków.',
-                  )
+                  ? _EmptyText(context.strings.statsMacrosEmpty)
                   : _TrendChart(
                     labels: chartLabels,
                     unit: 'g',
                     series: [
                       _ChartSeries(
-                        label: 'Białko',
+                        label: context.strings.statsProtein,
                         color: AppTheme.primaryColor,
                         values: chartDays.map((day) => day.protein).toList(),
                       ),
                       _ChartSeries(
-                        label: 'Tłuszcze',
+                        label: context.strings.statsFat,
                         color: AppTheme.accentColor,
                         values: chartDays.map((day) => day.fat).toList(),
                       ),
                       _ChartSeries(
-                        label: 'Węglowodany',
+                        label: context.strings.statsCarbs,
                         color: AppTheme.secondaryColor,
                         values: chartDays.map((day) => day.carbs).toList(),
                       ),
@@ -186,19 +196,17 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         ),
         const SizedBox(height: 14),
         _section(
-          title: 'Nawodnienie dziennie',
+          title: context.strings.statsDailyWater,
           icon: Icons.water_drop_outlined,
           child:
               !hasWater
-                  ? const _EmptyText(
-                    'Zapisuj wodę w Dzienniku, aby zobaczyć wykres.',
-                  )
+                  ? _EmptyText(context.strings.statsWaterEmpty)
                   : _TrendChart(
                     labels: chartLabels,
                     unit: 'ml',
                     series: [
                       _ChartSeries(
-                        label: 'Woda',
+                        label: context.strings.statsWater,
                         color: Colors.blue,
                         values:
                             chartDays
@@ -210,13 +218,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         ),
         const SizedBox(height: 14),
         _section(
-          title: 'Ostatnie zapisane dni',
+          title: context.strings.statsRecentDays,
           icon: Icons.calendar_month_outlined,
           child:
               recentDays.isEmpty
-                  ? const _EmptyText(
-                    'Zapisane posiłki i nawodnienie pojawią się tutaj.',
-                  )
+                  ? _EmptyText(context.strings.statsRecentEmpty)
                   : Column(
                     children: recentDays.map((day) => _dailyRow(day)).toList(),
                   ),
@@ -229,11 +235,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   Widget _weeklyInsights(WellnessStatistics statistics) {
     final isPremium =
         context.watch<AuthProvider>().currentUser?.hasPremiumAccess ?? false;
-    final insights = buildWeeklyInsights(statistics);
+    final insights = buildWeeklyInsights(statistics, strings: context.strings);
 
     final visible = isPremium ? insights : insights.take(1).toList();
     return _section(
-      title: 'Wnioski z ostatnich 7 dni',
+      title: context.strings.statsWeekly,
       icon: Icons.insights_outlined,
       child: Column(
         children: [
@@ -257,13 +263,13 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 children: [
                   const Icon(Icons.lock_outline, color: AppTheme.primaryColor),
                   const SizedBox(height: 6),
-                  const Text(
-                    'Pełny raport w Premium',
+                  Text(
+                    context.strings.statsPremiumTitle,
                     style: TextStyle(fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Odblokuj analizę kalorii, nawodnienia i zmian wagi z konkretnymi wnioskami na każdy tydzień.',
+                    context.strings.statsPremiumBody,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 12,
@@ -278,7 +284,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                             builder: (_) => const PremiumScreen(),
                           ),
                         ),
-                    child: const Text('Zobacz pełny raport'),
+                    child: Text(context.strings.statsPremiumAction),
                   ),
                 ],
               ),
@@ -401,22 +407,25 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         ),
         const SizedBox(height: 3),
         Text(
-          '${day.calories.toStringAsFixed(0)} kcal  •  B ${day.protein.toStringAsFixed(1)} g  •  '
-          'T ${day.fat.toStringAsFixed(1)} g  •  W ${day.carbs.toStringAsFixed(1)} g',
+          context.strings.statsDailyMacroLine(
+            day.calories.toStringAsFixed(0),
+            day.protein.toStringAsFixed(1),
+            day.fat.toStringAsFixed(1),
+            day.carbs.toStringAsFixed(1),
+          ),
           style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
         ),
         Text(
-          'Woda: ${day.waterMl} ml',
+          context.strings.statsWaterLine(day.waterMl),
           style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
         ),
       ],
     ),
   );
 
-  String _date(DateTime value) =>
-      '${value.day.toString().padLeft(2, '0')}.${value.month.toString().padLeft(2, '0')}.${value.year}';
-
-  String _shortDate(DateTime value) => '${value.day}.${value.month}';
+  String _date(DateTime value) => _statisticsDate(context, value);
+  String _shortDate(DateTime value) =>
+      _statisticsDate(context, value, short: true);
 }
 
 class _EmptyText extends StatelessWidget {
@@ -467,7 +476,7 @@ class _TrendChart extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'Maksimum: ${maximum.toStringAsFixed(decimals)} $unit',
+          context.strings.statsMaximum(maximum.toStringAsFixed(decimals), unit),
           style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
         ),
         const SizedBox(height: 8),
@@ -618,7 +627,7 @@ class _WeightChart extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                _shortDate(first.date),
+                _statisticsDate(context, first.date, short: true),
                 style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
               ),
             ),
@@ -634,7 +643,7 @@ class _WeightChart extends StatelessWidget {
             ),
             Expanded(
               child: Text(
-                _shortDate(last.date),
+                _statisticsDate(context, last.date, short: true),
                 textAlign: TextAlign.end,
                 style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
               ),
@@ -644,8 +653,6 @@ class _WeightChart extends StatelessWidget {
       ],
     );
   }
-
-  static String _shortDate(DateTime value) => '${value.day}.${value.month}';
 }
 
 class _WeightChartPainter extends CustomPainter {

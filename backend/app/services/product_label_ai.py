@@ -39,25 +39,43 @@ def _optional_number(value: object, *, maximum: float) -> float | None:
     return round(number, 2) if 0 <= number <= maximum else None
 
 
-def _parse_label_json(raw_text: str, barcode: str) -> dict:
+def _parse_label_json(raw_text: str, barcode: str, *, country_code: str = "PL") -> dict:
     cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw_text.strip())
     try:
         payload = json.loads(cleaned)
     except json.JSONDecodeError as exc:
         raise ProductLabelRecognitionError(
-            "AI nie zwróciło prawidłowych danych produktu. Zrób wyraźniejsze zdjęcia."
+            "The product data could not be read. Take clearer photos."
+            if country_code == "GB"
+            else "AI nie zwróciło prawidłowych danych produktu. Zrób wyraźniejsze zdjęcia."
         ) from exc
     if not isinstance(payload, dict):
-        raise ProductLabelRecognitionError("Nie udało się odczytać etykiety produktu.")
+        raise ProductLabelRecognitionError(
+            "The product label could not be read."
+            if country_code == "GB" else "Nie udało się odczytać etykiety produktu."
+        )
 
     name = str(payload.get("name") or "").strip()
     if len(name) < 2:
         raise ProductLabelRecognitionError(
-            "Nie udało się odczytać nazwy. Zrób zdjęcie całego przodu opakowania."
+            "The product name could not be read. Photograph the whole front of the pack."
+            if country_code == "GB"
+            else "Nie udało się odczytać nazwy. Zrób zdjęcie całego przodu opakowania."
         )
     brand = str(payload.get("brand") or "").strip() or None
     unit = str(payload.get("unit") or "g").strip().lower()
     if unit not in {"g", "ml"}:
+        # A model may disobey the prompt and return an ounce/portion basis.
+        # Renaming its unit to g would manufacture both a package weight and
+        # per-100 nutrition. Preserve identity, but require manual correction.
+        payload = {
+            **payload,
+            "serving_quantity": None,
+            "kcal_per_100": None,
+            "protein_per_100": None,
+            "fat_per_100": None,
+            "carbs_per_100": None,
+        }
         unit = "g"
 
     return {
@@ -84,6 +102,7 @@ async def recognize_product_label(
     barcode: str,
     front_photo_base64: str,
     nutrition_photo_base64: str,
+    country_code: str = "PL",
 ) -> dict:
     """Odczytuje wyłącznie informacje widoczne na dostarczonych zdjęciach."""
     prompt = """Rozpoznaj produkt spożywczy z dwóch zdjęć.
@@ -116,6 +135,14 @@ Zwróć wyłącznie JSON:
   "fat_per_100": 2.1,
   "carbs_per_100": 18.0
 }"""
+    if country_code == "GB":
+        # Keep the same extraction contract and request budget. A market is
+        # context only, not permission to translate brands or invent numbers.
+        prompt += """
+The user interface is English (United Kingdom). Do not translate the
+product name or brand: preserve the visible label. Extract the same JSON
+keys and numeric units as above; never infer UK shop stock or prices.
+"""
     parts = [
         {"text": prompt},
         {"text": "Zdjęcie 1 — przód opakowania:"},
@@ -141,6 +168,8 @@ Zwróć wyłącznie JSON:
         )
     except AIRecipeImportError as exc:
         raise ProductLabelRecognitionError(
-            "Rozpoznawanie etykiety jest chwilowo niedostępne. Spróbuj ponownie za moment."
+            "Label recognition is temporarily unavailable. Please try again shortly."
+            if country_code == "GB"
+            else "Rozpoznawanie etykiety jest chwilowo niedostępne. Spróbuj ponownie za moment."
         ) from exc
-    return _parse_label_json(raw, barcode)
+    return _parse_label_json(raw, barcode, country_code=country_code)

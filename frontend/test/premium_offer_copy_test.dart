@@ -2,6 +2,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_meal_planner/models/premium_offer.dart';
 
 void main() {
+  test('zaakceptowany próg oferty to 3 sekundy i 120 px', () {
+    expect(recipePremiumOfferDelay, const Duration(seconds: 3));
+    expect(recipePremiumOfferScrollThreshold, 120);
+    expect(
+      shouldTriggerRecipePremiumOffer(
+        viewedLongEnough: true,
+        scrollOffset: 120,
+        alreadyAttempted: false,
+        isCurrentRoute: true,
+      ),
+      isTrue,
+    );
+  });
   test('kontekst przepisu opisuje konkretne wejścia i wynik', () {
     final copy = PremiumOfferCopy.forContext(PremiumOfferContext.recipe);
 

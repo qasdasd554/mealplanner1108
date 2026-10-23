@@ -3,16 +3,19 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import get_current_user
 from app.core.exceptions import NotFoundException
+from app.core.markets import account_country, requested_market, MarketCode
 from app.db.session import get_db
-from app.models import Product, Store, StoreDepartment, StoreProduct
+from app.models import Product, Store, StoreDepartment, StoreProduct, User
 from app.schemas.product import ProductResponse, StoreProductResponse
 from app.schemas.store import StoreDepartmentResponse, StoreResponse
+from app.services.regional_shopping import regional_pricing_date
+from app.services.regional_store_catalogue import list_reviewed_store_products
 
 
 # UWAGA (naprawa bezpieczeństwa): endpointy w tym pliku były CAŁKOWICIE
@@ -30,9 +33,15 @@ router = APIRouter(dependencies=[Depends(get_current_user)])
 )
 async def list_stores(
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    market: MarketCode | None = None,
 ) -> list[Store]:
     """Zwraca listę wszystkich dostępnych sieci handlowych."""
-    result = await db.execute(select(Store).order_by(Store.name))
+    result = await db.execute(
+        select(Store)
+        .where(Store.country_code == requested_market(current_user, market))
+        .order_by(Store.name)
+    )
     return list(result.scalars().all())
 
 
@@ -44,12 +53,14 @@ async def list_stores(
 async def get_store(
     store_id: UUID,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    market: MarketCode | None = None,
 ) -> Store:
     """Zwraca szczegóły sklepu wraz z listą działów."""
     result = await db.execute(
         select(Store)
         .options(selectinload(Store.departments))
-        .where(Store.id == store_id)
+        .where(Store.id == store_id, Store.country_code == requested_market(current_user, market))
     )
     store = result.scalar_one_or_none()
     if store is None:
@@ -65,10 +76,14 @@ async def get_store(
 async def list_store_departments(
     store_id: UUID,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    market: MarketCode | None = None,
 ) -> list[StoreDepartment]:
     """Zwraca listę działów (np. nabiał, pieczywo) danego sklepu."""
     # Weryfikuj istnienie sklepu
-    store_result = await db.execute(select(Store).where(Store.id == store_id))
+    store_result = await db.execute(select(Store).where(
+        Store.id == store_id, Store.country_code == requested_market(current_user, market)
+    ))
     if store_result.scalar_one_or_none() is None:
         raise NotFoundException(detail=f"Sklep o ID {store_id} nie został znaleziony")
 
@@ -92,7 +107,9 @@ async def list_store_products(
     search: str | None = Query(None, description="Szukaj po nazwie produktu"),
     department_id: UUID | None = Query(None, description="Filtruj po dziale sklepu"),
     db: AsyncSession = Depends(get_db),
-) -> list[StoreProduct]:
+    current_user: User = Depends(get_current_user),
+    market: MarketCode | None = None,
+) -> list[StoreProduct | StoreProductResponse]:
     """Zwraca produkty dostępne w danym sklepie z paginacją i filtrami.
 
     Obsługuje wyszukiwanie pełnotekstowe po nazwie produktu
@@ -100,9 +117,18 @@ async def list_store_products(
     dostępność produktu w tym konkretnym sklepie.
     """
     # Weryfikuj istnienie sklepu
-    store_result = await db.execute(select(Store).where(Store.id == store_id))
+    country = requested_market(current_user, market)
+    store_result = await db.execute(select(Store).where(
+        Store.id == store_id, Store.country_code == country
+    ))
     if store_result.scalar_one_or_none() is None:
         raise NotFoundException(detail=f"Sklep o ID {store_id} nie został znaleziony")
+
+    if country == "GB":
+        return await list_reviewed_store_products(
+            db, store_id, skip=skip, limit=limit, search=search,
+            department_id=department_id, as_of=regional_pricing_date(),
+        )
 
     query = (
         select(StoreProduct)

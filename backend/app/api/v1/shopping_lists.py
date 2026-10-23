@@ -2,7 +2,7 @@
 
 from datetime import date, datetime
 from decimal import Decimal
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, Field
@@ -12,6 +12,8 @@ from sqlalchemy.orm import selectinload
 
 from app.api.deps import get_current_user
 from app.core.exceptions import NotFoundException
+from app.core.markets import account_country
+from app.services.notification_language import notification_text
 from app.db.session import get_db
 from app.models import (
     MealPlan,
@@ -19,9 +21,11 @@ from app.models import (
     BlockedUser,
     Product,
     Recipe,
+    RecipeIngredient,
     ShoppingList,
     ShoppingListItem,
     ShoppingListShare,
+    ShoppingListItemRegionalSnapshot,
     Store,
     StoreDepartment,
     StoreProduct,
@@ -30,6 +34,18 @@ from app.models import (
 from app.schemas.shopping_list import ShoppingListItemResponse, ShoppingListResponse
 from app.services import ProductSubstitutionService
 from app.services.shopping_list_builder import ShoppingListBuilder
+from app.services.store_market_access import get_store_in_account_market
+from app.services.market_catalog import apply_recipe_market_filter
+from app.services.regional_shopping import (
+    apply_regional_item_quote, copy_regional_snapshot, load_regional_offers,
+    refresh_regional_items, resolve_manual_regional_quantity,
+    regional_pricing_date,
+    refresh_regional_plan_budget,
+    complete_regional_items_to_pantry,
+    frozen_regional_purchase_quote, regional_snapshot_requirement,
+)
+from app.services.regional_offer_pricing import select_uk_offer_quote
+from app.services.regional_requirements import to_regional_base_quantity
 from app.services.shopping_list_quota import (
     can_append_recipes_to_existing_list,
     record_shopping_list_creation,
@@ -60,8 +76,25 @@ class MergeShoppingListsRequest(BaseModel):
     list_ids: list[UUID] = Field(..., min_length=2)
 
 
+class ShoppingListStoreRequest(BaseModel):
+    """A store for this current list, never a request to rebuild its recipes."""
+
+    store_id: UUID
+
+
 def shopping_item_merge_key(item: ShoppingListItem) -> tuple:
     """Stan kupienia jest częścią klucza, aby nie zgubić części zakupów."""
+    snapshot = getattr(item, "regional_snapshot", None)
+    if snapshot is not None:
+        if item.is_checked and not item.is_from_pantry:
+            # Two already bought packages are separate historical purchases,
+            # not a fresh combined requirement to round to a new package.
+            return ("GB-purchased", item.id)
+        return (
+            "GB", snapshot.product_id,
+            None if snapshot.product_id else (item.custom_name or "").strip().casefold(),
+            item.unit, item.is_from_pantry, item.is_checked, item.substituted_for,
+        )
     return (
         item.is_from_pantry,
         item.store_product_id,
@@ -154,21 +187,37 @@ async def create_shopping_list_from_recipes(
     if not payload.recipe_ids:
         raise HTTPException(status_code=400, detail="Podaj przynajmniej jeden przepis")
 
+    if await get_store_in_account_market(db, payload.store_id, current_user) is None:
+        raise NotFoundException(detail="Wybrany sklep nie jest dostępny w kraju tego konta")
+
     # Sprawdź, że wszystkie przepisy istnieją i są widoczne dla użytkownika
     # (własne prywatne, publiczne, albo oficjalne — ta sama reguła co przy
     # normalnym przeglądaniu przepisów).
     from app.api.v1.recipes import _visibility_filter
 
     recipes_result = await db.execute(
-        select(Recipe.id).where(
-            Recipe.id.in_(payload.recipe_ids),
-            _visibility_filter(current_user.id),
+        apply_recipe_market_filter(
+            select(Recipe).options(
+                selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product),
+            ).where(
+                Recipe.id.in_(payload.recipe_ids),
+                _visibility_filter(current_user.id),
+            ),
+            current_user,
+            store_id=payload.store_id,
         )
     )
-    found_ids = set(recipes_result.scalars().all())
+    selected_recipes = recipes_result.scalars().all()
+    found_ids = {recipe.id for recipe in selected_recipes}
     missing = set(payload.recipe_ids) - found_ids
     if missing:
         raise NotFoundException(detail=f"Nie znaleziono przepisu/przepisów: {missing}")
+
+    # Validate before appending plan entries or spending a weekly allowance.
+    # Otherwise an invalid added recipe could poison an existing good list.
+    from app.services.recipe_ingredient_integrity import validate_recipe_ingredients
+    for recipe in selected_recipes:
+        validate_recipe_ingredients(recipe, country_code=account_country(current_user))
 
     if payload.existing_list_id is not None:
         # Dopisywanie kolejnych przepisów do jednej listy wcześniej
@@ -292,9 +341,9 @@ async def create_empty_shopping_list(
     Lista nadal jest przypisana do sklepu, dzięki czemu późniejsze
     dodawanie produktów katalogowych może zachować ceny i działy.
     """
-    store = await db.get(Store, payload.store_id)
+    store = await get_store_in_account_market(db, payload.store_id, current_user)
     if store is None:
-        raise NotFoundException(detail="Wybrany sklep nie istnieje")
+        raise NotFoundException(detail="Wybrany sklep nie jest dostępny w kraju tego konta")
 
     plan = MealPlan(
         user_id=current_user.id,
@@ -372,6 +421,8 @@ async def merge_shopping_lists(
     store_id = lists[0].store_id
     if any(shopping_list.store_id != store_id for shopping_list in lists):
         raise HTTPException(status_code=400, detail="Można łączyć tylko listy z tego samego sklepu.")
+    if await get_store_in_account_market(db, store_id, current_user) is None:
+        raise NotFoundException(detail="Wybrany sklep nie jest dostępny w kraju tego konta")
 
     # Nie odbieramy po cichu dostępu osobom, którym jedna z list została
     # udostępniona. Najpierw trzeba zakończyć udostępnienie źródła.
@@ -437,9 +488,15 @@ async def merge_shopping_lists(
                     substituted_for=item.substituted_for,
                 )
                 db.add(copied)
+                copy_regional_snapshot(item, copied)
                 combined[key] = copied
         source.status = "merged"
         db.add(source)
+    store = await db.get(Store, store_id)
+    if store is not None and store.country_code == "GB":
+        from types import SimpleNamespace
+        await refresh_regional_items(db, SimpleNamespace(items=list(combined.values()), store_id=store_id))
+        await refresh_regional_plan_budget(db, merged)
     await db.commit()
 
     loaded = await db.execute(
@@ -473,10 +530,12 @@ class ShoppingListSummary(BaseModel):
     total_items: int
     checked_items: int
     unchecked_items: int
-    total_estimated_price: float
-    checked_price: float
-    remaining_price: float
+    total_estimated_price: float | None
+    checked_price: float | None
+    remaining_price: float | None
     completion_percentage: float
+    currency_code: str = "PLN"
+    has_unpriced_items: bool = False
 
 
 async def _get_shopping_list_or_404(
@@ -485,6 +544,7 @@ async def _get_shopping_list_or_404(
     db: AsyncSession,
     *,
     for_update: bool = False,
+    refresh: bool = False,
 ) -> ShoppingList:
     """Pobiera listę zakupów z weryfikacją dostępu.
 
@@ -523,6 +583,8 @@ async def _get_shopping_list_or_404(
     )
     if for_update:
         query = query.with_for_update(of=ShoppingList).execution_options(populate_existing=True)
+    elif refresh:
+        query = query.execution_options(populate_existing=True)
     result = await db.execute(query)
     shopping_list = result.scalar_one_or_none()
     if shopping_list is None:
@@ -544,6 +606,108 @@ async def get_shopping_list(
 ) -> ShoppingList:
     """Zwraca listę zakupów z pozycjami pogrupowanymi po działach sklepu."""
     return await _get_shopping_list_or_404(list_id, current_user, db)
+
+
+@router.put(
+    "/{list_id}/store",
+    response_model=ShoppingListResponse,
+    summary="Change the store for the current UK shopping list without rebuilding it",
+)
+async def update_shopping_list_store(
+    list_id: UUID,
+    payload: ShoppingListStoreRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> ShoppingList:
+    # Public list IDs are meal_plan_id throughout this API, including shares.
+    shopping = await _get_shopping_list_or_404(list_id, current_user, db, for_update=True)
+    if shopping.status not in {"pending", "in_progress"}:
+        raise HTTPException(status_code=409, detail="Only an open shopping list can change store.")
+    plan = (await db.execute(select(MealPlan).where(
+        MealPlan.id == shopping.meal_plan_id,
+    ).with_for_update())).scalar_one()
+    owner = await db.get(User, plan.user_id)
+    source = shopping.store
+    if (owner is not None and account_country(owner) == "PL" and source is not None
+            and source.country_code == "PL" and source.currency_code == "PLN"
+            and plan.store_id == shopping.store_id):
+        return await _switch_polish_list_store(db, shopping, plan, payload.store_id, current_user)
+    if (owner is None or owner.country_code != "GB" or source is None
+            or source.country_code != "GB" or source.currency_code != "GBP"
+            or plan.store_id != shopping.store_id):
+        raise HTTPException(status_code=409, detail="The list and its owner must belong to the same UK market.")
+    # An accepted shared-list viewer can belong to PL. Target is constrained by
+    # the LIST market, not silently substituted with the viewer's account market.
+    target = (await db.execute(select(Store).where(
+        Store.id == payload.store_id, Store.country_code == "GB", Store.currency_code == "GBP",
+    ))).scalar_one_or_none()
+    if target is None:
+        raise NotFoundException(detail="The selected store is not available in this list's market.")
+
+    as_of = regional_pricing_date()
+    product_ids = {item.regional_snapshot.product_id for item in shopping.items if item.regional_snapshot is not None}
+    offers = await load_regional_offers(db, product_ids - {None}, target.id)
+    products = (await db.execute(select(Product).where(Product.id.in_(product_ids - {None})))).scalars().all()
+    products = {product.id: product for product in products}
+    prepared = []
+    for item in shopping.items:
+        requirement = regional_snapshot_requirement(item)
+        if item.is_from_pantry:
+            if (requirement is None or item.regional_snapshot.quote_status != "pantry"
+                    or not item.is_checked or item.estimated_price != Decimal(0)):
+                raise HTTPException(status_code=409, detail="The saved pantry quantity needs to be corrected first.")
+            continue  # Proven coverage is already split; never subtract again.
+        if item.is_checked:
+            if frozen_regional_purchase_quote(item, as_of=as_of) is None:
+                raise HTTPException(status_code=409, detail="The saved purchased package needs to be corrected first.")
+            continue  # Already bought: original store/package/price is history.
+        if requirement is None:
+            raise HTTPException(status_code=409, detail="This store cannot fully price the current shopping list.")
+        product_id, quantity, unit = requirement
+        product = products.get(product_id)
+        quote = select_uk_offer_quote(offers, product_id=product_id, store_id=target.id,
+            quantity=quantity, unit=unit, as_of=as_of)
+        if product is None or quote is None:
+            raise HTTPException(status_code=409, detail="This store cannot fully price the current shopping list.")
+        prepared.append((item, product, quantity, unit))
+
+    # Entire target basket is validated before mutation. A SAVEPOINT also rolls
+    # back a later DB/flush failure without leaking an earlier repriced row.
+    async with db.begin_nested():
+        for item, product, quantity, unit in prepared:
+            apply_regional_item_quote(item, product=product, store_id=target.id,
+                quantity=quantity, unit=unit, offers=offers, as_of=as_of)
+        shopping.store_id, shopping.store = target.id, target
+        plan.store_id, plan.store = target.id, target
+        await refresh_regional_plan_budget(db, shopping)
+        await db.flush()
+    await db.commit()
+    return await _get_shopping_list_or_404(list_id, current_user, db)
+
+
+async def _switch_polish_list_store(db, shopping, plan, target_id, user):
+    from app.services.polish_list_prices import quote_polish_list
+    target = (await db.execute(select(Store).where(
+        Store.id == target_id, Store.country_code == "PL", Store.currency_code == "PLN",
+    ))).scalar_one_or_none()
+    if target is None:
+        raise NotFoundException(detail="Wybrany sklep nie jest dostępny na rynku tej listy.")
+    quoted = (await quote_polish_list(db, shopping, [target]))[target.id]
+    if any(quote is None for _, _, quote in quoted):
+        raise HTTPException(status_code=409, detail="Nie można wycenić wszystkich produktów tej listy w wybranym sklepie.")
+    async with db.begin_nested():
+        for item, offer, quote in quoted:
+            if item.is_checked or item.is_from_pantry:
+                continue
+            item.store_product_id, item.store_product = offer.id, offer
+            item.department_id, item.department = offer.department_id, offer.department
+            item.estimated_price = Decimal(str(quote["price_in_store"]))
+        shopping.store_id, shopping.store = target.id, target
+        plan.store_id, plan.store = target.id, target
+        plan.estimated_min_budget = sum((Decimal(str(quote["price_in_store"])) for _, _, quote in quoted), Decimal(0))
+        await db.flush()
+    await db.commit()
+    return await _get_shopping_list_or_404(shopping.meal_plan_id, user, db, refresh=True)
 
 
 @router.put(
@@ -641,6 +805,9 @@ async def substitute_item(
         store_id=shopping_list.store_id,
     )
 
+    if getattr(shopping_list.store, "country_code", "PL") == "GB":
+        await refresh_regional_plan_budget(db, shopping_list)
+
     await db.commit()
 
     # Przeładuj obiekt z relacjami
@@ -680,15 +847,18 @@ async def get_shopping_list_summary(
     remaining_price = total_price - checked_price
 
     completion = (checked_items / total_items * 100) if total_items > 0 else 0.0
+    gb = getattr(shopping_list.store, "country_code", "PL") == "GB"
+    unpriced = gb and any(item.estimated_price is None for item in items)
 
     return ShoppingListSummary(
         total_items=total_items,
         checked_items=checked_items,
         unchecked_items=unchecked_items,
-        total_estimated_price=round(total_price, 2),
-        checked_price=round(checked_price, 2),
-        remaining_price=round(remaining_price, 2),
+        total_estimated_price=None if unpriced else round(total_price, 2),
+        checked_price=None if gb and any(item.is_checked and item.estimated_price is None for item in items) else round(checked_price, 2),
+        remaining_price=None if gb and any(not item.is_checked and item.estimated_price is None for item in items) else round(remaining_price, 2),
         completion_percentage=round(completion, 1),
+        currency_code="GBP" if gb else "PLN", has_unpriced_items=bool(unpriced),
     )
 
 
@@ -924,9 +1094,11 @@ async def share_shopping_list(
     notification = Notification(
         user_id=target_user.id,
         notification_type="shopping_list_share",
-        message=(
+        message=notification_text(target_user,
             f"{current_user.display_name or 'Ktoś'} udostępnił(a) Ci listę zakupów. "
-            "Otwórz Zakupy → Zaproszenia, żeby ją przyjąć."
+            "Otwórz Zakupy → Zaproszenia, żeby ją przyjąć.",
+            f"{current_user.display_name or 'Someone'} shared a shopping list with you. "
+            "Open Shopping → Invitations to accept it.",
         ),
     )
     db.add(notification)
@@ -1056,9 +1228,10 @@ async def accept_share(
         # o PRZYJĘCIU zaproszenia brzmiałoby myląco — nikt wtedy
         # niczego nie udostępnia.
         notification_type="shopping_list_accepted",
-        message=(
+        message=notification_text(share.shared_by,
             f"{current_user.display_name or 'Ktoś'} przyjął(-ęła) Twoje "
-            "zaproszenie do listy zakupów."
+            "zaproszenie do listy zakupów.",
+            f"{current_user.display_name or 'Someone'} accepted your shopping list invitation.",
         ),
     )
     db.add(accept_notification)
@@ -1161,6 +1334,37 @@ async def add_item_to_shopping_list(
     if payload.quantity <= 0:
         raise HTTPException(status_code=400, detail="Ilość musi być większa od zera")
 
+    if getattr(shopping_list.store, "country_code", "PL") == "GB":
+        if shopping_list.status == "completed":
+            raise HTTPException(status_code=409, detail="This shopping list is completed.")
+        if product.review_status != "approved" and product.created_by_user_id != current_user.id:
+            raise NotFoundException(detail="Product not found")
+        offers = await load_regional_offers(db, {product.id}, shopping_list.store_id)
+        quantity, unit = resolve_manual_regional_quantity(
+            product, Decimal(str(payload.quantity)), payload.unit, offers,
+            shopping_list.store_id, regional_pricing_date(),
+        )
+        existing = next((item for item in shopping_list.items
+            if item.regional_snapshot is not None
+            and item.regional_snapshot.product_id == product.id
+            and item.unit == unit and not item.is_from_pantry and not item.is_checked), None)
+        item = existing or ShoppingListItem(id=uuid4(), shopping_list_id=shopping_list.id, is_checked=False, is_generated=False)
+        if existing is not None:
+            if existing.is_generated:
+                existing.regional_snapshot.manual_extra_quantity = (
+                    existing.regional_snapshot.manual_extra_quantity or Decimal(0)
+                ) + quantity
+            quantity += existing.required_quantity
+            item.is_checked = False
+        apply_regional_item_quote(
+            item, product=product, store_id=shopping_list.store_id,
+            quantity=quantity, unit=unit, offers=offers, as_of=regional_pricing_date(),
+        )
+        db.add(item)
+        await refresh_regional_plan_budget(db, shopping_list)
+        await db.commit()
+        return {"detail": "Updated shopping quantity" if existing else "Product added", "item_id": str(item.id)}
+
     store_product_result = await db.execute(
         select(StoreProduct).where(
             StoreProduct.store_id == shopping_list.store_id,
@@ -1226,6 +1430,7 @@ async def add_custom_item_to_shopping_list(
             item
             for item in shopping_list.items
             if item.custom_name is not None
+            and (getattr(item, "regional_snapshot", None) is None or item.regional_snapshot.product_id is None)
             and not item.is_from_pantry
             and item.custom_name.casefold() == name.casefold()
             and item.unit.casefold() == unit.casefold()
@@ -1251,6 +1456,13 @@ async def add_custom_item_to_shopping_list(
         estimated_price=None,
     )
     db.add(item)
+    if getattr(shopping_list.store, "country_code", "PL") == "GB":
+        item.regional_snapshot = ShoppingListItemRegionalSnapshot(
+            product_id=None, store_id=shopping_list.store_id, name_en=name,
+            country_code="GB", currency_code="GBP", quote_status="unpriced",
+            required_quantity=None, required_unit=None, pricing_as_of=regional_pricing_date(),
+        )
+        await refresh_regional_plan_budget(db, shopping_list)
     await db.commit()
     await db.refresh(item)
     return {"detail": "Dodano pozycję do listy", "item_id": str(item.id)}
@@ -1277,6 +1489,8 @@ async def delete_shopping_list_item(
         raise NotFoundException(detail="Pozycja nie istnieje na tej liście")
 
     await db.delete(item)
+    if getattr(shopping_list.store, "country_code", "PL") == "GB":
+        await refresh_regional_plan_budget(db, shopping_list)
     await db.commit()
 
 
@@ -1316,7 +1530,10 @@ async def complete_shopping_list(
 
     moved = 0
     if move_to_pantry:
-        for item in shopping_list.items:
+        gb = getattr(shopping_list.store, "country_code", "PL") == "GB"
+        if gb:
+            moved = await complete_regional_items_to_pantry(db, shopping_list, current_user.id)
+        for item in ([] if gb else shopping_list.items):
             if not item.is_checked or item.is_from_pantry:
                 continue
             store_product = item.store_product

@@ -4,6 +4,7 @@ import '../../models/recipe.dart';
 import '../../services/api_client.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
+import '../../l10n/market_locale.dart';
 import '../../widgets/user_avatar.dart';
 import '../recipes/recipe_detail_screen.dart';
 
@@ -17,7 +18,10 @@ import '../recipes/recipe_detail_screen.dart';
 /// nieodpowiedniej treści niezależnie od tego, czy przeszła już
 /// moderację, czy nie.
 class AdminAllRecipesScreen extends StatefulWidget {
-  const AdminAllRecipesScreen({super.key});
+  const AdminAllRecipesScreen({super.key, this.market = 'PL', this.client});
+
+  final String market;
+  final ApiClient? client;
 
   @override
   State<AdminAllRecipesScreen> createState() => _AdminAllRecipesScreenState();
@@ -25,7 +29,9 @@ class AdminAllRecipesScreen extends StatefulWidget {
 
 class _AdminAllRecipesScreenState extends State<AdminAllRecipesScreen> {
   static const int _pageSize = 30;
-  final ApiClient _client = ApiClient();
+  late ApiClient _client;
+  int _loadGeneration = 0;
+  int _viewGeneration = 0;
   List<Map<String, dynamic>> _recipes = [];
   bool _isLoading = true;
   bool _isLoadingMore = false;
@@ -34,12 +40,28 @@ class _AdminAllRecipesScreenState extends State<AdminAllRecipesScreen> {
   final Set<String> _busy = {};
 
   @override
+  void didUpdateWidget(covariant AdminAllRecipesScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.market != widget.market ||
+        oldWidget.client != widget.client) {
+      _viewGeneration++;
+      _client = widget.client ?? ApiClient();
+      _recipes = [];
+      _busy.clear();
+      _load();
+    }
+  }
+
+  @override
   void initState() {
     super.initState();
+    _client = widget.client ?? ApiClient();
     _load();
   }
 
   Future<void> _load() async {
+    final generation = ++_loadGeneration;
+    bool isCurrent() => mounted && generation == _loadGeneration;
     setState(() {
       _isLoading = true;
       _isLoadingMore = false;
@@ -48,26 +70,26 @@ class _AdminAllRecipesScreenState extends State<AdminAllRecipesScreen> {
     });
     try {
       final page = await _fetchPage(0);
-      if (!mounted) return;
+      if (!isCurrent()) return;
       setState(() {
         _recipes = page.take(_pageSize).toList();
         _hasMore = page.length > _pageSize;
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!isCurrent()) return;
       setState(() {
         _recipes = [];
-        _error = friendlyError(e);
+        _error = friendlyError(e, strings: context.strings);
       });
     } finally {
       // finally, żeby kółko zniknęło niezależnie od wyniku żądania.
-      if (mounted) setState(() => _isLoading = false);
+      if (isCurrent()) setState(() => _isLoading = false);
     }
   }
 
   Future<List<Map<String, dynamic>>> _fetchPage(int skip) async {
     final response = await _client.get(
-      '/recipes/admin/all-user-recipes?skip=$skip&limit=${_pageSize + 1}',
+      '/recipes/admin/all-user-recipes?skip=$skip&limit=${_pageSize + 1}&market=${widget.market}',
     );
     if (response is! List) return [];
     return response
@@ -77,11 +99,13 @@ class _AdminAllRecipesScreenState extends State<AdminAllRecipesScreen> {
   }
 
   Future<void> _loadMore() async {
-    if (_isLoadingMore || !_hasMore) return;
+    if (_isLoading || _isLoadingMore || !_hasMore) return;
+    final generation = _loadGeneration;
+    bool isCurrent() => mounted && generation == _loadGeneration;
     setState(() => _isLoadingMore = true);
     try {
       final page = await _fetchPage(_recipes.length);
-      if (!mounted) return;
+      if (!isCurrent()) return;
       final existingIds = _recipes.map((recipe) => recipe['id']).toSet();
       final newRecipes =
           page
@@ -93,18 +117,18 @@ class _AdminAllRecipesScreenState extends State<AdminAllRecipesScreen> {
         _hasMore = page.length > _pageSize;
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!isCurrent()) return;
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
+            content: Text(friendlyError(e, strings: context.strings)),
             backgroundColor: AppTheme.errorColor,
           ),
         );
     } finally {
-      if (mounted) setState(() => _isLoadingMore = false);
+      if (isCurrent()) setState(() => _isLoadingMore = false);
     }
   }
 
@@ -124,7 +148,7 @@ class _AdminAllRecipesScreenState extends State<AdminAllRecipesScreen> {
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
+            content: Text(friendlyError(e, strings: context.strings)),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -132,50 +156,52 @@ class _AdminAllRecipesScreenState extends State<AdminAllRecipesScreen> {
   }
 
   Future<void> _delete(String id, String name) async {
+    if (_busy.contains(id)) return;
+    final generation = _viewGeneration;
     final confirmed = await showDialog<bool>(
       context: context,
       builder:
           (ctx) => AlertDialog(
-            title: const Text('Usunąć przepis?'),
-            content: Text(
-              'Usuniesz "$name" oraz jego komentarze i powiązania (listy zakupów, '
-              'plany posiłków innych użytkowników, którzy go używali). Tej operacji '
-              'nie da się cofnąć.',
-            ),
+            title: Text(context.strings.adminDeleteRecipeTitle),
+            content: Text(context.strings.adminDeleteRecipeBody(name)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Anuluj'),
+                child: Text(context.strings.planCancel),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
                 child: Text(
-                  'Usuń',
+                  context.strings.productsDelete,
                   style: TextStyle(color: AppTheme.errorColor),
                 ),
               ),
             ],
           ),
     );
-    if (confirmed != true) return;
+    if (confirmed != true ||
+        !mounted ||
+        generation != _viewGeneration ||
+        _busy.contains(id))
+      return;
 
     setState(() => _busy.add(id));
     try {
       await _client.delete('/recipes/$id');
-      if (!mounted) return;
+      if (!mounted || generation != _viewGeneration) return;
       setState(() {
         _recipes.removeWhere((r) => r['id'] == id);
         _busy.remove(id);
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || generation != _viewGeneration) return;
       setState(() => _busy.remove(id));
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
+            content: Text(friendlyError(e, strings: context.strings)),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -185,7 +211,7 @@ class _AdminAllRecipesScreenState extends State<AdminAllRecipesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Wszystkie przepisy użytkowników')),
+      appBar: AppBar(title: Text(context.strings.adminAllRecipesTitle)),
       body:
           _isLoading
               ? const Center(child: CircularProgressIndicator())
@@ -204,7 +230,7 @@ class _AdminAllRecipesScreenState extends State<AdminAllRecipesScreen> {
                       const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: _load,
-                        child: const Text('Spróbuj ponownie'),
+                        child: Text(context.strings.productsRetry),
                       ),
                     ],
                   ),
@@ -213,7 +239,7 @@ class _AdminAllRecipesScreenState extends State<AdminAllRecipesScreen> {
               : _recipes.isEmpty
               ? Center(
                 child: Text(
-                  'Brak przepisów dodanych przez użytkowników.',
+                  context.strings.adminRecipesEmpty,
                   style: TextStyle(color: AppTheme.textSecondary),
                 ),
               )
@@ -241,7 +267,9 @@ class _AdminAllRecipesScreenState extends State<AdminAllRecipesScreen> {
                                     )
                                     : const Icon(Icons.expand_more),
                             label: Text(
-                              _isLoadingMore ? 'Ładowanie…' : 'Pokaż więcej',
+                              _isLoadingMore
+                                  ? context.strings.loadingMore
+                                  : context.strings.adminShowMore,
                             ),
                           ),
                         ),
@@ -252,10 +280,22 @@ class _AdminAllRecipesScreenState extends State<AdminAllRecipesScreen> {
                     final id = r['id'] as String;
                     final isBusy = _busy.contains(id);
                     final (label, color) = switch (r['visibility']) {
-                      'public' => ('Publiczny', AppTheme.primaryColor),
-                      'pending' => ('Oczekuje', AppTheme.textSecondary),
-                      'rejected' => ('Odrzucony', AppTheme.errorColor),
-                      _ => ('Prywatny', AppTheme.textSecondary),
+                      'public' => (
+                        context.strings.adminPublic,
+                        AppTheme.primaryColor,
+                      ),
+                      'pending' => (
+                        context.strings.adminPending,
+                        AppTheme.textSecondary,
+                      ),
+                      'rejected' => (
+                        context.strings.adminRejected,
+                        AppTheme.errorColor,
+                      ),
+                      _ => (
+                        context.strings.adminPrivate,
+                        AppTheme.textSecondary,
+                      ),
                     };
 
                     return Padding(
@@ -295,7 +335,7 @@ class _AdminAllRecipesScreenState extends State<AdminAllRecipesScreen> {
                                       const SizedBox(height: 2),
                                       Text(
                                         r['created_by_name'] as String? ??
-                                            'Nieznany autor',
+                                            context.strings.adminUnknownAuthor,
                                         style: TextStyle(
                                           fontSize: 12,
                                           color: AppTheme.textSecondary,
@@ -345,12 +385,17 @@ class _AdminAllRecipesScreenState extends State<AdminAllRecipesScreen> {
                                         Icons.delete_outline,
                                         color: AppTheme.errorColor,
                                       ),
-                                      tooltip: 'Usuń przepis',
+                                      tooltip:
+                                          context
+                                              .strings
+                                              .adminDeleteRecipeTooltip,
                                       onPressed:
                                           () => _delete(
                                             id,
                                             r['name'] as String? ??
-                                                'ten przepis',
+                                                context
+                                                    .strings
+                                                    .adminRecipeFallback,
                                           ),
                                     ),
                               ],

@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
 import '../theme/app_theme.dart';
+import '../l10n/market_locale.dart';
 
 /// Wynik sprawdzenia dostępności aktualizacji.
 class UpdateCheckResult {
@@ -94,9 +95,9 @@ class UpdateAvailableScreen extends StatelessWidget {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),
-            content: Text('Nie udało się otworzyć sklepu.'),
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(context.strings.releasePromptStoreError),
           ),
         );
     }
@@ -128,7 +129,7 @@ class UpdateAvailableScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 28),
                   Text(
-                    'Dostępna nowa wersja',
+                    context.strings.releasePromptTitle,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -137,12 +138,8 @@ class UpdateAvailableScreen extends StatelessWidget {
                   const SizedBox(height: 12),
                   Text(
                     forceUpdate
-                        ? 'Ta wersja aplikacji nie jest już obsługiwana. '
-                            'Zaktualizuj ją, aby korzystać dalej.'
-                        : '• Poprawiliśmy odczyt wartości odżywczych skanowanych produktów i przeliczanie porcji.\n'
-                            '• Usprawniliśmy Dziennik i listy zakupów oraz odświeżanie danych po zmianie konta.\n'
-                            '• Poprawiliśmy formularze i zabezpieczenia dostępu do prywatnych przepisów.\n'
-                            '• Regulamin, politykę prywatności i pomoc znajdziesz na mealplannerpolska.pl. Kontakt: kontakt@mealplannerpolska.pl.',
+                        ? context.strings.releasePromptRequired
+                        : context.strings.releasePromptChanges,
                     style: TextStyle(
                       color: AppTheme.textSecondary,
                       height: 1.5,
@@ -157,8 +154,8 @@ class UpdateAvailableScreen extends StatelessWidget {
                       icon: const Icon(Icons.download),
                       label: Text(
                         Platform.isIOS
-                            ? 'Otwórz App Store'
-                            : 'Otwórz Google Play',
+                            ? context.strings.releasePromptApple
+                            : context.strings.releasePromptGoogle,
                       ),
                     ),
                   ),
@@ -166,7 +163,7 @@ class UpdateAvailableScreen extends StatelessWidget {
                     const SizedBox(height: 8),
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('Później'),
+                      child: Text(context.strings.releasePromptLater),
                     ),
                   ],
                 ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/market_locale.dart';
 import '../../services/moderation_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
@@ -11,24 +12,28 @@ import '../../utils/error_utils.dart';
 /// cudzych), ale wymagało odnalezienia komentarza ręcznie, przepis po
 /// przepisie. Ten ekran daje jedno miejsce z wyszukiwarką.
 class AdminCommentsScreen extends StatefulWidget {
-  const AdminCommentsScreen({super.key});
+  const AdminCommentsScreen({super.key, this.service});
+
+  final ModerationService? service;
 
   @override
   State<AdminCommentsScreen> createState() => _AdminCommentsScreenState();
 }
 
 class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
-  final ModerationService _service = ModerationService();
+  late final ModerationService _service;
   final TextEditingController _searchController = TextEditingController();
 
   List<Map<String, dynamic>> _comments = [];
   bool _isLoading = true;
   String? _error;
   final Set<String> _busyIds = {};
+  int _loadGeneration = 0;
 
   @override
   void initState() {
     super.initState();
+    _service = widget.service ?? ModerationService();
     _load();
   }
 
@@ -39,6 +44,7 @@ class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
   }
 
   Future<void> _load() async {
+    final generation = ++_loadGeneration;
     setState(() {
       _isLoading = true;
       _error = null;
@@ -47,45 +53,45 @@ class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
       final list = await _service.getAllComments(
         search: _searchController.text,
       );
-      if (!mounted) return;
+      if (!mounted || generation != _loadGeneration) return;
       setState(() {
         _comments = list;
         _isLoading = false;
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || generation != _loadGeneration) return;
       setState(() {
         _isLoading = false;
-        _error = friendlyError(e);
+        _error = friendlyError(e, strings: context.strings);
       });
     }
   }
 
   Future<void> _delete(Map<String, dynamic> comment) async {
+    final id = comment['id'] as String;
+    if (_busyIds.contains(id)) return;
     final confirmed = await showDialog<bool>(
       context: context,
       builder:
           (dialogContext) => AlertDialog(
-            title: const Text('Usunąć komentarz?'),
-            content: const Text('Tej operacji nie da się cofnąć.'),
+            title: Text(context.strings.adminCommentsDeleteTitle),
+            content: Text(context.strings.adminCommentsDeleteBody),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(dialogContext).pop(false),
-                child: const Text('Anuluj'),
+                child: Text(context.strings.planCancel),
               ),
               FilledButton(
                 style: FilledButton.styleFrom(
                   backgroundColor: AppTheme.errorColor,
                 ),
                 onPressed: () => Navigator.of(dialogContext).pop(true),
-                child: const Text('Usuń'),
+                child: Text(context.strings.productsDelete),
               ),
             ],
           ),
     );
-    if (confirmed != true) return;
-
-    final id = comment['id'] as String;
+    if (confirmed != true || !mounted || _busyIds.contains(id)) return;
     setState(() => _busyIds.add(id));
     try {
       await _service.deleteComment(comment['recipe_id'] as String, id);
@@ -97,9 +103,9 @@ class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 3),
-            content: Text('Komentarz usunięty'),
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(context.strings.adminCommentsDeleted),
           ),
         );
     } catch (e) {
@@ -110,7 +116,7 @@ class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(friendlyError(e)),
+            content: Text(friendlyError(e, strings: context.strings)),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -120,7 +126,7 @@ class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Komentarze')),
+      appBar: AppBar(title: Text(context.strings.adminCommentsTitle)),
       body: Column(
         children: [
           Padding(
@@ -129,7 +135,7 @@ class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
               controller: _searchController,
               onSubmitted: (_) => _load(),
               decoration: InputDecoration(
-                hintText: 'Szukaj w treści, autorze lub przepisie…',
+                hintText: context.strings.adminCommentsSearch,
                 prefixIcon: const Icon(Icons.search),
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
@@ -154,7 +160,7 @@ class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
                           ),
                           TextButton(
                             onPressed: _load,
-                            child: const Text('Spróbuj ponownie'),
+                            child: Text(context.strings.productsRetry),
                           ),
                         ],
                       ),
@@ -162,7 +168,7 @@ class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
                     : _comments.isEmpty
                     ? Center(
                       child: Text(
-                        'Brak komentarzy.',
+                        context.strings.adminCommentsEmpty,
                         style: TextStyle(color: AppTheme.textSecondary),
                       ),
                     )
@@ -186,7 +192,9 @@ class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'pod: ${c['recipe_name']}',
+                                    context.strings.adminCommentsRecipe(
+                                      '${c['recipe_name']}',
+                                    ),
                                     style: TextStyle(
                                       fontSize: 11,
                                       color: AppTheme.textSecondary,
@@ -197,8 +205,12 @@ class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
                                   Text(
                                     (text == null || text.isEmpty)
                                         ? (hasPhoto
-                                            ? '(samo zdjęcie)'
-                                            : '(pusty)')
+                                            ? context
+                                                .strings
+                                                .adminCommentsPhotoOnly
+                                            : context
+                                                .strings
+                                                .adminCommentsEmptyText)
                                         : text,
                                     style: const TextStyle(fontSize: 14),
                                   ),
@@ -216,7 +228,9 @@ class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
                                           ),
                                           const SizedBox(width: 4),
                                           Text(
-                                            'zawiera zdjęcie',
+                                            context
+                                                .strings
+                                                .adminCommentsHasPhoto,
                                             style: TextStyle(
                                               fontSize: 11,
                                               color: AppTheme.textSecondary,
@@ -253,7 +267,10 @@ class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
                                             color: AppTheme.errorColor,
                                             size: 20,
                                           ),
-                                          tooltip: 'Usuń komentarz',
+                                          tooltip:
+                                              context
+                                                  .strings
+                                                  .adminCommentsDelete,
                                           onPressed: () => _delete(c),
                                         ),
                                     ],

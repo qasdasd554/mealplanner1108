@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
@@ -25,10 +25,43 @@ class ShoppingListItemResponse(BaseModel):
     is_checked: bool
     is_from_pantry: bool = False
     substituted_for_name: str | None = None
+    currency_code: str = "PLN"
+    price_is_estimated: bool = False
+    quote_status: str | None = None
+    package_quantity: float | None = None
+    package_unit: str | None = None
+    package_count: int | None = None
+    purchased_quantity: float | None = None
+    regional_offer_id: uuid.UUID | None = None
+    price_source: dict | None = None
+    pricing_as_of: date | None = None
 
     @model_validator(mode="before")
     @classmethod
     def get_related_fields(cls, data):
+        snapshot = getattr(data, "regional_snapshot", None)
+        if snapshot is not None:
+            quote = snapshot.quote_data or {}
+            pantry = bool(getattr(data, "is_from_pantry", False))
+            return {
+                "id": data.id, "product_id": snapshot.product_id,
+                "product_name": snapshot.name_en, "brand": None,
+                "department_name": "In pantry" if pantry else "Other",
+                "department_sort_order": 10_000 if pantry else 999,
+                "required_quantity": data.required_quantity, "unit": data.unit,
+                "estimated_price": data.estimated_price,
+                "is_checked": data.is_checked, "is_from_pantry": pantry,
+                "substituted_for_name": None,
+                "currency_code": "GBP", "quote_status": snapshot.quote_status,
+                "price_is_estimated": quote.get("price_is_estimated", False),
+                "package_quantity": quote.get("package_quantity"),
+                "package_unit": quote.get("package_unit"),
+                "package_count": quote.get("package_count"),
+                "purchased_quantity": quote.get("purchased_quantity"),
+                "regional_offer_id": snapshot.offer_id,
+                "price_source": quote.get("price_source"),
+                "pricing_as_of": snapshot.pricing_as_of,
+            }
         if hasattr(data, "store_product") and data.store_product is not None:
             prod = data.store_product.product
             dept = data.department
@@ -92,11 +125,42 @@ class ShoppingListResponse(BaseModel):
     total_estimated_price: float | None = None
     items_by_department: dict[str, list[ShoppingListItemResponse]] = {}
     created_at: datetime
+    currency_code: str = "PLN"
+    has_unpriced_items: bool = False
+    price_is_estimated: bool = False
 
     @model_validator(mode="before")
     @classmethod
     def get_related_fields(cls, data):
         if hasattr(data, "store") and data.store is not None:
+            if getattr(data.store, "country_code", "PL") == "GB":
+                grouped = {}
+                total = 0.0
+                missing = estimated = False
+                for item in (data.items or []):
+                    response = ShoppingListItemResponse.model_validate(item)
+                    if response.currency_code != "GBP":
+                        # Legacy free-text rows remain visible, not valued as PLN.
+                        response = response.model_copy(update={
+                            "currency_code": "GBP", "estimated_price": None,
+                            "quote_status": "unpriced", "department_name": "Other",
+                        })
+                    grouped.setdefault(response.department_name or "Other", []).append(response)
+                    if not response.is_from_pantry and response.estimated_price is None:
+                        missing = True
+                    total += response.estimated_price or 0
+                    estimated = estimated or response.price_is_estimated
+                pantry_rows = grouped.pop("In pantry", None)
+                if pantry_rows is not None:
+                    grouped["In pantry"] = pantry_rows
+                return {
+                    "id": data.meal_plan_id, "meal_plan_id": data.meal_plan_id,
+                    "store_id": data.store_id, "store_name": data.store.name,
+                    "status": data.status, "created_at": data.created_at,
+                    "total_estimated_price": None if missing else round(total, 2),
+                    "items_by_department": grouped, "currency_code": "GBP",
+                    "has_unpriced_items": missing, "price_is_estimated": estimated,
+                }
             items_by_dept = {}
             total_price = 0.0
             for item in (data.items or []):

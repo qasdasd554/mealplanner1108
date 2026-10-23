@@ -13,6 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.core.language import account_text
 from app.db.session import get_db
 from app.models import User
 
@@ -84,7 +85,9 @@ async def get_current_user_allow_unverified(
     if user.is_banned:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=user.ban_reason or "To konto zostało zablokowane przez administratora.",
+            detail=user.ban_reason or account_text(user,
+                "To konto zostało zablokowane przez administratora.",
+                "This account has been blocked by an administrator."),
         )
 
     # Aktualizacja "ostatnio aktywny" — przepustowana (patrz komentarz
@@ -145,7 +148,8 @@ async def get_current_user(
     if not current_user.is_email_verified:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Potwierdź swój adres e-mail, aby korzystać z aplikacji.",
+            detail=account_text(current_user, "Potwierdź swój adres e-mail, aby korzystać z aplikacji.",
+                "Verify your email address to use the app."),
         )
     return current_user
 
@@ -159,7 +163,8 @@ async def get_current_admin(
     if current_user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Ta operacja wymaga uprawnień administratora",
+            detail=account_text(current_user, "Ta operacja wymaga uprawnień administratora",
+                "This action requires administrator permissions."),
         )
     return current_user
 
@@ -180,6 +185,7 @@ async def get_current_premium(
     if not is_premium_active(current_user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Ta funkcja wymaga aktywnej subskrypcji Premium",
+            detail=account_text(current_user, "Ta funkcja wymaga aktywnej subskrypcji Premium",
+                "This feature requires an active Premium subscription."),
         )
     return current_user

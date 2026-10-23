@@ -12,7 +12,7 @@ from app.services.admin_notifications import notify_admins_pending_review
 async def test_pending_review_notifies_and_pushes_to_every_admin() -> None:
     admin_ids = [uuid4(), uuid4()]
     result = MagicMock()
-    result.scalars.return_value.all.return_value = admin_ids
+    result.all.return_value = [(value, "PL") for value in admin_ids]
 
     # AsyncSession.add() jest synchroniczne, a execute()/commit() są
     # asynchroniczne. AsyncMock dla całej sesji zamieniał add() w coroutine.
@@ -40,7 +40,7 @@ async def test_pending_review_notifies_and_pushes_to_every_admin() -> None:
 @pytest.mark.asyncio
 async def test_pending_review_without_admins_is_a_noop() -> None:
     result = MagicMock()
-    result.scalars.return_value.all.return_value = []
+    result.all.return_value = []
     db = MagicMock()
     db.execute = AsyncMock(return_value=result)
     db.commit = AsyncMock()

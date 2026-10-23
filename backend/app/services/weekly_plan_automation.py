@@ -10,6 +10,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.premium import is_premium_active
+from app.core.market_clock import market_timezone
+from app.core.markets import account_country
 from app.models import Notification, User, WeeklyPlanAutomation
 from app.services.meal_plan_generator import MealPlanGenerator
 from app.services.push import push_for_notification
@@ -29,7 +31,7 @@ def automation_is_due(
     scheduled_at = datetime.combine(
         scheduled_date,
         time(hour=automation.hour),
-        tzinfo=WARSAW,
+        tzinfo=now_local.tzinfo or WARSAW,
     )
     if now_local < scheduled_at:
         return False
@@ -52,9 +54,10 @@ async def generate_for_user(
     now_local: datetime | None = None,
 ) -> bool:
     """Wykonuje jedną automatyzację. Zwraca True po utworzeniu planu."""
-    now_local = now_local or datetime.now(WARSAW)
+    now_local = (now_local or datetime.now(timezone.utc)).astimezone(market_timezone(user))
     now_utc = datetime.now(timezone.utc)
     user_id = user.id
+    english = account_country(user) == "GB"
     automation.last_attempt_week_start = calendar_week_start(now_local.date())
     automation.last_attempt_at = now_utc
     automation.last_error = None
@@ -63,12 +66,12 @@ async def generate_for_user(
 
     if not is_premium_active(user):
         automation.enabled = False
-        automation.last_error = "Premium wygasło — automatyzacja została wyłączona."
+        automation.last_error = ("Premium has expired — weekly automation has been turned off." if english else "Premium wygasło — automatyzacja została wyłączona.")
         message = automation.last_error
         notification_type = "weekly_plan_failed"
     elif user.preferred_store_id is None:
-        automation.last_error = "Wybierz ulubiony sklep w profilu."
-        message = "Nie utworzyliśmy planu. Wybierz ulubiony sklep w profilu i spróbuj ponownie."
+        automation.last_error = ("Choose a preferred shop in your profile." if english else "Wybierz ulubiony sklep w profilu.")
+        message = ("We could not create your plan. Choose a preferred shop in your profile and try again." if english else "Nie utworzyliśmy planu. Wybierz ulubiony sklep w profilu i spróbuj ponownie.")
         notification_type = "weekly_plan_failed"
     else:
         try:
@@ -90,8 +93,8 @@ async def generate_for_user(
             automation.last_plan_id = plan.id
             automation.last_error = None
             message = (
-                "Plan na kolejny tydzień jest gotowy. Otwórz aplikację, "
-                "aby go sprawdzić."
+                ("Your meal plan for next week is ready. Open the app to view it."
+                 if english else "Plan na kolejny tydzień jest gotowy. Otwórz aplikację, aby go sprawdzić.")
             )
             notification_type = "weekly_plan_ready"
         except Exception:
@@ -105,7 +108,7 @@ async def generate_for_user(
             logger.exception(
                 "Automatyczny plan użytkownika %s nie powiódł się", user_id
             )
-            automation.last_error = "Nie udało się utworzyć planu. Spróbujemy ponownie później."
+            automation.last_error = ("Could not create your meal plan. We will try again later." if english else "Nie udało się utworzyć planu. Spróbujemy ponownie później.")
             message = automation.last_error
             notification_type = "weekly_plan_failed"
 
@@ -122,7 +125,7 @@ async def generate_for_user(
 
 
 async def process_due_weekly_plans(db: AsyncSession) -> int:
-    now_local = datetime.now(WARSAW)
+    now_utc = datetime.now(timezone.utc)
     result = await db.execute(
         select(WeeklyPlanAutomation, User)
         .join(User, User.id == WeeklyPlanAutomation.user_id)
@@ -130,6 +133,7 @@ async def process_due_weekly_plans(db: AsyncSession) -> int:
     )
     completed = 0
     for automation, user in result.all():
+        now_local = now_utc.astimezone(market_timezone(user))
         if automation_is_due(automation, now_local):
             completed += int(
                 await generate_for_user(db, automation, user, now_local=now_local)

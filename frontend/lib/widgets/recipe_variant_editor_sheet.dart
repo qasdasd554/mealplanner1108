@@ -1,6 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../l10n/market_locale.dart';
+import '../l10n/recipe_content.dart';
+import '../l10n/catalog_labels.dart';
 
 import '../models/product.dart';
 import '../models/recipe.dart';
@@ -8,13 +11,20 @@ import '../services/product_search_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/error_utils.dart';
 import '../utils/quantity_formatter.dart';
+import '../utils/recipe_ingredient_defaults.dart';
+import '../utils/retained_dialog.dart';
 
 /// Edytor roboczej listy składników. Niczego nie zapisuje na serwerze;
 /// zwraca jedynie nową listę do ekranu szczegółów przepisu.
 class RecipeVariantEditorSheet extends StatefulWidget {
   final List<RecipeIngredient> ingredients;
+  final ProductSearchService? searchService;
 
-  const RecipeVariantEditorSheet({super.key, required this.ingredients});
+  const RecipeVariantEditorSheet({
+    super.key,
+    required this.ingredients,
+    this.searchService,
+  });
 
   @override
   State<RecipeVariantEditorSheet> createState() =>
@@ -35,7 +45,7 @@ class _RecipeVariantEditorSheetState extends State<RecipeVariantEditorSheet> {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (_) => const _VariantProductPicker(),
+      builder: (_) => _VariantProductPicker(service: widget.searchService),
     );
     if (product == null || !mounted) return;
 
@@ -43,14 +53,17 @@ class _RecipeVariantEditorSheetState extends State<RecipeVariantEditorSheet> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(content: Text('Ten produkt jest już na liście.')),
+          SnackBar(content: Text(context.strings.variantAlreadyAdded)),
         );
       return;
     }
 
     final quantity = await _askQuantity(
       name: product.name,
-      initialQuantity: product.defaultQuantity,
+      initialQuantity:
+          const {'opak', 'szt', 'kg', 'l'}.contains(product.unit)
+              ? defaultRecipeIngredientQuantity(product.unit)
+              : product.defaultQuantity,
       unit: product.unit,
     );
     if (quantity == null || !mounted) return;
@@ -73,7 +86,7 @@ class _RecipeVariantEditorSheetState extends State<RecipeVariantEditorSheet> {
   Future<void> _editQuantity(int index) async {
     final ingredient = _ingredients[index];
     final quantity = await _askQuantity(
-      name: ingredient.productName ?? 'Składnik',
+      name: ingredient.displayName(context) ?? context.strings.detailIngredient,
       initialQuantity: ingredient.quantity,
       unit: ingredient.unit,
     );
@@ -110,41 +123,59 @@ class _RecipeVariantEditorSheetState extends State<RecipeVariantEditorSheet> {
     final controller = TextEditingController(
       text: formatQuantity(initialQuantity, unit),
     );
-    final result = await showDialog<double>(
-      context: context,
-      builder:
-          (dialogContext) => AlertDialog(
-            title: Text(name),
-            content: TextField(
-              controller: controller,
-              autofocus: true,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              decoration: InputDecoration(labelText: 'Ilość ($unit)'),
+    String? error;
+    try {
+      return await showRetainedDialog<double>(
+        context: context,
+        builder:
+            (dialogContext) => StatefulBuilder(
+              builder:
+                  (dialogContext, setDialogState) => AlertDialog(
+                    title: Text(name),
+                    content: TextField(
+                      controller: controller,
+                      autofocus: true,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      decoration: InputDecoration(
+                        labelText: context.strings.variantAmount(
+                          context.strings.unitLabel(unit),
+                        ),
+                        errorText: error,
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(dialogContext),
+                        child: Text(context.strings.planCancel),
+                      ),
+                      FilledButton(
+                        onPressed: () {
+                          final value = double.tryParse(
+                            controller.text.trim().replaceAll(',', '.'),
+                          );
+                          if (value == null ||
+                              !validRecipeIngredientQuantity(value, unit)) {
+                            setDialogState(
+                              () =>
+                                  error = context.strings.variantQuantityError(
+                                    maxRecipeIngredientQuantity(unit).toInt(),
+                                  ),
+                            );
+                            return;
+                          }
+                          Navigator.pop(dialogContext, value);
+                        },
+                        child: Text(context.strings.detailChange),
+                      ),
+                    ],
+                  ),
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Anuluj'),
-              ),
-              FilledButton(
-                onPressed: () {
-                  final value = double.tryParse(
-                    controller.text.replaceAll(',', '.'),
-                  );
-                  Navigator.pop(
-                    dialogContext,
-                    value != null && value > 0 ? value : null,
-                  );
-                },
-                child: const Text('Zmień'),
-              ),
-            ],
-          ),
-    );
-    controller.dispose();
-    return result;
+      );
+    } finally {
+      controller.dispose();
+    }
   }
 
   @override
@@ -169,19 +200,19 @@ class _RecipeVariantEditorSheetState extends State<RecipeVariantEditorSheet> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Zmień składniki',
+                context.strings.variantTitle,
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: 4),
               Text(
-                'Zmiany są tymczasowe. Oryginalny przepis pozostanie bez zmian.',
+                context.strings.variantHelp,
                 style: TextStyle(color: AppTheme.textSecondary),
               ),
               const SizedBox(height: 12),
               OutlinedButton.icon(
                 onPressed: _addIngredient,
                 icon: const Icon(Icons.add),
-                label: const Text('Dodaj produkt'),
+                label: Text(context.strings.productsAdd),
               ),
               const SizedBox(height: 8),
               Expanded(
@@ -194,13 +225,16 @@ class _RecipeVariantEditorSheetState extends State<RecipeVariantEditorSheet> {
                       elevation: 0,
                       color: AppTheme.surfaceColor,
                       child: ListTile(
-                        title: Text(ingredient.productName ?? 'Składnik'),
+                        title: Text(
+                          ingredient.displayName(context) ??
+                              context.strings.detailIngredient,
+                        ),
                         subtitle: Text(
-                          '${formatQuantity(ingredient.quantity, ingredient.unit)} ${formatUnitLabel(ingredient.unit)}',
+                          '${formatQuantity(ingredient.quantity, ingredient.unit)} ${context.strings.unitLabel(ingredient.unit)}',
                         ),
                         onTap: () => _editQuantity(index),
                         trailing: IconButton(
-                          tooltip: 'Usuń składnik',
+                          tooltip: context.strings.variantRemove,
                           icon: const Icon(
                             Icons.delete_outline,
                             color: AppTheme.errorColor,
@@ -225,7 +259,7 @@ class _RecipeVariantEditorSheetState extends State<RecipeVariantEditorSheet> {
                             context,
                             List<RecipeIngredient>.from(_ingredients),
                           ),
-                  child: const Text('Zastosuj tymczasowo'),
+                  child: Text(context.strings.variantApply),
                 ),
               ),
             ],
@@ -237,33 +271,49 @@ class _RecipeVariantEditorSheetState extends State<RecipeVariantEditorSheet> {
 }
 
 class _VariantProductPicker extends StatefulWidget {
-  const _VariantProductPicker();
+  final ProductSearchService? service;
+  const _VariantProductPicker({this.service});
 
   @override
   State<_VariantProductPicker> createState() => _VariantProductPickerState();
 }
 
 class _VariantProductPickerState extends State<_VariantProductPicker> {
-  final ProductSearchService _service = ProductSearchService();
+  late final ProductSearchService _service =
+      widget.service ?? ProductSearchService();
   final TextEditingController _controller = TextEditingController();
   Timer? _debounce;
   List<Product> _results = [];
   bool _loading = false;
   String? _error;
+  int _generation = 0;
 
   @override
   void dispose() {
+    _generation++;
     _debounce?.cancel();
     _controller.dispose();
     super.dispose();
   }
 
   void _onChanged(String value) {
+    final generation = ++_generation;
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 300), () => _search(value));
+    if (value.trim().isEmpty) {
+      setState(() {
+        _results = [];
+        _error = null;
+        _loading = false;
+      });
+      return;
+    }
+    _debounce = Timer(
+      const Duration(milliseconds: 300),
+      () => _search(value, generation),
+    );
   }
 
-  Future<void> _search(String value) async {
+  Future<void> _search(String value, int generation) async {
     if (value.trim().isEmpty) {
       setState(() {
         _results = [];
@@ -277,13 +327,15 @@ class _VariantProductPickerState extends State<_VariantProductPicker> {
     });
     try {
       final results = await _service.search(value, limit: 30);
-      if (!mounted) return;
+      if (!mounted || generation != _generation) return;
       setState(() => _results = results);
     } catch (error) {
-      if (!mounted) return;
-      setState(() => _error = friendlyError(error));
+      if (!mounted || generation != _generation) return;
+      setState(() => _error = friendlyError(error, strings: context.strings));
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted && generation == _generation) {
+        setState(() => _loading = false);
+      }
     }
   }
 
@@ -306,7 +358,7 @@ class _VariantProductPickerState extends State<_VariantProductPicker> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Dodaj produkt',
+                  context.strings.productsAdd,
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 const SizedBox(height: 12),
@@ -314,9 +366,9 @@ class _VariantProductPickerState extends State<_VariantProductPicker> {
                   controller: _controller,
                   autofocus: true,
                   onChanged: _onChanged,
-                  decoration: const InputDecoration(
-                    hintText: 'Wpisz nazwę produktu',
-                    prefixIcon: Icon(Icons.search),
+                  decoration: InputDecoration(
+                    hintText: context.strings.variantSearchHint,
+                    prefixIcon: const Icon(Icons.search),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -336,11 +388,13 @@ class _VariantProductPickerState extends State<_VariantProductPicker> {
                     itemBuilder: (context, index) {
                       final product = _results[index];
                       return ListTile(
-                        title: Text(product.name),
+                        title: Text(product.displayName(context)),
                         subtitle:
                             product.brand == null
                                 ? null
-                                : Text('Marka: ${product.brand}'),
+                                : Text(
+                                  context.strings.variantBrand(product.brand!),
+                                ),
                         onTap: () => Navigator.pop(context, product),
                       );
                     },

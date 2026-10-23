@@ -1,0 +1,2 @@
+"NSCameraUsageDescription" = "The app uses the camera to scan barcodes and take photos for recipes, comments and your profile.";
+"NSPhotoLibraryUsageDescription" = "The app needs access to your photos so you can choose a photo for a recipe, comment or your profile from your library.";

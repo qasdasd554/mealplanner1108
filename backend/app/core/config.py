@@ -48,6 +48,10 @@ class Settings(BaseSettings):
     # Do pracy lokalnej ustaw ENVIRONMENT=development.
     ENVIRONMENT: str = "production"
 
+    # Staged UK rollout. Keep disabled until the English UI, local catalogue,
+    # currency display and real PostgreSQL migration have passed release QA.
+    UK_MARKET_ENABLED: bool = False
+
     # ── JWT / Bezpieczeństwo ─────────────────────────────────────
     SECRET_KEY: str = _PLACEHOLDER_SECRET
     ALGORITHM: str = "HS256"

@@ -8,6 +8,7 @@ from decimal import Decimal
 
 from sqlalchemy import (
     Boolean,
+    CheckConstraint,
     Date,
     DateTime,
     Float,
@@ -27,6 +28,12 @@ class Product(Base):
     """Produkt spożywczy (np. 'Mleko 2%', 'Pierś z kurczaka')."""
 
     __tablename__ = "products"
+    __table_args__ = (
+        CheckConstraint(
+            "submitted_country_code IN ('PL', 'GB')",
+            name="ck_products_submission_market",
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -85,6 +92,11 @@ class Product(Base):
     # administrator może utworzyć właściwy wpis sklepowy.
     submitted_price: Mapped[Decimal | None] = mapped_column(
         Numeric(10, 2), nullable=True
+    )
+    # Origin of a submitted price and proposed stores, NOT a declaration that
+    # a product is available nationally. A PLN submission cannot seed GBP stock.
+    submitted_country_code: Mapped[str] = mapped_column(
+        String(2), default="PL", server_default="PL", nullable=False
     )
     # Sklepy, w których zgłaszający chciałby widzieć ten produkt —
     # OPCJONALNE, lista UUID sklepów jako tekst (JSON). Sama lista

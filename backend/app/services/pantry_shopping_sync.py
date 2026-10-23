@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 import uuid
+from datetime import date
 from decimal import Decimal
 
 from sqlalchemy import select
@@ -13,6 +14,12 @@ from sqlalchemy.orm import selectinload
 from app.models import MealPlan, PantryItem, Product, ShoppingList, ShoppingListItem
 from app.services.nutrition_calculator import grams_to_quantity, quantity_to_grams
 from app.services.shopping_list_builder import pantry_coverage_grams
+from app.services.regional_shopping import (
+    apply_regional_item_quote, load_regional_offers, regional_pantry_coverage,
+    regional_pricing_date,
+    refresh_regional_plan_budget,
+)
+from app.services.regional_requirements import subtract_regional_quantity
 
 
 def split_required_quantity(
@@ -78,11 +85,18 @@ async def sync_product_in_shopping_lists(
         )
         .options(
             selectinload(ShoppingList.items)
-            .selectinload(ShoppingListItem.store_product)
+            .selectinload(ShoppingListItem.store_product),
+            selectinload(ShoppingList.store),
+            selectinload(ShoppingList.meal_plan),
         )
     )).scalars().all()
 
     for shopping_list in lists:
+        if getattr(shopping_list.store, "country_code", "PL") == "GB":
+            if (shopping_list.meal_plan.preferences or {}).get("include_pantry", True):
+                await _sync_regional_product(db, shopping_list, product, pantry)
+                await refresh_regional_plan_budget(db, shopping_list)
+            continue
         rows = [
             item for item in shopping_list.items
             if (
@@ -154,5 +168,66 @@ async def sync_product_in_shopping_lists(
             retained.append(row)
 
         for row in rows:
+            if row not in retained:
+                await db.delete(row)
+async def _sync_regional_product(db, shopping_list, product, pantry):
+    # A repeated sync in one session must include newly split rows, not a
+    # previously loaded ShoppingList.items collection from the identity map.
+    await db.flush()
+    current_items = (await db.execute(select(ShoppingListItem).where(
+        ShoppingListItem.shopping_list_id == shopping_list.id,
+    ))).scalars().all()
+    rows = [row for row in current_items if (
+        row.regional_snapshot is not None
+        and row.regional_snapshot.product_id == product.id
+        and row.regional_snapshot.required_unit in {"g", "ml"}
+        and row.regional_snapshot.required_quantity is not None
+    )]
+    if not rows:
+        return
+    unit = rows[0].unit
+    # Keep unresolved/incompatible rows visible and unpriced, never guess.
+    rows = [row for row in rows if row.unit == unit]
+    groups = {}
+    for row in rows:
+        purchase_checked = row.regional_snapshot.purchase_is_checked if row.is_from_pantry else row.is_checked
+        groups.setdefault((row.is_generated, row.substituted_for, bool(purchase_checked)), []).append(row)
+    required = sum((row.required_quantity for row in rows), Decimal(0))
+    budget = regional_pantry_coverage(product, required, unit, pantry)
+    offers = await load_regional_offers(db, {product.id}, shopping_list.store_id)
+    for group_key, group in groups.items():
+        purchase_checked = group_key[2]
+        total = sum((row.required_quantity for row in group), Decimal(0))
+        manual_left = sum((row.regional_snapshot.manual_extra_quantity or Decimal(0) for row in group), Decimal(0))
+        covered = min(total, budget)
+        budget = subtract_regional_quantity(budget, covered)
+        purchase = subtract_regional_quantity(total, covered)
+        template = group[0]
+        retained = []
+        for from_pantry, amount in ((True, covered), (False, purchase)):
+            if amount <= 0:
+                continue
+            row = next((value for value in group if value.is_from_pantry == from_pantry), None)
+            if row is None:
+                row = ShoppingListItem(
+                    id=uuid.uuid4(), shopping_list_id=shopping_list.id,
+                    is_generated=template.is_generated, substituted_for=template.substituted_for,
+                    is_checked=purchase_checked,
+                )
+            apply_regional_item_quote(
+                row, product=product, store_id=shopping_list.store_id,
+                quantity=amount, unit=unit, offers=offers, as_of=regional_pricing_date(),
+                from_pantry=from_pantry,
+            )
+            row.regional_snapshot.purchase_is_checked = purchase_checked
+            if not from_pantry:
+                row.is_checked = purchase_checked
+            db.add(row)
+            retained.append(row)
+        for row in sorted(retained, key=lambda value: value.is_from_pantry):
+            extra = min(manual_left, row.required_quantity)
+            row.regional_snapshot.manual_extra_quantity = extra
+            manual_left = subtract_regional_quantity(manual_left, extra)
+        for row in group:
             if row not in retained:
                 await db.delete(row)

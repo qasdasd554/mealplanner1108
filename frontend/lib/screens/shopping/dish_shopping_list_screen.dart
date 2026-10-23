@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../../models/shopping_list.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/quantity_formatter.dart';
+import '../../l10n/catalog_labels.dart';
+import '../../l10n/market_locale.dart';
+import '../../utils/market_money.dart';
 
 /// Prosty, samodzielny podgląd listy zakupów wygenerowanej na konkretne
 /// danie(-a) — bez pełnego planu posiłków. Odbiera już gotowe dane
@@ -23,7 +26,7 @@ class DishShoppingListScreen extends StatelessWidget {
     final departments = shoppingList.itemsByDepartment.entries.toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Lista zakupów')),
+      appBar: AppBar(title: Text(context.strings.shoppingListTitle)),
       body: Column(
         children: [
           Container(
@@ -42,19 +45,24 @@ class DishShoppingListScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Szacowany koszt: ${shoppingList.totalEstimatedPrice.toStringAsFixed(2)} zł',
+                  shoppingList.totalEstimatedPrice == null
+                      ? context.strings.shoppingPriceUnknown
+                      : context.strings.shoppingEstimatedTotal(
+                        formatMarketMoney(
+                          shoppingList.totalEstimatedPrice!,
+                          currencyCode: shoppingList.currencyCode,
+                        ),
+                      ),
                   style: TextStyle(color: AppTheme.textSecondary),
                 ),
                 if (friendReadOnly) ...[
                   const SizedBox(height: 8),
-                  const Row(
+                  Row(
                     children: [
-                      Icon(Icons.visibility_outlined, size: 16),
-                      SizedBox(width: 6),
+                      const Icon(Icons.visibility_outlined, size: 16),
+                      const SizedBox(width: 6),
                       Expanded(
-                        child: Text(
-                          'Podgląd listy znajomego — tylko do odczytu',
-                        ),
+                        child: Text(context.strings.shoppingFriendReadOnly),
                       ),
                     ],
                   ),
@@ -67,7 +75,7 @@ class DishShoppingListScreen extends StatelessWidget {
                 departments.isEmpty
                     ? Center(
                       child: Text(
-                        'Brak pozycji na liście',
+                        context.strings.shoppingNoItems,
                         style: TextStyle(color: AppTheme.textSecondary),
                       ),
                     )
@@ -85,7 +93,14 @@ class DishShoppingListScreen extends StatelessWidget {
                                 top: 12,
                               ),
                               child: Text(
-                                dept.key,
+                                dept.value.isNotEmpty &&
+                                        dept.value.every(
+                                          (item) => item.isFromPantry,
+                                        )
+                                    ? context.strings.shoppingInPantry
+                                    : dept.key == 'Inne'
+                                    ? context.strings.shoppingOther
+                                    : dept.key,
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: AppTheme.primaryColor,
@@ -99,12 +114,27 @@ class DishShoppingListScreen extends StatelessWidget {
                                 child: ListTile(
                                   title: Text(item.productName),
                                   subtitle: Text(
-                                    '${formatQuantity(item.requiredQuantity, item.unit)} ${item.unit}',
+                                    '${formatQuantity(item.requiredQuantity, item.unit)} ${shoppingList.currencyCode == 'PLN' ? item.unit : context.strings.unitLabel(item.unit)}'
+                                    '${item.currencyCode == 'GBP' && item.hasReliablePackage ? '\n${context.strings.shoppingPackageBuy(item.packageCount!, formatQuantity(item.packageQuantity!, item.packageUnit!), item.packageUnit!)}' : ''}',
                                   ),
-                                  trailing: Text(
-                                    '${(item.estimatedPrice ?? 0).toStringAsFixed(2)} zł',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
+                                  trailing: ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      maxWidth:
+                                          item.currencyCode == 'GBP'
+                                              ? MediaQuery.sizeOf(
+                                                    context,
+                                                  ).width *
+                                                  0.32
+                                              : double.infinity,
+                                    ),
+                                    child: Text(
+                                      item.estimatedPrice == null &&
+                                              item.currencyCode == 'GBP'
+                                          ? context.strings.shoppingPriceUnknown
+                                          : '${item.currencyCode == 'GBP' && item.priceIsEstimated ? '~' : ''}${formatMarketMoney(item.estimatedPrice ?? 0, currencyCode: item.currencyCode)}',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
                                 ),

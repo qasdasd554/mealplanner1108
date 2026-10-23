@@ -2,16 +2,22 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import '../utils/lookup_market_context.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../models/barcode_lookup_result.dart';
 import '../services/barcode_lookup_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/error_utils.dart';
+import '../utils/product_form_validation.dart';
+import '../l10n/market_locale.dart';
+import 'product_form_fields_row.dart';
 
 Future<BarcodeLookupResult?> showProductLabelRecognitionSheet(
   BuildContext context, {
   required String barcode,
+  BarcodeLookupService? service,
+  ImagePicker? imagePicker,
 }) {
   return showModalBottomSheet<BarcodeLookupResult>(
     context: context,
@@ -20,14 +26,25 @@ Future<BarcodeLookupResult?> showProductLabelRecognitionSheet(
     constraints: BoxConstraints(
       maxHeight: MediaQuery.sizeOf(context).height * 0.92,
     ),
-    builder: (_) => _ProductLabelRecognitionSheet(barcode: barcode),
+    builder:
+        (_) => _ProductLabelRecognitionSheet(
+          barcode: barcode,
+          service: service,
+          imagePicker: imagePicker,
+        ),
   );
 }
 
 class _ProductLabelRecognitionSheet extends StatefulWidget {
   final String barcode;
+  final BarcodeLookupService? service;
+  final ImagePicker? imagePicker;
 
-  const _ProductLabelRecognitionSheet({required this.barcode});
+  const _ProductLabelRecognitionSheet({
+    required this.barcode,
+    this.service,
+    this.imagePicker,
+  });
 
   @override
   State<_ProductLabelRecognitionSheet> createState() =>
@@ -36,8 +53,12 @@ class _ProductLabelRecognitionSheet extends StatefulWidget {
 
 class _ProductLabelRecognitionSheetState
     extends State<_ProductLabelRecognitionSheet> {
-  final _picker = ImagePicker();
-  final _service = BarcodeLookupService();
+  late final _picker = widget.imagePicker ?? ImagePicker();
+  late final _service =
+      widget.service ??
+      BarcodeLookupService(
+        accountCountry: () => context.registeredLookupCountry,
+      );
   final _name = TextEditingController();
   final _brand = TextEditingController();
   final _serving = TextEditingController();
@@ -46,6 +67,8 @@ class _ProductLabelRecognitionSheetState
   final _fat = TextEditingController();
   final _carbs = TextEditingController();
 
+  final _formKey = GlobalKey<FormState>();
+  bool _pickingPhoto = false;
   String? _frontBase64;
   String? _nutritionBase64;
   BarcodeLookupResult? _recognized;
@@ -71,8 +94,7 @@ class _ProductLabelRecognitionSheetState
   }
 
   double? _number(TextEditingController controller) {
-    final value = controller.text.trim().replaceAll(',', '.');
-    return value.isEmpty ? null : double.tryParse(value);
+    return parseProductFormNumber(controller.text);
   }
 
   Future<ImageSource?> _chooseSource() => showModalBottomSheet<ImageSource>(
@@ -83,12 +105,12 @@ class _ProductLabelRecognitionSheetState
             children: [
               ListTile(
                 leading: const Icon(Icons.camera_alt_outlined),
-                title: const Text('Zrób zdjęcie'),
+                title: Text(context.strings.productLabelTakePhoto),
                 onTap: () => Navigator.pop(context, ImageSource.camera),
               ),
               ListTile(
                 leading: const Icon(Icons.photo_library_outlined),
-                title: const Text('Wybierz z galerii'),
+                title: Text(context.strings.productLabelGallery),
                 onTap: () => Navigator.pop(context, ImageSource.gallery),
               ),
             ],
@@ -97,31 +119,42 @@ class _ProductLabelRecognitionSheetState
   );
 
   Future<void> _pickPhoto({required bool front}) async {
-    final source = await _chooseSource();
-    if (source == null) return;
-    final file = await _picker.pickImage(
-      source: source,
-      imageQuality: 75,
-      maxWidth: 1600,
-      maxHeight: 1600,
-    );
-    if (file == null || !mounted) return;
-    final encoded = base64Encode(await file.readAsBytes());
-    if (!mounted) return;
-    setState(() {
-      if (front) {
-        _frontBase64 = encoded;
-      } else {
-        _nutritionBase64 = encoded;
+    if (_busy || _pickingPhoto) return;
+    setState(() => _pickingPhoto = true);
+    try {
+      final source = await _chooseSource();
+      if (source == null || !mounted) return;
+      final file = await _picker.pickImage(
+        source: source,
+        imageQuality: 75,
+        maxWidth: 1600,
+        maxHeight: 1600,
+      );
+      if (file == null || !mounted) return;
+      final encoded = base64Encode(await file.readAsBytes());
+      if (!mounted) return;
+      setState(() {
+        if (front) {
+          _frontBase64 = encoded;
+        } else {
+          _nutritionBase64 = encoded;
+        }
+        _recognized = null;
+        _error = null;
+      });
+    } catch (_) {
+      if (mounted) {
+        setState(() => _error = context.strings.productLabelPhotoFailed);
       }
-      _recognized = null;
-      _error = null;
-    });
+    } finally {
+      if (mounted) setState(() => _pickingPhoto = false);
+    }
   }
 
   Future<void> _recognize() async {
+    if (_busy || _pickingPhoto) return;
     if (_frontBase64 == null || _nutritionBase64 == null) {
-      setState(() => _error = 'Dodaj oba zdjęcia: przód i tabelę wartości.');
+      setState(() => _error = context.strings.productLabelBothPhotos);
       return;
     }
     setState(() {
@@ -137,47 +170,38 @@ class _ProductLabelRecognitionSheetState
       if (!mounted) return;
       _name.text = result.name ?? '';
       _brand.text = result.brand ?? '';
-      _serving.text = _format(result.servingQuantity);
-      _kcal.text = _format(result.kcalPer100);
-      _protein.text = _format(result.proteinPer100);
-      _fat.text = _format(result.fatPer100);
-      _carbs.text = _format(result.carbsPer100);
+      _serving.text = formatProductFormNumber(result.servingQuantity);
+      _kcal.text = formatProductFormNumber(result.kcalPer100);
+      _protein.text = formatProductFormNumber(result.proteinPer100);
+      _fat.text = formatProductFormNumber(result.fatPer100);
+      _carbs.text = formatProductFormNumber(result.carbsPer100);
       setState(() {
         _recognized = result;
         _unit = const {'g', 'ml'}.contains(result.unit) ? result.unit : 'g';
       });
     } catch (error) {
-      if (mounted) setState(() => _error = friendlyError(error));
+      if (mounted) {
+        setState(
+          () =>
+              _error =
+                  context.strings.localeName.startsWith('en')
+                      ? context.strings.productLabelReadFailed
+                      : friendlyError(error, strings: context.strings),
+        );
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
   }
 
-  String _format(double? value) {
-    if (value == null) return '';
-    return value == value.roundToDouble()
-        ? value.toStringAsFixed(0)
-        : value.toStringAsFixed(1);
-  }
-
   Future<void> _confirm() async {
-    if (_name.text.trim().length < 2) {
-      setState(() => _error = 'Sprawdź i uzupełnij nazwę produktu.');
-      return;
-    }
-    final nutrition = [
-      _number(_kcal),
-      _number(_protein),
-      _number(_fat),
-      _number(_carbs),
-    ];
-    if (nutrition.any(
-      (value) => value == null || !value.isFinite || value < 0,
-    )) {
-      setState(
-        () =>
-            _error =
-                'Uzupełnij kcal, białko, tłuszcz i węglowodany na 100 g/ml.',
+    if (_busy || _pickingPhoto) return;
+    final invalid = _formKey.currentState!.validateGranularly();
+    if (invalid.isNotEmpty) {
+      Scrollable.ensureVisible(
+        invalid.first.context,
+        alignment: 0.2,
+        duration: const Duration(milliseconds: 200),
       );
       return;
     }
@@ -205,7 +229,15 @@ class _ProductLabelRecognitionSheetState
       );
       if (mounted) Navigator.of(context).pop(confirmed);
     } catch (error) {
-      if (mounted) setState(() => _error = friendlyError(error));
+      if (mounted) {
+        setState(
+          () =>
+              _error =
+                  context.strings.localeName.startsWith('en')
+                      ? context.strings.productFormRequestFailed
+                      : friendlyError(error, strings: context.strings),
+        );
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -217,157 +249,178 @@ class _ProductLabelRecognitionSheetState
     return SafeArea(
       top: false,
       minimum: const EdgeInsets.only(bottom: 8),
-      child: SingleChildScrollView(
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        padding: EdgeInsets.fromLTRB(
-          20,
-          16,
-          20,
-          24 + media.viewInsets.bottom + media.viewPadding.bottom,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Dodaj brakujący produkt',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Kod ${widget.barcode} nie występuje w dostępnych bazach. '
-              'Dwa wyraźne zdjęcia pozwolą odczytać dane bez ręcznego przepisywania.',
-              style: TextStyle(color: AppTheme.textSecondary, height: 1.35),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _photoCard(
-                    title: 'Przód opakowania',
-                    value: _frontBase64,
-                    onTap: () => _pickPhoto(front: true),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _photoCard(
-                    title: 'Tabela wartości',
-                    value: _nutritionBase64,
-                    onTap: () => _pickPhoto(front: false),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            if (_recognized == null)
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: _busy ? null : _recognize,
-                  icon:
-                      _busy
-                          ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                          : const Icon(Icons.auto_awesome),
-                  label: Text(
-                    _busy ? 'Odczytywanie etykiety…' : 'Odczytaj dane',
-                  ),
-                ),
-              )
-            else ...[
+      child: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding: EdgeInsets.fromLTRB(
+            20,
+            16,
+            20,
+            24 + media.viewInsets.bottom + media.viewPadding.bottom,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Text(
-                'Sprawdź dane przed zapisaniem',
-                style: Theme.of(context).textTheme.titleMedium,
+                context.strings.productLabelTitle,
+                style: Theme.of(context).textTheme.titleLarge,
               ),
-              const SizedBox(height: 10),
-              _field(_name, 'Nazwa produktu *'),
-              _field(_brand, 'Marka'),
+              const SizedBox(height: 6),
+              Text(
+                context.strings.productLabelIntro(widget.barcode),
+                style: TextStyle(color: AppTheme.textSecondary, height: 1.35),
+              ),
+              const SizedBox(height: 16),
               Row(
                 children: [
-                  Expanded(child: _numberField(_serving, 'Całe opakowanie')),
+                  Expanded(
+                    child: _photoCard(
+                      title: context.strings.productLabelFront,
+                      value: _frontBase64,
+                      onTap: () => _pickPhoto(front: true),
+                    ),
+                  ),
                   const SizedBox(width: 10),
-                  SizedBox(
-                    width: 100,
-                    child: DropdownButtonFormField<String>(
-                      value: _unit,
-                      decoration: const InputDecoration(
-                        labelText: 'Jedn.',
-                        border: OutlineInputBorder(),
-                      ),
-                      items:
-                          const ['g', 'ml']
-                              .map(
-                                (unit) => DropdownMenuItem(
-                                  value: unit,
-                                  child: Text(unit),
-                                ),
-                              )
-                              .toList(),
-                      onChanged:
-                          (value) => setState(() => _unit = value ?? 'g'),
+                  Expanded(
+                    child: _photoCard(
+                      title: context.strings.productLabelNutrition,
+                      value: _nutritionBase64,
+                      onTap: () => _pickPhoto(front: false),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
-              Text(
-                'Podaj masę netto całego opakowania. Zostaw puste, jeśli '
-                'nie ma jej na etykiecie — wtedy opcja „opakowanie” nie '
-                'będzie wyświetlana.',
-                style: TextStyle(
-                  color: AppTheme.textSecondary,
-                  fontSize: 12,
-                  height: 1.3,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'Wartości na 100 ${_unit == 'ml' ? 'ml' : 'g'}',
-                style: TextStyle(color: AppTheme.textSecondary),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(child: _numberField(_kcal, 'kcal')),
-                  const SizedBox(width: 8),
-                  Expanded(child: _numberField(_protein, 'Białko')),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(child: _numberField(_fat, 'Tłuszcz')),
-                  const SizedBox(width: 8),
-                  Expanded(child: _numberField(_carbs, 'Węglowodany')),
-                ],
-              ),
               const SizedBox(height: 14),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: _busy ? null : _confirm,
-                  icon:
+              if (_recognized == null)
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: _busy || _pickingPhoto ? null : _recognize,
+                    icon:
+                        _busy
+                            ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                            : const Icon(Icons.auto_awesome),
+                    label: Text(
                       _busy
-                          ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                          : const Icon(Icons.check),
-                  label: const Text('Potwierdź i zapisz'),
+                          ? context.strings.productLabelReading
+                          : context.strings.productLabelRead,
+                    ),
+                  ),
+                )
+              else ...[
+                Text(
+                  context.strings.productLabelReview,
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
-              ),
+                const SizedBox(height: 10),
+                _field(_name, context.strings.productFormName),
+                _field(_brand, context.strings.productFormBrand),
+                ProductFormFieldsRow(
+                  secondWidth: 100,
+                  first: _numberField(
+                    _serving,
+                    context.strings.productFormPack,
+                  ),
+                  second: DropdownButtonFormField<String>(
+                    isExpanded: true,
+                    value: _unit,
+                    decoration: InputDecoration(
+                      labelText: context.strings.productFormUnit,
+                      border: const OutlineInputBorder(),
+                    ),
+                    items:
+                        const ['g', 'ml']
+                            .map(
+                              (unit) => DropdownMenuItem(
+                                value: unit,
+                                child: Text(unit),
+                              ),
+                            )
+                            .toList(),
+                    onChanged:
+                        _busy
+                            ? null
+                            : (value) => setState(() => _unit = value ?? 'g'),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  context.strings.productFormPackHelp,
+                  style: TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 12,
+                    height: 1.3,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  context.strings.productLabelPer100(_unit),
+                  style: TextStyle(color: AppTheme.textSecondary),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(child: _numberField(_kcal, 'kcal')),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _numberField(
+                        _protein,
+                        context.strings.productFormProtein,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _numberField(_fat, context.strings.productFormFat),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _numberField(
+                        _carbs,
+                        context.strings.productFormCarbs,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: _busy || _pickingPhoto ? null : _confirm,
+                    icon:
+                        _busy
+                            ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                            : const Icon(Icons.check),
+                    label: Text(context.strings.productLabelConfirm),
+                  ),
+                ),
+              ],
+              if (_error != null) ...[
+                const SizedBox(height: 10),
+                Semantics(
+                  liveRegion: true,
+                  child: Text(
+                    _error!,
+                    style: const TextStyle(color: AppTheme.errorColor),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 8),
             ],
-            if (_error != null) ...[
-              const SizedBox(height: 10),
-              Text(_error!, style: const TextStyle(color: AppTheme.errorColor)),
-            ],
-            const SizedBox(height: 8),
-          ],
+          ),
         ),
       ),
     );
@@ -380,7 +433,7 @@ class _ProductLabelRecognitionSheetState
   }) {
     final Uint8List? bytes = value == null ? null : base64Decode(value);
     return InkWell(
-      onTap: _busy ? null : onTap,
+      onTap: _busy || _pickingPhoto ? null : onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
         height: 132,
@@ -437,22 +490,54 @@ class _ProductLabelRecognitionSheetState
 
   Widget _field(TextEditingController controller, String label) => Padding(
     padding: const EdgeInsets.only(bottom: 10),
-    child: TextField(
+    child: TextFormField(
       controller: controller,
+      readOnly: _busy,
+      maxLength: controller == _name ? 300 : 200,
+      validator:
+          (value) =>
+              controller == _name
+                  ? ((value?.trim().length ?? 0) < 2 ||
+                          (value?.trim().length ?? 0) > 300
+                      ? context.strings.productLabelNameError
+                      : null)
+                  : ((value?.trim().length ?? 0) > 200
+                      ? context.strings.productFormBrandError
+                      : null),
       decoration: InputDecoration(
         labelText: label,
+        errorMaxLines: 3,
         border: const OutlineInputBorder(),
       ),
     ),
   );
 
-  Widget _numberField(TextEditingController controller, String label) =>
-      TextField(
-        controller: controller,
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
-        ),
-      );
+  Widget _numberField(
+    TextEditingController controller,
+    String label,
+  ) => TextFormField(
+    controller: controller,
+    readOnly: _busy,
+    validator: (value) {
+      final pack = controller == _serving;
+      final maximum = pack ? 100000.0 : (controller == _kcal ? 2000.0 : 200.0);
+      if (validProductFormNumber(
+        value ?? '',
+        maximum: maximum,
+        allowZero: !pack,
+        required: !pack,
+      )) {
+        return null;
+      }
+      return pack
+          ? context.strings.productFormPackError
+          : context.strings.productFormNumberRange(maximum.toStringAsFixed(0));
+    },
+    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+    decoration: InputDecoration(
+      labelText: label,
+      errorMaxLines: 3,
+      border: const OutlineInputBorder(),
+    ),
+  );
 }

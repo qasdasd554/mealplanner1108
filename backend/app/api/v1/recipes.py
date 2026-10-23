@@ -14,6 +14,7 @@ from sqlalchemy.orm import load_only, selectinload
 
 from app.api.deps import get_current_admin, get_current_premium, get_current_user
 from app.core.exceptions import NotFoundException
+from app.core.markets import account_country, MarketCode
 from app.db.session import get_db
 from app.models import (
     Friendship,
@@ -36,6 +37,12 @@ from app.schemas.recipe import (
 from app.services.moderation import get_blocked_user_ids
 from app.services.nutrition_calculator import compute_recipe_nutrition_total, is_ingredient_quantity_reasonable
 from app.services.recipe_photo_thumbnail import create_recipe_photo_thumbnail
+from app.services.market_catalog import (
+    apply_recipe_market_filter,
+    ensure_recipe_available_in_market,
+    recipe_market_availability,
+)
+from app.services.store_market_access import get_store_in_account_market
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -138,7 +145,7 @@ def _kcal_per_serving_expr():
     return Recipe.nutrition_total["kcal"].as_float() / func.nullif(Recipe.servings, 0)
 
 
-def _apply_recipe_sort(query, sort_by: str):
+def _apply_recipe_sort(query, sort_by: str, *, country_code: str = "PL"):
     """Dokłada sortowanie do zapytania o przepisy.
 
     Przepisy bez policzonych wartości odżywczych (`nutrition_total` puste
@@ -146,13 +153,17 @@ def _apply_recipe_sort(query, sort_by: str):
     liczenia) trafiają na KONIEC listy przy sortowaniu po kaloriach,
     zamiast udawać "0 kcal" i fałszywie zajmować pierwsze miejsca.
     """
+    display_name = Recipe.name
+    if country_code == "GB":
+        from app.services.system_content_language import english_system_name_order
+        display_name = english_system_name_order(Recipe, kind="recipes")
     if sort_by == "kcal_asc":
-        return query.order_by(nullslast(_kcal_per_serving_expr().asc()), Recipe.name, Recipe.id)
+        return query.order_by(nullslast(_kcal_per_serving_expr().asc()), display_name, Recipe.id)
     if sort_by == "kcal_desc":
-        return query.order_by(nullslast(_kcal_per_serving_expr().desc()), Recipe.name, Recipe.id)
+        return query.order_by(nullslast(_kcal_per_serving_expr().desc()), display_name, Recipe.id)
     if sort_by == "prep_time":
-        return query.order_by(nullslast(Recipe.prep_time_min.asc()), Recipe.name, Recipe.id)
-    return query.order_by(Recipe.name, Recipe.id)
+        return query.order_by(nullslast(Recipe.prep_time_min.asc()), display_name, Recipe.id)
+    return query.order_by(display_name, Recipe.id)
 
 
 def _recipe_list_options():
@@ -206,7 +217,7 @@ def _visibility_filter(current_user_id: UUID, blocked_user_ids: set[UUID] | None
     return base
 
 
-def _recipe_search_filter(search: str):
+def _recipe_search_filter(search: str, *, country_code: str = "PL"):
     """Dopasowuje jedno pole wyszukiwania do przepisu, autora i składnika.
 
     Skorelowane ``EXISTS`` nie mnożą rekordów przepisu (jak zwykłe JOIN-y),
@@ -221,6 +232,14 @@ def _recipe_search_filter(search: str):
         .replace("_", "\\_")
     )
     pattern = f"%{escaped}%"
+    product_name_match = Product.name.ilike(pattern, escape="\\")
+    translated_title_match = None
+    if country_code == "GB":
+        from app.services.system_content_language import english_system_name_match
+
+        product_name_match = or_(product_name_match,
+            english_system_name_match(Product, search, kind="ingredients"))
+        translated_title_match = english_system_name_match(Recipe, search, kind="recipes")
     author_match = exists(
         select(1).where(
             User.id == Recipe.created_by_user_id,
@@ -236,14 +255,17 @@ def _recipe_search_filter(search: str):
         .join(Product, Product.id == RecipeIngredient.product_id)
         .where(
             RecipeIngredient.recipe_id == Recipe.id,
-            Product.name.ilike(pattern, escape="\\"),
+            product_name_match,
         )
     )
-    return or_(
+    conditions = [
         Recipe.name.ilike(pattern, escape="\\"),
         author_match,
         ingredient_match,
-    )
+    ]
+    if translated_title_match is not None:
+        conditions.append(translated_title_match)
+    return or_(*conditions)
 
 
 @router.get(
@@ -289,6 +311,7 @@ async def list_recipes(
     query = select(Recipe).options(*_recipe_list_options()).where(
         _visibility_filter(current_user.id, blocked_ids)
     )
+    query = apply_recipe_market_filter(query, current_user)
 
     if meal_type is not None:
         query = query.where(Recipe.meal_type == meal_type)
@@ -303,7 +326,7 @@ async def list_recipes(
         query = query.where(Recipe.prep_time_min <= max_prep_time)
 
     if search and search.strip():
-        query = query.where(_recipe_search_filter(search))
+        query = query.where(_recipe_search_filter(search, country_code=account_country(current_user)))
 
     if community_only:
         query = query.where(Recipe.created_by_user_id.is_not(None), Recipe.visibility == "public")
@@ -321,7 +344,7 @@ async def list_recipes(
             return []
         query = query.where(Recipe.id.in_(favorite_ids))
 
-    query = _apply_recipe_sort(query, sort_by).offset(skip).limit(limit)
+    query = _apply_recipe_sort(query, sort_by, country_code=account_country(current_user)).offset(skip).limit(limit)
 
     result = await db.execute(query)
     recipes = list(result.unique().scalars().all())
@@ -357,6 +380,8 @@ async def list_available_recipes(
     Dla każdego przepisu sprawdza, czy każdy wymagany produkt
     jest oznaczony jako dostępny (``is_available=True``) w wybranym sklepie.
     """
+    if await get_store_in_account_market(db, store_id, current_user) is None:
+        raise NotFoundException(detail="Sklep nie jest dostępny w kraju tego konta.")
     # Dostępność i paginację obsługuje baza. Wcześniej endpoint pobierał
     # wszystkie przepisy wraz ze składnikami, filtrował je w Pythonie i
     # dopiero potem wybierał stronę.
@@ -378,6 +403,15 @@ async def list_available_recipes(
         )
     )
 
+    # Keep the Polish result set unchanged. For UK choices use the same
+    # required-ingredient predicate as the catalogue, scoped further to the
+    # selected UK store; missing optional seasonings never exclude a dish.
+    availability_conditions = (
+        (recipe_market_availability("GB", store_id=store_id),)
+        if account_country(current_user) == "GB"
+        else (has_product_ingredient, ~has_unavailable_ingredient)
+    )
+
     blocked_ids = await get_blocked_user_ids(db, current_user.id)
     recipes_result = await db.execute(
         select(Recipe)
@@ -387,8 +421,7 @@ async def list_available_recipes(
         )
         .where(
             _visibility_filter(current_user.id, blocked_ids),
-            has_product_ingredient,
-            ~has_unavailable_ingredient,
+            *availability_conditions,
         )
         .order_by(Recipe.name)
         .offset(skip)
@@ -456,7 +489,7 @@ async def list_my_recipes(
     if new_only:
         query = query.where(Recipe.created_at >= datetime.now(timezone.utc) - timedelta(days=14))
     if search and search.strip():
-        query = query.where(_recipe_search_filter(search))
+        query = query.where(_recipe_search_filter(search, country_code=account_country(current_user)))
     if meal_type:
         query = query.where(Recipe.meal_type == meal_type)
     if difficulty:
@@ -471,7 +504,7 @@ async def list_my_recipes(
     if sort_by == "newest":
         query = query.order_by(Recipe.created_at.desc(), Recipe.id)
     else:
-        query = _apply_recipe_sort(query, sort_by)
+        query = _apply_recipe_sort(query, sort_by, country_code=account_country(current_user))
 
     result = await db.execute(query.offset(skip).limit(limit))
     recipes = list(result.unique().scalars().all())
@@ -534,6 +567,10 @@ async def get_recipe(
 
     await ensure_recipe_access(db, recipe, current_user)
     is_own = recipe.created_by_user_id == current_user.id
+    # Owners retain recovery/editing access to their own private imports.
+    # Administrators must also be able to inspect a recipe before approval.
+    if not is_own and getattr(current_user, "role", None) != "admin":
+        await ensure_recipe_available_in_market(db, recipe, current_user)
     favorite_ids = await _get_favorite_recipe_ids(db, current_user.id)
     recipe.is_favorite = recipe.id in favorite_ids
     recipe.is_own_recipe = is_own
@@ -684,13 +721,20 @@ async def save_recipe_variant(
     is_public = source.created_by_user_id is None or source.visibility == "public"
     if not is_own and not is_public:
         raise NotFoundException(detail=f"Przepis o ID {recipe_id} nie został znaleziony")
+    if not is_own and getattr(current_user, "role", None) != "admin":
+        await ensure_recipe_available_in_market(db, source, current_user)
 
     await _validate_recipe_ingredient_products(
         db, variant_in.ingredients, current_user.id
     )
 
-    base_name = re.sub(r" - edytowane \d+$", "", source.name, flags=re.IGNORECASE)
-    prefix = f"{base_name} - edytowane "
+    from app.services.system_content_language import recipe_display_content
+    country = account_country(current_user)
+    source_content = recipe_display_content(source, country_code=country)
+    suffix_label = "edited" if country == "GB" else "edytowane"
+    suffix_pattern = r" - (?:edytowane|edited) \d+$" if country == "GB" else r" - edytowane \d+$"
+    base_name = re.sub(suffix_pattern, "", source_content["name"], flags=re.IGNORECASE)
+    prefix = f"{base_name} - {suffix_label} "
     names_result = await db.execute(
         select(Recipe.name).where(
             Recipe.created_by_user_id == current_user.id,
@@ -704,20 +748,20 @@ async def save_recipe_variant(
         if match:
             numbers.append(int(match.group(1)))
     variant_number = max(numbers, default=0) + 1
-    suffix = f" - edytowane {variant_number}"
+    suffix = f" - {suffix_label} {variant_number}"
     variant_name = f"{base_name[:300 - len(suffix)].rstrip()}{suffix}"
 
     variant = Recipe(
         name=variant_name,
-        description=source.description,
+        description=source_content["description"],
         cuisine=source.cuisine,
         meal_type=source.meal_type,
         prep_time_min=source.prep_time_min,
         cook_time_min=source.cook_time_min,
         servings=source.servings,
         difficulty=source.difficulty,
-        instructions=list(source.instructions or []),
-        suggested_seasonings=list(source.suggested_seasonings or []),
+        instructions=source_content["instructions"],
+        suggested_seasonings=source_content["suggested_seasonings"],
         image_url=source.image_url,
         photo_base64=source.photo_base64,
         photo_thumbnail_base64=source.photo_thumbnail_base64,
@@ -769,6 +813,7 @@ async def _notify_admins_pending_recipe(db: AsyncSession, recipe: Recipe, author
         db,
         notification_type="recipe_pending_approval",
         message=message,
+        english_message=f'{author.display_name or "Someone"} submitted recipe "{recipe.name}" to the public catalogue — approval required.',
         recipe_id=recipe.id,
     )
 
@@ -793,12 +838,16 @@ async def approve_recipe(
     # Powiadom autora, że jego przepis został zaakceptowany.
     if recipe.created_by_user_id is not None:
         from app.models.notification import Notification
+        from app.services.notification_language import recipient_text
 
         db.add(
             Notification(
                 user_id=recipe.created_by_user_id,
                 notification_type="recipe_approved",
-                message=f'Twój przepis "{recipe.name}" został zaakceptowany i jest teraz widoczny dla wszystkich!',
+                message=await recipient_text(db, recipe.created_by_user_id,
+                    f'Twój przepis "{recipe.name}" został zaakceptowany i jest teraz widoczny dla wszystkich!',
+                    f'Your recipe "{recipe.name}" has been approved and is now public!',
+                ),
                 recipe_id=recipe.id,
             )
         )
@@ -858,6 +907,7 @@ async def reject_recipe(
 async def list_pending_recipes(
     current_user: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
+    market: MarketCode | None = None,
 ) -> list[Recipe]:
     """Zwraca wszystkie przepisy oczekujące na akceptację administratora."""
     result = await db.execute(
@@ -868,6 +918,11 @@ async def list_pending_recipes(
             selectinload(Recipe.creator),
         )
         .where(Recipe.visibility == "pending")
+        .where(
+            exists(select(User.id).where(
+                User.id == Recipe.created_by_user_id, User.country_code == market,
+            )) if market else True
+        )
         .order_by(Recipe.created_at)
     )
     recipes = list(result.unique().scalars().all())
@@ -887,6 +942,7 @@ async def list_all_user_recipes(
     limit: int = Query(30, ge=1, le=100),
     current_user: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
+    market: MarketCode | None = None,
 ) -> list[Recipe]:
     """Wszystkie przepisy dodane przez użytkowników — niezależnie od
     statusu (private/pending/public/rejected) — z informacją o autorze,
@@ -903,6 +959,11 @@ async def list_all_user_recipes(
             selectinload(Recipe.creator),
         )
         .where(Recipe.created_by_user_id.is_not(None))
+        .where(
+            exists(select(User.id).where(
+                User.id == Recipe.created_by_user_id, User.country_code == market,
+            )) if market else True
+        )
         .order_by(Recipe.created_at.desc())
         .offset(skip)
         .limit(limit)
@@ -1022,16 +1083,19 @@ async def _create_ai_recipe(
         extract_recipe_from_photo,
         extract_recipe_from_text,
         extract_recipe_from_url,
+        recipe_message,
         validate_and_clean_recipe_dict,
     )
 
     started_at = time.perf_counter()
+    country = account_country(current_user)
+    market_kwargs = {"country_code": country} if country == "GB" else {}
     source_kind = "text" if payload.text else "photo" if payload.photo_base64 else "url"
     provided = [bool(payload.text), bool(payload.photo_base64), bool(payload.url)]
     if sum(provided) != 1:
         raise HTTPException(
             status_code=400,
-            detail="Podaj dokładnie jedno z: tekst przepisu, zdjęcie albo link.",
+            detail=recipe_message(country, "Podaj dokładnie jedno z: tekst przepisu, zdjęcie albo link.", "Provide exactly one of: recipe text, a photo or a link."),
         )
 
     # Sprawdzenie uprawnienia PRZED kosztownym wywołaniem AI — niepremium
@@ -1044,14 +1108,20 @@ async def _create_ai_recipe(
     if not user_is_premium and current_user.premium_points < 2:
         raise HTTPException(
             status_code=402,
-            detail=(
+            detail=recipe_message(country,
                 f"Ta funkcja wymaga Premium albo 2 punktów (masz {current_user.premium_points}). "
-                "Kup punkty w zakładce Premium."
+                "Kup punkty w zakładce Premium.",
+                f"This feature requires Premium or 2 points (you have {current_user.premium_points}). Buy points in the Premium tab.",
             ),
         )
 
     if not skip_rate_limit:
-        enforce_user_rate_limit(ai_recipe_import_limiter, current_user.id, "rozpoznawanie przepisu przez AI")
+        try:
+            enforce_user_rate_limit(ai_recipe_import_limiter, current_user.id, recipe_message(country, "rozpoznawanie przepisu przez AI", "AI recipe recognition"))
+        except HTTPException as exc:
+            if country == "GB" and exc.status_code == 429:
+                exc.detail = "Too many AI recipe requests. Please try again later."
+            raise
 
     # Jeden odczyt katalogu zamiast osobno listy nazw do promptu i potem
     # całej tabeli do zapisu. Cudze niezatwierdzone produkty nie powinny
@@ -1070,28 +1140,50 @@ async def _create_ai_recipe(
 
     try:
         if payload.text:
-            parsed = await extract_recipe_from_text(payload.text, available_products)
+            parsed = await extract_recipe_from_text(payload.text, available_products, **market_kwargs)
         elif payload.photo_base64:
             parsed = await extract_recipe_from_photo(
-                payload.photo_base64, available_products, hint=payload.photo_hint
+                payload.photo_base64, available_products, hint=payload.photo_hint, **market_kwargs
             )
         else:
-            parsed = await extract_recipe_from_url(payload.url, available_products)
+            parsed = await extract_recipe_from_url(payload.url, available_products, **market_kwargs)
     except AIRecipeImportError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
 
     extraction_seconds = time.perf_counter() - started_at - catalog_seconds
 
     try:
-        parsed = validate_and_clean_recipe_dict(parsed)
+        parsed = validate_and_clean_recipe_dict(parsed, **market_kwargs)
     except AIRecipeImportError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
     if not parsed["ingredients"]:
         raise HTTPException(
             status_code=422,
-            detail="AI nie rozpoznało żadnych składników pasujących do dostępnych produktów.",
+            detail=recipe_message(country, "AI nie rozpoznało żadnych składników pasujących do dostępnych produktów.", "AI did not recognise any ingredients matching the available catalogue products."),
         )
+
+    # Resolve ALL required ingredients before charging points or storing the
+    # recipe. A partial recipe produces an incomplete shopping basket.
+    from app.services.ai_recipe_import import match_product_name
+    from app.services.recipe_ingredient_integrity import validate_ingredient_names
+    products_by_name = {p.name.casefold(): p for p in available_product_rows}
+    matched_ingredients = []
+    unresolved_names = []
+    for ingredient in parsed["ingredients"]:
+        canonical = match_product_name(ingredient["product_name"], available_products)
+        product = products_by_name.get(canonical.casefold()) if canonical else None
+        if product is None or not is_ingredient_quantity_reasonable(ingredient["quantity"], ingredient["unit"]):
+            unresolved_names.append(ingredient["product_name"])
+        else:
+            matched_ingredients.append((ingredient, product))
+    if unresolved_names:
+        names = ", ".join(dict.fromkeys(unresolved_names))[:500]
+        raise HTTPException(status_code=422, detail=recipe_message(country,
+            f"Nie można zapisać niepełnego przepisu. Nie dopasowano składników: {names}. Uzupełnij katalog lub popraw treść i spróbuj ponownie.",
+            f"An incomplete recipe cannot be saved. Unmatched ingredients: {names}. Add the missing catalogue ingredients or correct the source and try again.",
+        ))
+    validate_ingredient_names(parsed["name"], [product.name for _, product in matched_ingredients], country_code=country)
 
     # UWAGA: rozpoznanie się UDAŁO — dopiero TERAZ, nie wcześniej,
     # pobieramy 2 punkty od kont bez Premium (jeśli user jest Premium,
@@ -1099,16 +1191,15 @@ async def _create_ai_recipe(
     if not user_is_premium:
         from app.services.premium_points import spend_points
 
-        await spend_points(db, current_user.id, 2)
+        try:
+            await spend_points(db, current_user.id, 2)
+        except HTTPException as exc:
+            if country == "GB" and exc.status_code == 402:
+                exc.detail = "You need 2 Premium points."
+            raise
 
     # Zgłoszenie do wspólnego katalogu — jak przy ręcznym dodawaniu.
     visibility = "pending" if payload.request_public else "private"
-
-    # Wyniki Gemini bywają odmienione po polsku. Ostrożne dopasowanie
-    # nazwy pozwala użyć krótszego promptu bez utraty składników.
-    from app.services.ai_recipe_import import match_product_name
-
-    products_by_name = {p.name.casefold(): p for p in available_product_rows}
 
     recipe = Recipe(
         name=parsed["name"][:300],
@@ -1136,21 +1227,7 @@ async def _create_ai_recipe(
     await db.flush()
 
     matched_count = 0
-    for ing in parsed["ingredients"]:
-        canonical_name = match_product_name(ing["product_name"], available_products)
-        product = products_by_name.get(canonical_name.casefold()) if canonical_name else None
-        if product is None:
-            continue
-        # UWAGA (naprawa): AI generuje przepisy niezależnie od schematu
-        # Pydantic używanego przy ręcznym tworzeniu, więc bez tego
-        # sprawdzenia mogłoby przemknąć się coś tak samo absurdalnego jak
-        # "200 sztuk awokado" — ta sama funkcja co przy ręcznym/API
-        # tworzeniu przepisu, żeby obie ścieżki łapały to samo. Cicho
-        # pomijamy pojedynczy nierozsądny składnik (zamiast wywalać cały
-        # import) — spójne z tym, jak już traktujemy niedopasowane
-        # produkty kilka linijek wyżej.
-        if not is_ingredient_quantity_reasonable(ing["quantity"], ing["unit"]):
-            continue
+    for ing, product in matched_ingredients:
         db.add(
             RecipeIngredient(
                 recipe_id=recipe.id,
@@ -1166,7 +1243,7 @@ async def _create_ai_recipe(
         await db.rollback()
         raise HTTPException(
             status_code=422,
-            detail="Żaden ze składników rozpoznanych przez AI nie pasował do dostępnych produktów.",
+            detail=recipe_message(country, "Żaden ze składników rozpoznanych przez AI nie pasował do dostępnych produktów.", "None of the ingredients recognised by AI matched the available catalogue products."),
         )
 
     await db.commit()
@@ -1223,24 +1300,32 @@ async def edit_recipe_with_ai(
     from app.services.ai_recipe_import import (
         AIRecipeImportError,
         match_product_name,
+        recipe_message,
         revise_recipe_with_ai,
     )
 
     user_id = current_user.id
+    country = account_country(current_user)
+    market_kwargs = {"country_code": country} if country == "GB" else {}
     if current_user.premium_points < 1:
-        raise HTTPException(status_code=402, detail="Zmiana przez AI kosztuje 1 punkt premium.")
-    enforce_user_rate_limit(ai_recipe_import_limiter, user_id, "edycja przepisu przez AI")
+        raise HTTPException(status_code=402, detail=recipe_message(country, "Zmiana przez AI kosztuje 1 punkt premium.", "Editing with AI costs 1 Premium point."))
+    try:
+        enforce_user_rate_limit(ai_recipe_import_limiter, user_id, recipe_message(country, "edycja przepisu przez AI", "AI recipe editing"))
+    except HTTPException as exc:
+        if country == "GB" and exc.status_code == 429:
+            exc.detail = "Too many AI recipe requests. Please try again later."
+        raise
 
     result = await db.execute(select(Recipe).options(
         selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product)
     ).where(Recipe.id == recipe_id))
     recipe = result.scalar_one_or_none()
     if recipe is None or recipe.created_by_user_id != user_id:
-        raise HTTPException(status_code=404, detail="Nie znaleziono Twojego przepisu.")
+        raise HTTPException(status_code=404, detail=recipe_message(country, "Nie znaleziono Twojego przepisu.", "Your recipe was not found."))
     if recipe.visibility != "private":
         raise HTTPException(
             status_code=409,
-            detail="Przepis zgłoszony do publikacji nie może być zmieniany w trakcie moderacji.",
+            detail=recipe_message(country, "Przepis zgłoszony do publikacji nie może być zmieniany w trakcie moderacji.", "A submitted recipe cannot be edited while it is being reviewed."),
         )
 
     snapshot = {
@@ -1277,7 +1362,7 @@ async def edit_recipe_with_ai(
     await db.rollback()
 
     try:
-        parsed = await revise_recipe_with_ai(snapshot, payload.prompt, available_names)
+        parsed = await revise_recipe_with_ai(snapshot, payload.prompt, available_names, **market_kwargs)
     except AIRecipeImportError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
@@ -1289,16 +1374,19 @@ async def edit_recipe_with_ai(
         if product is None:
             missing.append(ingredient["product_name"])
         elif not is_ingredient_quantity_reasonable(ingredient["quantity"], ingredient["unit"]):
-            raise HTTPException(status_code=422, detail="AI podało nieprawidłową ilość składnika.")
+            raise HTTPException(status_code=422, detail=recipe_message(country, "AI podało nieprawidłową ilość składnika.", "AI returned an invalid ingredient quantity."))
         else:
             matched.append((product[0], product[1], ingredient))
     if missing:
         raise HTTPException(
             status_code=422,
-            detail=f"Nie ma w katalogu: {', '.join(missing[:3])}. Punkt nie został pobrany.",
+            detail=recipe_message(country,
+                f"Nie ma w katalogu: {', '.join(missing[:3])}. Punkt nie został pobrany.",
+                f"Not in the catalogue: {', '.join(missing[:3])}. No point was charged.",
+            ),
         )
     if not matched or not parsed["instructions"]:
-        raise HTTPException(status_code=422, detail="AI zwróciło niekompletny przepis. Punkt nie został pobrany.")
+        raise HTTPException(status_code=422, detail=recipe_message(country, "AI zwróciło niekompletny przepis. Punkt nie został pobrany.", "AI returned an incomplete recipe. No point was charged."))
 
     before = [(i["product_name"], i["quantity"], i["unit"]) for i in snapshot["ingredients"]]
     after = [(name, i["quantity"], i["unit"]) for _, name, i in matched]
@@ -1306,7 +1394,7 @@ async def edit_recipe_with_ai(
         "name", "description", "cuisine", "meal_type", "prep_time_min",
         "cook_time_min", "servings", "difficulty", "instructions", "suggested_seasonings",
     )):
-        raise HTTPException(status_code=422, detail="AI nie wprowadziło żadnej zmiany. Punkt nie został pobrany.")
+        raise HTTPException(status_code=422, detail=recipe_message(country, "AI nie wprowadziło żadnej zmiany. Punkt nie został pobrany.", "AI made no changes. No point was charged."))
 
     locked_user = (await db.execute(
         select(User).where(User.id == user_id).with_for_update().execution_options(populate_existing=True)
@@ -1315,11 +1403,11 @@ async def edit_recipe_with_ai(
         select(Recipe).where(Recipe.id == recipe_id).with_for_update()
     )).scalar_one_or_none()
     if locked_recipe is None or locked_recipe.created_by_user_id != user_id:
-        raise HTTPException(status_code=404, detail="Nie znaleziono Twojego przepisu.")
+        raise HTTPException(status_code=404, detail=recipe_message(country, "Nie znaleziono Twojego przepisu.", "Your recipe was not found."))
     if locked_recipe.visibility != "private":
-        raise HTTPException(status_code=409, detail="Przepis został już zgłoszony do moderacji.")
+        raise HTTPException(status_code=409, detail=recipe_message(country, "Przepis został już zgłoszony do moderacji.", "The recipe has already been submitted for review."))
     if locked_user.premium_points < 1:
-        raise HTTPException(status_code=402, detail="Brakuje 1 punktu premium.")
+        raise HTTPException(status_code=402, detail=recipe_message(country, "Brakuje 1 punktu premium.", "You need 1 Premium point."))
 
     locked_recipe.name = parsed["name"][:300]
     locked_recipe.description = parsed.get("description")
@@ -1338,7 +1426,12 @@ async def edit_recipe_with_ai(
     ) for product_id, _, ingredient in matched)
     from app.services.premium_points import spend_points
 
-    await spend_points(db, user_id, 1)
+    try:
+        await spend_points(db, user_id, 1)
+    except HTTPException as exc:
+        if country == "GB" and exc.status_code == 402:
+            exc.detail = "You need 1 Premium point."
+        raise
     await db.flush()
 
     final_result = await db.execute(select(Recipe).options(
@@ -1531,6 +1624,7 @@ async def report_recipe(
             f'{current_user.display_name or "Użytkownik"} zgłosił(a) przepis '
             f'"{recipe.name}" do moderacji.'
         ),
+        english_message=f'{current_user.display_name or "A user"} reported recipe "{recipe.name}" for moderation.',
         recipe_id=recipe.id,
     )
     return report
@@ -1574,7 +1668,7 @@ async def match_recipes_by_ingredients(
 
     have_ids = set(payload.product_ids)
 
-    result = await db.execute(
+    query = (
         select(Recipe)
         .options(
             selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product),
@@ -1582,6 +1676,7 @@ async def match_recipes_by_ingredients(
         )
         .where(_visibility_filter(current_user.id), Recipe.is_active == True)  # noqa: E712
     )
+    result = await db.execute(apply_recipe_market_filter(query, current_user))
     recipes = result.scalars().all()
 
     matches: list[dict] = []
@@ -1685,6 +1780,7 @@ async def submit_recipe_photo(
             f'{current_user.display_name or "Użytkownik"} dodał(a) zdjęcie do '
             f'przepisu "{recipe.name}" — wymaga akceptacji.'
         ),
+        english_message=f'{current_user.display_name or "A user"} added a photo to recipe "{recipe.name}" — approval required.',
         recipe_id=recipe.id,
     )
     return {"detail": "Zdjęcie zgłoszone. Pojawi się po akceptacji przez administratora."}
@@ -1756,11 +1852,16 @@ async def approve_recipe_photo(
     db.add(recipe)
 
     if submitter_id is not None:
+        from app.services.notification_language import recipient_text
+
         db.add(
             Notification(
                 user_id=submitter_id,
                 notification_type="recipe_photo",
-                message=f'Twoje zdjęcie do przepisu "{recipe.name}" zostało zaakceptowane.',
+                message=await recipient_text(db, submitter_id,
+                    f'Twoje zdjęcie do przepisu "{recipe.name}" zostało zaakceptowane.',
+                    f'Your photo for recipe "{recipe.name}" has been approved.',
+                ),
                 recipe_id=recipe.id,
             )
         )
@@ -1790,11 +1891,16 @@ async def reject_recipe_photo(
     db.add(recipe)
 
     if submitter_id is not None:
+        from app.services.notification_language import recipient_text
+
         db.add(
             Notification(
                 user_id=submitter_id,
                 notification_type="recipe_photo",
-                message=f'Twoje zdjęcie do przepisu "{recipe.name}" nie zostało zaakceptowane.',
+                message=await recipient_text(db, submitter_id,
+                    f'Twoje zdjęcie do przepisu "{recipe.name}" nie zostało zaakceptowane.',
+                    f'Your photo for recipe "{recipe.name}" was not approved.',
+                ),
                 recipe_id=recipe.id,
             )
         )

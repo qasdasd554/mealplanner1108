@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/market_locale.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
@@ -13,7 +14,8 @@ import '../../widgets/user_avatar.dart';
 /// na podstawie którego przyznawane są punkty za miejsca 1-3) i "Cały czas" (oryginalny, ranking bez limitu
 /// czasowego).
 class RecipeLeaderboardScreen extends StatefulWidget {
-  const RecipeLeaderboardScreen({super.key});
+  final AuthService? service;
+  const RecipeLeaderboardScreen({super.key, this.service});
 
   @override
   State<RecipeLeaderboardScreen> createState() =>
@@ -22,7 +24,7 @@ class RecipeLeaderboardScreen extends StatefulWidget {
 
 class _RecipeLeaderboardScreenState extends State<RecipeLeaderboardScreen>
     with SingleTickerProviderStateMixin {
-  final AuthService _authService = AuthService();
+  late final AuthService _authService = widget.service ?? AuthService();
   late final TabController _tabController;
 
   bool _isLoadingWeekly = true;
@@ -61,7 +63,7 @@ class _RecipeLeaderboardScreenState extends State<RecipeLeaderboardScreen>
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _errorWeekly = friendlyError(e);
+        _errorWeekly = friendlyError(e, strings: context.strings);
         _isLoadingWeekly = false;
       });
     }
@@ -82,7 +84,7 @@ class _RecipeLeaderboardScreenState extends State<RecipeLeaderboardScreen>
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _errorAllTime = friendlyError(e);
+        _errorAllTime = friendlyError(e, strings: context.strings);
         _isLoadingAllTime = false;
       });
     }
@@ -94,10 +96,13 @@ class _RecipeLeaderboardScreenState extends State<RecipeLeaderboardScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ranking autorów przepisów'),
+        title: Text(context.strings.leaderTitle),
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [Tab(text: 'Ten tydzień'), Tab(text: 'Cały czas')],
+          tabs: [
+            Tab(text: context.strings.leaderWeek),
+            Tab(text: context.strings.leaderAll),
+          ],
         ),
       ),
       body: TabBarView(
@@ -110,8 +115,7 @@ class _RecipeLeaderboardScreenState extends State<RecipeLeaderboardScreen>
               error: _errorWeekly,
               entries: _weeklyEntries,
               onRetry: _loadWeekly,
-              emptyMessage:
-                  'W tym tygodniu nikt jeszcze nie dodał\nzaakceptowanego przepisu. Bądź pierwszy!',
+              emptyMessage: context.strings.leaderEmptyWeek,
             ),
           ),
           RefreshIndicator(
@@ -121,8 +125,7 @@ class _RecipeLeaderboardScreenState extends State<RecipeLeaderboardScreen>
               error: _errorAllTime,
               entries: _allTimeEntries,
               onRetry: _loadAllTime,
-              emptyMessage:
-                  'Jeszcze nikt nie dodał zaakceptowanego przepisu\ndo wspólnego katalogu.',
+              emptyMessage: context.strings.leaderEmptyAll,
             ),
           ),
         ],
@@ -151,7 +154,7 @@ class _RecipeLeaderboardScreenState extends State<RecipeLeaderboardScreen>
           Center(
             child: TextButton(
               onPressed: onRetry,
-              child: const Text('Spróbuj ponownie'),
+              child: Text(context.strings.productsRetry),
             ),
           ),
         ],
@@ -229,7 +232,14 @@ class _RecipeLeaderboardScreenState extends State<RecipeLeaderboardScreen>
                 ),
               ),
               Text(
-                '$count ${count == 1 ? "przepis" : (count < 5 ? "przepisy" : "przepisów")}',
+                context.strings.leaderCount(
+                  count,
+                  count == 1
+                      ? context.strings.leaderRecipeSingular
+                      : (count < 5
+                          ? context.strings.leaderRecipeFew
+                          : context.strings.leaderRecipeMany),
+                ),
                 style: const TextStyle(
                   color: AppTheme.primaryColor,
                   fontWeight: FontWeight.bold,
