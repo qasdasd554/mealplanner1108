@@ -25,7 +25,14 @@ def _reviewed_rows():
     bundle = load_starter_bundle(Path(__file__).resolve().parents[1] /
         "data/uk_starter_20261024.json")
     records = {row.values["barcode"]: row for row in bundle.products}
-    return tuple((link, records[link.off_barcode]) for link in bundle.proposals)
+    original = tuple((link, records[link.off_barcode]) for link in bundle.proposals)
+    from app.services.uk_system_recipe_reference import reviewed_system_recipe_references
+
+    expanded = reviewed_system_recipe_references()[0]
+    rows = original + expanded
+    if len({link.product_id for link, _ in rows}) != len(rows):
+        raise ValueError('Duplicate bundled country food identity')
+    return rows
 
 
 def bundled_uk_evidence_condition(product_id, *, as_of: date):

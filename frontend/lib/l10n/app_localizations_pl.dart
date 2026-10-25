@@ -4238,7 +4238,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• Poprawiliśmy tworzenie list zakupów z własnych przepisów.\n• Usprawniliśmy dopasowanie składników przy problemach z bazą zewnętrzną.\n• Uzupełniliśmy tłumaczenia przepisów i diet w wersji angielskiej.\n• Udostępniliśmy angielski katalog składników systemowych.';
+      '• Poprawiliśmy tworzenie list zakupów z własnych przepisów.\n• Usprawniliśmy dopasowanie składników przy problemach z bazą zewnętrzną.\n• Uzupełniliśmy tłumaczenia przepisów i diet w wersji angielskiej.\n• Uzupełniliśmy angielski katalog o wszystkie przepisy systemowe.';
 
   @override
   String get releasePromptApple => 'Otwórz App Store';

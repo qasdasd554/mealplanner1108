@@ -126,7 +126,8 @@ def reviewed_uk_offer_conditions(*, as_of: date):
 
 
 def recipe_has_reviewed_uk_offers(recipe: Recipe, offers, *, as_of: date,
-                                 store_id: UUID | None = None, off_product_ids=frozenset()) -> bool:
+                                 store_id: UUID | None = None, off_product_ids=frozenset(),
+                                 country_product_ids=frozenset()) -> bool:
     """Validate country evidence, not the ability to price a household measure.
 
     Full source/fingerprint and canonical dimension checks remain mandatory.
@@ -142,7 +143,7 @@ def recipe_has_reviewed_uk_offers(recipe: Recipe, offers, *, as_of: date,
             continue
         if ingredient.product is None:
             return False
-        if ingredient.product_id in off_product_ids:
+        if ingredient.product_id in off_product_ids or ingredient.product_id in country_product_ids:
             # Country-level sale is independent of the weight of a spoon,
             # piece or package. Listing already accepts this same OFF proof.
             # Shopping keeps unresolved amounts in their original units and
@@ -191,9 +192,12 @@ def recipe_market_availability(country_code: str, *, store_id: UUID | None = Non
         .where(*store_conditions)
         .correlate(RecipeIngredient)
     )
+    from app.services.uk_system_recipe_reference import retailer_country_evidence_condition
+
     product_is_available = or_(product_is_available, product_has_off_uk_evidence(
         RecipeIngredient.product_id, as_of=as_of or utc_market_date(),
-    ))
+    ), retailer_country_evidence_condition(
+        RecipeIngredient.product_id, as_of=as_of or utc_market_date()))
     missing_required_ingredient = exists(
         select(1)
         .select_from(RecipeIngredient)
@@ -248,6 +252,9 @@ async def ensure_recipe_available_in_market(db, recipe: Recipe, user: object, *,
         stmt = stmt.where(RegionalProductOffer.store_id == store_id)
     offers = (await db.execute(stmt)).scalars().all()
     off_ids = await off_available_product_ids(db, product_ids, as_of=as_of)
+    from app.services.uk_system_recipe_reference import retailer_country_product_ids
+
+    country_ids = await retailer_country_product_ids(db, product_ids, as_of=as_of)
     if not recipe_has_reviewed_uk_offers(recipe, offers, as_of=as_of, store_id=store_id,
-                                        off_product_ids=off_ids):
+                                        off_product_ids=off_ids, country_product_ids=country_ids):
         raise NotFoundException(detail="This recipe is not available in your account country.")

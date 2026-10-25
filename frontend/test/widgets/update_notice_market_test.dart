@@ -58,7 +58,7 @@ void main() {
         expect(
           body,
           contains(
-            english ? 'catalogue available in English' : 'katalog składników',
+            english ? 'all system recipes' : 'wszystkie przepisy systemowe',
           ),
         );
         expect(body, isNot(contains('mealplannerpolska.pl')));

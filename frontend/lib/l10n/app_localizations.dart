@@ -7463,7 +7463,7 @@ abstract class AppLocalizations {
   /// No description provided for @releasePromptChanges.
   ///
   /// In pl, this message translates to:
-  /// **'• Poprawiliśmy tworzenie list zakupów z własnych przepisów.\n• Usprawniliśmy dopasowanie składników przy problemach z bazą zewnętrzną.\n• Uzupełniliśmy tłumaczenia przepisów i diet w wersji angielskiej.\n• Udostępniliśmy angielski katalog składników systemowych.'**
+  /// **'• Poprawiliśmy tworzenie list zakupów z własnych przepisów.\n• Usprawniliśmy dopasowanie składników przy problemach z bazą zewnętrzną.\n• Uzupełniliśmy tłumaczenia przepisów i diet w wersji angielskiej.\n• Uzupełniliśmy angielski katalog o wszystkie przepisy systemowe.'**
   String get releasePromptChanges;
 
   /// No description provided for @releasePromptApple.

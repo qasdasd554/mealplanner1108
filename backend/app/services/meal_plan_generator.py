@@ -598,6 +598,7 @@ class MealPlanGenerator:
 
         offers = []
         off_ids = set()
+        country_ids = set()
         if country_code == "GB":
             # Country-level OFF reports and reviewed retailer offers are
             # separate evidence. Neither creates a price for an unknown SKU.
@@ -611,6 +612,8 @@ class MealPlanGenerator:
                 ))).scalars().all()
             from app.services.off_availability import off_available_product_ids
             off_ids = await off_available_product_ids(self.db, product_ids, as_of=as_of)
+            from app.services.uk_system_recipe_reference import retailer_country_product_ids
+            country_ids = await retailer_country_product_ids(self.db, product_ids, as_of=as_of)
             available_product_ids = set()
         else:
             # Pobranie identyfikatorów produktów dostępnych w polskim sklepie.
@@ -645,6 +648,7 @@ class MealPlanGenerator:
             if country_code == "GB":
                 available = recipe_has_reviewed_uk_offers(
                     recipe, offers, store_id=store_id, as_of=as_of, off_product_ids=off_ids,
+                    country_product_ids=country_ids,
                 )
             else:
                 available = self._recipe_ingredients_available(recipe, available_product_ids)

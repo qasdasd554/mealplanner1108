@@ -4257,7 +4257,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• Fixed shopping lists created from your own recipes.\n• Improved ingredient matching during external database outages.\n• Fixed English translations of system recipes and profile diets.\n• Made the shared cooking ingredient catalogue available in English.';
+      '• Fixed shopping lists created from your own recipes.\n• Improved ingredient matching during external database outages.\n• Fixed English translations of system recipes and profile diets.\n• Added all system recipes to the English catalogue.';
 
   @override
   String get releasePromptApple => 'Open App Store';
@@ -9494,7 +9494,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get releasePromptChanges =>
-      '• Fixed shopping lists created from your own recipes.\n• Improved ingredient matching during external database outages.\n• Fixed English translations of system recipes and profile diets.\n• Made the shared cooking ingredient catalogue available in English.';
+      '• Fixed shopping lists created from your own recipes.\n• Improved ingredient matching during external database outages.\n• Fixed English translations of system recipes and profile diets.\n• Added all system recipes to the English catalogue.';
 
   @override
   String get releasePromptApple => 'Open App Store';
