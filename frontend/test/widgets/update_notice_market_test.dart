@@ -44,22 +44,22 @@ void main() {
         expect(body.split('\n'), hasLength(4));
         expect(
           body,
+          contains(english ? 'ingredient matching' : 'dopasowanie składników'),
+        );
+        expect(
+          body,
+          contains(english ? 'your own recipes' : 'własnych przepisów'),
+        );
+        expect(
+          body,
+          contains(english ? 'database outages' : 'bazą zewnętrzną'),
+        );
+        expect(body, contains(english ? 'profile diets' : 'przepisów i diet'));
+        expect(
+          body,
           contains(
-            english ? 'ingredient matching' : 'dopasowywanie składników',
+            english ? 'catalogue available in English' : 'katalog składników',
           ),
-        );
-        expect(
-          body,
-          contains(english ? 'nutrition data' : 'danych odżywczych'),
-        );
-        expect(body, contains(english ? 'package sizes' : 'opakowań'));
-        expect(
-          body,
-          contains(english ? 'incomplete price estimates' : 'niepełnych wycen'),
-        );
-        expect(
-          body,
-          contains(english ? 'support links' : 'komunikatów aplikacji'),
         );
         expect(body, isNot(contains('mealplannerpolska.pl')));
         expect(tester.takeException(), isNull);

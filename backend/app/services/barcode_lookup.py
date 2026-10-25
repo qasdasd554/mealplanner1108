@@ -35,6 +35,7 @@ EXPLICIT_NUTRITION_SOURCES = frozenset({
 _TEXT_SEARCH_CACHE_TTL_SECONDS = 300
 _TEXT_SEARCH_CACHE_MAX_ENTRIES = 200
 _text_search_cache: dict[str, tuple[float, list["BarcodeLookupResult"]]] = {}
+_text_search_unavailable_until = 0.0
 
 
 def _off_locale(country_code: str = "PL") -> tuple[str, str]:
@@ -466,6 +467,7 @@ async def search_products_external(
     podpowiedzi w formularzu pozostały lekkie i nie blokowały ręcznego
     wpisywania nazwy przy chwilowej awarii zewnętrznej usługi.
     """
+    global _text_search_unavailable_until
     normalized_query = " ".join(query.strip().split())
     if len(normalized_query) < 2:
         return []
@@ -485,6 +487,12 @@ async def search_products_external(
             _text_search_cache.pop(min(_text_search_cache, key=lambda key: _text_search_cache[key][0]), None)
         _text_search_cache[cache_key] = (now, list(results))
         return results
+
+    # A provider outage affects all ingredient names. Do not send another
+    # request for each missing ingredient or queue slow retries in the UI.
+    # Cached successful results above remain usable during this cooldown.
+    if now < _text_search_unavailable_until:
+        return []
 
     fields = (
         "code,product_name_pl,product_name,product_name_en,"
@@ -516,7 +524,18 @@ async def search_products_external(
             response.raise_for_status()
             payload = response.json()
     except (httpx.HTTPError, ValueError, TypeError) as exc:
-        logger.warning("Open Food Facts text search failed for %r: %s", query, exc)
+        cooldown = 30
+        response = getattr(exc, "response", None)
+        status_code = response.status_code if response is not None else None
+        if status_code in (429, 503):
+            cooldown = 60
+            retry = response.headers.get("Retry-After", "")
+            if retry.isdigit():
+                cooldown = max(cooldown, min(int(retry), 300))
+        _text_search_unavailable_until = time.monotonic() + cooldown
+        # No query/URL, which can contain user-entered text or provider details.
+        logger.warning("Open Food Facts text search unavailable (%s, status=%s); cooldown=%ss",
+            type(exc).__name__, status_code, cooldown)
         return []
 
     results = _results_from_off_search_response(payload, limit=limit, country_code=country_code)

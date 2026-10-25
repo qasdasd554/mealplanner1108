@@ -1,5 +1,6 @@
 import 'package:image_picker/image_picker.dart';
 import '../../l10n/market_locale.dart';
+import '../../l10n/catalog_labels.dart';
 import '../../utils/retained_dialog.dart';
 
 import '../../utils/error_utils.dart';
@@ -47,7 +48,7 @@ String _dietLabel(BuildContext context, String code) => switch (code) {
   "Wegańska" => context.strings.profileDietVegan,
   "Keto" => context.strings.profileDietKeto,
   "Bez laktozy" => context.strings.profileDietLactose,
-  _ => code,
+  _ => context.strings.dietName(code),
 };
 
 class ProfileScreen extends StatelessWidget {

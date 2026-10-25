@@ -2370,7 +2370,7 @@
   "releasePromptTitle": "Dostępna nowa wersja",
   "releasePromptRequired": "Ta wersja aplikacji nie jest już obsługiwana. Zaktualizuj ją, aby korzystać dalej.",
   "releasePromptStoreError": "Nie udało się otworzyć sklepu.",
-  "releasePromptChanges": "• Usprawniliśmy dopasowywanie składników w przepisach AI.\n• Poprawiliśmy obsługę opakowań i danych odżywczych podczas skanowania produktów.\n• Dopracowaliśmy listy zakupów i oznaczanie niepełnych wycen.\n• Poprawiliśmy czytelność i spójność komunikatów aplikacji.",
+  "releasePromptChanges": "• Poprawiliśmy tworzenie list zakupów z własnych przepisów.\n• Usprawniliśmy dopasowanie składników przy problemach z bazą zewnętrzną.\n• Uzupełniliśmy tłumaczenia przepisów i diet w wersji angielskiej.\n• Udostępniliśmy angielski katalog składników systemowych.",
   "releasePromptApple": "Otwórz App Store",
   "releasePromptGoogle": "Otwórz Google Play",
   "releasePromptLater": "Później",

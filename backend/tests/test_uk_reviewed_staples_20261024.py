@@ -7,7 +7,7 @@ from pathlib import Path
 from uuid import UUID
 
 import pytest
-from sqlalchemy import func, select
+from sqlalchemy import false, func, select
 
 from app.db.seed import NUTRITION_DATA, PRODUCTS_DATA
 from app.models import OffCatalogueProduct, Product, RegionalProductOffer
@@ -27,7 +27,12 @@ def packet(request):
     return json.loads((Path(__file__).parent / "fixtures" / request.param).read_text(encoding="utf-8"))
 
 
-def test_current_staples_bind_without_replacing_polish_product_facts(catalogue_db, packet):
+def test_current_staples_bind_without_replacing_polish_product_facts(catalogue_db, packet, monkeypatch):
+    # Test the explicit DB import and rollback, not the independently reviewed
+    # bundled reference for these same foods. Combined behaviour has dedicated
+    # regressions in test_uk_reported_catalogue_failures.
+    monkeypatch.setattr("app.services.uk_bundled_availability.bundled_uk_evidence_condition",
+        lambda *args, **kwargs: false())
     session, reviewer, _ = catalogue_db
     adapter = AsyncAdapter(session)
     seeds = {row[0]: row for row in PRODUCTS_DATA}

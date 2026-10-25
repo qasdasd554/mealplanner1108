@@ -1,7 +1,7 @@
 """Market-specific projections, never edits to canonical product identities."""
 
 from app.schemas.product import ProductResponse
-from app.services.system_content_language import is_system_ingredient
+from app.services.system_content_language import is_system_ingredient, ingredient_display_name
 
 
 def is_uk_generic_seed(product, *, country_code: str) -> bool:
@@ -29,5 +29,6 @@ def product_for_market(product, *, country_code: str):
         option for option in response.measure_options
         if option.code.casefold() not in {"opak", "opakowanie", "pack", "package"}
     ]
-    return response.model_copy(update=dict(brand=None, serving_quantity=None,
+    return response.model_copy(update=dict(name=ingredient_display_name(product, country_code=country_code),
+        brand=None, serving_quantity=None,
         measure_options=measures, submitted_price=None))

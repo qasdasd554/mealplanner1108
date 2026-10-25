@@ -31,6 +31,13 @@ def build():
     recipes = [{ast.literal_eval(key): ast.literal_eval(value)
                 for key, value in zip(node.keys, node.values)
                 if ast.literal_eval(key) in text_keys} for node in recipe_nodes]
+    # seed.py normalises descriptions AFTER the literal recipe declarations.
+    # The display registry must fingerprint the actual persisted text, not the
+    # pre-normalisation AST; otherwise valid system translations disappear.
+    # Runtime-seed parity is independently checked in the backend regression.
+    for recipe in recipes:
+        if recipe.get('description'):
+            recipe['description'] = recipe['description'].replace(' — ', '. ')
     recipe_ingredient_names = {ast.literal_eval(ingredient.elts[0])
         for node in recipe_nodes for key, value in zip(node.keys, node.values)
         if ast.literal_eval(key) == 'ingredients' for ingredient in value.elts}

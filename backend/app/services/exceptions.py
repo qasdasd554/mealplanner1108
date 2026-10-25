@@ -88,3 +88,36 @@ class NoSubstituteFoundError(ServiceError):
         super().__init__(
             f"Brak substytutu dla produktu {product_id} w sklepie {store_id}."
         )
+
+
+def service_error_text(error: ServiceError, *, country_code: str) -> str:
+    """Keep Polish diagnostics and status codes; localise UK response copy.
+
+    Exception attributes, not Polish text parsing, carry variable values.
+    Unknown service failures must not leak a Polish/internal message into UK.
+    """
+    if country_code != "GB":
+        return str(error)
+    if isinstance(error, InsufficientRecipesError):
+        meals = {"śniadanie": "breakfast", "obiad": "lunch", "kolacja": "dinner",
+            "przekąska": "snack", "deser": "dessert"}
+        meal = meals.get(error.meal_type, "the selected meal")
+        return (f"Not enough recipes for {meal}: {error.required} required, "
+            f"{error.available} available. Try a different diet or meal selection.")
+    if isinstance(error, StoreNotFoundError):
+        return "The selected shop was not found. Please select it again."
+    if isinstance(error, UserNotFoundError):
+        return "Your account was not found. Please sign in again."
+    if isinstance(error, MealPlanNotFoundError):
+        return "The meal plan was not found."
+    if isinstance(error, ShoppingListNotFoundError):
+        return "The shopping list was not found."
+    if isinstance(error, (ProductNotFoundError, StoreProductNotFoundError)):
+        return "One of the selected products was not found."
+    known = {
+        "Plan można utworzyć dla 1–8 osób.": "A plan can be created for 1–8 people.",
+        "Cel kaloryczny musi wynosić 800–6000 kcal na osobę.": "The calorie target must be 800–6000 kcal per person.",
+        "Wybierz poprawną dietę w ustawieniach planu.": "Choose a valid diet in your plan settings.",
+        "Nieznana dieta. Wybierz ją ponownie w ustawieniach planu.": "This diet was not recognised. Please select it again in your plan settings.",
+    }
+    return known.get(str(error), "Could not prepare your plan. Please check your settings and try again.")

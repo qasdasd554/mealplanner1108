@@ -15,8 +15,9 @@ import 'package:smart_meal_planner/services/weight_log_service.dart';
 
 class _Auth extends ChangeNotifier implements AuthProvider {
   final bool english;
+  final String diet;
   Map<String, dynamic>? savedDiet;
-  _Auth(this.english);
+  _Auth(this.english, {this.diet = 'Wegetariańska'});
   @override
   User get currentUser => User(
     id: 'user',
@@ -26,7 +27,7 @@ class _Auth extends ChangeNotifier implements AuthProvider {
     householdSize: 2,
     weightKg: 70,
     heightCm: 175,
-    dietaryPreferences: {'diet': 'Wegetariańska'},
+    dietaryPreferences: {'diet': diet},
     isPremium: true,
     createdAt: DateTime.utc(2026),
   );
@@ -65,6 +66,7 @@ Future<_Auth> open(
   bool english = true,
   bool narrow = false,
   _Weight? weights,
+  String diet = 'Wegetariańska',
 }) async {
   if (narrow) {
     tester.view.physicalSize = const Size(320, 740);
@@ -72,7 +74,7 @@ Future<_Auth> open(
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
   }
-  final auth = _Auth(english);
+  final auth = _Auth(english, diet: diet);
   await tester.pumpWidget(
     MultiProvider(
       providers: [
@@ -117,6 +119,22 @@ void main() {
       buildSignature: '',
     );
   });
+  for (final entry
+      in {
+        'Bezglutenowa': 'Gluten-free',
+        'Wysokobiałkowa': 'High-protein',
+        'Bez laktozy': 'Lactose-free',
+      }.entries) {
+    testWidgets('profile translates saved onboarding diet ${entry.key}', (
+      tester,
+    ) async {
+      await open(tester, diet: entry.key);
+      await reveal(tester, 'Preferences');
+      expect(find.text(entry.value), findsOneWidget);
+      expect(find.text(entry.key), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+  }
   for (final english in [true, false]) {
     testWidgets(
       'profile labels and diet display are ${english ? 'English' : 'Polish'} without changing API codes',

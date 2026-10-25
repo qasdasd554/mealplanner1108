@@ -168,7 +168,7 @@ async def generate_meal_plan(
       limitu liczby planów.
     """
     from app.core.rate_limit import enforce_user_rate_limit, meal_plan_generation_limiter
-    from app.services.exceptions import ServiceError
+    from app.services.exceptions import ServiceError, service_error_text
     from app.services.meal_plan_quota import ensure_can_create_meal_plan
 
     enforce_user_rate_limit(meal_plan_generation_limiter, current_user.id, "generowanie planu posiłków")
@@ -189,7 +189,8 @@ async def generate_meal_plan(
         )
         return meal_plan
     except ServiceError as e:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=service_error_text(e, country_code=account_country(current_user))) from e
 
 
 @router.get(
@@ -449,7 +450,7 @@ async def resume_meal_plan(
     # Każde wznowienie ma własną listę zakupów. Stara lista (w tym zakupy
     # już odhaczone) pozostaje nietknięta. Zapis planu, historii limitu i
     # nowej listy jest zatwierdzany wspólnie przez standardowy builder.
-    from app.services.exceptions import ServiceError
+    from app.services.exceptions import ServiceError, service_error_text
     from app.services.meal_plan_quota import record_meal_plan_creation
 
     try:
@@ -460,7 +461,8 @@ async def resume_meal_plan(
         await db.commit()
     except ServiceError as error:
         await db.rollback()
-        raise HTTPException(status_code=422, detail=str(error)) from error
+        raise HTTPException(status_code=422,
+            detail=service_error_text(error, country_code=account_country(current_user))) from error
     except Exception:
         await db.rollback()
         raise

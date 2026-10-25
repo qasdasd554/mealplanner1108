@@ -70,10 +70,13 @@ def _public_recipe_refresh_query(*, now: datetime, excluded_keys=()):
         OffIngredientMapping.off_fingerprint == OffCatalogueProduct.fingerprint,
         OffIngredientMapping.reviewed_at <= now,
     ).correlate(Product, OffCatalogueProduct))
+    from app.services.uk_bundled_availability import bundled_cached_identity_condition
+
     eligible = exists(select(1).select_from(Product).where(
         Product.review_status == "approved", used,
         or_(Product.barcode == OffCatalogueProduct.barcode,
-            and_(Product.barcode.is_(None), Product.created_by_user_id.is_(None), mapped)),
+            and_(Product.barcode.is_(None), Product.created_by_user_id.is_(None),
+                or_(mapped, bundled_cached_identity_condition(Product, OffCatalogueProduct)))),
     ).correlate(OffCatalogueProduct))
     return select(OffCatalogueProduct.barcode).where(
         OffCatalogueProduct.country_code == "GB",
@@ -117,6 +120,12 @@ async def refresh_public_recipe_evidence(*, now: datetime | None = None) -> str:
                 rows = (await session.execute(_public_recipe_refresh_query(
                     now=clock, excluded_keys=sorted(excluded)))).scalars().all()
                 codes = tuple(code for code in rows if normalize_barcode(code) == code)[:2]
+                if len(codes) < 2:
+                    from app.services.uk_bundled_availability import bundled_recipe_refresh_query
+                    skipped = excluded | {code.lstrip("0") for code in codes}
+                    starter = (await session.execute(bundled_recipe_refresh_query(
+                        now=clock, excluded_keys=sorted(skipped), limit=2 - len(codes)))).scalars().all()
+                    codes += tuple(code for code in starter if normalize_barcode(code) == code)
             # Selection has closed its session before either exact-code fetch.
             for code in codes:
                 await refresh_requested_off_product(code, now=clock)

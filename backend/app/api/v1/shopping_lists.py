@@ -36,7 +36,7 @@ from app.schemas.shopping_list import ShoppingListItemResponse, ShoppingListResp
 from app.services import ProductSubstitutionService
 from app.services.shopping_list_builder import ShoppingListBuilder
 from app.services.store_market_access import get_store_in_account_market
-from app.services.market_catalog import apply_recipe_market_filter
+from app.services.market_catalog import recipe_market_availability
 from app.services.regional_shopping import (
     apply_regional_item_quote, copy_regional_snapshot, load_regional_offers,
     refresh_regional_items, resolve_manual_regional_quantity,
@@ -198,18 +198,23 @@ async def create_shopping_list_from_recipes(
     # normalnym przeglądaniu przepisów).
     from app.api.v1.recipes import _visibility_filter
 
-    recipes_result = await db.execute(
-        apply_recipe_market_filter(
-            select(Recipe).options(
-                selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product),
-            ).where(
-                Recipe.id.in_(payload.recipe_ids),
-                _visibility_filter(current_user.id),
-            ),
-            current_user,
-            store_id=payload.store_id,
-        )
+    recipe_query = select(Recipe).options(
+        selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product),
+    ).where(
+        Recipe.id.in_(payload.recipe_ids),
+        Recipe.is_active.is_(True),
+        _visibility_filter(current_user.id),
     )
+    if account_country(current_user) == "GB":
+        # Just like recipe detail, keep the owner's own imports usable even
+        # while an ingredient's country evidence/nutrition is incomplete.
+        # The builder preserves exact quantities and unknown prices; it must
+        # not replace a missing ingredient with a ready meal or invent stock.
+        recipe_query = recipe_query.where(or_(
+            Recipe.created_by_user_id == current_user.id,
+            recipe_market_availability("GB", store_id=payload.store_id),
+        ))
+    recipes_result = await db.execute(recipe_query)
     selected_recipes = recipes_result.scalars().all()
     found_ids = {recipe.id for recipe in selected_recipes}
     missing = set(payload.recipe_ids) - found_ids

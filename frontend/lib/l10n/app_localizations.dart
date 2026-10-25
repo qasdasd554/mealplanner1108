@@ -7463,7 +7463,7 @@ abstract class AppLocalizations {
   /// No description provided for @releasePromptChanges.
   ///
   /// In pl, this message translates to:
-  /// **'• Usprawniliśmy dopasowywanie składników w przepisach AI.\n• Poprawiliśmy obsługę opakowań i danych odżywczych podczas skanowania produktów.\n• Dopracowaliśmy listy zakupów i oznaczanie niepełnych wycen.\n• Poprawiliśmy czytelność i spójność komunikatów aplikacji.'**
+  /// **'• Poprawiliśmy tworzenie list zakupów z własnych przepisów.\n• Usprawniliśmy dopasowanie składników przy problemach z bazą zewnętrzną.\n• Uzupełniliśmy tłumaczenia przepisów i diet w wersji angielskiej.\n• Udostępniliśmy angielski katalog składników systemowych.'**
   String get releasePromptChanges;
 
   /// No description provided for @releasePromptApple.

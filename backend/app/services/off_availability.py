@@ -57,7 +57,10 @@ def product_has_off_uk_evidence(product_id, *, as_of: date):
             as_of + timedelta(days=1), time.min, timezone.utc),
         *off_uk_evidence_conditions(as_of=as_of),
     ).correlate_except(candidate, OffIngredientMapping, OffCatalogueProduct))
-    return or_(exact_code, reviewed_generic)
+    from app.services.uk_bundled_availability import bundled_uk_evidence_condition
+
+    return or_(exact_code, reviewed_generic,
+        bundled_uk_evidence_condition(product_id, as_of=as_of))
 
 
 async def off_available_product_ids(db, product_ids, *, as_of: date):

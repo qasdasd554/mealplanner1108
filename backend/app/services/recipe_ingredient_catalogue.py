@@ -40,6 +40,21 @@ def ingredient_key(name):
     return _ALIASES.get(key, key)
 
 
+def _explicit_ingredient_choices(name):
+    """Recognise author-specified alternatives, never strip food qualifiers.
+
+    E.g. pumpkin (hokkaido or butternut) may use the existing hokkaido food.
+    This must not turn 'bone-in pork' into boneless pork or guess a pack mass.
+    """
+    match = re.fullmatch(r"\s*([^()]+?)\s*\(([^()]+)\)\s*", name)
+    if not match:
+        return [name]
+    choices = re.split(r"\s+(?:lub|albo|or)\s+", match[2], flags=re.IGNORECASE)
+    if not 2 <= len(choices) <= 3:
+        return [name]
+    return [name, *(f"{match[1].strip()} {choice.strip()}" for choice in choices)]
+
+
 def has_recipe_nutrition(product):
     nutrition = product.nutrition_per_100 or {}
     try:
@@ -209,8 +224,11 @@ async def resolve_recipe_ingredients(ingredients, catalogue, *, country, user_id
     pairs = []
     missing = {}
     for ingredient in ingredients:
-        match = match_product_name(ingredient["product_name"], names)
-        product = by_name.get(match.casefold()) if match else None
+        choices = _explicit_ingredient_choices(ingredient["product_name"])
+        product = next((by_name[name.casefold()] for name in choices if name.casefold() in by_name), None)
+        if product is None:
+            match = match_product_name(ingredient["product_name"], names)
+            product = by_name.get(match.casefold()) if match else None
         key = ingredient_key(ingredient["product_name"])
         if product is None and key == "water":
             # Plain cooking water is a known zero-energy ingredient, not

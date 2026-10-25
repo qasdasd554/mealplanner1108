@@ -5,7 +5,7 @@ const systemRecipeText = <String, Map<String, dynamic>>{
     "source": {
       "name": "Makaron z cukinią i tuńczykiem",
       "description":
-          "Lekki makaron ze świeżą cukinią i tuńczykiem w oliwie — szybki obiad na ciepłe dni.",
+          "Lekki makaron ze świeżą cukinią i tuńczykiem w oliwie. szybki obiad na ciepłe dni.",
       "instructions": [
         "Ugotuj makaron penne (160 g) w osolonej wodzie zgodnie z instrukcją na opakowaniu, zachowując pół szklanki wody z gotowania.",
         "Na patelni rozgrzej oliwę z oliwek (2 łyżki) i zeszklij posiekaną cebulę (0.5 szt) razem z drobno posiekanym czosnkiem (2 szt).",
@@ -65,7 +65,7 @@ const systemRecipeText = <String, Map<String, dynamic>>{
     "source": {
       "name": "Placki z twarogiem na słodko",
       "description":
-          "Puszyste placki na bazie twarogu — pożywne, słodkie śniadanie.",
+          "Puszyste placki na bazie twarogu. pożywne, słodkie śniadanie.",
       "instructions": [
         "Twaróg półtłusty (250 g) rozgnieć widelcem w misce.",
         "Dodaj jajka (2 szt), mąkę pszenną (60 g) i szczyptę wanilii (cukier waniliowy) (4 g), wymieszaj na gładką masę.",
@@ -91,7 +91,7 @@ const systemRecipeText = <String, Map<String, dynamic>>{
   "15a3b032-31b6-597e-8f84-83c7d4921cbf": {
     "source": {
       "name": "Zupa krem z zielonego groszku",
-      "description": "Aksamitna, wiosenna zupa krem — szybka i lekka.",
+      "description": "Aksamitna, wiosenna zupa krem. szybka i lekka.",
       "instructions": [
         "W garnku podduś posiekaną cebulę (0.15 kg) na oliwie z oliwek (1 łyżka) aż zmięknie.",
         "Dodaj groszek zielony mrożony (500 g) i zalej bulionem warzywnym (700 ml), gotuj 10-12 minut.",
@@ -118,7 +118,7 @@ const systemRecipeText = <String, Map<String, dynamic>>{
     "source": {
       "name": "Stir-fry ryżowy z kurczakiem i warzywami",
       "description":
-          "Szybkie danie z jednej patelni — kurczak i chrupiące warzywa w sosie sojowym.",
+          "Szybkie danie z jednej patelni. kurczak i chrupiące warzywa w sosie sojowym.",
       "instructions": [
         "Ugotuj ryż biały (0.15 kg) zgodnie z instrukcją na opakowaniu.",
         "Pierś z kurczaka (0.3 kg) pokrój w paski, dopraw solą i pieprzem.",
@@ -252,7 +252,7 @@ const systemRecipeText = <String, Map<String, dynamic>>{
     "source": {
       "name": "Owsianka na noc z chia i owocami",
       "description":
-          "Przygotowana wieczorem, gotowa rano — owsianka na zimno z nasionami chia.",
+          "Przygotowana wieczorem, gotowa rano. owsianka na zimno z nasionami chia.",
       "instructions": [
         "W słoiku wymieszaj płatki owsiane (50 g), nasiona chia (15 g) i mleko migdałowe (200 ml).",
         "Dodaj łyżeczkę miodu, wymieszaj i zamknij słoik.",
@@ -306,7 +306,7 @@ const systemRecipeText = <String, Map<String, dynamic>>{
     "source": {
       "name": "Makaron z brokułem w sosie śmietanowym",
       "description":
-          "Kremowy makaron z brokułem i parmezanem — sycący wegetariański obiad.",
+          "Kremowy makaron z brokułem i parmezanem. sycący wegetariański obiad.",
       "instructions": [
         "Ugotuj makaron penne (180 g) w osolonej wodzie zgodnie z instrukcją na opakowaniu.",
         "Brokuł (1 szt) podziel na różyczki i ugotuj na parze przez 5 minut.",
@@ -358,7 +358,7 @@ const systemRecipeText = <String, Map<String, dynamic>>{
     "source": {
       "name": "Granola na słono z jajkiem i pomidorkami",
       "description":
-          "Nietypowe, sycące śniadanie — chrupiąca granola w wytrawnej wersji.",
+          "Nietypowe, sycące śniadanie. chrupiąca granola w wytrawnej wersji.",
       "instructions": [
         "Na suchej patelni podpraż płatki owsiane (50 g) z odrobiną oleju rzepakowego (1 łyżeczka) aż się zarumienią.",
         "Na osobnej patelni usmaż jajka (2 szt) sadzone z odrobiną masła extra (10 g).",
@@ -384,7 +384,7 @@ const systemRecipeText = <String, Map<String, dynamic>>{
     "source": {
       "name": "Dorsz na parze z warzywami i ziemniakami",
       "description":
-          "Lekkostrawny obiad gotowany na parze — bez dodatku tłuszczu.",
+          "Lekkostrawny obiad gotowany na parze. bez dodatku tłuszczu.",
       "instructions": [
         "Ziemniaki (0.4 kg) obierz, pokrój w kostkę i gotuj na parze 15 minut.",
         "Filet z dorsza (350 g) dopraw solą i pieprzem, ułóż na parowarze.",
@@ -746,7 +746,7 @@ const systemRecipeText = <String, Map<String, dynamic>>{
     "source": {
       "name": "Kurczak z ryżem i warzywami",
       "description":
-          "Lekki obiad — grillowana pierś z kurczaka z ryżem i warzywami.",
+          "Lekki obiad. grillowana pierś z kurczaka z ryżem i warzywami.",
       "instructions": [
         "Pokrój pierś z kurczaka (400 g) w kostkę, dopraw solą (3 g) i pieprzem.",
         "Ugotuj ryż (200 g) w osolonej wodzie według instrukcji na opakowaniu.",
@@ -1017,7 +1017,7 @@ const systemRecipeText = <String, Map<String, dynamic>>{
     "source": {
       "name": "Overnight oats z chia i owocami",
       "description":
-          "Owsianka przygotowana wieczorem — rano gotowa do jedzenia z owocami.",
+          "Owsianka przygotowana wieczorem. rano gotowa do jedzenia z owocami.",
       "instructions": [
         "Wymieszaj płatki owsiane (80 g), nasiona chia (20 g) i mleko migdałowe w słoiku.",
         "Zamieszaj dokładnie, przykryj i odstaw do lodówki na całą noc.",
@@ -1064,7 +1064,7 @@ const systemRecipeText = <String, Map<String, dynamic>>{
   "0c1d3e54-9b86-55c3-9a3c-0ac389bedb1d": {
     "source": {
       "name": "Granola owsiana z miodem i orzechami",
-      "description": "Domowa granola — chrupiąca, słodka, świetna z jogurtem.",
+      "description": "Domowa granola. chrupiąca, słodka, świetna z jogurtem.",
       "instructions": [
         "Nagrzej piekarnik do 160°C.",
         "Wymieszaj płatki owsiane (300 g), posiekane orzechy, miód i olej (30 ml) w misce.",
@@ -1112,7 +1112,7 @@ const systemRecipeText = <String, Map<String, dynamic>>{
     "source": {
       "name": "Placki jaglane na słodko",
       "description":
-          "Placuszki z kaszy jaglanej — lekkostrawne śniadanie bez glutenu.",
+          "Placuszki z kaszy jaglanej. lekkostrawne śniadanie bez glutenu.",
       "instructions": [
         "Kaszę jaglaną (150 g) opłucz pod bieżącą wodą, żeby pozbyć się goryczki, wsyp do garnka z podwójną ilością wody.",
         "Zagotuj, zmniejsz ogień i gotuj pod przykryciem 12-15 minut, aż kasza wchłonie wodę i zmięknie — odstaw do ostygnięcia.",
@@ -1188,7 +1188,7 @@ const systemRecipeText = <String, Map<String, dynamic>>{
     "source": {
       "name": "Tost francuski z cynamonem",
       "description":
-          "Słodkie śniadanie na weekend — chrupiący na zewnątrz, miękki w środku.",
+          "Słodkie śniadanie na weekend. chrupiący na zewnątrz, miękki w środku.",
       "instructions": [
         "Roztrzep jajka (2 szt.) z mlekiem (100 ml) i cynamonem w płaskim naczyniu.",
         "Namocz kromki chleba (150 g) w mieszance z obu stron przez chwilę.",
@@ -1280,7 +1280,7 @@ const systemRecipeText = <String, Map<String, dynamic>>{
   "9478a09e-09d6-56a9-abb2-2311261441b9": {
     "source": {
       "name": "Jajka sadzone z pomidorami i bazylią",
-      "description": "Proste śniadanie na patelni — gotowe w 10 minut.",
+      "description": "Proste śniadanie na patelni. gotowe w 10 minut.",
       "instructions": [
         "Rozgrzej masło (10 g) na patelni, podsmaż pokrojone pomidory 3 minuty.",
         "Wbij jajka (2 szt.) bezpośrednio na patelnię między pomidory.",
@@ -1334,7 +1334,7 @@ const systemRecipeText = <String, Map<String, dynamic>>{
   "ee2c3d1e-5379-5295-8d90-276113fd86d8": {
     "source": {
       "name": "Makaron z brokułami i parmezanem",
-      "description": "Prosty, kremowy makaron — idealny na szybki obiad.",
+      "description": "Prosty, kremowy makaron. idealny na szybki obiad.",
       "instructions": [
         "Ugotuj makaron (250 g) w osolonej wodzie według instrukcji na opakowaniu.",
         "Podziel brokuł (1 szt.) na różyczki i gotuj 5 minut w tej samej wodzie co makaron (ostatnie minuty gotowania).",
@@ -1383,7 +1383,7 @@ const systemRecipeText = <String, Map<String, dynamic>>{
     "source": {
       "name": "Krem z kalafiora",
       "description":
-          "Delikatna, kremowa zupa — świetna baza na chłodniejsze dni.",
+          "Delikatna, kremowa zupa. świetna baza na chłodniejsze dni.",
       "instructions": [
         "Podziel kalafior (1 szt.) na różyczki, obierz i pokrój ziemniaki (200 g).",
         "Gotuj warzywa w bulionie (2 szt.) na wodzie przez 18-20 minut do miękkości.",
@@ -1456,8 +1456,7 @@ const systemRecipeText = <String, Map<String, dynamic>>{
   "d0b29f2a-2e29-5346-9add-80a00f261a2e": {
     "source": {
       "name": "Kurczak curry z ryżem",
-      "description":
-          "Aromatyczne curry z mlekiem kokosowym — łagodne i sycące.",
+      "description": "Aromatyczne curry z mlekiem kokosowym. łagodne i sycące.",
       "instructions": [
         "Kurczaka (500 g) pokrój w kostkę ok. 2 cm, cebulę (100 g) w drobną kostkę.",
         "Rozgrzej olej na patelni, wrzuć kurczaka i cebulę, smaż 6-8 minut mieszając, aż kurczak zrumieni się z każdej strony.",
@@ -1576,7 +1575,7 @@ const systemRecipeText = <String, Map<String, dynamic>>{
     "source": {
       "name": "Tacos z indykiem",
       "description":
-          "Meksykański klasyk — chrupiące tortille z pikantnym nadzieniem.",
+          "Meksykański klasyk. chrupiące tortille z pikantnym nadzieniem.",
       "instructions": [
         "Pokrój indyka (400 g) w paski, podsmaż na oleju do ugotowania (ok. 8 minut).",
         "Dodaj pokrojoną paprykę (1 szt.) i cebulę, smaż jeszcze 5 minut.",
@@ -1635,7 +1634,7 @@ const systemRecipeText = <String, Map<String, dynamic>>{
   "932e2fa6-5646-5c79-ba66-a1944b8a2c41": {
     "source": {
       "name": "Makaron z tuńczykiem i pomidorami",
-      "description": "Szybki obiad z puszki — gotowy w 20 minut.",
+      "description": "Szybki obiad z puszki. gotowy w 20 minut.",
       "instructions": [
         "Ugotuj makaron (200 g) w osolonej wodzie według instrukcji na opakowaniu.",
         "Podsmaż przeciśnięty czosnek (2 ząbki czosnku) na oliwie (15 ml), dodaj pomidory krojone, gotuj 8 minut.",
@@ -1792,7 +1791,7 @@ const systemRecipeText = <String, Map<String, dynamic>>{
   "53a5a6cd-e9ab-5f31-a5bf-822e66dc1e7b": {
     "source": {
       "name": "Dorsz pieczony z cytryną i ziołami",
-      "description": "Lekki obiad rybny — gotowy w pół godziny.",
+      "description": "Lekki obiad rybny. gotowy w pół godziny.",
       "instructions": [
         "Nagrzej piekarnik do 190°C.",
         "Ułóż filety dorsza (400 g) na blasze, skrop oliwą (15 ml) i sokiem z cytryny (1 szt.).",
@@ -1903,7 +1902,7 @@ const systemRecipeText = <String, Map<String, dynamic>>{
   "efe248e8-006a-5550-8f37-50f052e6c3f2": {
     "source": {
       "name": "Pierogi leniwe",
-      "description": "Twarogowe kluski — szybsze niż tradycyjne pierogi.",
+      "description": "Twarogowe kluski. szybsze niż tradycyjne pierogi.",
       "instructions": [
         "Rozgnieć twaróg (500 g) z jajkami, dodaj mąkę (150 g) i zagnieć na jednolite ciasto.",
         "Uformuj wałeczek, pokrój na kawałki i uformuj kluski.",
@@ -1957,7 +1956,7 @@ const systemRecipeText = <String, Map<String, dynamic>>{
   "fa0cc5d6-1e39-5db5-bdf0-5d4018f76149": {
     "source": {
       "name": "Makaron z cukinią i parmezanem",
-      "description": "Lekki, letni makaron — gotowy w kwadrans.",
+      "description": "Lekki, letni makaron. gotowy w kwadrans.",
       "instructions": [
         "Ugotuj makaron (200 g) w osolonej wodzie według instrukcji na opakowaniu.",
         "Pokrój cukinię (2 szt.) w half-moony, podsmaż na oliwie (20 ml) z czosnkiem 6-8 minut.",
@@ -2115,8 +2114,7 @@ const systemRecipeText = <String, Map<String, dynamic>>{
   "be56627e-b725-549a-812e-03e9e2f31e30": {
     "source": {
       "name": "Kanapki caprese",
-      "description":
-          "Włoska klasyka na kanapce — pomidor, mozzarella, bazylia.",
+      "description": "Włoska klasyka na kanapce. pomidor, mozzarella, bazylia.",
       "instructions": [
         "Pokrój chleb (120 g), mozzarellę (125 g) i pomidory (200 g) w plastry.",
         "Ułóż na chlebie na przemian ser i pomidory.",
@@ -2229,7 +2227,7 @@ const systemRecipeText = <String, Map<String, dynamic>>{
   "c4176f35-313b-5816-bc3c-cbae1148d14a": {
     "source": {
       "name": "Wrap z kurczakiem i warzywami",
-      "description": "Zawijana kolacja — szybka i syta.",
+      "description": "Zawijana kolacja. szybka i syta.",
       "instructions": [
         "Pokrój kurczaka (250 g) w paski i usmaż na oleju do ugotowania.",
         "Podgrzej tortille (2 szt.) na suchej patelni.",
@@ -2301,7 +2299,7 @@ const systemRecipeText = <String, Map<String, dynamic>>{
   "6fa98cd6-f081-53aa-9a67-2ab63be67bc1": {
     "source": {
       "name": "Kanapki z pastą z ciecierzycy",
-      "description": "Roślinna pasta kanapkowa — sycąca i pełna błonnika.",
+      "description": "Roślinna pasta kanapkowa. sycąca i pełna błonnika.",
       "instructions": [
         "Odsącz ciecierzycę (400 g) i rozgnieć widelcem lub zblenduj.",
         "Dodaj oliwę (20 ml) i przeciśnięty czosnek (ząbek czosnku), wymieszaj na gładką pastę.",
@@ -2598,7 +2596,7 @@ const systemRecipeText = <String, Map<String, dynamic>>{
   "c863242f-75a0-5797-94f6-4d83699ff416": {
     "source": {
       "name": "Musli batoniki owsiane",
-      "description": "Domowe batoniki zbożowe — świetne na wynos.",
+      "description": "Domowe batoniki zbożowe. świetne na wynos.",
       "instructions": [
         "Nagrzej piekarnik do 170°C, wyłóż małą blaszkę papierem do pieczenia.",
         "W rondelku na małym ogniu podgrzej miód (80 g) z masłem orzechowym (60 g), mieszając, aż się połączą w gładką masę (nie doprowadzaj do wrzenia).",
@@ -2628,7 +2626,7 @@ const systemRecipeText = <String, Map<String, dynamic>>{
   "c880b76c-0d51-5ac6-b7e9-37e6e35430fe": {
     "source": {
       "name": "Tost z awokado i pomidorem",
-      "description": "Prosty, w pełni roślinny tost — szybkie śniadanie.",
+      "description": "Prosty, w pełni roślinny tost. szybkie śniadanie.",
       "instructions": [
         "Opiecz kromki chleba pszennego (100 g) w tosterze albo na suchej patelni.",
         "Rozgnieć awokado (1 szt.) widelcem, dopraw solą i skrop odrobiną soku z cytryny.",
@@ -2650,8 +2648,7 @@ const systemRecipeText = <String, Map<String, dynamic>>{
   "37537c67-3fc6-5cf2-861b-b0107ca86263": {
     "source": {
       "name": "Curry z ciecierzycą i szpinakiem",
-      "description":
-          "Rozgrzewające, w pełni roślinne curry — sycące i szybkie.",
+      "description": "Rozgrzewające, w pełni roślinne curry. sycące i szybkie.",
       "instructions": [
         "Podsmaż posiekaną cebulę (100 g) na oleju rzepakowym, aż się zeszkli.",
         "Dodaj curry w proszku (10 g), smaż 30 sekund, aż zapachnie.",

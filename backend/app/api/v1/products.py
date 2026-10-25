@@ -75,8 +75,10 @@ def _gb_catalogue_product_filter(user):
     """Same country evidence in catalogue and name suggestions; no new I/O."""
     from app.services.off_availability import product_has_off_uk_evidence
     from app.services.market_catalog import utc_market_date
+    from app.services.system_content_language import generic_system_ingredient_condition
     return or_(Product.created_by_user_id == user.id,
         Product.submitted_country_code == "GB",
+        generic_system_ingredient_condition(Product),
         product_has_off_uk_evidence(Product.id, as_of=utc_market_date()))
 
 

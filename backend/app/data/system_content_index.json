@@ -2,9 +2,9 @@
   "recipes": {
     "1a053aec-2567-5257-8bdb-0fed274ef180": {
       "source": "Makaron z cukinią i tuńczykiem",
-      "description": "Lekki makaron ze świeżą cukinią i tuńczykiem w oliwie — szybki obiad na ciepłe dni.",
+      "description": "Lekki makaron ze świeżą cukinią i tuńczykiem w oliwie. szybki obiad na ciepłe dni.",
       "en_GB": "Courgette and tuna pasta",
-      "detail_sha256": "669b9f1656b4c79744bd958fb0220bc3a19418748f30e358fc9ff1ec07bb2c62"
+      "detail_sha256": "ed97404840cd5bc9517f0eeecb3b75f9f637fc1358bb8d1f41b98aaa5ede1b4b"
     },
     "8ec98cc2-c2d7-5119-b7a9-df8819c14615": {
       "source": "Pieczony dorsz z zielonym groszkiem",
@@ -14,21 +14,21 @@
     },
     "d43fc8c6-643e-577b-9dbd-ce50b29dbdb7": {
       "source": "Placki z twarogiem na słodko",
-      "description": "Puszyste placki na bazie twarogu — pożywne, słodkie śniadanie.",
+      "description": "Puszyste placki na bazie twarogu. pożywne, słodkie śniadanie.",
       "en_GB": "Sweet quark pancakes",
-      "detail_sha256": "c5b507ab08d68bc224ad00351099fc037665ea36ea9646cffe584571b627df9a"
+      "detail_sha256": "2e8dab6dc212d667305151b3798ada7c7ccbb09e75b4f944e321dc02f9759dd9"
     },
     "15a3b032-31b6-597e-8f84-83c7d4921cbf": {
       "source": "Zupa krem z zielonego groszku",
-      "description": "Aksamitna, wiosenna zupa krem — szybka i lekka.",
+      "description": "Aksamitna, wiosenna zupa krem. szybka i lekka.",
       "en_GB": "Creamy pea soup",
-      "detail_sha256": "092587fea5cb4f06393a238ac44890adab930da11526ca62458d1dfb1cbf3d5b"
+      "detail_sha256": "3bd0d3c06999cfde93bc37f948a31101b6d4e43221118f9949e45672de047d88"
     },
     "470f567b-dd28-582a-b5b2-ea1b9654921f": {
       "source": "Stir-fry ryżowy z kurczakiem i warzywami",
-      "description": "Szybkie danie z jednej patelni — kurczak i chrupiące warzywa w sosie sojowym.",
+      "description": "Szybkie danie z jednej patelni. kurczak i chrupiące warzywa w sosie sojowym.",
       "en_GB": "Chicken and vegetable stir-fry with rice",
-      "detail_sha256": "9beb2f185efe6943117ddaf9458c834d6edc0aed828de10ea83e736455c6b847"
+      "detail_sha256": "282d2ad120dd672a5cb6035245e4694ea81f9e2b52c5ea59bbad6339cd9e91d3"
     },
     "6b0985d9-f511-58eb-b456-ec250d70db05": {
       "source": "Owsianka z orzechami włoskimi na mleku migdałowym",
@@ -56,9 +56,9 @@
     },
     "71e0cca1-ee92-5b5f-9500-cf6293071c84": {
       "source": "Owsianka na noc z chia i owocami",
-      "description": "Przygotowana wieczorem, gotowa rano — owsianka na zimno z nasionami chia.",
+      "description": "Przygotowana wieczorem, gotowa rano. owsianka na zimno z nasionami chia.",
       "en_GB": "Overnight oats with chia and fruit",
-      "detail_sha256": "2d454edd8b0e2bb39c41244275b47a01291f0e304524ed98c31d55535b42758b"
+      "detail_sha256": "899b785a308dfc5a225e10488bea59caa5abcd75dc40215cb96b9964498018fd"
     },
     "f209a2d7-b1b6-50c0-9d77-f845f29a6d06": {
       "source": "Sałatka z wędzonym łososiem, mango i awokado",
@@ -68,9 +68,9 @@
     },
     "fc97571c-29fe-5f11-bee8-2991bea1041e": {
       "source": "Makaron z brokułem w sosie śmietanowym",
-      "description": "Kremowy makaron z brokułem i parmezanem — sycący wegetariański obiad.",
+      "description": "Kremowy makaron z brokułem i parmezanem. sycący wegetariański obiad.",
       "en_GB": "Pasta with broccoli in a cream sauce",
-      "detail_sha256": "7688644df7885854aba39b8257fec3d3c96f6b3dc8cf80abb856cd3100942db5"
+      "detail_sha256": "60427d32ef585e1e41933a39b4afac53143e9125b2ba9afbd800744a3fcbf2c8"
     },
     "d790e41d-5ba4-5cae-96c6-332b6db6d5f0": {
       "source": "Tost z awokado i mozzarellą",
@@ -80,15 +80,15 @@
     },
     "c4e69873-de7b-5b4d-8a1e-0f344205a1c8": {
       "source": "Granola na słono z jajkiem i pomidorkami",
-      "description": "Nietypowe, sycące śniadanie — chrupiąca granola w wytrawnej wersji.",
+      "description": "Nietypowe, sycące śniadanie. chrupiąca granola w wytrawnej wersji.",
       "en_GB": "Savoury granola with eggs and tomatoes",
-      "detail_sha256": "5d4c857c83732135efacb4e105998a614cc689bc417a88e1939d51f56bd5a70a"
+      "detail_sha256": "f219f58850bfdeef6a75cae541bf1e4ad620fa3319663b510601990d8dece1db"
     },
     "91d0bfd3-aad3-5059-8a8a-260906fb40fa": {
       "source": "Dorsz na parze z warzywami i ziemniakami",
-      "description": "Lekkostrawny obiad gotowany na parze — bez dodatku tłuszczu.",
+      "description": "Lekkostrawny obiad gotowany na parze. bez dodatku tłuszczu.",
       "en_GB": "Steamed cod with vegetables and potatoes",
-      "detail_sha256": "d540c99973702ea22a57ce0337046ddb34f39d5272202c6e99ff9f899a4ca20b"
+      "detail_sha256": "eb8e22f482f8be6e3bced36421bc3c5cf6cdf324aa24c2de4d5a1f185b82d84f"
     },
     "14597160-687f-594d-960e-2116302f62da": {
       "source": "Kanapki z szynką, serem i sałatą",
@@ -170,9 +170,9 @@
     },
     "59bec371-a592-5387-8388-af9822d28da9": {
       "source": "Kurczak z ryżem i warzywami",
-      "description": "Lekki obiad — grillowana pierś z kurczaka z ryżem i warzywami.",
+      "description": "Lekki obiad. grillowana pierś z kurczaka z ryżem i warzywami.",
       "en_GB": "Chicken with rice and vegetables",
-      "detail_sha256": "029994a4ca6218a07f022440f764c1bc754256d295b0fea99c11f693928e01de"
+      "detail_sha256": "4107fb76f0fca00f464940208ada48d3ce2f4aa4593fd157977e9f85e2435528"
     },
     "db344e04-3f19-5a6f-a246-b57588fc012f": {
       "source": "Zupa pomidorowa z makaronem",
@@ -224,9 +224,9 @@
     },
     "7e2019e7-4d18-554b-867f-04227f3f6269": {
       "source": "Overnight oats z chia i owocami",
-      "description": "Owsianka przygotowana wieczorem — rano gotowa do jedzenia z owocami.",
+      "description": "Owsianka przygotowana wieczorem. rano gotowa do jedzenia z owocami.",
       "en_GB": "Overnight oats with chia and fruit",
-      "detail_sha256": "f3c7dedb7e9fa4c9a344c360503403944d868da88cfb2efa66247af4acef566b"
+      "detail_sha256": "f857cf5a79142fffb831583984670eaa95391d2395e95743f97e67ed8599c06e"
     },
     "589e0c80-ba08-599b-ade4-3de652e05695": {
       "source": "Jajka na twardo z awokado i tostem",
@@ -236,9 +236,9 @@
     },
     "0c1d3e54-9b86-55c3-9a3c-0ac389bedb1d": {
       "source": "Granola owsiana z miodem i orzechami",
-      "description": "Domowa granola — chrupiąca, słodka, świetna z jogurtem.",
+      "description": "Domowa granola. chrupiąca, słodka, świetna z jogurtem.",
       "en_GB": "Oat granola with honey and nuts",
-      "detail_sha256": "fab06126d571de785c413f7112fa7320c4e6bc5565c2b975a55a33ad88663b7f"
+      "detail_sha256": "273bbe0499c6d0f92d749198d37acd6679713c04ca800580f4a7e7e1b1961f0f"
     },
     "8db60146-69af-56fe-a294-c74025b4ee3b": {
       "source": "Kanapki z pastą jajeczną",
@@ -248,9 +248,9 @@
     },
     "59a5939a-627b-5d9e-bc3e-18295e79f567": {
       "source": "Placki jaglane na słodko",
-      "description": "Placuszki z kaszy jaglanej — lekkostrawne śniadanie bez glutenu.",
+      "description": "Placuszki z kaszy jaglanej. lekkostrawne śniadanie bez glutenu.",
       "en_GB": "Sweet millet pancakes",
-      "detail_sha256": "b5ff3577d5305b6a122ceeb8ce1b68aeb0fb2cc9ce6a351d400a3c340b91eb7f"
+      "detail_sha256": "fe51886c0831cd5aed48a5c79c4c3ab1752bba1e3ca281c05b45d88a17ca5542"
     },
     "c6653ad4-8642-58f3-b88f-3986697f985e": {
       "source": "Omlet z warzywami",
@@ -266,9 +266,9 @@
     },
     "569057a6-85a0-5cd8-b8e3-eb4a63519ab7": {
       "source": "Tost francuski z cynamonem",
-      "description": "Słodkie śniadanie na weekend — chrupiący na zewnątrz, miękki w środku.",
+      "description": "Słodkie śniadanie na weekend. chrupiący na zewnątrz, miękki w środku.",
       "en_GB": "Cinnamon French toast",
-      "detail_sha256": "90e356eda276f65b432dc34a5a70320dd7d7040f94601f12b818d45455ef121b"
+      "detail_sha256": "258bb91a933989f0290d8b4b74afa54625713cda666f5a2f6ce00b25d7a34d9d"
     },
     "c31d2370-9494-544c-aafc-93c4c8359d8b": {
       "source": "Smoothie bowl bananowo-truskawkowe",
@@ -290,9 +290,9 @@
     },
     "9478a09e-09d6-56a9-abb2-2311261441b9": {
       "source": "Jajka sadzone z pomidorami i bazylią",
-      "description": "Proste śniadanie na patelni — gotowe w 10 minut.",
+      "description": "Proste śniadanie na patelni. gotowe w 10 minut.",
       "en_GB": "Fried eggs with tomatoes and basil",
-      "detail_sha256": "bcb1ec04ad7da7ae14953425b5aa66cf81e1bc17b646f179485566e858a96a7f"
+      "detail_sha256": "8258bf532cde049064efc65b420d05e7d9a6bf56208783272b3cd9fa6045d10d"
     },
     "77505aa1-2038-5bab-a7a1-37b357838f46": {
       "source": "Naleśniki jaglane z owocami",
@@ -302,9 +302,9 @@
     },
     "ee2c3d1e-5379-5295-8d90-276113fd86d8": {
       "source": "Makaron z brokułami i parmezanem",
-      "description": "Prosty, kremowy makaron — idealny na szybki obiad.",
+      "description": "Prosty, kremowy makaron. idealny na szybki obiad.",
       "en_GB": "Pasta with broccoli and Parmesan",
-      "detail_sha256": "02aaae7303458cec038ef2aa5f201e7c9577a355e388e92a5f6a8477df532cc4"
+      "detail_sha256": "cbd54243aa2c0b04d2b9c1cef44c296fd71a2a1f5eecde1b8f89d959978c3d34"
     },
     "a910ad86-f2df-5b47-91d0-98bc557d742d": {
       "source": "Krem z brokułów",
@@ -314,9 +314,9 @@
     },
     "ca1f669e-e4b1-5684-b882-d908f0ada1bf": {
       "source": "Krem z kalafiora",
-      "description": "Delikatna, kremowa zupa — świetna baza na chłodniejsze dni.",
+      "description": "Delikatna, kremowa zupa. świetna baza na chłodniejsze dni.",
       "en_GB": "Creamy cauliflower soup",
-      "detail_sha256": "2e4b86057c6a35e5f39c2404050816c6b4b20d3a27efc005aa2da289e79f3717"
+      "detail_sha256": "60afa66e52913d93e477a444721a75e25eee9d1cfbe75dfa54a8baeea164d6bb"
     },
     "0f61c083-e864-519d-973f-7ce5808434b5": {
       "source": "Zupa krem z pieczarek",
@@ -332,9 +332,9 @@
     },
     "d0b29f2a-2e29-5346-9add-80a00f261a2e": {
       "source": "Kurczak curry z ryżem",
-      "description": "Aromatyczne curry z mlekiem kokosowym — łagodne i sycące.",
+      "description": "Aromatyczne curry z mlekiem kokosowym. łagodne i sycące.",
       "en_GB": "Chicken curry with rice",
-      "detail_sha256": "0c5dd68d37cd1538693f68cec37690ff12d96f49b144f5b10f82a4bd58d73b6a"
+      "detail_sha256": "19afb94a7874b2557f602d8339c63a61e929ac184e2da072d7e9f0252fa09aad"
     },
     "d2c365e5-eb1b-51d3-9d87-40ed496f9f2a": {
       "source": "Gulasz wołowo-wieprzowy",
@@ -350,9 +350,9 @@
     },
     "e57a77c7-c21d-50d2-9ebb-4671f6feae62": {
       "source": "Tacos z indykiem",
-      "description": "Meksykański klasyk — chrupiące tortille z pikantnym nadzieniem.",
+      "description": "Meksykański klasyk. chrupiące tortille z pikantnym nadzieniem.",
       "en_GB": "Turkey tacos",
-      "detail_sha256": "d6b9ee158f480f1bcbc31cedd7e140a010d7b12cafee01351e11dbb8222a361a"
+      "detail_sha256": "88dce478e12c502ddc7ee8ffb6551b4feeac8798f72cbe515190f042cfc2c010"
     },
     "fbceebbf-fdac-5b0d-8a1e-0c5c148142f7": {
       "source": "Burrito bowl z kurczakiem",
@@ -362,9 +362,9 @@
     },
     "932e2fa6-5646-5c79-ba66-a1944b8a2c41": {
       "source": "Makaron z tuńczykiem i pomidorami",
-      "description": "Szybki obiad z puszki — gotowy w 20 minut.",
+      "description": "Szybki obiad z puszki. gotowy w 20 minut.",
       "en_GB": "Tuna and tomato pasta",
-      "detail_sha256": "2ba83f271402208f34f94bd99db83f995c4a0a2ea09c84b3727dfcf61af826e8"
+      "detail_sha256": "ac79ddb87241e44990b244ea6b35af7b302bf960c1f4c5cc081144c91b38d1e1"
     },
     "04b92d3c-bf59-5c71-b75c-5508dad1eee7": {
       "source": "Sałatka z kurczakiem i awokado",
@@ -398,9 +398,9 @@
     },
     "53a5a6cd-e9ab-5f31-a5bf-822e66dc1e7b": {
       "source": "Dorsz pieczony z cytryną i ziołami",
-      "description": "Lekki obiad rybny — gotowy w pół godziny.",
+      "description": "Lekki obiad rybny. gotowy w pół godziny.",
       "en_GB": "Cod baked with lemon and herbs",
-      "detail_sha256": "76f7f35d80fc8448cbd2810daa2cd07a2fcbb99e80311ec93f2f5fc8b5b82880"
+      "detail_sha256": "a6b9458435147abc0ae0175ceda68a0598a09374775ced73df56da773cd02e0e"
     },
     "fc5ee50f-1091-5f4b-a80a-a28a3f1bf4de": {
       "source": "Krewetki curry z ryżem",
@@ -422,9 +422,9 @@
     },
     "efe248e8-006a-5550-8f37-50f052e6c3f2": {
       "source": "Pierogi leniwe",
-      "description": "Twarogowe kluski — szybsze niż tradycyjne pierogi.",
+      "description": "Twarogowe kluski. szybsze niż tradycyjne pierogi.",
       "en_GB": "Lazy quark dumplings",
-      "detail_sha256": "857076a07f376512806e83a294f7285da3dea25156b91c53f02d9b967e83887e"
+      "detail_sha256": "be661b05a30ff9d5387aa7da671661c0a770f426982e230133d92939f6c7c06c"
     },
     "12b3ccac-44fe-5883-a726-dd3d51880f47": {
       "source": "Kotlety schabowe z kapustą pekińską",
@@ -434,9 +434,9 @@
     },
     "fa0cc5d6-1e39-5db5-bdf0-5d4018f76149": {
       "source": "Makaron z cukinią i parmezanem",
-      "description": "Lekki, letni makaron — gotowy w kwadrans.",
+      "description": "Lekki, letni makaron. gotowy w kwadrans.",
       "en_GB": "Courgette and Parmesan pasta",
-      "detail_sha256": "b7243580cda68ebbd670b836025cf065a1a0d84732bc52b28634801af5fd4329"
+      "detail_sha256": "82b459993cb81feee8e7842ca24d9284b6ca839231fd2ee55ff794a8c3d2b373"
     },
     "aada2940-9574-5b23-a23e-7030f7d2b021": {
       "source": "Risotto z krewetkami",
@@ -470,9 +470,9 @@
     },
     "be56627e-b725-549a-812e-03e9e2f31e30": {
       "source": "Kanapki caprese",
-      "description": "Włoska klasyka na kanapce — pomidor, mozzarella, bazylia.",
+      "description": "Włoska klasyka na kanapce. pomidor, mozzarella, bazylia.",
       "en_GB": "Caprese sandwiches",
-      "detail_sha256": "229908c825230dcc08c91c973c6bb4bc6d5cb8639afd95189b4f3c4041cfe0ae"
+      "detail_sha256": "65181bc5d2c1e0f2ad97467cd685cb9493211f9f2992bb9e796afd98fa9e17e5"
     },
     "1c821110-1d90-5e44-825b-bd77a2e6ba2e": {
       "source": "Sałatka caprese",
@@ -500,9 +500,9 @@
     },
     "c4176f35-313b-5816-bc3c-cbae1148d14a": {
       "source": "Wrap z kurczakiem i warzywami",
-      "description": "Zawijana kolacja — szybka i syta.",
+      "description": "Zawijana kolacja. szybka i syta.",
       "en_GB": "Chicken and vegetable wrap",
-      "detail_sha256": "ada8b333f5eb3f24bfcafaf8c4a650cc6d3eb0912c5caf345cb1a8cbfd94c72c"
+      "detail_sha256": "40955cbc0fd062fedcf1ad3dca3c6be3d3e1ffbba7201a3d887d9bdc2c43fa17"
     },
     "4aad26dc-491e-58a4-860d-169f97fa446c": {
       "source": "Quesadilla z serem",
@@ -518,9 +518,9 @@
     },
     "6fa98cd6-f081-53aa-9a67-2ab63be67bc1": {
       "source": "Kanapki z pastą z ciecierzycy",
-      "description": "Roślinna pasta kanapkowa — sycąca i pełna błonnika.",
+      "description": "Roślinna pasta kanapkowa. sycąca i pełna błonnika.",
       "en_GB": "Chickpea spread sandwiches",
-      "detail_sha256": "ab8b923afba4bf28f982b3740c3b66b709d3eb58f5dbb8ede653c7dab0598b8f"
+      "detail_sha256": "40354e3532615bbd82425fd7bea41890247a413ad86af5e7e51c2fb63b758bba"
     },
     "209c3bed-af69-52aa-9c6b-0f89d559c9dc": {
       "source": "Sałatka grecka z krewetkami",
@@ -590,21 +590,21 @@
     },
     "c863242f-75a0-5797-94f6-4d83699ff416": {
       "source": "Musli batoniki owsiane",
-      "description": "Domowe batoniki zbożowe — świetne na wynos.",
+      "description": "Domowe batoniki zbożowe. świetne na wynos.",
       "en_GB": "Oat muesli bars",
-      "detail_sha256": "a2f3a0ccf9489239400f5d590056e82835f0313083dd2c79c28bdae8be33f9bd"
+      "detail_sha256": "e6aa0156f9462413e4290fc77ff29f298f45c6196a19d4d189be01343cfc697c"
     },
     "c880b76c-0d51-5ac6-b7e9-37e6e35430fe": {
       "source": "Tost z awokado i pomidorem",
-      "description": "Prosty, w pełni roślinny tost — szybkie śniadanie.",
+      "description": "Prosty, w pełni roślinny tost. szybkie śniadanie.",
       "en_GB": "Avocado and tomato toast",
-      "detail_sha256": "92578c026b493781a78ffcc78e982b15b1ab175253690e2ee58153d46853af79"
+      "detail_sha256": "3d3a1441305a675e0a3d45953bad7d1ec6d1d0449a0bcd73d1982f68c0be6f20"
     },
     "37537c67-3fc6-5cf2-861b-b0107ca86263": {
       "source": "Curry z ciecierzycą i szpinakiem",
-      "description": "Rozgrzewające, w pełni roślinne curry — sycące i szybkie.",
+      "description": "Rozgrzewające, w pełni roślinne curry. sycące i szybkie.",
       "en_GB": "Chickpea and spinach curry",
-      "detail_sha256": "21339016c3533aaf15e7df03dec95454a692a7186c0fa013a0944e4bb266ea42"
+      "detail_sha256": "a6e97b908b7ddc8b0c3b835177a89682cb2a7787be0c325bb2c279238bc82143"
     },
     "de804b96-24c5-5e16-a2bb-a3f76aaf8392": {
       "source": "Sałatka z ciecierzycą i awokado",

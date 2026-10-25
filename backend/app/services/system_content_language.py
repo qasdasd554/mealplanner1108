@@ -30,6 +30,19 @@ def is_system_ingredient(product) -> bool:
     return row is not None and row['source'] == product.name
 
 
+@lru_cache(maxsize=8)
+def generic_system_ingredient_condition(model):
+    """Shared cooking vocabulary, NOT evidence of sale in any country/shop.
+
+    Only known unchanged system identities can be shown as generic foods.
+    Authored foods, scanned SKUs and restaurant products keep market guards.
+    """
+    identities = or_(*(and_(model.id == UUID(identity), model.name == row['source'])
+        for identity, row in _index()['ingredients'].items()))
+    return and_(model.created_by_user_id.is_(None), model.barcode.is_(None),
+        model.review_status == 'approved', identities)
+
+
 def ingredient_display_name(product, *, country_code: str = 'PL') -> str:
     """Use the reviewed seed label without translating arbitrary authored food.
 

@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 from uuid import UUID, uuid4
 
-from sqlalchemy import func, select
+from sqlalchemy import false, func, select
 
 from app.db.seed import NUTRITION_DATA, PRODUCTS_DATA, PRODUCT_BRANDS, _uid
 from app.models import Product, Recipe, RecipeIngredient, RegionalProductOffer
@@ -23,7 +23,12 @@ EVIDENCE = json.loads((Path(__file__).parent
 RETRIEVED = datetime.fromisoformat(EVIDENCE["retrieved_at"])
 
 
-def test_reviewed_batch_uses_exact_seed_foods_not_polish_brands_or_pack_defaults(catalogue_db):
+def test_reviewed_batch_uses_exact_seed_foods_not_polish_brands_or_pack_defaults(catalogue_db, monkeypatch):
+    # Isolate DB approval/rollback from the now-shipped reviewed reference.
+    # Combined availability without a manual import is covered independently
+    # in test_uk_reported_catalogue_failures, including changed identities.
+    monkeypatch.setattr("app.services.uk_bundled_availability.bundled_uk_evidence_condition",
+        lambda *args, **kwargs: false())
     session, reviewer, _ = catalogue_db
     adapter = AsyncAdapter(session)
     seeds = {row[0]: row for row in PRODUCTS_DATA}
