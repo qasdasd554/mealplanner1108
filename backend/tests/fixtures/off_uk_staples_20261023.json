@@ -1,0 +1,378 @@
+{
+  "source": "Open Food Facts",
+  "licence": "ODbL-1.0",
+  "attribution_url": "https://world.openfoodfacts.org",
+  "retrieved_at": "2026-10-23T16:02:50.083751+00:00",
+  "automatic_import": false,
+  "scope": "Reviewed generic food identity and OFF-reported UK sales only; not a price, current retailer stock, pack conversion, or nutrition substitution.",
+  "products": [
+    {
+      "barcode_requested": "20071974",
+      "http_status": 200,
+      "retrieved_at": "2026-10-23T16:02:50.083751+00:00",
+      "product": {
+        "code": "20071974",
+        "product_name_en": "Basmati Rice",
+        "product_name": "Basmati Rice",
+        "generic_name_en": "",
+        "generic_name": "",
+        "brands": "Lidl",
+        "categories_tags": [
+          "en:plant-based-foods-and-beverages",
+          "en:plant-based-foods",
+          "en:cereals-and-potatoes",
+          "en:seeds",
+          "en:cereals-and-their-products",
+          "en:cereal-grains",
+          "en:rices",
+          "en:aromatic-rices",
+          "en:indica-rices",
+          "en:long-grain-rices",
+          "en:basmati-rices"
+        ],
+        "ingredients_text_en": "basmati rice",
+        "ingredients_text": "basmati rice",
+        "countries_tags": [
+          "en:ireland",
+          "en:united-kingdom"
+        ],
+        "quantity": "1 kg",
+        "product_quantity": 1000,
+        "product_quantity_unit": "g",
+        "serving_quantity": 75,
+        "serving_quantity_unit": "g",
+        "nutrition_data_per": "100g",
+        "last_modified_t": 1790498547,
+        "nutriments": {
+          "energy_unit": "kJ"
+        }
+      },
+      "cache_eligible": true,
+      "fingerprint": "211608817110fee56e8a87833e93dabfdb4a9927da8c769f56a47c8bca1a7710",
+      "base_unit": "g"
+    },
+    {
+      "barcode_requested": "20522605",
+      "http_status": 200,
+      "retrieved_at": "2026-10-23T16:02:50.083751+00:00",
+      "product": {
+        "code": "20522605",
+        "product_name_en": "Tomato Passata",
+        "product_name": "Tomato Passata",
+        "generic_name_en": "",
+        "generic_name": "",
+        "brands": "Baresa",
+        "categories_tags": [
+          "en:plant-based-foods-and-beverages",
+          "en:plant-based-foods",
+          "en:fruits-and-vegetables-based-foods",
+          "en:vegetable-based-foods-and-beverages",
+          "en:canned-foods",
+          "en:condiments",
+          "en:vegetables-based-foods",
+          "en:canned-plant-based-foods",
+          "en:tomatoes-and-their-products",
+          "en:canned-tomato-products",
+          "en:sauces",
+          "en:strained-tomatoes"
+        ],
+        "ingredients_text_en": "100% tomatoes.",
+        "ingredients_text": "100% tomatoes.",
+        "countries_tags": [
+          "en:france",
+          "en:united-kingdom"
+        ],
+        "quantity": "500 g",
+        "product_quantity": 500,
+        "product_quantity_unit": "g",
+        "serving_quantity": 100,
+        "serving_quantity_unit": "g",
+        "nutrition_data_per": "100g",
+        "last_modified_t": 1781027431,
+        "obsolete": "",
+        "nutriments": {
+          "carbohydrates_100g": 6.1,
+          "energy-kcal_100g": 37,
+          "energy-kj_100g": 146,
+          "energy_100g": 146,
+          "energy_unit": "kJ",
+          "fat_100g": 0.2,
+          "fiber_100g": 1.9,
+          "proteins_100g": 1.7,
+          "salt_100g": 0.1
+        }
+      },
+      "cache_eligible": true,
+      "fingerprint": "2a1931deea13f04314ea2d9550eddf5ef7fe09da962ffe2f15d68a39354437a1",
+      "base_unit": "g"
+    },
+    {
+      "barcode_requested": "20522612",
+      "http_status": 200,
+      "retrieved_at": "2026-10-23T16:02:50.083751+00:00",
+      "product": {
+        "code": "20522612",
+        "product_name_en": "Tomato Purée",
+        "product_name": "Tomato Purée",
+        "generic_name_en": "Tomato Puree",
+        "generic_name": "Tomato Puree",
+        "brands": "Baresa",
+        "categories_tags": [
+          "en:plant-based-foods-and-beverages",
+          "en:plant-based-foods",
+          "en:fruits-and-vegetables-based-foods",
+          "en:vegetable-based-foods-and-beverages",
+          "en:canned-foods",
+          "en:condiments",
+          "en:vegetables-based-foods",
+          "en:canned-plant-based-foods",
+          "en:tomatoes-and-their-products",
+          "en:canned-tomato-products",
+          "en:prepared-vegetables",
+          "en:purees",
+          "en:sauces",
+          "en:mashed-vegetables",
+          "en:tomato-sauces",
+          "en:tomato-pastes",
+          "en:tomato-purees",
+          "en:canned-tomato-purees"
+        ],
+        "ingredients_text_en": "99.9% Tomatoes, Salt.",
+        "ingredients_text": "99.9% Tomatoes, Salt.",
+        "countries_tags": [
+          "en:france",
+          "en:united-kingdom"
+        ],
+        "quantity": "200 g",
+        "product_quantity": 200,
+        "product_quantity_unit": "g",
+        "nutrition_data_per": "100g",
+        "last_modified_t": 1792433073,
+        "nutriments": {
+          "carbohydrates_100g": 17,
+          "energy-kcal_100g": 103,
+          "energy-kj_100g": 434,
+          "energy_100g": 434,
+          "energy_unit": "kJ",
+          "fat_100g": 0.2,
+          "fiber_100g": 4,
+          "proteins_100g": 4.9,
+          "salt_100g": 0.1
+        }
+      },
+      "cache_eligible": true,
+      "fingerprint": "2030209a35e9334d9e13a05ad7e84115312cc78b406c1b57fbb47fac0f4bbb60",
+      "base_unit": "g"
+    },
+    {
+      "barcode_requested": "4056489903703",
+      "http_status": 200,
+      "retrieved_at": "2026-10-23T16:02:50.083751+00:00",
+      "product": {
+        "code": "4056489903703",
+        "product_name_en": "Chickpeas in Water",
+        "product_name": "Chickpeas in Water",
+        "brands": "Freshona",
+        "categories_tags": [
+          "en:plant-based-foods-and-beverages",
+          "en:plant-based-foods",
+          "en:legumes-and-their-products",
+          "en:legumes",
+          "en:seeds",
+          "en:canned-foods",
+          "en:legume-seeds",
+          "en:canned-plant-based-foods",
+          "en:pulses",
+          "en:chickpeas",
+          "en:canned-legumes",
+          "en:canned-chickpeas",
+          "en:Tinned beans"
+        ],
+        "ingredients_text_en": "Chickpeas, Water, Antioxidant: Sodium Metabisulphite",
+        "ingredients_text": "Chickpeas, Water, Antioxidant: Sodium Metabisulphite",
+        "countries_tags": [
+          "en:united-kingdom"
+        ],
+        "quantity": "400g",
+        "product_quantity": 400,
+        "product_quantity_unit": "g",
+        "serving_quantity": 120,
+        "serving_quantity_unit": "g",
+        "nutrition_data_per": "100g",
+        "last_modified_t": 1778854061,
+        "nutriments": {
+          "carbohydrates_100g": 16.6,
+          "energy-kcal_100g": 125,
+          "energy-kj_100g": 524.6,
+          "energy_100g": 524.6,
+          "energy_unit": "kJ",
+          "fat_100g": 2.4,
+          "fiber_100g": 5.6,
+          "proteins_100g": 6.4,
+          "salt_100g": 0.02
+        }
+      },
+      "cache_eligible": true,
+      "fingerprint": "90131615fac092ffa6d2acb3716245100fa429bb41037ef563950cf6ed9cfb94",
+      "base_unit": "g"
+    },
+    {
+      "barcode_requested": "4056489903710",
+      "http_status": 200,
+      "retrieved_at": "2026-10-23T16:02:50.083751+00:00",
+      "product": {
+        "code": "4056489903710",
+        "product_name_en": "Red Kidney Beans in water",
+        "product_name": "Red Kidney Beans in water",
+        "brands": "Simply",
+        "categories_tags": [
+          "en:plant-based-foods-and-beverages",
+          "en:plant-based-foods",
+          "en:legumes-and-their-products",
+          "en:legumes",
+          "en:canned-foods",
+          "en:canned-plant-based-foods",
+          "en:canned-legumes",
+          "en:canned-common-beans",
+          "en:canned-red-kidney-beans"
+        ],
+        "ingredients_text_en": "Red Kidney Beans, Water, Calcium Chloride",
+        "ingredients_text": "Red Kidney Beans, Water, Calcium Chloride",
+        "countries_tags": [
+          "en:united-kingdom"
+        ],
+        "quantity": "240 g",
+        "product_quantity": 240,
+        "product_quantity_unit": "g",
+        "serving_quantity": 120,
+        "serving_quantity_unit": "g",
+        "nutrition_data_per": "100g",
+        "last_modified_t": 1778764387,
+        "nutriments": {
+          "carbohydrates_100g": 16.6,
+          "energy-kcal_100g": 117.5,
+          "energy-kj_100g": 498,
+          "energy_100g": 498,
+          "energy_unit": "kJ",
+          "fat_100g": 0.7,
+          "fiber_100g": 7.4,
+          "proteins_100g": 7.7,
+          "salt_100g": 0.01
+        }
+      },
+      "cache_eligible": true,
+      "fingerprint": "821a6a1c0c7c513d4ab1f721a39e0456efa17a9c14adba1d73a024ce99f36997",
+      "base_unit": "g"
+    },
+    {
+      "barcode_requested": "4056489895268",
+      "http_status": 200,
+      "retrieved_at": "2026-10-23T16:02:50.083751+00:00",
+      "product": {
+        "code": "4056489895268",
+        "product_name_en": "Unsalted Welsh Butter",
+        "product_name": "Unsalted Welsh Butter",
+        "brands": "Dairy Manor",
+        "categories_tags": [
+          "en:dairies",
+          "en:spreads",
+          "en:fats",
+          "en:spreadable-fats",
+          "en:animal-fats",
+          "en:dairy-spreads",
+          "en:milkfat",
+          "en:butters",
+          "en:unsalted-butters"
+        ],
+        "ingredients_text_en": "Unsalted butter.",
+        "ingredients_text": "Unsalted butter.",
+        "countries_tags": [
+          "en:united-kingdom"
+        ],
+        "quantity": "250g",
+        "product_quantity": 250,
+        "product_quantity_unit": "g",
+        "serving_quantity": 10,
+        "serving_quantity_unit": "g",
+        "nutrition_data_per": "100g",
+        "last_modified_t": 1774653399,
+        "nutriments": {
+          "carbohydrates_100g": 0.6,
+          "energy-kcal_100g": 743,
+          "energy-kj_100g": 3054,
+          "energy_100g": 3054,
+          "energy_unit": "kJ",
+          "fat_100g": 82,
+          "fiber_100g": 0,
+          "proteins_100g": 0.6,
+          "salt_100g": 0.01
+        }
+      },
+      "cache_eligible": true,
+      "fingerprint": "266e67f915e32750cfc715ff5334e203d575b8a99964a5201f17ef91a32ed1b7",
+      "base_unit": "g"
+    }
+  ],
+  "proposals": [
+    {
+      "product_id": "1e808e82-2ef4-5cc0-9407-36c602f87f0c",
+      "product_name": "Ryż basmati",
+      "product_unit": "g",
+      "product_brand": "Tilda",
+      "off_barcode": "20071974",
+      "off_fingerprint": "211608817110fee56e8a87833e93dabfdb4a9927da8c769f56a47c8bca1a7710",
+      "review_note": "Reviewed Basmati Rice label and single ingredient basmati rice. Link to dry basmati only, not cooked rice or another rice variety.",
+      "country_code": "GB"
+    },
+    {
+      "product_id": "a977d3c1-d044-5146-ad5b-5dcb284980aa",
+      "product_name": "Passata pomidorowa",
+      "product_unit": "g",
+      "product_brand": "Dawtona",
+      "off_barcode": "20522605",
+      "off_fingerprint": "2a1931deea13f04314ea2d9550eddf5ef7fe09da962ffe2f15d68a39354437a1",
+      "review_note": "Reviewed Tomato Passata label, strained-tomato category and 100% tomatoes. Not concentrated tomato paste.",
+      "country_code": "GB"
+    },
+    {
+      "product_id": "0ed74a5d-1eb8-5f17-8ca6-9830ae4f36bb",
+      "product_name": "Koncentrat pomidorowy",
+      "product_unit": "g",
+      "product_brand": "Dawtona",
+      "off_barcode": "20522612",
+      "off_fingerprint": "2030209a35e9334d9e13a05ad7e84115312cc78b406c1b57fbb47fac0f4bbb60",
+      "review_note": "Reviewed UK Tomato Purée label, tomato-paste categories and 99.9% tomatoes with salt. Link to concentrate, not passata.",
+      "country_code": "GB"
+    },
+    {
+      "product_id": "4cb8727d-35b2-5752-bdcd-9ffcf9d854fa",
+      "product_name": "Ciecierzyca konserwowa",
+      "product_unit": "g",
+      "product_brand": "Bonduelle",
+      "off_barcode": "4056489903703",
+      "off_fingerprint": "90131615fac092ffa6d2acb3716245100fa429bb41037ef563950cf6ed9cfb94",
+      "review_note": "Reviewed Chickpeas in Water label and canned-chickpea category. Tinned food identity only; no dry-chickpea substitution or drained-pack assumption.",
+      "country_code": "GB"
+    },
+    {
+      "product_id": "74bed579-20b6-5ad1-9cdd-c2e669ce07e0",
+      "product_name": "Fasola czerwona konserwowa",
+      "product_unit": "g",
+      "product_brand": "Bonduelle",
+      "off_barcode": "4056489903710",
+      "off_fingerprint": "821a6a1c0c7c513d4ab1f721a39e0456efa17a9c14adba1d73a024ce99f36997",
+      "review_note": "Reviewed Red Kidney Beans in water label and canned-red-kidney-bean category. Not white beans, dried beans or chilli ready meal.",
+      "country_code": "GB"
+    },
+    {
+      "product_id": "89bf7d5e-1cf8-5b33-8c78-1e68a240569e",
+      "product_name": "Masło extra",
+      "product_unit": "g",
+      "product_brand": "Mlekovita",
+      "off_barcode": "4056489895268",
+      "off_fingerprint": "266e67f915e32750cfc715ff5334e203d575b8a99964a5201f17ef91a32ed1b7",
+      "review_note": "Reviewed Unsalted Welsh Butter label, unsalted-butter category and 82% fat. General butter identity only, not a link between brands or packs.",
+      "country_code": "GB"
+    }
+  ]
+}

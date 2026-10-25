@@ -458,11 +458,19 @@ async def google_login(request: Request, db: AsyncSession = Depends(get_db)):
     # od Google/Apple sam w sobie jest mocnym dowodem (bot go nie
     # podrobi), ale bramka dokłada spójność i utrudnia zakładanie kont
     # hurtowo kupionymi kontami u dostawcy.
-    await _verify_captcha(body, request)
+    try:
+        await _verify_captcha(body, request)
+    except HTTPException as exc:
+        # Fixed diagnostic codes only: never log identity/CAPTCHA tokens,
+        # emails, request bodies or provider error text.
+        reason = "captcha_missing" if exc.status_code == 400 else "captcha_rejected"
+        logger.warning("auth_rejected provider=google reason=%s status=%d", reason, exc.status_code)
+        raise
 
     token = body.get("id_token")
 
     if not token:
+        logger.warning("auth_rejected provider=google reason=identity_missing status=400")
         raise HTTPException(status_code=400, detail=_request_text(body, "Wymagany jest token id_token z Google", "A Google id_token is required"))
 
     try:
@@ -470,6 +478,7 @@ async def google_login(request: Request, db: AsyncSession = Depends(get_db)):
             token, google_requests.Request(), settings.GOOGLE_WEB_CLIENT_ID
         )
     except ValueError:
+        logger.warning("auth_rejected provider=google reason=identity_invalid status=401")
         # Token nieprawidłowy, wygasły albo wystawiony dla innego client_id.
         raise HTTPException(status_code=401, detail=_request_text(body, "Nieprawidłowy lub wygasły token Google", "Invalid or expired Google token"))
     except GoogleAuthError:
@@ -483,8 +492,10 @@ async def google_login(request: Request, db: AsyncSession = Depends(get_db)):
 
     email = idinfo.get("email")
     if not email:
+        logger.warning("auth_rejected provider=google reason=email_missing status=400")
         raise HTTPException(status_code=400, detail=_request_text(body, "Konto Google nie udostępniło adresu e-mail", "The Google account did not provide an email address"))
     if idinfo.get("email_verified") is False:
+        logger.warning("auth_rejected provider=google reason=email_unverified status=400")
         raise HTTPException(status_code=400, detail=_request_text(body, "Adres e-mail konta Google nie jest zweryfikowany", "The Google account email address is not verified"))
 
     # UWAGA (naprawa): ta sama normalizacja co przy /register i /login —

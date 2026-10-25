@@ -8,10 +8,10 @@ import asyncio
 import math
 import re
 import unicodedata
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from uuid import NAMESPACE_URL, uuid5
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 
@@ -82,14 +82,53 @@ def _proposal(name, unit, nutrition, *, country, source, brand=None, barcode=Non
     return product
 
 
+def _used_off_snapshot(item, product, *, country):
+    """Keep only the exact used UK hit, with its original provider fetch time.
+
+    This carries country facts, not a new generic-food approval or shop price.
+    Invalid optional evidence must not prevent saving the complete recipe.
+    """
+    raw = getattr(item, "off_product", None)
+    fetched = getattr(item, "off_retrieved_at", None)
+    if (country != "GB" or item.source != "open_food_facts"
+            or not isinstance(raw, dict) or not isinstance(fetched, str)
+            or not product.barcode or raw.get("code") != product.barcode):
+        return None
+    from app.services.off_catalogue import catalogue_values
+
+    try:
+        moment = datetime.fromisoformat(fetched)
+        if moment.tzinfo is None or moment > datetime.now(timezone.utc):
+            return None
+        values = catalogue_values(raw, retrieved_at=moment)
+        if (values is not None and values["base_unit"] == product.unit
+                and ingredient_key(values["name"]) == ingredient_key(product.name)):
+            return raw, moment
+    except (ValueError, TypeError, OverflowError):
+        pass
+    return None
+
+
 async def _external_ingredient(name, *, country):
     results = await barcode_lookup.search_products_external(name, limit=10, country_code=country)
+    verified_index_hit = False
     for item in results:
         if (ingredient_key(item.name) != ingredient_key(name)
                 or looks_like_whole_meal(item.name)
                 or item.source not in {"open_food_facts", "usda_fooddata_central"}
-                or item.unit not in {"g", "ml"}
-                or not barcode_lookup.has_complete_nutrition(item)):
+                or item.unit not in {"g", "ml"}):
+            continue
+        if getattr(item, "off_search_projection", False):
+            if country != "GB" or verified_index_hit:
+                return None
+            from app.services.uk_off_search import verify_chosen_search_hit
+
+            verified_index_hit = True
+            item = await verify_chosen_search_hit(item)
+            if (item is None or ingredient_key(item.name) != ingredient_key(name)
+                    or looks_like_whole_meal(item.name)):
+                return None
+        if not barcode_lookup.has_complete_nutrition(item):
             continue
         nutrition = dict(kcal=item.kcal_per_100, protein=item.protein_per_100,
                          fat=item.fat_per_100, carbs=item.carbs_per_100)
@@ -107,11 +146,53 @@ async def _external_ingredient(name, *, country):
         candidate = _proposal(item.name, item.unit, nutrition, country=country,
             source=source, brand=item.brand, barcode=code, package=package)
         if has_recipe_nutrition(candidate):
+            candidate._used_off_snapshot = _used_off_snapshot(item, candidate, country=country)
             return candidate
     return None
 
 
-async def resolve_recipe_ingredients(ingredients, catalogue, *, country, user_id=None):
+async def _cached_uk_ingredients(db, missing, usable):
+    """One bounded local read for unresolved English labels of exact used GTINs.
+
+    The supplied catalogue is the permission boundary. OFF names never grant
+    access to a private product, rename a product, or select an arbitrary SKU
+    when several products have the same label. No provider call or write.
+    """
+    products = {product.barcode: product for product in usable
+        if product.barcode and product.review_status == "approved"}
+    if not products or not missing:
+        return {}
+    from app.models import OffCatalogueProduct
+    from app.services.off_availability import off_uk_evidence_conditions
+    from app.services.uk_catalogue_import import canonical_base_unit
+
+    now = datetime.now(timezone.utc)
+    labels = {name.strip().casefold() for name in list(missing.values())[:30]}
+    rows = (await db.execute(select(OffCatalogueProduct).where(
+        func.lower(OffCatalogueProduct.name).in_(labels),
+        OffCatalogueProduct.retrieved_at <= now,
+        *off_uk_evidence_conditions(as_of=now.date()),
+    ).limit(501).execution_options(autoflush=False))).scalars().all()
+    if len(rows) > 500:
+        return {}  # Ambiguous/unbounded name: use the existing resolver instead.
+    matches = {}
+    for row in rows:
+        product = products.get(row.barcode)
+        key = ingredient_key(row.name)
+        if (product is None or key not in missing or looks_like_whole_meal(row.name)
+                or re.fullmatch(r"[0-9a-f]{64}", row.fingerprint or "") is None):
+            continue
+        try:
+            if canonical_base_unit(product) != row.base_unit:
+                continue
+        except ValueError:
+            continue
+        matches.setdefault(key, {})[product.id] = product
+    return {key: next(iter(candidates.values())) for key, candidates in matches.items()
+        if len(candidates) == 1}
+
+
+async def resolve_recipe_ingredients(ingredients, catalogue, *, country, user_id=None, db=None):
     from app.services.ai_recipe_import import match_product_name
     usable = [product for product in catalogue if has_recipe_nutrition(product)
               and not looks_like_whole_meal(product.name)]
@@ -142,6 +223,14 @@ async def resolve_recipe_ingredients(ingredients, catalogue, *, country, user_id
             missing.setdefault(key, ingredient["product_name"])
     if not missing:
         return pairs
+    if country == "GB" and db is not None:
+        cached = await _cached_uk_ingredients(db, missing, usable)
+        if cached:
+            pairs = [(ingredient, product or cached.get(ingredient_key(ingredient["product_name"])))
+                for ingredient, product in pairs]
+            missing = {key: name for key, name in missing.items() if key not in cached}
+            if not missing:
+                return pairs
     semaphore = asyncio.Semaphore(3)
     async def lookup(name):
         async with semaphore:
@@ -180,6 +269,37 @@ async def resolve_recipe_ingredients(ingredients, catalogue, *, country, user_id
     return resolved
 
 
+def _verified_existing_uk_gtin(actual, proposed):
+    """Reuse a public exact SKU across labels, never another user's private row.
+
+    UK discovery has already read the selected full OFF response. The stored
+    product's author, label, package and valid nutrition remain authoritative;
+    this only avoids a duplicate GTIN insert and retains fresh country facts.
+    """
+    if (actual is None or actual.review_status != "approved"
+            or proposed.review_status != "approved" or proposed.created_by_user_id is not None
+            or proposed.submitted_country_code != "GB" or not proposed.barcode
+            or actual.barcode != proposed.barcode or looks_like_whole_meal(actual.name)):
+        return False
+    snapshot = getattr(proposed, "_used_off_snapshot", None)
+    if snapshot is None:
+        return False
+    from app.services.off_catalogue import catalogue_values
+    from app.services.uk_catalogue_import import canonical_base_unit
+
+    try:
+        raw, fetched_at = snapshot
+        now = datetime.now(timezone.utc)
+        if fetched_at.tzinfo is None or not now - timedelta(days=7) <= fetched_at <= now:
+            return False
+        facts = catalogue_values(raw, retrieved_at=fetched_at)
+        return (facts is not None and facts["barcode"] == proposed.barcode
+            and facts["base_unit"] == proposed.unit == canonical_base_unit(actual)
+            and ingredient_key(facts["name"]) == ingredient_key(proposed.name))
+    except (TypeError, ValueError, AttributeError, OverflowError):
+        return False
+
+
 async def materialize_recipe_ingredients(db, pairs):
     """Idempotent insert, no commit, and no promoting another user's product."""
     if not any(getattr(product, "_discovered_recipe_ingredient", False) for _, product in pairs):
@@ -197,15 +317,26 @@ async def materialize_recipe_ingredients(db, pairs):
         if actual is None and product.barcode:
             actual = (await db.execute(select(Product).where(Product.barcode == product.barcode,
                 Product.review_status == "approved"))).scalar_one_or_none()
-        if (actual is None or actual.review_status != product.review_status
-                or actual.created_by_user_id != product.created_by_user_id
-                or ingredient_key(actual.name) != ingredient_key(product.name)):
+        same_identity = (actual is not None and actual.review_status == product.review_status
+                and actual.created_by_user_id == product.created_by_user_id
+                and ingredient_key(actual.name) == ingredient_key(product.name))
+        verified_existing = _verified_existing_uk_gtin(actual, product)
+        if not same_identity and not verified_existing:
             raise ValueError("The discovered product conflicts with an existing catalogue identity")
         if not has_recipe_nutrition(actual):
             actual.nutrition_per_100 = product.nutrition_per_100
             if actual.serving_quantity is None and product.serving_quantity is not None:
                 actual.serving_quantity = product.serving_quantity
                 actual.measure_options = build_measure_options(actual.name, actual.unit, None, actual.serving_quantity)
+        snapshot = getattr(product, "_used_off_snapshot", None)
+        if (snapshot is not None and actual.barcode == product.barcode
+                and (actual.unit == product.unit or verified_existing)):
+            from app.services.off_catalogue import import_off_catalogue
+
+            raw, fetched_at = snapshot
+            # Same caller-owned recipe transaction, no new HTTP or commit.
+            # A failed recipe/points transaction must roll this cache back too.
+            await import_off_catalogue(db, [raw], retrieved_at=fetched_at)
         stored[product.id] = actual
     return [(ingredient, stored.get(product.id, product)) for ingredient, product in pairs]
 

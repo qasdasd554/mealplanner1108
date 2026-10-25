@@ -4257,7 +4257,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• Improved AI recipe ingredients: a similarly named ready meal no longer replaces a required ingredient.\n• Improved calorie and macro recovery. Estimates are labelled, and missing ingredient data no longer hides known values.\n• Fixed an error when generating meal plans.\n• Made switching shops on a shopping list easier. Missing basket prices are no longer shown as a zero total.\n• After using your free list, you can easily explore Premium or return to your shopping.';
+      '• Improved ingredient matching in AI recipes.\n• Improved package sizes and nutrition data when scanning products.\n• Refined shopping lists and labels for incomplete price estimates.\n• Updated UK content, documents and support links.';
 
   @override
   String get releasePromptApple => 'Open App Store';
@@ -9494,7 +9494,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get releasePromptChanges =>
-      '• Improved AI recipe ingredients: a similarly named ready meal no longer replaces a required ingredient.\n• Improved calorie and macro recovery. Estimates are labelled, and missing ingredient data no longer hides known values.\n• Fixed an error when generating meal plans.\n• Made switching shops on a shopping list easier. Missing basket prices are no longer shown as a zero total.\n• After using your free list, you can easily explore Premium or return to your shopping.';
+      '• Improved ingredient matching in AI recipes.\n• Improved package sizes and nutrition data when scanning products.\n• Refined shopping lists and labels for incomplete price estimates.\n• Updated UK content, documents and support links.';
 
   @override
   String get releasePromptApple => 'Open App Store';

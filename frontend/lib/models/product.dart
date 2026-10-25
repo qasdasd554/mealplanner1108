@@ -203,7 +203,13 @@ class StoreProduct {
       packageQuantity! > 0 &&
       packageQuantity! <= 999999.999 &&
       const {'g', 'ml'}.contains(packageUnit) &&
-      availabilityScope == 'online_catalogue';
+      (availabilityScope == 'online_catalogue' ||
+          (const {
+                'store_observation',
+                'user_submission',
+              }.contains(availabilityScope) &&
+              currencyCode == 'GBP' &&
+              priceIsEstimated));
 
   factory StoreProduct.fromJson(Map<String, dynamic> json) {
     return StoreProduct(

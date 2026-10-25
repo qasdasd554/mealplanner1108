@@ -73,3 +73,14 @@ def test_pl_substitution_keeps_original_name_and_price_even_if_extra_quote_exist
     assert value["price"] == 3.99
     assert value["currency_code"] == "PLN"
     assert value["package_quantity"] is None
+
+
+def test_uk_substitute_must_not_label_local_offer_with_polish_generic_example_brand(state):
+    from tests.test_uk_seed_off_identity import seeded_oats
+    food = seeded_oats()
+    state.quote.product_id = food.id
+    state.service.find_substitutes.return_value = [{"product": food, "regional_quote": state.quote}]
+    value = response(state)[0]
+    assert value["brand"] is None
+    assert value["name"] == "British 500g pack" and value["package_quantity"] == 500
+    assert food.brand == "Sante" and food.serving_quantity == 500

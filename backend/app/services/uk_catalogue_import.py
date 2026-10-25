@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
+from decimal import Decimal
 from typing import Any, Iterable, Mapping
 from uuid import UUID
 
@@ -16,7 +17,7 @@ from sqlalchemy import or_, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.uk_product_catalog import (
-    CanonicalProductReference, UKProductProposal, plan_uk_product_catalogue,
+    CanonicalProductReference, UKProductProposal, OpenPricesEvidence, SubmittedProductEvidence, plan_uk_product_catalogue,
 )
 from app.models.product import Product
 from app.models.regional_product_offer import RegionalProductOffer
@@ -104,6 +105,7 @@ async def import_reviewed_uk_catalogue(
     reviewed_at: datetime,
     as_of: date,
     max_evidence_age_days: int = 30,
+    expected_fingerprints: Mapping[UUID, str] | None = None,
 ) -> UKCatalogueImportResult:
     """Validate and atomically stage a reviewed batch; caller must commit.
 
@@ -113,6 +115,9 @@ async def import_reviewed_uk_catalogue(
     A clean unit-of-work is required because begin_nested flushes pending work.
     Store row locks serialize competing imports for the same retailer in PG;
     store IDs are locked in deterministic order. No all-stores stock is added.
+    A background refresh can require exact previously read fingerprints, so
+    HTTP latency cannot overwrite a concurrent manual review or recreate a
+    deleted offer. This check runs under the existing ordered write locks.
     """
     review_time = _review_clock(reviewed_at, as_of)
     if not isinstance(reviewer_user_id, UUID):
@@ -162,10 +167,59 @@ async def import_reviewed_uk_catalogue(
             proposals, canonical_products=references, as_of=as_of,
             max_evidence_age_days=max_evidence_age_days,
         )
+        for row in proposals:
+            if isinstance(row.price.source, SubmittedProductEvidence):
+                from app.services.uk_submission_prices import submitted_price_proposal
+
+                product = next(value for value in products if value.id == row.canonical_product_id)
+                expected = submitted_price_proposal(product, row.store_id, as_of=as_of)
+                requested = product.requested_store_ids or []
+                if (expected is None or expected != row
+                        or str(row.store_id) not in {str(value) for value in requested}):
+                    raise ValueError("Submission identity, package, proposed shop or reported price changed")
+
+        # A receipt cannot invent a canonical food identity. Community prices
+        # require the current separately reviewed OFF mapping in this DB, not
+        # only a caller-supplied Product ID or a matching English name.
+        community = [row for row in proposals if isinstance(row.price.source, OpenPricesEvidence)]
+        if community:
+            from app.models.off_catalogue_product import OffCatalogueProduct
+            from app.models.off_ingredient_mapping import OffIngredientMapping
+            from app.services.off_availability import off_uk_evidence_conditions
+            keys = {(row.canonical_product_id, row.price.source.product_code) for row in community}
+            links = (await session.execute(select(OffIngredientMapping, OffCatalogueProduct)
+                .join(OffCatalogueProduct, OffCatalogueProduct.barcode == OffIngredientMapping.off_barcode)
+                .where(tuple_(OffIngredientMapping.product_id, OffIngredientMapping.off_barcode).in_(keys),
+                       *off_uk_evidence_conditions(as_of=as_of))
+                .with_for_update())).all()
+            links = {(link.product_id, link.off_barcode): (link, off) for link, off in links}
+            products_by_id = {product.id: product for product in products}
+            for row in community:
+                source = row.price.source
+                found = links.get((row.canonical_product_id, source.product_code))
+                if found is None:
+                    raise ValueError("A current reviewed OFF mapping is required before importing a community price")
+                link, off = found
+                product = products_by_id[row.canonical_product_id]
+                if (link.country_code != "GB" or link.off_fingerprint != source.off_fingerprint
+                        or off.fingerprint != source.off_fingerprint or link.base_unit != row.package.unit
+                        or off.base_unit != row.package.unit or product.barcode is not None
+                        or product.created_by_user_id is not None
+                        or (link.product_name, link.product_unit, link.product_brand) != (product.name, product.unit, product.brand)
+                        or _normalised_utc(link.reviewed_at) > review_time
+                        or _normalised_utc(off.retrieved_at) > review_time
+                        or off.package_quantity is None or Decimal(str(off.package_quantity)) != row.package.quantity):
+                    raise ValueError("Community price food identity/package changed since OFF review")
 
         # Complete all identity/conflict validation before mutating any offer.
         keys = {(action.proposal.store_id, action.proposal.retailer_sku) for action in plan.actions}
         offer_ids = {action.proposal.proposal_id for action in plan.actions}
+        if expected_fingerprints is not None and (
+                set(expected_fingerprints) != offer_ids or any(
+                    not isinstance(value, str) or len(value) != 64
+                    or any(letter not in "0123456789abcdef" for letter in value)
+                    for value in expected_fingerprints.values())):
+            raise ValueError("Refresh requires the exact original fingerprints for the whole batch")
         existing = (await session.scalars(
             select(RegionalProductOffer).where(or_(
                 tuple_(RegionalProductOffer.store_id, RegionalProductOffer.retailer_sku).in_(keys),
@@ -178,6 +232,9 @@ async def import_reviewed_uk_catalogue(
         for action in plan.actions:
             proposal = action.proposal
             offer = by_key.get((proposal.store_id, proposal.retailer_sku))
+            if expected_fingerprints is not None and (
+                    offer is None or offer.fingerprint != expected_fingerprints[proposal.proposal_id]):
+                raise ValueError("Catalogue changed while source data were being refreshed")
             if offer is not None and offer.id != proposal.proposal_id:
                 raise ValueError("Existing retailer SKU has a conflicting deterministic offer ID")
             collision = by_id.get(proposal.proposal_id)

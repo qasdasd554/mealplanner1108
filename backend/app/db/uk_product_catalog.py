@@ -1,9 +1,10 @@
 """Validated, deterministic UK catalogue proposals; NEVER a stock seed.
 
-The current StoreProduct cannot retain local SKU/pack or price provenance.
-Consequently this module only prepares a dry-run proposal and deliberately
-blocks persistence. It is not called during startup and performs no network IO.
-Retailer catalogue evidence is not proof of stock in every physical branch.
+The legacy StoreProduct writer stays blocked: it cannot retain local SKU/pack
+or price provenance. Explicitly reviewed proposals can instead be persisted by
+uk_catalogue_import in RegionalProductOffer. This module performs no network IO.
+Retailer listings and community observations are distinct evidence types;
+neither guarantees current stock in every physical branch.
 """
 
 from __future__ import annotations
@@ -18,7 +19,7 @@ from typing import Any, Iterable, Literal, Mapping
 from urllib.parse import urlsplit
 from uuid import UUID, uuid5
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, field_validator, model_validator
 
 from app.db.uk_store_catalog import UK_STORES
 
@@ -77,6 +78,59 @@ class CatalogueEvidence(_FrozenInput):
         return value
 
 
+class OpenPricesEvidence(CatalogueEvidence):
+    """Reviewed public price observation, not a merchant listing or live stock."""
+
+    provider: Literal["open_prices"]
+    observation_id: int = Field(gt=0, strict=True)
+    proof_id: int = Field(gt=0, strict=True)
+    proof_type: Literal["RECEIPT", "PRICE_TAG"]
+    product_code: str = Field(pattern=r"^[0-9]{8,14}$")
+    retailer_slug: str
+    licence: Literal["ODbL-1.0"]
+    off_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
+    package_basis: Literal["as_sold"]
+    package_basis_note: str = Field(min_length=10, max_length=1000)
+
+    @model_validator(mode="after")
+    def exact_public_source(self):
+        from app.services.barcode_lookup import normalize_barcode
+        if (self.url != f"https://prices.openfoodfacts.org/prices/{self.observation_id}"
+                or self.retailer_slug not in _STORES_BY_SLUG
+                or normalize_barcode(self.product_code) != self.product_code):
+            raise ValueError("An exact attributed Open Prices observation and GTIN are required")
+        return self
+
+
+class SubmittedProductEvidence(CatalogueEvidence):
+    """Private app submission checked by an admin, not a retailer price feed.
+
+    URL identifies the app; submission_id identifies the internal record.
+    It does not imply a public page exists for that record.
+    """
+
+    provider: Literal["product_submission"]
+    submission_id: UUID
+    product_name: str = Field(min_length=1, max_length=300)
+    product_unit: str = Field(min_length=1, max_length=20)
+    product_brand: str | None = Field(default=None, max_length=200)
+    product_barcode: str | None = Field(default=None, pattern=r"^[0-9]{8,14}$")
+
+    @model_validator(mode="after")
+    def internal_source(self):
+        if self.url != "https://mealplannerpolska.pl/" or self.publisher != "Meal Planner Polska — user submission":
+            raise ValueError("Expected the app's internal submission provenance")
+        return self
+
+
+PriceEvidence = CatalogueEvidence | OpenPricesEvidence | SubmittedProductEvidence
+_PRICE_EVIDENCE = TypeAdapter(PriceEvidence)
+
+
+def parse_price_evidence(value):
+    return _PRICE_EVIDENCE.validate_python(value)
+
+
 def _exact_decimal(value: Any) -> Any:
     # JSON prices/weights use decimal strings, never binary float rounding.
     if isinstance(value, (bool, float)):
@@ -101,7 +155,7 @@ class UKPrice(_FrozenInput):
     amount: Decimal = Field(gt=0, max_digits=10, decimal_places=2)
     currency_code: Literal["GBP"] = "GBP"
     kind: Literal["observed", "estimate"]
-    source: CatalogueEvidence
+    source: PriceEvidence
     estimate_reason: str | None = Field(default=None, min_length=10, max_length=1000)
 
     _exact_amount = field_validator("amount", mode="before")(_exact_decimal)
@@ -130,14 +184,35 @@ class UKProductProposal(_FrozenInput):
     name_en: str = Field(min_length=1, max_length=300)
     package: UKPackage
     price: UKPrice
-    availability_scope: Literal["online_catalogue"] = "online_catalogue"
-    availability_status: Literal["available_online", "out_of_stock", "unknown"]
-    availability_source: CatalogueEvidence
+    availability_scope: Literal["online_catalogue", "store_observation", "user_submission"] = "online_catalogue"
+    availability_status: Literal["available_online", "out_of_stock", "unknown", "reported_available"]
+    availability_source: PriceEvidence
 
     @model_validator(mode="after")
     def require_specific_retailer_evidence(self) -> UKProductProposal:
         if self.retailer_slug not in _STORES_BY_SLUG:
             raise ValueError("Unknown UK retailer slug")
+        if self.availability_scope == "user_submission":
+            source = self.price.source
+            if (self.availability_status != "reported_available" or self.price.kind != "estimate"
+                    or not isinstance(source, SubmittedProductEvidence) or self.availability_source != source
+                    or source.submission_id != self.canonical_product_id or source.product_name != self.name_en
+                    or self.retailer_sku != f"submission-{source.submission_id.hex}"
+                    or self.package.source != CatalogueEvidence(url=source.url, publisher=source.publisher,
+                                                               checked_on=source.checked_on)):
+                raise ValueError("An approved app submission requires explicit estimated-price provenance")
+            return self
+        if self.availability_scope == "store_observation":
+            source = self.price.source
+            if (self.availability_status != "reported_available" or self.price.kind != "estimate"
+                    or not isinstance(source, OpenPricesEvidence) or self.availability_source != source
+                    or source.retailer_slug != self.retailer_slug
+                    or self.retailer_sku != f"off-{source.product_code}"
+                    or self.package.source.url != f"https://world.openfoodfacts.org/product/{source.product_code}"):
+                raise ValueError("Community observations require an estimated price and matching source/GTIN/package review")
+            return self
+        if self.availability_status == "reported_available" or any(isinstance(source, (OpenPricesEvidence, SubmittedProductEvidence)) for source in self.sources):
+            raise ValueError("Community evidence cannot be relabelled as an online listing")
         for source in self.sources:
             host = urlsplit(source.url).hostname or ""
             if not any(

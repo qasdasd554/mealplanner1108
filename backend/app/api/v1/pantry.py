@@ -12,6 +12,7 @@ from sqlalchemy.orm import selectinload
 from app.api.deps import get_current_user
 from app.core.exceptions import NotFoundException
 from app.core.language import account_text
+from app.core.markets import account_country
 from app.db.session import get_db
 from app.models import PantryItem, Product, User
 from app.schemas.product import ProductResponse
@@ -31,6 +32,16 @@ class PantryItemResponse(BaseModel):
     product: ProductResponse
     quantity: float | None = None
     unit: str | None = None
+
+
+def _pantry_item_for_account(item, user):
+    if account_country(user) != "GB":
+        return item
+    from app.services.product_market_presentation import product_for_market
+    projected = product_for_market(item.product, country_code=account_country(user))
+    if projected is item.product:
+        return item
+    return PantryItemResponse.model_validate(item).model_copy(update={"product": projected})
 
 
 class AddPantryItemsRequest(BaseModel):
@@ -106,7 +117,7 @@ async def get_pantry(
         .where(PantryItem.user_id == current_user.id)
         .order_by(PantryItem.added_at.desc())
     )
-    return list(result.scalars().all())
+    return [_pantry_item_for_account(item, current_user) for item in result.scalars().all()]
 
 
 @router.post(
@@ -179,7 +190,7 @@ async def add_pantry_items(
         .where(PantryItem.user_id == current_user.id)
         .order_by(PantryItem.added_at.desc())
     )
-    return list(result.scalars().all())
+    return [_pantry_item_for_account(item, current_user) for item in result.scalars().all()]
 
 
 @router.post(
@@ -405,7 +416,7 @@ async def add_pantry_item_from_barcode(
         .options(selectinload(PantryItem.product))
         .where(PantryItem.id == item.id)
     )
-    return result.scalar_one()
+    return _pantry_item_for_account(result.scalar_one(), current_user)
 
 
 @router.patch(
@@ -445,7 +456,7 @@ async def update_pantry_item_quantity(
     await sync_product_in_shopping_lists(db, current_user.id, item.product_id)
     await db.commit()
     await db.refresh(item)
-    return item
+    return _pantry_item_for_account(item, current_user)
 
 
 @router.delete("/{item_id}", status_code=204, summary="Usuń produkt ze spiżarni")

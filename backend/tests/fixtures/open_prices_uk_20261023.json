@@ -1,0 +1,143 @@
+{
+  "source": "Open Prices",
+  "licence": "ODbL-1.0",
+  "retrieved_at": "2026-10-23T16:29:20.230175+00:00",
+  "automatic_import": false,
+  "records": [
+    {
+      "id": 349142,
+      "product_id": 1030873,
+      "product_code": "20071974",
+      "location_id": 1908,
+      "proof_id": 140021,
+      "type": "PRODUCT",
+      "price": 1.79,
+      "price_is_discounted": false,
+      "price_without_discount": null,
+      "discount_type": null,
+      "price_per": null,
+      "currency": "GBP",
+      "date": "2026-10-17",
+      "receipt_quantity": null,
+      "duplicate_of": null,
+      "location_osm_id": 4869883577,
+      "location_osm_type": "NODE",
+      "product": {
+        "id": 1030873,
+        "code": "20071974",
+        "source": "off",
+        "product_name": "Basmati Rice",
+        "product_quantity": 1000,
+        "product_quantity_unit": "g"
+      },
+      "location": {
+        "id": 1908,
+        "osm_name": "Lidl",
+        "osm_brand": "Lidl",
+        "osm_id": 4869883577,
+        "osm_type": "NODE",
+        "osm_address_country_code": "GB"
+      },
+      "proof": {
+        "id": 140021,
+        "location_id": 1908,
+        "location_osm_id": 4869883577,
+        "location_osm_type": "NODE",
+        "date": "2026-10-17",
+        "currency": "GBP",
+        "type": "PRICE_TAG",
+        "draft": false
+      }
+    },
+    {
+      "id": 336462,
+      "product_id": 210433,
+      "product_code": "20522605",
+      "location_id": 1908,
+      "proof_id": 136025,
+      "type": "PRODUCT",
+      "price": 0.45,
+      "price_is_discounted": false,
+      "price_without_discount": null,
+      "discount_type": null,
+      "price_per": null,
+      "currency": "GBP",
+      "date": "2026-09-27",
+      "receipt_quantity": null,
+      "duplicate_of": null,
+      "location_osm_id": 4869883577,
+      "location_osm_type": "NODE",
+      "product": {
+        "id": 210433,
+        "code": "20522605",
+        "source": "off",
+        "product_name": "Tomato Passata",
+        "product_quantity": 500,
+        "product_quantity_unit": "g"
+      },
+      "location": {
+        "id": 1908,
+        "osm_name": "Lidl",
+        "osm_brand": "Lidl",
+        "osm_id": 4869883577,
+        "osm_type": "NODE",
+        "osm_address_country_code": "GB"
+      },
+      "proof": {
+        "id": 136025,
+        "location_id": 1908,
+        "location_osm_id": 4869883577,
+        "location_osm_type": "NODE",
+        "date": "2026-09-27",
+        "currency": "GBP",
+        "type": "PRICE_TAG",
+        "draft": false
+      }
+    },
+    {
+      "id": 334190,
+      "product_id": 3783296,
+      "product_code": "4056489895268",
+      "location_id": 1908,
+      "proof_id": 134858,
+      "type": "PRODUCT",
+      "price": 1.85,
+      "price_is_discounted": false,
+      "price_without_discount": null,
+      "discount_type": null,
+      "price_per": null,
+      "currency": "GBP",
+      "date": "2026-09-23",
+      "receipt_quantity": null,
+      "duplicate_of": null,
+      "location_osm_id": 4869883577,
+      "location_osm_type": "NODE",
+      "product": {
+        "id": 3783296,
+        "code": "4056489895268",
+        "source": "off",
+        "product_name": "Unsalted Welsh Butter",
+        "product_quantity": 250,
+        "product_quantity_unit": "g"
+      },
+      "location": {
+        "id": 1908,
+        "osm_name": "Lidl",
+        "osm_brand": "Lidl",
+        "osm_id": 4869883577,
+        "osm_type": "NODE",
+        "osm_address_country_code": "GB"
+      },
+      "proof": {
+        "id": 134858,
+        "location_id": 1908,
+        "location_osm_id": 4869883577,
+        "location_osm_type": "NODE",
+        "date": "2026-09-23",
+        "currency": "GBP",
+        "type": "PRICE_TAG",
+        "draft": false
+      }
+    }
+  ]
+}

@@ -23,11 +23,11 @@ def response(value):
 
 
 @pytest.mark.parametrize("country", ["PL", "GB"])
-def test_complete_local_cache_returns_without_any_external_request(country, monkeypatch):
+def test_complete_local_cache_returns_without_foreground_external_request(country, monkeypatch):
     cache = BarcodeProductCache(barcode=CODE, name="Synthetic yoghurt", unit="g",
         nutrition_per_100={"kcal":60, "protein":4, "fat":2, "carbs":6},
         serving_quantity=450, source="open_food_facts", price_min=2, price_max=4)
-    db = SimpleNamespace(execute=AsyncMock(side_effect=[response(None), response(cache)]))
+    db = SimpleNamespace(execute=AsyncMock(side_effect=[response(None), response(cache)]), rollback=AsyncMock())
     external = AsyncMock()
     monkeypatch.setattr(products, "lookup_barcode_external", external)
     tasks = BackgroundTasks()
@@ -36,7 +36,12 @@ def test_complete_local_cache_returns_without_any_external_request(country, monk
     assert result.kcal_per_100 == 60 and result.serving_quantity == 450
     assert db.execute.await_count == 2
     external.assert_not_awaited()
-    assert tasks.tasks == []
+    assert len(tasks.tasks) == (1 if country == "GB" else 0)
+    assert db.rollback.await_count == (1 if country == "GB" else 0)
+    if country == "GB":
+        from app.services.off_on_demand import refresh_requested_off_product
+        assert tasks.tasks[0].func is refresh_requested_off_product
+        assert tasks.tasks[0].args == (CODE,)
     assert all("off_catalogue_products" not in str(call.args[0])
                for call in db.execute.await_args_list)
 

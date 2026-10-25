@@ -30,6 +30,9 @@ class AppDocumentLinks extends StatelessWidget {
     }
     if (opened || !context.mounted) return;
     if (uri.scheme == 'mailto') {
+      // Keep the exact destination from the attempted action, including if the
+      // app locale changes while the platform mail launcher is completing.
+      final email = uri.path;
       await showDialog<void>(
         context: context,
         builder:
@@ -40,16 +43,14 @@ class AppDocumentLinks extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(context.strings.documentEmailBody),
-                  SizedBox(height: 8),
-                  SelectableText(AppLinks.contactEmail),
+                  const SizedBox(height: 8),
+                  SelectableText(email),
                 ],
               ),
               actions: [
                 TextButton(
                   onPressed: () async {
-                    await Clipboard.setData(
-                      const ClipboardData(text: AppLinks.contactEmail),
-                    );
+                    await Clipboard.setData(ClipboardData(text: email));
                     if (dialogContext.mounted) Navigator.pop(dialogContext);
                   },
                   child: Text(context.strings.documentCopy),
@@ -72,6 +73,9 @@ class AppDocumentLinks extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final links = AppLinks.forCountry(
+      Localizations.localeOf(context).countryCode,
+    );
     Widget link(String label, Uri uri) => TextButton(
       onPressed: () => _open(context, uri),
       child: Text(label, textAlign: TextAlign.center),
@@ -83,20 +87,20 @@ class AppDocumentLinks extends StatelessWidget {
         Wrap(
           alignment: WrapAlignment.center,
           children: [
-            link(context.strings.documentTerms, Uri.parse(AppLinks.terms)),
-            link(context.strings.documentPrivacy, Uri.parse(AppLinks.privacy)),
+            link(context.strings.documentTerms, Uri.parse(links.terms)),
+            link(context.strings.documentPrivacy, Uri.parse(links.privacy)),
             if (showAccountHelp) ...[
               link(
                 context.strings.documentDeletion,
-                Uri.parse(AppLinks.accountDeletion),
+                Uri.parse(links.accountDeletion),
               ),
-              link(context.strings.documentHelp, Uri.parse(AppLinks.support)),
+              link(context.strings.documentHelp, Uri.parse(links.support)),
             ],
           ],
         ),
         const SizedBox(height: 8),
         OutlinedButton.icon(
-          onPressed: () => _open(context, AppLinks.contact),
+          onPressed: () => _open(context, links.contact),
           icon: const Icon(Icons.mail_outline, size: 18),
           label: Text(
             context.strings.documentContact,
@@ -104,7 +108,7 @@ class AppDocumentLinks extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-        const Text(AppLinks.contactEmail, textAlign: TextAlign.center),
+        Text(links.contactEmail, textAlign: TextAlign.center),
       ],
     );
   }

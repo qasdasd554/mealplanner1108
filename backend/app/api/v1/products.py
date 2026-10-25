@@ -66,6 +66,20 @@ def _external_lookup_context(user: object) -> dict[str, str]:
     return {"country_code": "GB"} if account_country(user) == "GB" else {}
 
 
+def _product_for_account(product, user):
+    from app.services.product_market_presentation import product_for_market
+    return product_for_market(product, country_code=account_country(user))
+
+
+def _gb_catalogue_product_filter(user):
+    """Same country evidence in catalogue and name suggestions; no new I/O."""
+    from app.services.off_availability import product_has_off_uk_evidence
+    from app.services.market_catalog import utc_market_date
+    return or_(Product.created_by_user_id == user.id,
+        Product.submitted_country_code == "GB",
+        product_has_off_uk_evidence(Product.id, as_of=utc_market_date()))
+
+
 def _without_legacy_prices(response, user: object):
     """These old ranges are PLN estimates, never a reviewed UK offer."""
     if account_country(user) == "GB":
@@ -374,7 +388,22 @@ async def _upsert_barcode_cache(
     await db.commit()
 
 
-async def _persist_barcode_cache_in_background(off_product: dict | None = None, **values) -> None:
+def _off_snapshot_time(value: str | None):
+    """Use the original fetch clock, not time spent in memory/background queues."""
+    from datetime import datetime, timezone
+
+    now = datetime.now(timezone.utc)
+    if value is None:
+        return now  # Legacy direct callers that pass an immediately fetched record.
+    moment = datetime.fromisoformat(value)
+    if moment.tzinfo is None or moment > now:
+        raise ValueError("OFF snapshot time must be aware and not future-dated")
+    return moment.astimezone(timezone.utc)
+
+
+async def _persist_barcode_cache_in_background(
+    off_product: dict | None = None, off_retrieved_at: str | None = None, **values,
+) -> None:
     """Zapisuje trafienie po wysłaniu odpowiedzi do telefonu.
 
     Użytkownik dostaje wynik z OFF/USDA bez czekania na dodatkowy zapis
@@ -388,17 +417,30 @@ async def _persist_barcode_cache_in_background(off_product: dict | None = None, 
             # Country availability is a separate OFF fact, not retailer stock.
             # Save only the product actually requested, after sending the result.
             if isinstance(off_product, dict):
-                from datetime import datetime, timezone
                 from app.services.barcode_lookup import barcode_variants
                 from app.services.off_catalogue import import_off_catalogue
 
                 if off_product.get("code") in barcode_variants(values["barcode"]):
                     await import_off_catalogue(
-                        session, [off_product], retrieved_at=datetime.now(timezone.utc),
+                        session, [off_product], retrieved_at=_off_snapshot_time(off_retrieved_at),
                     )
                     await session.commit()
     except Exception:
         logger.exception("Nie udało się zapisać produktu w cache kodów kreskowych")
+
+
+async def _finish_cached_barcode(response, user, db, background_tasks, barcode):
+    result = _without_legacy_prices(response, user)
+    if account_country(user) == "GB":
+        from app.services.off_on_demand import refresh_requested_off_product
+        # Only SELECTs occurred in either early cache path. Auth activity writes
+        # have already committed. Materialize the response before rollback:
+        # it expires ORM objects, which must not be accessed implicitly later.
+        # FastAPI's request-scoped dependency otherwise keeps its connection
+        # checked out until AFTER BackgroundTasks, including external HTTP.
+        await db.rollback()
+        background_tasks.add_task(refresh_requested_off_product, barcode)
+    return result
 
 
 @router.get(
@@ -422,13 +464,7 @@ async def list_products(
     """
     query = select(Product).where(_visible_product_filter(current_user.id))
     if account_country(current_user) == "GB":
-        from app.services.off_availability import product_has_off_uk_evidence
-        from app.services.market_catalog import utc_market_date
-        query = query.where(or_(
-            Product.created_by_user_id == current_user.id,
-            Product.submitted_country_code == "GB",
-            product_has_off_uk_evidence(Product.id, as_of=utc_market_date()),
-        ))
+        query = query.where(_gb_catalogue_product_filter(current_user))
 
     normalized_search = search.strip() if search else ""
     if normalized_search:
@@ -449,7 +485,7 @@ async def list_products(
     query = query.offset(skip).limit(limit)
 
     result = await db.execute(query)
-    return list(result.scalars().all())
+    return [_product_for_account(product, current_user) for product in result.scalars().all()]
 
 
 @router.get(
@@ -532,7 +568,7 @@ async def lookup_barcode(
             # zapis do katalogu/spiżarni pozostaje zawsze „1 opakowanie”.
             local_response.unit = cached.unit
         if local_response.serving_quantity is not None:
-            return _without_legacy_prices(local_response, current_user)
+            return await _finish_cached_barcode(local_response, current_user, db, background_tasks, normalized_barcode)
         # Nazwa i makro są już lokalne, ale brak gramatury opakowania.
         # Jedno zapytanie do źródła zewnętrznego może ją zweryfikować;
         # jeśli jej tam nie ma, wynik nadal wróci bez opcji „opakowanie”.
@@ -570,7 +606,7 @@ async def lookup_barcode(
                 serving_quantity=cached.serving_quantity,
             )
             if _response_has_complete_nutrition(local_response):
-                return _without_legacy_prices(local_response, current_user)
+                return await _finish_cached_barcode(local_response, current_user, db, background_tasks, normalized_barcode)
 
     # 3. Open Food Facts v3 oraz USDA FoodData Central. UPCitemdb zostało
     # usunięte z aktywnej ścieżki: często zwracało 429 i nie zawiera makro.
@@ -631,7 +667,8 @@ async def lookup_barcode(
             price_max=response.price_max or external.price_max,
             source=response.source or external.source,
             serving_quantity=response.serving_quantity,
-            **({"off_product": external.off_product} if account_country(current_user) == "GB" else {}),
+            **({"off_product": external.off_product,
+                "off_retrieved_at": external.off_retrieved_at} if account_country(current_user) == "GB" else {}),
         )
         return _without_legacy_prices(response, current_user)
 
@@ -875,16 +912,18 @@ async def search_products_by_name(
     """
     normalized = " ".join(query.strip().split())
     pattern = f"%{normalized}%"
-
-    catalog_result = await db.execute(
-        select(Product)
-        .where(
-            _visible_product_filter(current_user.id),
-            or_(Product.name.ilike(pattern), Product.brand.ilike(pattern)),
-        )
-        .order_by(Product.name)
-        .limit(limit)
-    )
+    matches = [Product.name.ilike(pattern), Product.brand.ilike(pattern)]
+    catalog_query = select(Product).where(_visible_product_filter(current_user.id))
+    ordering = Product.name
+    if account_country(current_user) == "GB":
+        from app.services.system_content_language import english_system_name_match, english_system_name_order
+        catalog_query = catalog_query.where(_gb_catalogue_product_filter(current_user))
+        matches.append(english_system_name_match(Product, normalized, kind="ingredients"))
+        ordering = english_system_name_order(Product, kind="ingredients")
+    catalog_query = catalog_query.where(or_(*matches)).order_by(ordering)
+    if account_country(current_user) == "GB":
+        catalog_query = catalog_query.order_by(Product.id)
+    catalog_result = await db.execute(catalog_query.limit(limit))
     cache_result = await db.execute(
         select(BarcodeProductCache)
         .where(
@@ -937,13 +976,15 @@ async def search_products_by_name(
             suggestions.append(suggestion)
 
     catalog_suggestions: list[ProductNameSuggestion] = []
+    from app.services.system_content_language import ingredient_display_name
     for product in catalog_result.scalars().all():
         nutrition = product.nutrition_per_100 or {}
+        presented = _product_for_account(product, current_user)
         price_min, price_max = price_range_for_product(product.name)
         catalog_suggestions.append(ProductNameSuggestion(
             source="catalog",
-            name=product.name,
-            brand=product.brand,
+            name=ingredient_display_name(product, country_code=account_country(current_user)),
+            brand=presented.brand,
             unit=product.unit,
             barcode=product.barcode,
             existing_product_id=product.id,
@@ -953,7 +994,7 @@ async def search_products_by_name(
             carbs_per_100=nutrition.get("carbs"),
             price_min=price_min,
             price_max=price_max,
-            serving_quantity=product.serving_quantity,
+            serving_quantity=presented.serving_quantity,
         ))
 
     cache_suggestions: list[ProductNameSuggestion] = []
@@ -1002,7 +1043,10 @@ async def search_products_by_name(
         if account_country(current_user) == "GB" and background_tasks is not None:
             source_records = [value.off_product for value in external_results if getattr(value, "off_product", None)]
             if source_records:
-                background_tasks.add_task(_persist_off_catalogue_in_background, source_records)
+                clocks = [value.off_retrieved_at for value in external_results
+                    if getattr(value, "off_product", None) and getattr(value, "off_retrieved_at", None)]
+                background_tasks.add_task(_persist_off_catalogue_in_background, source_records,
+                    retrieved_at=min(clocks) if clocks else None)
         for external in external_results:
             add_suggestion(ProductNameSuggestion(
                 source=external.source,
@@ -1029,15 +1073,14 @@ async def search_products_by_name(
     return suggestions
 
 
-async def _persist_off_catalogue_in_background(records: list[dict]) -> None:
+async def _persist_off_catalogue_in_background(records: list[dict], *, retrieved_at: str | None = None) -> None:
     """OFF-only cache write after the HTTP response; no user or shop writes."""
-    from datetime import datetime, timezone
     from app.db.session import async_session_factory
     from app.services.off_catalogue import import_off_catalogue
 
     try:
         async with async_session_factory() as session:
-            await import_off_catalogue(session, records, retrieved_at=datetime.now(timezone.utc))
+            await import_off_catalogue(session, records, retrieved_at=_off_snapshot_time(retrieved_at))
             await session.commit()
     except Exception:
         logger.warning("OFF catalogue cache write failed; the live result was retained")
@@ -1221,7 +1264,7 @@ async def get_product(
             detail=account_text(current_user,
                 f"Produkt o ID {product_id} nie został znaleziony", f"Product {product_id} was not found.")
         )
-    return product
+    return _product_for_account(product, current_user)
 
 
 @router.get(
@@ -1290,6 +1333,7 @@ async def get_product_substitutes(
             product_id=product_id, store_id=store_id, limit=10
         )
     response_list = []
+    from app.services.product_market_presentation import product_brand_for_market
     for r in results:
         prod = r["product"]
         if not (
@@ -1314,7 +1358,7 @@ async def get_product_substitutes(
         response_list.append({
             "id": prod.id,
             "name": regional_quote.name_en if regional_quote else prod.name,
-            "brand": prod.brand,
+            "brand": product_brand_for_market(prod, country_code=account_country(current_user)),
             "price": regional_quote.price_per_package if regional_quote else (store_prod.price if store_prod else None),
             "kcal": kcal,
             "similarity_score": r.get("similarity_score"),
@@ -1755,6 +1799,11 @@ async def review_product(
                     submitted_market = getattr(product, "submitted_country_code", None) or "PL"
                     if account_country(store) != submitted_market:
                         # Also protects older submissions containing forged IDs.
+                        continue
+                    if submitted_market == "GB":
+                        from app.services.uk_submission_prices import import_submitted_price
+
+                        await import_submitted_price(db, product, store_id, current_user.id)
                         continue
                     existing = await db.execute(
                         select(StoreProduct).where(

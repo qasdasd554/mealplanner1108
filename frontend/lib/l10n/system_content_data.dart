@@ -3523,6 +3523,24 @@ const systemRecipeText = <String, Map<String, dynamic>>{
 };
 
 const systemIngredientText = <String, Map<String, String>>{
+  "aec00b99-e507-546a-8033-c9d7c1bab4ac": {"source": "Agar", "en_GB": "Agar"},
+  "a5845b5e-e5e7-5852-b6a7-d52f47c0a1fc": {"source": "Ajvar", "en_GB": "Ajvar"},
+  "c91245d5-cc8f-56b6-8122-3aed97a3ccf1": {
+    "source": "Ananas",
+    "en_GB": "Pineapple",
+  },
+  "9d582e37-891b-5446-87f6-fff8f891df14": {
+    "source": "Anchois w oliwie",
+    "en_GB": "Anchovies in olive oil",
+  },
+  "39325c5c-7ac4-5893-a341-82ee736a9977": {
+    "source": "Anyż gwiazdkowy",
+    "en_GB": "Star anise",
+  },
+  "d3d3b56f-77ee-592f-b9c4-78168dc2764b": {
+    "source": "Arbuz",
+    "en_GB": "Watermelon",
+  },
   "c16683e3-c5bb-508b-b17d-ecfea391c805": {
     "source": "Awokado",
     "en_GB": "Avocado",
@@ -3547,6 +3565,14 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Bazylia świeża",
     "en_GB": "Fresh basil",
   },
+  "dfbd1460-45bc-5668-9f47-bf6894fcd36a": {
+    "source": "Biszkopty",
+    "en_GB": "Sponge fingers",
+  },
+  "81bdef7e-181f-50fb-8085-42407bb549a6": {
+    "source": "Boczek wędzony",
+    "en_GB": "Smoked bacon",
+  },
   "c5d65d64-51e9-5ffc-98d6-17d6cb6f037a": {
     "source": "Borówki",
     "en_GB": "Blueberries",
@@ -3567,9 +3593,33 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Budyń waniliowy",
     "en_GB": "Vanilla pudding powder",
   },
+  "8026e022-8a4f-5354-8243-3f93624097d8": {
+    "source": "Bulion drobiowy",
+    "en_GB": "Chicken stock",
+  },
+  "4b8872d8-77cb-59b1-a3e5-efd19ef098ef": {
+    "source": "Bulion grzybowy",
+    "en_GB": "Mushroom stock",
+  },
   "13805734-9c35-5020-b845-9db6001abede": {
     "source": "Bulion warzywny",
     "en_GB": "Vegetable stock",
+  },
+  "4d0876fb-5965-57b9-ba00-c6ce01f5b42f": {
+    "source": "Bulion wołowy",
+    "en_GB": "Beef stock",
+  },
+  "c9fdcc16-d071-5960-92a5-3974d7af0181": {
+    "source": "Buraczki konserwowe",
+    "en_GB": "Preserved beetroot",
+  },
+  "08b4b8c8-127f-53e9-84cf-a248bf2f6a00": {
+    "source": "Buraki",
+    "en_GB": "Beetroot",
+  },
+  "8cead591-3372-51a0-a2c5-04ed487eca0d": {
+    "source": "Burrata",
+    "en_GB": "Burrata",
   },
   "3b6c357a-3dc8-5695-b875-746a53d751ec": {
     "source": "Bułka kajzerka",
@@ -3587,13 +3637,33 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Cebula",
     "en_GB": "Onion",
   },
+  "d34809d1-e2c1-5d66-9e45-d4a038227d43": {
+    "source": "Cebula czerwona",
+    "en_GB": "Red onion",
+  },
   "dc03210f-a6cb-5f2d-9aec-195e95761eb5": {
     "source": "Chili suszone",
     "en_GB": "Dried chilli",
   },
+  "4b1d00fd-d2e9-509b-9f9f-624daa0df295": {
+    "source": "Chipsy kokosowe",
+    "en_GB": "Coconut flakes",
+  },
   "79303edd-d9f3-5c43-b145-466720e00afe": {
     "source": "Chleb pszenny",
     "en_GB": "White bread",
+  },
+  "ee4a63e3-a830-53ca-bb6b-86884681fcd5": {
+    "source": "Chorizo",
+    "en_GB": "Chorizo",
+  },
+  "1abd539d-fca5-5421-b235-22a10f22740b": {
+    "source": "Chrzan tarty",
+    "en_GB": "Grated horseradish",
+  },
+  "ad56a7c9-8016-5f29-a534-52e151621587": {
+    "source": "Ciasto filo",
+    "en_GB": "Filo pastry",
   },
   "76e199e0-af54-5c6e-88a1-4075145f565b": {
     "source": "Ciasto francuskie",
@@ -3607,9 +3677,21 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Ciecierzyca konserwowa",
     "en_GB": "Tinned chickpeas",
   },
+  "e6708afa-ad59-55e1-9bf2-3349e5f4ef53": {
+    "source": "Ciecierzyca sucha",
+    "en_GB": "Dried chickpeas",
+  },
   "8f1a4823-cd20-575a-abc0-7e8150f25415": {
     "source": "Cukier",
     "en_GB": "Sugar",
+  },
+  "41a147de-893e-57cf-995d-d26c2fb24732": {
+    "source": "Cukier puder",
+    "en_GB": "Icing sugar",
+  },
+  "b5499a43-27c0-55f6-9366-34a60e5dbe48": {
+    "source": "Cukier trzcinowy",
+    "en_GB": "Cane sugar",
   },
   "f0f7e238-3cc7-5691-9aef-a3ec55f20df2": {
     "source": "Cukinia",
@@ -3623,13 +3705,33 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Cynamon",
     "en_GB": "Cinnamon",
   },
+  "b73663a0-6f3a-5f63-af1e-39031f7ce03c": {
+    "source": "Cynamon cejloński",
+    "en_GB": "Ceylon cinnamon",
+  },
   "30dee60b-6773-5005-8e2e-5edf08048648": {
     "source": "Cytryna",
     "en_GB": "Lemon",
   },
+  "9869e450-0484-5b83-a50f-659be8c63996": {
+    "source": "Czarnuszka",
+    "en_GB": "Nigella seeds",
+  },
+  "28b435e8-5e61-5a55-9871-e48b21d1702a": {
+    "source": "Czekolada gorzka",
+    "en_GB": "Dark chocolate",
+  },
+  "c9c8f2ae-5ff6-5442-aa6d-902154e32fe8": {
+    "source": "Czereśnie",
+    "en_GB": "Sweet cherries",
+  },
   "27407a17-4c81-5419-bcf7-f6536c0a6265": {
     "source": "Czosnek",
     "en_GB": "Garlic",
+  },
+  "1af89b3b-897d-5ed9-bd4c-3c16253d6076": {
+    "source": "Czosnek granulowany",
+    "en_GB": "Garlic granules",
   },
   "9534e124-536c-52ec-8c6f-0700f37eb5d1": {
     "source": "Daktyle suszone",
@@ -3639,21 +3741,117 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Dorsz filet",
     "en_GB": "Cod fillet",
   },
+  "b694eed9-c7b0-58e3-9c05-3cad3afe494b": {
+    "source": "Drożdże instant",
+    "en_GB": "Instant yeast",
+  },
+  "4801c2d9-daba-56a2-8139-07afd8eb6986": {
+    "source": "Drożdże świeże",
+    "en_GB": "Fresh yeast",
+  },
+  "428aaf2e-99c7-5da6-a9dd-74a40758e98c": {
+    "source": "Dynia hokkaido",
+    "en_GB": "Hokkaido squash",
+  },
+  "caa4f282-bda3-50ff-bb7a-b1a6081d2513": {
+    "source": "Edamame mrożone",
+    "en_GB": "Frozen edamame",
+  },
+  "e307396e-2efb-5598-b70c-e95ad51228df": {
+    "source": "Ekstrakt waniliowy",
+    "en_GB": "Vanilla extract",
+  },
+  "e9c1d091-75f2-5deb-a7c2-9a7affcc19f2": {
+    "source": "Estragon suszony",
+    "en_GB": "Dried tarragon",
+  },
+  "5f4de0d0-4048-5305-9ee7-b8efb2fd3b2a": {
+    "source": "Estragon świeży",
+    "en_GB": "Fresh tarragon",
+  },
+  "348b2ef7-917a-56f7-a4f7-b472addb2c33": {
+    "source": "Fasola biała konserwowa",
+    "en_GB": "Tinned white beans",
+  },
+  "a607b3cc-1fea-57f5-81c3-09095e199500": {
+    "source": "Fasola biała sucha",
+    "en_GB": "Dried white beans",
+  },
+  "0a320c60-3f2e-5016-8285-33da94e3fc20": {
+    "source": "Fasola cannellini",
+    "en_GB": "Cannellini beans",
+  },
+  "54c9ec0d-8059-5ea1-ae1d-7b1fc0a9d36f": {
+    "source": "Fasola czarna konserwowa",
+    "en_GB": "Tinned black beans",
+  },
+  "74bed579-20b6-5ad1-9cdd-c2e669ce07e0": {
+    "source": "Fasola czerwona konserwowa",
+    "en_GB": "Tinned red kidney beans",
+  },
+  "719de6b0-9d5f-57aa-ad8d-fe45b1062c0d": {
+    "source": "Fasola czerwona sucha",
+    "en_GB": "Dried red kidney beans",
+  },
   "298f104b-0b1b-568b-abcd-2cb0bc3fe0ce": {
     "source": "Fasola konserwowa",
     "en_GB": "Tinned beans",
+  },
+  "77753d62-61c2-5a10-a25b-cfa7e442dc1d": {
+    "source": "Fasola mung sucha",
+    "en_GB": "Dried mung beans",
   },
   "8a65b4bc-a60b-5edf-bf6d-d1b4f380bca4": {
     "source": "Fasola szparagowa świeża",
     "en_GB": "Fresh green beans",
   },
+  "aac57a76-e3f2-5b08-8848-603ae671c70f": {
+    "source": "Fasolka szparagowa mrożona",
+    "en_GB": "Frozen green beans",
+  },
   "9f6cca1c-47b2-554a-8e8e-4b5b12ef3aa9": {
     "source": "Filet z indyka",
     "en_GB": "Turkey fillet",
   },
+  "743c2ec7-b2bc-5029-9814-c00660667f20": {
+    "source": "Fond drobiowy",
+    "en_GB": "Concentrated chicken stock",
+  },
+  "96560581-1856-588c-a6b1-f731dd0834b9": {
+    "source": "Garam masala",
+    "en_GB": "Garam masala",
+  },
+  "fc55826e-1490-5b9e-990a-3df9ba592467": {
+    "source": "Gałka muszkatołowa",
+    "en_GB": "Nutmeg",
+  },
   "7313d41d-289d-554f-86b7-6176382c7fa9": {
     "source": "Gnocchi ziemniaczane",
     "en_GB": "Potato gnocchi",
+  },
+  "b25066fb-b6de-5838-a8e3-4b7b7ce36088": {
+    "source": "Goździki mielone",
+    "en_GB": "Ground cloves",
+  },
+  "9cb417ec-fcb5-5712-a5db-607e62f993c8": {
+    "source": "Granat",
+    "en_GB": "Pomegranate",
+  },
+  "4e2553dc-db1a-5644-813d-f0b6287e41b3": {
+    "source": "Grejpfrut",
+    "en_GB": "Grapefruit",
+  },
+  "1cf61449-e2b2-5f52-8280-3ebc7b0dc45b": {
+    "source": "Groch łuskany",
+    "en_GB": "Split peas",
+  },
+  "8c52348b-aa3e-5355-9ef3-3f87df4a50d0": {
+    "source": "Groszek cukrowy",
+    "en_GB": "Mangetout",
+  },
+  "98508e45-5cc8-58bd-9720-489cf18805ed": {
+    "source": "Groszek konserwowy",
+    "en_GB": "Tinned peas",
   },
   "07c1b746-4b1d-52a5-9771-900327cc9634": {
     "source": "Groszek zielony mrożony",
@@ -3666,6 +3864,10 @@ const systemIngredientText = <String, Map<String, String>>{
   "7e4fd315-9468-5c31-9c56-e30626b7da13": {
     "source": "Harissa",
     "en_GB": "Harissa",
+  },
+  "8eb0bcb5-a820-5e92-bb62-ac9694d9c8ff": {
+    "source": "Herbatniki maślane",
+    "en_GB": "Butter biscuits",
   },
   "3d031750-0b97-55ac-bb4f-023971a20541": {
     "source": "Hummus",
@@ -3680,9 +3882,26 @@ const systemIngredientText = <String, Map<String, String>>{
     "en_GB": "Apples",
   },
   "cef85b7e-cf1f-5b02-84f1-64f55209ac8c": {"source": "Jajka", "en_GB": "Eggs"},
+  "109f91f6-2a5f-55ee-afdc-859fc57f6919": {
+    "source": "Jajka przepiórcze",
+    "en_GB": "Quail eggs",
+  },
+  "43a701da-2ab6-53e0-aecc-7269c1ce48ac": {
+    "source": "Jalapeño konserwowe",
+    "en_GB": "Pickled jalapeños",
+  },
+  "193e2511-ee61-579e-9a34-6db12246998b": {"source": "Jarmuż", "en_GB": "Kale"},
+  "1eaf9d50-cedd-5eb9-bb82-34669e0d7229": {
+    "source": "Jeżyny",
+    "en_GB": "Blackberries",
+  },
   "a15726ee-ab67-5765-b280-a027dbd0f9e5": {
     "source": "Jogurt grecki",
     "en_GB": "Greek yoghurt",
+  },
+  "f2a7162e-61db-569f-8245-f6bcd9dfe123": {
+    "source": "Jogurt kokosowy",
+    "en_GB": "Coconut yoghurt",
   },
   "0a92f321-13ee-5a51-a017-8f42c35e1963": {
     "source": "Jogurt naturalny",
@@ -3692,13 +3911,49 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Kakao ciemne",
     "en_GB": "Dark cocoa powder",
   },
+  "658f8a4c-093e-5729-8396-00977820c25d": {
+    "source": "Kaki",
+    "en_GB": "Persimmon",
+  },
   "59d76661-f88d-52c7-b385-0a36aeda506f": {
     "source": "Kalafior",
     "en_GB": "Cauliflower",
   },
+  "78375eb0-31c4-5dd9-bdf3-a2b83fffe14b": {
+    "source": "Kalarepa",
+    "en_GB": "Kohlrabi",
+  },
+  "d4839c0e-4532-5619-a53d-6c71b2dc8303": {
+    "source": "Kapary",
+    "en_GB": "Capers",
+  },
+  "d88be8c3-76dd-53a6-b9d3-3cf7996407be": {
+    "source": "Kapusta biała",
+    "en_GB": "White cabbage",
+  },
+  "4c0ca62c-1fd8-54fb-9bc9-31476c859058": {
+    "source": "Kapusta czerwona",
+    "en_GB": "Red cabbage",
+  },
   "d4633375-8ff5-564f-b541-64d3c80f6539": {
     "source": "Kapusta pekińska",
     "en_GB": "Chinese cabbage",
+  },
+  "f26c2623-c07d-5d77-985d-6ee2092bc422": {
+    "source": "Karczochy konserwowe",
+    "en_GB": "Tinned artichokes",
+  },
+  "166188ce-c385-56f6-a945-00fa4e89536b": {
+    "source": "Kardamon mielony",
+    "en_GB": "Ground cardamom",
+  },
+  "e244a3cc-2264-5da7-84f7-9c1663d79664": {
+    "source": "Karkówka wieprzowa",
+    "en_GB": "Pork collar",
+  },
+  "38541c57-7704-5608-ad62-81ecddeeaf31": {
+    "source": "Kasza bulgur",
+    "en_GB": "Bulgur wheat",
   },
   "f37b3f71-90d9-5b3b-9133-4bd49617e107": {
     "source": "Kasza gryczana",
@@ -3708,17 +3963,74 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Kasza jaglana",
     "en_GB": "Millet",
   },
+  "7ab0ee29-de7a-5310-b907-320595782e19": {
+    "source": "Kasza jęczmienna",
+    "en_GB": "Barley groats",
+  },
+  "8d2bfc47-63f1-5489-8d63-9d653da395f2": {
+    "source": "Kasza manna",
+    "en_GB": "Semolina",
+  },
+  "538e5191-64e0-5815-a189-e5cd655d8f2b": {
+    "source": "Kasza owsiana",
+    "en_GB": "Oat groats",
+  },
+  "4d1c3653-26b4-5fb3-a6c8-9bf0dbe70cf3": {
+    "source": "Kasza pęczak",
+    "en_GB": "Pearl barley",
+  },
+  "54d45cb2-09d4-5433-9145-900e8d8835b3": {"source": "Kefir", "en_GB": "Kefir"},
+  "fbfff798-d34f-5238-b685-0426f3d06636": {
+    "source": "Ketchup",
+    "en_GB": "Ketchup",
+  },
   "e83e16ff-d606-5844-93bc-006dd0f7e1e6": {
     "source": "Kiełbasa śląska",
     "en_GB": "Silesian sausage",
+  },
+  "95ec2c9e-a10a-5ce7-88ba-3b0ee05dddb3": {
+    "source": "Kiełki brokuła",
+    "en_GB": "Broccoli sprouts",
+  },
+  "66cc2fb0-b3e6-573a-95c6-b44a4fde100f": {
+    "source": "Kiełki fasoli mung",
+    "en_GB": "Mung bean sprouts",
+  },
+  "1ac2e93b-be1a-5a18-a1ae-3efc58eee563": {
+    "source": "Kimchi",
+    "en_GB": "Kimchi",
+  },
+  "7ff10de8-bfe0-52d4-807f-9adf73ec9a03": {
+    "source": "Kiwi",
+    "en_GB": "Kiwi fruit",
   },
   "e5da791a-5cd2-5395-bdfc-df1314fab283": {
     "source": "Kmin rzymski",
     "en_GB": "Cumin",
   },
+  "e561168b-290d-5ab4-9c27-21949d9eadb4": {
+    "source": "Kolendra mielona",
+    "en_GB": "Ground coriander",
+  },
   "a816a3b8-7ea7-5924-811e-bde6a75e0c9f": {
     "source": "Kolendra świeża",
     "en_GB": "Fresh coriander",
+  },
+  "0ed74a5d-1eb8-5f17-8ca6-9830ae4f36bb": {
+    "source": "Koncentrat pomidorowy",
+    "en_GB": "Tomato purée",
+  },
+  "270533a7-5f2b-515d-a911-bc1ad7494150": {
+    "source": "Koper włoski",
+    "en_GB": "Fennel",
+  },
+  "891b2a54-59a0-57b7-9e3c-1f5802e72953": {
+    "source": "Koperek świeży",
+    "en_GB": "Fresh dill",
+  },
+  "87182f44-6205-5f1c-a7d7-584bb94c166d": {
+    "source": "Kozieradka mielona",
+    "en_GB": "Ground fenugreek",
   },
   "5b75bdf4-0bce-5d6e-a839-10a7c45d1f11": {
     "source": "Krem balsamiczny",
@@ -3732,13 +4044,85 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Kukurydza kolba",
     "en_GB": "Corn on the cob",
   },
+  "69e2130a-c1c1-5425-9433-1812951874eb": {
+    "source": "Kukurydza konserwowa",
+    "en_GB": "Tinned sweetcorn",
+  },
+  "88e0e374-fa91-5c17-8148-ce79b6e53e0b": {
+    "source": "Kukurydza mrożona",
+    "en_GB": "Frozen sweetcorn",
+  },
+  "58a17ff6-6079-5477-9650-893ed9cd32ff": {
+    "source": "Kurkuma mielona",
+    "en_GB": "Ground turmeric",
+  },
+  "4656a15a-c027-52e9-983d-7cf5f20c082e": {
+    "source": "Kuskus",
+    "en_GB": "Couscous",
+  },
+  "4af939c2-2d1d-521c-806c-45d4479a6601": {
+    "source": "Kuskus perłowy",
+    "en_GB": "Pearl couscous",
+  },
   "b2a734b3-dd6b-5e34-9ff4-d2baa769bbb6": {
     "source": "Limonka",
     "en_GB": "Lime",
   },
+  "4990b371-3cb7-53e5-94ab-be4b9c20e68f": {
+    "source": "Liść laurowy",
+    "en_GB": "Bay leaf",
+  },
+  "750e7a30-665c-5d30-92e8-21fcb014cd4b": {
+    "source": "Majonez",
+    "en_GB": "Mayonnaise",
+  },
+  "6d07cd99-16d9-596e-b2ca-272bcc29a765": {
+    "source": "Mak niebieski",
+    "en_GB": "Blue poppy seeds",
+  },
+  "7f62385b-4f44-5bb6-9732-8e097c9b7d72": {
+    "source": "Makaron fusilli",
+    "en_GB": "Fusilli",
+  },
+  "7dda22b2-f2fa-5a29-9164-397f7e04e3ec": {
+    "source": "Makaron lasagne",
+    "en_GB": "Lasagne sheets",
+  },
+  "6becc94f-b918-562e-9697-1f84406eee1c": {
+    "source": "Makaron orzo",
+    "en_GB": "Orzo",
+  },
   "8cca272d-414c-5e8f-a044-0ddef8f5e2b3": {
     "source": "Makaron penne",
     "en_GB": "Penne pasta",
+  },
+  "6eb3a4e3-936e-56f0-9b08-0ca6edcd0d1b": {
+    "source": "Makaron ryżowy",
+    "en_GB": "Rice noodles",
+  },
+  "1f44b6d1-3a42-5dad-99ae-f9f27347833e": {
+    "source": "Makaron soba",
+    "en_GB": "Soba noodles",
+  },
+  "60c72ce2-3963-5420-8f90-736cd14f1d65": {
+    "source": "Makaron spaghetti",
+    "en_GB": "Spaghetti",
+  },
+  "cc6e9350-7ebc-513b-9ff4-7be1687fe7b4": {
+    "source": "Makaron tagliatelle",
+    "en_GB": "Tagliatelle",
+  },
+  "54b8e840-637f-51a0-98ec-3e2d0f2835cf": {
+    "source": "Makaron udon",
+    "en_GB": "Udon noodles",
+  },
+  "6ccb0b45-379b-56d0-994a-3747b918e8ff": {
+    "source": "Makaron vermicelli",
+    "en_GB": "Vermicelli",
+  },
+  "45d0d4e9-9421-536a-8aed-5e098f3da663": {
+    "source": "Makrela wędzona",
+    "en_GB": "Smoked mackerel",
   },
   "40b525b7-8f25-58b4-96dd-f25045a6a762": {
     "source": "Maliny",
@@ -3753,18 +4137,35 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Marchew",
     "en_GB": "Carrot",
   },
+  "e3732d34-3708-5c71-8686-306eba838d6e": {
+    "source": "Mascarpone",
+    "en_GB": "Mascarpone",
+  },
   "89bf7d5e-1cf8-5b33-8c78-1e68a240569e": {
     "source": "Masło extra",
     "en_GB": "Butter",
+  },
+  "40b8ace7-0d0d-5cf4-a048-a0a45bec04b0": {
+    "source": "Masło klarowane ghee",
+    "en_GB": "Ghee",
   },
   "ce838162-6aca-53ad-9025-7ef8f8f9af8c": {
     "source": "Masło orzechowe",
     "en_GB": "Peanut butter",
   },
+  "201102b1-25f1-5b31-9150-c7f72ab8202e": {
+    "source": "Małże mrożone",
+    "en_GB": "Frozen mussels",
+  },
+  "240d082f-fbd2-5555-a95e-62c3041c2d86": {
+    "source": "Maślanka naturalna",
+    "en_GB": "Plain buttermilk",
+  },
   "4c37b4e4-89c6-598d-8e68-4f97e32f8bef": {
     "source": "Melasa z granatu",
     "en_GB": "Pomegranate molasses",
   },
+  "1cf51fdb-5177-51b9-ba51-34b4d1a603bd": {"source": "Melon", "en_GB": "Melon"},
   "c2ddd14e-92b2-5bea-ad20-eccaef23d7ed": {
     "source": "Mielone wieprzowo-wołowe",
     "en_GB": "Pork and beef mince",
@@ -3773,6 +4174,11 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Migdały płatki",
     "en_GB": "Flaked almonds",
   },
+  "fe9e404c-d4df-593d-96f7-577697ec8993": {
+    "source": "Mintaj filet",
+    "en_GB": "Alaska pollock fillet",
+  },
+  "ac9eed06-8edc-5fa2-8b4d-36441bc191b7": {"source": "Mirin", "en_GB": "Mirin"},
   "c09e2f7d-8a14-56f9-8e07-947cc5c291c9": {"source": "Miód", "en_GB": "Honey"},
   "b172e08b-c8e1-5ab9-bccc-52888c5fcaf9": {
     "source": "Mięso mielone z indyka",
@@ -3782,17 +4188,45 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Mięta świeża",
     "en_GB": "Fresh mint",
   },
+  "ef95fef3-2373-5994-87f2-ca734b42720f": {
+    "source": "Mleczko kokosowe light",
+    "en_GB": "Light coconut milk",
+  },
   "527c542c-dae3-52d1-b75f-d7a4e76204a3": {
     "source": "Mleko 2%",
     "en_GB": "Milk (2% fat)",
+  },
+  "24aa3ae7-d730-5b2d-8239-24c1c4e7bb15": {
+    "source": "Mleko bez laktozy",
+    "en_GB": "Lactose-free milk",
   },
   "edbd1a0f-8c09-53fe-833b-cfb8b35334da": {
     "source": "Mleko kokosowe",
     "en_GB": "Coconut milk",
   },
+  "f2ea1440-040b-54ea-a232-002dd7bb164f": {
+    "source": "Mleko kozie",
+    "en_GB": "Goat's milk",
+  },
   "5c64ab06-cb48-5942-a888-ff8fe96cb9a1": {
     "source": "Mleko migdałowe",
     "en_GB": "Almond milk",
+  },
+  "b3153a90-bcd6-59f3-8dbd-e104477ae90d": {
+    "source": "Mleko skondensowane słodzone",
+    "en_GB": "Sweetened condensed milk",
+  },
+  "224e542d-be2b-53f8-a60e-42e9bcc61c31": {
+    "source": "Morele",
+    "en_GB": "Apricots",
+  },
+  "12b190bd-d639-579c-83ae-1903e3c67614": {
+    "source": "Morele suszone",
+    "en_GB": "Dried apricots",
+  },
+  "89107566-b0b3-5d34-b069-9d203076e3d7": {
+    "source": "Morszczuk filet",
+    "en_GB": "Hake fillet",
   },
   "18fb3018-050e-56bc-8c2f-055cf005cb91": {
     "source": "Mozzarella",
@@ -3806,45 +4240,117 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Mrożony szpinak",
     "en_GB": "Frozen spinach",
   },
+  "0380e406-3ce7-5b8c-8e18-bc7c1c061cec": {
+    "source": "Mus jabłkowy",
+    "en_GB": "Apple purée",
+  },
   "c9627249-6da5-54b5-8a66-8bbf277ceb61": {
     "source": "Musztarda",
     "en_GB": "Mustard",
+  },
+  "bf7f2688-b75d-55fc-948b-5384732202dc": {
+    "source": "Musztarda dijon",
+    "en_GB": "Dijon mustard",
   },
   "0778400e-cfac-5c05-9373-a9a784d2f1c3": {
     "source": "Musztarda francuska",
     "en_GB": "Wholegrain mustard",
   },
+  "e2bdaaaf-1f3c-5213-befb-79fb2436accd": {
+    "source": "Mąka gryczana",
+    "en_GB": "Buckwheat flour",
+  },
+  "d525f2f0-edb1-5aa5-b96a-972b2995d01c": {
+    "source": "Mąka kokosowa",
+    "en_GB": "Coconut flour",
+  },
+  "c88ec559-93eb-5da4-81ba-6b894d6d7bbb": {
+    "source": "Mąka kukurydziana",
+    "en_GB": "Maize flour",
+  },
   "5b36cc6d-05d2-5cfa-ba57-dfe6aff5c3ea": {
     "source": "Mąka migdałowa",
     "en_GB": "Almond flour",
+  },
+  "cebacef0-1c4f-5abe-a5fa-720a067654ca": {
+    "source": "Mąka orkiszowa",
+    "en_GB": "Spelt flour",
   },
   "fda48b0e-7fc4-5175-80ff-3ac0503f22c1": {
     "source": "Mąka pszenna",
     "en_GB": "Wheat flour",
   },
+  "719b3711-b148-50f8-b637-a5f33a4c0524": {
+    "source": "Mąka pszenna pełnoziarnista",
+    "en_GB": "Wholemeal wheat flour",
+  },
+  "0f368975-3574-5a00-9de3-d294f91e936a": {
+    "source": "Mąka tempura",
+    "en_GB": "Tempura flour",
+  },
   "99a3b772-42a7-5162-9a66-15d725a05b72": {
     "source": "Mąka z ciecierzycy",
     "en_GB": "Chickpea flour",
+  },
+  "e2a586f2-c9d0-51fe-ab6a-0f6faa5acdff": {
+    "source": "Mąka ziemniaczana",
+    "en_GB": "Potato starch",
+  },
+  "c6183d12-91d8-5d85-8e79-9a55ee76fa88": {
+    "source": "Mąka żytnia",
+    "en_GB": "Rye flour",
   },
   "f31db480-7a95-53eb-b320-25068281cf56": {
     "source": "Nasiona chia",
     "en_GB": "Chia seeds",
   },
+  "0b293d5b-aea5-5af1-86d1-3a559132e1eb": {
+    "source": "Nasiona kopru włoskiego",
+    "en_GB": "Fennel seeds",
+  },
   "5f7d29fd-59af-5579-bd4d-eae3fd2847d5": {
     "source": "Natka pietruszki",
     "en_GB": "Parsley",
+  },
+  "64f1d155-d245-5294-90e4-f5e20b7c42fa": {
+    "source": "Nektarynki",
+    "en_GB": "Nectarines",
   },
   "ec5a5f94-ac34-5223-9ff1-1ae9e72d6851": {
     "source": "Ocet balsamiczny",
     "en_GB": "Balsamic vinegar",
   },
+  "c1cc19a4-202c-514d-88a3-7e9c124634f3": {
+    "source": "Ocet jabłkowy",
+    "en_GB": "Cider vinegar",
+  },
+  "aa078bef-7839-539d-b736-c612a284a71e": {
+    "source": "Ocet ryżowy",
+    "en_GB": "Rice vinegar",
+  },
+  "106194ca-8052-5ef8-9634-62ba3ea7d503": {
+    "source": "Ocet winny czerwony",
+    "en_GB": "Red wine vinegar",
+  },
   "f069ad9f-c14b-58ae-b4b8-9b01ce8e318c": {
     "source": "Ogórek",
     "en_GB": "Cucumber",
   },
+  "98aab66d-d80c-5938-a140-229705674f6a": {
+    "source": "Ogórki konserwowe",
+    "en_GB": "Pickled gherkins",
+  },
   "bc031d92-b687-50de-afb7-5c6f33ba539e": {
     "source": "Olej rzepakowy",
     "en_GB": "Rapeseed oil",
+  },
+  "c5e6ec52-0878-5b82-a8ad-bd0db8e2a31a": {
+    "source": "Olej sezamowy",
+    "en_GB": "Sesame oil",
+  },
+  "1e48a2c5-d5e9-52f8-a158-c6dc4fd0162e": {
+    "source": "Olej słonecznikowy",
+    "en_GB": "Sunflower oil",
   },
   "4faa4e87-088e-5393-a242-49ebebbd24bf": {
     "source": "Oliwa z oliwek",
@@ -3854,6 +4360,10 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Oliwki czarne",
     "en_GB": "Black olives",
   },
+  "3601140b-627a-5d09-ba5d-4e3306b380d5": {
+    "source": "Oliwki kalamata",
+    "en_GB": "Kalamata olives",
+  },
   "f83c4324-e329-58d2-9652-13a60f59ef90": {
     "source": "Oregano",
     "en_GB": "Oregano",
@@ -3861,6 +4371,10 @@ const systemIngredientText = <String, Map<String, String>>{
   "7e778235-85d4-5e09-80a2-544ea531a2ee": {
     "source": "Orzechy laskowe",
     "en_GB": "Hazelnuts",
+  },
+  "3dfd1c18-a8e5-5167-9632-5d8ef198cf4b": {
+    "source": "Orzechy nerkowca",
+    "en_GB": "Cashews",
   },
   "fb74868d-706b-5edd-a9e3-6842d1640bf2": {
     "source": "Orzechy pekan",
@@ -3870,13 +4384,45 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Orzechy włoskie",
     "en_GB": "Walnuts",
   },
+  "73ee2527-0354-5521-9786-2c8d8aecfac3": {
+    "source": "Orzeszki piniowe",
+    "en_GB": "Pine nuts",
+  },
+  "53789ca8-d350-584c-9a8f-aba95615be19": {
+    "source": "Orzeszki ziemne",
+    "en_GB": "Peanuts",
+  },
+  "0fc1201c-1a27-5289-874a-74ce80435d7a": {
+    "source": "Owoce leśne mrożone",
+    "en_GB": "Frozen forest fruits",
+  },
+  "9ca1673a-16bc-5312-9e21-6098d7c64af0": {
+    "source": "Pak choi",
+    "en_GB": "Pak choi",
+  },
   "69061f34-df52-51c1-bdb0-2cbdef1f0496": {
     "source": "Papryka czerwona",
     "en_GB": "Red pepper",
   },
+  "e59795ce-e655-5ec5-89ba-0a99ebceabe1": {
+    "source": "Papryka ostra",
+    "en_GB": "Hot paprika",
+  },
+  "bc8b8a68-7ba1-5432-a615-4b267189984e": {
+    "source": "Papryka pieczona konserwowa",
+    "en_GB": "Preserved roasted peppers",
+  },
   "8bbaa226-1e25-50d0-9f28-3adf6dec4f70": {
     "source": "Papryka słodka",
     "en_GB": "Sweet paprika",
+  },
+  "b7afa336-04d5-5d24-beea-b4d90c17573d": {
+    "source": "Papryka wędzona",
+    "en_GB": "Smoked paprika",
+  },
+  "d027c39b-3cbb-5e77-bd35-33c24962203e": {
+    "source": "Papryka zielona",
+    "en_GB": "Green pepper",
   },
   "9fe2a947-e967-5c88-9b85-24f50f991e88": {
     "source": "Papryka żółta",
@@ -3890,9 +4436,53 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Passata pomidorowa",
     "en_GB": "Tomato passata",
   },
+  "127bd0f1-c906-5808-b25e-bbe901394d74": {
+    "source": "Pasta curry czerwona",
+    "en_GB": "Red curry paste",
+  },
+  "fc152695-12a6-5753-aede-6733e3f324c4": {
+    "source": "Pasta curry zielona",
+    "en_GB": "Green curry paste",
+  },
+  "8e40eaa9-cce7-533f-b8af-a152985b38bd": {
+    "source": "Pasta gochujang",
+    "en_GB": "Gochujang paste",
+  },
+  "408a3309-6017-5004-8329-285bfb258b23": {
+    "source": "Pasta miso",
+    "en_GB": "Miso paste",
+  },
+  "a67de4f0-e65b-58af-9de1-ebc883a956b3": {
+    "source": "Pasta tamaryndowa",
+    "en_GB": "Tamarind paste",
+  },
+  "82cbb088-ad1b-5a5a-8a1a-37bd2fa448b4": {
+    "source": "Pasta z czosnku i imbiru",
+    "en_GB": "Garlic and ginger paste",
+  },
+  "9dd89a61-397f-5a7f-9b27-4816bd831c9d": {
+    "source": "Pasta z trawy cytrynowej",
+    "en_GB": "Lemongrass paste",
+  },
+  "426d8a35-35cb-5c6b-8013-0856def0653a": {
+    "source": "Pestki dyni",
+    "en_GB": "Pumpkin seeds",
+  },
+  "96097d9d-c7fb-58ec-9f53-1fcea17eb817": {
+    "source": "Pestki słonecznika",
+    "en_GB": "Sunflower seeds",
+  },
+  "d547166c-dc20-5183-8848-b0604ad365d9": {
+    "source": "Pesto pistacjowe",
+    "en_GB": "Pistachio pesto",
+  },
   "89402425-b3fb-5923-9165-4de8f48fa06c": {
     "source": "Pesto rosso",
     "en_GB": "Pesto rosso",
+  },
+  "3b32ff6f-fdb7-5cf2-9b98-bf63829d95e5": {
+    "source": "Pesto zielone",
+    "en_GB": "Green pesto",
   },
   "6a1ab3fe-08b9-533d-85c6-fd9bd37808a0": {
     "source": "Pieczarki",
@@ -3906,9 +4496,25 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Pieprz czarny mielony",
     "en_GB": "Ground black pepper",
   },
+  "5f898104-6437-50ac-8857-74b5fd3b9354": {
+    "source": "Pierś z kaczki",
+    "en_GB": "Duck breast",
+  },
   "1cbd3dae-3a1e-5cd0-9667-d711fdaa72a4": {
     "source": "Pierś z kurczaka",
     "en_GB": "Chicken breast",
+  },
+  "765ad139-39b6-56fa-8033-51950b539551": {
+    "source": "Pietruszka korzeń",
+    "en_GB": "Parsley root",
+  },
+  "d94da171-308b-567c-85a8-f77de15edbdf": {
+    "source": "Pistacje",
+    "en_GB": "Pistachios",
+  },
+  "e90f7515-b551-5732-8e3d-6abc2ecf86da": {
+    "source": "Podudzia z kurczaka",
+    "en_GB": "Chicken drumsticks",
   },
   "84bac1cc-308a-5655-bd00-b44e2197f14c": {
     "source": "Polenta",
@@ -3917,6 +4523,10 @@ const systemIngredientText = <String, Map<String, String>>{
   "87a4bb58-b963-57b1-a02b-7a261b547a31": {
     "source": "Polędwiczka wieprzowa",
     "en_GB": "Pork tenderloin",
+  },
+  "12b58fc7-a1eb-52cc-a941-52c67962ef89": {
+    "source": "Polędwiczki z kurczaka",
+    "en_GB": "Chicken mini fillets",
   },
   "02baa653-fe01-5c1d-9741-d500894d7850": {
     "source": "Pomarańcze",
@@ -3930,46 +4540,174 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Pomidory",
     "en_GB": "Tomatoes",
   },
+  "a469945a-f5f0-5162-8bab-aba4223ecdb1": {
+    "source": "Pomidory całe pelati",
+    "en_GB": "Tinned whole peeled tomatoes",
+  },
   "452f123c-6535-5ebb-bb11-f9ebfc5d26a7": {
     "source": "Pomidory krojone",
     "en_GB": "Chopped tomatoes",
   },
+  "2d33ecfc-ee3f-5617-86d3-a9ee8c0a61e2": {
+    "source": "Pomidory krojone z bazylią",
+    "en_GB": "Chopped tomatoes with basil",
+  },
   "abdda4f3-3045-56cd-9a49-55dc548a50b1": {"source": "Por", "en_GB": "Leek"},
+  "76d2fe81-dbfe-57c0-86d0-17657e5f531e": {
+    "source": "Porzeczki czarne mrożone",
+    "en_GB": "Frozen blackcurrants",
+  },
   "6205b10f-ceaf-5484-b1dc-43a49bcb6a23": {
     "source": "Proszek do pieczenia",
     "en_GB": "Baking powder",
+  },
+  "3992f3ec-d1fa-5232-bdbf-78029d5d7260": {
+    "source": "Przecier pomidorowy",
+    "en_GB": "Strained tomatoes",
+  },
+  "5845ff62-8f64-5dff-83dc-c4f4df86cbeb": {
+    "source": "Przyprawa pięć smaków",
+    "en_GB": "Chinese five-spice",
+  },
+  "e9286b24-452f-575f-864d-70f234dd9c81": {
+    "source": "Pstrąg filet",
+    "en_GB": "Trout fillet",
+  },
+  "2d3cf360-ab2c-536e-b79a-72be8f5d7138": {
+    "source": "Puree z dyni",
+    "en_GB": "Pumpkin purée",
+  },
+  "a95c2923-2f00-55ce-97d9-ad5a6789157c": {
+    "source": "Płatki chili",
+    "en_GB": "Chilli flakes",
+  },
+  "ac5e5f77-48e8-531b-88da-4abc534dd4c1": {
+    "source": "Płatki drożdżowe nieaktywne",
+    "en_GB": "Nutritional yeast flakes",
+  },
+  "6d0f40a0-3015-501c-8ac6-2b21d574b340": {
+    "source": "Płatki jaglane błyskawiczne",
+    "en_GB": "Instant millet flakes",
+  },
+  "b03860cc-e305-58d6-8785-be28ee68aff5": {
+    "source": "Płatki kukurydziane",
+    "en_GB": "Corn flakes",
   },
   "c65508d5-139b-5f92-9850-1507938eb5e5": {
     "source": "Płatki owsiane",
     "en_GB": "Oats",
   },
+  "ad0bd90e-cc2a-5e87-8b08-935f676b4c11": {
+    "source": "Płatki ryżowe",
+    "en_GB": "Rice flakes",
+  },
   "f4dfd92a-ac3f-5e2f-91ee-5734991fb25d": {
     "source": "Quinoa",
     "en_GB": "Quinoa",
+  },
+  "9a3684a5-b6e6-5fcd-8664-c74af599cedf": {
+    "source": "Ras el hanout",
+    "en_GB": "Ras el hanout",
   },
   "68a18a15-2953-5330-bf99-850238a78bf6": {
     "source": "Ricotta",
     "en_GB": "Ricotta",
   },
+  "a8452f8f-a8ec-5ff3-b3ff-a3df15a0456f": {
+    "source": "Rodzynki",
+    "en_GB": "Raisins",
+  },
+  "984b22f4-34d5-58c6-bffd-f6ce76a65595": {
+    "source": "Roszponka",
+    "en_GB": "Lamb's lettuce",
+  },
+  "84c02416-faae-558d-9cad-4ff1de418da9": {
+    "source": "Rozmaryn suszony",
+    "en_GB": "Dried rosemary",
+  },
+  "b24066f4-a491-59db-a352-8a905a0536fd": {
+    "source": "Rukola",
+    "en_GB": "Rocket",
+  },
   "b43bb415-b571-530c-b035-8e0657346795": {
     "source": "Ryż arborio",
     "en_GB": "Arborio rice",
+  },
+  "1e808e82-2ef4-5cc0-9407-36c602f87f0c": {
+    "source": "Ryż basmati",
+    "en_GB": "Basmati rice",
   },
   "79f74590-432c-5394-a626-7bbb48d66151": {
     "source": "Ryż biały",
     "en_GB": "White rice",
   },
+  "5ff09faf-a43d-5b8f-95ed-df9f4c55a0bd": {
+    "source": "Ryż brązowy",
+    "en_GB": "Brown rice",
+  },
+  "95cd72b6-c6e6-5ca6-bc5e-871e22f0596b": {
+    "source": "Ryż dziki",
+    "en_GB": "Wild rice",
+  },
+  "f8b989c3-9151-50fd-a8a4-76ec1ec744af": {
+    "source": "Ryż jaśminowy",
+    "en_GB": "Jasmine rice",
+  },
+  "1a8973bb-4b6a-55bc-9a31-8db9a6ae214d": {
+    "source": "Rzepa",
+    "en_GB": "Turnip",
+  },
+  "2359b192-fc87-51a1-9c49-d8ca9678c09d": {
+    "source": "Rzodkiewka",
+    "en_GB": "Radish",
+  },
   "53b5c258-d3ef-5fb7-9f90-ba323d5c61ac": {
     "source": "Salami",
     "en_GB": "Salami",
+  },
+  "25fa192c-056f-5723-a3f5-45e96291c92b": {
+    "source": "Salsa pomidorowa",
+    "en_GB": "Tomato salsa",
+  },
+  "4aeea7c9-0515-5194-ac15-f1587570f615": {
+    "source": "Sambal oelek",
+    "en_GB": "Sambal oelek",
+  },
+  "79ab950f-e88f-50e3-8207-829b73723cb6": {
+    "source": "Sardynki w oliwie",
+    "en_GB": "Sardines in olive oil",
   },
   "2a5a08dd-4d85-51b0-96d5-b73d222628d5": {
     "source": "Sałata lodowa",
     "en_GB": "Iceberg lettuce",
   },
+  "7bdc0382-a8e6-5751-8364-8eddc150dcda": {
+    "source": "Sałata masłowa",
+    "en_GB": "Butterhead lettuce",
+  },
+  "75d3f1a2-6359-57e7-9d43-344297c73f16": {
+    "source": "Sałata rzymska",
+    "en_GB": "Cos lettuce",
+  },
   "5ff518f4-4815-59a0-a789-46b88a3ee950": {
     "source": "Schab wieprzowy",
     "en_GB": "Pork loin",
+  },
+  "20a93ab6-bc9d-5e76-a4e6-0690339ff03e": {
+    "source": "Seler korzeniowy",
+    "en_GB": "Celeriac",
+  },
+  "4f345dd2-25f7-5055-ae9c-57afcf548648": {
+    "source": "Seler naciowy",
+    "en_GB": "Celery",
+  },
+  "7013b035-9882-5c1b-8240-af4afa7b8d3e": {
+    "source": "Ser brie",
+    "en_GB": "Brie",
+  },
+  "a5edc9eb-536a-5f68-87cb-d6f726593eea": {
+    "source": "Ser camembert",
+    "en_GB": "Camembert",
   },
   "1118681b-c432-58d1-8603-7721f1f17976": {
     "source": "Ser cheddar",
@@ -3979,9 +4717,21 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Ser feta",
     "en_GB": "Feta cheese",
   },
+  "c885022c-b670-549d-8398-e7ded474d96d": {
+    "source": "Ser grana padano",
+    "en_GB": "Grana Padano",
+  },
   "a4ab49a4-01f8-5358-bc5d-725b999e67c4": {
     "source": "Ser halloumi",
     "en_GB": "Halloumi cheese",
+  },
+  "1a24a691-9b0e-5869-a43e-443a9aac9091": {
+    "source": "Ser kozi",
+    "en_GB": "Goat's cheese",
+  },
+  "de08c0db-a5f0-5d7c-9a69-d49fd1f02214": {
+    "source": "Ser paneer",
+    "en_GB": "Paneer",
   },
   "4f51405e-d34a-5940-8225-1cdaa0854bf6": {
     "source": "Ser pecorino",
@@ -3991,13 +4741,29 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Ser pleśniowy",
     "en_GB": "Mould-ripened cheese",
   },
+  "de2db00e-c150-5d39-bb5f-d7980497c970": {
+    "source": "Ser provolone",
+    "en_GB": "Provolone",
+  },
   "1379c501-e084-5772-b324-a62ea5ef13f7": {
     "source": "Ser żółty gouda",
     "en_GB": "Gouda cheese",
   },
+  "58760cb4-439e-56e5-bfa8-5bdaa51631f2": {
+    "source": "Serek wiejski",
+    "en_GB": "Cottage cheese",
+  },
+  "8be1f23b-68e9-500b-bec5-409212186f94": {
+    "source": "Serek śmietankowy",
+    "en_GB": "Cream cheese",
+  },
   "6fe463ab-c457-5de9-875f-6f6c5ec5b597": {
     "source": "Sezam",
     "en_GB": "Sesame seeds",
+  },
+  "34490aff-e115-5112-8984-ee517fcae1de": {
+    "source": "Siemię lniane",
+    "en_GB": "Linseed",
   },
   "ab8c9119-6813-57df-b103-ce395472bb40": {
     "source": "Skrobia kukurydziana",
@@ -4011,17 +4777,77 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Skyr naturalny",
     "en_GB": "Natural skyr",
   },
+  "c2b07d09-07f1-554b-bde0-3ea97cb284fe": {
+    "source": "Soczewica czarna beluga",
+    "en_GB": "Black beluga lentils",
+  },
   "d868c1c5-407c-5b80-a294-da71bfca97ca": {
     "source": "Soczewica czerwona",
     "en_GB": "Red lentils",
+  },
+  "aa46d755-b9ae-5d46-8096-63f62257c86f": {
+    "source": "Soczewica konserwowa",
+    "en_GB": "Tinned lentils",
+  },
+  "d1c5da9e-868f-5caa-adb7-d63c35e3c511": {
+    "source": "Soczewica zielona",
+    "en_GB": "Green lentils",
+  },
+  "e1360634-fd9d-5aef-8581-a9eedd11e908": {
+    "source": "Soda oczyszczona",
+    "en_GB": "Bicarbonate of soda",
+  },
+  "a2f134aa-d760-54ec-a95f-1d3db0580ea7": {
+    "source": "Sos Worcestershire",
+    "en_GB": "Worcestershire sauce",
+  },
+  "616581d7-01aa-521e-97c5-01db131891d9": {
+    "source": "Sos barbecue",
+    "en_GB": "Barbecue sauce",
+  },
+  "63baa45e-5fba-53d8-b631-afd51a8710b6": {
+    "source": "Sos butter chicken",
+    "en_GB": "Butter chicken sauce",
+  },
+  "73b5aca1-4efd-5306-92c2-1e17069cdcf8": {
+    "source": "Sos chipotle",
+    "en_GB": "Chipotle sauce",
+  },
+  "d3993dec-27c3-545c-b56f-69c3150e5c8f": {
+    "source": "Sos curry mango",
+    "en_GB": "Mango curry sauce",
+  },
+  "fedb2f73-cc52-5518-8601-ffb93a6eb001": {
+    "source": "Sos czosnkowy",
+    "en_GB": "Garlic sauce",
+  },
+  "264345ec-5b3d-5567-a5b8-ba83ee06414e": {
+    "source": "Sos hoisin",
+    "en_GB": "Hoisin sauce",
   },
   "55b6346b-6647-5715-bb32-68c1ca875dd2": {
     "source": "Sos marinara",
     "en_GB": "Marinara sauce",
   },
+  "ca03e698-f6f1-5aba-8038-454d7c3c8210": {
+    "source": "Sos ostrygowy",
+    "en_GB": "Oyster sauce",
+  },
+  "14bf2137-3d42-542b-8ed1-409051ce2a64": {
+    "source": "Sos ponzu",
+    "en_GB": "Ponzu sauce",
+  },
+  "479cf5ab-9338-5a6d-aaa9-798243cbe2bc": {
+    "source": "Sos rybny",
+    "en_GB": "Fish sauce",
+  },
   "00316a81-bfd2-5697-ba96-348d7f8d9542": {
     "source": "Sos sojowy",
     "en_GB": "Soy sauce",
+  },
+  "a6b89894-db98-50d2-bb0e-2999ff27b87b": {
+    "source": "Sos sriracha",
+    "en_GB": "Sriracha sauce",
   },
   "dff0d997-b999-5e9f-9533-d1b71cdbf5a4": {
     "source": "Sos sweet chili",
@@ -4035,6 +4861,35 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Sos teriyaki",
     "en_GB": "Teriyaki sauce",
   },
+  "2e0426a2-8b84-51e6-aeb3-1c805b4adf4c": {
+    "source": "Sos tikka masala",
+    "en_GB": "Tikka masala sauce",
+  },
+  "891d8fd5-69fd-5c59-acdf-416e805bd057": {
+    "source": "Stek wołowy",
+    "en_GB": "Beef steak",
+  },
+  "1c1647d3-0456-5aff-acaa-91bd29c6388f": {"source": "Sumak", "en_GB": "Sumac"},
+  "06014eb7-a4b2-5d16-8d00-a581f5f9c136": {
+    "source": "Suszone pomidory",
+    "en_GB": "Sun-dried tomatoes",
+  },
+  "d1844cba-b20c-5b6c-bf2b-857ebc9fe1bb": {
+    "source": "Syrop klonowy",
+    "en_GB": "Maple syrup",
+  },
+  "7ac019d7-ef09-58aa-b982-a9223e67c91e": {
+    "source": "Syrop z agawy",
+    "en_GB": "Agave syrup",
+  },
+  "2dd0e42d-acdc-5dc9-876e-bf82ccca480c": {
+    "source": "Szafran",
+    "en_GB": "Saffron",
+  },
+  "3dabcb5d-1558-512a-b696-983b53af14e1": {
+    "source": "Szalotka",
+    "en_GB": "Shallot",
+  },
   "3eb7e5af-302b-5e67-83f5-478fdefd3c98": {
     "source": "Szałwia świeża",
     "en_GB": "Fresh sage",
@@ -4042,6 +4897,10 @@ const systemIngredientText = <String, Map<String, String>>{
   "72bfc3c3-682b-5653-b9b9-31666bc033f0": {
     "source": "Szczypiorek",
     "en_GB": "Chives",
+  },
+  "5b696058-9d68-55ba-ae02-c7812a6e512f": {
+    "source": "Szparagi",
+    "en_GB": "Asparagus",
   },
   "4224428e-c42d-52e6-bcc2-cf347516f4d8": {
     "source": "Szpinak świeży",
@@ -4051,6 +4910,10 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Szynka konserwowa",
     "en_GB": "Cooked ham",
   },
+  "a5f2bd0a-23ba-5e7c-b229-a4a52d531dfe": {
+    "source": "Szynka prosciutto",
+    "en_GB": "Prosciutto",
+  },
   "26709c55-eb1d-524c-a760-0aca767bd924": {"source": "Sól", "en_GB": "Salt"},
   "e5d569de-0f8b-51a7-aba7-71cd6b0780c7": {
     "source": "Tahini",
@@ -4059,6 +4922,18 @@ const systemIngredientText = <String, Map<String, String>>{
   "3359d5b2-02ac-5402-bba6-66e345c92530": {
     "source": "Tofu naturalne",
     "en_GB": "Plain tofu",
+  },
+  "3ffce77e-1042-578b-abda-1bc36220ea10": {
+    "source": "Topinambur",
+    "en_GB": "Jerusalem artichoke",
+  },
+  "39c98e08-ad9a-57ad-a067-a10ee29c8938": {
+    "source": "Tortellini z serem",
+    "en_GB": "Cheese tortellini",
+  },
+  "24a71f37-d418-58c7-b2d4-189457cb5609": {
+    "source": "Tortilla kukurydziana",
+    "en_GB": "Corn tortilla",
   },
   "fa285d67-f8b9-5035-b15a-9d0714b489a6": {
     "source": "Tortilla pszenna",
@@ -4076,21 +4951,57 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Twaróg półtłusty",
     "en_GB": "Semi-fat quark",
   },
+  "4933aada-c016-5a3f-8858-476ec19307c0": {
+    "source": "Tymianek suszony",
+    "en_GB": "Dried thyme",
+  },
+  "79aefca0-630b-5720-a0ed-0e754b2c40cd": {
+    "source": "Udka z kurczaka",
+    "en_GB": "Chicken legs",
+  },
+  "cd057aed-fc15-5aa9-b243-9e4e48ce3100": {
+    "source": "Udziec z indyka",
+    "en_GB": "Turkey thigh",
+  },
   "8c4b0ebc-5c13-52e2-9176-2743d513fcc1": {
     "source": "Wanilia (cukier waniliowy)",
     "en_GB": "Vanilla sugar",
+  },
+  "9018f03b-c249-5372-a8d8-39794168bb16": {
+    "source": "Winogrona ciemne",
+    "en_GB": "Dark grapes",
+  },
+  "c4b3c988-187a-51a7-9264-4669b890ac72": {
+    "source": "Winogrona jasne",
+    "en_GB": "Green grapes",
   },
   "a79271a0-2af5-5e74-a5b1-62dc085e8ee4": {
     "source": "Wiórki kokosowe",
     "en_GB": "Desiccated coconut",
   },
+  "27fa4303-fab9-5778-a2a2-4d1af33a5111": {
+    "source": "Wołowina mielona",
+    "en_GB": "Beef mince",
+  },
+  "f2267444-b715-5f8f-95a3-b4e53d6a8fea": {
+    "source": "Wołowina na gulasz",
+    "en_GB": "Stewing beef",
+  },
   "91deeec4-fb11-5064-9ed0-d421c097fcba": {
     "source": "Za'atar",
     "en_GB": "Za'atar",
   },
+  "2ae1eacf-6999-55d7-9d32-167f3445ec78": {
+    "source": "Ziele angielskie",
+    "en_GB": "Allspice",
+  },
   "90b0cc09-9eb2-5ee1-a7cf-b0fee19e0744": {
     "source": "Ziemniaki",
     "en_GB": "Potatoes",
+  },
+  "4be7f650-b5ed-5140-9208-ca36f38b73df": {
+    "source": "Zioła prowansalskie",
+    "en_GB": "Herbes de Provence",
   },
   "0c4b99ff-9dc6-5c51-a267-62b73c0af1e8": {
     "source": "Łosoś filet",
@@ -4100,6 +5011,14 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Łosoś wędzony",
     "en_GB": "Smoked salmon",
   },
+  "b8d7c40f-5c5b-544b-bd2d-e12101ac696a": {
+    "source": "Śliwki",
+    "en_GB": "Plums",
+  },
+  "37dd70ec-dd00-5c3d-9406-5b2ce43fe5ac": {
+    "source": "Śliwki suszone",
+    "en_GB": "Prunes",
+  },
   "d2099836-9015-530e-91b7-ab21724c0aa6": {
     "source": "Śmietana 18%",
     "en_GB": "Soured cream (18% fat)",
@@ -4107,5 +5026,25 @@ const systemIngredientText = <String, Map<String, String>>{
   "6c2d972e-16cd-55a4-9d52-b851d2446ca7": {
     "source": "Śmietana 30%",
     "en_GB": "Cream (30% fat)",
+  },
+  "82285426-ecfa-53b5-8ff9-d3d8e3176927": {
+    "source": "Śmietanka kokosowa",
+    "en_GB": "Coconut cream",
+  },
+  "c93a3815-32b8-521e-bcf5-69a5d05cb633": {
+    "source": "Żeberka wieprzowe",
+    "en_GB": "Pork ribs",
+  },
+  "e16b97ea-1fe7-5e45-8145-57401722abb8": {
+    "source": "Żelatyna",
+    "en_GB": "Gelatine",
+  },
+  "0a455ea6-4594-5013-8fef-d15e4f546b9e": {
+    "source": "Żurawina mrożona",
+    "en_GB": "Frozen cranberries",
+  },
+  "a9fe7a14-d43b-5a11-bf29-6fd9f9a0dfa1": {
+    "source": "Żurawina suszona",
+    "en_GB": "Dried cranberries",
   },
 };

@@ -39,10 +39,19 @@ class RegionalProductOffer(Base):
             name="ck_regional_offer_estimate_reason",
         ),
         CheckConstraint(
-            "availability_status IN ('available_online', 'out_of_stock', 'unknown')",
+            "availability_status IN ('available_online', 'out_of_stock', 'unknown', 'reported_available')",
             name="ck_regional_offer_availability_status",
         ),
-        CheckConstraint("availability_scope = 'online_catalogue'", name="ck_regional_offer_availability_scope"),
+        CheckConstraint("availability_scope IN ('online_catalogue', 'store_observation', 'user_submission')", name="ck_regional_offer_availability_scope"),
+        CheckConstraint(
+            "(availability_scope = 'online_catalogue' AND availability_status IN ('available_online', 'out_of_stock', 'unknown')) OR "
+            "(availability_scope IN ('store_observation', 'user_submission') AND availability_status = 'reported_available' AND price_kind = 'estimate')",
+            name="ck_regional_offer_evidence_kind",
+        ),
+        CheckConstraint(
+            "availability_scope <> 'user_submission' OR (availability_status = 'reported_available' AND price_kind = 'estimate')",
+            name="ck_regional_offer_submission_evidence",
+        ),
         CheckConstraint("length(trim(retailer_sku)) BETWEEN 1 AND 150 AND retailer_sku = trim(retailer_sku)", name="ck_regional_offer_sku"),
         CheckConstraint("length(trim(name_en)) BETWEEN 1 AND 300", name="ck_regional_offer_name"),
         CheckConstraint("length(fingerprint) = 64 AND fingerprint = lower(fingerprint)", name="ck_regional_offer_fingerprint"),

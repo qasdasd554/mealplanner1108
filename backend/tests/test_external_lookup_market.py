@@ -55,30 +55,29 @@ def test_off_barcode_uses_market_language_in_same_single_request(country, name, 
 
 
 def test_name_search_cache_is_partitioned_by_market_with_same_request_budget(monkeypatch):
+    from app.services import uk_off_search
+    uk_off_search._windows["search"].clear()
+    uk_off_search._active["search"] = 0
+    uk_off_search._backoff_until["search"] = 0
     calls = []
-
-    class Client:
-        def __init__(self, **kwargs):
-            assert kwargs["timeout"] == 7.0
-
-        async def __aenter__(self):
-            return self
-
-        async def __aexit__(self, *args):
-            pass
-
-        async def get(self, url, *, params):
-            calls.append(params)
-            return httpx.Response(200, request=httpx.Request("GET", url), json={"products": [off_product()]})
-
-    monkeypatch.setattr(barcode_lookup.httpx, "AsyncClient", Client)
+    factory = httpx.AsyncClient
+    def respond(request):
+        calls.append(request)
+        if request.url.host == "search.openfoodfacts.org":
+            return httpx.Response(200, json={"hits": [{**off_product(),
+                "countries_tags": ["en:united-kingdom"]}]})
+        return httpx.Response(200, json={"products": [off_product()]})
+    monkeypatch.setattr(barcode_lookup.httpx, "AsyncClient", lambda **kwargs:
+        factory(transport=httpx.MockTransport(respond), **kwargs))
     monkeypatch.setattr(barcode_lookup, "_text_search_cache", {})
     pl = asyncio.run(barcode_lookup.search_products_external("Brand", country_code="PL"))
     gb = asyncio.run(barcode_lookup.search_products_external("Brand", country_code="GB"))
     again = asyncio.run(barcode_lookup.search_products_external("Brand", country_code="GB"))
     assert len(calls) == 2
-    assert [(x["cc"], x["lc"]) for x in calls] == [("pl", "pl"), ("uk", "en")]
-    assert all("nutrition_data_per" in x["fields"].split(",") for x in calls)
+    assert (calls[0].url.params["cc"], calls[0].url.params["lc"]) == ("pl", "pl")
+    assert calls[1].url.host == "search.openfoodfacts.org"
+    assert calls[1].url.params["langs"] == "en"
+    assert all("nutrition_data_per" in x.url.params["fields"].split(",") for x in calls)
     assert pl[0].name == "Jogurt naturalny"
     assert gb[0].name == again[0].name == "Natural yoghurt"
 
@@ -99,7 +98,7 @@ def database_results(*rows):
         result.scalar_one_or_none.return_value = row
         result.scalars.return_value.all.return_value = row if isinstance(row, list) else []
         values.append(result)
-    return SimpleNamespace(execute=AsyncMock(side_effect=values), commit=AsyncMock())
+    return SimpleNamespace(execute=AsyncMock(side_effect=values), commit=AsyncMock(), rollback=AsyncMock())
 
 
 def user(country="GB"):

@@ -22,6 +22,14 @@ def recipe_display_name(recipe, *, country_code: str = 'PL') -> str:
     return row['en_GB']
 
 
+def is_system_ingredient(product) -> bool:
+    """Identify an unchanged canonical seed food, not an arbitrary branded SKU."""
+    if getattr(product, 'created_by_user_id', object()) is not None:
+        return False
+    row = _index()['ingredients'].get(str(product.id))
+    return row is not None and row['source'] == product.name
+
+
 def ingredient_display_name(product, *, country_code: str = 'PL') -> str:
     """Use the reviewed seed label without translating arbitrary authored food.
 

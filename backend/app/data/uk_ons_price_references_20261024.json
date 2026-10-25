@@ -1,0 +1,1616 @@
+{
+  "schema_version": 1,
+  "kind": "national_average_reference",
+  "currency": "GBP",
+  "source_url": "https://www.ons.gov.uk/economy/inflationandpriceindices/articles/shoppingpricescomparisontool/latest",
+  "download_url": "https://github.com/onsdigital/cpi-items-actions/raw/main/datadownload.xlsx",
+  "publisher": "Office for National Statistics",
+  "licence": "OGL-3.0",
+  "source_sha256": "e52e1d5f28122c70af428556717e4b6ff5f880272756d0e47bfe3dbdf8c95289",
+  "retrieved_on": "2026-10-24",
+  "retailer_prices": false,
+  "confirms_availability": false,
+  "units_are_actual_packages": false,
+  "records": [
+    {
+      "code": "CP0111101",
+      "name": "Rice - basmati or jasmine",
+      "reference_unit": "750 g",
+      "price_gbp": "1.90",
+      "period": "2026-09",
+      "category": "Store cupboard"
+    },
+    {
+      "code": "CP0111101",
+      "name": "Rice - microwave",
+      "reference_unit": "250 g",
+      "price_gbp": "0.95",
+      "period": "2026-09",
+      "category": "Store cupboard"
+    },
+    {
+      "code": "CP0111101",
+      "name": "Rice cakes",
+      "reference_unit": "150 g",
+      "price_gbp": "1.72",
+      "period": "2026-09",
+      "category": "Store cupboard"
+    },
+    {
+      "code": "CP0111201",
+      "name": "Flour - self-raising",
+      "reference_unit": "1500 g",
+      "price_gbp": "1.00",
+      "period": "2026-09",
+      "category": "Store cupboard"
+    },
+    {
+      "code": "CP0111301",
+      "name": "Bread - sliced white",
+      "reference_unit": "800 g",
+      "price_gbp": "1.33",
+      "period": "2026-09",
+      "category": "Bakery"
+    },
+    {
+      "code": "CP0111301",
+      "name": "Bread - unsliced white",
+      "reference_unit": "800 g",
+      "price_gbp": "1.95",
+      "period": "2026-09",
+      "category": "Bakery"
+    },
+    {
+      "code": "CP0111302",
+      "name": "Bread - sliced wholemeal or brown",
+      "reference_unit": "800 g",
+      "price_gbp": "1.29",
+      "period": "2026-09",
+      "category": "Bakery"
+    },
+    {
+      "code": "CP0111303",
+      "name": "Bread - gluten-free or premium (e.g. sourdough)",
+      "reference_unit": "400 g",
+      "price_gbp": "2.71",
+      "period": "2026-09",
+      "category": "Bakery"
+    },
+    {
+      "code": "CP0111303",
+      "name": "Bread - rolls, baps or buns",
+      "reference_unit": "6 pack",
+      "price_gbp": "1.26",
+      "period": "2026-09",
+      "category": "Bakery"
+    },
+    {
+      "code": "CP0111304",
+      "name": "Wraps and tortillas (without filling)",
+      "reference_unit": "360 g",
+      "price_gbp": "1.51",
+      "period": "2026-09",
+      "category": "Bakery"
+    },
+    {
+      "code": "CP0111305",
+      "name": "Garlic bread",
+      "reference_unit": "200 g",
+      "price_gbp": "1.27",
+      "period": "2026-09",
+      "category": "Bakery"
+    },
+    {
+      "code": "CP0111306",
+      "name": "Croissant",
+      "reference_unit": "each",
+      "price_gbp": "0.74",
+      "period": "2026-09",
+      "category": "Bakery"
+    },
+    {
+      "code": "CP0111308",
+      "name": "Crumpets",
+      "reference_unit": "6 pack",
+      "price_gbp": "0.90",
+      "period": "2026-09",
+      "category": "Bakery"
+    },
+    {
+      "code": "CP0111309",
+      "name": "Biscuits - sweet (excl. cookies)",
+      "reference_unit": "250 g",
+      "price_gbp": "1.27",
+      "period": "2026-09",
+      "category": "Biscuits"
+    },
+    {
+      "code": "CP0111309",
+      "name": "Cookies",
+      "reference_unit": "300 g",
+      "price_gbp": "1.96",
+      "period": "2026-09",
+      "category": "Biscuits"
+    },
+    {
+      "code": "CP0111310",
+      "name": "Crackers",
+      "reference_unit": "250 g",
+      "price_gbp": "1.32",
+      "period": "2026-09",
+      "category": "Biscuits"
+    },
+    {
+      "code": "CP0111311",
+      "name": "Cake - individual snacks and bars",
+      "reference_unit": "200 g",
+      "price_gbp": "2.02",
+      "period": "2026-09",
+      "category": "Bakery"
+    },
+    {
+      "code": "CP0111311",
+      "name": "Cake - large and sharing",
+      "reference_unit": "each",
+      "price_gbp": "3.59",
+      "period": "2026-09",
+      "category": "Bakery"
+    },
+    {
+      "code": "CP0111401",
+      "name": "Cereal - gluten free",
+      "reference_unit": "350 g",
+      "price_gbp": "2.69",
+      "period": "2026-09",
+      "category": "Store cupboard"
+    },
+    {
+      "code": "CP0111401",
+      "name": "Cereal - non-sugary",
+      "reference_unit": "500 g",
+      "price_gbp": "2.20",
+      "period": "2026-09",
+      "category": "Store cupboard"
+    },
+    {
+      "code": "CP0111401",
+      "name": "Cereal - sugary",
+      "reference_unit": "500 g",
+      "price_gbp": "2.44",
+      "period": "2026-09",
+      "category": "Store cupboard"
+    },
+    {
+      "code": "CP0111402",
+      "name": "Cereal, protein and energy bars",
+      "reference_unit": "40 g",
+      "price_gbp": "0.47",
+      "period": "2026-09",
+      "category": "Store cupboard"
+    },
+    {
+      "code": "CP0111404",
+      "name": "Oats or porridge",
+      "reference_unit": "750 g",
+      "price_gbp": "2.36",
+      "period": "2026-09",
+      "category": "Store cupboard"
+    },
+    {
+      "code": "CP0111501",
+      "name": "Noodles - Asian-style",
+      "reference_unit": "300 g",
+      "price_gbp": "1.40",
+      "period": "2026-09",
+      "category": "Store cupboard"
+    },
+    {
+      "code": "CP0111501",
+      "name": "Pasta - dry",
+      "reference_unit": "500 g",
+      "price_gbp": "0.99",
+      "period": "2026-09",
+      "category": "Store cupboard"
+    },
+    {
+      "code": "CP0111502",
+      "name": "Pasta and noodles - instant pots or packets",
+      "reference_unit": "100 g",
+      "price_gbp": "1.03",
+      "period": "2026-09",
+      "category": "Store cupboard"
+    },
+    {
+      "code": "CP0111503",
+      "name": "Couscous - dry",
+      "reference_unit": "300 g",
+      "price_gbp": "1.35",
+      "period": "2026-09",
+      "category": "Store cupboard"
+    },
+    {
+      "code": "CP0112201",
+      "name": "Beef - burgers",
+      "reference_unit": "454 g",
+      "price_gbp": "4.03",
+      "period": "2026-09",
+      "category": "Meat"
+    },
+    {
+      "code": "CP0112201",
+      "name": "Beef - joints",
+      "reference_unit": "1000 g",
+      "price_gbp": "17.27",
+      "period": "2026-09",
+      "category": "Meat"
+    },
+    {
+      "code": "CP0112201",
+      "name": "Beef - minced or diced",
+      "reference_unit": "1000 g",
+      "price_gbp": "10.87",
+      "period": "2026-09",
+      "category": "Meat"
+    },
+    {
+      "code": "CP0112201",
+      "name": "Beef - steak or chops",
+      "reference_unit": "1000 g",
+      "price_gbp": "23.06",
+      "period": "2026-09",
+      "category": "Meat"
+    },
+    {
+      "code": "CP0112202",
+      "name": "Pork - steak or chops",
+      "reference_unit": "1000 g",
+      "price_gbp": "9.10",
+      "period": "2026-09",
+      "category": "Meat"
+    },
+    {
+      "code": "CP0112202",
+      "name": "Pork - strips",
+      "reference_unit": "500 g",
+      "price_gbp": "5.64",
+      "period": "2026-09",
+      "category": "Meat"
+    },
+    {
+      "code": "CP0112203",
+      "name": "Lamb - steaks, chops or fillets",
+      "reference_unit": "1000 g",
+      "price_gbp": "21.06",
+      "period": "2026-09",
+      "category": "Meat"
+    },
+    {
+      "code": "CP0112204",
+      "name": "Chicken - fillet or steak",
+      "reference_unit": "1000 g",
+      "price_gbp": "9.04",
+      "period": "2026-09",
+      "category": "Meat"
+    },
+    {
+      "code": "CP0112204",
+      "name": "Chicken - whole",
+      "reference_unit": "1000 g",
+      "price_gbp": "4.51",
+      "period": "2026-09",
+      "category": "Meat"
+    },
+    {
+      "code": "CP0112301",
+      "name": "Deli meats - continental (e.g. cured meats, salami, prosciutto)",
+      "reference_unit": "70 g",
+      "price_gbp": "2.30",
+      "period": "2026-09",
+      "category": "Meat"
+    },
+    {
+      "code": "CP0112301",
+      "name": "Pork or ham - cooked (e.g. slices, chunks, or pieces)",
+      "reference_unit": "150 g",
+      "price_gbp": "2.51",
+      "period": "2026-09",
+      "category": "Meat"
+    },
+    {
+      "code": "CP0112302",
+      "name": "Chicken - cooked (e.g. slices, chunks, or pieces)",
+      "reference_unit": "140 g",
+      "price_gbp": "2.24",
+      "period": "2026-09",
+      "category": "Meat"
+    },
+    {
+      "code": "CP0112303",
+      "name": "Pork - bacon (e.g. joint, rasher)",
+      "reference_unit": "1000 g",
+      "price_gbp": "8.57",
+      "period": "2026-09",
+      "category": "Meat"
+    },
+    {
+      "code": "CP0112303",
+      "name": "Pork - gammon (e.g. joint, rasher)",
+      "reference_unit": "1000 g",
+      "price_gbp": "8.89",
+      "period": "2026-09",
+      "category": "Meat"
+    },
+    {
+      "code": "CP0112401",
+      "name": "Offal - liver",
+      "reference_unit": "1000 g",
+      "price_gbp": "6.58",
+      "period": "2026-09",
+      "category": "Meat"
+    },
+    {
+      "code": "CP0112501",
+      "name": "Pork sausages",
+      "reference_unit": "1000 g",
+      "price_gbp": "6.94",
+      "period": "2026-09",
+      "category": "Meat"
+    },
+    {
+      "code": "CP0112502",
+      "name": "Chicken - Kiev or Kyiv",
+      "reference_unit": "300 g",
+      "price_gbp": "3.21",
+      "period": "2026-09",
+      "category": "Meat"
+    },
+    {
+      "code": "CP0112502",
+      "name": "Chicken - nuggets",
+      "reference_unit": "400 g",
+      "price_gbp": "2.76",
+      "period": "2026-09",
+      "category": "Meat"
+    },
+    {
+      "code": "CP0112503",
+      "name": "Pastry - meat-based (e.g. pie, pasty, roll)",
+      "reference_unit": "200 g",
+      "price_gbp": "2.16",
+      "period": "2026-09",
+      "category": "Meat"
+    },
+    {
+      "code": "CP0112504",
+      "name": "Canned meat",
+      "reference_unit": "400 g",
+      "price_gbp": "3.72",
+      "period": "2026-09",
+      "category": "Meat"
+    },
+    {
+      "code": "CP0112599",
+      "name": "Meat-based packet snacks",
+      "reference_unit": "250 g",
+      "price_gbp": "3.16",
+      "period": "2026-09",
+      "category": "Meat"
+    },
+    {
+      "code": "CP0113101",
+      "name": "Fish - fresh salmon",
+      "reference_unit": "1000 g",
+      "price_gbp": "22.08",
+      "period": "2026-09",
+      "category": "Fish"
+    },
+    {
+      "code": "CP0113102",
+      "name": "Fish - fresh cod",
+      "reference_unit": "1000 g",
+      "price_gbp": "25.56",
+      "period": "2026-09",
+      "category": "Fish"
+    },
+    {
+      "code": "CP0113201",
+      "name": "Fish - smoked salmon or trout",
+      "reference_unit": "150 g",
+      "price_gbp": "5.20",
+      "period": "2026-09",
+      "category": "Fish"
+    },
+    {
+      "code": "CP0113301",
+      "name": "Fish - breaded or battered (e.g. fingers and goujons)",
+      "reference_unit": "300 g",
+      "price_gbp": "3.19",
+      "period": "2026-09",
+      "category": "Fish"
+    },
+    {
+      "code": "CP0113301",
+      "name": "Fish - breaded or battered (whole fish)",
+      "reference_unit": "500 g",
+      "price_gbp": "6.48",
+      "period": "2026-09",
+      "category": "Fish"
+    },
+    {
+      "code": "CP0113302",
+      "name": "Fish - canned tuna",
+      "reference_unit": "150 g",
+      "price_gbp": "1.09",
+      "period": "2026-09",
+      "category": "Fish"
+    },
+    {
+      "code": "CP0113402",
+      "name": "Seafood - frozen prawns and shrimps",
+      "reference_unit": "1000 g",
+      "price_gbp": "20.71",
+      "period": "2026-09",
+      "category": "Frozen food"
+    },
+    {
+      "code": "CP0114101",
+      "name": "Milk - cow's (whole, fresh)",
+      "reference_unit": "2272 ml",
+      "price_gbp": "1.86",
+      "period": "2026-09",
+      "category": "Dairy"
+    },
+    {
+      "code": "CP0114201",
+      "name": "Milk - cow's (semi-skimmed, fresh)",
+      "reference_unit": "1136 ml",
+      "price_gbp": "1.14",
+      "period": "2026-09",
+      "category": "Dairy"
+    },
+    {
+      "code": "CP0114298",
+      "name": "Skimmed or semi-skimmed milk of cows, delivered",
+      "reference_unit": null,
+      "price_gbp": null,
+      "period": "2026-09",
+      "category": "Dairy"
+    },
+    {
+      "code": "CP0114301",
+      "name": "Cream - pouring and cooking (e.g. single, whipping)",
+      "reference_unit": "275 ml",
+      "price_gbp": "1.57",
+      "period": "2026-09",
+      "category": "Dairy"
+    },
+    {
+      "code": "CP0114401",
+      "name": "Milk - oat",
+      "reference_unit": "1000 ml",
+      "price_gbp": "1.71",
+      "period": "2026-09",
+      "category": "Dairy"
+    },
+    {
+      "code": "CP0114501",
+      "name": "Cheese - Cheddar",
+      "reference_unit": "1000 g",
+      "price_gbp": "8.58",
+      "period": "2026-09",
+      "category": "Dairy"
+    },
+    {
+      "code": "CP0114599",
+      "name": "Cheese - Brie",
+      "reference_unit": "1000 g",
+      "price_gbp": "11.20",
+      "period": "2026-09",
+      "category": "Dairy"
+    },
+    {
+      "code": "CP0114599",
+      "name": "Cheese - parmesan and similar products",
+      "reference_unit": "1000 g",
+      "price_gbp": "23.35",
+      "period": "2026-09",
+      "category": "Dairy"
+    },
+    {
+      "code": "CP0114599",
+      "name": "Cheese - regional (e.g. Cheshire, Red Leicester)",
+      "reference_unit": "1000 g",
+      "price_gbp": "9.94",
+      "period": "2026-09",
+      "category": "Dairy"
+    },
+    {
+      "code": "CP0114599",
+      "name": "Cheese - spreadable",
+      "reference_unit": "150 g",
+      "price_gbp": "1.38",
+      "period": "2026-09",
+      "category": "Dairy"
+    },
+    {
+      "code": "CP0114601",
+      "name": "Yoghurt - children's",
+      "reference_unit": "300 g",
+      "price_gbp": "1.70",
+      "period": "2026-09",
+      "category": "Dairy"
+    },
+    {
+      "code": "CP0114601",
+      "name": "Yoghurt - flavoured",
+      "reference_unit": "150 g",
+      "price_gbp": "0.77",
+      "period": "2026-09",
+      "category": "Dairy"
+    },
+    {
+      "code": "CP0114701",
+      "name": "Fresh pot dessert - dairy",
+      "reference_unit": "150 g",
+      "price_gbp": "1.16",
+      "period": "2026-09",
+      "category": "Dairy"
+    },
+    {
+      "code": "CP0114702",
+      "name": "Milk - flavoured",
+      "reference_unit": "350 ml",
+      "price_gbp": "1.19",
+      "period": "2026-09",
+      "category": "Dairy"
+    },
+    {
+      "code": "CP0114801",
+      "name": "Eggs - free-range",
+      "reference_unit": "12 pack",
+      "price_gbp": "3.95",
+      "period": "2026-09",
+      "category": "Dairy"
+    },
+    {
+      "code": "CP0115101",
+      "name": "Oil - olive",
+      "reference_unit": "750 ml",
+      "price_gbp": "6.65",
+      "period": "2026-09",
+      "category": "Butter, spreads and oils"
+    },
+    {
+      "code": "CP0115199",
+      "name": "Oil - rapeseed",
+      "reference_unit": "200 ml",
+      "price_gbp": "1.74",
+      "period": "2026-09",
+      "category": "Butter, spreads and oils"
+    },
+    {
+      "code": "CP0115201",
+      "name": "Butter - dairy (block or tub)",
+      "reference_unit": "250 g",
+      "price_gbp": "2.25",
+      "period": "2026-09",
+      "category": "Butter, spreads and oils"
+    },
+    {
+      "code": "CP0115201",
+      "name": "Butter - dairy (spreadable)",
+      "reference_unit": "450 g",
+      "price_gbp": "3.47",
+      "period": "2026-09",
+      "category": "Butter, spreads and oils"
+    },
+    {
+      "code": "CP0115301",
+      "name": "Margarine - milk and vegetable blend",
+      "reference_unit": "500 g",
+      "price_gbp": "2.31",
+      "period": "2026-09",
+      "category": "Butter, spreads and oils"
+    },
+    {
+      "code": "CP0115301",
+      "name": "Margarine - vegetable",
+      "reference_unit": "500 g",
+      "price_gbp": "2.12",
+      "period": "2026-09",
+      "category": "Butter, spreads and oils"
+    },
+    {
+      "code": "CP0116101",
+      "name": "Bananas",
+      "reference_unit": "1000 g",
+      "price_gbp": "1.13",
+      "period": "2026-09",
+      "category": "Fresh fruit"
+    },
+    {
+      "code": "CP0116199",
+      "name": "Avocados",
+      "reference_unit": "each",
+      "price_gbp": "1.05",
+      "period": "2026-09",
+      "category": "Fresh fruit"
+    },
+    {
+      "code": "CP0116199",
+      "name": "Mangoes (fresh)",
+      "reference_unit": "each",
+      "price_gbp": "1.27",
+      "period": "2026-09",
+      "category": "Fresh fruit"
+    },
+    {
+      "code": "CP0116199",
+      "name": "Pineapple (fresh)",
+      "reference_unit": "each",
+      "price_gbp": "1.52",
+      "period": "2026-09",
+      "category": "Fresh fruit"
+    },
+    {
+      "code": "CP0116201",
+      "name": "Clementines and mandarins",
+      "reference_unit": "1000 g",
+      "price_gbp": "2.85",
+      "period": "2026-09",
+      "category": "Fresh fruit"
+    },
+    {
+      "code": "CP0116201",
+      "name": "Oranges",
+      "reference_unit": "each",
+      "price_gbp": "0.52",
+      "period": "2026-09",
+      "category": "Fresh fruit"
+    },
+    {
+      "code": "CP0116299",
+      "name": "Grapefruit",
+      "reference_unit": "each",
+      "price_gbp": "0.60",
+      "period": "2026-09",
+      "category": "Fresh fruit"
+    },
+    {
+      "code": "CP0116299",
+      "name": "Lemons",
+      "reference_unit": "each",
+      "price_gbp": "0.37",
+      "period": "2026-09",
+      "category": "Fresh fruit"
+    },
+    {
+      "code": "CP0116301",
+      "name": "Apples - not cooking",
+      "reference_unit": "1000 g",
+      "price_gbp": "2.26",
+      "period": "2026-09",
+      "category": "Fresh fruit"
+    },
+    {
+      "code": "CP0116399",
+      "name": "Pears",
+      "reference_unit": "1000 g",
+      "price_gbp": "2.46",
+      "period": "2026-09",
+      "category": "Fresh fruit"
+    },
+    {
+      "code": "CP0116399",
+      "name": "Plums",
+      "reference_unit": "1000 g",
+      "price_gbp": "3.71",
+      "period": "2026-09",
+      "category": "Fresh fruit"
+    },
+    {
+      "code": "CP0116401",
+      "name": "Blueberries",
+      "reference_unit": "1000 g",
+      "price_gbp": "10.92",
+      "period": "2026-09",
+      "category": "Fresh fruit"
+    },
+    {
+      "code": "CP0116401",
+      "name": "Raspberries",
+      "reference_unit": "1000 g",
+      "price_gbp": "13.32",
+      "period": "2026-09",
+      "category": "Fresh fruit"
+    },
+    {
+      "code": "CP0116401",
+      "name": "Strawberries",
+      "reference_unit": "1000 g",
+      "price_gbp": "9.43",
+      "period": "2026-09",
+      "category": "Fresh fruit"
+    },
+    {
+      "code": "CP0116501",
+      "name": "Grapes",
+      "reference_unit": "1000 g",
+      "price_gbp": "4.66",
+      "period": "2026-09",
+      "category": "Fresh fruit"
+    },
+    {
+      "code": "CP0116501",
+      "name": "Kiwis",
+      "reference_unit": "each",
+      "price_gbp": "0.51",
+      "period": "2026-09",
+      "category": "Fresh fruit"
+    },
+    {
+      "code": "CP0116501",
+      "name": "Melons",
+      "reference_unit": "each",
+      "price_gbp": "2.08",
+      "period": "2026-09",
+      "category": "Fresh fruit"
+    },
+    {
+      "code": "CP0116601",
+      "name": "Fruit - frozen",
+      "reference_unit": "500 g",
+      "price_gbp": "3.20",
+      "period": "2026-09",
+      "category": "Frozen food"
+    },
+    {
+      "code": "CP0116701",
+      "name": "Dried fruit preparations (not chocolate, e.g. mixed)",
+      "reference_unit": "200 g",
+      "price_gbp": "2.77",
+      "period": "2026-09",
+      "category": "Store cupboard"
+    },
+    {
+      "code": "CP0116901",
+      "name": "Fruit - canned",
+      "reference_unit": "400 g",
+      "price_gbp": "1.17",
+      "period": "2026-09",
+      "category": "Store cupboard"
+    },
+    {
+      "code": "CP0116902",
+      "name": "Fruit salad",
+      "reference_unit": "250 g",
+      "price_gbp": "2.51",
+      "period": "2026-09",
+      "category": "Fresh fruit"
+    },
+    {
+      "code": "CP0116999",
+      "name": "Nuts preparations (not chocolate, e.g. mixed, salted)",
+      "reference_unit": "225 g",
+      "price_gbp": "1.81",
+      "period": "2026-09",
+      "category": "Store cupboard"
+    },
+    {
+      "code": "CP0117101",
+      "name": "Broccoli",
+      "reference_unit": "1000 g",
+      "price_gbp": "2.74",
+      "period": "2026-09",
+      "category": "Fresh vegetables"
+    },
+    {
+      "code": "CP0117101",
+      "name": "Cabbage",
+      "reference_unit": "each",
+      "price_gbp": "1.01",
+      "period": "2026-09",
+      "category": "Fresh vegetables"
+    },
+    {
+      "code": "CP0117101",
+      "name": "Cauliflower",
+      "reference_unit": "each",
+      "price_gbp": "1.40",
+      "period": "2026-09",
+      "category": "Fresh vegetables"
+    },
+    {
+      "code": "CP0117199",
+      "name": "Lettuce",
+      "reference_unit": "each",
+      "price_gbp": "1.02",
+      "period": "2026-09",
+      "category": "Fresh vegetables"
+    },
+    {
+      "code": "CP0117201",
+      "name": "Peppers",
+      "reference_unit": "each",
+      "price_gbp": "1.65",
+      "period": "2026-09",
+      "category": "Fresh vegetables"
+    },
+    {
+      "code": "CP0117202",
+      "name": "Courgette",
+      "reference_unit": "1000 g",
+      "price_gbp": "3.18",
+      "period": "2026-09",
+      "category": "Fresh vegetables"
+    },
+    {
+      "code": "CP0117202",
+      "name": "Cucumber",
+      "reference_unit": "each",
+      "price_gbp": "1.04",
+      "period": "2026-09",
+      "category": "Fresh vegetables"
+    },
+    {
+      "code": "CP0117203",
+      "name": "Tomatoes",
+      "reference_unit": "1000 g",
+      "price_gbp": "4.00",
+      "period": "2026-09",
+      "category": "Fresh vegetables"
+    },
+    {
+      "code": "CP0117301",
+      "name": "Beans - fresh (excl. soya or edamame)",
+      "reference_unit": "1000 g",
+      "price_gbp": "5.25",
+      "period": "2026-09",
+      "category": "Fresh vegetables"
+    },
+    {
+      "code": "CP0117401",
+      "name": "Carrots",
+      "reference_unit": "1000 g",
+      "price_gbp": "0.89",
+      "period": "2026-09",
+      "category": "Fresh vegetables"
+    },
+    {
+      "code": "CP0117402",
+      "name": "Onions",
+      "reference_unit": "1000 g",
+      "price_gbp": "1.14",
+      "period": "2026-09",
+      "category": "Fresh vegetables"
+    },
+    {
+      "code": "CP0117403",
+      "name": "Mushrooms",
+      "reference_unit": "1000 g",
+      "price_gbp": "3.90",
+      "period": "2026-09",
+      "category": "Fresh vegetables"
+    },
+    {
+      "code": "CP0117404",
+      "name": "Leafy salad bag",
+      "reference_unit": "150 g",
+      "price_gbp": "1.42",
+      "period": "2026-09",
+      "category": "Fresh vegetables"
+    },
+    {
+      "code": "CP0117404",
+      "name": "Stir-fry pack",
+      "reference_unit": "400 g",
+      "price_gbp": "1.77",
+      "period": "2026-09",
+      "category": "Fresh vegetables"
+    },
+    {
+      "code": "CP0117501",
+      "name": "Potatoes - baby, new or salad",
+      "reference_unit": "1000 g",
+      "price_gbp": "1.55",
+      "period": "2026-09",
+      "category": "Potatoes"
+    },
+    {
+      "code": "CP0117501",
+      "name": "Potatoes - baking (excl. frozen)",
+      "reference_unit": "1000 g",
+      "price_gbp": "1.12",
+      "period": "2026-09",
+      "category": "Potatoes"
+    },
+    {
+      "code": "CP0117501",
+      "name": "Potatoes - white",
+      "reference_unit": "1000 g",
+      "price_gbp": "0.99",
+      "period": "2026-09",
+      "category": "Potatoes"
+    },
+    {
+      "code": "CP0117502",
+      "name": "Potatoes - sweet",
+      "reference_unit": "1000 g",
+      "price_gbp": "1.54",
+      "period": "2026-09",
+      "category": "Potatoes"
+    },
+    {
+      "code": "CP0117801",
+      "name": "Mixed vegetables - frozen",
+      "reference_unit": "750 g",
+      "price_gbp": "1.67",
+      "period": "2026-09",
+      "category": "Frozen food"
+    },
+    {
+      "code": "CP0117801",
+      "name": "Peas - frozen",
+      "reference_unit": "900 g",
+      "price_gbp": "2.07",
+      "period": "2026-09",
+      "category": "Frozen food"
+    },
+    {
+      "code": "CP0117901",
+      "name": "Baked beans",
+      "reference_unit": "425 g",
+      "price_gbp": "0.88",
+      "period": "2026-09",
+      "category": "Store cupboard"
+    },
+    {
+      "code": "CP0117901",
+      "name": "Beans - canned or jarred (excl. baked beans)",
+      "reference_unit": "400 g",
+      "price_gbp": "0.67",
+      "period": "2026-09",
+      "category": "Store cupboard"
+    },
+    {
+      "code": "CP0117901",
+      "name": "Sweetcorn - canned or jarred",
+      "reference_unit": "250 g",
+      "price_gbp": "0.93",
+      "period": "2026-09",
+      "category": "Store cupboard"
+    },
+    {
+      "code": "CP0117901",
+      "name": "Tomatoes - canned or jarred",
+      "reference_unit": "400 g",
+      "price_gbp": "0.65",
+      "period": "2026-09",
+      "category": "Store cupboard"
+    },
+    {
+      "code": "CP0117902",
+      "name": "Frozen potato chips and wedges (incl. sweet)",
+      "reference_unit": "1200 g",
+      "price_gbp": "2.68",
+      "period": "2026-09",
+      "category": "Potatoes"
+    },
+    {
+      "code": "CP0117903",
+      "name": "Crisps - potato, individual packs",
+      "reference_unit": "35 g",
+      "price_gbp": "1.00",
+      "period": "2026-09",
+      "category": "Crisps"
+    },
+    {
+      "code": "CP0117903",
+      "name": "Crisps - potato, sharing or multipacks",
+      "reference_unit": "150 g",
+      "price_gbp": "1.84",
+      "period": "2026-09",
+      "category": "Crisps"
+    },
+    {
+      "code": "CP0117904",
+      "name": "Crisps - corn",
+      "reference_unit": "50 g",
+      "price_gbp": "0.60",
+      "period": "2026-09",
+      "category": "Crisps"
+    },
+    {
+      "code": "CP0117905",
+      "name": "Crisps - vegetable",
+      "reference_unit": "100 g",
+      "price_gbp": "2.08",
+      "period": "2026-09",
+      "category": "Crisps"
+    },
+    {
+      "code": "CP0117906",
+      "name": "Vegetarian burgers and sliders",
+      "reference_unit": "300 g",
+      "price_gbp": "2.65",
+      "period": "2026-09",
+      "category": "Other food"
+    },
+    {
+      "code": "CP0117906",
+      "name": "Vegetarian sausages",
+      "reference_unit": "300 g",
+      "price_gbp": "2.74",
+      "period": "2026-09",
+      "category": "Other food"
+    },
+    {
+      "code": "CP0117998",
+      "name": "Pickled vegetables",
+      "reference_unit": "400 g",
+      "price_gbp": "1.97",
+      "period": "2026-09",
+      "category": "Sauces, pickles, chutney"
+    },
+    {
+      "code": "CP0117999",
+      "name": "Houmous",
+      "reference_unit": "200 g",
+      "price_gbp": "1.48",
+      "period": "2026-09",
+      "category": "Store cupboard"
+    },
+    {
+      "code": "CP0118101",
+      "name": "Sugar - white",
+      "reference_unit": "1000 g",
+      "price_gbp": "1.15",
+      "period": "2026-09",
+      "category": "Store cupboard"
+    },
+    {
+      "code": "CP0118301",
+      "name": "Jam or conserve",
+      "reference_unit": "400 g",
+      "price_gbp": "1.64",
+      "period": "2026-09",
+      "category": "Jams, marmalades and honey"
+    },
+    {
+      "code": "CP0118302",
+      "name": "Honey",
+      "reference_unit": "400 g",
+      "price_gbp": "2.22",
+      "period": "2026-09",
+      "category": "Jams, marmalades and honey"
+    },
+    {
+      "code": "CP0118401",
+      "name": "Peanut butter",
+      "reference_unit": "300 g",
+      "price_gbp": "2.02",
+      "period": "2026-09",
+      "category": "Store cupboard"
+    },
+    {
+      "code": "CP0118501",
+      "name": "Chocolate - plain or flavoured",
+      "reference_unit": "150 g",
+      "price_gbp": "2.47",
+      "period": "2026-09",
+      "category": "Chocolate and sweets"
+    },
+    {
+      "code": "CP0118502",
+      "name": "Chocolate - assortments (e.g. selection box)",
+      "reference_unit": "300 g",
+      "price_gbp": "6.45",
+      "period": "2026-09",
+      "category": "Chocolate and sweets"
+    },
+    {
+      "code": "CP0118503",
+      "name": "Chocolate - with filling",
+      "reference_unit": "50 g",
+      "price_gbp": "0.97",
+      "period": "2026-09",
+      "category": "Chocolate and sweets"
+    },
+    {
+      "code": "CP0118601",
+      "name": "Ice cream - tubs (incl. yoghurt)",
+      "reference_unit": "750 ml",
+      "price_gbp": "3.23",
+      "period": "2026-09",
+      "category": "Frozen food"
+    },
+    {
+      "code": "CP0118602",
+      "name": "Ice cream - bars, lollies, and cones",
+      "reference_unit": "100 ml",
+      "price_gbp": "0.85",
+      "period": "2026-09",
+      "category": "Frozen food"
+    },
+    {
+      "code": "CP0118901",
+      "name": "Sweets - chewing or bubble gum",
+      "reference_unit": "30 g",
+      "price_gbp": "0.95",
+      "period": "2026-09",
+      "category": "Chocolate and sweets"
+    },
+    {
+      "code": "CP0118901",
+      "name": "Sweets - mints",
+      "reference_unit": "50 g",
+      "price_gbp": "0.76",
+      "period": "2026-09",
+      "category": "Chocolate and sweets"
+    },
+    {
+      "code": "CP0118902",
+      "name": "Sweets - hard (e.g. toffee, boiled)",
+      "reference_unit": "200 g",
+      "price_gbp": "1.64",
+      "period": "2026-09",
+      "category": "Chocolate and sweets"
+    },
+    {
+      "code": "CP0118902",
+      "name": "Sweets - soft (e.g. jelly, pastille)",
+      "reference_unit": "200 g",
+      "price_gbp": "1.47",
+      "period": "2026-09",
+      "category": "Chocolate and sweets"
+    },
+    {
+      "code": "CP0119101",
+      "name": "Ready meals - fish",
+      "reference_unit": "400 g",
+      "price_gbp": "3.99",
+      "period": "2026-09",
+      "category": "Pre-made food"
+    },
+    {
+      "code": "CP0119101",
+      "name": "Ready meals - meat (not fish or pasta)",
+      "reference_unit": "400 g",
+      "price_gbp": "3.43",
+      "period": "2026-09",
+      "category": "Pre-made food"
+    },
+    {
+      "code": "CP0119101",
+      "name": "Ready meals - vegetable",
+      "reference_unit": "350 g",
+      "price_gbp": "2.18",
+      "period": "2026-09",
+      "category": "Pre-made food"
+    },
+    {
+      "code": "CP0119103",
+      "name": "Side dishes - potato-based dishes",
+      "reference_unit": "500 g",
+      "price_gbp": "1.60",
+      "period": "2026-09",
+      "category": "Pre-made food"
+    },
+    {
+      "code": "CP0119104",
+      "name": "Pizza",
+      "reference_unit": "450 g",
+      "price_gbp": "3.63",
+      "period": "2026-09",
+      "category": "Pre-made food"
+    },
+    {
+      "code": "CP0119105",
+      "name": "Quiche",
+      "reference_unit": "400 g",
+      "price_gbp": "2.86",
+      "period": "2026-09",
+      "category": "Pre-made food"
+    },
+    {
+      "code": "CP0119106",
+      "name": "Soup - canned or tinned",
+      "reference_unit": "400 g",
+      "price_gbp": "1.19",
+      "period": "2026-09",
+      "category": "Pre-made food"
+    },
+    {
+      "code": "CP0119107",
+      "name": "Yorkshire puddings",
+      "reference_unit": "200 g",
+      "price_gbp": "1.86",
+      "period": "2026-09",
+      "category": "Pre-made food"
+    },
+    {
+      "code": "CP0119108",
+      "name": "Sandwich or wrap - prepared or takeaway",
+      "reference_unit": "each",
+      "price_gbp": "2.06",
+      "period": "2026-09",
+      "category": "Pre-made food"
+    },
+    {
+      "code": "CP0119201",
+      "name": "Baby food - pouch, pot, or jar",
+      "reference_unit": "150 g",
+      "price_gbp": "1.35",
+      "period": "2026-09",
+      "category": "Other food"
+    },
+    {
+      "code": "CP0119202",
+      "name": "Baby formula",
+      "reference_unit": "750 g",
+      "price_gbp": "12.49",
+      "period": "2026-09",
+      "category": "Other food"
+    },
+    {
+      "code": "CP0119302",
+      "name": "Condiments - mayonnaise",
+      "reference_unit": "500 ml",
+      "price_gbp": "1.81",
+      "period": "2026-09",
+      "category": "Store cupboard"
+    },
+    {
+      "code": "CP0119302",
+      "name": "Condiments - tomato ketchup",
+      "reference_unit": "500 g",
+      "price_gbp": "2.14",
+      "period": "2026-09",
+      "category": "Store cupboard"
+    },
+    {
+      "code": "CP0119304",
+      "name": "Sauces - cook-in or marinades",
+      "reference_unit": "450 g",
+      "price_gbp": "2.26",
+      "period": "2026-09",
+      "category": "Store cupboard"
+    },
+    {
+      "code": "CP0119401",
+      "name": "Herbs - dried",
+      "reference_unit": "10 g",
+      "price_gbp": "0.99",
+      "period": "2026-09",
+      "category": "Store cupboard"
+    },
+    {
+      "code": "CP0119402",
+      "name": "Seeds - singular or mixed",
+      "reference_unit": "200 g",
+      "price_gbp": "1.87",
+      "period": "2026-09",
+      "category": "Store cupboard"
+    },
+    {
+      "code": "CP0121001",
+      "name": "Fruit juice - not from concentrate",
+      "reference_unit": "1000 ml",
+      "price_gbp": "2.31",
+      "period": "2026-09",
+      "category": "Soft drinks"
+    },
+    {
+      "code": "CP0121001",
+      "name": "Fruit smoothies",
+      "reference_unit": "750 ml",
+      "price_gbp": "3.03",
+      "period": "2026-09",
+      "category": "Soft drinks"
+    },
+    {
+      "code": "CP0121002",
+      "name": "Fruit juice - juice and water blends",
+      "reference_unit": "1500 ml",
+      "price_gbp": "2.82",
+      "period": "2026-09",
+      "category": "Soft drinks"
+    },
+    {
+      "code": "CP0121003",
+      "name": "Fruit squash",
+      "reference_unit": "1000 ml",
+      "price_gbp": "1.75",
+      "period": "2026-09",
+      "category": "Soft drinks"
+    },
+    {
+      "code": "CP0122001",
+      "name": "Coffee - instant",
+      "reference_unit": "100 g",
+      "price_gbp": "3.51",
+      "period": "2026-09",
+      "category": "Soft drinks"
+    },
+    {
+      "code": "CP0122001",
+      "name": "Coffee - pods or capsules",
+      "reference_unit": "100 g",
+      "price_gbp": "4.13",
+      "period": "2026-09",
+      "category": "Soft drinks"
+    },
+    {
+      "code": "CP0122001",
+      "name": "Coffee - sachets",
+      "reference_unit": "150 g",
+      "price_gbp": "2.08",
+      "period": "2026-09",
+      "category": "Soft drinks"
+    },
+    {
+      "code": "CP0123001",
+      "name": "Tea - unflavoured, bags",
+      "reference_unit": "240 g",
+      "price_gbp": "2.53",
+      "period": "2026-09",
+      "category": "Soft drinks"
+    },
+    {
+      "code": "CP0123002",
+      "name": "Tea - flavoured (e.g. mint), bags",
+      "reference_unit": "40 g",
+      "price_gbp": "2.13",
+      "period": "2026-09",
+      "category": "Soft drinks"
+    },
+    {
+      "code": "CP0124001",
+      "name": "Hot chocolate and cocoa powder",
+      "reference_unit": "300 g",
+      "price_gbp": "3.31",
+      "period": "2026-09",
+      "category": "Soft drinks"
+    },
+    {
+      "code": "CP0125001",
+      "name": "Water - flavoured",
+      "reference_unit": "1200 ml",
+      "price_gbp": "1.10",
+      "period": "2026-09",
+      "category": "Soft drinks"
+    },
+    {
+      "code": "CP0125001",
+      "name": "Water - still",
+      "reference_unit": "500 ml",
+      "price_gbp": "0.47",
+      "period": "2026-09",
+      "category": "Soft drinks"
+    },
+    {
+      "code": "CP0126001",
+      "name": "Cola - full sugar, bottles",
+      "reference_unit": "1500 ml",
+      "price_gbp": "2.37",
+      "period": "2026-09",
+      "category": "Soft drinks"
+    },
+    {
+      "code": "CP0126001",
+      "name": "Cola - full sugar, cans",
+      "reference_unit": "2000 ml",
+      "price_gbp": "4.28",
+      "period": "2026-09",
+      "category": "Soft drinks"
+    },
+    {
+      "code": "CP0126001",
+      "name": "Cola - low or no sugar, bottles",
+      "reference_unit": "1500 ml",
+      "price_gbp": "1.98",
+      "period": "2026-09",
+      "category": "Soft drinks"
+    },
+    {
+      "code": "CP0126001",
+      "name": "Lemonade - full sugar, bottles",
+      "reference_unit": "2000 ml",
+      "price_gbp": "1.41",
+      "period": "2026-09",
+      "category": "Soft drinks"
+    },
+    {
+      "code": "CP0126099",
+      "name": "Mixer (e.g. tonic) - full sugar",
+      "reference_unit": "1000 ml",
+      "price_gbp": "1.50",
+      "period": "2026-09",
+      "category": "Soft drinks"
+    },
+    {
+      "code": "CP0126099",
+      "name": "Other fizzy drink - full sugar, bottles",
+      "reference_unit": "500 ml",
+      "price_gbp": "1.49",
+      "period": "2026-09",
+      "category": "Soft drinks"
+    },
+    {
+      "code": "CP0129001",
+      "name": "Protein shakes and meal replacement drinks",
+      "reference_unit": "1500 g",
+      "price_gbp": "37.00",
+      "period": "2026-09",
+      "category": "Soft drinks"
+    },
+    {
+      "code": "CP0129002",
+      "name": "Energy drinks",
+      "reference_unit": "375 ml",
+      "price_gbp": "1.60",
+      "period": "2026-09",
+      "category": "Soft drinks"
+    },
+    {
+      "code": "CP0211001",
+      "name": "Spirits - gin",
+      "reference_unit": "700 ml",
+      "price_gbp": "17.16",
+      "period": "2026-09",
+      "category": "Alcohol"
+    },
+    {
+      "code": "CP0211002",
+      "name": "Spirits - whisky",
+      "reference_unit": "700 ml",
+      "price_gbp": "17.24",
+      "period": "2026-09",
+      "category": "Alcohol"
+    },
+    {
+      "code": "CP0211003",
+      "name": "Spirits - vodka",
+      "reference_unit": "700 ml",
+      "price_gbp": "16.91",
+      "period": "2026-09",
+      "category": "Alcohol"
+    },
+    {
+      "code": "CP0211004",
+      "name": "Spirits - rum",
+      "reference_unit": "700 ml",
+      "price_gbp": "16.45",
+      "period": "2026-09",
+      "category": "Alcohol"
+    },
+    {
+      "code": "CP0211005",
+      "name": "Spirits - brandy and cognac",
+      "reference_unit": "700 ml",
+      "price_gbp": "21.60",
+      "period": "2026-09",
+      "category": "Alcohol"
+    },
+    {
+      "code": "CP0211006",
+      "name": "Spirits - pre-mixed cocktail",
+      "reference_unit": "300 ml",
+      "price_gbp": "2.35",
+      "period": "2026-09",
+      "category": "Alcohol"
+    },
+    {
+      "code": "CP0211007",
+      "name": "Spirits - liqueur (e.g. cream, coffee)",
+      "reference_unit": "700 ml",
+      "price_gbp": "15.43",
+      "period": "2026-09",
+      "category": "Alcohol"
+    },
+    {
+      "code": "CP0212101",
+      "name": "Wine - white",
+      "reference_unit": "750 ml",
+      "price_gbp": "7.88",
+      "period": "2026-09",
+      "category": "Alcohol"
+    },
+    {
+      "code": "CP0212102",
+      "name": "Wine - red",
+      "reference_unit": "750 ml",
+      "price_gbp": "7.85",
+      "period": "2026-09",
+      "category": "Alcohol"
+    },
+    {
+      "code": "CP0212103",
+      "name": "Wine - rose",
+      "reference_unit": "750 ml",
+      "price_gbp": "7.21",
+      "period": "2026-09",
+      "category": "Alcohol"
+    },
+    {
+      "code": "CP0212104",
+      "name": "Champagne",
+      "reference_unit": "750 ml",
+      "price_gbp": "33.59",
+      "period": "2026-09",
+      "category": "Alcohol"
+    },
+    {
+      "code": "CP0212104",
+      "name": "Wine - sparkling (incl. prosecco)",
+      "reference_unit": "750 ml",
+      "price_gbp": "8.72",
+      "period": "2026-09",
+      "category": "Alcohol"
+    },
+    {
+      "code": "CP0212105",
+      "name": "Wine - fortified (incl. sherry/port)",
+      "reference_unit": "750 ml",
+      "price_gbp": "11.40",
+      "period": "2026-09",
+      "category": "Alcohol"
+    },
+    {
+      "code": "CP0212201",
+      "name": "Cider - apple",
+      "reference_unit": "2000 ml",
+      "price_gbp": "4.88",
+      "period": "2026-09",
+      "category": "Alcohol"
+    },
+    {
+      "code": "CP0212202",
+      "name": "Cider - flavoured",
+      "reference_unit": "500 ml",
+      "price_gbp": "2.25",
+      "period": "2026-09",
+      "category": "Alcohol"
+    },
+    {
+      "code": "CP0213001",
+      "name": "Beer - mild (e.g. bitter, pale ale, IPAs)",
+      "reference_unit": "2000 ml",
+      "price_gbp": "6.04",
+      "period": "2026-09",
+      "category": "Alcohol"
+    },
+    {
+      "code": "CP0213002",
+      "name": "Beer - lager",
+      "reference_unit": "5000 ml",
+      "price_gbp": "14.46",
+      "period": "2026-09",
+      "category": "Alcohol"
+    },
+    {
+      "code": "CP0213003",
+      "name": "Beer - ale (excl. pale ales and IPAs)",
+      "reference_unit": "500 ml",
+      "price_gbp": "2.04",
+      "period": "2026-09",
+      "category": "Alcohol"
+    },
+    {
+      "code": "CP0213004",
+      "name": "Beer - stout/porter",
+      "reference_unit": "2000 ml",
+      "price_gbp": "6.05",
+      "period": "2026-09",
+      "category": "Alcohol"
+    },
+    {
+      "code": "CP0213005",
+      "name": "Beer - low or no alcohol",
+      "reference_unit": "3000 ml",
+      "price_gbp": "6.02",
+      "period": "2026-09",
+      "category": "Alcohol"
+    }
+  ]
+}

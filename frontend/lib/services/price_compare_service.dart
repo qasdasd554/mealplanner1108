@@ -152,14 +152,20 @@ class PriceComparisonResult {
         (json['is_complete'] as bool? ?? missingProducts.isEmpty) &&
         missingProducts.isEmpty &&
         rawTotal != null;
+    final hasNationalReference = items.any(
+      (item) => item.priceSource?['provider'] == 'ons_national_average',
+    );
     return PriceComparisonResult(
       storeId: json['store_id']?.toString() ?? '',
       storeName: json['store_name']?.toString() ?? 'Nieznany sklep',
       // A missing/partial PLN total is no more a free basket than a GBP one.
       totalPrice: isComplete ? rawTotal : null,
-      isCheapest: isComplete && (json['is_cheapest'] as bool? ?? false),
+      isCheapest:
+          isComplete &&
+          !hasNationalReference &&
+          (json['is_cheapest'] as bool? ?? false),
       savingsVsMostExpensive:
-          isComplete
+          isComplete && !hasNationalReference
               ? (json['savings_vs_most_expensive'] as num?)?.toDouble() ?? 0.0
               : 0.0,
       items: items,

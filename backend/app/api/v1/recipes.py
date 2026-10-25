@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 import re
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from pydantic import BaseModel, ConfigDict, field_validator
 from sqlalchemy import and_, delete, exists, func, nullslast, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -303,7 +303,8 @@ async def list_recipes(
     limit: int = Query(50, ge=1, le=200),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> list[Recipe]:
+    background_tasks: BackgroundTasks = None,
+) -> list[Recipe] | list[RecipeListItemResponse]:
     """Zwraca listę przepisów z możliwością filtrowania.
 
     Obsługuje filtrowanie po typie posiłku, kuchni, trudności,
@@ -362,6 +363,15 @@ async def list_recipes(
         recipe.is_favorite = recipe.id in favorite_ids
         recipe.is_own_recipe = recipe.created_by_user_id == current_user.id
 
+    if background_tasks is not None and account_country(current_user) == "GB":
+        from app.services.off_on_demand import refresh_public_recipe_evidence
+        # Freeze the light response, including author/favourites, before a
+        # rollback expires its ORM rows. FastAPI closes yield dependencies only
+        # after BackgroundTasks; do not hold this connection during OFF HTTP.
+        response = [RecipeListItemResponse.model_validate(recipe) for recipe in recipes]
+        await db.rollback()
+        background_tasks.add_task(refresh_public_recipe_evidence)
+        return response
     return recipes
 
 
@@ -1179,7 +1189,7 @@ async def _create_ai_recipe(
     # recipe. A partial recipe produces an incomplete shopping basket.
     from app.services.recipe_ingredient_integrity import validate_ingredient_names
     from app.services.recipe_ingredient_catalogue import resolve_recipe_ingredients, materialize_recipe_ingredients
-    matched_ingredients = await resolve_recipe_ingredients(parsed["ingredients"], available_product_rows, country=country, user_id=current_user.id)
+    matched_ingredients = await resolve_recipe_ingredients(parsed["ingredients"], available_product_rows, country=country, user_id=current_user.id, db=db)
     unresolved_names = [ingredient["product_name"] for ingredient, product in matched_ingredients
         if product is None or not is_ingredient_quantity_reasonable(ingredient["quantity"], ingredient["unit"])]
     if unresolved_names:
@@ -1381,7 +1391,7 @@ async def edit_recipe_with_ai(
         Product.review_status == "approved", Product.created_by_user_id == user_id,
     )))
     from app.services.recipe_ingredient_catalogue import resolve_recipe_ingredients, materialize_recipe_ingredients
-    pairs = await resolve_recipe_ingredients(parsed["ingredients"], catalogue_result.scalars().all(), country=country, user_id=user_id)
+    pairs = await resolve_recipe_ingredients(parsed["ingredients"], catalogue_result.scalars().all(), country=country, user_id=user_id, db=db)
     for ingredient, _ in pairs:
         if not is_ingredient_quantity_reasonable(ingredient["quantity"], ingredient["unit"]):
             raise HTTPException(status_code=422, detail=recipe_message(country, "AI podało nieprawidłową ilość składnika.", "AI returned an invalid ingredient quantity."))

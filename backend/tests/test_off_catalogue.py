@@ -145,6 +145,50 @@ def test_same_revision_conflict_does_not_replace_existing_data(database):
     assert db.get(OffCatalogueProduct, "5025125000006").package_quantity == 450
 
 
+@pytest.mark.parametrize("revision,size", [(1700000000, 450), (1700000100, 500)])
+def test_older_fetch_never_replaces_a_more_recent_snapshot(database, revision, size):
+    db, adapter = database
+    asyncio.run(import_off_catalogue(adapter, [raw()], retrieved_at=NOW))
+    asyncio.run(import_off_catalogue(adapter, [raw(last_modified_t=revision, product_quantity=size)],
+                                     retrieved_at=NOW - timedelta(hours=1)))
+    db.expire_all()
+    stored = db.get(OffCatalogueProduct, "5025125000006")
+    assert stored.retrieved_at.replace(tzinfo=timezone.utc) == NOW
+    assert stored.source_modified_t == 1700000000
+    assert stored.package_quantity == 450
+
+
+@pytest.mark.parametrize("revision,size,expected_revision,expected_size,hours", [
+    (1700000000, 450, 1700000000, 450, 1),
+    (1700000100, 500, 1700000100, 500, 1),
+    (1699999900, 400, 1700000000, 450, 0),
+])
+def test_later_fetch_refreshes_only_a_compatible_or_newer_source_revision(
+        database, revision, size, expected_revision, expected_size, hours):
+    db, adapter = database
+    asyncio.run(import_off_catalogue(adapter, [raw()], retrieved_at=NOW))
+    asyncio.run(import_off_catalogue(adapter, [raw(last_modified_t=revision, product_quantity=size)],
+                                     retrieved_at=NOW + timedelta(hours=1)))
+    db.expire_all()
+    stored = db.get(OffCatalogueProduct, "5025125000006")
+    assert stored.retrieved_at.replace(tzinfo=timezone.utc) == NOW + timedelta(hours=hours)
+    assert stored.source_modified_t == expected_revision
+    assert stored.package_quantity == expected_size
+
+
+@pytest.mark.parametrize("offset,visible", [
+    (timedelta(days=-30), True), (timedelta(0), True),
+    (timedelta(microseconds=1), False), (timedelta(days=2), False),
+    (timedelta(days=-30, microseconds=-1), False),
+])
+def test_country_search_obeys_both_exact_fetch_time_boundaries(database, offset, visible):
+    _, adapter = database
+    asyncio.run(import_off_catalogue(adapter, [raw()], retrieved_at=NOW + offset))
+    results = asyncio.run(search_off_catalogue(
+        adapter, "yoghurt", country_code="GB", limit=10, now=NOW))
+    assert bool(results) is visible
+
+
 def test_old_cache_does_not_permanently_hide_a_new_label(database):
     _, adapter = database
     asyncio.run(import_off_catalogue(adapter, [raw()], retrieved_at=NOW))
@@ -165,7 +209,11 @@ def test_http_first_lookup_caches_off_after_response_and_next_lookup_is_local(da
     original_execute = adapter.execute
 
     async def execute(statement):
-        if "off_catalogue_products" in str(statement):
+        # A Product select now legitimately contains an OFF availability
+        # subquery. Dispatch by the primary mapped entity/table, not SQL text.
+        entities = getattr(statement, "column_descriptions", ())
+        if (any(column.get("entity") is OffCatalogueProduct for column in entities)
+                or getattr(statement, "entity_description", {}).get("entity") is OffCatalogueProduct):
             return await original_execute(statement)
         return empty
 
@@ -175,8 +223,8 @@ def test_http_first_lookup_caches_off_after_response_and_next_lookup_is_local(da
     lookup = AsyncMock(return_value=[result])
     monkeypatch.setattr(barcode_lookup, "search_products_external", lookup)
 
-    async def persist(records):
-        await import_off_catalogue(adapter, records, retrieved_at=NOW)
+    async def persist(records, *, retrieved_at=None):
+        await import_off_catalogue(adapter, records, retrieved_at=datetime.fromisoformat(retrieved_at) if retrieved_at else NOW)
 
     monkeypatch.setattr(products, "_persist_off_catalogue_in_background", persist)
     app = FastAPI()

@@ -1,12 +1,11 @@
 # Wielka Brytania — prace lokalne, jeszcze nie wydanie
 
-## Bieżący stan — 23.10.2026
+## Bieżący stan — 24.10.2026
 
-Kolejna paczka naprawcza PL 1.0.68+269 bazuje na dokładnym eksporcie Codespace
-49576a6 (wersja 1.0.67+268). Obejmuje późniejsze poprawki logowania natywnego,
-generowania i kompletności składników, autora oraz list zakupów. Szczegóły:
-[raport 23.10](recipe-discovery-and-review-20261023.md). Nie jest to publiczne
-wydanie UK. Poprzednia paczka `sqlite-fix` pozostaje niezmieniona.
+Ostatnie potwierdzone wdrożenie PL na Renderze to 1.0.69+270, commit 9623b28.
+Paczka `mealplanner-update-1.0.69-270-b395897.zip` pozostaje niezmienna.
+Obejmuje poprawki składników i makro przepisów, planów i list zakupów;
+szczegóły: [raport wydania](release-1.0.69.md). Nie jest to publiczne wydanie UK.
 UK nadal wyłączone. Starsze checklisty poniżej
 są historią, w szczególności pełny import OFF nie jest już wymaganiem.
 
@@ -20,14 +19,91 @@ Etap 26: [treści systemowe i wyszukiwanie](uk-stage26-system-content.md).
 Etapy 27–28: [bezpieczeństwo sesji i język logowania](uk-stage27-28-auth-safety.md).
 Priorytet z 23.10: [generowanie składników i przenoszenie na listę zakupów](shopping-ingredient-source-20261023.md).
 Kontynuacja po zamrożeniu paczki 269: [etapy 30–31 — komunikaty przepisów i angielskie nazwy składników AI](uk-stage30-31-recipe-language.md).
-To późniejsze zmiany lokalne; nie zmieniają ZIP-a 1.0.68+269 przekazanego do testów.
+Kontynuacja po paczce 270: [etap 32 — sprawdzone powiązania składników z OFF](uk-stage32-off-mappings.md).
+Próba na rzeczywistych danych: [etap 33 — tożsamości składników z polską przykładową marką](uk-stage33-real-seed-identity.md).
+Kolejna korekta danych: [etap 34 — prezentacja składników i podpowiedzi UK](uk-stage34-product-presentation.md).
+Domknięcie zakupów: [etap 35 — historia opakowań, tożsamość i komunikaty](uk-stage35-shopping-integrity-and-copy.md).
+Listy współdzielone: [etap 36 — język osoby korzystającej a waluta listy](uk-stage36-shared-list-language.md).
+Pełny katalog nazw: [etap 37 — 390 składników i sześć rzeczywistych powiązań OFF](uk-stage37-catalogue-coverage.md).
+Przygotowanie cen: [etap 38 — walidacja obserwacji Open Prices, jeszcze bez wpięcia do wyceny](uk-stage38-open-prices-references.md).
+Wpięcie sprawdzonych obserwacji do istniejących zakupów: [etap 39 — ceny orientacyjne, opakowania i historia](uk-stage39-community-pricing-integration.md).
+Odświeżanie użytych danych bez czekania na OFF: [etap 40 — dane na żądanie i spójność cache](uk-stage40-on-demand-refresh.md).
+Odświeżanie wcześniej zatwierdzonych cen przez bieżącego administratora: [etap 41 — ograniczone zadanie w tle i ochrona równoległych zmian](uk-stage41-admin-price-refresh.md).
+Kontrola zgodności zakresu z PL: [etap 42 — rzeczywiste źródła cen i poprawka cache składników użytych przez AI](uk-stage42-pl-parity.md).
+Istniejące zgłoszenia produktów: [etap 43 — zaakceptowane ceny GBP w katalogu, zakupach i zmianie sklepu](uk-stage43-approved-submission-prices.md).
+Podstawa dalszych szacunków: [etap 44 — oficjalne odniesienia ONS, bez przypisywania średnich do sklepów](uk-stage44-ons-references.md).
+Spójność istniejących funkcji: [etap 45 — dostępność przepisu bez zgadywania masy sztuki oraz angielski kanał push](uk-stage45-country-evidence-and-native-push.md).
+Poszerzanie rzeczywistych danych: [etap 46 — szybsze wyszukiwanie OFF UK, pełna weryfikacja wybranego GTIN i 18 kolejnych powiązań składników](uk-stage46-off-search-and-staple-references.md).
+Kolejne składniki i poprawki spójności: [etap 47 — siedem powiązań, ponowne użycie zatwierdzonego GTIN i zmienna gramatura](uk-stage47-cooking-coverage-and-existing-gtin.md).
+Przyspieszenie działania i prac: [etap 48 — lokalne aliasy użytego OFF oraz zbiorcze warunki zamknięcia UK](uk-stage48-local-reuse-and-finish-plan.md).
+Wpięcie wyceny: [etap 49 — oznaczone szacunki potrzebnych ilości w GBP na podstawie ONS](uk-stage49-national-gbp-estimates.md).
+Przekazanie danych: [kontrolowany import 31 składników, domyślnie z rollbackiem](uk-stage50-controlled-starter-transfer.md).
+Utrzymanie danych: [odświeżanie składników publicznych przepisów po odpowiedzi katalogu UK](uk-stage51-recipe-evidence-refresh.md).
+Dokumenty: [cztery angielskie projekty do zatwierdzenia i kontrola publikacji](uk-stage52-english-document-review.md).
+Właściciel potwierdził 24.10 domenę `mealplannerworld.com` dla UK.
+Poprawne adresy checkera to `https://mealplannerworld.com/*.html`, bez `/en/`.
+Po wskazaniu ścieżki przez właściciela wszystkie cztery zwracają 200,
+mają treść angielską z datą 15.10 i kontakt `support@mealplannerworld.com`.
+Wcześniejsze 404 dotyczyły błędnego prefiksu `/en/`. Nie wymagamy ponownej
+publikacji i nie zastępujemy istniejących stron lokalnymi szkicami.
+Linki aplikacji są już rozdzielone lokalnie według rynku konta:
+UK otwiera powyższe strony i kontakt `support@mealplannerworld.com`,
+PL zachowuje stare adresy i `kontakt@mealplannerpolska.pl`. Rejestracja
+korzysta z regionu ustalonego przed utworzeniem konta. Bez nowych żądań
+HTTP przy renderowaniu, bez zmiany wyglądu, wersji 270 i aktywacji UK.
+Dostępność stron nie jest zatwierdzeniem prawnym treści.
+Szczegóły: [powiązanie dokumentów i kontaktu](uk-document-links-20261024.md).
+Opis zmian logowania po 270: [raport diagnostyki](render-monitor-and-auth-20261023.md).
+Nie kupujemy workera ani dysku; przygotowany monitor pozostaje wyłączony.
+Późniejsze zmiany lokalne nie zmieniają żadnego przekazanego ZIP-a.
 
 Do publicznego startu UK pozostają:
 
-- Zweryfikowane mapowania składników ogólnych do prawdziwych produktów
-  dostępnych w UK oraz jawne, uzasadnione ceny orientacyjne. Sam OFF nie
+- Kontrolowane zasilenie danych w uzgodnionym wydaniu. Wycena 20 pojęć
+  składników na podstawie ONS jest już wpięta, z jawnym oznaczeniem średniej
+  krajowej, nie ceny sklepu. Przekazanie 31 przejrzanych powiązań OFF ma
+  jedno narzędzie z rollbackiem jako trybem domyślnym i przeszło próbę na
+  rzeczywistym PostgreSQL. Nie zostało wykonane na produkcji.
+  Nie czekamy na ręczne sprawdzenie wszystkich produktów ani na dostępność
+  wszystkich przepisów: filtr nadal ukrywa konkretny przepis bez dowodu UK.
+  Dalsze pokrycie katalogu uzupełnia się na żądanie jak w PL. To nie znosi
+  wymogu prawdziwego źródła ceny i poprawnej masy/jednostki.
+  Odświeżanie faktów OFF dla już użytego kodu działa
+  w etapie 40, bez pełnego importu. Etap 41 odświeża na żądanie administratora
+  istniejące zatwierdzone obserwacje, ale nie dodaje nowych tożsamości/SKU
+  ani pełnego feedu cen wszystkich sieci. Sam OFF nie
   potwierdza stanu półek konkretnego sklepu. Bez fikcyjnych GTIN/cen.
-- Pozostałe lokalne komunikaty natywnych usług oraz przegląd dokumentów UK.
+  Pełny feed wszystkich SKU dziesięciu sieci nie jest wymaganiem startu:
+  PL korzysta także z lokalnych cen orientacyjnych. UK potrzebuje uzasadnionej
+  podstawy GBP dla używanych produktów, nie ręcznego zatwierdzenia całego OFF.
+  Dokładny produkt odkryty przy tworzeniu przepisu zachowuje teraz już pobrane
+  fakty o kraju bez nowego HTTP; ręczne mapowanie dotyczy innych tożsamości,
+  nie każdego przyszłego skanu użytkownika.
+  Akceptacja produktu UK ze zgłoszoną ceną i masą zasila już tę samą ścieżkę
+  zakupów: cena jest orientacyjna i zachowuje pochodzenie ze zgłoszenia.
+  Nie ma wymogu oficjalnego feedu sklepu dla takiej ręcznie zatwierdzonej ceny.
+  W etapie 46 sprawdzono kolejne 18 powiązań na rzeczywistych produktach
+  w gałęzi testowej Neon z pełnym rollbackiem. Pakiety nie są automatycznie
+  importowane na produkcję. Wszystkie przygotowane partie nadal obejmują
+  tylko część startowych przepisów; nie jest to zakończenie danych UK.
+  Etap 47 dodaje siedem lokalnie sprawdzonych powiązań: łącznie przygotowane
+  partie obejmują 31 pojęć i pełny zestaw wymaganych składników 19 ze 137
+  przepisów startowych. Nie są automatycznie importowane na produkcję.
+  Przy wydaniu należy sprawdzić aktualność źródeł; uruchomienie importu
+  nie odmładza dat pobrania, a zmienione fakty wymagają nowego przeglądu.
+  Sam katalog UK uruchamia już ograniczony refresh znanych użytych kodów
+  w tle, nie tylko skaner. Niezmienione fakty odzyskują aktualność bez
+  ponownego skanowania; nowa tożsamość nie jest automatycznie zatwierdzana.
+- Weryfikacja natywnych usług na urządzeniach i dokumenty dla UK. Kanał push
+  otrzymuje już kraj konta; cztery istniejące strony dokumentów/pomocy
+  zwracają HTTP 200, ale mają polski język. Nie zmieniano ich publikacji.
+  Są już cztery angielskie projekty na podstawie obecnej witryny oraz
+  techniczna kontrola publikacji. Nie są zatwierdzoną polityką/regulaminem.
+  Strony angielskie są już opublikowane na potwierdzonej domenie UK.
+  Do przeglądu pozostają zgodność ich treści z rzeczywistym działaniem,
+  m.in. dane operatora i retencja, a następnie podpięcie linków w wydaniu:
+  badane adresy `/en/*.html` przekierowują 301 do `mealplannerworld.com`.
+  Odnośniki w aplikacji pozostały bez zmian; nie kierujemy ich do szkiców.
 - Rzeczywisty build/test Android i iOS, aparatu, udostępniania i zakupów;
   konfiguracja produktów/ofert UK w sklepach należy do właściciela kont.
 

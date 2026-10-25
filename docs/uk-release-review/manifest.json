@@ -1,0 +1,106 @@
+{
+  "country_code": "GB",
+  "source_checked_on": "2026-10-24",
+  "source_notice_date": "2026-10-14",
+  "scope": "Offline English review drafts. No publication, approval, application-link replacement or legal compliance certification.",
+  "publication_host": {
+    "base_url": "https://mealplannerworld.com/",
+    "ownership_confirmed_by": "user",
+    "confirmed_on": "2026-10-24"
+  },
+  "publication_observation": {
+    "checked_on": "2026-10-24",
+    "document_count": 4,
+    "http_status": 200,
+    "language": "en",
+    "notice_date": "2026-10-15",
+    "contact_email": "support@mealplannerworld.com",
+    "content_is_local_draft": false,
+    "note": "Live owner-published pages exist at root paths. This records availability, not approval of their legal content or mailbox delivery."
+  },
+  "approval": {
+    "approved": false,
+    "reviewed_by": null,
+    "reviewed_on": null
+  },
+  "files": {
+    "privacy-policy.html": {
+      "source_path": "sources/privacy-policy.html.txt",
+      "source_url": "https://mealplannerpolska.pl/privacy-policy.html",
+      "source_http_status": 200,
+      "source_sha256": "20eec853e2727d66b23aecc7fdb05bae26ee7f95e4788c3a1cafefaa0c1236d0",
+      "draft_path": "en/privacy-policy.html",
+      "draft_sha256": "0075a11d3425b9cb005165d28914e263b766d96613fa493e0a6382b8c2844d19",
+      "state": "draft",
+      "proposed_public_url": "https://mealplannerworld.com/privacy-policy.html",
+      "source_final_url": "https://mealplannerpolska.pl/privacy-policy.html"
+    },
+    "terms-of-use.html": {
+      "source_path": "sources/terms-of-use.html.txt",
+      "source_url": "https://mealplannerpolska.pl/terms-of-use.html",
+      "source_http_status": 200,
+      "source_sha256": "57ff4e1934e00277947a84ea96731dfa7d90adebc6460012a6756f4b26a650ca",
+      "draft_path": "en/terms-of-use.html",
+      "draft_sha256": "1152483109b33533f61c3962b34a1dce010df3608ac4bbc054fc9709d3f91dd0",
+      "state": "draft",
+      "proposed_public_url": "https://mealplannerworld.com/terms-of-use.html",
+      "source_final_url": "https://mealplannerpolska.pl/terms-of-use.html"
+    },
+    "delete-account.html": {
+      "source_path": "sources/delete-account.html.txt",
+      "source_url": "https://mealplannerpolska.pl/delete-account.html",
+      "source_http_status": 200,
+      "source_sha256": "9269108b492745bb8b0331de3a47b06406a4a0b61db662ee799bf8a80c5e3a5a",
+      "draft_path": "en/delete-account.html",
+      "draft_sha256": "dc4427807b808ab9c2ea79112f8b2c6e9d3f8c8817ac7cdda9fa36c78342d894",
+      "state": "draft",
+      "proposed_public_url": "https://mealplannerworld.com/delete-account.html",
+      "source_final_url": "https://mealplannerpolska.pl/delete-account.html"
+    },
+    "support.html": {
+      "source_path": "sources/support.html.txt",
+      "source_url": "https://mealplannerpolska.pl/support.html",
+      "source_http_status": 200,
+      "source_sha256": "073661d5d33954f172a2e4d0c3a445f0c9ec96264e87bcbbc067eb1c2635d539",
+      "draft_path": "en/support.html",
+      "draft_sha256": "82fe0761fced19bcea1568e6d3786c53a99bf2258cc3b08c32fd34cd0173fd8e",
+      "state": "draft",
+      "proposed_public_url": "https://mealplannerworld.com/support.html",
+      "source_final_url": "https://mealplannerpolska.pl/support.html"
+    }
+  },
+  "unresolved": [
+    {
+      "id": "controller_identity",
+      "required_confirmation": "The operator/controller's full legal identity and contact details; do not infer them from a workspace path or app brand."
+    },
+    {
+      "id": "uk_privacy_scope",
+      "required_confirmation": "UK-specific privacy review, applicable bases for health/diet data, rights information and any representative/DPO requirements."
+    },
+    {
+      "id": "providers_and_transfers",
+      "required_confirmation": "Actual providers, data regions, transfer safeguards, and the source's unverified blanket GDPR-compliance statement."
+    },
+    {
+      "id": "retention_and_backups",
+      "required_confirmation": "Actual retention for account data, photographs, import jobs, logs, transaction records and backups; verify rather than invent the source's 30-day backup promise."
+    },
+    {
+      "id": "deletion_times",
+      "required_confirmation": "Align the published source's seven days versus seven working days; verify support and deletion procedures."
+    },
+    {
+      "id": "subscription_and_consumer_terms",
+      "required_confirmation": "Review UK consumer terms, store renewal/cancellation/trial disclosures and the Apple EULA wording."
+    },
+    {
+      "id": "published_repository_terms_mismatch",
+      "required_confirmation": "Choose the approved source of contractual terms. The current public terms omit the separate user-content licence present in the repository document."
+    },
+    {
+      "id": "published_content_review",
+      "required_confirmation": "Four English root-path pages already exist. Review their actual published content and support mailbox against the app and intended UK release; do not publish older local drafts over them. Record approval separately from availability."
+    }
+  ]
+}

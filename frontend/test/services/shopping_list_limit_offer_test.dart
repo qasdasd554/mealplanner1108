@@ -31,7 +31,12 @@ String quota(String country) =>
 
 void main() {
   for (final country in ['PL', 'GB']) {
-    for (final scenario in ['return', 'late-session', 'presentation-error']) {
+    for (final scenario in [
+      'return',
+      'append-limit',
+      'late-session',
+      'presentation-error',
+    ]) {
       testWidgets('$country limit recovery: $scenario', (tester) async {
         tester.binding.handleAppLifecycleStateChanged(
           AppLifecycleState.resumed,
@@ -70,7 +75,14 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        final error = ApiException(403, quota(country));
+        final error = ApiException(
+          403,
+          scenario == 'append-limit'
+              ? country == 'GB'
+                  ? 'A Standard account can create one shopping list per week. Adding more recipes to an existing list is available with Premium.'
+                  : 'Konto standardowe może utworzyć jedną listę zakupów w tygodniu. Dodawanie kolejnych przepisów do istniejącej listy jest dostępne w Premium.'
+              : quota(country),
+        );
         final handled = await ShoppingListLimitOffer.handle(
           target,
           error,
@@ -84,7 +96,7 @@ void main() {
         );
         await tester.pumpAndSettle();
         expect(handled, scenario != 'presentation-error');
-        if (scenario == 'return') {
+        if (scenario == 'return' || scenario == 'append-limit') {
           expect(find.text('Existing shopping list'), findsOneWidget);
           expect(listTab, 2);
           Navigator.of(target).pop();

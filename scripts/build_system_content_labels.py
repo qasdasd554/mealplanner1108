@@ -31,12 +31,21 @@ def build():
     recipes = [{ast.literal_eval(key): ast.literal_eval(value)
                 for key, value in zip(node.keys, node.values)
                 if ast.literal_eval(key) in text_keys} for node in recipe_nodes]
-    ingredient_names = sorted({ast.literal_eval(ingredient.elts[0])
+    recipe_ingredient_names = {ast.literal_eval(ingredient.elts[0])
         for node in recipe_nodes for key, value in zip(node.keys, node.values)
-        if ast.literal_eval(key) == 'ingredients' for ingredient in value.elts})
+        if ast.literal_eval(key) == 'ingredients' for ingredient in value.elts}
+    # The catalogue includes foods not yet used by the bundled recipes. They
+    # need the same display/search identity; otherwise valid system foods are
+    # mistaken for arbitrary Polish branded SKUs during UK OFF review.
+    # Read literal seed data, never execute seed_database or connect to a DB.
+    product_nodes = (assignments['PRODUCTS_DATA'].elts
+                     + assignments['ADDITIONAL_RECIPE_PRODUCTS_100'].elts)
+    ingredient_names = sorted(ast.literal_eval(node.elts[0]) for node in product_nodes)
+    assert len(ingredient_names) == len(set(ingredient_names)), 'Duplicate catalogue identity'
+    assert recipe_ingredient_names <= set(ingredient_names), 'Recipe food missing from catalogue'
     english = json.loads((ROOT / 'backend/app/data/system_recipes_en_GB.json').read_text(encoding='utf-8'))
     labels = json.loads((ROOT / 'backend/app/data/system_ingredients_en_GB.json').read_text(encoding='utf-8'))
-    assert len(recipes) == 137 and len(ingredient_names) == 150
+    assert len(recipes) == 137
     assert set(english) == {recipe['name'] for recipe in recipes}
     assert set(labels) == set(ingredient_names)
     registry = {}
@@ -110,7 +119,8 @@ def main():
         assert OUTPUT.is_file()
         assert parsed_maps(OUTPUT.read_text(encoding='utf-8')) == parsed_maps(data)
         assert json.loads(INDEX_OUTPUT.read_text(encoding='utf-8')) == index
-        print('Source/translation contract: 137 recipes, 150 ingredients, quantities unchanged.')
+        print(f'Source/translation contract: {len(index["recipes"])} recipes, '
+              f'{len(index["ingredients"])} ingredients, quantities unchanged.')
     else:
         OUTPUT.write_text(data, encoding='utf-8', newline='\n')
         INDEX_OUTPUT.write_text(json.dumps(index, ensure_ascii=False, indent=2) + '\n', encoding='utf-8', newline='\n')

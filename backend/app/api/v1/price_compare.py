@@ -22,6 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased, selectinload
 
 from app.api.deps import get_current_user, get_db
+from app.core.language import account_text
 from app.core.markets import account_country
 from app.models.meal_plan import MealPlan, MealPlanEntry
 from app.db.uk_store_catalog import UK_STORES
@@ -41,6 +42,7 @@ from app.services.regional_shopping import (
 )
 
 router = APIRouter()
+from app.services.uk_ons_pricing import quote_national_requirement
 
 class PriceCompareItem(BaseModel):
     product_name: str
@@ -76,6 +78,24 @@ class PriceCompareStoreResult(BaseModel):
     currency_code: str = "PLN"
 
 
+def _uk_comparison_item(quote, *, fingerprint=None, checked=False):
+    return PriceCompareItem(
+        product_name=quote.name_en, quantity_needed=float(quote.required_quantity), unit=quote.unit,
+        price_in_store=float(quote.total_price), price_is_estimated=quote.price_is_estimated,
+        last_verified=quote.last_verified, regional_offer_id=quote.offer_id,
+        package_quantity=float(quote.package_quantity) if quote.package_quantity is not None else None,
+        package_unit=quote.unit if quote.package_quantity is not None else None,
+        package_count=quote.package_count,
+        purchased_quantity=float(quote.purchased_quantity) if quote.package_quantity is not None else None,
+        price_per_package=float(quote.price_per_package) if quote.price_per_package is not None else None,
+        price_source=quote.price_source, offer_fingerprint=fingerprint, is_checked=checked)
+
+
+def _has_national_reference(results):
+    return any((item.price_source or {}).get("provider") == "ons_national_average"
+        for result in results for item in result.items)
+
+
 def _positive_finite_float(value) -> float | None:
     """Nieznana/nieprawidłowa cena lub gramatura nie oznacza darmowego produktu."""
     try:
@@ -92,6 +112,7 @@ async def _compare_uk_prices(db, meal_plan, stores) -> list[PriceCompareStoreRes
     enter this branch. Missing provenance or quantity is unknown, not £0.
     """
     requirements = aggregate_regional_requirements(meal_plan)
+    from app.services.system_content_language import ingredient_display_name
     if not requirements:
         return []
     as_of = utc_market_date()
@@ -117,6 +138,7 @@ async def _compare_uk_prices(db, meal_plan, stores) -> list[PriceCompareStoreRes
         missing = []
         for product_id, requirement in requirements.items():
             quote = None
+            name = ingredient_display_name(requirement.product, country_code="GB") if requirement.product else str(product_id)
             if requirement.quantity is not None and requirement.unit is not None:
                 covered = regional_pantry_coverage(
                     requirement.product, requirement.quantity, requirement.unit,
@@ -124,7 +146,7 @@ async def _compare_uk_prices(db, meal_plan, stores) -> list[PriceCompareStoreRes
                 ) if requirement.product is not None else Decimal(0)
                 if covered > 0:
                     items.append(PriceCompareItem(
-                        product_name=requirement.product.name,
+                        product_name=name,
                         quantity_needed=float(covered), unit=requirement.unit,
                         price_in_store=0, price_is_estimated=False, is_from_pantry=True,
                     ))
@@ -136,24 +158,15 @@ async def _compare_uk_prices(db, meal_plan, stores) -> list[PriceCompareStoreRes
                     store_id=store.id, quantity=purchase_quantity,
                     unit=requirement.unit, as_of=as_of,
                 )
+                if quote is None:
+                    quote = quote_national_requirement(requirement.product, purchase_quantity,
+                        requirement.unit, store_id=store.id, as_of=as_of)
             if quote is None:
-                missing.append(requirement.product.name if requirement.product else str(product_id))
+                missing.append(name)
                 continue
             total += quote.total_price
-            items.append(PriceCompareItem(
-                product_name=quote.name_en,
-                quantity_needed=float(quote.required_quantity), unit=quote.unit,
-                price_in_store=float(quote.total_price),
-                price_is_estimated=quote.price_is_estimated,
-                last_verified=quote.last_verified,
-                regional_offer_id=quote.offer_id,
-                package_quantity=float(quote.package_quantity), package_unit=quote.unit,
-                package_count=quote.package_count,
-                purchased_quantity=float(quote.purchased_quantity),
-                price_per_package=float(quote.price_per_package),
-                price_source=quote.price_source,
-                offer_fingerprint=by_id[quote.offer_id].fingerprint,
-            ))
+            items.append(_uk_comparison_item(quote,
+                fingerprint=by_id[quote.offer_id].fingerprint if quote.offer_id is not None else None))
         results.append(PriceCompareStoreResult(
             store_id=store.id, store_name=store.name,
             total_price=float(total) if not missing else None,
@@ -164,7 +177,7 @@ async def _compare_uk_prices(db, meal_plan, stores) -> list[PriceCompareStoreRes
             currency_code="GBP",
         ))
     complete = [result.total_price for result in results if result.is_complete]
-    if complete:
+    if complete and not _has_national_reference(results):
         cheapest, most_expensive = min(complete), max(complete)
         for result in results:
             if result.is_complete:
@@ -195,7 +208,9 @@ async def compare_shopping_list_prices(
 
     shopping = await _get_shopping_list_or_404(list_id, current_user, db, refresh=True)
     if shopping.status not in {"pending", "in_progress"}:
-        raise HTTPException(status_code=409, detail="Only an open shopping list can compare stores.")
+        raise HTTPException(status_code=409, detail=account_text(current_user,
+            "Ceny można porównywać tylko dla otwartej listy zakupów.",
+            "Only an open shopping list can compare stores."))
     plan = await db.get(MealPlan, shopping.meal_plan_id)
     owner = await db.get(User, plan.user_id) if plan is not None else None
     source = shopping.store
@@ -206,7 +221,8 @@ async def compare_shopping_list_prices(
     if (owner is None or owner.country_code != "GB" or source is None
             or source.country_code != "GB" or source.currency_code != "GBP"
             or plan.store_id != shopping.store_id):
-        raise HTTPException(status_code=404, detail="Shopping list not found in the UK market.")
+        raise HTTPException(status_code=404, detail=account_text(current_user,
+            "Nie znaleziono listy zakupów na rynku UK.", "Shopping list not found in the UK market."))
     rows = list(shopping.items)
     if not rows:
         return []
@@ -217,6 +233,8 @@ async def compare_shopping_list_prices(
     ).order_by(Store.name))).scalars().all())
     requirements = {item.id: regional_snapshot_requirement(item) for item in rows}
     product_ids = {value[0] for value in requirements.values() if value is not None}
+    products = {product.id: product for product in (await db.execute(
+        select(Product).where(Product.id.in_(product_ids)))).scalars().all()} if product_ids else {}
     as_of = utc_market_date()
     offers = list((await db.execute(select(RegionalProductOffer).where(
         RegionalProductOffer.store_id.in_([store.id for store in stores]),
@@ -258,6 +276,9 @@ async def compare_shopping_list_prices(
                     by_pair.get((store.id, product_id), []), product_id=product_id,
                     store_id=store.id, quantity=quantity, unit=unit, as_of=as_of,
                 )
+                if quote is None:
+                    quote = quote_national_requirement(products.get(product_id), quantity, unit,
+                        store_id=store.id, as_of=as_of)
                 fingerprint = fingerprints.get(quote.offer_id) if quote else None
             else:
                 quote, fingerprint = None, None
@@ -265,16 +286,7 @@ async def compare_shopping_list_prices(
                 missing.append(name)
                 continue
             total += quote.total_price
-            items.append(PriceCompareItem(
-                product_name=quote.name_en, quantity_needed=float(quote.required_quantity),
-                unit=quote.unit, price_in_store=float(quote.total_price),
-                price_is_estimated=quote.price_is_estimated, last_verified=quote.last_verified,
-                regional_offer_id=quote.offer_id, package_quantity=float(quote.package_quantity),
-                package_unit=quote.unit, package_count=quote.package_count,
-                purchased_quantity=float(quote.purchased_quantity),
-                price_per_package=float(quote.price_per_package), price_source=quote.price_source,
-                offer_fingerprint=fingerprint, is_checked=item.is_checked,
-            ))
+            items.append(_uk_comparison_item(quote, fingerprint=fingerprint, checked=item.is_checked))
         results.append(PriceCompareStoreResult(
             store_id=store.id, store_name=store.name,
             total_price=None if missing else float(total),
@@ -283,7 +295,7 @@ async def compare_shopping_list_prices(
             is_complete=not missing, missing_products=sorted(set(missing)), currency_code="GBP",
         ))
     complete = [result.total_price for result in results if result.is_complete]
-    if complete:
+    if complete and not _has_national_reference(results):
         cheapest, highest = min(complete), max(complete)
         for result in results:
             if result.is_complete:
@@ -349,9 +361,11 @@ async def compare_prices(
     )
     meal_plan = result.scalar_one_or_none()
     if not meal_plan:
-        raise HTTPException(status_code=404, detail="Nie znaleziono planu posiłków")
+        raise HTTPException(status_code=404, detail=account_text(current_user,
+            "Nie znaleziono planu posiłków", "Meal plan not found."))
     if meal_plan.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Brak uprawnień do tego planu posiłków")
+        raise HTTPException(status_code=403, detail=account_text(current_user,
+            "Brak uprawnień do tego planu posiłków", "You do not have access to this meal plan."))
     # Porównanie cen nie jest tylnym wejściem do usuniętego planu lub
     # płatnego archiwum; stosuje tę samą regułę co podgląd planu.
     from app.api.v1.meal_plans import _ensure_plan_access

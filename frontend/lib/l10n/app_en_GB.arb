@@ -2289,7 +2289,7 @@
   "releasePromptTitle": "An update is available",
   "releasePromptRequired": "This version is no longer supported. Update the app to continue.",
   "releasePromptStoreError": "Could not open the app store.",
-  "releasePromptChanges": "• Improved AI recipe ingredients: a similarly named ready meal no longer replaces a required ingredient.\n• Improved calorie and macro recovery. Estimates are labelled, and missing ingredient data no longer hides known values.\n• Fixed an error when generating meal plans.\n• Made switching shops on a shopping list easier. Missing basket prices are no longer shown as a zero total.\n• After using your free list, you can easily explore Premium or return to your shopping.",
+  "releasePromptChanges": "• Improved ingredient matching in AI recipes.\n• Improved package sizes and nutrition data when scanning products.\n• Refined shopping lists and labels for incomplete price estimates.\n• Updated UK content, documents and support links.",
   "releasePromptApple": "Open App Store",
   "releasePromptGoogle": "Open Google Play",
   "releasePromptLater": "Later",

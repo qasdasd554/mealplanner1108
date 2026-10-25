@@ -43,6 +43,7 @@ from app.services.regional_shopping import apply_regional_item_quote, load_regio
 from app.services.regional_requirements import to_regional_base_quantity
 from app.services.uk_catalogue_import import canonical_base_unit
 from app.services.regional_offer_pricing import select_uk_offer_quote
+from app.services.market_catalog import regional_offer_available_condition
 
 logger = logging.getLogger(__name__)
 
@@ -262,7 +263,7 @@ class ProductSubstitutionService:
             local_ids = select(RegionalProductOffer.product_id).where(
                 RegionalProductOffer.store_id == store_id,
                 RegionalProductOffer.country_code == "GB", RegionalProductOffer.currency_code == "GBP",
-                RegionalProductOffer.availability_status == "available_online",
+                regional_offer_available_condition(as_of=regional_pricing_date()),
             )
             result = await self.db.execute(select(Product).where(
                 Product.id.in_(local_ids), Product.id != product_id, Product.review_status == "approved",

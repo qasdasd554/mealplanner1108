@@ -41,38 +41,25 @@ void main() {
             .widgetList<Text>(find.byType(Text))
             .map((value) => value.data ?? '')
             .firstWhere((value) => value.startsWith('•'));
-        expect(body.split('\n'), hasLength(5));
+        expect(body.split('\n'), hasLength(4));
         expect(
           body,
           contains(
-            english ? 'AI recipe ingredients' : 'dobór składników przepisów AI',
+            english ? 'ingredient matching' : 'dopasowywanie składników',
           ),
         );
         expect(
           body,
-          contains(
-            english ? 'Estimates are labelled' : 'Szacunki są oznaczone',
-          ),
+          contains(english ? 'nutrition data' : 'danych odżywczych'),
+        );
+        expect(body, contains(english ? 'package sizes' : 'opakowań'));
+        expect(
+          body,
+          contains(english ? 'incomplete price estimates' : 'niepełnych wycen'),
         );
         expect(
           body,
-          contains(
-            english ? 'generating meal plans' : 'generowania planu posiłków',
-          ),
-        );
-        expect(body, contains(english ? 'switching shops' : 'zmianę sklepu'));
-        expect(body, contains(english ? 'zero total' : 'koszt 0 zł'));
-        expect(
-          body,
-          contains(
-            english
-                ? 'missing ingredient data no longer hides known values'
-                : 'brak danych jednego składnika nie ukrywa znanych wartości',
-          ),
-        );
-        expect(
-          body,
-          contains(english ? 'explore Premium' : 'sprawdzisz Premium'),
+          contains(english ? 'support links' : 'komunikatów aplikacji'),
         );
         expect(body, isNot(contains('mealplannerpolska.pl')));
         expect(tester.takeException(), isNull);

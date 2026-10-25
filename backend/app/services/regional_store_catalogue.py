@@ -8,6 +8,8 @@ from app.models import Product, RegionalProductOffer
 from app.schemas.product import ProductResponse, StoreProductResponse
 from app.services.regional_offer_pricing import reviewed_uk_offer
 from app.services.uk_catalogue_import import canonical_base_unit
+from app.services.product_market_presentation import product_for_market
+from app.services.market_catalog import regional_offer_available_condition
 
 
 async def list_reviewed_store_products(db, store_id, *, skip: int, limit: int,
@@ -22,7 +24,7 @@ async def list_reviewed_store_products(db, store_id, *, skip: int, limit: int,
         RegionalProductOffer.store_id == store_id,
         RegionalProductOffer.country_code == "GB",
         RegionalProductOffer.currency_code == "GBP",
-        RegionalProductOffer.availability_status == "available_online",
+        regional_offer_available_condition(as_of=as_of),
         Product.review_status == "approved",
     )
     if search:
@@ -55,7 +57,8 @@ async def list_reviewed_store_products(db, store_id, *, skip: int, limit: int,
             output.append(StoreProductResponse(
                 id=offer.id, store_id=store_id, product_id=product.id,
                 price=float(proposal.price.amount), currency_code="GBP",
-                is_available=True, product=ProductResponse.model_validate(product),
+                is_available=True, product=ProductResponse.model_validate(
+                    product_for_market(product, country_code="GB")),
                 name_en=proposal.name_en, package_quantity=float(proposal.package.quantity),
                 package_unit=proposal.package.unit,
                 price_is_estimated=proposal.price.kind == "estimate",

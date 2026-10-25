@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/national_price_reference.dart';
 import '../../models/shopping_list.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/quantity_formatter.dart';
@@ -115,7 +116,8 @@ class DishShoppingListScreen extends StatelessWidget {
                                   title: Text(item.productName),
                                   subtitle: Text(
                                     '${formatQuantity(item.requiredQuantity, item.unit)} ${shoppingList.currencyCode == 'PLN' ? item.unit : context.strings.unitLabel(item.unit)}'
-                                    '${item.currencyCode == 'GBP' && item.hasReliablePackage ? '\n${context.strings.shoppingPackageBuy(item.packageCount!, formatQuantity(item.packageQuantity!, item.packageUnit!), item.packageUnit!)}' : ''}',
+                                    '${item.currencyCode == 'GBP' && item.hasReliablePackage ? '\n${context.strings.shoppingPackageBuy(item.packageCount!, formatQuantity(item.packageQuantity!, item.packageUnit!), item.packageUnit!)}' : ''}'
+                                    '${item.currencyCode == 'GBP' ? nationalPriceReferenceLabel(item.priceSource, english: context.strings.localeName.startsWith('en'), prefix: '\n') ?? '' : ''}',
                                   ),
                                   trailing: ConstrainedBox(
                                     constraints: BoxConstraints(

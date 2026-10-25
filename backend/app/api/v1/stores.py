@@ -2,7 +2,7 @@
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -109,6 +109,7 @@ async def list_store_products(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
     market: MarketCode | None = None,
+    background_tasks: BackgroundTasks = None,
 ) -> list[StoreProduct | StoreProductResponse]:
     """Zwraca produkty dostępne w danym sklepie z paginacją i filtrami.
 
@@ -125,10 +126,18 @@ async def list_store_products(
         raise NotFoundException(detail=f"Sklep o ID {store_id} nie został znaleziony")
 
     if country == "GB":
-        return await list_reviewed_store_products(
+        result = await list_reviewed_store_products(
             db, store_id, skip=skip, limit=limit, search=search,
             department_id=department_id, as_of=regional_pricing_date(),
         )
+        if background_tasks is not None and getattr(current_user, "role", None) == "admin":
+            from app.services.community_price_refresh import refresh_reviewed_store_prices
+            reviewer_id = current_user.id
+            # The GB result is already materialized Pydantic data. Release the
+            # request's read transaction before any background external HTTP.
+            await db.rollback()
+            background_tasks.add_task(refresh_reviewed_store_prices, store_id, reviewer_id)
+        return result
 
     query = (
         select(StoreProduct)

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/national_price_reference.dart';
 import 'package:provider/provider.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
@@ -1401,6 +1402,13 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     String storeId,
   ) {
     final compactBritish = _isCompactBritish(item.currencyCode);
+    final referenceLabel =
+        item.currencyCode == 'GBP'
+            ? nationalPriceReferenceLabel(
+              item.priceSource,
+              english: context.strings.localeName.startsWith('en'),
+            )
+            : null;
     final priceLabel =
         item.estimatedPrice == null
             ? null
@@ -1484,6 +1492,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                 item.packageUnit!,
               ),
             ),
+          if (referenceLabel != null) Text(referenceLabel),
           if (compactBritish && priceLabel != null)
             Text(
               priceLabel,

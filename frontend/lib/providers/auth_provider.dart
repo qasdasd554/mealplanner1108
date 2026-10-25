@@ -14,6 +14,7 @@ class AuthProvider with ChangeNotifier {
   final AuthService _authService;
   final Future<String?> Function() _readToken;
   final Future<void> Function() _unregisterPush;
+  final Future<void> Function(String countryCode) _registerPush;
   final ErrorStringsResolver? errorStrings;
 
   User? _currentUser;
@@ -45,10 +46,14 @@ class AuthProvider with ChangeNotifier {
     AuthService? service,
     Future<String?> Function()? readToken,
     Future<void> Function()? unregisterPush,
+    Future<void> Function(String countryCode)? registerPush,
     this.errorStrings,
   }) : _authService = service ?? AuthService(),
        _readToken = readToken ?? ApiClient().getToken,
-       _unregisterPush = unregisterPush ?? PushService().unregister {
+       _unregisterPush = unregisterPush ?? PushService().unregister,
+       _registerPush =
+           registerPush ??
+           ((country) => PushService().registerForUser(countryCode: country)) {
     initialization = _checkTokenOnInit();
   }
 
@@ -295,7 +300,7 @@ class AuthProvider with ChangeNotifier {
       // zapomnieć. Nie czekamy na wynik — prośba o zgodę i zapis tokenu
       // nie mogą opóźniać wejścia do aplikacji.
       if (_currentUser != null && _currentUser!.isEmailVerified) {
-        unawaited(PushService().registerForUser());
+        unawaited(_registerPush(user.countryCode));
       }
     } catch (e) {
       if (!isCurrent()) return;
@@ -325,7 +330,7 @@ class AuthProvider with ChangeNotifier {
           _schedulePremiumExpiryRefresh();
           notifyListeners();
           if (_currentUser != null && _currentUser!.isEmailVerified) {
-            unawaited(PushService().registerForUser());
+            unawaited(_registerPush(user.countryCode));
           }
           return;
         } catch (retryError) {

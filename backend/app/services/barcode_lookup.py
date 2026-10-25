@@ -8,6 +8,7 @@ import asyncio
 import time
 import re
 import json
+from datetime import datetime, timezone
 
 import httpx
 
@@ -58,6 +59,8 @@ class BarcodeLookupResult:
         barcode: str | None = None,
         serving_quantity: float | None = None,
         off_product: dict | None = None,
+        off_retrieved_at: str | None = None,
+        off_search_projection: bool = False,
     ) -> None:
         self.name = name
         self.brand = brand
@@ -72,6 +75,21 @@ class BarcodeLookupResult:
         self.barcode = barcode
         self.serving_quantity = serving_quantity
         self.off_product = off_product
+        # Keep this JSON-safe: some background jobs serialize __dict__.
+        # Cached results must retain the time of this exact OFF snapshot,
+        # not the later time when a user receives it from memory cache.
+        self.off_retrieved_at = None
+        self.off_search_projection = off_search_projection
+        if isinstance(off_product, dict):
+            if off_retrieved_at is None:
+                fetched_at = datetime.now(timezone.utc)
+            else:
+                if not isinstance(off_retrieved_at, str):
+                    raise ValueError("OFF retrieval time must be a timezone-aware ISO8601 string")
+                fetched_at = datetime.fromisoformat(off_retrieved_at)
+                if fetched_at.tzinfo is None:
+                    raise ValueError("OFF retrieval time must include a timezone")
+            self.off_retrieved_at = fetched_at.astimezone(timezone.utc).isoformat()
 
 
 def _has_complete_nutrition(result: BarcodeLookupResult) -> bool:
@@ -112,6 +130,12 @@ def _merge_lookup_results(
             return supplementary_value
         return primary_value if primary_value is not None else supplementary_value
 
+    off_source = primary if primary.off_product else (
+        supplementary
+        if (supplementary.off_product and primary.barcode
+            and supplementary.barcode in barcode_variants(primary.barcode))
+        else None
+    )
     return BarcodeLookupResult(
         name=primary.name,
         brand=primary.brand or supplementary.brand,
@@ -135,11 +159,8 @@ def _merge_lookup_results(
         # Wyszukiwanie po nazwie może trafić na inną gramaturę tego samego
         # produktu. Uzupełniamy nim makro, ale nigdy rozmiar opakowania.
         serving_quantity=primary.serving_quantity,
-        off_product=primary.off_product or (
-            supplementary.off_product
-            if primary.barcode and supplementary.barcode in barcode_variants(primary.barcode)
-            else None
-        ),
+        off_product=off_source.off_product if off_source is not None else None,
+        off_retrieved_at=off_source.off_retrieved_at if off_source is not None else None,
     )
 
 
@@ -303,6 +324,14 @@ def _metric_package_info(product: dict) -> tuple[float, str] | None:
     `serving_quantity`. Skaner dodaje jedno opakowanie, dlatego porcji nigdy
     nie używamy jako zastępczej masy całego produktu.
     """
+    quantity_text = str(product.get("quantity") or "").strip().lower()
+    # OFF's numeric quantity may be a parser's upper endpoint, not the
+    # measured weight of this variable package (e.g. cucumber "300/350g").
+    # Keep per-100 nutrition, but do not offer an invented fixed package.
+    if re.search(r"\d+(?:[.,]\d+)?\s*(?:kg|mg|g|ml|cl|dl|l)?\s*"
+            r"(?:[-–—/]|\bto\b)\s*\d+(?:[.,]\d+)?\s*(?:kg|mg|g|ml|cl|dl|l)\b",
+            quantity_text):
+        return None
     package_quantity = _number(product, "product_quantity")
     package_unit = str(product.get("product_quantity_unit") or "").strip().lower()
     if package_quantity is not None and package_quantity > 0 and package_unit in {"g", "kg", "mg", "ml", "cl", "dl", "l"}:
@@ -311,7 +340,6 @@ def _metric_package_info(product: dict) -> tuple[float, str] | None:
         )
         if _bounded_package_quantity(converted) is not None:
             return converted, "ml" if package_unit in {"ml", "cl", "dl", "l"} else "g"
-    quantity_text = str(product.get("quantity") or "").strip().lower()
     if quantity_text:
         # Przykłady spotykane w OFF: "150 g", "1,5 l", "6 x 100 g".
         match = _METRIC_PACKAGE_QUANTITY.search(quantity_text)
@@ -432,8 +460,9 @@ async def search_products_external(
 ) -> list[BarcodeLookupResult]:
     """Wyszukuje produkty po nazwie w tej samej bazie co skaner kodów.
 
-    Open Food Facts udostępnia pełnotekstowe wyszukiwanie przez starszy
-    endpoint v1. Ograniczamy pola, liczbę wyników i czas odpowiedzi, żeby
+    PL zachowuje starszy endpoint v1. UK używa oficjalnego Search-a-licious;
+    jego projekcje nie udają pełnego, aktualnego odczytu kodu produktu.
+    Ograniczamy pola, liczbę wyników i czas odpowiedzi, żeby
     podpowiedzi w formularzu pozostały lekkie i nie blokowały ręcznego
     wpisywania nazwy przy chwilowej awarii zewnętrznej usługi.
     """
@@ -444,8 +473,18 @@ async def search_products_external(
     cache_key = f"{cc}\0{lc}\0{normalized_query.casefold()}\0{limit}"
     cached = _text_search_cache.get(cache_key)
     now = time.monotonic()
-    if cached is not None and now - cached[0] < _TEXT_SEARCH_CACHE_TTL_SECONDS:
+    cache_ttl = 30 if country_code == "GB" and cached is not None and not cached[1] else _TEXT_SEARCH_CACHE_TTL_SECONDS
+    if cached is not None and now - cached[0] < cache_ttl:
         return list(cached[1][:limit])
+
+    if country_code == "GB":
+        from app.services.uk_off_search import search_uk_index
+
+        results = await search_uk_index(normalized_query, limit=limit)
+        if len(_text_search_cache) >= _TEXT_SEARCH_CACHE_MAX_ENTRIES:
+            _text_search_cache.pop(min(_text_search_cache, key=lambda key: _text_search_cache[key][0]), None)
+        _text_search_cache[cache_key] = (now, list(results))
+        return results
 
     fields = (
         "code,product_name_pl,product_name,product_name_en,"
@@ -466,8 +505,6 @@ async def search_products_external(
         "lc": lc,
         "cc": cc,
     }
-    if country_code == "GB":
-        params.update({"tagtype_0": "countries", "tag_contains_0": "contains", "tag_0": "united-kingdom"})
     headers = {"User-Agent": USER_AGENT, "Accept": "application/json"}
     try:
         async with httpx.AsyncClient(

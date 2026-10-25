@@ -71,6 +71,8 @@ class RegionalOfferQuote:
     price_is_estimated: bool
     last_verified: date | None
     price_source: dict[str, Any]
+    availability_scope: str = "online_catalogue"
+    availability_status: str = "available_online"
 
 
 def reviewed_uk_offer(offer: Any, *, as_of: date, max_age: int = 30) -> UKProductProposal | None:
@@ -105,7 +107,9 @@ def reviewed_uk_offer(offer: Any, *, as_of: date, max_age: int = 30) -> UKProduc
         })
         if proposal.proposal_id != offer.id or proposal.fingerprint != offer.fingerprint:
             return None
-        if proposal.availability_status != "available_online":
+        if (proposal.availability_scope, proposal.availability_status) not in {
+                ("online_catalogue", "available_online"), ("store_observation", "reported_available"),
+                ("user_submission", "reported_available")}:
             return None
         for source in proposal.sources:
             age = (as_of - source.checked_on).days
@@ -160,5 +164,6 @@ def select_uk_offer_quote(
             currency_code="GBP", price_is_estimated=proposal.price.kind == "estimate",
             last_verified=proposal.price.source.checked_on if proposal.price.kind == "observed" else None,
             price_source=proposal.price.source.model_dump(mode="json"),
+            availability_scope=proposal.availability_scope, availability_status=proposal.availability_status,
         ))
     return min(quotes, key=lambda value: (value.total_price, value.purchased_quantity, str(value.offer_id))) if quotes else None

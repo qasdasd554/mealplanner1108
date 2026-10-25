@@ -6,17 +6,18 @@ from decimal import Decimal, ROUND_CEILING
 import re
 from typing import Iterable
 from urllib.parse import urlsplit
-from uuid import UUID
+from uuid import UUID, uuid5
 
 from sqlalchemy import select
 
 from app.models import MealPlan, PantryItem, Product, RegionalProductOffer, ShoppingListItem, ShoppingListItemRegionalSnapshot, Store
 from fastapi import HTTPException
-from app.db.uk_product_catalog import CatalogueEvidence, _RETAILER_DOMAINS
+from app.db.uk_product_catalog import OpenPricesEvidence, SubmittedProductEvidence, parse_price_evidence, _RETAILER_DOMAINS
 from app.db.uk_store_catalog import UK_STORES
 from app.services.regional_offer_pricing import RegionalOfferQuote, select_uk_offer_quote
 from app.services.regional_requirements import to_regional_base_quantity, MAX_STORED_QUANTITY
 from app.services.uk_catalogue_import import canonical_base_unit
+from app.services.system_content_language import ingredient_display_name
 
 
 def regional_pricing_date():
@@ -26,9 +27,13 @@ def regional_pricing_date():
 async def load_regional_offers(db, product_ids, store_id):
     if not product_ids:
         return []
+    # Local import avoids the market/quote/shopping module dependency cycle.
+    from app.services.market_catalog import regional_offer_available_condition
+
     result = await db.execute(select(RegionalProductOffer).where(
         RegionalProductOffer.store_id == store_id,
         RegionalProductOffer.product_id.in_(product_ids),
+        regional_offer_available_condition(as_of=regional_pricing_date()),
     ))
     return list(result.scalars().all())
 
@@ -75,6 +80,9 @@ def frozen_regional_purchase_quote(item, *, as_of=None):
     Offer deletion or evidence age must not erase a recorded purchase.
     """
     snapshot = getattr(item, "regional_snapshot", None)
+    if snapshot is not None and isinstance(snapshot.quote_data, dict) and snapshot.quote_data.get("price_basis") == "national_quantity_reference":
+        from app.services.uk_ons_pricing import frozen_national_reference
+        return frozen_national_reference(item, as_of=as_of or regional_pricing_date())
     requirement = regional_snapshot_requirement(item)
     try:
         if requirement is None or not item.is_checked or item.is_from_pantry or snapshot.quote_status != "quoted":
@@ -89,11 +97,24 @@ def frozen_regional_purchase_quote(item, *, as_of=None):
         store = next((value for value in UK_STORES if value.id == snapshot.store_id), None)
         if store is None or not re.fullmatch(r"[0-9a-f]{64}", str(data.get("offer_fingerprint", ""))):
             return None
-        source = CatalogueEvidence.model_validate(data.get("price_source"))
+        source = parse_price_evidence(data.get("price_source"))
         host = urlsplit(source.url).hostname or ""
-        if source.checked_on > snapshot.pricing_as_of or not any(
-            host == domain or host.endswith("." + domain) for domain in _RETAILER_DOMAINS[store.slug]
-        ):
+        scope, status = data.get("availability_scope"), data.get("availability_status")
+        if source.checked_on > snapshot.pricing_as_of:
+            return None
+        if scope == "store_observation":
+            if (status != "reported_available" or data.get("price_is_estimated") is not True
+                    or not isinstance(source, OpenPricesEvidence) or source.retailer_slug != store.slug):
+                return None
+        elif scope == "user_submission":
+            if (status != "reported_available" or data.get("price_is_estimated") is not True
+                    or not isinstance(source, SubmittedProductEvidence) or source.submission_id != product_id
+                    or source.product_name != snapshot.name_en
+                    or UUID(str(data.get("offer_id"))) != uuid5(store.id, f"product-sku:submission-{product_id.hex}")):
+                return None
+        elif (scope != "online_catalogue" or status != "available_online"
+                or isinstance(source, (OpenPricesEvidence, SubmittedProductEvidence)) or not any(
+                    host == domain or host.endswith("." + domain) for domain in _RETAILER_DOMAINS[store.slug])):
             return None
         offer_id = UUID(str(data.get("offer_id")))
         if snapshot.offer_id is not None and snapshot.offer_id != offer_id:
@@ -110,9 +131,7 @@ def frozen_regional_purchase_quote(item, *, as_of=None):
                 or package * count != purchased or purchased < quantity
                 or price != price.quantize(Decimal("0.01")) or total > Decimal("99999999.99")
                 or price * count != total or total != _frozen_decimal(item.estimated_price)
-                or type(data.get("price_is_estimated")) is not bool
-                or data.get("availability_scope") != "online_catalogue"
-                or data.get("availability_status") != "available_online"):
+                or type(data.get("price_is_estimated")) is not bool):
             return None
         return RegionalOfferQuote(
             offer_id=offer_id, store_id=snapshot.store_id, product_id=product_id,
@@ -122,6 +141,7 @@ def frozen_regional_purchase_quote(item, *, as_of=None):
             price_is_estimated=data["price_is_estimated"],
             last_verified=None if data["price_is_estimated"] else source.checked_on,
             price_source=source.model_dump(mode="json"),
+            availability_scope=scope, availability_status=status,
         )
     except (AttributeError, ValueError, TypeError, ArithmeticError):
         return None
@@ -184,8 +204,14 @@ def apply_regional_item_quote(
             offers, product_id=product.id, store_id=store_id,
             quantity=base_quantity, unit=base_unit, as_of=as_of,
         )
+        if quote is None:
+            from app.services.uk_ons_pricing import quote_national_requirement
+            quote = quote_national_requirement(product, base_quantity, base_unit,
+                store_id=store_id, as_of=as_of)
     matching = [offer for offer in offers if offer.product_id == product.id and offer.store_id == store_id]
-    name = quote.name_en if quote else (matching[0].name_en if matching else product.name)
+    # Without a validated quote no SKU was selected. An arbitrary/stale shop
+    # row must not rename the ingredient or label pantry food as that SKU.
+    name = quote.name_en if quote else ingredient_display_name(product, country_code="GB")
     snapshot = getattr(item, "regional_snapshot", None)
     if snapshot is None:
         snapshot = ShoppingListItemRegionalSnapshot(manual_extra_quantity=Decimal(0))
@@ -202,7 +228,10 @@ def apply_regional_item_quote(
     snapshot.quote_status = "pantry" if from_pantry else "quoted" if quote else "unpriced"
     snapshot.offer_id = quote.offer_id if quote else None
     snapshot.quote_data = None
-    if quote is not None:
+    if quote is not None and quote.offer_id is None:
+        from app.services.uk_ons_pricing import reference_quote_data
+        snapshot.quote_data = reference_quote_data(quote)
+    elif quote is not None:
         selected = next(offer for offer in matching if offer.id == quote.offer_id)
         snapshot.quote_data = {
             "offer_id": str(quote.offer_id), "offer_fingerprint": selected.fingerprint,
@@ -296,24 +325,34 @@ async def complete_regional_items_to_pantry(db, shopping_list, user_id):
             if item.store_product_id is not None:
                 raise HTTPException(status_code=409, detail="Refresh this shopping list before moving items to the pantry.")
             continue
-        if snapshot.product_id is None or snapshot.required_quantity is None or snapshot.required_unit not in {"g", "ml"}:
+        if snapshot.product_id is None:
             continue
-        quantity = snapshot.required_quantity
+        requirement = regional_snapshot_requirement(item)
+        if requirement is None:
+            raise HTTPException(status_code=409, detail=(
+                "Enter a valid quantity in g or ml for this item, or finish without moving items to the pantry."
+            ))
+        product_id, quantity, base_unit = requirement
         if snapshot.quote_status == "quoted":
-            try:
-                quantity = Decimal(str(snapshot.quote_data["purchased_quantity"]))
-                package = Decimal(str(snapshot.quote_data["package_quantity"]))
-                count = snapshot.quote_data["package_count"]
-                if type(count) is not int or count < 1 or package * count != quantity or quantity < item.required_quantity:
-                    raise ValueError("Invalid stored package snapshot")
-            except (KeyError, TypeError, ValueError, ArithmeticError) as exc:
-                raise HTTPException(status_code=409, detail="Refresh this shopping list before moving items to the pantry.") from exc
+            # The same history validator is used by comparison/store changes.
+            # It tolerates offer deletion/age, never inconsistent money/units.
+            purchase = frozen_regional_purchase_quote(item)
+            if purchase is None:
+                raise HTTPException(status_code=409, detail=(
+                    "The saved purchase data are inconsistent. Correct the item, or finish without moving items to the pantry."
+                ))
+            quantity = purchase.purchased_quantity
+        elif (snapshot.quote_status != "unpriced" or snapshot.quote_data is not None
+                or snapshot.offer_id is not None or item.estimated_price is not None):
+            raise HTTPException(status_code=409, detail=(
+                "The saved purchase data are inconsistent. Correct the item, or finish without moving items to the pantry."
+            ))
         if not quantity.is_finite() or quantity <= 0 or quantity > MAX_STORED_QUANTITY:
             raise HTTPException(status_code=409, detail="The purchased quantity cannot be stored safely in the pantry.")
-        old, unit = purchases.get(snapshot.product_id, (Decimal(0), snapshot.required_unit))
-        if unit != snapshot.required_unit:
+        old, unit = purchases.get(product_id, (Decimal(0), base_unit))
+        if unit != base_unit:
             raise HTTPException(status_code=409, detail="Shopping units do not match.")
-        purchases[snapshot.product_id] = (old + quantity, unit)
+        purchases[product_id] = (old + quantity, unit)
 
     if not purchases:
         return 0

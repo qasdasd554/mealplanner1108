@@ -175,6 +175,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
+    final links = AppLinks.forCountry(
+      Localizations.localeOf(context).countryCode,
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -351,7 +354,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       ),
                                     ),
                                     GestureDetector(
-                                      onTap: () => _openLegal(AppLinks.terms),
+                                      onTap: () => _openLegal(links.terms),
                                       child: Text(
                                         context.strings.authTerms,
                                         style: const TextStyle(
@@ -370,7 +373,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       ),
                                     ),
                                     GestureDetector(
-                                      onTap: () => _openLegal(AppLinks.privacy),
+                                      onTap: () => _openLegal(links.privacy),
                                       child: Text(
                                         context.strings.authPrivacyPolicy,
                                         style: const TextStyle(

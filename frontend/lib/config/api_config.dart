@@ -1,6 +1,26 @@
 import 'package:flutter/foundation.dart';
 
+/// Explicit development-only routing. A store release never inherits a test
+/// endpoint, and a malformed override never silently contacts production.
+String? developmentApiBaseUrl(String value, {required bool isRelease}) {
+  if (isRelease || value.trim().isEmpty) return null;
+  final uri = Uri.tryParse(value.trim());
+  if (uri == null ||
+      uri.scheme != 'https' ||
+      uri.host.isEmpty ||
+      uri.userInfo.isNotEmpty ||
+      uri.hasQuery ||
+      uri.hasFragment ||
+      (uri.path.isNotEmpty && uri.path != '/')) {
+    throw const FormatException(
+      'API_BASE_URL must be an HTTPS origin without credentials, path, query or fragment',
+    );
+  }
+  return uri.replace(path: '').toString();
+}
+
 class ApiConfig {
+  static const _developmentOverride = String.fromEnvironment('API_BASE_URL');
   // Prawdziwy backend produkcyjny (Render). Używany zawsze poza trybem
   // debug na emulatorze — wcześniej aplikacja ZAWSZE (także w wydanym
   // APK na prawdziwym telefonie) próbowała łączyć się z 10.0.2.2, czyli
@@ -12,6 +32,11 @@ class ApiConfig {
 
   // Dynamiczne dopasowanie adresu URL w zależności od platformy
   static String get baseUrl {
+    final override = developmentApiBaseUrl(
+      _developmentOverride,
+      isRelease: kReleaseMode,
+    );
+    if (override != null) return override;
     if (kIsWeb) {
       final uri = Uri.base;
       // Jeśli działamy w GitHub Codespaces (web)

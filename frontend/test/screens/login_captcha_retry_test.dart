@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 // The app-facing plugin intentionally hides the platform implementation APIs.
@@ -9,6 +10,9 @@ import 'package:provider/provider.dart';
 import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 import 'package:smart_meal_planner/providers/auth_provider.dart';
 import 'package:smart_meal_planner/screens/auth/login_screen.dart';
+import 'package:smart_meal_planner/screens/auth/register_screen.dart';
+import 'package:smart_meal_planner/l10n/app_localizations.dart';
+import 'package:smart_meal_planner/l10n/market_locale.dart';
 
 class _Auth extends ChangeNotifier implements AuthProvider {
   final attempts = <({String email, String password, String? token})>[];
@@ -104,6 +108,72 @@ class _WebWidget extends PlatformWebViewWidget {
 }
 
 void main() {
+  for (final region in ['PL', 'GB']) {
+    testWidgets(
+      'registration legal links use $region documents before account creation',
+      (tester) async {
+        final previous = WebViewPlatform.instance;
+        WebViewPlatform.instance = _WebPlatform();
+        addTearDown(
+          () => WebViewPlatform.instance = previous ?? _WebPlatform(),
+        );
+        final auth = _Auth();
+        addTearDown(auth.dispose);
+        final launched = <String>[];
+        const channel = MethodChannel('plugins.flutter.io/url_launcher');
+        tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          channel,
+          (call) async {
+            if (call.method == 'launch') {
+              launched.add((call.arguments as Map)['url'] as String);
+            }
+            return true;
+          },
+        );
+        addTearDown(
+          () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+            channel,
+            null,
+          ),
+        );
+        await tester.pumpWidget(
+          ChangeNotifierProvider<AuthProvider>.value(
+            value: auth,
+            child: MaterialApp(
+              locale: localeForMarket(deviceRegion: region),
+              supportedLocales: AppLocalizations.supportedLocales,
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              home: const RegisterScreen(),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        for (final label
+            in region == 'GB'
+                ? ['terms of use', 'privacy policy']
+                : ['regulamin', 'politykę prywatności']) {
+          final link = find.text(label);
+          await tester.ensureVisible(link);
+          await tester.pumpAndSettle();
+          await tester.tap(link);
+          await tester.pumpAndSettle();
+        }
+        final host =
+            region == 'GB'
+                ? 'https://mealplannerworld.com'
+                : 'https://mealplannerpolska.pl';
+        expect(launched, [
+          '$host/terms-of-use.html',
+          '$host/privacy-policy.html',
+        ]);
+        expect(auth.attempts, isEmpty);
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox());
+        await tester.pump(const Duration(seconds: 13));
+      },
+    );
+  }
+
   testWidgets('wrong password refreshes CAPTCHA while preserving credentials', (
     tester,
   ) async {

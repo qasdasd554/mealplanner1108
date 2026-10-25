@@ -67,7 +67,12 @@ def catalogue_values(product: object, *, retrieved_at: datetime) -> dict | None:
 
 
 async def import_off_catalogue(db, products, *, retrieved_at: datetime) -> int:
-    """Bounded upsert: older source revisions never overwrite newer ones."""
+    """Bounded upsert: neither the source revision nor fetch time can regress.
+
+    Reject a late-arriving older fetch as one snapshot, even if its source
+    revision is newer. Reusing another snapshot's newer retrieval time would
+    falsely claim that the changed contents were checked at that later time.
+    """
     if len(products) > 500:
         raise ValueError("Import at most 500 OFF products per batch")
     unique = {}
@@ -88,7 +93,8 @@ async def import_off_catalogue(db, products, *, retrieved_at: datetime) -> int:
     statement = statement.on_conflict_do_update(
         index_elements=[OffCatalogueProduct.barcode],
         set_={name: getattr(statement.excluded, name) for name in next(iter(unique.values())) if name != "barcode"},
-        where=((statement.excluded.source_modified_t > OffCatalogueProduct.source_modified_t)
+        where=(statement.excluded.retrieved_at >= OffCatalogueProduct.retrieved_at)
+              & ((statement.excluded.source_modified_t > OffCatalogueProduct.source_modified_t)
                | ((statement.excluded.source_modified_t == OffCatalogueProduct.source_modified_t)
                   & (statement.excluded.fingerprint == OffCatalogueProduct.fingerprint))),
     )
@@ -102,10 +108,12 @@ async def search_off_catalogue(db, query: str, *, country_code: str, limit: int,
     normalized = " ".join(query.split()).casefold()
     if country_code != "GB" or len(normalized) < 2:
         return []
+    checked_at = now or datetime.now(timezone.utc)
     literal = normalized.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
     result = await db.execute(select(OffCatalogueProduct).where(
         OffCatalogueProduct.country_code == "GB",
-        OffCatalogueProduct.retrieved_at >= (now or datetime.now(timezone.utc)) - timedelta(days=30),
+        OffCatalogueProduct.retrieved_at >= checked_at - timedelta(days=30),
+        OffCatalogueProduct.retrieved_at <= checked_at,
         OffCatalogueProduct.search_name.like(f"%{literal}%", escape="\\"),
     ).order_by(OffCatalogueProduct.search_name, OffCatalogueProduct.barcode).limit(max(1, min(limit, 20))))
     return [ProductNameSuggestion(

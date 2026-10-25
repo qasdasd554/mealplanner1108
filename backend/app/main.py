@@ -19,6 +19,7 @@ from app.core.release_version import APP_VERSION
 from app.db.market_schema import ensure_account_market_schema
 from app.db.store_market_schema import ensure_store_market_schema
 from app.db.campaign_market_schema import ensure_campaign_market_schema
+from app.db.regional_offer_evidence_schema import ensure_regional_offer_evidence_schema
 from app.db.session import Base, get_db
 
 logger = logging.getLogger(__name__)
@@ -37,6 +38,7 @@ async def _create_tables() -> None:
         await ensure_account_market_schema(conn)
         await ensure_store_market_schema(conn)
         await ensure_campaign_market_schema(conn)
+        await ensure_regional_offer_evidence_schema(conn)
         # Przy pierwszym uruchomieniu po wprowadzeniu limitu zaliczamy
         # istniejące zwykłe plany. Archiwalne plany techniczne, tworzone
         # pod listy zakupów z przepisów, nie są planami posiłków.

@@ -1,0 +1,28 @@
+{
+  "checked_on": "2026-10-23",
+  "source_url": "https://world.openfoodfacts.org/product/5099801003339",
+  "retrieval_url": "https://uk.openfoodfacts.org/api/v2/product/5099801003339",
+  "attribution": "Open Food Facts contributors",
+  "licence": "ODbL-1.0",
+  "purpose": "Public source sample for offline integration tests; not an automatic production seed.",
+  "product": {
+    "code": "5099801003339",
+    "product_name": "Organic Jumbo Oats",
+    "product_name_en": "Organic Jumbo Oats",
+    "brands": "Flahavan's",
+    "quantity": "1kg",
+    "product_quantity": 1000,
+    "product_quantity_unit": "g",
+    "nutrition_data_per": "100g",
+    "nutriments": {
+      "energy-kcal_100g": 370,
+      "proteins_100g": 11.25,
+      "fat_100g": 5.75,
+      "carbohydrates_100g": 65
+    },
+    "countries_tags": ["en:united-kingdom"],
+    "categories_tags": ["en:rolled-oats", "en:oat"],
+    "ingredients_text_en": "100% Organic Wholegrain Rolled Oats",
+    "last_modified_t": 1787845379
+  }
+}

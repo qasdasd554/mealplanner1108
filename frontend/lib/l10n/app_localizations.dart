@@ -7463,7 +7463,7 @@ abstract class AppLocalizations {
   /// No description provided for @releasePromptChanges.
   ///
   /// In pl, this message translates to:
-  /// **'• Poprawiliśmy dobór składników przepisów AI — podobnie nazwany produkt nie zastąpi składnika gotowym daniem.\n• Usprawniliśmy uzupełnianie kcal i makro. Szacunki są oznaczone, a brak danych jednego składnika nie ukrywa znanych wartości.\n• Naprawiliśmy błąd podczas generowania planu posiłków.\n• Ułatwiliśmy zmianę sklepu na liście zakupów. Brak pełnej wyceny nie jest już przedstawiany jako koszt 0 zł.\n• Po wykorzystaniu darmowej listy łatwiej sprawdzisz Premium lub wrócisz do swoich zakupów.'**
+  /// **'• Usprawniliśmy dopasowywanie składników w przepisach AI.\n• Poprawiliśmy obsługę opakowań i danych odżywczych podczas skanowania produktów.\n• Dopracowaliśmy listy zakupów i oznaczanie niepełnych wycen.\n• Poprawiliśmy czytelność i spójność komunikatów aplikacji.'**
   String get releasePromptChanges;
 
   /// No description provided for @releasePromptApple.

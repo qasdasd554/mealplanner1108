@@ -1,0 +1,37 @@
+<!DOCTYPE html><html lang="pl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Pomoc i kontakt | Meal Planner Polska</title><meta name="description" content="Odpowiedzi na pytania o Meal Planner Polska i kontakt z pomocą."><meta name="theme-color" content="#f4faf8"><link rel="canonical" href="https://mealplannerpolska.pl/support.html"><link rel="icon" type="image/png" href="assets/meal-planner-polska-logo.png"><link rel="stylesheet" href="site.css"><script src="site.js" defer></script><script src="analytics-config.js" defer></script><script src="analytics.js" defer></script></head><body><a class="skip-link" href="#main">Przejdź do treści</a><header class="site-header"><div class="wrap header-inner"><a class="brand" href="index.html" aria-label="Meal Planner Polska, strona główna"><img class="brand-logo" src="assets/meal-planner-polska-logo.png" width="48" height="48" alt=""><span>Meal Planner<small>Polska</small></span></a><button class="menu-toggle" aria-expanded="false" aria-controls="main-nav">Menu <span aria-hidden="true">☰</span></button><nav id="main-nav" aria-label="Nawigacja główna"><a href="index.html#jak-to-dziala">Jak to działa</a><a href="index.html#podglad">Zajrzyj do środka</a><a href="support.html">Pomoc</a><a class="nav-download" href="index.html#pobierz">Pobierz aplikację <span aria-hidden="true">↗</span></a></nav></div></header><main id="main" class="document-main wrap"><nav class="document-nav" aria-label="Pomoc i dokumenty"><a href="privacy-policy.html">Polityka prywatności</a><a href="terms-of-use.html">Regulamin</a><a href="delete-account.html">Usuwanie konta</a><a href="support.html" aria-current="page">Pomoc i kontakt</a></nav><div class="document-intro"><p class="eyebrow">Meal Planner Polska</p><h1>Pomoc i kontakt</h1><p>Odpowiedzi na pytania o Meal Planner Polska i kontakt z pomocą.</p><p class="document-date">Ostatnia aktualizacja: 14 października 2026 r. • Obowiązuje dla aplikacji mobilnej Meal Planner Polska (iOS & Android) oraz serwisu mealplannerpolska.pl</p></div><article class="legal-content">
+
+<h2>Centrum Wsparcia i Kontakt — Meal Planner Polska</h2>
+<p>Masz pytanie dotyczące działania aplikacji <strong>Meal Planner Polska</strong>, chcesz zgłosić błąd, zasugerować nową funkcję lub potrzebujesz pomocy z kontem? Jesteśmy do Twojej dyspozycji.</p>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-6">
+    <div class="p-5 rounded-2xl bg-white/5 border border-white/10">
+        <div class="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-1">Kontakt E-mail (Wsparcie & Reklamacje)</div>
+        <a href="mailto:kontakt@mealplannerpolska.pl" class="text-lg font-extrabold text-white hover:text-emerald-300">kontakt@mealplannerpolska.pl</a>
+        <p class="text-xs text-slate-400 mt-2">Czas odpowiedzi: zazwyczaj w ciągu 24 godzin w dni robocze.</p>
+    </div>
+    <div class="p-5 rounded-2xl bg-white/5 border border-white/10">
+        <div class="text-xs font-bold uppercase tracking-wider text-amber-400 mb-1">Zarządzanie kontem i prywatnością</div>
+        <a href="delete-account.html" class="text-lg font-extrabold text-white hover:text-amber-300">Instrukcja usunięcia konta →</a>
+        <p class="text-xs text-slate-400 mt-2">W aplikacji: zakładka <strong>Profil → Usuń konto</strong>.</p>
+    </div>
+</div>
+
+<h2>Najczęściej zadawane pytania (FAQ)</h2>
+<h3>1. Jak wygenerować plan posiłków dopasowany do wybranego sklepu?</h3>
+<p>Na ekranie głównym aplikacji wybierz kreator nowego planu posiłków, zaznacz swój ulubiony sklep (np. Biedronka, Lidl, Carrefour lub Dino), ustaw czas trwania planu (od 1 do 14 dni), preferowaną dietę oraz liczbę osób. Aplikacja automatycznie ułoży jadłospis i listę zakupów.</p>
+
+<h3>2. Jak działa skanowanie przepisów z kartki przez AI?</h3>
+<p>W zakładce <strong>Przepisy</strong> wybierz opcję dodania przepisu przez AI. Możesz zrobić zdjęcie odręcznie zapisanej kartki kuchennej, wkleić tekst przepisu lub podać link do strony kulinarnej. Sztuczna inteligencja automatycznie rozpozna składniki, gramatury oraz obliczy kalorie i makroskładniki.</p>
+
+<h3>3. Jak zarządzać subskrypcją Premium lub ją anulować?</h3>
+<p>Płatności za subskrypcję są obsługiwane bezpośrednio przez sklep, z którego pobrano aplikację:</p>
+<ul>
+    <li><strong>iPhone / iPad (iOS):</strong> Otwórz <em>Ustawienia → [Twoje imię i nazwisko / Apple ID] → Subskrypcje → Meal Planner Polska</em>.</li>
+    <li><strong>Android (Google Play):</strong> Otwórz aplikację <em>Sklep Google Play → Ikona profilu → Płatności i subskrypcje → Subskrypcje → Meal Planner Polska</em>.</li>
+</ul>
+
+<h3>4. Jak zgłosić nieodpowiednią treść lub błąd w produkcie?</h3>
+<p>Skorzystaj z przycisku zgłoszenia wewnątrz aplikacji lub napisz bezpośrednio na <a href="mailto:kontakt@mealplannerpolska.pl">kontakt@mealplannerpolska.pl</a>. Zgłoszenia moderacyjne weryfikujemy w ciągu 24 godzin.</p>
+
+
+        </article><aside class="document-contact"><h2>Potrzebujesz pomocy?</h2><a href="mailto:kontakt@mealplannerpolska.pl">kontakt@mealplannerpolska.pl</a></aside></main><footer class="site-footer"><div class="wrap footer-top"><div><a class="brand" href="index.html"><img class="brand-logo" src="assets/meal-planner-polska-logo.png" width="48" height="48" alt=""><span>Meal Planner<small>Polska</small></span></a><p>Posiłki na co dzień.<br>Zakupy z gotową listą.</p></div><div class="footer-links"><button class="analytics-settings" data-analytics-settings hidden>Ustawienia statystyk</button><a href="support.html">Pomoc i kontakt</a><a href="terms-of-use.html">Regulamin</a><a href="privacy-policy.html">Polityka prywatności</a><a href="delete-account.html">Usuwanie konta</a></div><div class="footer-contact"><span>Napisz do nas</span><a href="mailto:kontakt@mealplannerpolska.pl">kontakt@mealplannerpolska.pl</a><p><a href="https://apps.apple.com/pl/app/meal-planner-polska/id6806607230" target="_blank" rel="noopener noreferrer">iOS</a> <span aria-hidden="true">/</span> <a href="https://play.google.com/store/apps/details?id=com.meal_planner_polska_v1" target="_blank" rel="noopener noreferrer">Android</a></p></div></div><div class="wrap footer-bottom"><span>© 2026 Meal Planner Polska</span><span>Dobrego gotowania.</span></div></footer><dialog class="analytics-consent" id="analytics-consent" aria-labelledby="analytics-heading" aria-describedby="analytics-description" hidden><div class="consent-brand"><img src="assets/meal-planner-polska-logo.png" width="44" height="44" alt=""><span>Meal Planner Polska</span></div><h2 id="analytics-heading" tabindex="-1">Pomożesz nam ulepszyć stronę?</h2><p id="analytics-description">Za Twoją zgodą Google Analytics pomoże nam mierzyć odwiedziny i sprawdzać, ile osób klika App Store oraz Google Play. Dzięki temu dowiemy się, jak korzystacie ze strony.</p><p class="consent-note">Statystyki są opcjonalne. Możesz zmienić decyzję w stopce strony. <a href="privacy-policy.html#statystyki-witryny" target="_blank" rel="noopener noreferrer">Szczegóły prywatności</a>.</p><div class="analytics-choices"><button data-analytics-choice="granted">Zezwalam</button><button data-analytics-choice="denied">Odrzucam</button></div></dialog></body></html>

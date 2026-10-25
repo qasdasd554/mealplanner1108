@@ -4,6 +4,7 @@ import '../l10n/market_locale.dart';
 import '../services/price_compare_service.dart';
 import '../utils/market_money.dart';
 import '../utils/quantity_formatter.dart';
+import '../utils/national_price_reference.dart';
 
 /// Zachowuje zwykłą kartę porównania, lecz rozróżnia pełny koszyk,
 /// brakujące ceny i szacunki. Niska cena niepełnego koszyka nie wygrywa.
@@ -27,7 +28,14 @@ class StorePriceComparisonCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final strings = context.strings;
     final total = result.totalPrice;
-    final isCheapest = total != null && result.isComplete && result.isCheapest;
+    final hasNationalReference = result.items.any(
+      (item) => item.priceSource?['provider'] == 'ons_national_average',
+    );
+    final isCheapest =
+        total != null &&
+        result.isComplete &&
+        result.isCheapest &&
+        !hasNationalReference;
     final cardColor = Theme.of(context).colorScheme.primaryContainer;
     // Approved contrast-only repair: preserve the card, shape and background.
     // Some themes use the same green for on-primary actions and the card.
@@ -43,6 +51,10 @@ class StorePriceComparisonCard extends StatelessWidget {
               strings.priceCompareProductCount(result.items.length),
               if (result.hasEstimatedPrices)
                 strings.priceCompareEstimatedPrices,
+              if (hasNationalReference)
+                strings.localeName.startsWith('en')
+                    ? 'Includes UK averages, not shop quotes'
+                    : 'Obejmuje średnie UK, nie oferty sklepów',
               if (result.savingsVsMostExpensive > 0)
                 strings.priceCompareSavings(
                   formatMarketMoney(
@@ -229,6 +241,11 @@ class StorePriceComparisonCard extends StatelessWidget {
   String _verificationLabel(BuildContext context, PriceCompareItem item) {
     final strings = context.strings;
     if (item.isFromPantry) return strings.shoppingInPantry;
+    final reference = nationalPriceReferenceLabel(
+      item.priceSource,
+      english: strings.localeName.startsWith('en'),
+    );
+    if (reference != null) return reference;
     final verified = item.lastVerified;
     if (item.priceIsEstimated || verified == null) {
       return strings.priceCompareEstimate;

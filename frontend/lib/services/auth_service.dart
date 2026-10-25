@@ -196,6 +196,11 @@ class AuthService {
   /// zabezpieczenie przed niechcianym wylogowaniem, na wypadek gdyby lokalny
   /// token aplikacji zniknął, ale urządzenie wciąż ma zapisaną sesję Google.
   Future<bool> attemptGoogleSilentLogin() async {
+    // A silent attempt cannot obtain a fresh CAPTCHA token. Keep the server
+    // gate intact and let interactive sign-in handle this case instead of
+    // dispatching a guaranteed 400 on every unauthenticated application start.
+    // Existing app sessions still use the normal refresh-token path.
+    if (ApiConfig.turnstileSiteKey.isNotEmpty) return false;
     final session = _client.sessionGeneration;
     try {
       await _ensureGoogleInitialized();

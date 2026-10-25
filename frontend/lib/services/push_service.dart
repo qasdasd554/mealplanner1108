@@ -8,6 +8,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'api_client.dart';
+import 'account_market.dart';
+import 'push_channel_config.dart';
 
 /// Obsługa powiadomień push (Firebase Cloud Messaging).
 ///
@@ -34,6 +36,8 @@ class PushService {
   String? _currentToken;
   bool _tokenRefreshListenerAttached = false;
   Future<void>? _registrationInProgress;
+  String? _accountCountry;
+  String? _configuredChannelName;
   bool _openNotificationsPending = false;
   final StreamController<bool> _notificationTapController =
       StreamController<bool>.broadcast();
@@ -88,6 +92,32 @@ class PushService {
     return _initialization ??= _init();
   }
 
+  AndroidNotificationChannel get _androidChannel => pushChannelForCountry(
+    _accountCountry ?? PlatformDispatcher.instance.locale.countryCode,
+  );
+
+  Future<void> _configureAndroidChannel() async {
+    final channel = _androidChannel;
+    if (_configuredChannelName == channel.name) return;
+    try {
+      final android =
+          _localNotifications
+              .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin
+              >();
+      if (android != null) {
+        // Reuse the ID. Android permits a new name/description without
+        // replacing the user's existing importance, sound or permission.
+        await android
+            .createNotificationChannel(channel)
+            .timeout(const Duration(seconds: 10));
+        _configuredChannelName = channel.name;
+      }
+    } catch (e) {
+      debugPrint('Nie udało się zaktualizować opisu kanału powiadomień: $e');
+    }
+  }
+
   Future<void> _init() async {
     try {
       await Firebase.initializeApp().timeout(const Duration(seconds: 10));
@@ -100,13 +130,6 @@ class PushService {
 
     // Kanał wymagany na Androidzie 8+; bez niego dymek przy otwartej
     // aplikacji w ogóle się nie pokaże.
-    const androidChannel = AndroidNotificationChannel(
-      'meal_planner_default',
-      'Powiadomienia',
-      description: 'Komentarze, konkursy i informacje z aplikacji',
-      importance: Importance.high,
-    );
-
     try {
       await _localNotifications
           .initialize(
@@ -124,16 +147,7 @@ class PushService {
           )
           .timeout(const Duration(seconds: 10));
 
-      final androidNotifications =
-          _localNotifications
-              .resolvePlatformSpecificImplementation<
-                AndroidFlutterLocalNotificationsPlugin
-              >();
-      if (androidNotifications != null) {
-        await androidNotifications
-            .createNotificationChannel(androidChannel)
-            .timeout(const Duration(seconds: 10));
-      }
+      await _configureAndroidChannel();
     } catch (e) {
       // Brak lokalnego dymka nie wyłącza odbierania FCM i nigdy nie może
       // przerwać uruchamiania całej aplikacji.
@@ -166,19 +180,21 @@ class PushService {
   void _showForegroundNotification(RemoteMessage message) {
     final notification = message.notification;
     if (notification == null) return;
+    final channel = _androidChannel;
 
     _localNotifications.show(
       notification.hashCode,
       notification.title,
       notification.body,
-      const NotificationDetails(
+      NotificationDetails(
         android: AndroidNotificationDetails(
-          'meal_planner_default',
-          'Powiadomienia',
+          channel.id,
+          channel.name,
+          channelDescription: channel.description,
           importance: Importance.high,
           priority: Priority.high,
         ),
-        iOS: DarwinNotificationDetails(),
+        iOS: const DarwinNotificationDetails(),
       ),
       payload: 'open_notifications',
     );
@@ -187,11 +203,15 @@ class PushService {
   /// Prosi o zgodę i rejestruje token na koncie zalogowanego użytkownika.
   /// Wołane PO zalogowaniu — wtedy prośba o pozwolenie ma dla użytkownika
   /// zrozumiały kontekst.
-  Future<void> registerForUser() async {
+  Future<void> registerForUser({String countryCode = 'PL'}) async {
+    // Set before init: a restored account, not the current phone region,
+    // chooses the language. Concurrent profile loads use the latest account.
+    _accountCountry = normalizeAccountCountry(countryCode);
     // loadProfile może zakończyć się szybciej niż inicjalizacja Firebase
     // uruchomiona po pierwszej klatce. Czekamy tu, a nie przed runApp().
     await init();
     if (!_available) return;
+    await _configureAndroidChannel();
     final running = _registrationInProgress;
     if (running != null) {
       await running;

@@ -178,7 +178,7 @@ def test_submitted_product_cannot_request_foreign_store(market_client, country):
 
 
 @pytest.mark.parametrize("submitted,store_country,expected_links", [
-    ("PL", "GB", 0), ("GB", "PL", 0), ("PL", "PL", 1), ("GB", "GB", 1),
+    ("PL", "GB", 0), ("GB", "PL", 0), ("PL", "PL", 1), ("GB", "GB", 0),
 ])
 def test_approval_does_not_copy_submitted_price_across_currencies(submitted, store_country, expected_links):
     from app.api.v1.products import review_product
@@ -200,6 +200,8 @@ def test_approval_does_not_copy_submitted_price_across_currencies(submitted, sto
         add=MagicMock(), execute=AsyncMock(return_value=existing),
         commit=AsyncMock(), flush=AsyncMock(), begin_nested=MagicMock(return_value=nested),
     )
-    asyncio.run(review_product(product.id, approve=True, db=db, current_user=SimpleNamespace(role="admin")))
+    # GBP reports without a verified package never enter legacy StoreProduct.
+    # The real-DB UK submission suite verifies usable RegionalProductOffer.
+    asyncio.run(review_product(product.id, approve=True, db=db, current_user=SimpleNamespace(role="admin", id=uuid4())))
     assert product.review_status == "approved"
     assert sum(isinstance(call.args[0], StoreProduct) for call in db.add.call_args_list) == expected_links

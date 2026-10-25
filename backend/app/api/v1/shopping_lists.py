@@ -12,6 +12,7 @@ from sqlalchemy.orm import selectinload
 
 from app.api.deps import get_current_user
 from app.core.exceptions import NotFoundException
+from app.core.language import account_text
 from app.core.markets import account_country
 from app.services.notification_language import notification_text
 from app.db.session import get_db
@@ -185,10 +186,12 @@ async def create_shopping_list_from_recipes(
     opakowań i grupowanie po działach sklepu działają identycznie.
     """
     if not payload.recipe_ids:
-        raise HTTPException(status_code=400, detail="Podaj przynajmniej jeden przepis")
+        raise HTTPException(status_code=400, detail=account_text(current_user,
+            "Podaj przynajmniej jeden przepis", "Choose at least one recipe."))
 
     if await get_store_in_account_market(db, payload.store_id, current_user) is None:
-        raise NotFoundException(detail="Wybrany sklep nie jest dostępny w kraju tego konta")
+        raise NotFoundException(detail=account_text(current_user,
+            "Wybrany sklep nie jest dostępny w kraju tego konta", "The selected shop is not available in this account's country."))
 
     # Sprawdź, że wszystkie przepisy istnieją i są widoczne dla użytkownika
     # (własne prywatne, publiczne, albo oficjalne — ta sama reguła co przy
@@ -211,7 +214,8 @@ async def create_shopping_list_from_recipes(
     found_ids = {recipe.id for recipe in selected_recipes}
     missing = set(payload.recipe_ids) - found_ids
     if missing:
-        raise NotFoundException(detail=f"Nie znaleziono przepisu/przepisów: {missing}")
+        raise NotFoundException(detail=account_text(current_user,
+            f"Nie znaleziono przepisu/przepisów: {missing}", f"Recipe(s) not found: {missing}"))
 
     # Transfer the saved ingredient rows, never infer a product from the
     # recipe title. Source/import validation belongs before saving a recipe,
@@ -225,10 +229,12 @@ async def create_shopping_list_from_recipes(
         if not can_append_recipes_to_existing_list(current_user):
             raise HTTPException(
                 status_code=403,
-                detail=(
+                detail=account_text(current_user,
                     "Konto standardowe może utworzyć jedną listę zakupów "
                     "w tygodniu. Dodawanie kolejnych przepisów do istniejącej "
-                    "listy jest dostępne w Premium."
+                    "listy jest dostępne w Premium.",
+                    "A Standard account can create one shopping list per week. "
+                    "Adding more recipes to an existing list is available with Premium."
                 ),
             )
 
@@ -244,11 +250,14 @@ async def create_shopping_list_from_recipes(
         )
         target_list = existing.scalar_one_or_none()
         if target_list is None:
-            raise NotFoundException(detail="Nie znaleziono podanej listy zakupów.")
+            raise NotFoundException(detail=account_text(current_user,
+                "Nie znaleziono podanej listy zakupów.", "Shopping list not found."))
         if target_list.status in {"completed", "merged"}:
-            raise HTTPException(status_code=409, detail="Ta lista jest już zakończona.")
+            raise HTTPException(status_code=409, detail=account_text(current_user,
+                "Ta lista jest już zakończona.", "This shopping list is already completed."))
         if target_list.store_id != payload.store_id:
-            raise HTTPException(status_code=400, detail="Lista jest przypisana do innego sklepu.")
+            raise HTTPException(status_code=400, detail=account_text(current_user,
+                "Lista jest przypisana do innego sklepu.", "This shopping list belongs to a different shop."))
 
         max_day_result = await db.execute(
             select(func.max(MealPlanEntry.day_number)).where(MealPlanEntry.meal_plan_id == target_list.meal_plan_id)
@@ -341,7 +350,8 @@ async def create_empty_shopping_list(
     """
     store = await get_store_in_account_market(db, payload.store_id, current_user)
     if store is None:
-        raise NotFoundException(detail="Wybrany sklep nie jest dostępny w kraju tego konta")
+        raise NotFoundException(detail=account_text(current_user,
+            "Wybrany sklep nie jest dostępny w kraju tego konta", "The selected shop is not available in this account's country."))
 
     plan = MealPlan(
         user_id=current_user.id,
@@ -396,7 +406,8 @@ async def merge_shopping_lists(
 ) -> ShoppingList:
     ids = list(dict.fromkeys(payload.list_ids))
     if len(ids) < 2:
-        raise HTTPException(status_code=400, detail="Wybierz co najmniej dwie różne listy.")
+        raise HTTPException(status_code=400, detail=account_text(current_user,
+            "Wybierz co najmniej dwie różne listy.", "Choose at least two different shopping lists."))
 
     await db.execute(
         text("SELECT pg_advisory_xact_lock(hashtext(:key))"),
@@ -414,13 +425,16 @@ async def merge_shopping_lists(
     )
     by_plan = {shopping_list.meal_plan_id: shopping_list for shopping_list in result.scalars().all()}
     if len(by_plan) != len(ids):
-        raise HTTPException(status_code=404, detail="Nie znaleziono jednej z wybranych list.")
+        raise HTTPException(status_code=404, detail=account_text(current_user,
+            "Nie znaleziono jednej z wybranych list.", "One of the selected shopping lists was not found."))
     lists = [by_plan[list_id] for list_id in ids]
     store_id = lists[0].store_id
     if any(shopping_list.store_id != store_id for shopping_list in lists):
-        raise HTTPException(status_code=400, detail="Można łączyć tylko listy z tego samego sklepu.")
+        raise HTTPException(status_code=400, detail=account_text(current_user,
+            "Można łączyć tylko listy z tego samego sklepu.", "Only shopping lists from the same shop can be merged."))
     if await get_store_in_account_market(db, store_id, current_user) is None:
-        raise NotFoundException(detail="Wybrany sklep nie jest dostępny w kraju tego konta")
+        raise NotFoundException(detail=account_text(current_user,
+            "Wybrany sklep nie jest dostępny w kraju tego konta", "The selected shop is not available in this account's country."))
 
     # Nie odbieramy po cichu dostępu osobom, którym jedna z list została
     # udostępniona. Najpierw trzeba zakończyć udostępnienie źródła.
@@ -433,7 +447,8 @@ async def merge_shopping_lists(
     if shared_result.scalar_one_or_none() is not None:
         raise HTTPException(
             status_code=409,
-            detail="Najpierw usuń udostępnienie wybranych list, aby je połączyć.",
+            detail=account_text(current_user, "Najpierw usuń udostępnienie wybranych list, aby je połączyć.",
+                "Stop sharing the selected lists before merging them."),
         )
 
     # To jedna lista wynikowa zamiast dwóch lub więcej; scalenie nie
@@ -587,7 +602,8 @@ async def _get_shopping_list_or_404(
     shopping_list = result.scalar_one_or_none()
     if shopping_list is None:
         raise NotFoundException(
-            detail=f"Lista zakupów o ID {list_id} nie została znaleziona"
+            detail=account_text(current_user, f"Lista zakupów o ID {list_id} nie została znaleziona",
+                f"Shopping list {list_id} was not found.")
         )
     return shopping_list
 
@@ -620,7 +636,9 @@ async def update_shopping_list_store(
     # Public list IDs are meal_plan_id throughout this API, including shares.
     shopping = await _get_shopping_list_or_404(list_id, current_user, db, for_update=True)
     if shopping.status not in {"pending", "in_progress"}:
-        raise HTTPException(status_code=409, detail="Only an open shopping list can change store.")
+        raise HTTPException(status_code=409, detail=account_text(current_user,
+            "Sklep można zmienić tylko dla otwartej listy zakupów.",
+            "Only an open shopping list can change store."))
     plan = (await db.execute(select(MealPlan).where(
         MealPlan.id == shopping.meal_plan_id,
     ).with_for_update())).scalar_one()
@@ -633,14 +651,18 @@ async def update_shopping_list_store(
     if (owner is None or owner.country_code != "GB" or source is None
             or source.country_code != "GB" or source.currency_code != "GBP"
             or plan.store_id != shopping.store_id):
-        raise HTTPException(status_code=409, detail="The list and its owner must belong to the same UK market.")
+        raise HTTPException(status_code=409, detail=account_text(current_user,
+            "Lista i jej właściciel muszą należeć do tego samego rynku UK.",
+            "The list and its owner must belong to the same UK market."))
     # An accepted shared-list viewer can belong to PL. Target is constrained by
     # the LIST market, not silently substituted with the viewer's account market.
     target = (await db.execute(select(Store).where(
         Store.id == payload.store_id, Store.country_code == "GB", Store.currency_code == "GBP",
     ))).scalar_one_or_none()
     if target is None:
-        raise NotFoundException(detail="The selected store is not available in this list's market.")
+        raise NotFoundException(detail=account_text(current_user,
+            "Wybrany sklep nie jest dostępny na rynku tej listy.",
+            "The selected store is not available in this list's market."))
 
     as_of = regional_pricing_date()
     product_ids = {item.regional_snapshot.product_id for item in shopping.items if item.regional_snapshot is not None}
@@ -659,23 +681,31 @@ async def update_shopping_list_store(
         if item.is_from_pantry:
             if (requirement is None or item.regional_snapshot.quote_status != "pantry"
                     or not item.is_checked or item.estimated_price != Decimal(0)):
-                raise HTTPException(status_code=409, detail="The saved pantry quantity needs to be corrected first.")
+                raise HTTPException(status_code=409, detail=account_text(current_user,
+                    "Najpierw popraw zapisaną ilość ze spiżarni.",
+                    "The saved pantry quantity needs to be corrected first."))
             continue  # Proven coverage is already split; never subtract again.
         if item.is_checked:
             if saved_unpriced:
                 continue  # A handwritten/unpriced purchase has no invented pack history.
             if frozen_regional_purchase_quote(item, as_of=as_of) is None:
-                raise HTTPException(status_code=409, detail="The saved purchased package needs to be corrected first.")
+                raise HTTPException(status_code=409, detail=account_text(current_user,
+                    "Najpierw popraw zapisane dane zakupionego opakowania.",
+                    "The saved purchased package needs to be corrected first."))
             continue  # Already bought: original store/package/price is history.
         if requirement is None:
             if saved_unpriced:
                 unpriced.append(item)
                 continue
-            raise HTTPException(status_code=409, detail="This store cannot fully price the current shopping list.")
+            raise HTTPException(status_code=409, detail=account_text(current_user,
+                "Nie można wycenić całej bieżącej listy zakupów w tym sklepie.",
+                "This store cannot fully price the current shopping list."))
         product_id, quantity, unit = requirement
         product = products.get(product_id)
         if product is None:
-            raise HTTPException(status_code=409, detail="This store cannot fully price the current shopping list.")
+            raise HTTPException(status_code=409, detail=account_text(current_user,
+                "Nie można wycenić całej bieżącej listy zakupów w tym sklepie.",
+                "This store cannot fully price the current shopping list."))
         prepared.append((item, product, quantity, unit))
 
     # Entire target basket is validated before mutation. A SAVEPOINT also rolls
@@ -703,7 +733,9 @@ async def _switch_polish_list_store(db, shopping, plan, target_id, user):
         Store.id == target_id, Store.country_code == "PL", Store.currency_code == "PLN",
     ))).scalar_one_or_none()
     if target is None:
-        raise NotFoundException(detail="Wybrany sklep nie jest dostępny na rynku tej listy.")
+        raise NotFoundException(detail=account_text(user,
+            "Wybrany sklep nie jest dostępny na rynku tej listy.",
+            "The selected store is not available in this list's market."))
     quoted = (await quote_polish_list(db, shopping, [target]))[target.id]
     async with db.begin_nested():
         for item, offer, quote in quoted:
@@ -756,10 +788,12 @@ async def toggle_item_checked(
     item = result.scalar_one_or_none()
     if item is None:
         raise NotFoundException(
-            detail=f"Pozycja o ID {item_id} nie została znaleziona na liście"
+            detail=account_text(current_user, f"Pozycja o ID {item_id} nie została znaleziona na liście",
+                f"Item {item_id} was not found on this shopping list.")
         )
     if item.is_from_pantry:
-        raise HTTPException(status_code=400, detail="Produkt jest już w spiżarni, nie trzeba go kupować.")
+        raise HTTPException(status_code=400, detail=account_text(current_user,
+            "Produkt jest już w spiżarni, nie trzeba go kupować.", "This product is already in your pantry and does not need to be bought."))
 
     item.is_checked = not item.is_checked
     db.add(item)
@@ -810,10 +844,12 @@ async def substitute_item(
     item = result.scalar_one_or_none()
     if item is None:
         raise NotFoundException(
-            detail=f"Pozycja o ID {item_id} nie została znaleziona na liście"
+            detail=account_text(current_user, f"Pozycja o ID {item_id} nie została znaleziona na liście",
+                f"Item {item_id} was not found on this shopping list.")
         )
     if item.is_from_pantry:
-        raise HTTPException(status_code=400, detail="Nie można zamienić produktu ze spiżarni.")
+        raise HTTPException(status_code=400, detail=account_text(current_user,
+            "Nie można zamienić produktu ze spiżarni.", "A pantry item cannot be substituted."))
 
     substitution_service = ProductSubstitutionService(db)
     updated_item = await substitution_service.substitute_shopping_list_item(
@@ -906,7 +942,8 @@ async def delete_shopping_list(
     )
     plan = result.scalar_one_or_none()
     if plan is None:
-        raise NotFoundException(detail="Nie znaleziono listy zakupów do usunięcia.")
+        raise NotFoundException(detail=account_text(current_user,
+            "Nie znaleziono listy zakupów do usunięcia.", "Shopping list to delete was not found."))
 
     if plan.status == "archived" and plan.archived_at is None:
         # Sztuczny plan utworzony WYŁĄCZNIE pod listę z pojedynczych dań
@@ -922,7 +959,8 @@ async def delete_shopping_list(
         )
         shopping_list = list_result.scalar_one_or_none()
         if shopping_list is None:
-            raise NotFoundException(detail="Ten plan nie ma listy zakupów.")
+            raise NotFoundException(detail=account_text(current_user,
+                "Ten plan nie ma listy zakupów.", "This meal plan has no shopping list."))
         await db.delete(shopping_list)
 
     await db.commit()
@@ -1002,7 +1040,8 @@ async def share_shopping_list(
     )
     plan = plan_result.scalar_one_or_none()
     if plan is None:
-        raise NotFoundException(detail="Nie znaleziono Twojej listy zakupów do udostępnienia.")
+        raise NotFoundException(detail=account_text(current_user,
+            "Nie znaleziono Twojej listy zakupów do udostępnienia.", "Your shopping list to share was not found."))
     canonical_plan_id = plan.id
 
     if payload.display_name and payload.display_name.strip():
@@ -1030,24 +1069,29 @@ async def share_shopping_list(
             else:
                 raise HTTPException(
                     status_code=409,
-                    detail="Ta nazwa użytkownika nie jest jednoznaczna. Podaj jego adres e-mail.",
+                    detail=account_text(current_user, "Ta nazwa użytkownika nie jest jednoznaczna. Podaj jego adres e-mail.",
+                        "More than one account uses this name. Enter the person's email address."),
                 )
         target_user = candidates[0] if candidates else None
-        not_found_detail = "Nie znaleziono użytkownika o takiej nazwie ani adresie e-mail."
+        not_found_detail = account_text(current_user, "Nie znaleziono użytkownika o takiej nazwie ani adresie e-mail.",
+            "No user was found with that name or email address.")
     elif payload.email and payload.email.strip():
         # Ścieżka zgodności ze starszymi wersjami aplikacji.
         target_result = await db.execute(
             select(User).where(User.email == payload.email.strip().lower())
         )
         target_user = target_result.scalar_one_or_none()
-        not_found_detail = "Nie znaleziono użytkownika o tym adresie e-mail."
+        not_found_detail = account_text(current_user, "Nie znaleziono użytkownika o tym adresie e-mail.",
+            "No user was found with that email address.")
     else:
-        raise HTTPException(status_code=400, detail="Podaj nazwę użytkownika, któremu udostępniasz listę.")
+        raise HTTPException(status_code=400, detail=account_text(current_user,
+            "Podaj nazwę użytkownika, któremu udostępniasz listę.", "Enter the name of the person you want to share the list with."))
 
     if target_user is None:
         raise HTTPException(status_code=404, detail=not_found_detail)
     if target_user.id == current_user.id:
-        raise HTTPException(status_code=400, detail="Nie możesz udostępnić listy samemu sobie.")
+        raise HTTPException(status_code=400, detail=account_text(current_user,
+            "Nie możesz udostępnić listy samemu sobie.", "You cannot share a shopping list with yourself."))
 
     blocked_result = await db.execute(
         select(BlockedUser).where(
@@ -1066,7 +1110,8 @@ async def share_shopping_list(
     if blocked_result.scalar_one_or_none() is not None:
         raise HTTPException(
             status_code=403,
-            detail="Nie można udostępnić listy temu użytkownikowi.",
+            detail=account_text(current_user, "Nie można udostępnić listy temu użytkownikowi.",
+                "This shopping list cannot be shared with that user."),
         )
 
     # Jeśli zaproszenie już istnieje (pending lub accepted), nie
@@ -1219,7 +1264,8 @@ async def accept_share(
     )
     share = result.scalar_one_or_none()
     if share is None:
-        raise NotFoundException(detail="Nie znaleziono tego zaproszenia.")
+        raise NotFoundException(detail=account_text(current_user,
+            "Nie znaleziono tego zaproszenia.", "Shopping invitation not found."))
 
     if share.status == "accepted":
         return ShoppingListShareResponse(
@@ -1297,7 +1343,8 @@ async def delete_share(
     )
     share = result.scalar_one_or_none()
     if share is None:
-        raise NotFoundException(detail="Nie znaleziono tego udostępnienia.")
+        raise NotFoundException(detail=account_text(current_user,
+            "Nie znaleziono tego udostępnienia.", "Shopping list share not found."))
 
     await db.delete(share)
     await db.commit()
@@ -1346,16 +1393,18 @@ async def add_item_to_shopping_list(
 
     product = await db.get(Product, payload.product_id)
     if product is None:
-        raise NotFoundException(detail="Produkt nie istnieje")
+        raise NotFoundException(detail=account_text(current_user, "Produkt nie istnieje", "Product not found."))
 
     if payload.quantity <= 0:
-        raise HTTPException(status_code=400, detail="Ilość musi być większa od zera")
+        raise HTTPException(status_code=400, detail=account_text(current_user,
+            "Ilość musi być większa od zera", "Quantity must be greater than zero."))
 
     if getattr(shopping_list.store, "country_code", "PL") == "GB":
         if shopping_list.status == "completed":
-            raise HTTPException(status_code=409, detail="This shopping list is completed.")
+            raise HTTPException(status_code=409, detail=account_text(current_user,
+                "Ta lista zakupów jest już zakończona.", "This shopping list is completed."))
         if product.review_status != "approved" and product.created_by_user_id != current_user.id:
-            raise NotFoundException(detail="Product not found")
+            raise NotFoundException(detail=account_text(current_user, "Produkt nie istnieje", "Product not found."))
         offers = await load_regional_offers(db, {product.id}, shopping_list.store_id)
         quantity, unit = resolve_manual_regional_quantity(
             product, Decimal(str(payload.quantity)), payload.unit, offers,
@@ -1380,7 +1429,9 @@ async def add_item_to_shopping_list(
         db.add(item)
         await refresh_regional_plan_budget(db, shopping_list)
         await db.commit()
-        return {"detail": "Updated shopping quantity" if existing else "Product added", "item_id": str(item.id)}
+        return {"detail": account_text(current_user, "Zaktualizowano ilość istniejącej pozycji", "Updated shopping quantity")
+                if existing else account_text(current_user, "Dodano produkt do listy", "Product added"),
+                "item_id": str(item.id)}
 
     store_product_result = await db.execute(
         select(StoreProduct).where(
@@ -1392,7 +1443,9 @@ async def add_item_to_shopping_list(
     if store_product is None:
         raise HTTPException(
             status_code=400,
-            detail=f'Produkt "{product.name}" nie jest dostępny w wybranym sklepie',
+            detail=account_text(current_user,
+                f'Produkt "{product.name}" nie jest dostępny w wybranym sklepie',
+                "This product is not available in the selected shop."),
         )
 
     existing = next(
@@ -1404,7 +1457,8 @@ async def add_item_to_shopping_list(
         existing.required_quantity = existing.required_quantity + Decimal(str(payload.quantity))
         db.add(existing)
         await db.commit()
-        return {"detail": "Zaktualizowano ilość istniejącej pozycji", "item_id": str(existing.id)}
+        return {"detail": account_text(current_user, "Zaktualizowano ilość istniejącej pozycji", "Item quantity updated."),
+                "item_id": str(existing.id)}
 
     item = ShoppingListItem(
         shopping_list_id=shopping_list.id,
@@ -1417,7 +1471,8 @@ async def add_item_to_shopping_list(
     db.add(item)
     await db.commit()
     await db.refresh(item)
-    return {"detail": "Dodano produkt do listy", "item_id": str(item.id)}
+    return {"detail": account_text(current_user, "Dodano produkt do listy", "Product added to shopping list."),
+            "item_id": str(item.id)}
 
 
 @router.post(
@@ -1440,7 +1495,7 @@ async def add_custom_item_to_shopping_list(
     name = " ".join(payload.name.split()).strip()
     unit = payload.unit.strip() or "szt"
     if not name:
-        raise HTTPException(status_code=400, detail="Wpisz nazwę pozycji")
+        raise HTTPException(status_code=400, detail=account_text(current_user, "Wpisz nazwę pozycji", "Enter an item name."))
 
     existing = next(
         (
@@ -1459,7 +1514,7 @@ async def add_custom_item_to_shopping_list(
         db.add(existing)
         await db.commit()
         return {
-            "detail": "Zaktualizowano ilość istniejącej pozycji",
+            "detail": account_text(current_user, "Zaktualizowano ilość istniejącej pozycji", "Item quantity updated."),
             "item_id": str(existing.id),
         }
 
@@ -1482,7 +1537,7 @@ async def add_custom_item_to_shopping_list(
         await refresh_regional_plan_budget(db, shopping_list)
     await db.commit()
     await db.refresh(item)
-    return {"detail": "Dodano pozycję do listy", "item_id": str(item.id)}
+    return {"detail": account_text(current_user, "Dodano pozycję do listy", "Item added to shopping list."), "item_id": str(item.id)}
 
 
 @router.delete(
@@ -1503,7 +1558,8 @@ async def delete_shopping_list_item(
 
     item = next((i for i in shopping_list.items if i.id == item_id), None)
     if item is None:
-        raise NotFoundException(detail="Pozycja nie istnieje na tej liście")
+        raise NotFoundException(detail=account_text(current_user,
+            "Pozycja nie istnieje na tej liście", "Item not found on this shopping list."))
 
     await db.delete(item)
     if getattr(shopping_list.store, "country_code", "PL") == "GB":
@@ -1543,7 +1599,7 @@ async def complete_shopping_list(
     await db.execute(select(User.id).where(User.id == current_user.id).with_for_update())
     shopping_list = await _get_shopping_list_or_404(list_id, current_user, db, for_update=True)
     if shopping_list.status == "completed":
-        return {"detail": "Lista zakończona", "moved_to_pantry": 0}
+        return {"detail": account_text(current_user, "Lista zakończona", "Shopping list completed."), "moved_to_pantry": 0}
 
     moved = 0
     if move_to_pantry:
@@ -1584,4 +1640,4 @@ async def complete_shopping_list(
     db.add(shopping_list)
     await db.commit()
 
-    return {"detail": "Lista zakończona", "moved_to_pantry": moved}
+    return {"detail": account_text(current_user, "Lista zakończona", "Shopping list completed."), "moved_to_pantry": moved}
