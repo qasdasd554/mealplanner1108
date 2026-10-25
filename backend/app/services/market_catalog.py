@@ -1,6 +1,6 @@
-"""Database-side market availability checks without inventing local stock.
+"""Database-side recipe origin and availability without inventing local stock.
 
-These predicates intentionally make no ownership/moderation decisions. Callers
+Country of origin is not a visibility/moderation permission. Callers
 must first enforce the existing recipe permissions and choose whether their
 endpoint is a public catalogue or the owner's editing/recovery workspace.
 """
@@ -9,7 +9,7 @@ from datetime import date, datetime, time, timedelta, timezone
 from decimal import Decimal
 from uuid import UUID
 
-from sqlalchemy import String, and_, exists, func, or_, select, true
+from sqlalchemy import String, and_, exists, func, or_, select
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.sql.functions import FunctionElement
 
@@ -23,6 +23,7 @@ from app.services.off_availability import (
     product_has_off_uk_evidence, off_available_product_ids, community_offer_has_current_off_evidence,
 )
 from app.services.uk_catalogue_import import canonical_base_unit
+from app.services.recipe_access import recipe_origin_in_market
 
 
 UK_OFFER_MAX_AGE_DAYS = 30
@@ -171,10 +172,11 @@ def recipe_market_availability(country_code: str, *, store_id: UUID | None = Non
     Owner-approved policy: exact-GTIN OFF reports establish country-level UK
     availability, not current inventory at the selected shop. Reviewed retailer
     offers remain an alternative. Prices still require their own provenance.
-    PL behaviour and recipe permissions are unchanged.
+    Community recipes additionally stay in their author's immutable market.
+    Polish ingredient availability rules and moderation remain unchanged.
     """
     if country_code != "GB":
-        return true()
+        return recipe_origin_in_market(country_code)
 
     store_conditions = [
         Store.country_code == "GB",
@@ -216,14 +218,12 @@ def recipe_market_availability(country_code: str, *, store_id: UUID | None = Non
         .where(RecipeIngredient.recipe_id == Recipe.id)
         .correlate(Recipe)
     )
-    return and_(has_ingredients, ~missing_required_ingredient)
+    return and_(recipe_origin_in_market(country_code), has_ingredients, ~missing_required_ingredient)
 
 
 def apply_recipe_market_filter(query, user: object, *, store_id: UUID | None = None):
     """Apply before OFFSET/LIMIT so a page is filled with eligible dishes."""
     country = account_country(user)
-    if country == "PL":
-        return query
     return query.where(recipe_market_availability(country, store_id=store_id))
 
 
@@ -231,6 +231,11 @@ async def ensure_recipe_available_in_market(db, recipe: Recipe, user: object, *,
     """Check market availability only; never replace recipe authorization."""
     country = account_country(user)
     if country == "PL":
+        if recipe.created_by_user_id is not None:
+            result = await db.execute(select(Recipe.id).where(
+                Recipe.id == recipe.id, recipe_origin_in_market(country)))
+            if result.scalar_one_or_none() is None:
+                raise NotFoundException(detail="Przepis nie został znaleziony.")
         return
     result = await db.execute(
         select(Recipe.id).where(

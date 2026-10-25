@@ -54,7 +54,12 @@ void main() {
           body,
           contains(english ? 'database outages' : 'bazą zewnętrzną'),
         );
-        expect(body, contains(english ? 'profile diets' : 'przepisów i diet'));
+        expect(
+          body,
+          contains(
+            english ? 'Polish and UK community' : 'społeczności Polski i UK',
+          ),
+        );
         expect(
           body,
           contains(

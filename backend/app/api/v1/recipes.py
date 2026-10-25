@@ -44,6 +44,7 @@ from app.services.market_catalog import (
     recipe_market_availability,
 )
 from app.services.store_market_access import get_store_in_account_market
+from app.services.recipe_access import ensure_recipe_access, recipe_origin_in_market
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -423,7 +424,7 @@ async def list_available_recipes(
     availability_conditions = (
         (recipe_market_availability("GB", store_id=store_id),)
         if account_country(current_user) == "GB"
-        else (has_product_ingredient, ~has_unavailable_ingredient)
+        else (recipe_origin_in_market("PL"), has_product_ingredient, ~has_unavailable_ingredient)
     )
 
     blocked_ids = await get_blocked_user_ids(db, current_user.id)
@@ -1015,6 +1016,7 @@ async def add_recipe_favorite(
         raise NotFoundException(detail=account_text(current_user,
             f"Przepis o ID {recipe_id} nie został znaleziony", f"Recipe {recipe_id} was not found."))
 
+    await ensure_recipe_access(db, recipe, current_user)
     existing = await db.execute(
         select(RecipeFavorite).where(
             RecipeFavorite.user_id == current_user.id,
@@ -1639,6 +1641,7 @@ async def report_recipe(
     if not recipe:
         raise NotFoundException(account_text(current_user, "Nie znaleziono przepisu", "Recipe not found."))
 
+    await ensure_recipe_access(db, recipe, current_user)
     report = ContentReport(
         reporter_user_id=current_user.id,
         content_type="recipe",
@@ -1788,6 +1791,7 @@ async def submit_recipe_photo(
     if recipe is None:
         raise NotFoundException(account_text(current_user, "Nie znaleziono przepisu", "Recipe not found."))
 
+    await ensure_recipe_access(db, recipe, current_user)
     # Widoczność sprawdzana jawnie: bez tego dałoby się zgłosić zdjęcie do
     # CUDZEGO prywatnego przepisu, którego zgłaszający nie ma prawa nawet
     # zobaczyć — a treść zgłoszenia trafiłaby potem do panelu admina

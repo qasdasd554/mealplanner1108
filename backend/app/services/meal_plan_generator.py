@@ -534,11 +534,10 @@ class MealPlanGenerator:
             )
         )
 
-        # An empty or unmapped ingredient list is not proof of UK availability.
-        # Keep the historical Polish selection unchanged.
+        # Country availability includes author-country separation in both markets.
+        # Polish ingredient-stock checks below retain their historical rules.
         as_of = utc_market_date() if country_code == "GB" else None
-        if country_code == "GB":
-            stmt = stmt.where(recipe_market_availability(country_code, store_id=store_id, as_of=as_of))
+        stmt = stmt.where(recipe_market_availability(country_code, store_id=store_id, as_of=as_of))
 
         # NAPRAWA NIESPÓJNOŚCI WIDOCZNOŚCI: katalog przepisów stosuje filtr
         # "oficjalny LUB własny LUB publiczny" (_visibility_filter

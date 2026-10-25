@@ -140,10 +140,15 @@ def test_unknown_empty_ingredient_list_is_hidden_only_in_uk(market_db):
     assert visible_ids(market_db, country="PL") == {row.id}
 
 
-def test_polish_query_and_legacy_account_are_unchanged():
+def test_polish_and_legacy_queries_keep_pagination_but_separate_community_origins():
     query = select(Recipe).order_by(Recipe.name).offset(30).limit(30)
-    assert apply_recipe_market_filter(query, SimpleNamespace(country_code="PL")) is query
-    assert apply_recipe_market_filter(query, SimpleNamespace()) is query
+    for account in (SimpleNamespace(country_code="PL"), SimpleNamespace()):
+        scoped = apply_recipe_market_filter(query, account)
+        compiled = scoped.compile()
+        assert "users.country_code" in str(compiled)
+        assert "PL" in compiled.params.values()
+        assert scoped._offset_clause.value == scoped._limit_clause.value == 30
+        assert "regional_product_offers" not in str(compiled)
 
 
 def test_market_filter_is_applied_before_pagination_and_does_not_duplicate(market_db):
@@ -179,9 +184,10 @@ def test_detail_market_check_does_not_replace_permissions(market_db):
     asyncio.run(ensure_recipe_available_in_market(adapter, row, gb))
 
 
-def test_polish_detail_never_adds_a_database_query():
-    # None is intentional: the PL compatibility path must return immediately.
-    asyncio.run(ensure_recipe_available_in_market(None, None, SimpleNamespace(country_code="PL")))
+def test_polish_system_detail_never_adds_an_availability_query():
+    # System recipes are shared; only community recipes need the origin guard.
+    recipe = Recipe(id=uuid4(), name="System", meal_type="obiad", created_by_user_id=None)
+    asyncio.run(ensure_recipe_available_in_market(None, recipe, SimpleNamespace(country_code="PL")))
 
 
 @pytest.fixture

@@ -66,7 +66,7 @@ def context(monkeypatch, request):
     Base.metadata.create_all(engine)
     parameters = getattr(getattr(request.node, "callspec", None), "params", {})
     allowed = parameters.get("allowed")
-    owner_country = "GB" if allowed == "owner_gb" else "PL"
+    owner_country = parameters.get("origin_country") or ("GB" if allowed in {"owner_gb", "gb_available"} else "PL")
     admin_country = "GB" if allowed == "admin_gb" else "PL"
     viewer_country = "GB" if (allowed == "gb_available" or parameters.get("inaccessible") in {"gb_unavailable", "gb_friend_unavailable"}) else "PL"
     with Session(engine, expire_on_commit=False) as session:
@@ -220,7 +220,8 @@ async def test_historical_participants_cannot_receive_private_comment_notificati
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("market_available", [False, True])
-async def test_gb_comment_notifications_require_availability_but_recipe_author_is_kept(context, market_available):
+@pytest.mark.parametrize("origin_country", ["PL", "GB"])
+async def test_gb_comment_notifications_require_availability_but_recipe_author_is_kept(context, market_available, origin_country):
     session, db, owner, _, admin, product, recipe, _ = context
     gb_user = User(id=uuid4(), email="gb-recipient@example.invalid", country_code="GB", password_hash="test")
     session.add(gb_user)
@@ -235,7 +236,7 @@ async def test_gb_comment_notifications_require_availability_but_recipe_author_i
     await recipe_comments._notify_thread_participants(db, recipe, fresh, admin)
     ids = {item.user_id for item in session.query(Notification).all()}
     assert owner.id in ids
-    assert (gb_user.id in ids) is market_available
+    assert (gb_user.id in ids) is (market_available and origin_country == "GB")
 
 
 @pytest.mark.asyncio
@@ -266,7 +267,8 @@ async def test_like_does_not_notify_a_former_private_recipe_participant(context)
 
 
 @pytest.mark.asyncio
-async def test_uk_notification_availability_is_not_queried_per_recipient(context):
+@pytest.mark.parametrize("origin_country", ["GB"])
+async def test_uk_notification_availability_is_not_queried_per_recipient(context, origin_country):
     session, db, _, _, _, product, recipe, _ = context
     recipe.visibility = "public"
     reviewed_offer(session, product, uk_store(session), price="1.00")

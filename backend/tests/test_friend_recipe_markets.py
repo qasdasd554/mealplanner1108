@@ -37,13 +37,13 @@ class AsyncSessionAdapter:
 
 
 @pytest.fixture
-def friend_market_db():
+def friend_market_db(request):
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(engine)
     with Session(engine, expire_on_commit=False) as session:
         owner = User(
             id=uuid4(), email="owner@example.invalid", password_hash="not-a-password",
-            country_code="PL",
+            country_code=getattr(getattr(request.node, "callspec", None), "params", {}).get("owner_country", "PL"),
         )
         gb_viewer = User(
             id=uuid4(), email="gb@example.invalid", password_hash="not-a-password",
@@ -111,7 +111,7 @@ def _list(session, owner, viewer):
     ))
 
 
-def test_gb_friend_view_uses_viewer_country_not_polish_recipe_owner(friend_market_db):
+def test_gb_friend_view_never_imports_a_polish_authors_recipes_even_with_uk_stock(friend_market_db):
     session, owner, gb_viewer, _ = friend_market_db
     uk_product, polish_product = _ingredient(session), _ingredient(session)
     _available(session, uk_product, "GB")
@@ -120,9 +120,7 @@ def test_gb_friend_view_uses_viewer_country_not_polish_recipe_owner(friend_marke
     public_uk = _recipe(session, owner, uk_product, visibility="public")
     unavailable = _recipe(session, owner, polish_product)
     rows = _list(session, owner, gb_viewer)
-    assert {row.id for row in rows} == {private_uk.id, public_uk.id}
-    assert unavailable.id not in {row.id for row in rows}
-    assert all(not row.is_own_recipe and not row.is_favorite for row in rows)
+    assert rows == []
 
 
 def test_polish_friend_view_keeps_existing_private_and_public_rules(friend_market_db):
@@ -135,7 +133,8 @@ def test_polish_friend_view_keeps_existing_private_and_public_rules(friend_marke
     assert {row.id for row in _list(session, owner, pl_viewer)} == {private.id, public.id}
 
 
-def test_gb_friend_view_does_not_duplicate_recipe_for_two_store_mappings(friend_market_db):
+@pytest.mark.parametrize("owner_country", ["GB"])
+def test_gb_friend_view_does_not_duplicate_recipe_for_two_store_mappings(friend_market_db, owner_country):
     session, owner, gb_viewer, _ = friend_market_db
     product = _ingredient(session)
     _available(session, product, "GB")

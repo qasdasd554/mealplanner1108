@@ -87,11 +87,13 @@ def connect_io(db, monkeypatch, handler=None):
 
 @pytest.mark.parametrize("country", ["PL", "GB"])
 def test_http_catalogue_schedules_refresh_after_body_and_releases_connection(db, monkeypatch, country):
-    session, adapter, user_id, _, _ = setup_recipe(db)
+    session, adapter, user_id, _, recipe_id = setup_recipe(db)
     user = session.get(User, user_id)
     if country == "PL":
         user = User(id=uuid4(), email="pl-viewer@example.test", password_hash="fixture", country_code="PL")
         session.add(user)
+        # Test refresh scheduling on a local recipe, not a cross-market import.
+        session.get(Recipe, recipe_id).created_by_user_id = user.id
         session.commit()
     adapter.rollback = AsyncMock(side_effect=session.rollback)
     events = []

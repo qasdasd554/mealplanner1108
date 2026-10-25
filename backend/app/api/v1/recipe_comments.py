@@ -10,7 +10,7 @@ import uuid
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import and_, or_, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -65,6 +65,13 @@ async def _notification_recipients(db: AsyncSession, recipe: Recipe, candidate_i
         return []
     users = (await db.execute(select(User).where(User.id.in_(candidate_ids)))).scalars().all()
     author_id = recipe.created_by_user_id
+    if author_id is not None:
+        origin = await db.execute(select(func.coalesce(User.country_code, "PL")).where(User.id == author_id))
+        author_country = origin.scalar_one_or_none()
+        users = [user for user in users if (
+            user.id == author_id or user.role == "admin"
+            or account_country(user) == author_country
+        )]
     public = author_id is None or recipe.visibility == "public"
     friend_ids = set()
     if not public and recipe.visibility == "private":

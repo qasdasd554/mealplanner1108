@@ -197,6 +197,7 @@ async def create_shopping_list_from_recipes(
     # (własne prywatne, publiczne, albo oficjalne — ta sama reguła co przy
     # normalnym przeglądaniu przepisów).
     from app.api.v1.recipes import _visibility_filter
+    from app.services.recipe_access import recipe_origin_in_market
 
     recipe_query = select(Recipe).options(
         selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product),
@@ -204,6 +205,7 @@ async def create_shopping_list_from_recipes(
         Recipe.id.in_(payload.recipe_ids),
         Recipe.is_active.is_(True),
         _visibility_filter(current_user.id),
+        recipe_origin_in_market(account_country(current_user)),
     )
     if account_country(current_user) == "GB":
         # Just like recipe detail, keep the owner's own imports usable even
