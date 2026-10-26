@@ -102,8 +102,9 @@ async def list_reviewed_store_products(db, store_id, *, skip: int, limit: int,
             try:
                 unit = canonical_base_unit(product)
             except ValueError:
-                unit = None
-            quote = quote_national_requirement(product, 100, unit,
+                unit = "szt" if product.unit == "szt" else None
+            price_quantity = 1 if unit == "szt" else 100
+            quote = quote_national_requirement(product, price_quantity, unit,
                 store_id=store_id, as_of=as_of)
             output.append(StoreProductResponse(
                 id=uuid5(NAMESPACE_URL, f"generic-shop-food:{store_id}:{product.id}"),
@@ -114,7 +115,7 @@ async def list_reviewed_store_products(db, store_id, *, skip: int, limit: int,
                 availability_scope="generic_food_reference", is_available=None,
                 price=float(quote.total_price) if quote else None,
                 price_basis="national_quantity_reference" if quote else "unknown",
-                price_quantity=100 if quote else None, price_unit=unit if quote else None,
+                price_quantity=price_quantity if quote else None, price_unit=unit if quote else None,
                 price_is_estimated=True, price_source=quote.price_source if quote else None,
             ))
     return output

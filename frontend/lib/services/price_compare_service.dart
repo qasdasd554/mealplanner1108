@@ -153,7 +153,10 @@ class PriceComparisonResult {
         missingProducts.isEmpty &&
         rawTotal != null;
     final hasNationalReference = items.any(
-      (item) => item.priceSource?['provider'] == 'ons_national_average',
+      (item) => const {
+        'ons_national_average',
+        'uk_catalogue_estimate',
+      }.contains(item.priceSource?['provider']),
     );
     return PriceComparisonResult(
       storeId: json['store_id']?.toString() ?? '',

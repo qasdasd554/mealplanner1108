@@ -681,7 +681,7 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
     final quantityLabel =
         generic
             ? sp.priceQuantity != null
-                ? '/ ${formatQuantity(sp.priceQuantity!, sp.priceUnit!)} ${sp.priceUnit!}'
+                ? '/ ${formatQuantity(sp.priceQuantity!, sp.priceUnit!)} ${context.strings.measureQuantityLabel(sp.priceUnit!, fallback: sp.priceUnit!, amount: sp.priceQuantity!)}'
                 : ''
             : regional && sp.hasRegionalPackage
             ? '/ ${formatQuantity(sp.packageQuantity!, sp.packageUnit!)} ${sp.packageUnit!}'
@@ -776,7 +776,9 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
                       '${kcal.toInt()} kcal / 100${product?.unit == 'ml' || product?.unit == 'l' ? 'ml' : 'g'}',
                     verifiedLabel,
                     if (generic && sp.price != null)
-                      context.strings.productsNationalAverage,
+                      sp.priceSource?['provider'] == 'ons_national_average'
+                          ? context.strings.productsNationalAverage
+                          : context.strings.productsEstimatedPrice,
                     if (regional && !generic)
                       context.strings.productsOnlineCatalogue,
                     if (sp.isAvailable == false)

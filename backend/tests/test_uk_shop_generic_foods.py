@@ -51,7 +51,7 @@ def test_all_390_foods_in_every_uk_shop_search_and_stable_pages(state):
     generics = [row for row in pages if row["catalogue_kind"] == "generic_food"]
     assert len(generics) == 390
     assert [r["name_en"] for r in generics] == sorted(r["name_en"] for r in generics)
-    assert any(r["price"] is None and r["price_basis"] == "unknown" for r in generics)
+    assert all(r["price"] > 0 for r in generics)
     for row in generics:
         assert row["price"] is None or row["price"] > 0
         assert row["package_quantity"] is None and row["is_available"] is None
@@ -104,14 +104,16 @@ def test_polish_shop_ignores_extension_and_preserves_price(state):
     assert row["is_available"] is True
 
 
-def test_expired_reference_is_unknown_not_zero_or_a_request_failure(state, monkeypatch):
+def test_expired_ons_reference_falls_back_to_labelled_static_catalogue_estimate(state, monkeypatch):
     monkeypatch.setattr("app.api.v1.stores.regional_pricing_date", lambda: date(2030, 1, 1))
     food = seeded_oats()
     state.db.add(food)
     state.db.commit()
     row, = generic_rows(state, "&search=oats")
-    assert row["price"] is None and row["price_basis"] == "unknown"
-    assert row["price_quantity"] is None and row["price_source"] is None
+    assert row["price"] > 0 and row["price_basis"] == "national_quantity_reference"
+    assert row["price_quantity"] == 100
+    assert row["price_source"]["provider"] == "uk_catalogue_estimate"
+    assert row["price_source"]["checked_on"] == "2026-10-26"
     assert row["product"]["nutrition_per_100"]["kcal"] == 389
 
 

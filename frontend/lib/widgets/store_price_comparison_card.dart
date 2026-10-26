@@ -29,13 +29,19 @@ class StorePriceComparisonCard extends StatelessWidget {
     final strings = context.strings;
     final total = result.totalPrice;
     final hasNationalReference = result.items.any(
-      (item) => item.priceSource?['provider'] == 'ons_national_average',
+      (item) => const {
+        'ons_national_average',
+        'uk_catalogue_estimate',
+      }.contains(item.priceSource?['provider']),
     );
     final isCheapest =
         total != null &&
         result.isComplete &&
         result.isCheapest &&
         !hasNationalReference;
+    final hasCatalogueEstimate = result.items.any(
+      (item) => item.priceSource?['provider'] == 'uk_catalogue_estimate',
+    );
     final cardColor = Theme.of(context).colorScheme.primaryContainer;
     // Approved contrast-only repair: preserve the card, shape and background.
     // Some themes use the same green for on-primary actions and the card.
@@ -53,8 +59,12 @@ class StorePriceComparisonCard extends StatelessWidget {
                 strings.priceCompareEstimatedPrices,
               if (hasNationalReference)
                 strings.localeName.startsWith('en')
-                    ? 'Includes UK averages, not shop quotes'
-                    : 'Obejmuje średnie UK, nie oferty sklepów',
+                    ? (hasCatalogueEstimate
+                        ? 'Includes catalogue estimates, not shop quotes'
+                        : 'Includes UK averages, not shop quotes')
+                    : (hasCatalogueEstimate
+                        ? 'Obejmuje szacunki katalogowe, nie oferty sklepów'
+                        : 'Obejmuje średnie UK, nie oferty sklepów'),
               if (result.savingsVsMostExpensive > 0)
                 strings.priceCompareSavings(
                   formatMarketMoney(

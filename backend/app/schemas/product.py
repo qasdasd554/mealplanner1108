@@ -150,3 +150,6 @@ class SubstituteResponse(BaseModel):
     package_unit: str | None = None
     price_is_estimated: bool = True
     last_verified: date | None = None
+    price_basis: str = "package"
+    price_quantity: float | None = None
+    price_unit: str | None = None

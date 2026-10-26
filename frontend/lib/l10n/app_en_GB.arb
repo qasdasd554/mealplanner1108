@@ -1081,6 +1081,7 @@
     "description": "Shopping list display label. Currency and package data come from the response snapshot."
   },
   "shoppingChooseSubstitute": "Choose a substitute",
+  "shoppingNoSubstitutes": "No alternatives found for this item.",
   "@shoppingChooseSubstitute": {
     "description": "Shopping list display label. Currency and package data come from the response snapshot."
   },
@@ -2292,7 +2293,7 @@
   "releasePromptTitle": "An update is available",
   "releasePromptRequired": "This version is no longer supported. Update the app to continue.",
   "releasePromptStoreError": "Could not open the app store.",
-  "releasePromptChanges": "• Fixed shopping lists created from your own recipes.\n• Improved ingredient matching during external database outages.\n• Separated Polish and UK community recipes.\n• Added all system recipes to the English catalogue and English foods to the UK Shop tab.",
+  "releasePromptChanges": "• Fixed choosing and saving substitutes on shopping lists.\n• Added estimated catalogue prices for UK foods.\n• Improved quantity conversions when pricing your shopping.\n• Made estimated prices and quantity-based costs clearer.",
   "releasePromptApple": "Open App Store",
   "releasePromptGoogle": "Open Google Play",
   "releasePromptLater": "Later",

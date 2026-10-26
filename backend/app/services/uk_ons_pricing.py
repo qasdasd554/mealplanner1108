@@ -51,6 +51,14 @@ class NationalReferenceQuote:
 
 
 def quote_national_requirement(product, quantity, unit, *, store_id, as_of):
+    quote = _quote_ons_requirement(product, quantity, unit, store_id=store_id, as_of=as_of)
+    if quote is not None:
+        return quote
+    from app.services.uk_catalogue_estimates import quote_static_requirement
+    return quote_static_requirement(product, quantity, unit, store_id=store_id, as_of=as_of)
+
+
+def _quote_ons_requirement(product, quantity, unit, *, store_id, as_of):
     if (product is None or product.review_status != "approved"
             or not is_system_ingredient(product) or product.name not in _LINKS
             or type(as_of) is not date or unit not in {"g", "ml"}):
@@ -103,6 +111,10 @@ def frozen_national_reference(item, *, as_of):
     price data. This is not proof of actual amount paid or a package bought.
     """
     snapshot = getattr(item, "regional_snapshot", None)
+    if (snapshot is not None and isinstance(snapshot.quote_data, dict)
+            and (snapshot.quote_data.get("price_source") or {}).get("provider") == "uk_catalogue_estimate"):
+        from app.services.uk_catalogue_estimates import frozen_static_reference
+        return frozen_static_reference(item, as_of=as_of)
     try:
         body = dict(snapshot.quote_data)
         fingerprint = body.pop("reference_fingerprint")

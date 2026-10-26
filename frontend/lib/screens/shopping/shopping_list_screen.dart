@@ -14,6 +14,7 @@ import '../../l10n/market_locale.dart';
 import '../../services/shopping_list_limit_offer.dart';
 import '../../utils/market_money.dart';
 import '../../utils/quantity_formatter.dart';
+import '../../l10n/measure_labels.dart';
 import '../../services/api_client.dart';
 import '../../services/shopping_list_service.dart';
 import '../../services/price_compare_service.dart';
@@ -498,6 +499,13 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                                         textAlign: TextAlign.center,
                                       ),
                                     )
+                                    : result.items.isEmpty
+                                    ? Center(
+                                      child: Text(
+                                        strings.shoppingNoSubstitutes,
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    )
                                     : ListView.builder(
                                       itemCount: result.items.length,
                                       itemBuilder: (rowContext, index) {
@@ -515,6 +523,22 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                                               'g',
                                               'ml',
                                             }.contains(packageUnit);
+                                        final priceQuantity =
+                                            (sub['price_quantity'] as num?)
+                                                ?.toDouble();
+                                        final priceUnit =
+                                            sub['price_unit'] as String?;
+                                        final quantityReference =
+                                            sub['price_basis'] ==
+                                                'quantity_reference' &&
+                                            priceQuantity != null &&
+                                            priceQuantity.isFinite &&
+                                            priceQuantity > 0 &&
+                                            const {
+                                              'g',
+                                              'ml',
+                                              'szt',
+                                            }.contains(priceUnit);
                                         final subtitle =
                                             '${sub['brand'] as String? ?? ''}${sub['kcal'] != null ? ' (${sub['kcal']} kcal)' : ''}';
                                         return ListTile(
@@ -538,6 +562,8 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                                                           value.isNotEmpty,
                                                     )
                                                     .join(' · ')
+                                                : quantityReference
+                                                ? '$subtitle · ${strings.productsEstimatedPrice} / ${formatQuantity(priceQuantity, priceUnit!)} ${strings.measureQuantityLabel(priceUnit, fallback: priceUnit, amount: priceQuantity)}'
                                                 : subtitle,
                                           ),
                                           trailing: Text(

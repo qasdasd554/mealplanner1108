@@ -1335,7 +1335,8 @@ async def get_product_substitutes(
             product_id=product_id, store_id=store_id, limit=10
         )
     response_list = []
-    from app.services.product_market_presentation import product_brand_for_market
+    from app.services.product_market_presentation import product_brand_for_market, is_uk_generic_seed
+    from app.services.system_content_language import ingredient_display_name
     for r in results:
         prod = r["product"]
         if not (
@@ -1345,9 +1346,19 @@ async def get_product_substitutes(
             continue
         store_prod = r.get("store_product")
         regional_quote = r.get("regional_quote") if account_country(current_user) == "GB" else None
+        generic_reference = (account_country(current_user) == "GB"
+            and regional_quote is None and r.get("generic_reference") is True
+            and is_uk_generic_seed(prod, country_code="GB"))
+        national_quote = None
+        if generic_reference:
+            from app.services.uk_ons_pricing import quote_national_requirement
+            from app.services.uk_catalogue_import import canonical_base_unit
+            from app.services.regional_shopping import regional_pricing_date
+            national_quote = quote_national_requirement(prod, 100, canonical_base_unit(prod),
+                store_id=store_id, as_of=regional_pricing_date())
         if account_country(current_user) == "GB":
             # A legacy StoreProduct is not a reviewed British price/pack.
-            if (regional_quote is None or regional_quote.store_id != store_id
+            if not generic_reference and (regional_quote is None or regional_quote.store_id != store_id
                     or regional_quote.product_id != prod.id
                     or regional_quote.currency_code != "GBP"):
                 continue
@@ -1359,12 +1370,17 @@ async def get_product_substitutes(
                 pass
         response_list.append({
             "id": prod.id,
-            "name": regional_quote.name_en if regional_quote else prod.name,
+            "name": (ingredient_display_name(prod, country_code="GB") if generic_reference
+                else regional_quote.name_en if regional_quote else prod.name),
             "brand": product_brand_for_market(prod, country_code=account_country(current_user)),
-            "price": regional_quote.price_per_package if regional_quote else (store_prod.price if store_prod else None),
+            "price": (national_quote.total_price if national_quote else None) if generic_reference
+                else regional_quote.price_per_package if regional_quote else (store_prod.price if store_prod else None),
             "kcal": kcal,
             "similarity_score": r.get("similarity_score"),
-            "currency_code": "GBP" if regional_quote else "PLN",
+            "currency_code": "GBP" if regional_quote or generic_reference else "PLN",
+            "price_basis": "quantity_reference" if national_quote else "unknown" if generic_reference else "package",
+            "price_quantity": 100 if national_quote else None,
+            "price_unit": national_quote.unit if national_quote else None,
             "package_quantity": regional_quote.package_quantity if regional_quote else None,
             "package_unit": regional_quote.unit if regional_quote else None,
             "price_is_estimated": regional_quote.price_is_estimated if regional_quote else getattr(store_prod, "last_verified", None) is None,

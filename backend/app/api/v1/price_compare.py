@@ -92,7 +92,7 @@ def _uk_comparison_item(quote, *, fingerprint=None, checked=False):
 
 
 def _has_national_reference(results):
-    return any((item.price_source or {}).get("provider") == "ons_national_average"
+    return any((item.price_source or {}).get("provider") in {"ons_national_average", "uk_catalogue_estimate"}
         for result in results for item in result.items)
 
 

@@ -81,8 +81,12 @@ def test_corrupted_reference_is_not_preserved_as_a_checked_purchase(change):
 
 def test_too_old_or_future_national_dataset_is_not_a_current_quote():
     from app.services.uk_ons_pricing import quote_national_requirement
-    for day in [date(2026, 10, 1), date(2027, 3, 1)]:
+    for day in [date(2026, 10, 1)]:
         assert quote_national_requirement(food(), Decimal(500), "g", store_id=UK_STORES[0].id, as_of=day) is None
+    fallback = quote_national_requirement(food(), Decimal(500), "g",
+        store_id=UK_STORES[0].id, as_of=date(2027, 3, 1))
+    assert fallback.price_source["provider"] == "uk_catalogue_estimate"
+    assert fallback.price_is_estimated and fallback.last_verified is None
     assert make_item(food("Cukier"), "1").estimated_price is None  # Below a penny is not free.
 
 

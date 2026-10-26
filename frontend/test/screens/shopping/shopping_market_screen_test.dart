@@ -223,6 +223,51 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
+  testWidgets(
+    'generic substitute shows estimated cost per quantity, not a fake pack',
+    (tester) async {
+      final shopping = await openSubstitutes(
+        tester,
+        _Client(
+          () async => [
+            {
+              'id': 'generic-pasta',
+              'name': 'Spaghetti',
+              'currency_code': 'GBP',
+              'price': 0.20,
+              'price_basis': 'quantity_reference',
+              'price_quantity': 100,
+              'price_unit': 'g',
+              'price_is_estimated': true,
+            },
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Spaghetti'), findsOneWidget);
+      expect(find.text('~£0.20'), findsOneWidget);
+      expect(find.textContaining('100 g'), findsOneWidget);
+      expect(find.textContaining('pack'), findsNothing);
+      shopping.substituteSuccess = true;
+      await tester.tap(find.text('Spaghetti'));
+      await tester.pumpAndSettle();
+      expect(find.text('Choose a substitute'), findsNothing);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
+  testWidgets(
+    'empty substitute response explains state instead of a blank sheet',
+    (tester) async {
+      await openSubstitutes(tester, _Client(() async => []));
+      await tester.pumpAndSettle();
+      expect(find.text('No alternatives found for this item.'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
   testWidgets('failed substitute never reports success or closes the picker', (
     tester,
   ) async {

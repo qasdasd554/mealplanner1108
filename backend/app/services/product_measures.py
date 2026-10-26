@@ -98,6 +98,8 @@ def base_unit_for_product(name: str, unit: str) -> str:
     normalized = (unit or "").lower()
     if normalized in {"ml", "l"}:
         return "ml"
+    if normalized in {"g", "kg"} or (normalized == "szt" and name in PIECE_GRAMS):
+        return "g"
     lowered = name.lower()
     if any(word in lowered for word in LIQUID_WORDS):
         return "ml"

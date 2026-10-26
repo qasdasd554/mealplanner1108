@@ -1854,6 +1854,10 @@ class AppLocalizationsPl extends AppLocalizations {
   String get shoppingChooseSubstitute => 'Wybierz zamiennik';
 
   @override
+  String get shoppingNoSubstitutes =>
+      'Nie znaleziono zamienników tego produktu.';
+
+  @override
   String shoppingSubstituteFor(String name) {
     return 'Dla produktu: $name';
   }
@@ -4248,7 +4252,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• Poprawiliśmy tworzenie list zakupów z własnych przepisów.\n• Usprawniliśmy dopasowanie składników przy problemach z bazą zewnętrzną.\n• Oddzieliliśmy przepisy społeczności Polski i UK.\n• Uzupełniliśmy angielski katalog o wszystkie przepisy systemowe oraz produkty w zakładce sklepów.';
+      '• Naprawiliśmy wybieranie i zapisywanie zamienników na listach zakupów.\n• Uzupełniliśmy orientacyjne ceny produktów w UK.\n• Ujednoliciliśmy przeliczanie ilości podczas wyceny zakupów.\n• Wyraźniej oznaczyliśmy ceny szacunkowe i wyceny porcji.';
 
   @override
   String get releasePromptApple => 'Otwórz App Store';

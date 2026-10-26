@@ -1851,6 +1851,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shoppingChooseSubstitute => 'Choose a substitute';
 
   @override
+  String get shoppingNoSubstitutes => 'No alternatives found for this item.';
+
+  @override
   String shoppingSubstituteFor(String name) {
     return 'For product: $name';
   }
@@ -4266,7 +4269,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• Fixed shopping lists created from your own recipes.\n• Improved ingredient matching during external database outages.\n• Separated Polish and UK community recipes.\n• Added all system recipes to the English catalogue and English foods to the UK Shop tab.';
+      '• Fixed choosing and saving substitutes on shopping lists.\n• Added estimated catalogue prices for UK foods.\n• Improved quantity conversions when pricing your shopping.\n• Made estimated prices and quantity-based costs clearer.';
 
   @override
   String get releasePromptApple => 'Open App Store';
@@ -7097,6 +7100,9 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
   String get shoppingChooseSubstitute => 'Choose a substitute';
 
   @override
+  String get shoppingNoSubstitutes => 'No alternatives found for this item.';
+
+  @override
   String shoppingSubstituteFor(String name) {
     return 'For product: $name';
   }
@@ -9512,7 +9518,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get releasePromptChanges =>
-      '• Fixed shopping lists created from your own recipes.\n• Improved ingredient matching during external database outages.\n• Separated Polish and UK community recipes.\n• Added all system recipes to the English catalogue and English foods to the UK Shop tab.';
+      '• Fixed choosing and saving substitutes on shopping lists.\n• Added estimated catalogue prices for UK foods.\n• Improved quantity conversions when pricing your shopping.\n• Made estimated prices and quantity-based costs clearer.';
 
   @override
   String get releasePromptApple => 'Open App Store';

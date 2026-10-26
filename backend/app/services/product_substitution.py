@@ -16,7 +16,7 @@ from decimal import Decimal
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import and_, select, update
+from sqlalchemy import and_, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
@@ -44,6 +44,8 @@ from app.services.regional_requirements import to_regional_base_quantity
 from app.services.uk_catalogue_import import canonical_base_unit
 from app.services.regional_offer_pricing import select_uk_offer_quote
 from app.services.market_catalog import regional_offer_available_condition
+from app.services.product_market_presentation import is_uk_generic_seed
+from app.services.system_content_language import generic_system_ingredient_condition
 
 logger = logging.getLogger(__name__)
 
@@ -194,6 +196,9 @@ class ProductSubstitutionService:
             if similar:
                 substitutes = similar[:1]
 
+        # Generic/national references are manual choices, not a physical SKU
+        # that can be silently auto-swapped by a withdrawal job.
+        substitutes = [row for row in substitutes if row.get("store_product") is not None]
         if substitutes:
             best_sub = substitutes[0]
             sub_product = best_sub["product"]
@@ -265,8 +270,16 @@ class ProductSubstitutionService:
                 RegionalProductOffer.country_code == "GB", RegionalProductOffer.currency_code == "GBP",
                 regional_offer_available_condition(as_of=regional_pricing_date()),
             )
+            from app.db.seed import PRODUCTS_DATA, _uid
+            generic_ids = [_uid("product:" + row[0]) for row in PRODUCTS_DATA]
+            if is_uk_generic_seed(ref_product, country_code="GB"):
+                department = next((row[3] for row in PRODUCTS_DATA if row[0] == ref_product.name), None)
+                generic_ids = [_uid("product:" + row[0]) for row in PRODUCTS_DATA
+                    if department is not None and row[3] == department]
             result = await self.db.execute(select(Product).where(
-                Product.id.in_(local_ids), Product.id != product_id, Product.review_status == "approved",
+                or_(Product.id.in_(local_ids), and_(Product.id.in_(generic_ids),
+                    generic_system_ingredient_condition(Product))),
+                Product.id != product_id, Product.review_status == "approved",
             ).order_by(Product.id).limit(max(50, min(limit * 20, 200))))
             reference = self.nutrition.nutrition_vector(ref_product)
             scored = [(product, self.nutrition.cosine_similarity(reference, self.nutrition.nutrition_vector(product)))
@@ -454,8 +467,12 @@ class ProductSubstitutionService:
                 raise ProductUnavailableException(product_id=substitute_product_id, store_id=store_id) from exc
             offers = await load_regional_offers(self.db, {product.id}, store_id)
             quote = select_uk_offer_quote(offers, product_id=product.id, store_id=store_id, quantity=quantity, unit=unit, as_of=regional_pricing_date())
-            if quote is None:
+            if quote is None and not is_uk_generic_seed(product, country_code="GB"):
                 raise ProductUnavailableException(product_id=substitute_product_id, store_id=store_id)
+            if quote is None:
+                store = await self.db.get(Store, store_id)
+                if store is None or store.country_code != "GB" or store.currency_code != "GBP":
+                    raise ProductUnavailableException(product_id=substitute_product_id, store_id=store_id)
             item.substituted_for = snapshot.product_id
             apply_regional_item_quote(
                 item, product=product, store_id=store_id,
@@ -515,6 +532,8 @@ class ProductSubstitutionService:
                 quantity=Decimal("0.001"), unit=unit, as_of=regional_pricing_date())
             if quote is not None:
                 result.append({"product": product, "similarity_score": score, "regional_quote": quote})
+            elif is_uk_generic_seed(product, country_code="GB"):
+                result.append({"product": product, "similarity_score": score, "generic_reference": True})
             if len(result) >= limit:
                 break
         return result

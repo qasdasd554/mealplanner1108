@@ -226,9 +226,12 @@ class StoreProduct {
               priceQuantity != null &&
               priceQuantity!.isFinite &&
               priceQuantity! > 0 &&
-              const {'g', 'ml'}.contains(priceUnit) &&
+              const {'g', 'ml', 'szt'}.contains(priceUnit) &&
               priceIsEstimated &&
-              priceSource?['provider'] == 'ons_national_average' &&
+              const {
+                'ons_national_average',
+                'uk_catalogue_estimate',
+              }.contains(priceSource?['provider']) &&
               priceSource?['confirms_store_stock'] == false &&
               priceSource?['confirms_package'] == false);
 

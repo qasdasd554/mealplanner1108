@@ -47,6 +47,22 @@ def canonical_base_unit(product: Product) -> str:
         if isinstance(option, dict) and option.get("base_unit") in {"g", "ml"}
     }
     if len(option_units) > 1 or (direct and option_units and option_units != {direct}):
+        # Old system seeds let liquid words override explicit grams, and added
+        # ml spoons to gram-based stock cubes. Repair only a known unchanged
+        # seed with its original unit; arbitrary/edited SKUs remain rejected.
+        from app.services.product_market_presentation import is_uk_generic_seed
+        if is_uk_generic_seed(product, country_code="GB"):
+            from app.db.seed import PRODUCTS_DATA
+            seed = next((row for row in PRODUCTS_DATA if row[0] == product.name), None)
+            if seed is not None and seed[1] == product.unit:
+                if direct is not None:
+                    return direct
+                from app.services.product_measures import PIECE_GRAMS
+                piece = PIECE_GRAMS.get(product.name)
+                if unit == "szt" and piece is not None and any(
+                    isinstance(option, dict) and option.get("code") == "szt" and option.get("base_unit") == "g"
+                    and option.get("base_quantity") == piece for option in product.measure_options or []):
+                    return "g"
         raise ValueError("Canonical product has conflicting g/ml dimensions")
     if direct:
         return direct
