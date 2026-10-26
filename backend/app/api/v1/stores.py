@@ -106,6 +106,7 @@ async def list_store_products(
     limit: int = Query(50, ge=1, le=200, description="Maksymalna liczba wyników"),
     search: str | None = Query(None, description="Szukaj po nazwie produktu"),
     department_id: UUID | None = Query(None, description="Filtruj po dziale sklepu"),
+    include_generic_foods: bool = Query(False, description="Include labelled English generic food references"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
     market: MarketCode | None = None,
@@ -129,6 +130,7 @@ async def list_store_products(
         result = await list_reviewed_store_products(
             db, store_id, skip=skip, limit=limit, search=search,
             department_id=department_id, as_of=regional_pricing_date(),
+            include_generic_foods=include_generic_foods,
         )
         if background_tasks is not None and getattr(current_user, "role", None) == "admin":
             from app.services.community_price_refresh import refresh_reviewed_store_prices

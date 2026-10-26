@@ -119,62 +119,75 @@ class _ProductsScreenState extends State<ProductsScreen>
           ],
         ),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+      body: LayoutBuilder(
+        builder:
+            (context, constraints) => Column(
               children: [
-                const ProductContributionRewardBanner(),
-                const SizedBox(height: 10),
-                FilledButton.icon(
-                  onPressed: _scanBarcode,
-                  icon: const Icon(Icons.barcode_reader),
-                  label: Text(
-                    context.strings.productsScan,
-                    maxLines: 2,
-                    textAlign: TextAlign.center,
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight:
+                        MediaQuery.textScalerOf(context).scale(14) > 18.2
+                            ? constraints.maxHeight * 0.45
+                            : double.infinity,
+                  ),
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const ProductContributionRewardBanner(),
+                          const SizedBox(height: 10),
+                          FilledButton.icon(
+                            onPressed: _scanBarcode,
+                            icon: const Icon(Icons.barcode_reader),
+                            label: Text(
+                              context.strings.productsScan,
+                              maxLines: 2,
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          OutlinedButton(
+                            onPressed: _scanBatch,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.qr_code_2, size: 19),
+                                const SizedBox(width: 8),
+                                Flexible(
+                                  child: Text(
+                                    context.strings.productsBatchScan,
+                                    maxLines: 2,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                const PremiumFeatureTag(fontSize: 8),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 6),
-                OutlinedButton(
-                  onPressed: _scanBatch,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
                     children: [
-                      const Icon(Icons.qr_code_2, size: 19),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Text(
-                          context.strings.productsBatchScan,
-                          maxLines: 2,
-                          textAlign: TextAlign.center,
-                        ),
+                      _StoreProductsTab(service: widget.storeService),
+                      _CatalogProductsTab(service: widget.catalogueService),
+                      _MyProductsTab(
+                        key: ValueKey(_myProductsRefresh),
+                        client: widget.client,
                       ),
-                      const SizedBox(width: 8),
-                      const PremiumFeatureTag(fontSize: 8),
                     ],
                   ),
                 ),
               ],
             ),
-          ),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _StoreProductsTab(service: widget.storeService),
-                _CatalogProductsTab(service: widget.catalogueService),
-                _MyProductsTab(
-                  key: ValueKey(_myProductsRefresh),
-                  client: widget.client,
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -501,10 +514,13 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
                 row.storeId != storeId ||
                 row.currencyCode != store.currencyCode ||
                 !const {'PLN', 'GBP'}.contains(row.currencyCode) ||
-                !row.price.isFinite ||
-                row.price < 0 ||
-                (row.currencyCode == 'GBP' &&
-                    (row.price == 0 || !row.hasRegionalPackage)),
+                (row.isGenericFood
+                    ? !row.hasValidGenericReference
+                    : row.price == null ||
+                        !row.price!.isFinite ||
+                        row.price! < 0 ||
+                        (row.currencyCode == 'GBP' &&
+                            (row.price == 0 || !row.hasRegionalPackage))),
           )) {
         setState(() {
           _products = [];
@@ -643,11 +659,17 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
   Widget _buildProductTile(StoreProduct sp) {
     final product = sp.product;
     final regional = sp.currencyCode == 'GBP';
+    final generic = sp.isGenericFood;
     // The canonical food's nutrition is not label evidence for a retailer SKU.
-    final kcal = regional ? null : product?.nutritionPer100.knownValue('kcal');
+    final kcal =
+        regional && !generic
+            ? null
+            : product?.nutritionPer100.knownValue('kcal');
     final english = context.strings.localeName.startsWith('en');
     final verifiedLabel =
-        regional && sp.priceIsEstimated
+        generic
+            ? context.strings.productsGenericFood
+            : regional && sp.priceIsEstimated
             ? context.strings.productsEstimatedPrice
             : !english
             ? storePriceVerificationLabel(sp)
@@ -657,7 +679,11 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
               '${sp.lastVerified!.day.toString().padLeft(2, '0')}/${sp.lastVerified!.month.toString().padLeft(2, '0')}/${sp.lastVerified!.year}',
             );
     final quantityLabel =
-        regional && sp.hasRegionalPackage
+        generic
+            ? sp.priceQuantity != null
+                ? '/ ${formatQuantity(sp.priceQuantity!, sp.priceUnit!)} ${sp.priceUnit!}'
+                : ''
+            : regional && sp.hasRegionalPackage
             ? '/ ${formatQuantity(sp.packageQuantity!, sp.packageUnit!)} ${sp.packageUnit!}'
             : !english
             ? storePriceQuantityLabel(product)
@@ -667,6 +693,36 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
                 product.unit.trim().isEmpty
             ? context.strings.productsUnknownQuantity
             : '/ ${formatQuantity(product.defaultQuantity, product.unit)} ${context.strings.measureQuantityLabel(product.unit, fallback: product.unit, amount: product.defaultQuantity)}';
+    final stackedPrice =
+        generic &&
+        (MediaQuery.sizeOf(context).width < 360 ||
+            MediaQuery.textScalerOf(context).scale(14) > 18.2);
+    final priceLabel = Column(
+      crossAxisAlignment:
+          stackedPrice ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+      children: [
+        Text(
+          sp.price == null
+              ? context.strings.productsPriceUnavailable
+              : '${(regional ? sp.priceIsEstimated : sp.lastVerified == null) ? '~ ' : ''}'
+                  '${formatMarketMoney(sp.price!, currencyCode: sp.currencyCode)}',
+          textAlign: stackedPrice ? TextAlign.start : TextAlign.end,
+          style: const TextStyle(
+            color: AppTheme.primaryColor,
+            fontWeight: FontWeight.bold,
+            fontSize: 15,
+          ),
+        ),
+        if (quantityLabel.isNotEmpty)
+          Text(
+            quantityLabel,
+            textAlign: stackedPrice ? TextAlign.start : TextAlign.end,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: AppTheme.textSecondary, fontSize: 10),
+          ),
+      ],
+    );
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -676,7 +732,7 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
         borderRadius: const BorderRadius.all(Radius.circular(14)),
         border: Border.all(
           color:
-              sp.isAvailable
+              sp.isAvailable != false
                   ? Colors.transparent
                   : AppTheme.errorColor.withOpacity(0.4),
         ),
@@ -706,53 +762,36 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
                   style: Theme.of(
                     context,
                   ).textTheme.titleLarge?.copyWith(fontSize: 15),
-                  maxLines: 1,
+                  maxLines: generic ? 3 : 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
                 Text(
                   [
-                    if (sp.storeBrandName != null)
+                    if (!generic && sp.storeBrandName != null)
                       context.strings.productsShopBrand(sp.storeBrandName!)
-                    else if (product?.brand != null)
+                    else if (!generic && product?.brand != null)
                       context.strings.productsBrand(product!.brand!),
                     if (kcal != null)
                       '${kcal.toInt()} kcal / 100${product?.unit == 'ml' || product?.unit == 'l' ? 'ml' : 'g'}',
                     verifiedLabel,
-                    if (regional) context.strings.productsOnlineCatalogue,
-                    if (!sp.isAvailable) context.strings.productsUnavailable,
+                    if (generic && sp.price != null)
+                      context.strings.productsNationalAverage,
+                    if (regional && !generic)
+                      context.strings.productsOnlineCatalogue,
+                    if (sp.isAvailable == false)
+                      context.strings.productsUnavailable,
                   ].join(' • '),
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                 ),
+                if (stackedPrice) ...[const SizedBox(height: 6), priceLabel],
               ],
             ),
           ),
-          const SizedBox(width: 8),
-          SizedBox(
-            width: 96,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '${(regional ? sp.priceIsEstimated : sp.lastVerified == null) ? '~ ' : ''}'
-                  '${formatMarketMoney(sp.price, currencyCode: sp.currencyCode)}',
-                  textAlign: TextAlign.end,
-                  style: const TextStyle(
-                    color: AppTheme.primaryColor,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                  ),
-                ),
-                Text(
-                  quantityLabel,
-                  textAlign: TextAlign.end,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 10),
-                ),
-              ],
-            ),
-          ),
+          if (!stackedPrice) ...[
+            const SizedBox(width: 8),
+            SizedBox(width: 96, child: priceLabel),
+          ],
         ],
       ),
     ).animate().fadeIn(duration: 150.ms);

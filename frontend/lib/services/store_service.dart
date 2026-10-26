@@ -4,7 +4,8 @@ import 'api_client.dart';
 import '../config/api_config.dart';
 
 class StoreService {
-  final ApiClient _client = ApiClient();
+  final ApiClient _client;
+  StoreService({ApiClient? client}) : _client = client ?? ApiClient();
 
   Future<List<Store>> getStores() async {
     final response = await _client.get(ApiConfig.stores);
@@ -40,7 +41,8 @@ class StoreService {
     String? search,
     String? departmentId,
   }) async {
-    var path = '${ApiConfig.stores}$storeId/products?skip=$skip&limit=$limit';
+    var path =
+        '${ApiConfig.stores}$storeId/products?skip=$skip&limit=$limit&include_generic_foods=true';
     if (search != null && search.isNotEmpty) {
       path += '&search=${Uri.encodeComponent(search)}';
     }

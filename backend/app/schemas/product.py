@@ -110,7 +110,7 @@ class StoreProductResponse(BaseModel):
     store_id: uuid.UUID
     product_id: uuid.UUID
     department_id: uuid.UUID | None = None
-    price: float
+    price: float | None
     # Legacy StoreProduct prices are not reviewed regional SKU quotes. Never
     # infer GBP solely from a GB viewer or the store record's country.
     currency_code: str = "PLN"
@@ -118,7 +118,7 @@ class StoreProductResponse(BaseModel):
     # "Mleczna Dolina" dla mleka w Biedronce). Puste = brak marki własnej
     # w tej kategorii w danym sklepie.
     store_brand_name: str | None = None
-    is_available: bool
+    is_available: bool | None
     last_verified: date | None = None
     product: ProductResponse
     # Reviewed regional SKU fields; never reinterpret the canonical PL pack.
@@ -129,6 +129,12 @@ class StoreProductResponse(BaseModel):
     estimate_reason: str | None = None
     price_source: dict | None = None
     availability_scope: str | None = None
+    # Generic cooking references are not retailer SKUs. Unknown price/stock
+    # stay null, and a national quantity average is never a package price.
+    catalogue_kind: str = "retailer_offer"
+    price_basis: str = "package"
+    price_quantity: float | None = None
+    price_unit: str | None = None
 class SubstituteResponse(BaseModel):
     """Odpowiedź API — zamiennik z opcjonalną ceną ze sklepu."""
     model_config = ConfigDict(from_attributes=True)

@@ -2806,6 +2806,16 @@ class AppLocalizationsPl extends AppLocalizations {
       'Katalog online — dostępność lokalna może się różnić';
 
   @override
+  String get productsGenericFood =>
+      'Produkt ogólny — sprawdź dostępność w sklepie';
+
+  @override
+  String get productsNationalAverage => 'Średnia UK, nie cena sklepowa';
+
+  @override
+  String get productsPriceUnavailable => 'Brak ceny';
+
+  @override
   String get commentsLoadFailed => 'Nie udało się załadować komentarzy';
 
   @override
@@ -4238,7 +4248,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• Poprawiliśmy tworzenie list zakupów z własnych przepisów.\n• Usprawniliśmy dopasowanie składników przy problemach z bazą zewnętrzną.\n• Oddzieliliśmy przepisy społeczności Polski i UK.\n• Uzupełniliśmy angielski katalog o wszystkie przepisy systemowe.';
+      '• Poprawiliśmy tworzenie list zakupów z własnych przepisów.\n• Usprawniliśmy dopasowanie składników przy problemach z bazą zewnętrzną.\n• Oddzieliliśmy przepisy społeczności Polski i UK.\n• Uzupełniliśmy angielski katalog o wszystkie przepisy systemowe oraz produkty w zakładce sklepów.';
 
   @override
   String get releasePromptApple => 'Otwórz App Store';

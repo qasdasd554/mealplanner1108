@@ -163,13 +163,13 @@ class StoreProduct {
   final String storeId;
   final String productId;
   final String? departmentId;
-  final double price;
+  final double? price;
   final String currencyCode;
   // Marka własna sklepu (np. "Mleczna Dolina"), jeśli potwierdzona.
   // Wcześniej to pole w ogóle nie było tu parsowane — mimo że backend
   // je zwracał — więc ekran produktów nigdy nie mógł go pokazać.
   final String? storeBrandName;
-  final bool isAvailable;
+  final bool? isAvailable;
   final DateTime? lastVerified;
   final Product? product;
   final String? nameEn;
@@ -177,6 +177,11 @@ class StoreProduct {
   final String? packageUnit;
   final bool priceIsEstimated;
   final String? availabilityScope;
+  final String catalogueKind;
+  final String priceBasis;
+  final double? priceQuantity;
+  final String? priceUnit;
+  final Map<String, dynamic>? priceSource;
 
   StoreProduct({
     required this.id,
@@ -194,7 +199,38 @@ class StoreProduct {
     this.packageUnit,
     this.priceIsEstimated = true,
     this.availabilityScope,
+    this.catalogueKind = 'retailer_offer',
+    this.priceBasis = 'package',
+    this.priceQuantity,
+    this.priceUnit,
+    this.priceSource,
   });
+
+  bool get isGenericFood => catalogueKind == 'generic_food';
+
+  bool get hasValidGenericReference =>
+      isGenericFood &&
+      currencyCode == 'GBP' &&
+      availabilityScope == 'generic_food_reference' &&
+      nameEn?.trim().isNotEmpty == true &&
+      product?.id == productId &&
+      isAvailable == null &&
+      packageQuantity == null &&
+      packageUnit == null &&
+      (priceBasis == 'unknown'
+          ? price == null && priceQuantity == null && priceUnit == null
+          : priceBasis == 'national_quantity_reference' &&
+              price != null &&
+              price!.isFinite &&
+              price! > 0 &&
+              priceQuantity != null &&
+              priceQuantity!.isFinite &&
+              priceQuantity! > 0 &&
+              const {'g', 'ml'}.contains(priceUnit) &&
+              priceIsEstimated &&
+              priceSource?['provider'] == 'ons_national_average' &&
+              priceSource?['confirms_store_stock'] == false &&
+              priceSource?['confirms_package'] == false);
 
   bool get hasRegionalPackage =>
       nameEn?.trim().isNotEmpty == true &&
@@ -217,15 +253,20 @@ class StoreProduct {
       storeId: json['store_id'] as String,
       productId: json['product_id'] as String,
       departmentId: json['department_id'] as String?,
-      price: (json['price'] as num? ?? 0.0).toDouble(),
+      price: (json['price'] as num?)?.toDouble(),
       currencyCode: json['currency_code'] as String? ?? 'PLN',
       nameEn: json['name_en'] as String?,
       packageQuantity: (json['package_quantity'] as num?)?.toDouble(),
       packageUnit: json['package_unit'] as String?,
       priceIsEstimated: json['price_is_estimated'] as bool? ?? true,
       availabilityScope: json['availability_scope'] as String?,
+      catalogueKind: json['catalogue_kind'] as String? ?? 'retailer_offer',
+      priceBasis: json['price_basis'] as String? ?? 'package',
+      priceQuantity: (json['price_quantity'] as num?)?.toDouble(),
+      priceUnit: json['price_unit'] as String?,
+      priceSource: json['price_source'] as Map<String, dynamic>?,
       storeBrandName: json['store_brand_name'] as String?,
-      isAvailable: json['is_available'] as bool? ?? true,
+      isAvailable: json['is_available'] as bool?,
       lastVerified:
           json['last_verified'] == null
               ? null

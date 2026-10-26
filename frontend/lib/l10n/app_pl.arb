@@ -1895,6 +1895,9 @@
     }
   },
   "productsOnlineCatalogue": "Katalog online — dostępność lokalna może się różnić",
+  "productsGenericFood": "Produkt ogólny — sprawdź dostępność w sklepie",
+  "productsNationalAverage": "Średnia UK, nie cena sklepowa",
+  "productsPriceUnavailable": "Brak ceny",
   "commentsLoadFailed": "Nie udało się załadować komentarzy",
   "commentsPhotoFailed": "Nie udało się pobrać zdjęcia",
   "commentsCamera": "Zrób zdjęcie",
@@ -2370,7 +2373,7 @@
   "releasePromptTitle": "Dostępna nowa wersja",
   "releasePromptRequired": "Ta wersja aplikacji nie jest już obsługiwana. Zaktualizuj ją, aby korzystać dalej.",
   "releasePromptStoreError": "Nie udało się otworzyć sklepu.",
-  "releasePromptChanges": "• Poprawiliśmy tworzenie list zakupów z własnych przepisów.\n• Usprawniliśmy dopasowanie składników przy problemach z bazą zewnętrzną.\n• Oddzieliliśmy przepisy społeczności Polski i UK.\n• Uzupełniliśmy angielski katalog o wszystkie przepisy systemowe.",
+  "releasePromptChanges": "• Poprawiliśmy tworzenie list zakupów z własnych przepisów.\n• Usprawniliśmy dopasowanie składników przy problemach z bazą zewnętrzną.\n• Oddzieliliśmy przepisy społeczności Polski i UK.\n• Uzupełniliśmy angielski katalog o wszystkie przepisy systemowe oraz produkty w zakładce sklepów.",
   "releasePromptApple": "Otwórz App Store",
   "releasePromptGoogle": "Otwórz Google Play",
   "releasePromptLater": "Później",

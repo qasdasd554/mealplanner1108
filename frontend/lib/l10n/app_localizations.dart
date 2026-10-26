@@ -5012,6 +5012,24 @@ abstract class AppLocalizations {
   /// **'Katalog online — dostępność lokalna może się różnić'**
   String get productsOnlineCatalogue;
 
+  /// No description provided for @productsGenericFood.
+  ///
+  /// In pl, this message translates to:
+  /// **'Produkt ogólny — sprawdź dostępność w sklepie'**
+  String get productsGenericFood;
+
+  /// No description provided for @productsNationalAverage.
+  ///
+  /// In pl, this message translates to:
+  /// **'Średnia UK, nie cena sklepowa'**
+  String get productsNationalAverage;
+
+  /// No description provided for @productsPriceUnavailable.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak ceny'**
+  String get productsPriceUnavailable;
+
   /// No description provided for @commentsLoadFailed.
   ///
   /// In pl, this message translates to:
@@ -7463,7 +7481,7 @@ abstract class AppLocalizations {
   /// No description provided for @releasePromptChanges.
   ///
   /// In pl, this message translates to:
-  /// **'• Poprawiliśmy tworzenie list zakupów z własnych przepisów.\n• Usprawniliśmy dopasowanie składników przy problemach z bazą zewnętrzną.\n• Oddzieliliśmy przepisy społeczności Polski i UK.\n• Uzupełniliśmy angielski katalog o wszystkie przepisy systemowe.'**
+  /// **'• Poprawiliśmy tworzenie list zakupów z własnych przepisów.\n• Usprawniliśmy dopasowanie składników przy problemach z bazą zewnętrzną.\n• Oddzieliliśmy przepisy społeczności Polski i UK.\n• Uzupełniliśmy angielski katalog o wszystkie przepisy systemowe oraz produkty w zakładce sklepów.'**
   String get releasePromptChanges;
 
   /// No description provided for @releasePromptApple.

@@ -1814,6 +1814,9 @@
     }
   },
   "productsOnlineCatalogue": "Online catalogue — local availability may vary",
+  "productsGenericFood": "Generic food — check shop availability",
+  "productsNationalAverage": "UK average, not a shop price",
+  "productsPriceUnavailable": "Price unavailable",
   "commentsLoadFailed": "Could not load comments",
   "commentsPhotoFailed": "Could not load the photo",
   "commentsCamera": "Take a photo",
@@ -2289,7 +2292,7 @@
   "releasePromptTitle": "An update is available",
   "releasePromptRequired": "This version is no longer supported. Update the app to continue.",
   "releasePromptStoreError": "Could not open the app store.",
-  "releasePromptChanges": "• Fixed shopping lists created from your own recipes.\n• Improved ingredient matching during external database outages.\n• Separated Polish and UK community recipes.\n• Added all system recipes to the English catalogue.",
+  "releasePromptChanges": "• Fixed shopping lists created from your own recipes.\n• Improved ingredient matching during external database outages.\n• Separated Polish and UK community recipes.\n• Added all system recipes to the English catalogue and English foods to the UK Shop tab.",
   "releasePromptApple": "Open App Store",
   "releasePromptGoogle": "Open Google Play",
   "releasePromptLater": "Later",

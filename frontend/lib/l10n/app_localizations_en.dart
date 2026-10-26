@@ -2803,6 +2803,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'Online catalogue — local availability may vary';
 
   @override
+  String get productsGenericFood => 'Generic food — check shop availability';
+
+  @override
+  String get productsNationalAverage => 'UK average, not a shop price';
+
+  @override
+  String get productsPriceUnavailable => 'Price unavailable';
+
+  @override
   String get commentsLoadFailed => 'Could not load comments';
 
   @override
@@ -4257,7 +4266,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• Fixed shopping lists created from your own recipes.\n• Improved ingredient matching during external database outages.\n• Separated Polish and UK community recipes.\n• Added all system recipes to the English catalogue.';
+      '• Fixed shopping lists created from your own recipes.\n• Improved ingredient matching during external database outages.\n• Separated Polish and UK community recipes.\n• Added all system recipes to the English catalogue and English foods to the UK Shop tab.';
 
   @override
   String get releasePromptApple => 'Open App Store';
@@ -8040,6 +8049,15 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
       'Online catalogue — local availability may vary';
 
   @override
+  String get productsGenericFood => 'Generic food — check shop availability';
+
+  @override
+  String get productsNationalAverage => 'UK average, not a shop price';
+
+  @override
+  String get productsPriceUnavailable => 'Price unavailable';
+
+  @override
   String get commentsLoadFailed => 'Could not load comments';
 
   @override
@@ -9494,7 +9512,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get releasePromptChanges =>
-      '• Fixed shopping lists created from your own recipes.\n• Improved ingredient matching during external database outages.\n• Separated Polish and UK community recipes.\n• Added all system recipes to the English catalogue.';
+      '• Fixed shopping lists created from your own recipes.\n• Improved ingredient matching during external database outages.\n• Separated Polish and UK community recipes.\n• Added all system recipes to the English catalogue and English foods to the UK Shop tab.';
 
   @override
   String get releasePromptApple => 'Open App Store';

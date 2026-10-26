@@ -67,6 +67,10 @@ void main() {
           ),
         );
         expect(body, isNot(contains('mealplannerpolska.pl')));
+        expect(
+          body,
+          contains(english ? 'UK Shop tab' : 'produkty w zakładce sklepów'),
+        );
         expect(tester.takeException(), isNull);
       },
     );

@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
@@ -12,6 +15,7 @@ import 'package:smart_meal_planner/screens/products/products_screen.dart';
 import 'package:smart_meal_planner/services/api_client.dart';
 import 'package:smart_meal_planner/services/product_search_service.dart';
 import 'package:smart_meal_planner/services/store_service.dart';
+import '../../helpers/product_form_render.dart';
 
 Product _product({bool missing = false}) => Product(
   id: 'rice',
@@ -69,6 +73,46 @@ class _Shop extends StoreService {
   ];
 }
 
+class _GenericShop extends StoreService {
+  final bool estimated;
+  _GenericShop({this.estimated = false});
+  @override
+  Future<List<StoreProduct>> getAllStoreProducts(
+    String storeId, {
+    String? search,
+    String? departmentId,
+  }) async => [
+    StoreProduct.fromJson({
+      'id': 'generic-row',
+      'store_id': storeId,
+      'product_id': 'rice',
+      'price': estimated ? 0.25 : null,
+      'currency_code': 'GBP',
+      'is_available': null,
+      'name_en': 'Brown rice',
+      'catalogue_kind': 'generic_food',
+      'availability_scope': 'generic_food_reference',
+      'price_basis': estimated ? 'national_quantity_reference' : 'unknown',
+      'price_quantity': estimated ? 100 : null,
+      'price_unit': estimated ? 'g' : null,
+      'price_source':
+          estimated
+              ? {
+                'provider': 'ons_national_average',
+                'confirms_store_stock': false,
+                'confirms_package': false,
+              }
+              : null,
+      'product': {
+        'id': 'rice',
+        'name': 'Brown rice',
+        'unit': 'g',
+        'nutrition_per_100': {'kcal': 300},
+      },
+    }),
+  ];
+}
+
 class _Catalogue extends ProductSearchService {
   final bool missing;
   final queries = <String>[];
@@ -115,6 +159,8 @@ Future<_Catalogue> _open(
   bool narrow = false,
   bool reviewed = true,
   bool estimated = false,
+  StoreService? shop,
+  double? scale,
 }) async {
   if (narrow) {
     tester.view.physicalSize = const Size(320, 740);
@@ -133,6 +179,7 @@ Future<_Catalogue> _open(
         ChangeNotifierProvider<StoreProvider>.value(value: stores),
       ],
       child: MaterialApp(
+        theme: productFormTheme(false),
         locale:
             country == 'GB'
                 ? const Locale('en', 'GB')
@@ -141,19 +188,20 @@ Future<_Catalogue> _open(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         builder:
             (context, child) => MediaQuery(
-              data: MediaQuery.of(
-                context,
-              ).copyWith(textScaler: TextScaler.linear(narrow ? 1.3 : 1)),
+              data: MediaQuery.of(context).copyWith(
+                textScaler: TextScaler.linear(scale ?? (narrow ? 1.3 : 1)),
+              ),
               child: child!,
             ),
-        home: ProductsScreen(
-          catalogueService: catalogue,
-          storeService: _Shop(
-            currency,
-            reviewed: reviewed,
-            estimated: estimated,
+        home: RepaintBoundary(
+          key: const ValueKey('shop-proof'),
+          child: ProductsScreen(
+            catalogueService: catalogue,
+            storeService:
+                shop ??
+                _Shop(currency, reviewed: reviewed, estimated: estimated),
+            client: _Client(),
           ),
-          client: _Client(),
         ),
       ),
     ),
@@ -163,6 +211,49 @@ Future<_Catalogue> _open(
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(loadProductFormFonts);
+  testWidgets(
+    'generic English food has nutrients but no invented price or package',
+    (tester) async {
+      await _open(tester, shop: _GenericShop(), narrow: true, scale: 1.5);
+      expect(find.text('Brown rice'), findsOneWidget);
+      expect(find.text('Price unavailable'), findsOneWidget);
+      expect(find.textContaining('300 kcal / 100g'), findsOneWidget);
+      expect(find.textContaining('Generic food'), findsOneWidget);
+      expect(find.textContaining('Online catalogue'), findsNothing);
+      expect(find.textContaining('£0.00'), findsNothing);
+      expect(
+        find.textContaining('unavailable', findRichText: false),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+      final output = Platform.environment['SHOP_SCREENSHOT'];
+      if (output != null) {
+        final boundary = tester.renderObject<RenderRepaintBoundary>(
+          find.byKey(const ValueKey('shop-proof')),
+        );
+        await tester.runAsync(() async {
+          final bitmap = await boundary.toImage(pixelRatio: 1);
+          final bytes = await bitmap.toByteData(format: ui.ImageByteFormat.png);
+          await File(output).writeAsBytes(bytes!.buffer.asUint8List());
+          bitmap.dispose();
+        });
+      }
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+  testWidgets('national average labels quantity not a retail package', (
+    tester,
+  ) async {
+    await _open(tester, shop: _GenericShop(estimated: true));
+    expect(find.text('~ £0.25'), findsOneWidget);
+    expect(find.text('/ 100 g'), findsOneWidget);
+    expect(find.textContaining('UK average, not a shop price'), findsOneWidget);
+    expect(find.textContaining('Online catalogue'), findsNothing);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox());
+  });
   testWidgets('GB estimate is labelled even with dated evidence', (
     tester,
   ) async {
