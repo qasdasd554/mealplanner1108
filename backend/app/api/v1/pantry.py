@@ -203,6 +203,7 @@ async def add_pantry_item_from_barcode(
     payload: AddPantryBarcodeRequest,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    background_tasks: BackgroundTasks = None,
 ) -> PantryItem:
     """Rozpoznaje kod, materializuje wynik OFF/cache jako produkt użytkownika
     i od razu zapisuje go w spiżarni wraz z ilością.
@@ -235,9 +236,12 @@ async def add_pantry_item_from_barcode(
             "Nieprawidłowy kod EAN/UPC", "Invalid EAN/UPC barcode."))
     lookup = await lookup_barcode(
         barcode=barcode,
-        background_tasks=BackgroundTasks(),
+        background_tasks=background_tasks if background_tasks is not None else BackgroundTasks(),
         current_user=current_user,
         db=db,
+        # This endpoint owns a write transaction. The read endpoint's pool
+        # release rollback must not expire its authenticated user or product.
+        release_read_transaction=False,
     )
     lookup_found = bool(lookup.found and lookup.name)
     client_values = (
@@ -388,6 +392,20 @@ async def add_pantry_item_from_barcode(
                 float(product.default_quantity or 1),
                 product.serving_quantity,
             )
+        if product.serving_quantity is not None:
+            # Legacy records can already have g/ml measures but no package
+            # measure. Changing unit to opak must not leave an unconvertible
+            # package behind, and English liquid names must not imply grams.
+            options = product.measure_options or []
+            bases = {option.get("base_unit") for option in options
+                     if isinstance(option, dict) and option.get("base_unit") in {"g", "ml"}}
+            if len(bases) == 1:
+                base_unit = next(iter(bases))
+                product.measure_options = [option for option in options
+                    if isinstance(option, dict) and option.get("code") != "opak"] + [{
+                        "code": "opak", "label": "opakowanie", "base_unit": base_unit,
+                        "base_quantity": float(product.serving_quantity), "approximate": False,
+                    }]
         current_nutrition, nutrition_changed = merge_scanned_nutrition(
             product.nutrition_per_100,
             resolved_nutrition,

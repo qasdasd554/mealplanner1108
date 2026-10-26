@@ -1162,7 +1162,7 @@
     "description": "Shopping list display label. Currency and package data come from the response snapshot."
   },
   "shoppingChooseSubstitute": "Wybierz zamiennik",
-  "shoppingNoSubstitutes": "Nie znaleziono zamienników tego produktu.",
+  "shoppingNoSubstitutes": "Brak dostępnych zamienników w tym sklepie.",
   "@shoppingChooseSubstitute": {
     "description": "Shopping list display label. Currency and package data come from the response snapshot."
   },
@@ -2374,7 +2374,7 @@
   "releasePromptTitle": "Dostępna nowa wersja",
   "releasePromptRequired": "Ta wersja aplikacji nie jest już obsługiwana. Zaktualizuj ją, aby korzystać dalej.",
   "releasePromptStoreError": "Nie udało się otworzyć sklepu.",
-  "releasePromptChanges": "• Naprawiliśmy wybieranie i zapisywanie zamienników na listach zakupów.\n• Uzupełniliśmy orientacyjne ceny produktów w UK.\n• Ujednoliciliśmy przeliczanie ilości podczas wyceny zakupów.\n• Wyraźniej oznaczyliśmy ceny szacunkowe i wyceny porcji.",
+  "releasePromptChanges": "• Naprawiliśmy zamianę dań w planie i przeliczanie listy zakupów.\n• Poprawiliśmy zapis zeskanowanych produktów w spiżarni i Dzienniku.\n• Zamienniki produktów uwzględniają dostępność w wybranym sklepie.\n• Poprawiliśmy stabilność oraz komunikaty błędów po polsku i angielsku.",
   "releasePromptApple": "Otwórz App Store",
   "releasePromptGoogle": "Otwórz Google Play",
   "releasePromptLater": "Później",

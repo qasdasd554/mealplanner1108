@@ -10,13 +10,14 @@ Obsługuje:
 from __future__ import annotations
 
 import logging
+import math
 from datetime import date
 from collections import defaultdict
 from decimal import Decimal
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import and_, or_, select, update
+from sqlalchemy import and_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
@@ -38,16 +39,25 @@ from app.services.exceptions import (
     ProductNotFoundError,
     StoreProductNotFoundError,
 )
-from app.services.nutrition_calculator import NutritionCalculator
+from app.services.nutrition_calculator import NutritionCalculator, quantity_to_grams, grams_to_quantity
 from app.services.regional_shopping import apply_regional_item_quote, load_regional_offers, regional_pricing_date
 from app.services.regional_requirements import to_regional_base_quantity
 from app.services.uk_catalogue_import import canonical_base_unit
 from app.services.regional_offer_pricing import select_uk_offer_quote
 from app.services.market_catalog import regional_offer_available_condition
-from app.services.product_market_presentation import is_uk_generic_seed
-from app.services.system_content_language import generic_system_ingredient_condition
 
 logger = logging.getLogger(__name__)
+
+
+def _compatible_dimensions(original, selected):
+    if original is None or selected is None:
+        return False
+    if original.unit == selected.unit == "szt":
+        return True
+    try:
+        return canonical_base_unit(original) == canonical_base_unit(selected)
+    except ValueError:
+        return False
 
 
 class ProductSubstitutionService:
@@ -121,8 +131,11 @@ class ProductSubstitutionService:
         }
 
         results: list[dict[str, Any]] = []
+        original = await self.db.get(Product, product_id)
         for sub in substitutes:
-            if sub.substitute_product_id not in available_store_products:
+            if (sub.substitute_product_id not in available_store_products
+                    or sub.substitute_product.review_status != "approved"
+                    or not _compatible_dimensions(original, sub.substitute_product)):
                 continue
             results.append(
                 {
@@ -270,15 +283,8 @@ class ProductSubstitutionService:
                 RegionalProductOffer.country_code == "GB", RegionalProductOffer.currency_code == "GBP",
                 regional_offer_available_condition(as_of=regional_pricing_date()),
             )
-            from app.db.seed import PRODUCTS_DATA, _uid
-            generic_ids = [_uid("product:" + row[0]) for row in PRODUCTS_DATA]
-            if is_uk_generic_seed(ref_product, country_code="GB"):
-                department = next((row[3] for row in PRODUCTS_DATA if row[0] == ref_product.name), None)
-                generic_ids = [_uid("product:" + row[0]) for row in PRODUCTS_DATA
-                    if department is not None and row[3] == department]
             result = await self.db.execute(select(Product).where(
-                or_(Product.id.in_(local_ids), and_(Product.id.in_(generic_ids),
-                    generic_system_ingredient_condition(Product))),
+                Product.id.in_(local_ids),
                 Product.id != product_id, Product.review_status == "approved",
             ).order_by(Product.id).limit(max(50, min(limit * 20, 200))))
             reference = self.nutrition.nutrition_vector(ref_product)
@@ -324,7 +330,8 @@ class ProductSubstitutionService:
         scored: list[dict[str, Any]] = []
         for sp in candidates:
             product = sp.product
-            if product is None:
+            if (product is None or product.review_status != "approved"
+                    or not _compatible_dimensions(ref_product, product)):
                 continue
             cand_vector = self.nutrition.nutrition_vector(product)
             similarity = self.nutrition.cosine_similarity(ref_vector, cand_vector)
@@ -456,24 +463,30 @@ class ProductSubstitutionService:
         from app.models import StoreProduct
         from app.core.exceptions import ProductUnavailableException
 
+        store = await self.db.get(Store, store_id)
         snapshot = getattr(item, "regional_snapshot", None)
-        if snapshot is not None:
+        if store is not None and store.country_code == "GB":
             product = await self.db.get(Product, substitute_product_id)
-            if product is None or product.review_status != "approved":
+            if product is None or product.review_status != "approved" or store.currency_code != "GBP":
                 raise ProductUnavailableException(product_id=substitute_product_id, store_id=store_id)
+            original_id = snapshot.product_id if snapshot is not None else None
+            if original_id is None and item.store_product_id is not None:
+                original_id = (await self.db.execute(select(StoreProduct.product_id)
+                    .where(StoreProduct.id == item.store_product_id))).scalar_one_or_none()
+            original = await self.db.get(Product, original_id) if original_id is not None else None
             try:
-                quantity, unit = to_regional_base_quantity(product, item.required_quantity, item.unit)
+                quantity, unit = to_regional_base_quantity(original or product, item.required_quantity, item.unit)
+                if canonical_base_unit(product) != unit:
+                    raise ValueError("Substitute dimension differs from the original")
             except ValueError as exc:
                 raise ProductUnavailableException(product_id=substitute_product_id, store_id=store_id) from exc
             offers = await load_regional_offers(self.db, {product.id}, store_id)
             quote = select_uk_offer_quote(offers, product_id=product.id, store_id=store_id, quantity=quantity, unit=unit, as_of=regional_pricing_date())
-            if quote is None and not is_uk_generic_seed(product, country_code="GB"):
-                raise ProductUnavailableException(product_id=substitute_product_id, store_id=store_id)
+            # A national/static price is useful for budgeting, never proof
+            # that this substitute is sold in the selected store.
             if quote is None:
-                store = await self.db.get(Store, store_id)
-                if store is None or store.country_code != "GB" or store.currency_code != "GBP":
-                    raise ProductUnavailableException(product_id=substitute_product_id, store_id=store_id)
-            item.substituted_for = snapshot.product_id
+                raise ProductUnavailableException(product_id=substitute_product_id, store_id=store_id)
+            item.substituted_for = original_id
             apply_regional_item_quote(
                 item, product=product, store_id=store_id,
                 quantity=quantity, unit=unit, offers=offers, as_of=regional_pricing_date(),
@@ -489,6 +502,7 @@ class ProductSubstitutionService:
                     StoreProduct.product_id == substitute_product_id,
                     StoreProduct.store_id == store_id,
                     StoreProduct.is_available.is_(True),
+                    StoreProduct.withdrawn_at.is_(None),
                 )
             )
             .options(joinedload(StoreProduct.product), joinedload(StoreProduct.department))
@@ -502,17 +516,48 @@ class ProductSubstitutionService:
             )
 
         # Pobierz oryginalny product_id
-        orig_stmt = select(StoreProduct.product_id).where(StoreProduct.id == item.store_product_id)
+        orig_stmt = select(StoreProduct).options(joinedload(StoreProduct.product)).where(StoreProduct.id == item.store_product_id)
         orig_res = await self.db.execute(orig_stmt)
-        original_product_id = orig_res.scalar_one()
+        original_sp = orig_res.scalar_one_or_none()
+        if original_sp is None or original_sp.product is None:
+            raise ProductUnavailableException(product_id=substitute_product_id, store_id=store_id)
+        original, selected = original_sp.product, substitute_sp.product
+        if selected is None or selected.review_status != "approved":
+            raise ProductUnavailableException(product_id=substitute_product_id, store_id=store_id)
+        # Preserve the original physical amount, then express it in the new
+        # product's unit. Never reinterpret one old package as one gram.
+        if original.unit == selected.unit == item.unit == "szt":
+            native_quantity = float(item.required_quantity)
+        else:
+            try:
+                if canonical_base_unit(original) != canonical_base_unit(selected):
+                    raise ValueError("Different physical dimensions")
+                amount = quantity_to_grams(original.name, float(item.required_quantity), item.unit,
+                    original.serving_quantity, original.measure_options)
+                native_quantity = grams_to_quantity(selected.name, amount, selected.unit,
+                    selected.serving_quantity, selected.measure_options)
+            except (ValueError, TypeError) as exc:
+                raise ProductUnavailableException(product_id=substitute_product_id, store_id=store_id) from exc
+        pack_quantity = float(selected.default_quantity or 0)
+        if (not math.isfinite(native_quantity) or native_quantity <= 0
+                or not math.isfinite(pack_quantity) or pack_quantity <= 0):
+            raise ValueError("The product quantity cannot be converted safely")
+        cost = Decimal(str(substitute_sp.price)) * math.ceil(native_quantity / pack_quantity)
+        stored_quantity, stored_unit = Decimal(str(round(native_quantity, 3))), selected.unit
+        if stored_quantity == 0 and original.unit != "szt":
+            stored_quantity = Decimal(str(round(amount, 3)))
+            stored_unit = canonical_base_unit(selected)
+        if (not cost.is_finite() or not 0 <= cost <= Decimal("99999999.99")
+                or not Decimal(0) < stored_quantity <= Decimal("9999999.999")):
+            raise ValueError("The product quantity or cost exceeds the supported range")
 
-        item.substituted_for = original_product_id
+        item.substituted_for = original_sp.product_id
         item.store_product_id = substitute_sp.id
         item.department_id = substitute_sp.department_id
-
-        # Uproszczona wycena: bierzemy nową cenę dla jednej sztuki opakowania (bez skomplikowanych zaokrągleń)
-        new_price = float(getattr(substitute_sp, "price", None) or 0.0)
-        item.estimated_price = new_price
+        item.required_quantity = stored_quantity
+        item.unit = stored_unit
+        item.estimated_price = cost
+        item.is_checked = False
 
         return item
     async def _regional_candidates(self, original, candidates, *, store_id, limit):
@@ -532,8 +577,6 @@ class ProductSubstitutionService:
                 quantity=Decimal("0.001"), unit=unit, as_of=regional_pricing_date())
             if quote is not None:
                 result.append({"product": product, "similarity_score": score, "regional_quote": quote})
-            elif is_uk_generic_seed(product, country_code="GB"):
-                result.append({"product": product, "similarity_score": score, "generic_reference": True})
             if len(result) >= limit:
                 break
         return result

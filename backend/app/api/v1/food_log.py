@@ -320,8 +320,11 @@ async def update_food_log_entry_nutrition(
         entry.portion_unit = payload.portion_unit
     db.add(entry)
     await db.commit()
-    await db.refresh(entry)
-    return entry
+    result = await db.execute(select(FoodLogEntry)
+        .options(selectinload(FoodLogEntry.recipe))
+        .execution_options(populate_existing=True)
+        .where(FoodLogEntry.id == entry_id))
+    return _to_response(result.scalar_one(), country_code=account_country(current_user))
 
 
 @router.delete("/{entry_id}", status_code=status.HTTP_204_NO_CONTENT)

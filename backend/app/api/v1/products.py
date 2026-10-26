@@ -431,7 +431,7 @@ async def _persist_barcode_cache_in_background(
         logger.exception("Nie udało się zapisać produktu w cache kodów kreskowych")
 
 
-async def _finish_cached_barcode(response, user, db, background_tasks, barcode):
+async def _finish_cached_barcode(response, user, db, background_tasks, barcode, *, release_read_transaction=True):
     result = _without_legacy_prices(response, user)
     if account_country(user) == "GB":
         from app.services.off_on_demand import refresh_requested_off_product
@@ -440,7 +440,8 @@ async def _finish_cached_barcode(response, user, db, background_tasks, barcode):
         # it expires ORM objects, which must not be accessed implicitly later.
         # FastAPI's request-scoped dependency otherwise keeps its connection
         # checked out until AFTER BackgroundTasks, including external HTTP.
-        await db.rollback()
+        if release_read_transaction:
+            await db.rollback()
         background_tasks.add_task(refresh_requested_off_product, barcode)
     return result
 
@@ -495,11 +496,22 @@ async def list_products(
     response_model=BarcodeLookupResponse,
     summary="Wyszukaj produkt po kodzie kreskowym",
 )
+async def lookup_barcode_endpoint(
+    barcode: str,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> BarcodeLookupResponse:
+    return await lookup_barcode(barcode, background_tasks, db, current_user)
+
+
 async def lookup_barcode(
     barcode: str,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    *,
+    release_read_transaction: bool = True,
 ) -> BarcodeLookupResponse:
     """Najpierw przeszukuje dane w Neon, potem trzy zewnętrzne bazy.
 
@@ -570,7 +582,8 @@ async def lookup_barcode(
             # zapis do katalogu/spiżarni pozostaje zawsze „1 opakowanie”.
             local_response.unit = cached.unit
         if local_response.serving_quantity is not None:
-            return await _finish_cached_barcode(local_response, current_user, db, background_tasks, normalized_barcode)
+            return await _finish_cached_barcode(local_response, current_user, db, background_tasks, normalized_barcode,
+                                                release_read_transaction=release_read_transaction)
         # Nazwa i makro są już lokalne, ale brak gramatury opakowania.
         # Jedno zapytanie do źródła zewnętrznego może ją zweryfikować;
         # jeśli jej tam nie ma, wynik nadal wróci bez opcji „opakowanie”.
@@ -608,7 +621,8 @@ async def lookup_barcode(
                 serving_quantity=cached.serving_quantity,
             )
             if _response_has_complete_nutrition(local_response):
-                return await _finish_cached_barcode(local_response, current_user, db, background_tasks, normalized_barcode)
+                return await _finish_cached_barcode(local_response, current_user, db, background_tasks, normalized_barcode,
+                                                    release_read_transaction=release_read_transaction)
 
     # 3. Open Food Facts v3 oraz USDA FoodData Central. UPCitemdb zostało
     # usunięte z aktywnej ścieżki: często zwracało 429 i nie zawiera makro.
@@ -652,7 +666,10 @@ async def lookup_barcode(
                 "carbs": response.carbs_per_100,
                 "fiber": (existing.nutrition_per_100 or {}).get("fiber", 0),
             }
-            await db.commit()
+            if release_read_transaction:
+                await db.commit()
+            else:
+                await db.flush()
         # Zapis nie blokuje odpowiedzi. Po zakończeniu tego żądania FastAPI
         # otwiera osobną sesję i utrwala wynik dla kolejnych użytkowników.
         background_tasks.add_task(
@@ -697,7 +714,10 @@ async def lookup_barcode(
                     "carbs": local_response.carbs_per_100,
                     "fiber": (existing.nutrition_per_100 or {}).get("fiber", 0),
                 }
-                await db.commit()
+                if release_read_transaction:
+                    await db.commit()
+                else:
+                    await db.flush()
             background_tasks.add_task(
                 _persist_barcode_cache_in_background,
                 barcode=normalized_barcode,
@@ -1335,8 +1355,7 @@ async def get_product_substitutes(
             product_id=product_id, store_id=store_id, limit=10
         )
     response_list = []
-    from app.services.product_market_presentation import product_brand_for_market, is_uk_generic_seed
-    from app.services.system_content_language import ingredient_display_name
+    from app.services.product_market_presentation import product_brand_for_market
     for r in results:
         prod = r["product"]
         if not (
@@ -1346,19 +1365,9 @@ async def get_product_substitutes(
             continue
         store_prod = r.get("store_product")
         regional_quote = r.get("regional_quote") if account_country(current_user) == "GB" else None
-        generic_reference = (account_country(current_user) == "GB"
-            and regional_quote is None and r.get("generic_reference") is True
-            and is_uk_generic_seed(prod, country_code="GB"))
-        national_quote = None
-        if generic_reference:
-            from app.services.uk_ons_pricing import quote_national_requirement
-            from app.services.uk_catalogue_import import canonical_base_unit
-            from app.services.regional_shopping import regional_pricing_date
-            national_quote = quote_national_requirement(prod, 100, canonical_base_unit(prod),
-                store_id=store_id, as_of=regional_pricing_date())
         if account_country(current_user) == "GB":
             # A legacy StoreProduct is not a reviewed British price/pack.
-            if not generic_reference and (regional_quote is None or regional_quote.store_id != store_id
+            if (regional_quote is None or regional_quote.store_id != store_id
                     or regional_quote.product_id != prod.id
                     or regional_quote.currency_code != "GBP"):
                 continue
@@ -1370,17 +1379,13 @@ async def get_product_substitutes(
                 pass
         response_list.append({
             "id": prod.id,
-            "name": (ingredient_display_name(prod, country_code="GB") if generic_reference
-                else regional_quote.name_en if regional_quote else prod.name),
+            "name": regional_quote.name_en if regional_quote else prod.name,
             "brand": product_brand_for_market(prod, country_code=account_country(current_user)),
-            "price": (national_quote.total_price if national_quote else None) if generic_reference
-                else regional_quote.price_per_package if regional_quote else (store_prod.price if store_prod else None),
+            "price": regional_quote.price_per_package if regional_quote else (store_prod.price if store_prod else None),
             "kcal": kcal,
             "similarity_score": r.get("similarity_score"),
-            "currency_code": "GBP" if regional_quote or generic_reference else "PLN",
-            "price_basis": "quantity_reference" if national_quote else "unknown" if generic_reference else "package",
-            "price_quantity": 100 if national_quote else None,
-            "price_unit": national_quote.unit if national_quote else None,
+            "currency_code": "GBP" if regional_quote else "PLN",
+            "price_basis": "package",
             "package_quantity": regional_quote.package_quantity if regional_quote else None,
             "package_unit": regional_quote.unit if regional_quote else None,
             "price_is_estimated": regional_quote.price_is_estimated if regional_quote else getattr(store_prod, "last_verified", None) is None,

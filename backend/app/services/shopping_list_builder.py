@@ -262,8 +262,13 @@ class ShoppingListBuilder:
 
         result = await self.db.execute(
             select(ShoppingList)
-            .execution_options(populate_existing=is_gb)
-            .options(selectinload(ShoppingList.items))
+            .execution_options(populate_existing=True)
+            .options(
+                selectinload(ShoppingList.items).selectinload(ShoppingListItem.store_product).selectinload(StoreProduct.product),
+                selectinload(ShoppingList.items).selectinload(ShoppingListItem.department),
+                selectinload(ShoppingList.items).selectinload(ShoppingListItem.substituted_for_product),
+                selectinload(ShoppingList.store),
+            )
             .where(ShoppingList.id == shopping_list_id)
         )
         shopping_list_loaded = result.scalar_one()

@@ -138,9 +138,15 @@ async def test_food_log_amount_update_persists_servings_and_scaled_nutrition() -
         protein=20.0,
         fat=15.0,
         carbs=60.0,
+        date=datetime.now(timezone.utc).date(),
+        meal_type="obiad", recipe_id=None, custom_name="Fixture meal",
+        amount_value=None, amount_unit=None, portion_size=None, portion_unit=None,
+        created_at=datetime.now(timezone.utc),
     )
     db = AsyncMock()
     db.get.return_value = entry
+    db.execute.return_value = MagicMock()
+    db.execute.return_value.scalar_one.return_value = entry
     db.add = MagicMock()
     user = SimpleNamespace(id=user_id)
 

@@ -262,7 +262,10 @@ void main() {
     (tester) async {
       await openSubstitutes(tester, _Client(() async => []));
       await tester.pumpAndSettle();
-      expect(find.text('No alternatives found for this item.'), findsOneWidget);
+      expect(
+        find.text('No available alternatives in this shop.'),
+        findsOneWidget,
+      );
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox());
     },

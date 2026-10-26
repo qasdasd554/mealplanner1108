@@ -3378,7 +3378,7 @@ abstract class AppLocalizations {
   /// No description provided for @shoppingNoSubstitutes.
   ///
   /// In pl, this message translates to:
-  /// **'Nie znaleziono zamienników tego produktu.'**
+  /// **'Brak dostępnych zamienników w tym sklepie.'**
   String get shoppingNoSubstitutes;
 
   /// Shopping list display label. Currency and package data come from the response snapshot.
@@ -7487,7 +7487,7 @@ abstract class AppLocalizations {
   /// No description provided for @releasePromptChanges.
   ///
   /// In pl, this message translates to:
-  /// **'• Naprawiliśmy wybieranie i zapisywanie zamienników na listach zakupów.\n• Uzupełniliśmy orientacyjne ceny produktów w UK.\n• Ujednoliciliśmy przeliczanie ilości podczas wyceny zakupów.\n• Wyraźniej oznaczyliśmy ceny szacunkowe i wyceny porcji.'**
+  /// **'• Naprawiliśmy zamianę dań w planie i przeliczanie listy zakupów.\n• Poprawiliśmy zapis zeskanowanych produktów w spiżarni i Dzienniku.\n• Zamienniki produktów uwzględniają dostępność w wybranym sklepie.\n• Poprawiliśmy stabilność oraz komunikaty błędów po polsku i angielsku.'**
   String get releasePromptChanges;
 
   /// No description provided for @releasePromptApple.

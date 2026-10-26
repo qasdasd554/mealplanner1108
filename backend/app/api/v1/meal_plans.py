@@ -653,6 +653,9 @@ async def swap_recipe_in_plan(
 
     # Zamień przepis
     entry.recipe_id = payload.recipe_id
+    # Changing the foreign key alone leaves a previously loaded relationship
+    # pointing at the old recipe in expire_on_commit=False sessions.
+    entry.recipe = recipe
     db.add(entry)
     await db.flush()
 

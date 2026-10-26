@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import get_current_user
-from app.core.exceptions import NotFoundException
+from app.core.exceptions import NotFoundException, ProductUnavailableException
 from app.core.language import account_text
 from app.core.markets import account_country
 from app.services.notification_language import notification_text
@@ -859,11 +859,20 @@ async def substitute_item(
             "Nie można zamienić produktu ze spiżarni.", "A pantry item cannot be substituted."))
 
     substitution_service = ProductSubstitutionService(db)
-    updated_item = await substitution_service.substitute_shopping_list_item(
-        item=item,
-        substitute_product_id=payload.substitute_product_id,
-        store_id=shopping_list.store_id,
-    )
+    try:
+        await substitution_service.substitute_shopping_list_item(
+            item=item,
+            substitute_product_id=payload.substitute_product_id,
+            store_id=shopping_list.store_id,
+        )
+    except ProductUnavailableException as exc:
+        raise HTTPException(status_code=409, detail=account_text(current_user,
+            "Ten zamiennik nie jest już dostępny w wybranym sklepie lub nie pasuje do jednostki produktu. Odśwież zamienniki i wybierz inny. Lista nie została zmieniona.",
+            "This alternative is no longer available in the selected store or has an incompatible unit. Refresh the alternatives and choose another. Your list has not been changed.")) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=account_text(current_user,
+            "Nie można przeliczyć ilości tego produktu. Wybierz gramy, mililitry lub produkt ze znaną wielkością opakowania.",
+            "This quantity cannot be converted safely. Choose grams, millilitres or a product with a known package size.")) from exc
 
     if getattr(shopping_list.store, "country_code", "PL") == "GB":
         await refresh_regional_plan_budget(db, shopping_list)

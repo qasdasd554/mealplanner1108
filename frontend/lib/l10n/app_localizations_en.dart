@@ -1851,7 +1851,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shoppingChooseSubstitute => 'Choose a substitute';
 
   @override
-  String get shoppingNoSubstitutes => 'No alternatives found for this item.';
+  String get shoppingNoSubstitutes => 'No available alternatives in this shop.';
 
   @override
   String shoppingSubstituteFor(String name) {
@@ -4269,7 +4269,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• Fixed choosing and saving substitutes on shopping lists.\n• Added estimated catalogue prices for UK foods.\n• Improved quantity conversions when pricing your shopping.\n• Made estimated prices and quantity-based costs clearer.';
+      '• Fixed changing meals in your plan and recalculating the shopping list.\n• Improved saving scanned products to your pantry and Diary.\n• Product substitutes now respect availability in the selected shop.\n• Improved stability and error messages in Polish and English.';
 
   @override
   String get releasePromptApple => 'Open App Store';
@@ -7100,7 +7100,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
   String get shoppingChooseSubstitute => 'Choose a substitute';
 
   @override
-  String get shoppingNoSubstitutes => 'No alternatives found for this item.';
+  String get shoppingNoSubstitutes => 'No available alternatives in this shop.';
 
   @override
   String shoppingSubstituteFor(String name) {
@@ -9518,7 +9518,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get releasePromptChanges =>
-      '• Fixed choosing and saving substitutes on shopping lists.\n• Added estimated catalogue prices for UK foods.\n• Improved quantity conversions when pricing your shopping.\n• Made estimated prices and quantity-based costs clearer.';
+      '• Fixed changing meals in your plan and recalculating the shopping list.\n• Improved saving scanned products to your pantry and Diary.\n• Product substitutes now respect availability in the selected shop.\n• Improved stability and error messages in Polish and English.';
 
   @override
   String get releasePromptApple => 'Open App Store';

@@ -10,6 +10,7 @@ from decimal import Decimal
 from uuid import UUID
 
 from sqlalchemy import String, and_, exists, func, or_, select
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.sql.functions import FunctionElement
 
@@ -238,7 +239,9 @@ async def ensure_recipe_available_in_market(db, recipe: Recipe, user: object, *,
                 raise NotFoundException(detail="Przepis nie został znaleziony.")
         return
     result = await db.execute(
-        select(Recipe.id).where(
+        select(Recipe).options(
+            selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product)
+        ).where(
             Recipe.id == recipe.id,
             recipe_market_availability(country, store_id=store_id),
         )
