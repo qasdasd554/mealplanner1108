@@ -153,3 +153,4 @@ class SubstituteResponse(BaseModel):
     price_basis: str = "package"
     price_quantity: float | None = None
     price_unit: str | None = None
+    availability_scope: str | None = None

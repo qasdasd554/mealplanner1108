@@ -9,6 +9,17 @@ void main() {
   final pl = AppLocalizationsPl();
   final gb = AppLocalizationsEnGb();
 
+  test(
+    'legacy recipe spoon spellings are translated without changing storage',
+    () {
+      expect(gb.unitLabel('łyżeczka'), 'tsp');
+      expect(gb.unitLabel('łyżka'), 'tbsp');
+      expect(gb.unitLabel('lyzka'), 'tbsp');
+      expect(gb.unitLabel('szt.'), 'pcs');
+      expect(pl.unitLabel('łyżka'), 'łyżka');
+    },
+  );
+
   test('Polish diet identifiers and descriptions are unchanged', () {
     for (final diet in kDietOptions) {
       expect(pl.dietName(diet['name']!), diet['name']);

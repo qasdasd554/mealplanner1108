@@ -42,18 +42,27 @@ void main() {
             .map((value) => value.data ?? '')
             .firstWhere((value) => value.startsWith('•'));
         expect(body.split('\n'), hasLength(4));
-        expect(body, contains(english ? 'substitutes' : 'Zamienniki'));
-        expect(body, contains(english ? 'changing meals' : 'zamianę dań'));
         expect(
           body,
-          contains(english ? 'scanned products' : 'zeskanowanych produktów'),
+          contains(
+            english ? 'Catalogue alternatives' : 'Zamienniki katalogowe',
+          ),
         );
+        expect(
+          body,
+          contains(
+            english
+                ? 'Repeated shopping ingredients'
+                : 'powtarzające się składniki',
+          ),
+        );
+        expect(body, contains(english ? 'Eggs' : 'Jajka'));
         expect(body, contains(english ? 'Diary' : 'Dzienniku'));
-        expect(body, contains(english ? 'selected shop' : 'wybranym sklepie'));
+        expect(body, contains(english ? 'shop offers' : 'ofert sklepu'));
         expect(body, isNot(contains('mealplannerpolska.pl')));
         expect(
           body,
-          contains(english ? 'Polish and English' : 'polsku i angielsku'),
+          contains(english ? 'button layout' : 'dopasowanie przycisków'),
         );
         expect(tester.takeException(), isNull);
       },

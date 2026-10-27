@@ -9,6 +9,9 @@ class ShoppingListItem {
   final int departmentSortOrder;
   final double requiredQuantity;
   final String unit;
+  final double? displayQuantity;
+  final String? displayUnit;
+  final bool displayQuantityIsApproximate;
   final double? estimatedPrice;
   bool isChecked;
   final bool isFromPantry;
@@ -32,6 +35,9 @@ class ShoppingListItem {
     required this.departmentSortOrder,
     required this.requiredQuantity,
     required this.unit,
+    this.displayQuantity,
+    this.displayUnit,
+    this.displayQuantityIsApproximate = false,
     this.estimatedPrice,
     required this.isChecked,
     this.isFromPantry = false,
@@ -84,6 +90,10 @@ class ShoppingListItem {
       departmentSortOrder: json['department_sort_order'] as int? ?? 99,
       requiredQuantity: (json['required_quantity'] as num? ?? 0.0).toDouble(),
       unit: json['unit'] as String? ?? 'szt',
+      displayQuantity: (json['display_quantity'] as num?)?.toDouble(),
+      displayUnit: json['display_unit'] as String?,
+      displayQuantityIsApproximate:
+          json['display_quantity_is_approximate'] as bool? ?? false,
       estimatedPrice: currency == 'GBP' && !hasBritishPrice ? null : price,
       isChecked: json['is_checked'] as bool? ?? false,
       isFromPantry: pantry,

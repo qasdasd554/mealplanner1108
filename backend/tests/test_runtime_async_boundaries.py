@@ -215,6 +215,9 @@ async def test_substitution_endpoint_localizes_rejections_and_serializes_success
     user = await db.get(User, user_id)
     plan = await db.get(MealPlan, plan_id)
     selected = food("Makaron spaghetti")
+    if user.country_code == 'GB' and not available:
+        # Authored products without an offer are still NOT generic references.
+        selected.created_by_user_id = user.id
     db.add(selected)
     await db.flush()
     if user.country_code == "GB" and available:

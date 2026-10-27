@@ -51,7 +51,7 @@ ThemeData _proofTheme() {
   );
 }
 
-ShoppingList _list(String country, {bool priced = true}) =>
+ShoppingList _list(String country, {bool priced = true, bool eggs = false}) =>
     ShoppingList.fromJson({
       'id': 'list-1',
       'meal_plan_id': 'plan-1',
@@ -65,9 +65,12 @@ ShoppingList _list(String country, {bool priced = true}) =>
         'Cupboard': [
           {
             'id': 'item-1',
-            'product_name': 'Long grain rice',
+            'product_name': eggs ? 'Eggs' : 'Long grain rice',
             'product_id': 'canonical-rice',
-            'required_quantity': 650,
+            'required_quantity': eggs ? 2800 : 650,
+            if (eggs) 'display_quantity': 56,
+            if (eggs) 'display_unit': 'szt',
+            if (eggs) 'display_quantity_is_approximate': true,
             'unit': 'g',
             'estimated_price': priced ? 1.8 : null,
             'currency_code': country == 'GB' ? 'GBP' : 'PLN',
@@ -127,13 +130,16 @@ Widget _app(String country, Widget child) => MaterialApp(
   localizationsDelegates: AppLocalizations.localizationsDelegates,
   theme: const bool.fromEnvironment('UK_WRITE_UI_PROOF') ? _proofTheme() : null,
   builder:
-      (context, child) => MediaQuery(
-        data: MediaQuery.of(
-          context,
-        ).copyWith(textScaler: const TextScaler.linear(1.5)),
-        child: child!,
+      (context, child) => RepaintBoundary(
+        key: const ValueKey('shopping-ui-proof'),
+        child: MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: const TextScaler.linear(1.5)),
+          child: child!,
+        ),
       ),
-  home: RepaintBoundary(key: const ValueKey('shopping-ui-proof'), child: child),
+  home: child,
 );
 
 void main() {
@@ -208,6 +214,56 @@ void main() {
     await tester.pump();
     return shopping;
   }
+
+  testWidgets(
+    'catalogue alternatives are separated from shop offers and declare uncertain stock',
+    (tester) async {
+      tester.view.physicalSize = const Size(320, 1000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await openSubstitutes(
+        tester,
+        _Client(
+          () async => [
+            {
+              'id': 'real',
+              'name': 'Retailer pasta',
+              'price': 2,
+              'currency_code': 'GBP',
+              'package_quantity': 500,
+              'package_unit': 'g',
+              'availability_scope': 'online_catalogue',
+            },
+            {
+              'id': 'generic',
+              'name': 'Catalogue pasta',
+              'price': 0.15,
+              'currency_code': 'GBP',
+              'price_basis': 'quantity_reference',
+              'price_quantity': 100,
+              'price_unit': 'g',
+              'availability_scope': 'generic_food_reference',
+            },
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Selected shop offers'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text('Catalogue alternatives'),
+        100,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Catalogue alternatives'), findsOneWidget);
+      expect(find.textContaining('Check shop availability'), findsOneWidget);
+      expect(find.textContaining('100 g'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await capture(tester, 'catalogue-alternatives');
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
 
   testWidgets('dismissed substitute sheet ignores a delayed response', (
     tester,
@@ -325,6 +381,29 @@ void main() {
   );
 
   for (final country in ['PL', 'GB']) {
+    testWidgets('piece display keeps base weight unchanged for $country', (
+      tester,
+    ) async {
+      final list = _list(country, eggs: true);
+      await tester.pumpWidget(
+        _app(
+          country,
+          DishShoppingListScreen(shoppingList: list, friendReadOnly: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.textContaining(country == 'GB' ? '≈56 pcs' : '≈56 szt.'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('2800 g'), findsOneWidget);
+      expect(
+        list.itemsByDepartment.values.single.single.requiredQuantity,
+        2800,
+      );
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    });
     for (final priced in [true, false]) {
       testWidgets(
         'dish list $country priced=$priced preserves price and package meaning at 320 px / 150% text',

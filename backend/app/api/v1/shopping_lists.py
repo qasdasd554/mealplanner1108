@@ -160,7 +160,13 @@ async def get_my_shopping_lists(
         )
         .order_by(ShoppingList.created_at.desc())
     )
-    return list(result.scalars().all())
+    lists = list(result.scalars().all())
+    if account_country(current_user) == 'GB':
+        from app.services.shopping_list_repair import needs_repair
+        for index, shopping in enumerate(lists):
+            if needs_repair(shopping):
+                lists[index] = await _repair_legacy_list(shopping.meal_plan_id, current_user, db)
+    return lists
 
 
 @router.post(
@@ -429,6 +435,9 @@ async def merge_shopping_lists(
             MealPlan.user_id == current_user.id,
             ShoppingList.status.notin_(["completed", "merged"]),
         )
+        .order_by(ShoppingList.id)
+        .with_for_update(of=ShoppingList)
+        .execution_options(populate_existing=True)
     )
     by_plan = {shopping_list.meal_plan_id: shopping_list for shopping_list in result.scalars().all()}
     if len(by_plan) != len(ids):
@@ -626,7 +635,22 @@ async def get_shopping_list(
     db: AsyncSession = Depends(get_db),
 ) -> ShoppingList:
     """Zwraca listę zakupów z pozycjami pogrupowanymi po działach sklepu."""
-    return await _get_shopping_list_or_404(list_id, current_user, db)
+    shopping = await _get_shopping_list_or_404(list_id, current_user, db)
+    from app.services.shopping_list_repair import needs_repair
+    if account_country(current_user) == 'GB' and needs_repair(shopping):
+        return await _repair_legacy_list(list_id, current_user, db)
+    return shopping
+
+
+async def _repair_legacy_list(list_id, user, db):
+    from app.services.shopping_list_repair import consolidate_generated_rows
+    # The same parent-row lock is used by all list mutations. Re-read after
+    # acquiring it, so a checked item from a concurrent request stays checked.
+    shopping = await _get_shopping_list_or_404(list_id, user, db, for_update=True)
+    if await consolidate_generated_rows(db, shopping):
+        await refresh_regional_plan_budget(db, shopping)
+    await db.commit()
+    return await _get_shopping_list_or_404(list_id, user, db, refresh=True)
 
 
 @router.put(
@@ -778,7 +802,7 @@ async def toggle_item_checked(
     db: AsyncSession = Depends(get_db),
 ) -> ShoppingListItem:
     """Przełącza status oznaczenia pozycji na liście zakupów (kupione/niekupione)."""
-    shopping_list = await _get_shopping_list_or_404(list_id, current_user, db)
+    shopping_list = await _get_shopping_list_or_404(list_id, current_user, db, for_update=True)
 
     result = await db.execute(
         select(ShoppingListItem)
@@ -837,7 +861,7 @@ async def substitute_item(
     Aktualizuje produkt, cenę jednostkową oraz dział sklepu
     na podstawie danych zamiennika.
     """
-    shopping_list = await _get_shopping_list_or_404(list_id, current_user, db)
+    shopping_list = await _get_shopping_list_or_404(list_id, current_user, db, for_update=True)
 
     # Znajdź pozycję
     result = await db.execute(
@@ -1405,7 +1429,7 @@ async def add_item_to_shopping_list(
     duplikat — inaczej dwukrotne dodanie tego samego dałoby dwie osobne
     pozycje do odhaczenia.
     """
-    shopping_list = await _get_shopping_list_or_404(list_id, current_user, db)
+    shopping_list = await _get_shopping_list_or_404(list_id, current_user, db, for_update=True)
 
     product = await db.get(Product, payload.product_id)
     if product is None:
@@ -1507,7 +1531,7 @@ async def add_custom_item_to_shopping_list(
     Nazwa jest normalizowana z nadmiarowych spacji. Ponowne dodanie tej
     samej nazwy zwiększa ilość zamiast tworzyć drugi wiersz.
     """
-    shopping_list = await _get_shopping_list_or_404(list_id, current_user, db)
+    shopping_list = await _get_shopping_list_or_404(list_id, current_user, db, for_update=True)
     name = " ".join(payload.name.split()).strip()
     unit = payload.unit.strip() or "szt"
     if not name:
@@ -1570,7 +1594,7 @@ async def delete_shopping_list_item(
     """Usuwa pojedynczą pozycję — potrzebne, żeby dało się skasować
     ręcznie dopisany produkt (wcześniej pozycji nie dało się usunąć
     wcale, można było je tylko odhaczać)."""
-    shopping_list = await _get_shopping_list_or_404(list_id, current_user, db)
+    shopping_list = await _get_shopping_list_or_404(list_id, current_user, db, for_update=True)
 
     item = next((i for i in shopping_list.items if i.id == item_id), None)
     if item is None:

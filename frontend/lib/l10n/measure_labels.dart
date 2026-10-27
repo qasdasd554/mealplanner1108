@@ -9,8 +9,12 @@ extension MeasureLabels on AppLocalizations {
     return switch (code) {
       'opak' => measurePack,
       'porcja' => measureServing,
-      'szt' => measurePiece,
-      'lyzeczka' => measureTeaspoon,
+      'szt' || 'szt.' => measurePiece,
+      'lyzeczka' || 'łyżeczka' || 'łyżeczki' || 'łyżeczek' => measureTeaspoon,
+      'lyzka' ||
+      'łyżka' ||
+      'łyżki' ||
+      'łyżek' => localeName.startsWith('en') ? 'tablespoon' : 'łyżka',
       'szklanka' => measureGlass,
       'g' => measureGrams,
       'ml' => measureMillilitres,

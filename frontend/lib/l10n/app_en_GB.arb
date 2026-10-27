@@ -1082,6 +1082,9 @@
   },
   "shoppingChooseSubstitute": "Choose a substitute",
   "shoppingNoSubstitutes": "No available alternatives in this shop.",
+  "shoppingCatalogueAlternatives": "Catalogue alternatives",
+  "shoppingStoreAlternatives": "Selected shop offers",
+  "shoppingCatalogueAvailability": "Check shop availability — estimated price.",
   "@shoppingChooseSubstitute": {
     "description": "Shopping list display label. Currency and package data come from the response snapshot."
   },
@@ -2293,7 +2296,7 @@
   "releasePromptTitle": "An update is available",
   "releasePromptRequired": "This version is no longer supported. Update the app to continue.",
   "releasePromptStoreError": "Could not open the app store.",
-  "releasePromptChanges": "• Fixed changing meals in your plan and recalculating the shopping list.\n• Improved saving scanned products to your pantry and Diary.\n• Product substitutes now respect availability in the selected shop.\n• Improved stability and error messages in Polish and English.",
+  "releasePromptChanges": "• Repeated shopping ingredients are combined and measures are converted correctly.\n• Eggs and known foods sold by the piece now show a piece conversion.\n• Catalogue alternatives are clearly separated from shop offers.\n• Improved translations and button layout in the Diary.",
   "releasePromptApple": "Open App Store",
   "releasePromptGoogle": "Open Google Play",
   "releasePromptLater": "Later",

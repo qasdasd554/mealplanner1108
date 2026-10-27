@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'dart:ui' as ui;
+import 'package:flutter/services.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -62,6 +66,7 @@ class Logs extends FoodLogProvider {
 }
 
 class Wellness extends WellnessProvider {
+  int waterMl = 0;
   final List<DateTime> requests = [];
   int added = 0;
   final waters = <int>[];
@@ -70,7 +75,12 @@ class Wellness extends WellnessProvider {
   @override
   bool get isLoading => false;
   @override
-  DailyWellness get data => DailyWellness.empty();
+  DailyWellness get data => DailyWellness(
+    waterMl: waterMl,
+    waterGoalMl: 2000,
+    activities: const [],
+    totalKcalBurned: 0,
+  );
   @override
   Future<void> loadForDate(DateTime date) async {
     requests.add(date);
@@ -96,8 +106,11 @@ Future<(Logs, Wellness)> openDiary(
   WidgetTester tester,
   Locale locale, {
   bool withFood = false,
+  double textScale = 1,
+  int waterMl = 0,
 }) async {
   final logs = Logs(), wellness = Wellness();
+  wellness.waterMl = waterMl;
   addTearDown(logs.dispose);
   addTearDown(wellness.dispose);
   if (withFood) {
@@ -127,10 +140,24 @@ Future<(Logs, Wellness)> openDiary(
         ChangeNotifierProvider<WellnessProvider>.value(value: wellness),
       ],
       child: MaterialApp(
+        theme:
+            const bool.fromEnvironment('PARITY_UI_PROOF')
+                ? ThemeData(fontFamily: 'ParityProof')
+                : null,
+        builder:
+            (context, child) => MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: TextScaler.linear(textScale)),
+              child: child!,
+            ),
         locale: locale,
         supportedLocales: AppLocalizations.supportedLocales,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
-        home: const CalorieTrackerScreen(),
+        home: const RepaintBoundary(
+          key: ValueKey('diary-parity-proof'),
+          child: CalorieTrackerScreen(),
+        ),
       ),
     ),
   );
@@ -139,7 +166,62 @@ Future<(Logs, Wellness)> openDiary(
 }
 
 void main() {
-  setUpAll(() => initializeDateFormatting('en_GB'));
+  setUpAll(() async {
+    await initializeDateFormatting('en_GB');
+    if (const bool.fromEnvironment('PARITY_UI_PROOF')) {
+      await (FontLoader('ParityProof')..addFont(
+        File(
+          'C:/Windows/Fonts/arial.ttf',
+        ).readAsBytes().then(ByteData.sublistView),
+      )).load();
+      await (FontLoader('MaterialIcons')
+        ..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf'))).load();
+    }
+  });
+  for (final locale in [const Locale('en', 'GB'), const Locale('pl', 'PL')]) {
+    testWidgets(
+      'water controls retain internal padding at 320px / 150% $locale',
+      (tester) async {
+        tester.view.physicalSize = const Size(320, 1100);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await openDiary(tester, locale, textScale: 1.5, waterMl: 750);
+        final label = find.text(
+          locale.languageCode == 'en' ? 'Custom amount' : 'Inna ilość',
+        );
+        await tester.ensureVisible(label);
+        final button =
+            find
+                .ancestor(of: label, matching: find.byType(OutlinedButton))
+                .first;
+        final labelRect = tester.getRect(label),
+            buttonRect = tester.getRect(button);
+        expect(labelRect.left, greaterThanOrEqualTo(buttonRect.left + 10));
+        expect(labelRect.right, lessThanOrEqualTo(buttonRect.right - 10));
+        expect(tester.takeException(), isNull);
+        if (const bool.fromEnvironment('PARITY_UI_PROOF')) {
+          final boundary = tester.renderObject<RenderRepaintBoundary>(
+            find.byKey(const ValueKey('diary-parity-proof')),
+          );
+          await tester.runAsync(() async {
+            final bitmap = await boundary.toImage(pixelRatio: 1);
+            final png = await bitmap.toByteData(format: ui.ImageByteFormat.png);
+            final file = File(
+              '../docs/audit/parity-ui/diary-${locale.languageCode}-320-text150.png',
+            );
+            await file.parent.create(recursive: true);
+            await file.writeAsBytes(png!.buffer.asUint8List());
+            bitmap.dispose();
+          });
+        }
+        await tester.tap(button);
+        await tester.pumpAndSettle();
+        expect(find.byType(AlertDialog), findsOneWidget);
+        await tester.pumpWidget(const SizedBox());
+      },
+    );
+  }
   testWidgets(
     'GB diary uses English labels and moves both providers to selected day',
     (tester) async {

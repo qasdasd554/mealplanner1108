@@ -21,7 +21,7 @@ def state(monkeypatch):
     quote = NS(product_id=item.id, store_id=store_id, name_en="British 500g pack",
                price_per_package=Decimal("1.25"), package_quantity=Decimal(500),
                unit="g", currency_code="GBP", price_is_estimated=False,
-               last_verified=date(2026, 10, 16))
+               last_verified=date(2026, 10, 16), availability_scope='online_catalogue')
     service = NS(find_substitutes=AsyncMock(), auto_find_similar=AsyncMock(return_value=[]))
     monkeypatch.setattr(products, "ProductSubstitutionService", lambda db: service)
     monkeypatch.setattr(products, "get_store_in_account_market", AsyncMock(return_value=NS(id=store_id)))

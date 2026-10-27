@@ -58,8 +58,15 @@ extension CatalogLabels on AppLocalizations {
   String unitLabel(String value) => switch (value) {
     'opak' => priceCompareUnitPack,
     'porcja' => priceCompareUnitServing,
-    'szt' => priceCompareUnitPiece,
-    'lyzeczka' => priceCompareUnitTeaspoon,
+    'szt' || 'szt.' => priceCompareUnitPiece,
+    'lyzeczka' ||
+    'łyżeczka' ||
+    'łyżeczki' ||
+    'łyżeczek' => priceCompareUnitTeaspoon,
+    'lyzka' ||
+    'łyżka' ||
+    'łyżki' ||
+    'łyżek' => localeName.startsWith('en') ? 'tbsp' : 'łyżka',
     'szklanka' => priceCompareUnitCup,
     _ => value,
   };

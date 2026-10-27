@@ -510,6 +510,15 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                                       itemCount: result.items.length,
                                       itemBuilder: (rowContext, index) {
                                         final sub = result.items[index];
+                                        final catalogue =
+                                            sub['availability_scope'] ==
+                                            'generic_food_reference';
+                                        final showHeading =
+                                            index == 0 ||
+                                            catalogue !=
+                                                (result.items[index -
+                                                        1]['availability_scope'] ==
+                                                    'generic_food_reference');
                                         final packageQuantity =
                                             (sub['package_quantity'] as num?)
                                                 ?.toDouble();
@@ -541,125 +550,160 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                                             }.contains(priceUnit);
                                         final subtitle =
                                             '${sub['brand'] as String? ?? ''}${sub['kcal'] != null ? ' (${sub['kcal']} kcal)' : ''}';
-                                        return ListTile(
-                                          title: Text(sub['name'] as String),
-                                          subtitle: Text(
-                                            item.currencyCode == 'GBP' &&
-                                                    hasPackage
-                                                ? [
-                                                      subtitle,
-                                                      strings
-                                                          .shoppingSubstitutePack(
-                                                            formatQuantity(
-                                                              packageQuantity,
-                                                              packageUnit!,
-                                                            ),
-                                                            packageUnit,
-                                                          ),
-                                                    ]
-                                                    .where(
-                                                      (value) =>
-                                                          value.isNotEmpty,
-                                                    )
-                                                    .join(' · ')
-                                                : quantityReference
-                                                ? '$subtitle · ${strings.productsEstimatedPrice} / ${formatQuantity(priceQuantity, priceUnit!)} ${strings.measureQuantityLabel(priceUnit, fallback: priceUnit, amount: priceQuantity)}'
-                                                : subtitle,
-                                          ),
-                                          trailing: Text(
-                                            sub['price'] == null &&
-                                                    item.currencyCode == 'GBP'
-                                                ? strings.shoppingPriceUnknown
-                                                : '${item.currencyCode == 'GBP' && (sub['price_is_estimated'] as bool? ?? true) ? '~' : ''}${formatMarketMoney((sub['price'] as num?)?.toDouble() ?? 0.0, currencyCode: item.currencyCode)}',
-                                            style: const TextStyle(
-                                              color: AppTheme.primaryColor,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          onTap:
-                                              saving
-                                                  ? null
-                                                  : () async {
-                                                    if (saving) return;
-                                                    final name =
-                                                        sub['name'] as String;
-                                                    setModalState(
-                                                      () => saving = true,
-                                                    );
-                                                    try {
-                                                      final saved =
-                                                          await provider
-                                                              .substituteItem(
-                                                                item.id,
-                                                                sub['id']
-                                                                    as String,
-                                                              );
-                                                      if (!mounted ||
-                                                          !modalContext
-                                                              .mounted) {
-                                                        return;
-                                                      }
-                                                      if (saved) {
-                                                        Navigator.of(
-                                                          modalContext,
-                                                        ).pop();
-                                                      } else {
-                                                        setModalState(
-                                                          () => saving = false,
-                                                        );
-                                                      }
-                                                      ScaffoldMessenger.of(
-                                                        context,
-                                                      ).showSnackBar(
-                                                        SnackBar(
-                                                          duration:
-                                                              const Duration(
-                                                                seconds: 3,
+                                        return Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.stretch,
+                                          children: [
+                                            if (item.currencyCode == 'GBP' &&
+                                                showHeading)
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.fromLTRB(
+                                                      16,
+                                                      12,
+                                                      16,
+                                                      4,
+                                                    ),
+                                                child: Text(
+                                                  catalogue
+                                                      ? strings
+                                                          .shoppingCatalogueAlternatives
+                                                      : strings
+                                                          .shoppingStoreAlternatives,
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            ListTile(
+                                              title: Text(
+                                                sub['name'] as String,
+                                              ),
+                                              subtitle: Text(
+                                                item.currencyCode == 'GBP' &&
+                                                        hasPackage
+                                                    ? [
+                                                          subtitle,
+                                                          strings
+                                                              .shoppingSubstitutePack(
+                                                                formatQuantity(
+                                                                  packageQuantity,
+                                                                  packageUnit!,
+                                                                ),
+                                                                packageUnit,
                                                               ),
-                                                          content: Text(
-                                                            saved
-                                                                ? strings
-                                                                    .shoppingSubstituteChanged(
-                                                                      name,
-                                                                    )
-                                                                : provider
-                                                                        .errorMessage ??
-                                                                    strings
-                                                                        .shoppingSubstituteFailed,
-                                                          ),
-                                                          backgroundColor:
-                                                              saved
-                                                                  ? AppTheme
-                                                                      .primaryColor
-                                                                  : AppTheme
-                                                                      .errorColor,
-                                                        ),
-                                                      );
-                                                    } catch (error) {
-                                                      if (!mounted ||
-                                                          !modalContext
-                                                              .mounted) {
-                                                        return;
-                                                      }
-                                                      setModalState(
-                                                        () => saving = false,
-                                                      );
-                                                      ScaffoldMessenger.of(
-                                                        context,
-                                                      ).showSnackBar(
-                                                        SnackBar(
-                                                          content: Text(
-                                                            friendlyError(
-                                                              error,
+                                                        ]
+                                                        .where(
+                                                          (value) =>
+                                                              value.isNotEmpty,
+                                                        )
+                                                        .join(' · ')
+                                                    : quantityReference
+                                                    ? '${catalogue ? '${strings.shoppingCatalogueAvailability}\n' : ''}$subtitle · ${strings.productsEstimatedPrice} / ${formatQuantity(priceQuantity, priceUnit!)} ${strings.measureQuantityLabel(priceUnit, fallback: priceUnit, amount: priceQuantity)}'
+                                                    : subtitle,
+                                              ),
+                                              trailing: Text(
+                                                sub['price'] == null &&
+                                                        item.currencyCode ==
+                                                            'GBP'
+                                                    ? strings
+                                                        .shoppingPriceUnknown
+                                                    : '${item.currencyCode == 'GBP' && (sub['price_is_estimated'] as bool? ?? true) ? '~' : ''}${formatMarketMoney((sub['price'] as num?)?.toDouble() ?? 0.0, currencyCode: item.currencyCode)}',
+                                                style: const TextStyle(
+                                                  color: AppTheme.primaryColor,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              onTap:
+                                                  saving
+                                                      ? null
+                                                      : () async {
+                                                        if (saving) return;
+                                                        final name =
+                                                            sub['name']
+                                                                as String;
+                                                        setModalState(
+                                                          () => saving = true,
+                                                        );
+                                                        try {
+                                                          final saved =
+                                                              await provider
+                                                                  .substituteItem(
+                                                                    item.id,
+                                                                    sub['id']
+                                                                        as String,
+                                                                  );
+                                                          if (!mounted ||
+                                                              !modalContext
+                                                                  .mounted) {
+                                                            return;
+                                                          }
+                                                          if (saved) {
+                                                            Navigator.of(
+                                                              modalContext,
+                                                            ).pop();
+                                                          } else {
+                                                            setModalState(
+                                                              () =>
+                                                                  saving =
+                                                                      false,
+                                                            );
+                                                          }
+                                                          ScaffoldMessenger.of(
+                                                            context,
+                                                          ).showSnackBar(
+                                                            SnackBar(
+                                                              duration:
+                                                                  const Duration(
+                                                                    seconds: 3,
+                                                                  ),
+                                                              content: Text(
+                                                                saved
+                                                                    ? strings
+                                                                        .shoppingSubstituteChanged(
+                                                                          name,
+                                                                        )
+                                                                    : provider
+                                                                            .errorMessage ??
+                                                                        strings
+                                                                            .shoppingSubstituteFailed,
+                                                              ),
+                                                              backgroundColor:
+                                                                  saved
+                                                                      ? AppTheme
+                                                                          .primaryColor
+                                                                      : AppTheme
+                                                                          .errorColor,
                                                             ),
-                                                          ),
-                                                          backgroundColor:
-                                                              AppTheme
-                                                                  .errorColor,
-                                                        ),
-                                                      );
-                                                    }
-                                                  },
+                                                          );
+                                                        } catch (error) {
+                                                          if (!mounted ||
+                                                              !modalContext
+                                                                  .mounted) {
+                                                            return;
+                                                          }
+                                                          setModalState(
+                                                            () =>
+                                                                saving = false,
+                                                          );
+                                                          ScaffoldMessenger.of(
+                                                            context,
+                                                          ).showSnackBar(
+                                                            SnackBar(
+                                                              content: Text(
+                                                                friendlyError(
+                                                                  error,
+                                                                ),
+                                                              ),
+                                                              backgroundColor:
+                                                                  AppTheme
+                                                                      .errorColor,
+                                                            ),
+                                                          );
+                                                        }
+                                                      },
+                                            ),
+                                          ],
                                         );
                                       },
                                     ),
@@ -1506,8 +1550,8 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           Text(
-            item.currencyCode == 'PLN'
-                ? '${item.requiredQuantity} ${item.unit}'
+            item.displayQuantity != null && item.displayUnit != null
+                ? '${item.displayQuantityIsApproximate ? '≈' : ''}${formatQuantity(item.displayQuantity!, item.displayUnit!)} ${context.strings.unitLabel(item.displayUnit!)} (${formatQuantity(item.requiredQuantity, item.unit)} ${context.strings.unitLabel(item.unit)})'
                 : '${formatQuantity(item.requiredQuantity, item.unit)} ${context.strings.unitLabel(item.unit)}',
           ),
           if (item.currencyCode == 'GBP' && item.hasReliablePackage)

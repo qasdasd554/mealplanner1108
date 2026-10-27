@@ -24,7 +24,8 @@ def test_uk_suggestions_need_selected_store_evidence_not_just_a_catalogue_price(
     reviewed_offer(db, elsewhere, other)
     db.commit()
     rows = asyncio.run(ProductSubstitutionService(Database(db)).auto_find_similar(original.id, shop.id))
-    assert [row["product"].id for row in rows] == [local.id]
+    assert [row["product"].id for row in rows if row.get('regional_quote')] == [local.id]
+    assert all(row.get('generic_reference') for row in rows if not row.get('regional_quote'))
 
 
 def test_uk_legacy_row_without_snapshot_can_save_a_real_selected_store_offer(db):

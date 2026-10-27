@@ -998,41 +998,75 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
             ],
           ),
           const SizedBox(height: 10),
-          Row(
-            children: [
-              _waterButton(wellness, 250, context.strings.diaryGlass),
-              const SizedBox(width: 6),
-              _waterButton(wellness, 500, context.strings.diaryBottle),
-              const SizedBox(width: 6),
-              // Wpisanie dowolnej ilości — potrzebne, gdy ktoś wypił
-              // np. 300 ml albo chce wpisać całodzienną sumę naraz.
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => _showCustomWaterDialog(context, wellness),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    visualDensity: VisualDensity.compact,
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final narrow =
+                  constraints.maxWidth <
+                  360 * MediaQuery.textScalerOf(context).scale(1);
+              final width =
+                  narrow
+                      ? (constraints.maxWidth - 6) / 2
+                      : (constraints.maxWidth - 12 - (ml > 0 ? 46 : 0)) / 3;
+              return Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  SizedBox(
+                    width: width,
+                    child: _waterButton(
+                      wellness,
+                      250,
+                      context.strings.diaryGlass,
+                    ),
                   ),
-                  child: Text(
-                    context.strings.diaryCustomWater,
-                    style: const TextStyle(fontSize: 12),
+                  SizedBox(
+                    width: width,
+                    child: _waterButton(
+                      wellness,
+                      500,
+                      context.strings.diaryBottle,
+                    ),
                   ),
-                ),
-              ),
-              if (ml > 0)
-                IconButton(
-                  icon: Icon(
-                    Icons.undo,
-                    size: 17,
-                    color: AppTheme.textSecondary,
+                  // Wpisanie dowolnej ilości — potrzebne, gdy ktoś wypił
+                  // np. 300 ml albo chce wpisać całodzienną sumę naraz.
+                  SizedBox(
+                    width: width,
+                    child: OutlinedButton(
+                      onPressed:
+                          () => _showCustomWaterDialog(context, wellness),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 12,
+                        ),
+                        minimumSize: const Size(0, 48),
+                      ),
+                      child: Text(
+                        context.strings.diaryCustomWater,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ),
                   ),
-                  visualDensity: VisualDensity.compact,
-                  tooltip: context.strings.diaryUndoGlass,
-                  onPressed:
-                      () =>
-                          _runWellness(wellness, () => wellness.addWater(-250)),
-                ),
-            ],
+                  if (ml > 0)
+                    IconButton(
+                      icon: Icon(
+                        Icons.undo,
+                        size: 17,
+                        color: AppTheme.textSecondary,
+                      ),
+                      visualDensity: VisualDensity.compact,
+                      tooltip: context.strings.diaryUndoGlass,
+                      onPressed:
+                          () => _runWellness(
+                            wellness,
+                            () => wellness.addWater(-250),
+                          ),
+                    ),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -1105,18 +1139,16 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
   /// dzieliły szerokość równo — bez tego długie etykiety rozpychały wiersz
   /// i wychodziły poza ekran na wąskich telefonach.
   Widget _waterButton(WellnessProvider wellness, int ml, String label) {
-    return Expanded(
-      child: OutlinedButton(
-        onPressed: () => _runWellness(wellness, () => wellness.addWater(ml)),
-        style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          visualDensity: VisualDensity.compact,
-        ),
-        child: Text(
-          '+$label',
-          style: const TextStyle(fontSize: 12),
-          overflow: TextOverflow.ellipsis,
-        ),
+    return OutlinedButton(
+      onPressed: () => _runWellness(wellness, () => wellness.addWater(ml)),
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+        minimumSize: const Size(0, 48),
+      ),
+      child: Text(
+        '+$label',
+        style: const TextStyle(fontSize: 12),
+        textAlign: TextAlign.center,
       ),
     );
   }
@@ -1135,8 +1167,10 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
 
     return Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        Wrap(
+          alignment: WrapAlignment.spaceEvenly,
+          spacing: 16,
+          runSpacing: 12,
           children: [
             _buildMacroItem(
               context.strings.diaryProtein,

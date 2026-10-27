@@ -1854,6 +1854,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shoppingNoSubstitutes => 'No available alternatives in this shop.';
 
   @override
+  String get shoppingCatalogueAlternatives => 'Catalogue alternatives';
+
+  @override
+  String get shoppingStoreAlternatives => 'Selected shop offers';
+
+  @override
+  String get shoppingCatalogueAvailability =>
+      'Check shop availability — estimated price.';
+
+  @override
   String shoppingSubstituteFor(String name) {
     return 'For product: $name';
   }
@@ -4269,7 +4279,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• Fixed changing meals in your plan and recalculating the shopping list.\n• Improved saving scanned products to your pantry and Diary.\n• Product substitutes now respect availability in the selected shop.\n• Improved stability and error messages in Polish and English.';
+      '• Repeated shopping ingredients are combined and measures are converted correctly.\n• Eggs and known foods sold by the piece now show a piece conversion.\n• Catalogue alternatives are clearly separated from shop offers.\n• Improved translations and button layout in the Diary.';
 
   @override
   String get releasePromptApple => 'Open App Store';
@@ -7103,6 +7113,16 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
   String get shoppingNoSubstitutes => 'No available alternatives in this shop.';
 
   @override
+  String get shoppingCatalogueAlternatives => 'Catalogue alternatives';
+
+  @override
+  String get shoppingStoreAlternatives => 'Selected shop offers';
+
+  @override
+  String get shoppingCatalogueAvailability =>
+      'Check shop availability — estimated price.';
+
+  @override
   String shoppingSubstituteFor(String name) {
     return 'For product: $name';
   }
@@ -9518,7 +9538,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get releasePromptChanges =>
-      '• Fixed changing meals in your plan and recalculating the shopping list.\n• Improved saving scanned products to your pantry and Diary.\n• Product substitutes now respect availability in the selected shop.\n• Improved stability and error messages in Polish and English.';
+      '• Repeated shopping ingredients are combined and measures are converted correctly.\n• Eggs and known foods sold by the piece now show a piece conversion.\n• Catalogue alternatives are clearly separated from shop offers.\n• Improved translations and button layout in the Diary.';
 
   @override
   String get releasePromptApple => 'Open App Store';

@@ -1365,9 +1365,10 @@ async def get_product_substitutes(
             continue
         store_prod = r.get("store_product")
         regional_quote = r.get("regional_quote") if account_country(current_user) == "GB" else None
+        reference = r.get('reference_quote') if account_country(current_user) == 'GB' and r.get('generic_reference') else None
         if account_country(current_user) == "GB":
             # A legacy StoreProduct is not a reviewed British price/pack.
-            if (regional_quote is None or regional_quote.store_id != store_id
+            if reference is None and (regional_quote is None or regional_quote.store_id != store_id
                     or regional_quote.product_id != prod.id
                     or regional_quote.currency_code != "GBP"):
                 continue
@@ -1379,13 +1380,16 @@ async def get_product_substitutes(
                 pass
         response_list.append({
             "id": prod.id,
-            "name": regional_quote.name_en if regional_quote else prod.name,
+            "name": reference.name_en if reference else (regional_quote.name_en if regional_quote else prod.name),
             "brand": product_brand_for_market(prod, country_code=account_country(current_user)),
-            "price": regional_quote.price_per_package if regional_quote else (store_prod.price if store_prod else None),
+            "price": reference.total_price if reference else (regional_quote.price_per_package if regional_quote else (store_prod.price if store_prod else None)),
             "kcal": kcal,
             "similarity_score": r.get("similarity_score"),
-            "currency_code": "GBP" if regional_quote else "PLN",
-            "price_basis": "package",
+            "currency_code": "GBP" if regional_quote or reference else "PLN",
+            "price_basis": "quantity_reference" if reference else "package",
+            "price_quantity": float(reference.required_quantity) if reference else None,
+            "price_unit": reference.unit if reference else None,
+            "availability_scope": "generic_food_reference" if reference else (regional_quote.availability_scope if regional_quote else 'store_catalogue'),
             "package_quantity": regional_quote.package_quantity if regional_quote else None,
             "package_unit": regional_quote.unit if regional_quote else None,
             "price_is_estimated": regional_quote.price_is_estimated if regional_quote else getattr(store_prod, "last_verified", None) is None,

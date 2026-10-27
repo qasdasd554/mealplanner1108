@@ -160,6 +160,7 @@ class ShoppingListBuilder:
         stmt = (
             select(ShoppingList)
             .where(ShoppingList.id == shopping_list_id)
+            .with_for_update(of=ShoppingList)
             .options(selectinload(ShoppingList.items))
         )
         result = await self.db.execute(stmt)
@@ -689,10 +690,16 @@ class ShoppingListBuilder:
                     product, requirement.quantity, requirement.unit, pantry.get(product.id),
                 )
             else:
-                quantities = (
-                    [(requirement.raw_quantity, requirement.raw_unit)]
-                    if requirement.raw_quantity is not None else list(requirement.raw_amounts)
-                )
+                from app.services.regional_requirements import canonical_measure_code
+                # Unknown conversions must not fan every recipe into a separate
+                # line. Sum only equal units; never add grams to unknown scoops.
+                grouped_raw = {}
+                with localcontext() as arithmetic:
+                    arithmetic.prec = 130
+                    for amount, raw_unit in requirement.raw_amounts:
+                        raw_unit = canonical_measure_code(raw_unit)
+                        grouped_raw[raw_unit] = grouped_raw.get(raw_unit, Decimal(0)) + amount
+                quantities = [(amount, unit) for unit, amount in grouped_raw.items()]
                 covered = Decimal(0)
             if not quantities:
                 raise ValueError("Shopping ingredient quantity cannot be represented safely")

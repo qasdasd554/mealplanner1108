@@ -17,7 +17,7 @@ from decimal import Decimal
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import and_, select, update
+from sqlalchemy import and_, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
@@ -45,6 +45,8 @@ from app.services.regional_requirements import to_regional_base_quantity
 from app.services.uk_catalogue_import import canonical_base_unit
 from app.services.regional_offer_pricing import select_uk_offer_quote
 from app.services.market_catalog import regional_offer_available_condition
+from app.services.product_market_presentation import is_uk_generic_seed
+from app.services.system_content_language import generic_system_ingredient_condition
 
 logger = logging.getLogger(__name__)
 
@@ -284,7 +286,7 @@ class ProductSubstitutionService:
                 regional_offer_available_condition(as_of=regional_pricing_date()),
             )
             result = await self.db.execute(select(Product).where(
-                Product.id.in_(local_ids),
+                or_(Product.id.in_(local_ids), generic_system_ingredient_condition(Product)),
                 Product.id != product_id, Product.review_status == "approved",
             ).order_by(Product.id).limit(max(50, min(limit * 20, 200))))
             reference = self.nutrition.nutrition_vector(ref_product)
@@ -482,9 +484,9 @@ class ProductSubstitutionService:
                 raise ProductUnavailableException(product_id=substitute_product_id, store_id=store_id) from exc
             offers = await load_regional_offers(self.db, {product.id}, store_id)
             quote = select_uk_offer_quote(offers, product_id=product.id, store_id=store_id, quantity=quantity, unit=unit, as_of=regional_pricing_date())
-            # A national/static price is useful for budgeting, never proof
-            # that this substitute is sold in the selected store.
-            if quote is None:
+            # Explicitly labelled catalogue alternatives are user-approved.
+            # They remain estimates, with no offer ID or store-stock claim.
+            if quote is None and not is_uk_generic_seed(product, country_code='GB'):
                 raise ProductUnavailableException(product_id=substitute_product_id, store_id=store_id)
             item.substituted_for = original_id
             apply_regional_item_quote(
@@ -566,7 +568,7 @@ class ProductSubstitutionService:
         except (ValueError, AttributeError):
             return []
         offers = await load_regional_offers(self.db, {product.id for product, _ in candidates}, store_id)
-        result = []
+        result, generic = [], []
         for product, score in candidates:
             try:
                 if product.review_status != "approved" or canonical_base_unit(product) != unit:
@@ -577,6 +579,11 @@ class ProductSubstitutionService:
                 quantity=Decimal("0.001"), unit=unit, as_of=regional_pricing_date())
             if quote is not None:
                 result.append({"product": product, "similarity_score": score, "regional_quote": quote})
-            if len(result) >= limit:
-                break
-        return result
+            elif is_uk_generic_seed(product, country_code='GB'):
+                from app.services.uk_ons_pricing import quote_national_requirement
+                estimate = quote_national_requirement(product, Decimal(100), unit,
+                    store_id=store_id, as_of=regional_pricing_date())
+                if estimate is not None:
+                    generic.append({'product': product, 'similarity_score': score,
+                                    'generic_reference': True, 'reference_quote': estimate})
+        return (result + generic)[:limit]

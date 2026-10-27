@@ -49,11 +49,12 @@ def test_uk_fallback_uses_only_selected_store_offers(db):
     reviewed_offer(db, alternative, shop)
     db.commit()
     rows = asyncio.run(ProductSubstitutionService(Database(db)).auto_find_similar(original.id, shop.id))
-    assert [row["product"].id for row in rows] == [alternative.id]
+    assert [row["product"].id for row in rows if row.get('regional_quote')] == [alternative.id]
 
 
 def test_generic_catalogue_price_does_not_prove_substitute_stock(db):
     original, alternative = food("Makaron penne"), food("Szafran")
+    alternative.created_by_user_id = uuid4()
     db.add_all([original, alternative])
     shop = uk_store(db, slug="tesco")
     db.commit()

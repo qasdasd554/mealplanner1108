@@ -21,6 +21,9 @@ class ShoppingListItemResponse(BaseModel):
     department_sort_order: int | None = None
     required_quantity: float
     unit: str
+    display_quantity: float | None = None
+    display_unit: str | None = None
+    display_quantity_is_approximate: bool = False
     estimated_price: float | None = None
     is_checked: bool
     is_from_pantry: bool = False
@@ -41,6 +44,7 @@ class ShoppingListItemResponse(BaseModel):
     def get_related_fields(cls, data):
         snapshot = getattr(data, "regional_snapshot", None)
         if snapshot is not None:
+            from app.services.shopping_quantity_display import shopping_piece_display
             quote = snapshot.quote_data or {}
             pantry = bool(getattr(data, "is_from_pantry", False))
             return {
@@ -49,6 +53,7 @@ class ShoppingListItemResponse(BaseModel):
                 "department_name": "In pantry" if pantry else "Other",
                 "department_sort_order": 10_000 if pantry else 999,
                 "required_quantity": data.required_quantity, "unit": data.unit,
+                **shopping_piece_display(snapshot.product_id, snapshot.name_en, data.required_quantity, data.unit),
                 "estimated_price": data.estimated_price,
                 "is_checked": data.is_checked, "is_from_pantry": pantry,
                 "substituted_for_name": None,
@@ -63,6 +68,7 @@ class ShoppingListItemResponse(BaseModel):
                 "pricing_as_of": snapshot.pricing_as_of,
             }
         if hasattr(data, "store_product") and data.store_product is not None:
+            from app.services.shopping_quantity_display import shopping_piece_display
             prod = data.store_product.product
             dept = data.department
             # Marka własna sklepu (np. "Mleczna Dolina") ma pierwszeństwo
@@ -88,6 +94,7 @@ class ShoppingListItemResponse(BaseModel):
                 ),
                 "required_quantity": data.required_quantity,
                 "unit": data.unit,
+                **(shopping_piece_display(prod.id, prod.name, data.required_quantity, data.unit) if prod else {}),
                 "estimated_price": data.estimated_price,
                 "is_checked": data.is_checked,
                 "is_from_pantry": getattr(data, "is_from_pantry", False),

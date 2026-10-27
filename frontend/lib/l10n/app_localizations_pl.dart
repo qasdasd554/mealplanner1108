@@ -1858,6 +1858,16 @@ class AppLocalizationsPl extends AppLocalizations {
       'Brak dostępnych zamienników w tym sklepie.';
 
   @override
+  String get shoppingCatalogueAlternatives => 'Zamienniki katalogowe';
+
+  @override
+  String get shoppingStoreAlternatives => 'Oferty wybranego sklepu';
+
+  @override
+  String get shoppingCatalogueAvailability =>
+      'Sprawdź dostępność w sklepie — cena orientacyjna.';
+
+  @override
   String shoppingSubstituteFor(String name) {
     return 'Dla produktu: $name';
   }
@@ -4252,7 +4262,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• Naprawiliśmy zamianę dań w planie i przeliczanie listy zakupów.\n• Poprawiliśmy zapis zeskanowanych produktów w spiżarni i Dzienniku.\n• Zamienniki produktów uwzględniają dostępność w wybranym sklepie.\n• Poprawiliśmy stabilność oraz komunikaty błędów po polsku i angielsku.';
+      '• Łączymy powtarzające się składniki na liście zakupów i poprawnie przeliczamy miary.\n• Jajka i znane produkty sztukowe pokazujemy z przeliczeniem na sztuki.\n• Zamienniki katalogowe są wyraźnie oddzielone od ofert sklepu.\n• Poprawiliśmy tłumaczenia i dopasowanie przycisków w Dzienniku.';
 
   @override
   String get releasePromptApple => 'Otwórz App Store';

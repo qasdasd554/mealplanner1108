@@ -18,6 +18,17 @@ from app.services.uk_catalogue_import import canonical_base_unit
 MAX_STORED_QUANTITY = Decimal("9999999.999")
 
 
+def canonical_measure_code(unit: str) -> str:
+    value = (unit or '').strip().casefold()
+    return {
+        'łyżeczka': 'lyzeczka', 'łyżeczki': 'lyzeczka', 'łyżeczek': 'lyzeczka',
+        'tsp': 'lyzeczka', 'teaspoon': 'lyzeczka', 'teaspoons': 'lyzeczka',
+        'łyżka': 'lyzka', 'łyżki': 'lyzka', 'łyżek': 'lyzka',
+        'tbsp': 'lyzka', 'tablespoon': 'lyzka', 'tablespoons': 'lyzka',
+        'szt.': 'szt', 'pcs': 'szt',
+    }.get(value, value)
+
+
 def _amount(value: Any) -> Decimal:
     if value is None or isinstance(value, bool):
         raise ValueError("A positive finite quantity is required")
@@ -68,6 +79,7 @@ def to_regional_base_quantity(product: Any, quantity: Any, unit: str) -> tuple[D
     measure. No translated name, implicit serving size or g-to-ml conversion.
     """
     amount = _amount(quantity)
+    unit = canonical_measure_code(unit)
     base_unit = canonical_base_unit(product)
     direct_unit = {"g": "g", "kg": "g", "ml": "ml", "l": "ml"}.get(unit)
     if direct_unit is not None:
@@ -79,11 +91,18 @@ def to_regional_base_quantity(product: Any, quantity: Any, unit: str) -> tuple[D
     else:
         matches: set[tuple[Decimal, str]] = set()
         for option in product.measure_options or []:
-            if not isinstance(option, dict) or option.get("code") != unit:
+            if not isinstance(option, dict) or canonical_measure_code(option.get("code")) != unit:
                 continue
             if option.get("base_unit") != base_unit:
                 raise ValueError("Measure dimension conflicts with the canonical product")
             matches.add((_amount(option.get("base_quantity")), base_unit))
+        if not matches and unit == 'lyzka':
+            # A metric tablespoon is three metric teaspoons. Use the product's
+            # persisted teaspoon factor, never assume one gram per millilitre.
+            for option in product.measure_options or []:
+                if (isinstance(option, dict) and canonical_measure_code(option.get('code')) == 'lyzeczka'
+                        and option.get('base_unit') == base_unit):
+                    matches.add((_multiply(_amount(option.get('base_quantity')), Decimal(3)), base_unit))
         if len(matches) != 1:
             raise ValueError("An unambiguous persisted product measure is required")
         factor, _ = next(iter(matches))

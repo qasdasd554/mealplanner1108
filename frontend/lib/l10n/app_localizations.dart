@@ -3381,6 +3381,24 @@ abstract class AppLocalizations {
   /// **'Brak dostępnych zamienników w tym sklepie.'**
   String get shoppingNoSubstitutes;
 
+  /// No description provided for @shoppingCatalogueAlternatives.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zamienniki katalogowe'**
+  String get shoppingCatalogueAlternatives;
+
+  /// No description provided for @shoppingStoreAlternatives.
+  ///
+  /// In pl, this message translates to:
+  /// **'Oferty wybranego sklepu'**
+  String get shoppingStoreAlternatives;
+
+  /// No description provided for @shoppingCatalogueAvailability.
+  ///
+  /// In pl, this message translates to:
+  /// **'Sprawdź dostępność w sklepie — cena orientacyjna.'**
+  String get shoppingCatalogueAvailability;
+
   /// Shopping list display label. Currency and package data come from the response snapshot.
   ///
   /// In pl, this message translates to:
@@ -7487,7 +7505,7 @@ abstract class AppLocalizations {
   /// No description provided for @releasePromptChanges.
   ///
   /// In pl, this message translates to:
-  /// **'• Naprawiliśmy zamianę dań w planie i przeliczanie listy zakupów.\n• Poprawiliśmy zapis zeskanowanych produktów w spiżarni i Dzienniku.\n• Zamienniki produktów uwzględniają dostępność w wybranym sklepie.\n• Poprawiliśmy stabilność oraz komunikaty błędów po polsku i angielsku.'**
+  /// **'• Łączymy powtarzające się składniki na liście zakupów i poprawnie przeliczamy miary.\n• Jajka i znane produkty sztukowe pokazujemy z przeliczeniem na sztuki.\n• Zamienniki katalogowe są wyraźnie oddzielone od ofert sklepu.\n• Poprawiliśmy tłumaczenia i dopasowanie przycisków w Dzienniku.'**
   String get releasePromptChanges;
 
   /// No description provided for @releasePromptApple.

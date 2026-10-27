@@ -1163,6 +1163,9 @@
   },
   "shoppingChooseSubstitute": "Wybierz zamiennik",
   "shoppingNoSubstitutes": "Brak dostępnych zamienników w tym sklepie.",
+  "shoppingCatalogueAlternatives": "Zamienniki katalogowe",
+  "shoppingStoreAlternatives": "Oferty wybranego sklepu",
+  "shoppingCatalogueAvailability": "Sprawdź dostępność w sklepie — cena orientacyjna.",
   "@shoppingChooseSubstitute": {
     "description": "Shopping list display label. Currency and package data come from the response snapshot."
   },
@@ -2374,7 +2377,7 @@
   "releasePromptTitle": "Dostępna nowa wersja",
   "releasePromptRequired": "Ta wersja aplikacji nie jest już obsługiwana. Zaktualizuj ją, aby korzystać dalej.",
   "releasePromptStoreError": "Nie udało się otworzyć sklepu.",
-  "releasePromptChanges": "• Naprawiliśmy zamianę dań w planie i przeliczanie listy zakupów.\n• Poprawiliśmy zapis zeskanowanych produktów w spiżarni i Dzienniku.\n• Zamienniki produktów uwzględniają dostępność w wybranym sklepie.\n• Poprawiliśmy stabilność oraz komunikaty błędów po polsku i angielsku.",
+  "releasePromptChanges": "• Łączymy powtarzające się składniki na liście zakupów i poprawnie przeliczamy miary.\n• Jajka i znane produkty sztukowe pokazujemy z przeliczeniem na sztuki.\n• Zamienniki katalogowe są wyraźnie oddzielone od ofert sklepu.\n• Poprawiliśmy tłumaczenia i dopasowanie przycisków w Dzienniku.",
   "releasePromptApple": "Otwórz App Store",
   "releasePromptGoogle": "Otwórz Google Play",
   "releasePromptLater": "Później",
