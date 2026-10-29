@@ -305,6 +305,7 @@ async def list_recipes(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     background_tasks: BackgroundTasks = None,
+    plan_id: UUID | None = None,
 ) -> list[Recipe] | list[RecipeListItemResponse]:
     """Zwraca listę przepisów z możliwością filtrowania.
 
@@ -316,6 +317,20 @@ async def list_recipes(
         _visibility_filter(current_user.id, blocked_ids)
     )
     query = apply_recipe_market_filter(query, current_user)
+
+    if plan_id is not None:
+        from app.models import MealPlan
+        from app.api.v1.meal_plans import _ensure_plan_access
+        from app.services.plan_recipe_constraints import plan_recipe_constraints
+        plan = await db.get(MealPlan, plan_id)
+        if plan is None or plan.user_id != current_user.id:
+            raise NotFoundException(detail=account_text(current_user,
+                "Plan nie został znaleziony.", "Meal plan not found."))
+        _ensure_plan_access(plan, current_user, editable=True)
+        query = query.where(*(await plan_recipe_constraints(db, plan, current_user)))
+        # Keep existing market availability in the same SQL query, before
+        # pagination. No recipe photos or unbounded ingredient loads added.
+        query = query.where(recipe_market_availability(account_country(current_user), store_id=plan.store_id))
 
     if meal_type is not None:
         query = query.where(Recipe.meal_type == meal_type)

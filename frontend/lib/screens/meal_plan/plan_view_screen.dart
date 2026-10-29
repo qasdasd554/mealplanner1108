@@ -78,6 +78,7 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
     ModalRoute<dynamic>? sheetRoute;
     final recipesFuture = _recipeService.getRecipes(
       mealType: entry.recipe.mealType,
+      planId: planId,
     );
     final picked = await showModalBottomSheet<Recipe>(
       context: context,
@@ -516,7 +517,7 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
                                     onTap: () {
                                       Navigator.of(context).pushNamed(
                                         '/recipe/detail',
-                                        arguments: entry.recipe,
+                                        arguments: entry,
                                       );
                                     },
                                     onLongPress:

@@ -8,10 +8,9 @@ według kolejności działów w sklepie.
 from __future__ import annotations
 
 import logging
-import math
 from copy import deepcopy
 from datetime import date
-from decimal import Decimal, localcontext
+from decimal import Decimal, localcontext, ROUND_HALF_UP
 from types import SimpleNamespace
 from collections import defaultdict
 from typing import Any
@@ -161,7 +160,7 @@ class ShoppingListBuilder:
             select(ShoppingList)
             .where(ShoppingList.id == shopping_list_id)
             .with_for_update(of=ShoppingList)
-            .options(selectinload(ShoppingList.items))
+            .options(selectinload(ShoppingList.items).selectinload(ShoppingListItem.store_product).selectinload(StoreProduct.product))
         )
         result = await self.db.execute(stmt)
         shopping_list = result.scalar_one_or_none()
@@ -169,13 +168,12 @@ class ShoppingListBuilder:
             raise ShoppingListNotFoundError(shopping_list_id)
 
         store = await self.db.get(Store, shopping_list.store_id)
-        if store is not None and store.country_code == "GB":
-            # Pantry sync may have split/replaced rows in this same session.
-            # An already loaded items collection is not the current DB state.
-            await self.db.flush()
-            shopping_list = (await self.db.execute(
-                stmt.execution_options(populate_existing=True)
-            )).scalar_one()
+        # Pantry sync may have split/replaced rows in this same session.
+        # An already loaded collection is not current DB state in either market.
+        await self.db.flush()
+        shopping_list = (await self.db.execute(
+            stmt.execution_options(populate_existing=True)
+        )).scalar_one()
 
         meal_plan_id = shopping_list.meal_plan_id
         checked_regional = {}
@@ -215,7 +213,12 @@ class ShoppingListBuilder:
             aggregated=aggregated,
             store_id=meal_plan.store_id,
             user_id=meal_plan.user_id,
+            include_pantry=(meal_plan.preferences or {}).get("include_pantry", True),
         )
+
+        if not is_gb:
+            from app.services.polish_shopping_amounts import preserve_polish_purchases
+            await preserve_polish_purchases(self.db, shopping_list.items, items_data)
 
         for item_data in items_data:
             snapshot = item_data.get("regional_snapshot")
@@ -255,9 +258,12 @@ class ShoppingListBuilder:
             # Generated objects were deleted; retained manual/merged snapshots
             # must also move to the new store instead of keeping old GBP packs.
             retained = [item for item in shopping_list.items if not item.is_generated]
-            from types import SimpleNamespace
             await refresh_regional_items(self.db, SimpleNamespace(items=retained, store_id=meal_plan.store_id))
             await refresh_regional_plan_budget(self.db, shopping_list)
+        else:
+            from app.services.polish_shopping_amounts import refresh_polish_items
+            retained = [item for item in shopping_list.items if not item.is_generated]
+            await refresh_polish_items(self.db, SimpleNamespace(items=retained), meal_plan.store_id)
 
         await self.db.commit()
 
@@ -552,12 +558,13 @@ class ShoppingListBuilder:
             if purchase_grams <= 0:
                 continue
 
-            if store_product is None:
+            if (store_product is None or not getattr(store_product, "is_available", True)
+                    or getattr(store_product, "withdrawn_at", None) is not None):
                 # Nie ukrywamy brakującej części tylko dlatego, że ten
                 # sklep nie ma produktu w katalogu. Ceny nie zgadujemy.
                 items_data.append({
-                    "store_product_id": None,
-                    "custom_name": product_name,
+                    "store_product_id": store_product.id if store_product is not None else None,
+                    "custom_name": None if store_product is not None else product_name,
                     "required_quantity": round(grams_to_quantity(
                         product_name, purchase_grams, product_unit,
                         getattr(product, "serving_quantity", None),
@@ -582,26 +589,17 @@ class ShoppingListBuilder:
                 getattr(product, "measure_options", None),
             )
 
-            # Rozmiar opakowania — przeliczony na wspólną bazę gramów/ml,
-            # żeby dzielenie odbywało się w spójnych jednostkach
-            default_qty_native = float(getattr(product, "default_quantity", None) or 1.0)
-            default_qty_grams = quantity_to_grams(
-                product_name,
-                default_qty_native,
-                product_unit,
-                getattr(product, "serving_quantity", None),
-                getattr(product, "measure_options", None),
-            )
-
-            package_count = (
-                math.ceil(purchase_grams / default_qty_grams)
-                if default_qty_grams > 0
-                else 1
-            )
-
-            # Cena
-            unit_price = float(getattr(store_product, "price", None) or 0.0)
-            estimated_price = round(unit_price * package_count, 2)
+            # Persist a physical amount at the available 3-decimal precision.
+            # Kilogram/litre fractions should use g/ml when native rounding would
+            # discard a meaningful part of the required quantity.
+            from app.services.polish_shopping_amounts import item_price, product_amount
+            from app.services.uk_catalogue_import import canonical_base_unit
+            native = Decimal(str(required_in_product_unit))
+            stored = native.quantize(Decimal("0.001"), rounding=ROUND_HALF_UP)
+            stored_unit = product_unit
+            if stored <= 0 or (product_unit in {"kg", "l"} and abs(native - stored) > Decimal("0.000000001")):
+                stored, stored_unit = product_amount(product, Decimal(str(purchase_grams)), canonical_base_unit(product))
+            estimated_price = item_price(product, store_product, stored, stored_unit)
 
             # Dział
             department_id = getattr(store_product, "department_id", None)
@@ -609,8 +607,8 @@ class ShoppingListBuilder:
             items_data.append(
                 {
                     "store_product_id": store_product.id,
-                    "required_quantity": float(round(required_in_product_unit, 2)),
-                    "unit": product_unit,
+                    "required_quantity": stored,
+                    "unit": stored_unit,
                     "estimated_price": estimated_price,
                     "department_id": department_id,
                     "is_checked": False,

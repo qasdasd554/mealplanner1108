@@ -174,6 +174,13 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    // The account market is not known until profile restoration finishes.
+    // Keep the first frame language-neutral instead of flashing the temporary
+    // device/default locale (PL) for an existing UK account, or vice versa.
+    final subtitleReady =
+        auth.currentUser != null ||
+        (auth.isInitialized && !auth.isAuthenticated);
     return Scaffold(
       body: Container(
         color: AppTheme.backgroundColor,
@@ -194,11 +201,17 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
               const SizedBox(height: 8),
               // Podtytuł
-              Text(
-                context.strings.splashSubtitle,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: AppTheme.textSecondary),
+              Visibility(
+                visible: subtitleReady,
+                maintainSize: true,
+                maintainAnimation: true,
+                maintainState: true,
+                child: Text(
+                  context.strings.splashSubtitle,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
               ),
               const SizedBox(height: 48),
               // Wskaźnik ładowania

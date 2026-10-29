@@ -11,10 +11,11 @@ from app.services import recipe_import_worker as worker
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("country", ["PL", "GB"])
 @pytest.mark.parametrize("banned, verified", [(True, True), (False, False)])
-async def test_worker_does_not_import_for_account_that_lost_access(monkeypatch, banned, verified):
+async def test_worker_does_not_import_for_account_that_lost_access(monkeypatch, banned, verified, country):
     job_id = uuid4()
-    user = SimpleNamespace(id=uuid4(), is_banned=banned, is_email_verified=verified)
+    user = SimpleNamespace(id=uuid4(), is_banned=banned, is_email_verified=verified, country_code=country)
     job = SimpleNamespace(user_id=user.id, payload={"text": "Marchew"})
     db = AsyncMock()
     claim = MagicMock()
@@ -32,4 +33,4 @@ async def test_worker_does_not_import_for_account_that_lost_access(monkeypatch, 
     monkeypatch.setattr("app.api.v1.recipes._create_ai_recipe", imported)
     await worker._process_recipe_import(job_id)
     imported.assert_not_awaited()
-    assert finished.await_args.kwargs["error"]
+    assert finished.await_args.kwargs["error"].startswith("This account" if country == "GB" else "Konto")

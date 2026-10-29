@@ -16,46 +16,9 @@ if TYPE_CHECKING:
     from app.models import Recipe, RecipeIngredient
 
 
-def _edible_grams(product_name: str, grams: float) -> float:
-    """Koryguje wagę tłuszczu użytego DO SMAŻENIA na tę część, która
-    faktycznie trafia do zjedzonej potrawy.
-
-    NAPRAWA REALNEGO BŁĘDU: kalorie liczyliśmy z pełnej ilości każdego
-    składnika. Przy przepisie z "olej 500 ml" doliczało to ~4400 kcal,
-    choć większość oleju zostaje na patelni albo we frytkownicy i nigdy
-    nie jest zjadana. Efekt: smażone dania pokazywały kaloryczność
-    oderwaną od rzeczywistości, co psuło też licznik kalorii w Śledzeniu
-    i dobór przepisów do celu kalorycznego.
-
-    Jak to liczymy:
-    - do progu PAN_FRY_THRESHOLD_G (typowa ilość "łyżka-dwie" na patelnię)
-      zaliczamy tłuszcz W CAŁOŚCI — przy takiej ilości praktycznie cała
-      wchłania się w potrawę,
-    - z nadwyżki ponad próg zaliczamy tylko ABSORPTION_RATIO, bo to już
-      smażenie głębokie/zanurzeniowe, gdzie potrawa wchłania rząd
-      kilkunastu procent użytego tłuszczu, a reszta zostaje w naczyniu.
-
-    Współczynnik 15% jest ostrożnym środkiem z zakresu podawanego dla
-    smażenia zanurzeniowego. Świadomie NIE zerujemy nadwyżki całkowicie —
-    to zaniżałoby wynik, a przy diecie lepiej mylić się w stronę
-    ostrożniejszą.
-
-    Dotyczy WYŁĄCZNIE czystych tłuszczów smażalniczych. Masło orzechowe
-    czy śmietana są składnikiem potrawy i liczą się w całości — stąd
-    dopasowanie do konkretnych nazw, a nie do słowa "olej" w nazwie.
-    """
-    name = (product_name or "").strip().lower()
-    if name not in FRYING_FATS:
-        return grams
-    if grams <= PAN_FRY_THRESHOLD_G:
-        return grams
-    excess = grams - PAN_FRY_THRESHOLD_G
-    return PAN_FRY_THRESHOLD_G + excess * FRYING_FAT_ABSORPTION_RATIO
-
-
-# Tłuszcze używane do smażenia, dla których nadwyżka nie jest zjadana.
-# Dopasowanie po PEŁNEJ nazwie produktu z katalogu (app/db/seed.py) —
-# celowo nie po fragmencie "olej", żeby nie złapać np. masła orzechowego.
+# Historical names used by startup backfill to recalculate recipes that had
+# the old automatic frying discount. The name/amount alone cannot tell how
+# much fat remains in a pan: nutrition must use declared ingredient amounts.
 FRYING_FATS: frozenset[str] = frozenset(
     {
         "olej rzepakowy",
@@ -65,15 +28,6 @@ FRYING_FATS: frozenset[str] = frozenset(
         "masło klarowane",
     }
 )
-
-# Ile tłuszczu wchłania się w potrawę przy smażeniu głębokim (udział
-# nadwyżki ponad próg patelniowy).
-FRYING_FAT_ABSORPTION_RATIO: float = 0.15
-
-# Ilość tłuszczu, przy której zakładamy zwykłe smażenie na patelni
-# (ok. 2 łyżki) — do tego progu liczymy wszystko.
-PAN_FRY_THRESHOLD_G: float = 30.0
-
 
 def compute_recipe_nutrition_total(ingredients: Sequence["RecipeIngredient"]) -> dict[str, float]:
     """Liczy łączne wartości odżywcze CAŁEGO przepisu (wszystkich porcji
@@ -122,7 +76,6 @@ def compute_recipe_nutrition_total(ingredients: Sequence["RecipeIngredient"]) ->
                     getattr(prod, "serving_quantity", None),
                     getattr(prod, "measure_options", None),
                 )
-                w = _edible_grams(prod.name, w)
                 if not math.isfinite(w) or w <= 0:
                     raise ValueError("Missing or invalid ingredient mass")
                 contribution = {}
@@ -322,7 +275,6 @@ class NutritionCalculator:
                 getattr(product, "serving_quantity", None),
                 getattr(product, "measure_options", None),
             )
-            weight_g = _edible_grams(product.name, weight_g)
             factor = weight_g / 100.0
 
             nutrition = getattr(product, 'nutrition_per_100', None) or {}

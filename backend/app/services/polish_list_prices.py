@@ -91,7 +91,7 @@ async def quote_polish_list(db, shopping, stores):
     offers = list((await db.execute(select(StoreProduct).where(
         StoreProduct.store_id.in_([store.id for store in stores]),
         StoreProduct.product_id.in_(product_ids),
-    ).options(joinedload(StoreProduct.department)))).scalars().unique().all()) if product_ids else []
+    ).options(joinedload(StoreProduct.department), joinedload(StoreProduct.product)))).scalars().unique().all()) if product_ids else []
     by_pair = {(offer.store_id, offer.product_id): offer for offer in offers}
     results = {}
     for store in stores:

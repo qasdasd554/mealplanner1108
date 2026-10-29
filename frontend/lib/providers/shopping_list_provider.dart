@@ -316,6 +316,7 @@ class ShoppingListProvider with ChangeNotifier {
       final confirmedValue = await _shoppingListService.toggleItemCheck(
         listAtRequest.id,
         itemId,
+        isChecked: !previousValue,
       );
       if (session != _sessionGeneration) return false;
       // Lista mogła zostać odświeżona w trakcie żądania. Aktualizujemy

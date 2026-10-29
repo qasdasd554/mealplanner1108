@@ -508,11 +508,14 @@ async def update_meal_plan_store(
     if shopping_list is not None:
         shopping_list.store_id = payload.store_id
 
-    await db.commit()
-
     if shopping_list is not None:
+        # Keep the target store uncommitted until the basket has been repriced.
+        # A failed recalculation must roll back both changes together.
+        await db.flush()
         builder = ShoppingListBuilder(db)
         await builder.recalculate(shopping_list.id)
+    else:
+        await db.commit()
 
     # Przeładuj plan z relacjami
     result = await db.execute(
@@ -633,7 +636,7 @@ async def swap_recipe_in_plan(
 
     # Znajdź pozycję do zamiany
     entry_result = await db.execute(
-        select(MealPlanEntry).where(
+        select(MealPlanEntry).options(selectinload(MealPlanEntry.recipe)).where(
             MealPlanEntry.id == entry_id,
             MealPlanEntry.meal_plan_id == plan_id,
         )
@@ -650,6 +653,27 @@ async def swap_recipe_in_plan(
     recipe = await db.get(Recipe, payload.recipe_id)
     await ensure_recipe_access(db, recipe, current_user)
     await ensure_recipe_available_in_market(db, recipe, current_user, store_id=plan.store_id)
+
+    from app.services.plan_recipe_constraints import plan_recipe_constraints
+    from app.core.language import account_text
+    conditions = await plan_recipe_constraints(db, plan, current_user)
+    if conditions and (await db.execute(select(Recipe.id).where(
+            Recipe.id == recipe.id, *conditions))).scalar_one_or_none() is None:
+        raise HTTPException(status_code=409, detail=account_text(current_user,
+            "To danie nie pasuje do diety planu lub ustawień alergenów. Wybierz inne danie.",
+            "This dish does not match the plan's diet or your allergen settings. Choose another dish."))
+
+    # Preserve the household, not the previous recipe's fraction. A factor
+    # of 1.5 means three people for a two-portion recipe, but six for four.
+    saved_people = _stored_household_size((plan.preferences or {}).get("household_size"))
+    people = saved_people or round(
+        float(entry.servings_multiplier) * (entry.recipe.servings or 1)
+    )
+    people = min(8, max(1, people))
+    entry.servings_multiplier = max(
+        Decimal("0.01"),
+        (Decimal(people) / Decimal(recipe.servings or 1)).quantize(Decimal("0.01")),
+    )
 
     # Zamień przepis
     entry.recipe_id = payload.recipe_id

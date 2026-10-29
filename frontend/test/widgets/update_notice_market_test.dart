@@ -41,7 +41,8 @@ void main() {
             .widgetList<Text>(find.byType(Text))
             .map((value) => value.data ?? '')
             .firstWhere((value) => value.startsWith('•'));
-        expect(body.split('\n'), hasLength(4));
+        expect(body.split('\n'), hasLength(7));
+        expect(body, contains(english ? 'splash screen' : 'Ekran startowy'));
         expect(
           body,
           contains(
@@ -57,12 +58,45 @@ void main() {
           ),
         );
         expect(body, contains(english ? 'Eggs' : 'Jajka'));
-        expect(body, contains(english ? 'Diary' : 'Dzienniku'));
+        expect(
+          body,
+          contains(
+            english
+                ? 'recalculates quantities and prices'
+                : 'przelicza ilości i ceny',
+          ),
+        );
+        expect(body, contains(english ? 'batch scan' : 'skanowaniu seryjnym'));
+        expect(
+          body,
+          contains(
+            english
+                ? 'does not add calories twice'
+                : 'nie nalicza kalorii drugi raz',
+          ),
+        );
+        expect(
+          body,
+          contains(english ? 'purchased-item checks' : 'zaznaczanie zakupów'),
+        );
+        expect(
+          body,
+          contains(english ? 'allergen settings' : 'ustawienia alergenów'),
+        );
+        expect(body, contains(english ? 'food diary' : 'w dzienniku'));
+        expect(
+          body,
+          contains(english ? 'calorie calculations' : 'obliczanie kalorii'),
+        );
+        expect(
+          body,
+          contains(english ? 'household plans' : 'planach dla kilku osób'),
+        );
         expect(body, contains(english ? 'shop offers' : 'ofert sklepu'));
         expect(body, isNot(contains('mealplannerpolska.pl')));
         expect(
           body,
-          contains(english ? 'button layout' : 'dopasowanie przycisków'),
+          contains(english ? 'after changing a meal' : 'po zamianie dania'),
         );
         expect(tester.takeException(), isNull);
       },

@@ -9,6 +9,7 @@ class RecipeService {
 
   Future<List<Recipe>> getRecipes({
     String? mealType,
+    String? planId,
     String? cuisine,
     String? difficulty,
     String? tag,
@@ -23,6 +24,9 @@ class RecipeService {
   }) async {
     var path = '${ApiConfig.recipes}?';
     final params = <String>[];
+    if (planId != null && planId.isNotEmpty) {
+      params.add('plan_id=${Uri.encodeComponent(planId)}');
+    }
     if (mealType != null && mealType.isNotEmpty) {
       params.add('meal_type=${Uri.encodeComponent(mealType)}');
     }

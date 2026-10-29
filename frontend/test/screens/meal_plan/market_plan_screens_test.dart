@@ -129,10 +129,12 @@ class _Plans extends ChangeNotifier implements MealPlanProvider {
 class _Recipes extends RecipeService {
   int calls = 0;
   String? requestedType;
+  String? requestedPlan;
 
   @override
   Future<List<Recipe>> getRecipes({
     String? mealType,
+    String? planId,
     String? cuisine,
     String? difficulty,
     String? tag,
@@ -146,6 +148,7 @@ class _Recipes extends RecipeService {
   }) async {
     calls++;
     requestedType = mealType;
+    requestedPlan = planId;
     return [
       Recipe.fromJson({
         'id': 'replacement',
@@ -385,6 +388,7 @@ void main() {
       await tester.tap(find.byIcon(Icons.swap_horiz));
       await tester.pumpAndSettle();
       expect(recipes.requestedType, 'obiad');
+      expect(recipes.requestedPlan, 'plan');
       expect(recipes.calls, 1);
       expect(find.text('Replace: Pasta'), findsOneWidget);
       expect(find.text('10 min • easy'), findsOneWidget);

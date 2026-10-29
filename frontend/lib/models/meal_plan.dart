@@ -19,6 +19,11 @@ class MealPlanEntry {
     required this.servingsMultiplier,
   });
 
+  int get plannedServings =>
+      ((recipe.servings > 0 ? recipe.servings : 1) * servingsMultiplier)
+          .round()
+          .clamp(1, 8);
+
   factory MealPlanEntry.fromJson(Map<String, dynamic> json) {
     return MealPlanEntry(
       id: json['id'] as String,

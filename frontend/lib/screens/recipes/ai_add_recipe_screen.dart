@@ -55,6 +55,7 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
   String? _error;
   RecipeImportJob? _currentJob;
   Timer? _jobPollTimer;
+  bool _pollingJob = false;
 
   @override
   void initState() {
@@ -87,7 +88,11 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
   Future<void> _loadActiveJob() async {
     try {
       final jobs = await _recipeService.getRecentRecipeImportJobs();
-      if (!mounted || jobs.isEmpty || !jobs.first.isActive) return;
+      if (!mounted ||
+          _currentJob != null ||
+          jobs.isEmpty ||
+          !jobs.first.isActive)
+        return;
       _watchJob(jobs.first);
     } catch (_) {
       // Formularz pozostaje dostępny przy chwilowym błędzie sieci.
@@ -121,7 +126,8 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
 
   Future<void> _pollJob() async {
     final id = _currentJob?.id;
-    if (id == null) return;
+    if (id == null || _pollingJob) return;
+    _pollingJob = true;
     try {
       final updated = await _recipeService.getRecipeImportJob(id);
       if (!mounted || _currentJob?.id != id) return;
@@ -131,6 +137,8 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
       }
     } catch (_) {
       // Kolejna próba za sześć sekund; praca serwera trwa dalej.
+    } finally {
+      _pollingJob = false;
     }
   }
 

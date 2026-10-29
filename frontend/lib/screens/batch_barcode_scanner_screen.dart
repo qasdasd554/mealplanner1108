@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import '../../utils/lookup_market_context.dart';
 import '../l10n/market_locale.dart';
@@ -165,7 +167,11 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
       _queue.add(scannedCode);
       _items.insert(
         0,
-        _BatchScanItem(code: scannedCode, state: _BatchState.loading),
+        _BatchScanItem(
+          code: scannedCode,
+          state: _BatchState.loading,
+          trackingRequestId: _newTrackingRequestId(),
+        ),
       );
     });
   }
@@ -387,6 +393,7 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
                   ? '1 ${strings.measurePack}'
                   : null,
         );
+        payload['client_entry_id'] = item.trackingRequestId;
         final response = await _api.post('/food-log/', body: payload);
         if (response is! Map<String, dynamic> ||
             response['calories'] == null ||
@@ -485,6 +492,7 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
     final pending = _items
         .where((item) => item.state == _BatchState.ready)
         .toList(growable: false);
+    final pendingCodes = pending.map((item) => item.code).toSet();
     setState(() {
       _submitting = true;
       for (final item in pending) {
@@ -519,7 +527,13 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
       }
       if (mounted &&
           _destinations.contains(_BatchDestination.productDatabase) &&
-          savedCount > 0) {
+          _items.any(
+            (item) =>
+                pendingCodes.contains(item.code) &&
+                item.completedDestinations.contains(
+                  _BatchDestination.productDatabase,
+                ),
+          )) {
         await context.read<AuthProvider>().loadProfile();
       }
       if (mounted) {
@@ -754,9 +768,11 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
                       ),
             ),
           ),
-          _buildBatchActions(),
         ],
       ),
+      // Scaffold positions SnackBars above this panel instead of covering
+      // the retry/confirm button when a destination fails.
+      bottomNavigationBar: _buildBatchActions(),
     );
   }
 
@@ -1200,8 +1216,20 @@ enum _BatchDestination {
           };
 }
 
+String _newTrackingRequestId() {
+  final random = Random.secure();
+  final bytes = List<int>.generate(16, (_) => random.nextInt(256));
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  final hex =
+      bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
+  return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-'
+      '${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}';
+}
+
 class _BatchScanItem {
   final String code;
+  final String trackingRequestId;
   final _BatchState state;
   final BarcodeLookupResult? result;
   final String? message;
@@ -1210,6 +1238,7 @@ class _BatchScanItem {
 
   const _BatchScanItem({
     required this.code,
+    required this.trackingRequestId,
     required this.state,
     this.result,
     this.message,
@@ -1226,6 +1255,7 @@ class _BatchScanItem {
   }) {
     return _BatchScanItem(
       code: code,
+      trackingRequestId: trackingRequestId,
       state: state ?? this.state,
       result: result ?? this.result,
       message: message,

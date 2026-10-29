@@ -68,6 +68,7 @@ class _Recipes extends RecipeService {
   @override
   Future<List<Recipe>> getRecipes({
     String? mealType,
+    String? planId,
     String? cuisine,
     String? difficulty,
     String? tag,

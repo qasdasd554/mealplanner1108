@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// Definicje wyglądu aplikacji — jasny (domyślny) i ciemny motyw.
 ///
@@ -292,6 +293,10 @@ class AppTheme {
       // AppBar
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
+        // A transparent AppBar otherwise guesses light status icons even on
+        // the light page background (notably Android 15 edge-to-edge).
+        systemOverlayStyle:
+            isDarkMode ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
         elevation: 0,
         centerTitle: true,
         titleTextStyle: TextStyle(

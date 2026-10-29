@@ -10,6 +10,7 @@ import 'package:smart_meal_planner/l10n/app_localizations.dart';
 import 'package:smart_meal_planner/l10n/app_localizations_en.dart';
 import 'package:smart_meal_planner/l10n/system_content_data.dart';
 import 'package:smart_meal_planner/models/recipe.dart';
+import 'package:smart_meal_planner/models/meal_plan.dart';
 import 'package:smart_meal_planner/models/recipe_comment.dart';
 import 'package:smart_meal_planner/models/user.dart';
 import 'package:smart_meal_planner/providers/auth_provider.dart';
@@ -116,6 +117,7 @@ class _Recipes extends RecipeService {
 
 class _Shopping extends ShoppingListService {
   final submitted = <List<String>>[];
+  int? servings;
   @override
   Future<List<ShoppingList>> getMyLists() async => [];
   @override
@@ -123,8 +125,10 @@ class _Shopping extends ShoppingListService {
     required List<String> recipeIds,
     required String storeId,
     String? existingListId,
+    int? servings,
   }) async {
     submitted.add(recipeIds);
+    this.servings = servings;
     // Stop at the tested boundary, without navigation or a real request.
     throw ApiException(503, 'Local test boundary');
   }
@@ -182,7 +186,7 @@ Future<void> _openDetail(
   bool dark = false,
   double scale = 1,
   ShoppingListService? shoppingService,
-  Recipe? routeRecipe,
+  Object? routeRecipe,
 }) async {
   await tester.pumpWidget(
     _app(
@@ -218,6 +222,65 @@ Future<void> _openDetail(
 }
 
 void main() {
+  for (final english in [true, false]) {
+    testWidgets(
+      'plan recipe shows household ingredients after refresh: $english',
+      (tester) async {
+        final auth = _Auth();
+        addTearDown(auth.dispose);
+        final service = _Recipes();
+        final shopping = _Shopping();
+        final entry = MealPlanEntry(
+          id: 'entry',
+          mealPlanId: 'plan',
+          recipeId: 'recipe',
+          recipe: recipe(),
+          dayNumber: 1,
+          mealSlot: 'obiad',
+          servingsMultiplier: 1.5,
+        );
+        await _openDetail(
+          tester,
+          auth,
+          service,
+          english: english,
+          routeRecipe: entry,
+          shoppingService: shopping,
+        );
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        expect(find.text('3'), findsOneWidget);
+        final ingredients = find.text('Sól autora');
+        await tester.scrollUntilVisible(
+          ingredients,
+          250,
+          scrollable: find.byType(Scrollable).first,
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('75 g (150 kcal)'), findsOneWidget);
+        expect(entry.recipe.ingredients.single.quantity, 50);
+        final listButton = find.byType(DishShoppingListButton);
+        await tester.scrollUntilVisible(
+          listButton,
+          -250,
+          scrollable: find.byType(Scrollable).first,
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(
+          find.descendant(
+            of: listButton,
+            matching: find.byType(OutlinedButton),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(shopping.submitted, [
+          ['recipe'],
+        ]);
+        expect(shopping.servings, 3);
+        await tester.pumpWidget(const SizedBox.shrink());
+      },
+    );
+  }
   for (final english in [true, false]) {
     for (final partial in [false, true]) {
       testWidgets(

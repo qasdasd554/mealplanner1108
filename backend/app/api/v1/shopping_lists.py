@@ -5,7 +5,7 @@ from decimal import Decimal
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, StrictBool
 from sqlalchemy import exists, func, or_, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -63,6 +63,7 @@ class ShoppingListFromRecipesRequest(BaseModel):
     recipe_ids: list[UUID]
     store_id: UUID
     existing_list_id: UUID | None = None
+    servings: int | None = Field(default=None, ge=1, le=8)
 
 
 class EmptyShoppingListRequest(BaseModel):
@@ -85,12 +86,11 @@ class ShoppingListStoreRequest(BaseModel):
 
 def shopping_item_merge_key(item: ShoppingListItem) -> tuple:
     """Stan kupienia jest częścią klucza, aby nie zgubić części zakupów."""
+    if item.is_checked and not item.is_from_pantry:
+        # Preserve each historical purchase and its whole-package price.
+        return ("purchased", getattr(item, "id", id(item)))
     snapshot = getattr(item, "regional_snapshot", None)
     if snapshot is not None:
-        if item.is_checked and not item.is_from_pantry:
-            # Two already bought packages are separate historical purchases,
-            # not a fresh combined requirement to round to a new package.
-            return ("GB-purchased", item.id)
         return (
             "GB", snapshot.product_id,
             None if snapshot.product_id else (item.custom_name or "").strip().casefold(),
@@ -230,6 +230,17 @@ async def create_shopping_list_from_recipes(
         raise NotFoundException(detail=account_text(current_user,
             f"Nie znaleziono przepisu/przepisów: {missing}", f"Recipe(s) not found: {missing}"))
 
+    multipliers = {
+        recipe.id: (
+            max(
+                Decimal("0.01"),
+                (Decimal(payload.servings) / Decimal(recipe.servings or 1)).quantize(Decimal("0.01")),
+            )
+            if payload.servings is not None else Decimal("1.00")
+        )
+        for recipe in selected_recipes
+    }
+
     # Transfer the saved ingredient rows, never infer a product from the
     # recipe title. Source/import validation belongs before saving a recipe,
     # not a name-based refusal to create this shopping list.
@@ -281,6 +292,7 @@ async def create_shopping_list_from_recipes(
                 MealPlanEntry(
                     meal_plan_id=target_list.meal_plan_id,
                     recipe_id=recipe_id,
+                    servings_multiplier=multipliers[recipe_id],
                     day_number=next_day,
                     meal_slot="obiad",
                 )
@@ -315,6 +327,7 @@ async def create_shopping_list_from_recipes(
                 MealPlanEntry(
                     meal_plan_id=plan.id,
                     recipe_id=recipe_id,
+                    servings_multiplier=multipliers[recipe_id],
                     day_number=1,
                     meal_slot="obiad",
                 )
@@ -467,6 +480,20 @@ async def merge_shopping_lists(
                 "Stop sharing the selected lists before merging them."),
         )
 
+    # Preflight before staging a new list or marking either source as merged.
+    from app.services.polish_shopping_amounts import stored_amount
+    amounts = {}
+    try:
+        for source in lists:
+            for item in source.items:
+                key = shopping_item_merge_key(item)
+                amounts[key] = stored_amount(amounts.get(key, Decimal(0)) + stored_amount(item.required_quantity))
+    except (ValueError, ArithmeticError, TypeError) as exc:
+        raise HTTPException(status_code=409, detail=account_text(current_user,
+            "Ilości na wybranych listach przekraczają dopuszczalny zakres. Zmniejsz je przed połączeniem.",
+            "The selected lists exceed the supported quantity range. Reduce the amounts before merging.",
+        )) from exc
+
     # To jedna lista wynikowa zamiast dwóch lub więcej; scalenie nie
     # zużywa dodatkowego tygodniowego limitu tworzenia list.
     plan = MealPlan(
@@ -526,6 +553,11 @@ async def merge_shopping_lists(
         from types import SimpleNamespace
         await refresh_regional_items(db, SimpleNamespace(items=list(combined.values()), store_id=store_id))
         await refresh_regional_plan_budget(db, merged)
+    else:
+        from app.services.polish_shopping_amounts import refresh_polish_items
+        await db.flush()
+        priced = await _get_shopping_list_or_404(plan.id, current_user, db, refresh=True)
+        plan.estimated_min_budget = await refresh_polish_items(db, priced, store_id)
     await db.commit()
 
     loaded = await db.execute(
@@ -790,6 +822,10 @@ async def _switch_polish_list_store(db, shopping, plan, target_id, user):
     return await _get_shopping_list_or_404(shopping.meal_plan_id, user, db, refresh=True)
 
 
+class ItemCheckUpdate(BaseModel):
+    is_checked: StrictBool
+
+
 @router.put(
     "/{list_id}/items/{item_id}/check",
     response_model=ShoppingListItemResponse,
@@ -800,6 +836,7 @@ async def toggle_item_checked(
     item_id: UUID,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    payload: ItemCheckUpdate | None = None,
 ) -> ShoppingListItem:
     """Przełącza status oznaczenia pozycji na liście zakupów (kupione/niekupione)."""
     shopping_list = await _get_shopping_list_or_404(list_id, current_user, db, for_update=True)
@@ -826,7 +863,10 @@ async def toggle_item_checked(
         raise HTTPException(status_code=400, detail=account_text(current_user,
             "Produkt jest już w spiżarni, nie trzeba go kupować.", "This product is already in your pantry and does not need to be bought."))
 
-    item.is_checked = not item.is_checked
+    # New clients send the intended value. Repeating a successful request
+    # after a lost response or from a second device must not undo it.
+    # Keep no-body toggles for already installed older clients.
+    item.is_checked = payload.is_checked if payload is not None else not item.is_checked
     db.add(item)
     await db.commit()
 
@@ -941,15 +981,15 @@ async def get_shopping_list_summary(
 
     completion = (checked_items / total_items * 100) if total_items > 0 else 0.0
     gb = getattr(shopping_list.store, "country_code", "PL") == "GB"
-    unpriced = gb and any(item.estimated_price is None for item in items)
+    unpriced = any(item.estimated_price is None for item in items)
 
     return ShoppingListSummary(
         total_items=total_items,
         checked_items=checked_items,
         unchecked_items=unchecked_items,
         total_estimated_price=None if unpriced else round(total_price, 2),
-        checked_price=None if gb and any(item.is_checked and item.estimated_price is None for item in items) else round(checked_price, 2),
-        remaining_price=None if gb and any(not item.is_checked and item.estimated_price is None for item in items) else round(remaining_price, 2),
+        checked_price=None if any(item.is_checked and item.estimated_price is None for item in items) else round(checked_price, 2),
+        remaining_price=None if any(not item.is_checked and item.estimated_price is None for item in items) else round(remaining_price, 2),
         completion_percentage=round(completion, 1),
         currency_code="GBP" if gb else "PLN", has_unpriced_items=bool(unpriced),
     )
@@ -1439,10 +1479,11 @@ async def add_item_to_shopping_list(
         raise HTTPException(status_code=400, detail=account_text(current_user,
             "Ilość musi być większa od zera", "Quantity must be greater than zero."))
 
+    if shopping_list.status == "completed":
+        raise HTTPException(status_code=409, detail=account_text(current_user,
+            "Ta lista zakupów jest już zakończona.", "This shopping list is completed."))
+
     if getattr(shopping_list.store, "country_code", "PL") == "GB":
-        if shopping_list.status == "completed":
-            raise HTTPException(status_code=409, detail=account_text(current_user,
-                "Ta lista zakupów jest już zakończona.", "This shopping list is completed."))
         if product.review_status != "approved" and product.created_by_user_id != current_user.id:
             raise NotFoundException(detail=account_text(current_user, "Produkt nie istnieje", "Product not found."))
         offers = await load_regional_offers(db, {product.id}, shopping_list.store_id)
@@ -1473,45 +1514,47 @@ async def add_item_to_shopping_list(
                 if existing else account_text(current_user, "Dodano produkt do listy", "Product added"),
                 "item_id": str(item.id)}
 
+    if product.review_status != "approved" and product.created_by_user_id != current_user.id:
+        raise NotFoundException(detail=account_text(current_user, "Produkt nie istnieje", "Product not found."))
     store_product_result = await db.execute(
         select(StoreProduct).where(
             StoreProduct.store_id == shopping_list.store_id,
             StoreProduct.product_id == payload.product_id,
+            StoreProduct.is_available.is_(True),
+            StoreProduct.withdrawn_at.is_(None),
         )
     )
     store_product = store_product_result.scalar_one_or_none()
     if store_product is None:
-        raise HTTPException(
-            status_code=400,
-            detail=account_text(current_user,
-                f'Produkt "{product.name}" nie jest dostępny w wybranym sklepie',
-                "This product is not available in the selected shop."),
-        )
+        raise HTTPException(status_code=400, detail=account_text(current_user,
+            f'Produkt "{product.name}" nie jest dostępny w wybranym sklepie',
+            "This product is not available in the selected shop."))
 
-    existing = next(
-        (i for i in shopping_list.items
-         if i.store_product_id == store_product.id and not i.is_from_pantry),
-        None,
-    )
-    if existing is not None:
-        existing.required_quantity = existing.required_quantity + Decimal(str(payload.quantity))
-        db.add(existing)
-        await db.commit()
-        return {"detail": account_text(current_user, "Zaktualizowano ilość istniejącej pozycji", "Item quantity updated."),
-                "item_id": str(existing.id)}
+    from app.services.polish_shopping_amounts import product_amount, combined_amount, item_price
+    quantity, unit = product_amount(product, Decimal(str(payload.quantity)), payload.unit)
+    existing = None
+    for candidate in shopping_list.items:
+        if (candidate.store_product_id != store_product.id or candidate.is_from_pantry
+                or candidate.is_checked or candidate.is_generated):
+            continue
+        try:
+            combined, combined_unit = combined_amount(product, candidate.required_quantity,
+                candidate.unit, quantity, unit)
+        except ValueError:
+            continue  # Unknown dimensions remain separate; never add ml to g.
+        existing, quantity, unit = candidate, combined, combined_unit
+        break
 
-    item = ShoppingListItem(
-        shopping_list_id=shopping_list.id,
-        store_product_id=store_product.id,
-        department_id=store_product.department_id,
-        required_quantity=Decimal(str(payload.quantity)),
-        unit=payload.unit,
-        estimated_price=store_product.price,
-    )
+    item = existing or ShoppingListItem(shopping_list_id=shopping_list.id,
+        store_product_id=store_product.id, department_id=store_product.department_id,
+        is_checked=False, is_from_pantry=False, is_generated=False)
+    item.required_quantity, item.unit = quantity, unit
+    item.estimated_price = item_price(product, store_product, quantity, unit)
     db.add(item)
     await db.commit()
     await db.refresh(item)
-    return {"detail": account_text(current_user, "Dodano produkt do listy", "Product added to shopping list."),
+    return {"detail": account_text(current_user, "Zaktualizowano ilość istniejącej pozycji", "Item quantity updated.")
+            if existing is not None else account_text(current_user, "Dodano produkt do listy", "Product added to shopping list."),
             "item_id": str(item.id)}
 
 
@@ -1536,6 +1579,9 @@ async def add_custom_item_to_shopping_list(
     unit = payload.unit.strip() or "szt"
     if not name:
         raise HTTPException(status_code=400, detail=account_text(current_user, "Wpisz nazwę pozycji", "Enter an item name."))
+    if shopping_list.status == "completed":
+        raise HTTPException(status_code=409, detail=account_text(current_user,
+            "Ta lista zakupów jest już zakończona.", "This shopping list is completed."))
 
     existing = next(
         (
@@ -1544,6 +1590,7 @@ async def add_custom_item_to_shopping_list(
             if item.custom_name is not None
             and (getattr(item, "regional_snapshot", None) is None or item.regional_snapshot.product_id is None)
             and not item.is_from_pantry
+            and not item.is_checked
             and item.custom_name.casefold() == name.casefold()
             and item.unit.casefold() == unit.casefold()
         ),
@@ -1632,8 +1679,6 @@ async def complete_shopping_list(
     (użytkownik, produkt), więc próba wstawienia duplikatu skończyłaby
     się błędem bazy.
     """
-    from app.models.pantry import PantryItem
-
     # Serializuj przyrost spiżarni konta oraz zakończenie współdzielonej
     # listy. Ponowna próba po timeoutcie nie może przenieść zakupów drugi raz.
     await db.execute(select(User.id).where(User.id == current_user.id).with_for_update())
@@ -1646,35 +1691,9 @@ async def complete_shopping_list(
         gb = getattr(shopping_list.store, "country_code", "PL") == "GB"
         if gb:
             moved = await complete_regional_items_to_pantry(db, shopping_list, current_user.id)
-        for item in ([] if gb else shopping_list.items):
-            if not item.is_checked or item.is_from_pantry:
-                continue
-            store_product = item.store_product
-            if store_product is None:
-                continue
-            product_id = store_product.product_id
-
-            existing_result = await db.execute(
-                select(PantryItem).where(
-                    PantryItem.user_id == current_user.id,
-                    PantryItem.product_id == product_id,
-                )
-            )
-            existing = existing_result.scalar_one_or_none()
-            if existing is not None:
-                existing.quantity = (existing.quantity or Decimal(0)) + item.required_quantity
-                existing.unit = existing.unit or item.unit
-                db.add(existing)
-            else:
-                db.add(
-                    PantryItem(
-                        user_id=current_user.id,
-                        product_id=product_id,
-                        quantity=item.required_quantity,
-                        unit=item.unit,
-                    )
-                )
-            moved += 1
+        else:
+            from app.services.polish_shopping_amounts import complete_polish_items_to_pantry
+            moved = await complete_polish_items_to_pantry(db, shopping_list, current_user)
 
     shopping_list.status = "completed"
     db.add(shopping_list)

@@ -53,13 +53,7 @@ from app.models import (
 # w ogóle nie przekazywano (patrz naprawa we frontendzie) — ograniczenie
 # było całkowicie ignorowane, więc np. osoba na diecie ketogenicznej
 # mogła dostać w planie pizzę.
-_DIET_NAME_TO_TAG: dict[str, str] = {
-    "Wegetariańska": "wegetariańskie",
-    "Wegańska": "wegańskie",
-    "Bezglutenowa": "bezglutenowe",
-    "Wysokobiałkowa": "wysokobiałkowe",
-    "Keto": "keto",
-}
+from app.services.recipe_diet_filter import DIET_NAME_TO_TAG as _DIET_NAME_TO_TAG, recipe_diet_tag
 from app.services.exceptions import (
     InsufficientRecipesError,
     StoreNotFoundError,
@@ -559,21 +553,8 @@ class MealPlanGenerator:
 
         # Nieznany filtr nie może po cichu zmienić planu w „bez ograniczeń”.
         # Akceptujemy etykiety oficjalnego klienta oraz starsze kanoniczne tagi.
-        if diet is not None and not isinstance(diet, str):
-            raise ServiceError("Wybierz poprawną dietę w ustawieniach planu.")
-        normalized_diet = _normalise_recipe_text(diet.strip()) if diet else ""
-        if normalized_diet not in {"", "bez ograniczen", "none", "brak", "no restrictions"}:
-            diet_tags = {_normalise_recipe_text(name): tag for name, tag in _DIET_NAME_TO_TAG.items()}
-            diet_tags.update({_normalise_recipe_text(tag): tag for tag in _DIET_NAME_TO_TAG.values()})
-            aliases = {
-                "vegetarian": "wegetariańskie", "vegan": "wegańskie",
-                "gluten_free": "bezglutenowe", "high_protein": "wysokobiałkowe",
-                "ketogenic": "keto",
-            }
-            diet_tags.update({_normalise_recipe_text(name): tag for name, tag in aliases.items()})
-            tag = diet_tags.get(normalized_diet)
-            if tag is None:
-                raise ServiceError("Nieznana dieta. Wybierz ją ponownie w ustawieniach planu.")
+        tag = recipe_diet_tag(diet)
+        if tag is not None:
             stmt = stmt.where(
                 Recipe.id.in_(select(RecipeTag.recipe_id).where(RecipeTag.tag == tag))
             )
@@ -1297,16 +1278,9 @@ class MealPlanGenerator:
         for day, meal_type, recipe in selected:
             recipe_servings = float(recipe.servings or 1)
             servings_multiplier = round(people / recipe_servings, 2)
-            # UWAGA (naprawa): wcześniej był tu sztuczny dolny próg
-            # `max(servings_multiplier, 1.0)`, który wymuszał ugotowanie
-            # CO NAJMNIEJ całego przepisu — niezależnie od liczby osób.
-            # Dla przepisu na 4 porcje i planu dla 1 osoby dawało to
-            # absurd: zamiast policzyć 1/4 przepisu (0.25), kod i tak
-            # kazał zrobić cały przepis (1.0), czyli 4x za dużo jedzenia
-            # dla jednej osoby. Teraz mnożnik faktycznie skaluje się w dół.
-            # Jedyne zabezpieczenie to nie zejście do zera/ujemnej wartości
-            # (co i tak nie powinno się zdarzyć, bo obie wartości > 0).
-            servings_multiplier = max(servings_multiplier, 0.1)
+            # Match the persisted two-decimal multiplier and swap/resume.
+            # A 0.1 floor doubled a 20-serving batch for a one-person plan.
+            servings_multiplier = max(servings_multiplier, 0.01)
 
             entries.append(
                 {

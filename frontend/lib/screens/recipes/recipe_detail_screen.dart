@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'dart:async';
 
 import '../../models/recipe.dart';
+import '../../models/meal_plan.dart';
 import '../../models/premium_offer.dart';
 import '../../services/recipe_service.dart';
 import '../../services/shopping_list_service.dart';
@@ -59,6 +60,12 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   /// Przepis PRZEKAZANY z ekranu listy/siatki — wyświetlany od razu, bez
   /// czekania na sieć, żeby otwarcie szczegółów nie migało pustym ekranem.
   Recipe? _initialRecipe;
+  int? _plannedServings;
+
+  double _ingredientMultiplier(Recipe recipe) =>
+      _plannedServings == null
+          ? 1
+          : _plannedServings! / (recipe.servings > 0 ? recipe.servings : 1);
 
   /// Full details still load once for ingredients, method and large photos.
   /// List summaries already include small public author fields, so this
@@ -111,7 +118,13 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_initialRecipe == null) {
-      _initialRecipe = ModalRoute.of(context)!.settings.arguments as Recipe;
+      final arguments = ModalRoute.of(context)!.settings.arguments;
+      if (arguments is MealPlanEntry) {
+        _initialRecipe = arguments.recipe;
+        _plannedServings = arguments.plannedServings;
+      } else {
+        _initialRecipe = arguments as Recipe;
+      }
       _refreshFromServer();
     }
   }
@@ -158,11 +171,26 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       useSafeArea: true,
       builder:
           (_) => RecipeVariantEditorSheet(
-            ingredients: _temporaryIngredients ?? recipe.ingredients,
+            ingredients:
+                (_temporaryIngredients ?? recipe.ingredients)
+                    .map(
+                      (ingredient) =>
+                          ingredient.scaledBy(_ingredientMultiplier(recipe)),
+                    )
+                    .toList(),
           ),
     );
     if (changed == null || !mounted) return;
-    setState(() => _temporaryIngredients = changed);
+    setState(
+      () =>
+          _temporaryIngredients =
+              changed
+                  .map(
+                    (ingredient) =>
+                        ingredient.scaledBy(1 / _ingredientMultiplier(recipe)),
+                  )
+                  .toList(),
+    );
   }
 
   Future<void> _editWithAi(Recipe recipe) async {
@@ -224,7 +252,13 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final recipe = _freshRecipe ?? _initialRecipe!;
-    final displayedIngredients = _temporaryIngredients ?? recipe.ingredients;
+    final displayedIngredients =
+        (_temporaryIngredients ?? recipe.ingredients)
+            .map(
+              (ingredient) =>
+                  ingredient.scaledBy(_ingredientMultiplier(recipe)),
+            )
+            .toList();
 
     // Legacy links/plan entries may not have the new light author preview.
     // Show a loading/retry state, never a finished-looking authorless page
@@ -377,6 +411,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
               padding: const EdgeInsets.only(top: 12),
               child: DishShoppingListButton(
                 recipe: recipe,
+                servings: _plannedServings,
                 service: widget.shoppingService,
                 prepareRecipe:
                     () async =>
@@ -558,7 +593,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                           child: _buildInfoColumn(
                             context,
                             context.strings.detailServings,
-                            '${recipe.servings}',
+                            '${_plannedServings ?? recipe.servings}',
                           ),
                         ),
                         _buildDivider(),
@@ -835,6 +870,20 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                   // istniała w aplikacji, mimo że backend/dane mogły
                   // zawierać instrukcje krok po kroku.
                   if (recipe.displayInstructions(context).isNotEmpty) ...[
+                    if (_plannedServings != null &&
+                        _ingredientMultiplier(recipe) != 1) ...[
+                      Text(
+                        context.strings.detailPlanPortionHelp(
+                          _plannedServings!,
+                          recipe.servings,
+                        ),
+                        style: TextStyle(
+                          color: AppTheme.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     Text(
                       context.strings.detailMethod,
                       style: Theme.of(context).textTheme.headlineMedium

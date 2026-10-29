@@ -142,6 +142,25 @@ async def test_plan_swap_loads_ingredients_and_returns_the_new_recipe_without_im
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("state", ["PL", "GB"], indirect=True)
+@pytest.mark.parametrize("saved_people", [None, 3])
+async def test_plan_swap_preserves_people_when_recipe_servings_change(state, saved_people):
+    session, db, (user_id, _, plan_id, entry_id, replacement_id) = state
+    plan = session.get(MealPlan, plan_id)
+    plan.preferences = {"household_size": saved_people} if saved_people else {}
+    entry = session.get(MealPlanEntry, entry_id)
+    entry.servings_multiplier = Decimal("1.50")  # Original recipe: 2 portions -> 3 people.
+    replacement = session.get(Recipe, replacement_id)
+    replacement.servings = 4
+    session.commit()
+    session.expunge_all()
+    user = await db.get(User, user_id)
+    result = await meal_plans.swap_recipe_in_plan(plan_id, entry_id,
+        meal_plans.RecipeSwap(recipe_id=replacement_id), user, db)
+    assert result.entries[0].servings_multiplier == Decimal("0.75")
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("state", ["PL", "GB"], indirect=True)
 async def test_cached_scan_can_be_saved_to_pantry_then_diary_without_expiring_auth(state):
     session, db, (user_id, product_id, _, _, _) = state
     user = await db.get(User, user_id)

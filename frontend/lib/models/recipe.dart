@@ -32,6 +32,22 @@ class RecipeIngredient {
     this.nutritionEstimated = false,
   });
 
+  /// Scale a view/editor copy; never mutate the shared catalogue recipe.
+  RecipeIngredient scaledBy(double multiplier) => RecipeIngredient(
+    id: id,
+    productId: productId,
+    productName: productName,
+    quantity: quantity * multiplier,
+    unit: unit,
+    isOptional: isOptional,
+    kcal: kcal == null ? null : (kcal! * multiplier).round(),
+    protein: protein == null ? null : protein! * multiplier,
+    fat: fat == null ? null : fat! * multiplier,
+    carbs: carbs == null ? null : carbs! * multiplier,
+    product: product,
+    nutritionEstimated: nutritionEstimated,
+  );
+
   factory RecipeIngredient.fromJson(Map<String, dynamic> json) {
     return RecipeIngredient(
       id: json['id'] as String,

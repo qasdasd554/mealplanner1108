@@ -92,10 +92,11 @@ async def sync_product_in_shopping_lists(
     )).scalars().all()
 
     for shopping_list in lists:
+        if not (shopping_list.meal_plan.preferences or {}).get("include_pantry", True):
+            continue
         if getattr(shopping_list.store, "country_code", "PL") == "GB":
-            if (shopping_list.meal_plan.preferences or {}).get("include_pantry", True):
-                await _sync_regional_product(db, shopping_list, product, pantry)
-                await refresh_regional_plan_budget(db, shopping_list)
+            await _sync_regional_product(db, shopping_list, product, pantry)
+            await refresh_regional_plan_budget(db, shopping_list)
             continue
         rows = [
             item for item in shopping_list.items

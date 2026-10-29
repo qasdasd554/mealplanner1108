@@ -18,6 +18,7 @@ from app.api.deps import get_current_user, get_db
 from app.models.food_log import FoodLogEntry
 from app.models.user import User
 from app.models.wellness import ActivityLog, WaterLog, WeightLog
+from app.core.market_clock import market_today
 
 router = APIRouter()
 
@@ -105,7 +106,7 @@ async def get_wellness_statistics(
     db: AsyncSession = Depends(get_db),
 ) -> WellnessStatisticsResponse:
     """Zbiorcze dane do ekranu statystyk bez zapytań dzień po dniu."""
-    today = date_type.today()
+    today = market_today(current_user)
     start = today - timedelta(days=days - 1)
 
     food_result = await db.execute(

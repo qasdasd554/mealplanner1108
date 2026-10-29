@@ -47,6 +47,7 @@ from app.services.regional_offer_pricing import select_uk_offer_quote
 from app.services.market_catalog import regional_offer_available_condition
 from app.services.product_market_presentation import is_uk_generic_seed
 from app.services.system_content_language import generic_system_ingredient_condition
+from app.services.culinary_substitution import same_cooking_role
 
 logger = logging.getLogger(__name__)
 
@@ -258,7 +259,7 @@ class ProductSubstitutionService:
         store_id: UUID,
         limit: int = 5,
     ) -> list[dict[str, Any]]:
-        """Wyszukuje produkty podobne odżywczo w tym samym dziale.
+        """Ranks foods with the same cooking role by nutrition similarity.
 
         Stosuje cosine similarity na wektorach makroskładników
         ``(kcal, protein, fat, carbs, fiber)``.
@@ -285,10 +286,18 @@ class ProductSubstitutionService:
                 RegionalProductOffer.country_code == "GB", RegionalProductOffer.currency_code == "GBP",
                 regional_offer_available_condition(as_of=regional_pricing_date()),
             )
-            result = await self.db.execute(select(Product).where(
+            # Filter lightweight identities before loading/ranking full rows.
+            # An arbitrary UUID limit discarded valid alternatives in larger
+            # catalogues and let unrelated high-calorie foods dominate.
+            identities = await self.db.execute(select(Product.id, Product.name).where(
                 or_(Product.id.in_(local_ids), generic_system_ingredient_condition(Product)),
                 Product.id != product_id, Product.review_status == "approved",
-            ).order_by(Product.id).limit(max(50, min(limit * 20, 200))))
+            ))
+            suitable_ids = [identity for identity, name in identities.all()
+                            if same_cooking_role(ref_product.name, name)]
+            if not suitable_ids:
+                return []
+            result = await self.db.execute(select(Product).where(Product.id.in_(suitable_ids)))
             reference = self.nutrition.nutrition_vector(ref_product)
             scored = [(product, self.nutrition.cosine_similarity(reference, self.nutrition.nutrition_vector(product)))
                       for product in result.scalars().all()]
@@ -333,7 +342,8 @@ class ProductSubstitutionService:
         for sp in candidates:
             product = sp.product
             if (product is None or product.review_status != "approved"
-                    or not _compatible_dimensions(ref_product, product)):
+                    or not _compatible_dimensions(ref_product, product)
+                    or not same_cooking_role(ref_product.name, product.name)):
                 continue
             cand_vector = self.nutrition.nutrition_vector(product)
             similarity = self.nutrition.cosine_similarity(ref_vector, cand_vector)
@@ -411,7 +421,8 @@ class ProductSubstitutionService:
         # Znajdź listy zakupów powiązane z planami
         sl_stmt = (
             select(ShoppingList)
-            .where(ShoppingList.meal_plan_id.in_(plan_ids))
+            .where(ShoppingList.meal_plan_id.in_(plan_ids),
+                   ShoppingList.status.in_(("pending", "in_progress")))
             .options(selectinload(ShoppingList.items))
         )
         sl_result = await self.db.execute(sl_stmt)
@@ -427,19 +438,19 @@ class ProductSubstitutionService:
         swapped_ids: list[str] = []
 
         for sl in shopping_lists:
+            changed = False
             for item in sl.items:
-                if item.store_product_id in orig_sp_ids:
-                    item.substituted_for = original_product_id
-                    item.store_product_id = substitute_store_product.id
-                    # Aktualizuj cenę na podstawie nowego store_product
-                    new_price = float(getattr(substitute_store_product, "price", None) or 0.0)
-                    item.estimated_price = new_price
-                    # Aktualizuj dział
-                    new_dept_id = getattr(substitute_store_product, "department_id", None)
-                    if new_dept_id is not None:
-                        item.department_id = new_dept_id
+                if (item.store_product_id in orig_sp_ids
+                        and not item.is_checked and not item.is_from_pantry):
+                    # Reuse manual conversion and full required-pack pricing.
+                    # A withdrawal does not invalidate food already purchased
+                    # or stocked in the pantry, nor completed-list history.
+                    await self.substitute_shopping_list_item(
+                        item, substitute_product_id, substitute_store_product.store_id)
+                    changed = True
 
-            swapped_ids.append(str(sl.id))
+            if changed:
+                swapped_ids.append(str(sl.id))
 
         await self.db.commit()
         return swapped_ids
@@ -528,18 +539,15 @@ class ProductSubstitutionService:
             raise ProductUnavailableException(product_id=substitute_product_id, store_id=store_id)
         # Preserve the original physical amount, then express it in the new
         # product's unit. Never reinterpret one old package as one gram.
-        if original.unit == selected.unit == item.unit == "szt":
-            native_quantity = float(item.required_quantity)
-        else:
-            try:
-                if canonical_base_unit(original) != canonical_base_unit(selected):
-                    raise ValueError("Different physical dimensions")
-                amount = quantity_to_grams(original.name, float(item.required_quantity), item.unit,
-                    original.serving_quantity, original.measure_options)
-                native_quantity = grams_to_quantity(selected.name, amount, selected.unit,
-                    selected.serving_quantity, selected.measure_options)
-            except (ValueError, TypeError) as exc:
-                raise ProductUnavailableException(product_id=substitute_product_id, store_id=store_id) from exc
+        try:
+            if canonical_base_unit(original) != canonical_base_unit(selected):
+                raise ValueError("Different physical dimensions")
+            amount = quantity_to_grams(original.name, float(item.required_quantity), item.unit,
+                original.serving_quantity, original.measure_options)
+            native_quantity = grams_to_quantity(selected.name, amount, selected.unit,
+                selected.serving_quantity, selected.measure_options)
+        except (ValueError, TypeError) as exc:
+            raise ProductUnavailableException(product_id=substitute_product_id, store_id=store_id) from exc
         pack_quantity = float(selected.default_quantity or 0)
         if (not math.isfinite(native_quantity) or native_quantity <= 0
                 or not math.isfinite(pack_quantity) or pack_quantity <= 0):

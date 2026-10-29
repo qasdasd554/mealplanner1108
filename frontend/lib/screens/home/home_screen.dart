@@ -1607,9 +1607,7 @@ class HomeTab extends StatelessWidget {
   Widget _buildMealItem(BuildContext context, MealPlanEntry entry) {
     return GestureDetector(
       onTap: () {
-        Navigator.of(
-          context,
-        ).pushNamed('/recipe/detail', arguments: entry.recipe);
+        Navigator.of(context).pushNamed('/recipe/detail', arguments: entry);
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),

@@ -4279,7 +4279,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• Repeated shopping ingredients are combined and measures are converted correctly.\n• Eggs and known foods sold by the piece now show a piece conversion.\n• Catalogue alternatives are clearly separated from shop offers.\n• Improved translations and button layout in the Diary.';
+      '• Fixed portions and ingredient amounts in household plans, including after changing a meal.\n• Repeated shopping ingredients and merged lists are priced correctly. Eggs show a piece conversion. Adding products manually recalculates quantities and prices.\n• Catalogue alternatives are clearly separated from shop offers and better matched to ingredients.\n• Fixed pantry preferences, daily statistics and calorie calculations in the food diary.\n• Replacing a planned meal now respects the chosen diet and allergen settings.\n• Improved batch scan saves, whole-pack nutrition and points updates. Retrying a save does not add calories twice.\n• The splash screen no longer flashes another language. AI import progress and purchased-item checks are more stable.';
+
+  @override
+  String detailPlanPortionHelp(int servings, int baseServings) {
+    return 'Ingredients are scaled to $servings portions. Quantities written in the method refer to the original recipe ($baseServings portions).';
+  }
 
   @override
   String get releasePromptApple => 'Open App Store';
@@ -9538,7 +9543,12 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get releasePromptChanges =>
-      '• Repeated shopping ingredients are combined and measures are converted correctly.\n• Eggs and known foods sold by the piece now show a piece conversion.\n• Catalogue alternatives are clearly separated from shop offers.\n• Improved translations and button layout in the Diary.';
+      '• Fixed portions and ingredient amounts in household plans, including after changing a meal.\n• Repeated shopping ingredients and merged lists are priced correctly. Eggs show a piece conversion. Adding products manually recalculates quantities and prices.\n• Catalogue alternatives are clearly separated from shop offers and better matched to ingredients.\n• Fixed pantry preferences, daily statistics and calorie calculations in the food diary.\n• Replacing a planned meal now respects the chosen diet and allergen settings.\n• Improved batch scan saves, whole-pack nutrition and points updates. Retrying a save does not add calories twice.\n• The splash screen no longer flashes another language. AI import progress and purchased-item checks are more stable.';
+
+  @override
+  String detailPlanPortionHelp(int servings, int baseServings) {
+    return 'Ingredients are scaled to $servings portions. Quantities written in the method refer to the original recipe ($baseServings portions).';
+  }
 
   @override
   String get releasePromptApple => 'Open App Store';

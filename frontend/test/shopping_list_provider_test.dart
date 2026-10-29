@@ -4,8 +4,12 @@ import 'package:smart_meal_planner/providers/shopping_list_provider.dart';
 import 'package:smart_meal_planner/services/shopping_list_service.dart';
 
 class _FakeShoppingListService extends ShoppingListService {
+  _FakeShoppingListService({this.country = 'PL'});
+  final String country;
   bool checked = false;
   bool failToggle = false;
+  bool loseNextReply = false;
+  bool? requestedState;
 
   ShoppingList _list() => ShoppingList(
     id: 'list-1',
@@ -14,6 +18,7 @@ class _FakeShoppingListService extends ShoppingListService {
     storeName: 'Sklep',
     status: 'active',
     totalEstimatedPrice: 10,
+    currencyCode: country == 'GB' ? 'GBP' : 'PLN',
     itemsByDepartment: {
       'Inne': [
         ShoppingListItem(
@@ -23,6 +28,7 @@ class _FakeShoppingListService extends ShoppingListService {
           departmentSortOrder: 1,
           requiredQuantity: 1,
           unit: 'szt',
+          currencyCode: country == 'GB' ? 'GBP' : 'PLN',
           isChecked: checked,
         ),
       ],
@@ -37,9 +43,18 @@ class _FakeShoppingListService extends ShoppingListService {
   Future<ShoppingList> getShoppingList(String listId) async => _list();
 
   @override
-  Future<bool> toggleItemCheck(String listId, String itemId) async {
+  Future<bool> toggleItemCheck(
+    String listId,
+    String itemId, {
+    bool? isChecked,
+  }) async {
+    requestedState = isChecked;
     if (failToggle) throw StateError('test error');
-    checked = !checked;
+    checked = isChecked ?? !checked;
+    if (loseNextReply) {
+      loseNextReply = false;
+      throw StateError('server saved the change but its reply was lost');
+    }
     return checked;
   }
 }
@@ -59,6 +74,7 @@ void main() {
     expect(await provider.toggleItem('item-1'), isTrue);
     expect(_item(provider).isChecked, isTrue);
     expect(service.checked, isTrue);
+    expect(service.requestedState, isTrue);
   });
 
   test('błąd zapisu przywraca poprzedni stan produktu', () async {
@@ -84,4 +100,23 @@ void main() {
     expect(provider.allLists, isEmpty);
     expect(provider.selectedListId, isNull);
   });
+
+  for (final country in ['PL', 'GB']) {
+    test(
+      '$country retry after a lost reply keeps the item bought instead of undoing it',
+      () async {
+        final service = _FakeShoppingListService(country: country)
+          ..loseNextReply = true;
+        final provider = ShoppingListProvider(shoppingListService: service);
+        addTearDown(provider.dispose);
+        await provider.loadAllLists();
+        expect(await provider.toggleItem('item-1'), isFalse);
+        expect(service.checked, isTrue);
+        expect(_item(provider).isChecked, isFalse);
+        expect(await provider.toggleItem('item-1'), isTrue);
+        expect(service.checked, isTrue);
+        expect(_item(provider).isChecked, isTrue);
+      },
+    );
+  }
 }

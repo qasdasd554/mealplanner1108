@@ -15,6 +15,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -25,7 +26,7 @@ from app.core.markets import account_country
 from app.services.system_content_language import recipe_display_name
 from app.models.food_log import FoodLogEntry
 from app.models.meal_plan import MealPlanEntry
-from app.models.recipe import Recipe
+from app.models.recipe import Recipe, RecipeIngredient
 from app.models.user import User
 from app.core.market_clock import market_today
 from app.schemas.food_log import (
@@ -64,12 +65,32 @@ def _enforce_history_limit(entry_date: Optional[date], current_user: User) -> No
         )
 
 
+async def _recover_recipe_nutrition(db: AsyncSession, recipe: Recipe) -> Recipe:
+    """Use the same legacy recovery as the recipe screen before logging food.
+
+    Only repair absent, stale-zero or previously incomplete totals. Existing
+    diary snapshots remain unchanged. Explicit eager loading is essential:
+    reading unloaded ingredients on AsyncSession would cause MissingGreenlet.
+    """
+    stored = recipe.nutrition_total
+    stale_zero = isinstance(stored, dict) and all(
+        stored.get(key) == 0 for key in ("kcal", "protein", "fat", "carbs"))
+    if stored and not stale_zero and not stored.get("_incomplete"):
+        return recipe
+    result = await db.execute(select(Recipe).where(Recipe.id == recipe.id).options(
+        selectinload(Recipe.ingredients).selectinload(RecipeIngredient.product)
+    ).execution_options(populate_existing=True))
+    loaded = result.scalar_one()
+    from app.services.nutrition_calculator import compute_recipe_nutrition_total
+    loaded.nutrition_total = (compute_recipe_nutrition_total(loaded.ingredients)
+        if loaded.ingredients else {"_incomplete": True})
+    return loaded
+
+
 def _macros_from_recipe(recipe: Optional[Recipe], servings: float, *, country_code="PL") -> dict:
     """Przelicza makroskładniki przepisu na podaną liczbę porcji."""
-    if not recipe or not recipe.nutrition_total:
-        return {"calories": 0.0, "protein": 0.0, "fat": 0.0, "carbs": 0.0}
-    n = recipe.nutrition_total
-    if n.get("_incomplete"):
+    n = recipe.nutrition_total if recipe else None
+    if not n or n.get("_incomplete"):
         raise HTTPException(status_code=422, detail=(
             "Complete the missing ingredient nutrition before adding this recipe to your diary, or enter the meal's nutrition manually."
             if country_code == "GB" else
@@ -106,6 +127,17 @@ def _to_response(entry: FoodLogEntry, *, country_code: str = "PL") -> FoodLogEnt
     )
 
 
+async def _find_client_entry(db: AsyncSession, entry_id: uuid.UUID, user_id: uuid.UUID, country: str):
+    entry = (await db.execute(select(FoodLogEntry).where(FoodLogEntry.id == entry_id)
+        .options(selectinload(FoodLogEntry.recipe)))).scalar_one_or_none()
+    if entry is not None and entry.user_id != user_id:
+        raise HTTPException(status_code=409, detail=(
+            "Please retry with a new entry identifier." if country == "GB" else
+            "Spróbuj ponownie z nowym identyfikatorem wpisu."
+        ))
+    return entry
+
+
 @router.post("/", response_model=FoodLogEntryResponse, status_code=status.HTTP_201_CREATED)
 async def create_food_log_entry(
     entry_in: FoodLogEntryCreate,
@@ -121,7 +153,16 @@ async def create_food_log_entry(
             ),
         )
 
-    db_entry = FoodLogEntry(**entry_in.model_dump(), user_id=current_user.id)
+    # Freeze scalars before a possible uniqueness-conflict rollback expires ORM objects.
+    user_id, country = current_user.id, account_country(current_user)
+    if entry_in.client_entry_id is not None:
+        existing = await _find_client_entry(db, entry_in.client_entry_id, user_id, country)
+        if existing is not None:
+            return _to_response(existing, country_code=country)
+    values = entry_in.model_dump(exclude={"client_entry_id"})
+    if entry_in.client_entry_id is not None:
+        values["id"] = entry_in.client_entry_id
+    db_entry = FoodLogEntry(**values, user_id=user_id)
 
     recipe: Optional[Recipe] = None
     if db_entry.recipe_id:
@@ -156,6 +197,7 @@ async def create_food_log_entry(
         recipe_servings = float(recipe.servings or 1)
         recipe_fraction = entry_in.servings / recipe_servings if recipe_servings else entry_in.servings
         if entry_in.calories == 0.0 and entry_in.protein == 0.0:
+            recipe = await _recover_recipe_nutrition(db, recipe)
             macros = _macros_from_recipe(recipe, recipe_fraction, country_code=account_country(current_user))
             db_entry.calories = macros["calories"]
             db_entry.protein = macros["protein"]
@@ -163,10 +205,19 @@ async def create_food_log_entry(
             db_entry.carbs = macros["carbs"]
 
     db.add(db_entry)
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError:
+        if entry_in.client_entry_id is None:
+            raise
+        await db.rollback()
+        existing = await _find_client_entry(db, entry_in.client_entry_id, user_id, country)
+        if existing is None:
+            raise
+        return _to_response(existing, country_code=country)
     await db.refresh(db_entry)
     db_entry.recipe = recipe
-    return _to_response(db_entry, country_code=account_country(current_user))
+    return _to_response(db_entry, country_code=country)
 
 
 @router.get("/", response_model=List[FoodLogEntryResponse])
@@ -410,6 +461,8 @@ async def create_from_meal_plan_entry(
     # wyżej), więc obie ścieżki są teraz ze sobą spójne, a dalsze
     # przeliczenie na ułamek całego przepisu (recipe_fraction) działa
     # identycznie w obu miejscach.
+    if plan_entry.recipe is not None:
+        plan_entry.recipe = await _recover_recipe_nutrition(db, plan_entry.recipe)
     servings = servings_override if servings_override is not None else 1.0
     recipe_servings = float(plan_entry.recipe.servings or 1) if plan_entry.recipe else 1.0
     recipe_fraction = servings / recipe_servings if recipe_servings else servings

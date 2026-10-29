@@ -24,12 +24,14 @@ import '../utils/error_utils.dart';
 /// pilnuje limitu i zwraca czytelny błąd, jeśli został przekroczony.
 class DishShoppingListButton extends StatefulWidget {
   final Recipe recipe;
+  final int? servings;
   final ShoppingListService? service;
   final Future<Recipe?> Function()? prepareRecipe;
 
   const DishShoppingListButton({
     super.key,
     required this.recipe,
+    this.servings,
     this.service,
     this.prepareRecipe,
   });
@@ -185,6 +187,7 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
         recipeIds: [selectedRecipe.id],
         storeId: storeId,
         existingListId: existingListId,
+        servings: widget.servings,
       );
       if (!mounted) return;
 

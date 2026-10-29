@@ -83,9 +83,14 @@ class ShoppingListService {
     await _client.delete('${ApiConfig.shoppingLists}$listId');
   }
 
-  Future<bool> toggleItemCheck(String listId, String itemId) async {
+  Future<bool> toggleItemCheck(
+    String listId,
+    String itemId, {
+    bool? isChecked,
+  }) async {
     final response = await _client.put(
       '${ApiConfig.shoppingLists}$listId/items/$itemId/check',
+      body: isChecked == null ? null : {'is_checked': isChecked},
     );
     if (response is Map<String, dynamic> && response['is_checked'] is bool) {
       return response['is_checked'] as bool;
@@ -184,6 +189,7 @@ class ShoppingListService {
     required List<String> recipeIds,
     required String storeId,
     String? existingListId,
+    int? servings,
   }) async {
     final currency = _expectedCurrencyCode?.call();
     final body = <String, dynamic>{
@@ -191,6 +197,7 @@ class ShoppingListService {
       'store_id': storeId,
     };
     if (existingListId != null) body['existing_list_id'] = existingListId;
+    if (servings != null) body['servings'] = servings;
     final response = await _client.post(
       '${ApiConfig.shoppingLists}from-recipes',
       body: body,

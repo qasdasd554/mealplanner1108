@@ -46,6 +46,7 @@ class FoodLogEntryCreate(FoodLogEntryBase):
     miał wartość poza tym zakresem, zwykłe pobranie danych zwróciłoby
     błąd walidacji zamiast dane."""
 
+    client_entry_id: Optional[uuid.UUID] = None
     calories: float = Field(0.0, ge=0, le=10_000)
     protein: float = Field(0.0, ge=0, le=2_000)
     fat: float = Field(0.0, ge=0, le=2_000)

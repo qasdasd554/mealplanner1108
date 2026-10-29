@@ -4262,7 +4262,12 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• Łączymy powtarzające się składniki na liście zakupów i poprawnie przeliczamy miary.\n• Jajka i znane produkty sztukowe pokazujemy z przeliczeniem na sztuki.\n• Zamienniki katalogowe są wyraźnie oddzielone od ofert sklepu.\n• Poprawiliśmy tłumaczenia i dopasowanie przycisków w Dzienniku.';
+      '• Poprawiliśmy porcje i ilości składników w planach dla kilku osób, także po zamianie dania.\n• Łączymy powtarzające się składniki i listy zakupów. Jajka pokazujemy w sztukach. Ręczne dodawanie przelicza ilości i ceny.\n• Zamienniki katalogowe są wyraźnie oddzielone od ofert sklepu i lepiej dopasowane do składników.\n• Poprawiliśmy uwzględnianie spiżarni, statystyki dnia i obliczanie kalorii w dzienniku.\n• Zamiana dania w planie uwzględnia wybraną dietę i ustawienia alergenów.\n• Poprawiliśmy zapis po skanowaniu seryjnym, makro opakowań i pokazywanie punktów. Ponowienie zapisu nie nalicza kalorii drugi raz.\n• Stabilniejsze odświeżanie importu AI i zaznaczanie zakupów. Ekran startowy nie miga innym językiem.';
+
+  @override
+  String detailPlanPortionHelp(int servings, int baseServings) {
+    return 'Składniki przeliczono na $servings porcji. Ilości wpisane w opisie przygotowania dotyczą bazowego przepisu ($baseServings porcji).';
+  }
 
   @override
   String get releasePromptApple => 'Otwórz App Store';
