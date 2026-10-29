@@ -94,6 +94,29 @@ PIECE_GRAMS = {
 }
 
 
+def explicit_physical_unit(product: Any) -> str | None:
+    """Read the nutrition/package basis without guessing from a translated name.
+
+    Catalogue imports store one pack as ``unit=opak``. Its g/ml basis lives
+    in the persisted measures and must survive a later barcode lookup.
+    Conflicting or absent evidence must not invent a package conversion.
+    """
+    units = {"g": "g", "kg": "g", "ml": "ml", "l": "ml"}
+    direct = units.get(str(getattr(product, "unit", "") or "").lower())
+    if direct is not None:
+        return direct
+    evidence = {
+        units[measure["base_unit"]]
+        for measure in (getattr(product, "measure_options", None) or [])
+        if isinstance(measure, dict)
+        and measure.get("base_unit") in {"g", "ml"}
+        and isinstance(measure.get("base_quantity"), (int, float))
+        and not isinstance(measure.get("base_quantity"), bool)
+        and 0 < measure["base_quantity"] <= 100000
+    }
+    return next(iter(evidence)) if len(evidence) == 1 else None
+
+
 def base_unit_for_product(name: str, unit: str) -> str:
     normalized = (unit or "").lower()
     if normalized in {"ml", "l"}:

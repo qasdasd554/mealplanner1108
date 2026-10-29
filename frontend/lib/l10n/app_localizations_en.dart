@@ -263,7 +263,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanAllDestinations => 'Add all to';
 
   @override
-  String get scanTrial => 'Try Premium for 7 days';
+  String get scanTrial => 'Explore Premium';
 
   @override
   String get scanPreviewNoCamera =>
@@ -4279,7 +4279,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• Fixed portions and ingredient amounts in household plans, including after changing a meal.\n• Repeated shopping ingredients and merged lists are priced correctly. Eggs show a piece conversion. Adding products manually recalculates quantities and prices.\n• Catalogue alternatives are clearly separated from shop offers and better matched to ingredients.\n• Fixed pantry preferences, daily statistics and calorie calculations in the food diary.\n• Replacing a planned meal now respects the chosen diet and allergen settings.\n• Improved batch scan saves, whole-pack nutrition and points updates. Retrying a save does not add calories twice.\n• The splash screen no longer flashes another language. AI import progress and purchased-item checks are more stable.';
+      '• Improved Premium activation and purchase restoration.\n• Premium points are credited correctly after a connection interruption or payment retry.\n• Repeat scans and amount selection retain pack size and units.\n• Improved product suggestions and messages in Polish and English.';
 
   @override
   String detailPlanPortionHelp(int servings, int baseServings) {
@@ -5527,7 +5527,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
   String get scanAllDestinations => 'Add all to';
 
   @override
-  String get scanTrial => 'Try Premium for 7 days';
+  String get scanTrial => 'Explore Premium';
 
   @override
   String get scanPreviewNoCamera =>
@@ -9543,7 +9543,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get releasePromptChanges =>
-      '• Fixed portions and ingredient amounts in household plans, including after changing a meal.\n• Repeated shopping ingredients and merged lists are priced correctly. Eggs show a piece conversion. Adding products manually recalculates quantities and prices.\n• Catalogue alternatives are clearly separated from shop offers and better matched to ingredients.\n• Fixed pantry preferences, daily statistics and calorie calculations in the food diary.\n• Replacing a planned meal now respects the chosen diet and allergen settings.\n• Improved batch scan saves, whole-pack nutrition and points updates. Retrying a save does not add calories twice.\n• The splash screen no longer flashes another language. AI import progress and purchased-item checks are more stable.';
+      '• Improved Premium activation and purchase restoration.\n• Premium points are credited correctly after a connection interruption or payment retry.\n• Repeat scans and amount selection retain pack size and units.\n• Improved product suggestions and messages in Polish and English.';
 
   @override
   String detailPlanPortionHelp(int servings, int baseServings) {

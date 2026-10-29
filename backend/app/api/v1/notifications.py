@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import get_current_admin, get_current_user, get_db
+from app.core.language import account_text
 from app.models.notification import Notification
 from app.models.user import User
 from app.schemas.notification import NotificationResponse, UnreadCountResponse
@@ -76,7 +77,8 @@ async def mark_notification_read(
     """Oznacza jedno powiadomienie jako przeczytane."""
     notification = await db.get(Notification, notification_id)
     if not notification or notification.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="Nie znaleziono powiadomienia")
+        raise HTTPException(status_code=404, detail=account_text(current_user,
+            "Nie znaleziono powiadomienia", "Notification not found."))
     notification.is_read = True
     await db.commit()
 
@@ -159,7 +161,8 @@ async def register_device_token(
 
     token = payload.token.strip()
     if not token:
-        raise HTTPException(status_code=400, detail="Pusty token urządzenia")
+        raise HTTPException(status_code=400, detail=account_text(current_user,
+            "Pusty token urządzenia", "The device token is empty."))
 
     result = await db.execute(select(DeviceToken).where(DeviceToken.token == token))
     existing = result.scalar_one_or_none()

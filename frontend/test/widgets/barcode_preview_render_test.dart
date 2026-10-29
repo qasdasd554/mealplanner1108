@@ -90,9 +90,7 @@ void main() {
         );
         expect(badge.left, greaterThanOrEqualTo(0));
         expect(badge.right, lessThanOrEqualTo(320));
-        final trial = find.text(
-          english ? 'Try Premium for 7 days' : 'Wypróbuj Premium przez 7 dni',
-        );
+        final trial = find.text(english ? 'Explore Premium' : 'Zobacz Premium');
         expect(trial, findsOneWidget);
         expect(tester.getRect(trial).bottom, lessThanOrEqualTo(740));
         expect(tester.takeException(), isNull);

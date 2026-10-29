@@ -78,6 +78,10 @@ class _PremiumScreenState extends State<PremiumScreen> {
   // sekund.
   bool _isProcessingPurchase = false;
   bool _isRestoring = false;
+  final Set<String> _verifyingPurchases = {};
+  final Set<String> _verifiedPurchases = {};
+  int _restoreGeneration = 0;
+  bool _restoreReceivedPurchase = false;
 
   IconData get _contextIcon => switch (widget.offerContext!) {
     PremiumOfferContext.recipe => Icons.menu_book_rounded,
@@ -371,7 +375,10 @@ class _PremiumScreenState extends State<PremiumScreen> {
       _handlePurchaseUpdates,
       onError: (error) {
         if (!mounted) return;
-        setState(() => _isProcessingPurchase = false);
+        setState(() {
+          _isProcessingPurchase = false;
+          _isRestoring = false;
+        });
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
@@ -594,6 +601,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
 
   Future<void> _handlePurchaseUpdates(List<PurchaseDetails> purchases) async {
     for (final purchase in purchases) {
+      if (!mounted) return;
       if (purchase.status == PurchaseStatus.pending) {
         if (mounted) setState(() => _isProcessingPurchase = true);
         continue;
@@ -623,24 +631,47 @@ class _PremiumScreenState extends State<PremiumScreen> {
         // wobec backendu, ale trzeba domknąć transakcję po stronie
         // Google, jeśli tego wymaga.
         if (purchase.pendingCompletePurchase) {
-          await _billing.completePurchase(purchase);
+          try {
+            await _billing.completePurchase(purchase);
+          } catch (_) {
+            // A native bridge failure must never escape the stream callback.
+            // The store keeps this transaction pending for a later retry.
+          }
         }
         continue;
       }
 
       if (purchase.status == PurchaseStatus.canceled) {
-        if (mounted) setState(() => _isProcessingPurchase = false);
+        setState(() {
+          _isProcessingPurchase = false;
+          _isRestoring = false;
+        });
         continue;
       }
 
       if (purchase.status == PurchaseStatus.purchased ||
           purchase.status == PurchaseStatus.restored) {
-        await _verifyWithBackend(purchase);
+        final key =
+            '${purchase.productID}:${purchase.purchaseID}:'
+            '${purchase.verificationData.serverVerificationData}';
+        if (_verifiedPurchases.contains(key) && !_isRestoring) continue;
+        if (!_verifyingPurchases.add(key)) continue;
+        if (_isRestoring) _restoreReceivedPurchase = true;
+        setState(() => _isProcessingPurchase = true);
+        try {
+          if (await _verifyWithBackend(purchase)) _verifiedPurchases.add(key);
+        } finally {
+          _verifyingPurchases.remove(key);
+        }
       }
     }
   }
 
-  Future<void> _verifyWithBackend(PurchaseDetails purchase) async {
+  Future<bool> _verifyWithBackend(PurchaseDetails purchase) async {
+    if (!mounted) return false;
+    final auth = context.read<AuthProvider>();
+    final userId = auth.currentUser?.id;
+    final session = auth.sessionGeneration;
     final wasRestoring = _isRestoring;
     final alreadyHadPremium =
         Provider.of<AuthProvider>(
@@ -670,8 +701,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
     }.contains(purchase.productID);
 
     if (isPointsPackage) {
-      await _verifyPointsWithBackend(purchase, purchaseToken);
-      return;
+      return _verifyPointsWithBackend(purchase, purchaseToken);
     }
 
     try {
@@ -687,6 +717,18 @@ class _PremiumScreenState extends State<PremiumScreen> {
                 productId: purchase.productID,
               );
 
+      if (result['is_premium'] != true) {
+        throw StateError('Subscription verification did not grant access');
+      }
+
+      final applied =
+          userId != null &&
+          auth.applyVerifiedSubscription(
+            userId: userId,
+            session: session,
+            result: result,
+          );
+
       // UWAGA: potwierdzamy zakup wobec Google TYLKO po tym, jak backend
       // faktycznie potwierdził go u Google i nadał premium — jeśli
       // backend odrzuci zakup (np. nieprawidłowy token), CELOWO NIE
@@ -696,10 +738,14 @@ class _PremiumScreenState extends State<PremiumScreen> {
         await _billing.completePurchase(purchase);
       }
 
-      if (!mounted) return;
+      if (!mounted) return true;
       if (result['is_premium'] == true) {
-        await Provider.of<AuthProvider>(context, listen: false).loadProfile();
-        if (!mounted) return;
+        if (applied) {
+          unawaited(auth.loadProfile());
+        } else {
+          await auth.loadProfile();
+        }
+        if (!mounted) return true;
         setState(() {
           _isProcessingPurchase = false;
           _isRestoring = false;
@@ -731,8 +777,9 @@ class _PremiumScreenState extends State<PremiumScreen> {
           Navigator.of(context).pop();
         }
       }
+      return true;
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) return false;
       setState(() {
         _isProcessingPurchase = false;
         _isRestoring = false;
@@ -749,32 +796,50 @@ class _PremiumScreenState extends State<PremiumScreen> {
             ),
           ),
         );
+      return false;
     }
   }
 
   /// Weryfikacja zakupu PAKIETU PUNKTÓW — osobna od subskrypcji, bo to
   /// inny endpoint backendu i inny rezultat (saldo punktów, nie status
-  /// premium). Zakup KONSUMOWALNY musi zostać potwierdzony (completePurchase)
-  /// NIEZALEŻNIE od wyniku weryfikacji backendu, bo Google traktuje
-  /// niekonsumowane zakupy jako "wiszące" i po ~3 dniach zwraca pieniądze.
-  Future<void> _verifyPointsWithBackend(
+  /// premium). Finish only after the server has durably credited the points.
+  /// Android consumption is performed by the backend after that commit.
+  Future<bool> _verifyPointsWithBackend(
     PurchaseDetails purchase,
     String purchaseToken,
   ) async {
+    final auth = context.read<AuthProvider>();
+    final userId = auth.currentUser?.id;
+    final session = auth.sessionGeneration;
     try {
       final newBalance = await _billing.verifyPointsPurchase(
         purchaseToken: purchaseToken,
         productId: purchase.productID,
       );
 
+      final applied =
+          userId != null &&
+          auth.applyVerifiedPoints(
+            userId: userId,
+            session: session,
+            balance: newBalance,
+          );
+
       if (purchase.pendingCompletePurchase) {
         await _billing.completePurchase(purchase);
       }
 
-      if (!mounted) return;
-      await Provider.of<AuthProvider>(context, listen: false).loadProfile();
-      if (!mounted) return;
-      setState(() => _isProcessingPurchase = false);
+      if (!mounted) return true;
+      if (applied) {
+        unawaited(auth.loadProfile());
+      } else {
+        await auth.loadProfile();
+      }
+      if (!mounted) return true;
+      setState(() {
+        _isProcessingPurchase = false;
+        _isRestoring = false;
+      });
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
@@ -783,9 +848,13 @@ class _PremiumScreenState extends State<PremiumScreen> {
             content: Text(context.strings.premiumPointsAdded(newBalance)),
           ),
         );
+      return true;
     } catch (e) {
-      if (!mounted) return;
-      setState(() => _isProcessingPurchase = false);
+      if (!mounted) return false;
+      setState(() {
+        _isProcessingPurchase = false;
+        _isRestoring = false;
+      });
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
@@ -798,6 +867,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
             ),
           ),
         );
+      return false;
     }
   }
 
@@ -840,6 +910,9 @@ class _PremiumScreenState extends State<PremiumScreen> {
   }
 
   Future<void> _restore() async {
+    if (_isProcessingPurchase || _isRestoring) return;
+    final generation = ++_restoreGeneration;
+    _restoreReceivedPurchase = false;
     setState(() => _isRestoring = true);
     try {
       await _billing.restorePurchases();
@@ -848,7 +921,9 @@ class _PremiumScreenState extends State<PremiumScreen> {
       // Dajemy chwilę na dotarcie zdarzenia, zanim uznamy, że nic nie ma.
       await Future.delayed(const Duration(seconds: 2));
       if (!mounted) return;
-      if (_isRestoring) {
+      if (_isRestoring &&
+          generation == _restoreGeneration &&
+          !_restoreReceivedPurchase) {
         setState(() => _isRestoring = false);
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
@@ -1532,7 +1607,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
       const SizedBox(height: 12),
       Center(
         child: TextButton.icon(
-          onPressed: _isRestoring ? null : _restore,
+          onPressed: _isRestoring || _isProcessingPurchase ? null : _restore,
           icon:
               _isRestoring
                   ? const SizedBox(

@@ -23,10 +23,11 @@ void main() {
 
       expect(find.byType(MobileScanner), findsNothing);
       expect(find.text('Podgląd funkcji Premium'), findsOneWidget);
-      expect(find.text('Wypróbuj Premium przez 7 dni'), findsOneWidget);
+      expect(find.text('Zobacz Premium'), findsOneWidget);
+      expect(find.textContaining('7 dni'), findsNothing);
       expect(tester.takeException(), isNull);
 
-      await tester.tap(find.text('Wypróbuj Premium przez 7 dni'));
+      await tester.tap(find.text('Zobacz Premium'));
       await tester.pumpAndSettle();
       expect(find.text('Ekran Premium'), findsOneWidget);
       expect(tester.takeException(), isNull);

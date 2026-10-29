@@ -32,10 +32,61 @@ class AuthProvider with ChangeNotifier {
   int _profileRequestGeneration = 0;
 
   User? get currentUser => _currentUser;
+  int get sessionGeneration => _sessionGeneration;
   bool get isAuthenticated => _isAuthenticated;
   bool get isInitialized => _isInitialized;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+
+  /// Apply only a verified backend response for the exact session that bought
+  /// the product. A subsequent, optional profile GET may be offline or stale.
+  bool applyVerifiedPoints({
+    required String userId,
+    required int session,
+    required int balance,
+  }) {
+    if (_disposed ||
+        _logoutInProgress ||
+        session != _sessionGeneration ||
+        _currentUser?.id != userId ||
+        balance < 0)
+      return false;
+    _profileRequestGeneration++;
+    _currentUser = _currentUser!.copyWith(premiumPoints: balance);
+    notifyListeners();
+    return true;
+  }
+
+  bool applyVerifiedSubscription({
+    required String userId,
+    required int session,
+    required Map<String, dynamic> result,
+  }) {
+    if (_disposed ||
+        _logoutInProgress ||
+        session != _sessionGeneration ||
+        _currentUser?.id != userId ||
+        result['is_premium'] != true)
+      return false;
+    final rawExpiry = result['premium_expires_at'];
+    final expiry = rawExpiry is String ? DateTime.tryParse(rawExpiry) : null;
+    final product = result['premium_product_id'];
+    if (expiry == null ||
+        !expiry.isAfter(DateTime.now()) ||
+        product is! String ||
+        product.isEmpty)
+      return false;
+    _profileRequestGeneration++;
+    _currentUser = _currentUser!.copyWith(
+      isPremium: true,
+      hasPremiumAccessFromServer: true,
+      premiumExpiresAt: expiry,
+      premiumProductId: product,
+    );
+    _schedulePremiumExpiryRefresh();
+    notifyListeners();
+    return true;
+  }
 
   AppLocalizations? get _currentErrorStrings =>
       _currentUser != null

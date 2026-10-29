@@ -102,7 +102,9 @@ async def test_successful_authenticated_guards_still_return_the_same_user(monkey
 @pytest.mark.parametrize("case", ["unknown_subscription", "inactive_subscription", "unknown_points", "unconfirmed_points", "spent_points"])
 async def test_billing_fixed_rejections_keep_verification_and_awards_unchanged(monkeypatch, country, platform, case):
     user = _user(country)
-    db = _db(SimpleNamespace(transaction_id="synthetic-token") if case == "spent_points" else None)
+    db = _db(SimpleNamespace(transaction_id="synthetic-token") if case == "spent_points" and platform == "ios" else None)
+    if case == "spent_points" and platform == "ios":
+        db.execute.side_effect = [_db().execute.return_value, db.execute.return_value]
     verify_sub = AsyncMock(return_value={"is_active": False})
     verify_points = AsyncMock(return_value={"is_purchased": case == "spent_points", "is_consumed": case == "spent_points"})
     consume = AsyncMock()

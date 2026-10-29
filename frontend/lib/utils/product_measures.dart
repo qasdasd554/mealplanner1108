@@ -55,8 +55,31 @@ const _glassGrams = <String, double>{
 
 String productBaseUnit(String name, String unit) {
   if (unit == 'ml' || unit == 'l') return 'ml';
+  if (unit == 'g' || unit == 'kg') return 'g';
   final lower = name.toLowerCase();
   return _liquidWords.any(lower.contains) ? 'ml' : 'g';
+}
+
+String _productMeasureBaseUnit(Product product) {
+  if (const ['g', 'kg', 'ml', 'l'].contains(product.unit)) {
+    return productBaseUnit(product.name, product.unit);
+  }
+  // Catalogue products use "one pack"; retain the explicit physical basis
+  // supplied by the API instead of guessing from the product's language.
+  final units =
+      product.measureOptions
+          .where(
+            (option) =>
+                const ['g', 'ml'].contains(option.baseUnit) &&
+                option.baseQuantity.isFinite &&
+                option.baseQuantity > 0 &&
+                option.baseQuantity <= 1000000,
+          )
+          .map((option) => option.baseUnit)
+          .toSet();
+  return units.length == 1
+      ? units.single
+      : productBaseUnit(product.name, product.unit);
 }
 
 bool _containsAny(String value, Iterable<String> words) =>
@@ -72,7 +95,7 @@ bool _containsAny(String value, Iterable<String> words) =>
 double recommendedPortionQuantity(Product product) {
   for (final option in product.measureOptions) {
     if (option.code == 'porcja' &&
-        option.baseUnit == productBaseUnit(product.name, product.unit) &&
+        option.baseUnit == _productMeasureBaseUnit(product) &&
         option.baseQuantity.isFinite &&
         option.baseQuantity > 0 &&
         option.baseQuantity <= 1000000) {
@@ -81,7 +104,7 @@ double recommendedPortionQuantity(Product product) {
   }
 
   final name = product.name.toLowerCase();
-  final baseUnit = productBaseUnit(product.name, product.unit);
+  final baseUnit = _productMeasureBaseUnit(product);
   double portion;
 
   if (baseUnit == 'ml') {
@@ -236,7 +259,7 @@ double recommendedPortionQuantity(Product product) {
 }
 
 List<ProductMeasureOption> effectiveMeasureOptions(Product product) {
-  final baseUnit = productBaseUnit(product.name, product.unit);
+  final baseUnit = _productMeasureBaseUnit(product);
   final result = <ProductMeasureOption>[];
   final packageSize = product.servingQuantity;
   if (packageSize != null &&

@@ -41,63 +41,29 @@ void main() {
             .widgetList<Text>(find.byType(Text))
             .map((value) => value.data ?? '')
             .firstWhere((value) => value.startsWith('•'));
-        expect(body.split('\n'), hasLength(7));
-        expect(body, contains(english ? 'splash screen' : 'Ekran startowy'));
+        expect(body.split('\n'), hasLength(4));
         expect(
           body,
           contains(
-            english ? 'Catalogue alternatives' : 'Zamienniki katalogowe',
+            english ? 'Premium activation' : 'aktywację i przywracanie Premium',
           ),
         );
         expect(
           body,
-          contains(
-            english
-                ? 'Repeated shopping ingredients'
-                : 'powtarzające się składniki',
-          ),
+          contains(english ? 'payment retry' : 'ponowieniu płatności'),
         );
-        expect(body, contains(english ? 'Eggs' : 'Jajka'));
         expect(
           body,
           contains(
-            english
-                ? 'recalculates quantities and prices'
-                : 'przelicza ilości i ceny',
-          ),
-        );
-        expect(body, contains(english ? 'batch scan' : 'skanowaniu seryjnym'));
-        expect(
-          body,
-          contains(
-            english
-                ? 'does not add calories twice'
-                : 'nie nalicza kalorii drugi raz',
+            english ? 'pack size and units' : 'gramaturę oraz jednostkę',
           ),
         );
         expect(
           body,
-          contains(english ? 'purchased-item checks' : 'zaznaczanie zakupów'),
+          contains(english ? 'product suggestions' : 'podpowiedzi produktów'),
         );
-        expect(
-          body,
-          contains(english ? 'allergen settings' : 'ustawienia alergenów'),
-        );
-        expect(body, contains(english ? 'food diary' : 'w dzienniku'));
-        expect(
-          body,
-          contains(english ? 'calorie calculations' : 'obliczanie kalorii'),
-        );
-        expect(
-          body,
-          contains(english ? 'household plans' : 'planach dla kilku osób'),
-        );
-        expect(body, contains(english ? 'shop offers' : 'ofert sklepu'));
-        expect(body, isNot(contains('mealplannerpolska.pl')));
-        expect(
-          body,
-          contains(english ? 'after changing a meal' : 'po zamianie dania'),
-        );
+        expect(body, isNot(contains('splash screen')));
+        expect(body, isNot(contains('Ekran startowy')));
         expect(tester.takeException(), isNull);
       },
     );

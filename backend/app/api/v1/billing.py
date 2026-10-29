@@ -6,12 +6,14 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import select, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, get_db
 from app.core.language import account_text
 from app.models.processed_apple_purchase import ProcessedApplePurchase
+from app.models.points_purchase import PointsPurchase
 from app.models.user import User
 
 router = APIRouter()
@@ -161,68 +163,101 @@ async def verify_points_purchase(
 
     points_to_add = _POINTS_PACKAGE_AMOUNTS[payload.product_id]
 
-    if payload.platform == "ios":
-        from app.services.apple_app_store import PurchaseVerificationError, verify_apple_consumable
-
-        try:
-            result = await verify_apple_consumable(payload.purchase_token, payload.product_id)
-        except PurchaseVerificationError as exc:
-            raise HTTPException(status_code=422, detail=str(exc))
-        if not result["is_purchased"]:
-            raise HTTPException(status_code=422, detail=account_text(current_user,
-                "Ten zakup nie został potwierdzony przez Apple.", "This purchase was not confirmed by Apple."))
-
-        # Sprawdzenie idempotencji — Apple nie ma "consumptionState", więc
-        # to MY musimy pamiętać, które transakcje już rozliczyliśmy.
-        existing = await db.execute(
-            select(ProcessedApplePurchase).where(
-                ProcessedApplePurchase.transaction_id == payload.purchase_token
-            )
-        )
-        if existing.scalar_one_or_none() is not None:
-            raise HTTPException(status_code=422, detail=account_text(current_user,
-                "Ten zakup został już wcześniej rozliczony.", "This purchase has already been processed."))
-
-        current_user.premium_points += points_to_add
-        db.add(ProcessedApplePurchase(transaction_id=payload.purchase_token))
-        await db.commit()
-        await db.refresh(current_user)
-        return VerifyPointsPurchaseResponse(premium_points=current_user.premium_points)
-
     from app.services.google_play_billing import (
         PurchaseVerificationError,
         consume_purchase,
         verify_consumable_purchase,
     )
 
-    try:
-        result = await verify_consumable_purchase(payload.purchase_token, payload.product_id)
-    except PurchaseVerificationError as exc:
-        raise HTTPException(status_code=422, detail=str(exc))
+    from hashlib import sha256
+
+    token_hash = sha256(f"{payload.platform}:{payload.purchase_token}".encode("utf-8")).hexdigest()
+    user_id = current_user.id
+
+    async def receipt():
+        result = await db.execute(select(PointsPurchase).where(
+            PointsPurchase.token_hash == token_hash))
+        return result.scalar_one_or_none()
+
+    def check_owner(record):
+        if record.user_id != user_id or record.product_id != payload.product_id:
+            raise HTTPException(status_code=409, detail=account_text(current_user,
+                "Nie można przypisać tego zakupu do tego konta.",
+                "This purchase cannot be assigned to this account."))
+
+    recorded = await receipt()
+    if recorded is not None:
+        check_owner(recorded)
+
+    if payload.platform == "ios":
+        from app.services.apple_app_store import (
+            PurchaseVerificationError as AppleVerificationError, verify_apple_consumable,
+        )
+        try:
+            result = await verify_apple_consumable(payload.purchase_token, payload.product_id)
+        except AppleVerificationError as exc:
+            raise HTTPException(status_code=422, detail=str(exc))
+        result = {**result, "is_consumed": False}
+        if recorded is None and result["is_purchased"]:
+            legacy = await db.execute(select(ProcessedApplePurchase).where(
+                ProcessedApplePurchase.transaction_id == payload.purchase_token))
+            if legacy.scalar_one_or_none() is not None:
+                # Old Apple rows have no owner: never guess or credit again.
+                raise HTTPException(status_code=422, detail=account_text(current_user,
+                    "Ten zakup został już wcześniej rozliczony.", "This purchase has already been processed."))
+    else:
+        try:
+            result = await verify_consumable_purchase(payload.purchase_token, payload.product_id)
+        except PurchaseVerificationError as exc:
+            raise HTTPException(status_code=422, detail=str(exc))
 
     if not result["is_purchased"]:
+        store = "Apple" if payload.platform == "ios" else "Google"
         raise HTTPException(status_code=422, detail=account_text(current_user,
-            "Ten zakup nie został potwierdzony przez Google.", "This purchase was not confirmed by Google."))
-    if result["is_consumed"]:
+            f"Ten zakup nie został potwierdzony przez {store}.", f"This purchase was not confirmed by {store}."))
+    if result["is_consumed"] and recorded is None:
         # Ten SAM token już wcześniej doliczył punkty — nie przyznajemy
         # ich drugi raz (np. gdyby aplikacja wywołała ten endpoint
         # dwukrotnie dla tego samego zakupu).
         raise HTTPException(status_code=422, detail=account_text(current_user,
             "Ten zakup został już wcześniej rozliczony.", "This purchase has already been processed."))
 
-    current_user.premium_points += points_to_add
-    await db.commit()
+    newly_credited = False
+    if recorded is None:
+        # UNIQUE token digest and an atomic balance increment commit together.
+        # A second request cannot credit again even if Google is still offline.
+        db.add(PointsPurchase(token_hash=token_hash, platform=payload.platform, user_id=user_id,
+                                   product_id=payload.product_id, points=points_to_add))
+        if payload.platform == "ios":
+            # Preserve duplicate protection for older deployments, too.
+            db.add(ProcessedApplePurchase(transaction_id=payload.purchase_token))
+        try:
+            await db.flush()
+            await db.execute(update(User).where(User.id == user_id).values(
+                premium_points=User.premium_points + points_to_add
+            ).execution_options(synchronize_session=False))
+            await db.commit()
+            newly_credited = True
+        except IntegrityError:
+            await db.rollback()
+            recorded = await receipt()
+            if recorded is None:
+                raise
+            # Rollback expires ORM attributes. Refresh before using account copy.
+            await db.refresh(current_user)
+            check_owner(recorded)
 
-    await _notify(
-        db,
-        current_user.id,
-        f"Doładowano {points_to_add} punktów premium. "
-        f"Masz ich teraz {current_user.premium_points}.",
-        english_message=f"Added {points_to_add} Premium points. Your balance is now {current_user.premium_points}.",
-    )
+    await db.refresh(current_user)
+    if newly_credited and payload.platform == "android":
+        await _notify(
+            db, user_id,
+            f"Doładowano {points_to_add} punktów premium. Masz ich teraz {current_user.premium_points}.",
+            english_message=f"Added {points_to_add} Premium points. Your balance is now {current_user.premium_points}.",
+        )
 
     try:
-        await consume_purchase(payload.purchase_token, payload.product_id)
+        if payload.platform == "android" and not result["is_consumed"]:
+            await consume_purchase(payload.purchase_token, payload.product_id)
     except PurchaseVerificationError:
         # Punkty już przyznane (commit powyżej) — niepowodzenie samego
         # potwierdzenia u Google nie powinno cofać punktów, które
@@ -230,9 +265,7 @@ async def verify_points_purchase(
         import logging
 
         logging.getLogger(__name__).warning(
-            "Nie udało się skonsumować zakupu %s dla usera %s (punkty już przyznane)",
-            payload.purchase_token,
-            current_user.id,
+            "Nie udało się skonsumować zakupu punktów (punkty już zapisane; można ponowić)",
         )
 
     await db.refresh(current_user)

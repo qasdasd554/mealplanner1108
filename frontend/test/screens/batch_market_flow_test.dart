@@ -154,6 +154,8 @@ void main() {
   ) async {
     await _open(tester, premium: false);
     expect(find.text('Premium feature preview'), findsOneWidget);
+    expect(find.text('Explore Premium'), findsOneWidget);
+    expect(find.textContaining('7 days'), findsNothing);
     expect(find.byType(MobileScanner), findsNothing);
     expect(find.text('Pantry'), findsOneWidget);
     expect(find.text('Food diary'), findsOneWidget);

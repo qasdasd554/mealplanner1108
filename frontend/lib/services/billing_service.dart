@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
+import 'package:in_app_purchase_android/billing_client_wrappers.dart';
 import 'package:in_app_purchase_storekit/store_kit_2_wrappers.dart';
 
 import '../config/api_config.dart';
@@ -67,7 +68,7 @@ class BillingService {
 
   /// Rozpoczyna zakup — wynik przyjdzie asynchronicznie przez
   /// [purchaseStream], nie przez zwróconą wartość tej metody.
-  Future<void> buy(ProductDetails product) {
+  Future<void> buy(ProductDetails product) async {
     final purchaseParam =
         product is GooglePlayProductDetails
             ? GooglePlayPurchaseParam(
@@ -78,7 +79,8 @@ class BillingService {
     // Subskrypcje w ujednoliconym API in_app_purchase obsługuje się przez
     // buyNonConsumable (mimo nazwy — to standardowa ścieżka dla
     // subskrypcji na Androidzie, konsumpcja nie ma tu zastosowania).
-    return _iap.buyNonConsumable(purchaseParam: purchaseParam);
+    final started = await _iap.buyNonConsumable(purchaseParam: purchaseParam);
+    if (!started) throw StateError('Store did not start the purchase');
   }
 
   /// Zwraca dokładnie tę ofertę subskrypcji Google Play, którą administrator
@@ -159,8 +161,32 @@ class BillingService {
   /// WYMAGANE po każdym udanym (albo przywróconym) zakupie — potwierdza
   /// odbiór wobec sklepu. Bez tego Google automatycznie zwróci pieniądze
   /// użytkownikowi po 3 dniach, traktując zakup jako "nieobsłużony".
-  Future<void> completePurchase(PurchaseDetails purchase) {
-    return _iap.completePurchase(purchase);
+  Future<void> completePurchase(PurchaseDetails purchase) async {
+    final verifiedPoints =
+        defaultTargetPlatform == TargetPlatform.android &&
+        {
+          kPoints10ProductId,
+          kPoints20ProductId,
+          kPoints50ProductId,
+        }.contains(purchase.productID) &&
+        {
+          PurchaseStatus.purchased,
+          PurchaseStatus.restored,
+        }.contains(purchase.status);
+    if (verifiedPoints) {
+      // Called only AFTER backend verification/credit. Usually the server has
+      // already consumed the purchase. If its Google call failed, finish on
+      // the device so that this pack can be purchased again.
+      final result = await _iap
+          .getPlatformAddition<InAppPurchaseAndroidPlatformAddition>()
+          .consumePurchase(purchase);
+      if (result.responseCode != BillingResponse.ok &&
+          result.responseCode != BillingResponse.itemNotOwned) {
+        throw StateError('Store could not finish the points purchase');
+      }
+      return; // Consumption acknowledges it; never acknowledge it a second time.
+    }
+    await _iap.completePurchase(purchase);
   }
 
   void dispose() {
@@ -216,9 +242,16 @@ class BillingService {
   /// (buyConsumable, nie buyNonConsumable jak subskrypcja), bo to
   /// produkt jednorazowy, który można kupić WIELOKROTNIE (w
   /// przeciwieństwie do subskrypcji, którą się "ma" albo "nie ma").
-  Future<void> buyPoints(ProductDetails product) {
+  Future<void> buyPoints(ProductDetails product) async {
     final purchaseParam = PurchaseParam(productDetails: product);
-    return _iap.buyConsumable(purchaseParam: purchaseParam);
+    // Android consumption belongs to the backend AFTER the points commit.
+    // Auto-consumption runs before purchaseStream and would make that first
+    // verification look like an already redeemed purchase, losing the credit.
+    final started = await _iap.buyConsumable(
+      purchaseParam: purchaseParam,
+      autoConsume: defaultTargetPlatform != TargetPlatform.android,
+    );
+    if (!started) throw StateError('Store did not start the purchase');
   }
 
   /// Wysyła token zakupu punktów do backendu, który weryfikuje go u

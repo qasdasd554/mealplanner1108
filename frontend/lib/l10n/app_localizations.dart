@@ -582,7 +582,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanTrial.
   ///
   /// In pl, this message translates to:
-  /// **'Wypróbuj Premium przez 7 dni'**
+  /// **'Zobacz Premium'**
   String get scanTrial;
 
   /// No description provided for @scanPreviewNoCamera.
@@ -7505,7 +7505,7 @@ abstract class AppLocalizations {
   /// No description provided for @releasePromptChanges.
   ///
   /// In pl, this message translates to:
-  /// **'• Poprawiliśmy porcje i ilości składników w planach dla kilku osób, także po zamianie dania.\n• Łączymy powtarzające się składniki i listy zakupów. Jajka pokazujemy w sztukach. Ręczne dodawanie przelicza ilości i ceny.\n• Zamienniki katalogowe są wyraźnie oddzielone od ofert sklepu i lepiej dopasowane do składników.\n• Poprawiliśmy uwzględnianie spiżarni, statystyki dnia i obliczanie kalorii w dzienniku.\n• Zamiana dania w planie uwzględnia wybraną dietę i ustawienia alergenów.\n• Poprawiliśmy zapis po skanowaniu seryjnym, makro opakowań i pokazywanie punktów. Ponowienie zapisu nie nalicza kalorii drugi raz.\n• Stabilniejsze odświeżanie importu AI i zaznaczanie zakupów. Ekran startowy nie miga innym językiem.'**
+  /// **'• Poprawiliśmy aktywację i przywracanie Premium po płatności.\n• Punkty Premium są naliczane prawidłowo także po przerwaniu połączenia lub ponowieniu płatności.\n• Ponowne skanowanie i wybór ilości zachowują gramaturę oraz jednostkę opakowania.\n• Poprawiliśmy podpowiedzi produktów i komunikaty w polskiej oraz angielskiej wersji.'**
   String get releasePromptChanges;
 
   /// No description provided for @detailPlanPortionHelp.

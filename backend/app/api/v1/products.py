@@ -38,6 +38,7 @@ from app.schemas.product import (
     SubstituteResponse,
 )
 from app.services import ProductSubstitutionService
+from app.services.product_measures import build_measure_options, explicit_physical_unit
 from app.services.store_market_access import get_store_in_account_market
 from app.services.barcode_lookup import (
     BarcodeLookupResult,
@@ -550,7 +551,7 @@ async def lookup_barcode(
             source="catalog",
             name=existing.name,
             brand=existing.brand,
-            unit=existing.unit,
+            unit=explicit_physical_unit(existing) or existing.unit,
             kcal_per_100=(existing.nutrition_per_100 or {}).get("kcal"),
             protein_per_100=(existing.nutrition_per_100 or {}).get("protein"),
             fat_per_100=(existing.nutrition_per_100 or {}).get("fat"),
@@ -575,12 +576,16 @@ async def lookup_barcode(
             ).limit(1)
         )
         cached = cached_result.scalar_one_or_none()
-        if cached is not None and cached.serving_quantity is not None:
+        if (cached is not None and cached.serving_quantity is not None
+                and cached.unit in {"g", "ml"}
+                and (local_response.unit not in {"g", "ml"}
+                     or cached.unit == local_response.unit)):
             if local_response.serving_quantity is None:
                 local_response.serving_quantity = cached.serving_quantity
             # Jednostka opisuje podstawę masy opakowania, podczas gdy sam
             # zapis do katalogu/spiżarni pozostaje zawsze „1 opakowanie”.
-            local_response.unit = cached.unit
+            if local_response.unit not in {"g", "ml"}:
+                local_response.unit = cached.unit
         if local_response.serving_quantity is not None:
             return await _finish_cached_barcode(local_response, current_user, db, background_tasks, normalized_barcode,
                                                 release_read_transaction=release_read_transaction)
@@ -898,11 +903,13 @@ async def list_scanned_products(
             "brand": entry.brand,
             "unit": (
                 "opak"
-                if entry.serving_quantity is not None
+                if entry.serving_quantity is not None and entry.unit in {"g", "ml"}
                 else (entry.unit if entry.unit in {"g", "ml"} else "g")
             ),
-            "default_quantity": 1 if entry.serving_quantity is not None else 100,
-            "serving_quantity": entry.serving_quantity,
+            "default_quantity": 1 if entry.serving_quantity is not None and entry.unit in {"g", "ml"} else 100,
+            "serving_quantity": entry.serving_quantity if entry.unit in {"g", "ml"} else None,
+            "measure_options": build_measure_options(entry.name, entry.unit,
+                serving_quantity=entry.serving_quantity) if entry.unit in {"g", "ml"} else [],
             "barcode": entry.barcode,
             "nutrition_per_100": entry.nutrition_per_100 or {},
             "image_url": None,
@@ -1007,7 +1014,7 @@ async def search_products_by_name(
             source="catalog",
             name=ingredient_display_name(product, country_code=account_country(current_user)),
             brand=presented.brand,
-            unit=product.unit,
+            unit=explicit_physical_unit(product) or product.unit,
             barcode=product.barcode,
             existing_product_id=product.id,
             kcal_per_100=nutrition.get("kcal"),
