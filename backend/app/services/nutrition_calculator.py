@@ -119,53 +119,13 @@ _MACRO_KEYS: tuple[str, ...] = ("kcal", "protein", "fat", "carbs", "fiber")
 
 DEFAULT_TARGETS = NutritionTargets()
 
-# Przybliżona waga (w gramach) pojedynczej sztuki dla produktów liczonych
-# w sztukach, gdy nie ma dokładniejszej informacji o wadze opakowania.
-# Musi być spójna z tabelą używaną przy zasilaniu bazy danych (app/db/seed.py),
-# w przeciwnym razie wyświetlane kcal będą się różnić w zależności od miejsca
-# w aplikacji (np. 1 ząbek czosnku liczony jako 100 g zamiast ~5 g dawał
-# dwudziestokrotnie zawyżoną kaloryczność).
-WEIGHT_PER_SZT_G: dict[str, float] = {
-    "Bułka kajzerka": 50,
-    "Jajka": 50,
-    "Ogórek": 150,
-    "Papryka czerwona": 200,
-    "Sałata lodowa": 300,
-    "Czosnek": 5,
-    "Awokado": 150,
-    "Jabłka": 150,
-    "Banan": 120,
-    # UWAGA (naprawa): tabela wcześniej miała tylko 9 pozycji — każdy inny
-    # produkt użyty z jednostką "szt" (typowe dla przepisów z AI, które
-    # swobodniej dobierają jednostki niż starannie wyselekcjonowane 81
-    # oficjalnych przepisów) dostawał ten sam, generyczny fallback 100 g,
-    # niezależnie czy to była kostka rosołowa (~10 g, 10x zawyżenie) czy
-    # duży kalafior (~500 g, 5x zaniżenie). Rozszerzona lista pokrywa
-    # pozostałe produkty z katalogu, które sensownie liczy się "na sztuki".
-    "Papryka słodka": 180,
-    "Cytryna": 80,
-    "Limonka": 50,
-    "Cukinia": 300,
-    "Bakłażan": 250,
-    "Por": 150,
-    "Mango": 200,
-    "Kalafior": 500,
-    "Brokuł": 400,
-    "Kapusta pekińska": 800,
-    "Cebula": 120,
-}
-_DEFAULT_SZT_WEIGHT_G = 100.0
+# One shared source for known piece weights. Unknown counts have no fallback.
+from app.services.product_measures import PIECE_GRAMS as WEIGHT_PER_SZT_G
 
 
 def _piece_weight(product_name: str) -> float:
-    # Nowy katalog jednostek jest źródłem prawdy. Lokalna tabela zostaje jako
-    # zgodność ze starszymi rekordami i testami, których nazwy nie są jeszcze
-    # objęte katalogiem jednostek.
     from app.services.product_measures import piece_weight_grams
-
-    return piece_weight_grams(product_name) or WEIGHT_PER_SZT_G.get(
-        product_name, _DEFAULT_SZT_WEIGHT_G
-    )
+    return piece_weight_grams(product_name) or 0.0
 
 
 def grams_to_quantity(
@@ -180,22 +140,9 @@ def grams_to_quantity(
     Odwrotność ``quantity_to_grams`` — używana np. przy wyświetlaniu sumy
     zapotrzebowania na produkt w jego naturalnej jednostce sklepowej.
     """
-    if unit == "opak":
-        # Unknown package mass must never become an invented 100 g.
-        weight = float(serving_quantity or 0.0)
-        return grams / weight if weight else 0.0
-    if measure_options:
-        from app.services.product_measures import measure_to_base
+    factor = quantity_to_grams(product_name, 1, unit, serving_quantity, measure_options)
+    return grams / factor if factor > 0 else 0.0
 
-        conversion = measure_to_base(1, unit, measure_options)
-        if conversion is not None and conversion[0] > 0:
-            return grams / conversion[0]
-    if unit in ("kg", "l"):
-        return grams / 1000.0
-    if unit == "szt":
-        weight = _piece_weight(product_name)
-        return grams / weight if weight else 0.0
-    return grams
 
 def quantity_to_grams(
     product_name: str,
@@ -214,23 +161,47 @@ def quantity_to_grams(
     Returns:
         Ilość przeliczona na gramy/mililitry.
     """
+    from app.services.product_measures import (
+        build_measure_options, fallback_measure_options, canonical_measure_code, measure_to_base,
+    )
     qty = float(quantity or 0.0)
-    if unit == "opak":
-        # serving_quantity jest źródłem prawdy również wtedy, gdy stary
-        # measure_options zawiera błędny przelicznik 100 g.
-        return qty * float(serving_quantity or 0.0)
-    if measure_options:
-        from app.services.product_measures import measure_to_base
-
-        converted = measure_to_base(qty, unit, measure_options)
-        if converted is not None:
-            return converted[0]
-    if unit in ("kg", "l"):
+    if not math.isfinite(qty) or qty < 0:
+        return 0.0
+    unit = canonical_measure_code(unit)
+    if unit in {"g", "ml"}:
+        return qty
+    if unit in {"kg", "l"}:
         return qty * 1000.0
+    if unit == "opak":
+        # Pack mass is independent of a piece or a household measure.
+        weight = float(serving_quantity or 0.0)
+        return qty * weight if math.isfinite(weight) and weight > 0 else 0.0
+    options = measure_options or []
+    has_explicit = any(isinstance(row, dict) and canonical_measure_code(row.get("code")) == unit
+                       for row in options)
+    if has_explicit:
+        converted = measure_to_base(qty, unit, options)
+        return converted[0] if converted is not None else 0.0
     if unit == "szt":
+        # Never invent 100 g for flour, oil, spices or an unknown count.
         return qty * _piece_weight(product_name)
-    # "g", "ml" i inne nieznane jednostki traktujemy jako wartość 1:1
-    return qty
+    if unit in {"lyzeczka", "lyzka", "szklanka"}:
+        fallback = fallback_measure_options(product_name)
+        # If stored measures exist, retain their explicit physical dimension.
+        bases = {row.get("base_unit") for row in options if isinstance(row, dict)
+                 and row.get("base_unit") in {"g", "ml"}}
+        if bases == {"ml"}:
+            fallback = build_measure_options(product_name, "ml")
+        elif bases == {"g"}:
+            fallback = build_measure_options(product_name, "g")
+        source_unit = "lyzeczka" if unit == "lyzka" else unit
+        source_options = options if any(isinstance(row, dict) and
+            canonical_measure_code(row.get("code")) == source_unit for row in options) else fallback
+        converted = measure_to_base(qty, source_unit, source_options)
+        if converted is not None:
+            return converted[0] * (3 if unit == "lyzka" else 1)
+    # Unknown amount is not a gram, a package or a zero-energy ingredient.
+    return 0.0
 
 
 def _empty_nutrition() -> dict[str, float]:
@@ -475,5 +446,9 @@ def is_ingredient_quantity_reasonable(quantity: float, unit: str) -> bool:
     produktu liczonego w sztukach). Limit MUSI zależeć od jednostki —
     200 sztuk to absurd, ale 200 gramów to normalna ilość.
     """
-    max_allowed = 50.0 if unit in {"szt", "opak"} else 20000.0
+    from app.services.product_measures import canonical_measure_code
+    unit = canonical_measure_code(unit)
+    if isinstance(quantity, bool) or not math.isfinite(quantity):
+        return False
+    max_allowed = 50.0 if unit in {"szt", "opak"} else 20.0 if unit in {"kg", "l"} else 20000.0
     return 0 < quantity <= max_allowed

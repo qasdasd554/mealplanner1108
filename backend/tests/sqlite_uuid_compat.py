@@ -3,6 +3,17 @@
 from uuid import uuid4
 
 from sqlalchemy import Uuid, event, inspect
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.ext.compiler import compiles
+
+
+@compiles(UUID, "sqlite")
+def sqlite_uuid_text(_type, _compiler, **_kwargs):
+    # SQLite gives a column named UUID numeric affinity. Random hex values
+    # that look numeric can turn into floats and lose identity precision.
+    # Test DDL must store them as text, just as SQLAlchemy generic Uuid does.
+    # PostgreSQL DDL, defaults and production models are untouched.
+    return "CHAR(32)"
 
 
 def supply_sqlite_uuid_defaults(session) -> bool:

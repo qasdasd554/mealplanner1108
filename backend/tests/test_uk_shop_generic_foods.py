@@ -39,17 +39,17 @@ def test_shop_includes_english_system_food_without_inventing_a_shop_pack(state):
     assert all(row["product_id"] != str(oats.id) for row in rows(state))
 
 
-def test_all_390_foods_in_every_uk_shop_search_and_stable_pages(state):
+def test_all_419_foods_in_every_uk_shop_search_and_stable_pages(state):
     for name, unit, quantity, *_ in PRODUCTS_DATA:
         state.db.add(Product(id=_uid("product:" + name), name=name, unit=unit,
             default_quantity=quantity, brand=PRODUCT_BRANDS.get(name),
             nutrition_per_100=NUTRITION_DATA.get(name), review_status="approved"))
     state.db.commit()
-    pages = [row for skip in (0, 200) for row in generic_rows(state, f"&skip={skip}&limit=200")]
-    assert len(pages) == 391  # 390 canonical foods + the real reviewed SKU.
+    pages = [row for skip in (0, 200, 400) for row in generic_rows(state, f"&skip={skip}&limit=200")]
+    assert len(pages) == 420  # 419 canonical foods + the real reviewed SKU.
     assert len({row["id"] for row in pages}) == len(pages)
     generics = [row for row in pages if row["catalogue_kind"] == "generic_food"]
-    assert len(generics) == 390
+    assert len(generics) == 419
     assert [r["name_en"] for r in generics] == sorted(r["name_en"] for r in generics)
     assert all(r["price"] > 0 for r in generics)
     for row in generics:

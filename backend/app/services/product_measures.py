@@ -9,6 +9,49 @@ się wiarygodnie przeliczyć dla danego produktu.
 from __future__ import annotations
 
 from typing import Any
+from functools import lru_cache
+from pathlib import Path
+import json
+import math
+
+
+def canonical_measure_code(unit: str) -> str:
+    value = str(unit or "").strip().casefold().rstrip(".")
+    return {
+        "łyżeczka": "lyzeczka", "łyżeczki": "lyzeczka", "łyżeczek": "lyzeczka", "łyżeczkami": "lyzeczka",
+        "tsp": "lyzeczka", "teaspoon": "lyzeczka", "teaspoons": "lyzeczka",
+        "łyżka": "lyzka", "łyżki": "lyzka", "łyżek": "lyzka",
+        "tbsp": "lyzka", "tablespoon": "lyzka", "tablespoons": "lyzka",
+        "szklanki": "szklanka", "szklanek": "szklanka",
+        "pcs": "szt", "piece": "szt", "pieces": "szt", "sztuki": "szt", "sztuk": "szt",
+        "opakowanie": "opak", "opakowania": "opak", "pack": "opak",
+        "porcje": "porcja", "portion": "porcja", "serving": "porcja",
+    }.get(value, value)
+
+
+@lru_cache(maxsize=1)
+def _measure_names():
+    # Reuse reviewed catalogue translations, not a new set of UK densities.
+    data = json.loads((Path(__file__).resolve().parents[1] / "data/system_ingredients_en_GB.json").read_text(encoding="utf-8"))
+    names = {name.casefold(): name for name in data}
+    for name, translated in data.items():
+        names.setdefault(translated.casefold(), name)
+    return names
+
+
+def canonical_measure_name(name: str) -> str:
+    return _measure_names().get((name or "").casefold(), name or "")
+
+
+def fallback_measure_options(name: str) -> list[dict[str, Any]]:
+    """Retain a known seed food's explicit dimension when old rows lack JSON.
+
+    Exact reviewed aliases share this unit; arbitrary branded names do not.
+    In particular, powdered milk in grams must not inherit liquid measures.
+    """
+    from app.db.seed import _SEED_PRODUCT_UNITS
+    name = canonical_measure_name(name)
+    return build_measure_options(name, _SEED_PRODUCT_UNITS.get(name, "g"))
 
 
 LIQUID_WORDS = {
@@ -44,6 +87,9 @@ GLASS_GRAMS = {
 PIECE_GRAMS = {
     "Bułka kajzerka": 50.0,
     "Jajka": 50.0,
+    "Jabłka": 150.0,
+    "Banan": 120.0,
+    "Cebula": 120.0,
     "Jajka przepiórcze": 9.0,
     "Ogórek": 150.0,
     "Kapusta biała": 1200.0,
@@ -130,7 +176,7 @@ def base_unit_for_product(name: str, unit: str) -> str:
 
 
 def piece_weight_grams(name: str) -> float | None:
-    return PIECE_GRAMS.get(name)
+    return PIECE_GRAMS.get(canonical_measure_name(name))
 
 
 def build_measure_options(
@@ -148,6 +194,7 @@ def build_measure_options(
     przelicznik, zamiast udawać, że każda żywność ma tę samą gęstość.
     """
 
+    name = canonical_measure_name(name)
     base_unit = base_unit_for_product(name, unit)
     result: list[dict[str, Any]] = [
         {
@@ -243,10 +290,20 @@ def measure_to_base(
     unit: str,
     options: list[dict[str, Any]] | None,
 ) -> tuple[float, str] | None:
+    unit = canonical_measure_code(unit)
+    matches = set()
     for option in options or []:
-        if option.get("code") == unit:
-            return (
-                float(quantity) * float(option.get("base_quantity") or 0),
-                str(option.get("base_unit") or "g"),
-            )
-    return None
+        if not isinstance(option, dict) or canonical_measure_code(option.get("code")) != unit:
+            continue
+        try:
+            factor = float(option.get("base_quantity"))
+        except (ValueError, TypeError, OverflowError):
+            return None
+        if (isinstance(option.get("base_quantity"), bool) or not math.isfinite(factor)
+                or not 0 < factor <= 100000 or option.get("base_unit") not in {"g", "ml"}):
+            return None
+        matches.add((factor, option["base_unit"]))
+    if len(matches) != 1:
+        return None
+    factor, base_unit = next(iter(matches))
+    return float(quantity) * factor, base_unit

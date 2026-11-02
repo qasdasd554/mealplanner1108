@@ -20,6 +20,10 @@ from app.models.recipe import Recipe, RecipeIngredient, RecipeTag
 from app.models.store import Store, StoreDepartment
 from app.db.fast_food_catalog import FAST_FOOD_PRODUCTS
 from app.services.product_measures import build_measure_options
+from app.db.autumn_catalog import (
+    AUTUMN_PRODUCTS, AUTUMN_NUTRITION, AUTUMN_PRODUCT_NAMES,
+    AUTUMN_RECIPE_NAMES, append_autumn_recipes,
+)
 
 # ──────────────────────────────────────────────────────────────────
 # Przestrzeń nazw UUID5 — gwarantuje powtarzalność seedów
@@ -1382,61 +1386,26 @@ NUTRITION_DATA.update({
     "Kimchi": {"kcal": 24, "protein": 1.6, "fat": 0.5, "carbs": 4.0, "fiber": 2.4},
 })
 
-WEIGHT_PER_SZT = {
-    "Bułka kajzerka": 50,
-    "Jajka": 50,
-    "Ogórek": 150,
-    "Papryka czerwona": 200,
-    "Sałata lodowa": 300,
-    "Czosnek": 5,
-    "Awokado": 150,
-    "Jabłka": 150,
-    "Banan": 120,
-    "Cytryna": 100,
-    "Limonka": 70,
-    "Brokuł": 400,
-    "Cukinia": 250,
-    "Bakłażan": 300,
-    "Kapusta pekińska": 900,
-    "Kalafior": 600,
-    "Por": 150,
-    "Mango": 300,
-    "Kiwi": 75,
-    "Grejpfrut": 250,
-    "Ananas": 900,
-    "Melon": 1000,
-    "Granat": 280,
-    "Kaki": 170,
-    "Papryka żółta": 200,
-    "Papryka zielona": 200,
-    "Rzodkiewka": 150,
-    "Kalarepa": 250,
-    "Koper włoski": 250,
-    "Seler korzeniowy": 700,
-    "Sałata rzymska": 300,
-    "Sałata masłowa": 300,
-    "Kolendra świeża": 30,
-    "Bazylia świeża": 30,
-    "Mięta świeża": 30,
-    "Szałwia świeża": 20,
-    "Estragon świeży": 20,
-    "Kukurydza kolba": 180,
-    "Rzepa": 250,
-    "Jajka przepiórcze": 10,
-    "Tortilla pszenna": 45,
-}
+PRODUCTS_DATA.extend(AUTUMN_PRODUCTS)
+PRODUCT_BRANDS.update({name: None for name in AUTUMN_PRODUCT_NAMES})
+NUTRITION_DATA.update(AUTUMN_NUTRITION)
+
+# Use the same reviewed piece weights as runtime nutrition and shopping.
+from app.services.product_measures import PIECE_GRAMS as WEIGHT_PER_SZT
+_SEED_PRODUCT_UNITS = {row[0]: row[1] for row in PRODUCTS_DATA}
+
 
 def calculate_nutrition(prod_name: str, qty_val: float, unit_str: str) -> dict[str, float]:
     nutr = NUTRITION_DATA.get(prod_name, {"kcal":0, "protein":0, "fat":0, "carbs":0, "fiber":0})
-    weight_g = float(qty_val)
-    if unit_str == "kg" or unit_str == "l":
-        weight_g = float(qty_val) * 1000
-    elif unit_str == "g" or unit_str == "ml":
-        weight_g = float(qty_val)
-    elif unit_str == "szt":
-        weight_g = float(qty_val) * WEIGHT_PER_SZT.get(prod_name, 100)
+    from app.services.nutrition_calculator import quantity_to_grams
+    native_unit = _SEED_PRODUCT_UNITS.get(prod_name, "g")
+    measures = build_measure_options(prod_name, native_unit)
+    weight_g = quantity_to_grams(prod_name, qty_val, unit_str, measure_options=measures)
+    if weight_g <= 0:
+        raise ValueError(f"Unknown physical amount in system recipe: {prod_name} ({qty_val} {unit_str})")
 
-    return {k: v * (weight_g / 100.0) for k, v in nutr.items()}
+    return {k: nutr.get(k, 0) * (weight_g / 100.0)
+            for k in ("kcal", "protein", "fat", "carbs", "fiber")}
 
 # ══════════════════════════════════════════════════════════════════
 # PRZEPISY
@@ -5081,6 +5050,7 @@ AIRFRYER_RECIPES = [
 ]
 
 RECIPES_DATA.extend(AIRFRYER_RECIPES)
+RECIPES_DATA[:] = append_autumn_recipes(RECIPES_DATA)
 
 
 # Dania, które wcześniej wpadały do śniadań albo przekąsek mimo że są
@@ -5139,6 +5109,7 @@ async def seed_database(session: AsyncSession) -> None:
             },
         )
         stores[store_name] = await session.merge(store)
+    await session.flush()
 
     # ── 2. Działy sklepowe ───────────────────────────────────────
     # Klucz: (store_name, dept_name) -> StoreDepartment
@@ -5161,6 +5132,7 @@ async def seed_database(session: AsyncSession) -> None:
             name=allergen_name,
         )
         allergens[allergen_name] = await session.merge(allergen)
+    await session.flush()
 
     # ── 4. Produkty + StoreProducts + ProductAllergens ───────────
     # Jedno zapytanie dla całego katalogu zamiast merge/SELECT dla każdej
@@ -5176,6 +5148,7 @@ async def seed_database(session: AsyncSession) -> None:
     )).all())
     new_store_products: list[StoreProduct] = []
     products: dict[str, Product] = {}
+    pending_allergen_links = []
     for (
         prod_name,
         unit,
@@ -5191,6 +5164,7 @@ async def seed_database(session: AsyncSession) -> None:
             unit=unit,
             default_quantity=default_qty,
             serving_quantity=(
+                None if prod_name in AUTUMN_PRODUCT_NAMES else
                 float(default_qty) * 1000
                 if unit in {"kg", "l"}
                 else float(default_qty) if unit not in {"szt"} else None
@@ -5200,6 +5174,7 @@ async def seed_database(session: AsyncSession) -> None:
                 unit,
                 float(default_qty),
                 (
+                    None if prod_name in AUTUMN_PRODUCT_NAMES else
                     float(default_qty) * 1000
                     if unit in {"kg", "l"}
                     else float(default_qty) if unit not in {"szt"} else None
@@ -5217,9 +5192,11 @@ async def seed_database(session: AsyncSession) -> None:
                 product_id=product.id,
                 allergen_id=allergens[al_name].id,
             )
-            await session.merge(pa)
+            pending_allergen_links.append(pa)
 
         # Powiązanie z każdym sklepem
+        # For autumn generic foods this is the existing unverified Polish
+        # cost model per 100 g/ml, not an evidenced package or live quote.
         for store_name, store in stores.items():
             if (store.id, product.id) in existing_pairs:
                 continue
@@ -5245,7 +5222,14 @@ async def seed_database(session: AsyncSession) -> None:
             )
             new_store_products.append(sp)
 
+    # Explicit parent/child phases also support sessions with autoflush=False.
+    # These association models do not all declare ORM relationships, so a
+    # final unstructured flush alone cannot guarantee foreign-key ordering.
+    await session.flush()
+    for link in pending_allergen_links:
+        await session.merge(link)
     session.add_all(new_store_products)
+    await session.flush()
 
     # Gotowe dania restauracyjne są częścią katalogu żywieniowego, ale nie
     # udajemy, że można je kupić w każdym supermarkecie. Dlatego celowo nie
@@ -5285,8 +5269,21 @@ async def seed_database(session: AsyncSession) -> None:
         )
         products[f"{brand}: {product_name}"] = await session.merge(product)
 
+    await session.flush()
     # ── 5. Przepisy + Składniki + Tagi ───────────────────────────
+    pending_recipe_links = []
+    existing_system_titles = {
+        name.strip().casefold(): identity for identity, name in
+        (await session.execute(select(Recipe.id, Recipe.name).where(
+            Recipe.created_by_user_id.is_(None)))).all()
+    }
     for recipe_data in RECIPES_DATA:
+        # Do not duplicate an already present system dish under another UUID.
+        # Private/public recipes authored by users are never touched here.
+        expected_id = _uid(f"recipe:{recipe_data['name']}")
+        previous = existing_system_titles.get(recipe_data['name'].strip().casefold())
+        if recipe_data['name'] in AUTUMN_RECIPE_NAMES and previous is not None and previous != expected_id:
+            continue
         total_nutrition = {"kcal": 0, "protein": 0, "fat": 0, "carbs": 0, "fiber": 0}
         for prod_name, qty, unit, is_optional in recipe_data["ingredients"]:
             prod_nutr = calculate_nutrition(prod_name, float(qty), unit)
@@ -5294,6 +5291,10 @@ async def seed_database(session: AsyncSession) -> None:
                 total_nutrition[k] += prod_nutr.get(k, 0)
 
         total_nutrition = {k: round(v, 1) for k, v in total_nutrition.items()}
+        if recipe_data['name'] in AUTUMN_RECIPE_NAMES:
+            total_nutrition['_estimated'] = True
+            total_nutrition['_estimated_ingredients'] = [name for name, *_ in
+                recipe_data['ingredients'] if name in AUTUMN_PRODUCT_NAMES]
 
         recipe = Recipe(
             id=_uid(f"recipe:{recipe_data['name']}"),
@@ -5322,7 +5323,7 @@ async def seed_database(session: AsyncSession) -> None:
                 recipe_id=recipe.id,
                 tag=tag,
             )
-            await session.merge(rt)
+            pending_recipe_links.append(rt)
 
         # Składniki
         for prod_name, qty, unit, is_optional in recipe_data["ingredients"]:
@@ -5339,6 +5340,9 @@ async def seed_database(session: AsyncSession) -> None:
                 unit=unit,
                 is_optional=is_optional,
             )
-            await session.merge(ri)
+            pending_recipe_links.append(ri)
 
+    await session.flush()
+    for link in pending_recipe_links:
+        await session.merge(link)
     await session.flush()

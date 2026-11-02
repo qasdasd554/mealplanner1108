@@ -4262,7 +4262,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• Poprawiliśmy aktywację i przywracanie Premium po płatności.\n• Punkty Premium są naliczane prawidłowo także po przerwaniu połączenia lub ponowieniu płatności.\n• Ponowne skanowanie i wybór ilości zachowują gramaturę oraz jednostkę opakowania.\n• Poprawiliśmy podpowiedzi produktów i komunikaty w polskiej oraz angielskiej wersji.';
+      '• Dodaliśmy 30 jesiennych przepisów po polsku i angielsku.\n• Nowe dania mają własne zdjęcia oraz listy składników do zakupów.\n• Poprawiliśmy przeliczanie gramów, sztuk i miar kuchennych.\n• Kalorie i koszty zakupów liczymy z właściwych ilości; szacunki są oznaczone.';
 
   @override
   String detailPlanPortionHelp(int servings, int baseServings) {

@@ -286,7 +286,10 @@ def test_nonempty_response_keeps_author_favorites_and_light_payload_after_rollba
     user = session.get(User, user_id)
     user.role, user.display_name = "user", "Recipe author"
     user.is_premium = premium
-    user.premium_expires_at = NOW + timedelta(days=7) if premium else NOW - timedelta(days=7)
+    # Catalogue evidence uses the fixed snapshot date. Entitlement is checked
+    # against the real clock, so this fixture must not expire as time passes.
+    clock_now = datetime.now(timezone.utc)
+    user.premium_expires_at = clock_now + timedelta(days=7) if premium else clock_now - timedelta(days=7)
     user.tiktok_username = "food.author"
     session.commit()
     fetch = AsyncMock()

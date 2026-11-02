@@ -55,7 +55,7 @@ from app.services.gemini_models import GEMINI_MODELS
 # powtarzaniem tych samych 429/503 na początku każdego importu.
 _model_unavailable_until: dict[str, float] = {}
 
-ALLOWED_UNITS = {"g", "kg", "ml", "l", "szt"}
+ALLOWED_UNITS = {"g", "kg", "ml", "l", "szt", "lyzeczka", "lyzka", "szklanka"}
 ALLOWED_MEAL_TYPES = {"śniadanie", "obiad", "kolacja", "przekąska", "deser"}
 ALLOWED_DIFFICULTIES = {"łatwy", "średni", "trudny"}
 
@@ -174,6 +174,10 @@ keep the original ingredient name; never replace it with an unrelated product.
 Do not translate catalogue names or claim that an item is sold in a UK shop:
 catalogue identity does not prove local availability or a price.
 3. The unit API value MUST be one of: g, kg, ml, l, szt.
+Use szt only for genuinely countable foods (such as eggs), never powders,
+ground spices, flour or oil. Use grams for ground spices, not pieces or packs.
+Retain an explicit household measure as lyzeczka (tsp), lyzka (tbsp) or
+szklanka (metric glass) if its ingredient-specific mass is not provided.
 Use metric quantities, never cups/ounces/pounds or an assumed package size.
 List the actual components needed to prepare the dish, not a packaged version
 of the whole meal. Processed ingredients such as milk, butter, breadcrumbs,
@@ -237,6 +241,11 @@ w puszce czy sos są prawidłowe, jeśli przepis ich wymaga. Natomiast pełny
 posiłek, np. schabowy z ziemniakami i burakami, nie zastępuje mięsa,
 ziemniaków ani buraków. Nie przenoś nazwy całego dania do pola składnika.
 3. Pole "unit" MUSI być jednym z: g, kg, ml, l, szt.
+Jednostki szt używaj tylko dla produktów faktycznie liczonych w sztukach,
+np. jajek. Przypraw mielonych, mąki i oleju nie podawaj w sztukach ani
+opakowaniach. Dla przypraw mielonych podawaj gramy. Jeśli źródło podaje
+miarę kuchenną bez gramatury, zachowaj ją jako lyzeczka, lyzka lub szklanka;
+nie zamieniaj 3 łyżeczek na 3 sztuki i nie zgaduj masy opakowania.
 4. Pole "meal_type" MUSI być jednym z: śniadanie, obiad, kolacja, przekąska, deser.
 5. Pole "difficulty" MUSI być jednym z: łatwy, średni, trudny.
 6. "instructions" to lista kroków po polsku, każdy z dokładnymi ilościami
@@ -953,7 +962,8 @@ def validate_and_clean_recipe_dict(parsed: dict, *, country_code: str = "PL") ->
         if not isinstance(ing, dict):
             malformed = True
             continue
-        unit = ing.get("unit")
+        from app.services.product_measures import canonical_measure_code
+        unit = canonical_measure_code(ing.get("unit"))
         if unit not in ALLOWED_UNITS:
             malformed = True
             continue

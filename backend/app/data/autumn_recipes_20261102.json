@@ -1,0 +1,4705 @@
+{
+  "version": 1,
+  "recipes": [
+    {
+      "name": "Sałatka z indykiem, dynią i pęczakiem",
+      "description": "Jesienna propozycja: sałatka z indykiem, dynią i pęczakiem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "cuisine": "międzynarodowa",
+      "meal_type": "obiad",
+      "prep_time_min": 15,
+      "cook_time_min": 25,
+      "servings": 1,
+      "difficulty": "łatwy",
+      "tags": [
+        "sezonowe"
+      ],
+      "instructions": [
+        "Ugotuj pęczak zgodnie z opakowaniem. Dynię oczyść i pokrój, a indyka podziel na kawałki.",
+        "Wymieszaj dynię i indyka z oliwą, papryką wędzoną, czosnkiem, kuminem, solą i pieprzem. Piecz w 200°C przez 18–20 minut; sprawdź, czy mięso jest całkowicie upieczone.",
+        "Połącz masło orzechowe, sos sojowy, sok z cytryny, miód i wodę. Słonecznik podpraż na suchej patelni.",
+        "Ułóż kaszę, dynię i indyka w misce. Dodaj sos, słonecznik oraz posiekaną natkę."
+      ],
+      "suggested_seasonings": [],
+      "ingredients": [
+        [
+          "Kasza pęczak",
+          "50",
+          "g",
+          false
+        ],
+        [
+          "Dynia hokkaido",
+          "200",
+          "g",
+          false
+        ],
+        [
+          "Filet z indyka",
+          "150",
+          "g",
+          false
+        ],
+        [
+          "Oliwa z oliwek",
+          "5",
+          "ml",
+          false
+        ],
+        [
+          "Sól",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Papryka wędzona",
+          "1.5",
+          "g",
+          false
+        ],
+        [
+          "Czosnek granulowany",
+          "1.5",
+          "g",
+          false
+        ],
+        [
+          "Kmin rzymski",
+          "1",
+          "g",
+          false
+        ],
+        [
+          "Pieprz czarny mielony",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Pestki słonecznika",
+          "10",
+          "g",
+          false
+        ],
+        [
+          "Natka pietruszki",
+          "5",
+          "g",
+          false
+        ],
+        [
+          "Masło orzechowe",
+          "20",
+          "g",
+          false
+        ],
+        [
+          "Sos sojowy",
+          "10",
+          "g",
+          false
+        ],
+        [
+          "Sok z cytryny",
+          "6",
+          "ml",
+          false
+        ],
+        [
+          "Miód",
+          "12",
+          "g",
+          false
+        ],
+        [
+          "Woda",
+          "30",
+          "ml",
+          false
+        ]
+      ]
+    },
+    {
+      "name": "Owsianka marchewkowa z orzechami",
+      "description": "Jesienna propozycja: owsianka marchewkowa z orzechami. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "cuisine": "międzynarodowa",
+      "meal_type": "śniadanie",
+      "prep_time_min": 10,
+      "cook_time_min": 10,
+      "servings": 1,
+      "difficulty": "łatwy",
+      "tags": [
+        "sezonowe",
+        "wegetariańskie"
+      ],
+      "instructions": [
+        "Zetrzyj marchew i włóż do rondla z płatkami, rodzynkami, cynamonem, imbirem i goździkami.",
+        "Wlej mleko i gotuj łagodnie przez 8–10 minut, mieszając. Gdy trzeba, dolej trochę wody.",
+        "Dodaj erytrytol. Przełóż do miski, a po lekkim przestudzeniu dodaj skyr i posiekane orzechy."
+      ],
+      "suggested_seasonings": [],
+      "ingredients": [
+        [
+          "Płatki owsiane",
+          "50",
+          "g",
+          false
+        ],
+        [
+          "Marchew",
+          "40",
+          "g",
+          false
+        ],
+        [
+          "Mleko 2%",
+          "150",
+          "ml",
+          false
+        ],
+        [
+          "Skyr waniliowy",
+          "150",
+          "g",
+          false
+        ],
+        [
+          "Orzechy włoskie",
+          "10",
+          "g",
+          false
+        ],
+        [
+          "Rodzynki",
+          "10",
+          "g",
+          false
+        ],
+        [
+          "Erytrytol",
+          "5",
+          "g",
+          false
+        ],
+        [
+          "Cynamon",
+          "2",
+          "g",
+          false
+        ],
+        [
+          "Imbir mielony",
+          "1",
+          "g",
+          false
+        ],
+        [
+          "Goździki mielone",
+          "1",
+          "g",
+          false
+        ]
+      ]
+    },
+    {
+      "name": "Quinoa z wołowiną i dynią",
+      "description": "Jesienna propozycja: quinoa z wołowiną i dynią. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "cuisine": "międzynarodowa",
+      "meal_type": "obiad",
+      "prep_time_min": 10,
+      "cook_time_min": 30,
+      "servings": 1,
+      "difficulty": "łatwy",
+      "tags": [
+        "sezonowe"
+      ],
+      "instructions": [
+        "Ugotuj komosę według opakowania. Pokrój cebulę, czosnek, dynię i polędwicę.",
+        "Na oliwie zeszklij cebulę, dodaj czosnek, a następnie obsmaż wołowinę. Dołóż dynię, paprykę i oregano.",
+        "Dodaj passatę i gotowy bulion. Duś przez 10–12 minut, aż dynia i mięso będą miękkie; dopraw solą i pieprzem.",
+        "Podaj z komosą i natką pietruszki."
+      ],
+      "suggested_seasonings": [],
+      "ingredients": [
+        [
+          "Quinoa",
+          "50",
+          "g",
+          false
+        ],
+        [
+          "Polędwica wołowa",
+          "150",
+          "g",
+          false
+        ],
+        [
+          "Dynia hokkaido",
+          "150",
+          "g",
+          false
+        ],
+        [
+          "Cebula",
+          "80",
+          "g",
+          false
+        ],
+        [
+          "Czosnek",
+          "6",
+          "g",
+          false
+        ],
+        [
+          "Oliwa z oliwek",
+          "10",
+          "ml",
+          false
+        ],
+        [
+          "Passata pomidorowa",
+          "150",
+          "g",
+          false
+        ],
+        [
+          "Bulion warzywny gotowy",
+          "125",
+          "ml",
+          false
+        ],
+        [
+          "Sól",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Pieprz czarny mielony",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Papryka słodka",
+          "1.5",
+          "g",
+          false
+        ],
+        [
+          "Oregano",
+          "1.5",
+          "g",
+          false
+        ],
+        [
+          "Natka pietruszki",
+          "5",
+          "g",
+          false
+        ]
+      ]
+    },
+    {
+      "name": "Meksykańska zupa z dynią i kukurydzą",
+      "description": "Jesienna propozycja: meksykańska zupa z dynią i kukurydzą. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "cuisine": "międzynarodowa",
+      "meal_type": "obiad",
+      "prep_time_min": 15,
+      "cook_time_min": 35,
+      "servings": 2,
+      "difficulty": "łatwy",
+      "tags": [
+        "sezonowe"
+      ],
+      "instructions": [
+        "Posiekaj cebulę i czosnek, pokrój dynię i paprykę. Fasolę i kukurydzę odsącz.",
+        "Na oliwie zeszklij cebulę z czosnkiem. Dodaj dynię i paprykę, chwilę smaż, po czym wlej gotowy bulion i dodaj suche przyprawy.",
+        "Gotuj do miękkości dyni i ostrożnie zblenduj. Na osobnej patelni dokładnie usmaż mielonego indyka, rozdzielając grudki.",
+        "Dodaj mięso, fasolę i kukurydzę do zupy i podgrzewaj przez 5–10 minut. Podaj z nachosami, chili i kolendrą."
+      ],
+      "suggested_seasonings": [],
+      "ingredients": [
+        [
+          "Mięso mielone z indyka",
+          "150",
+          "g",
+          false
+        ],
+        [
+          "Cebula czerwona",
+          "80",
+          "g",
+          false
+        ],
+        [
+          "Czosnek",
+          "6",
+          "g",
+          false
+        ],
+        [
+          "Dynia hokkaido",
+          "200",
+          "g",
+          false
+        ],
+        [
+          "Papryka czerwona",
+          "85",
+          "g",
+          false
+        ],
+        [
+          "Kukurydza konserwowa",
+          "120",
+          "g",
+          false
+        ],
+        [
+          "Fasola czerwona konserwowa",
+          "120",
+          "g",
+          false
+        ],
+        [
+          "Papryczka chili świeża",
+          "10",
+          "g",
+          false
+        ],
+        [
+          "Kolendra świeża",
+          "2",
+          "g",
+          false
+        ],
+        [
+          "Oliwa z oliwek",
+          "10",
+          "ml",
+          false
+        ],
+        [
+          "Bulion warzywny gotowy",
+          "500",
+          "ml",
+          false
+        ],
+        [
+          "Papryka słodka",
+          "3",
+          "g",
+          false
+        ],
+        [
+          "Papryka ostra",
+          "1.5",
+          "g",
+          false
+        ],
+        [
+          "Sól",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Pieprz czarny mielony",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Nachosy naturalne",
+          "60",
+          "g",
+          false
+        ]
+      ]
+    },
+    {
+      "name": "Gulasz wołowy z dynią",
+      "description": "Jesienna propozycja: gulasz wołowy z dynią. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "cuisine": "międzynarodowa",
+      "meal_type": "obiad",
+      "prep_time_min": 15,
+      "cook_time_min": 45,
+      "servings": 2,
+      "difficulty": "średni",
+      "tags": [
+        "sezonowe"
+      ],
+      "instructions": [
+        "Pokrój wołowinę, cebulę, marchew, paprykę i dynię. Posiekaj czosnek.",
+        "Na oliwie obsmaż wołowinę i odłóż. W tym samym garnku podsmaż cebulę, czosnek, marchew i paprykę.",
+        "Włóż mięso z powrotem, dodaj koncentrat, przyprawy i gotowy bulion. Duś przez 20–25 minut, potem dodaj dynię i gotuj jeszcze przez 10–15 minut, do miękkości.",
+        "Posyp natką i podaj z chlebem."
+      ],
+      "suggested_seasonings": [],
+      "ingredients": [
+        [
+          "Polędwica wołowa",
+          "300",
+          "g",
+          false
+        ],
+        [
+          "Cebula",
+          "80",
+          "g",
+          false
+        ],
+        [
+          "Marchew",
+          "120",
+          "g",
+          false
+        ],
+        [
+          "Papryka czerwona",
+          "85",
+          "g",
+          false
+        ],
+        [
+          "Dynia hokkaido",
+          "200",
+          "g",
+          false
+        ],
+        [
+          "Czosnek",
+          "12",
+          "g",
+          false
+        ],
+        [
+          "Koncentrat pomidorowy",
+          "25",
+          "g",
+          false
+        ],
+        [
+          "Bulion warzywny gotowy",
+          "500",
+          "ml",
+          false
+        ],
+        [
+          "Papryka słodka",
+          "3",
+          "g",
+          false
+        ],
+        [
+          "Papryka ostra",
+          "1.5",
+          "g",
+          false
+        ],
+        [
+          "Papryka wędzona",
+          "1.5",
+          "g",
+          false
+        ],
+        [
+          "Sól",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Pieprz czarny mielony",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Tymianek suszony",
+          "1.5",
+          "g",
+          false
+        ],
+        [
+          "Oliwa z oliwek",
+          "10",
+          "ml",
+          false
+        ],
+        [
+          "Natka pietruszki",
+          "10",
+          "g",
+          false
+        ],
+        [
+          "Chleb żytni razowy",
+          "120",
+          "g",
+          false
+        ]
+      ]
+    },
+    {
+      "name": "Pęczotto z wieprzowiną i burakami",
+      "description": "Jesienna propozycja: pęczotto z wieprzowiną i burakami. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "cuisine": "międzynarodowa",
+      "meal_type": "obiad",
+      "prep_time_min": 20,
+      "cook_time_min": 25,
+      "servings": 3,
+      "difficulty": "średni",
+      "tags": [
+        "sezonowe"
+      ],
+      "instructions": [
+        "Buraki ugotuj do miękkości; połowę zblenduj, resztę pokrój. Posiekaj cebulę i czosnek.",
+        "Na połowie oliwy zeszklij cebulę z czosnkiem i krótko podpraż pęczak. Dolewaj ciepły gotowy bulion partiami, mieszając, aż kasza zmięknie.",
+        "Dodaj buraczane puree, ocet, sól i pieprz. Na reszcie oliwy dokładnie usmaż mięso mielone, rozbijając je na drobne kawałki.",
+        "Podziel kaszę i mięso na porcje. Dodaj kawałki buraka, natkę i podprażone pestki dyni."
+      ],
+      "suggested_seasonings": [],
+      "ingredients": [
+        [
+          "Kasza pęczak",
+          "150",
+          "g",
+          false
+        ],
+        [
+          "Buraki",
+          "300",
+          "g",
+          false
+        ],
+        [
+          "Bulion warzywny gotowy",
+          "700",
+          "ml",
+          false
+        ],
+        [
+          "Oliwa z oliwek",
+          "20",
+          "ml",
+          false
+        ],
+        [
+          "Cebula",
+          "40",
+          "g",
+          false
+        ],
+        [
+          "Czosnek",
+          "6",
+          "g",
+          false
+        ],
+        [
+          "Ocet balsamiczny",
+          "5",
+          "ml",
+          false
+        ],
+        [
+          "Sól",
+          "0.50",
+          "g",
+          false
+        ],
+        [
+          "Pieprz czarny mielony",
+          "0.50",
+          "g",
+          false
+        ],
+        [
+          "Wieprzowina mielona",
+          "250",
+          "g",
+          false
+        ],
+        [
+          "Natka pietruszki",
+          "20",
+          "g",
+          false
+        ],
+        [
+          "Pestki dyni",
+          "20",
+          "g",
+          false
+        ]
+      ]
+    },
+    {
+      "name": "Gnocchi z pieczarkami i szpinakiem",
+      "description": "Jesienna propozycja: gnocchi z pieczarkami i szpinakiem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "cuisine": "międzynarodowa",
+      "meal_type": "obiad",
+      "prep_time_min": 15,
+      "cook_time_min": 20,
+      "servings": 2,
+      "difficulty": "łatwy",
+      "tags": [
+        "sezonowe"
+      ],
+      "instructions": [
+        "Ugotuj gnocchi według opakowania. Pokrój pieczarki, posiekaj cebulę, czosnek i natkę.",
+        "Na oliwie zeszklij cebulę. Dodaj pieczarki i smaż, aż odparują, a na końcu dodaj czosnek.",
+        "Wlej gotowy bulion, krótko zredukuj i dołóż szpinak. Gdy zwiędnie, dodaj większość parmezanu, sól i pieprz.",
+        "Połącz sos z gnocchi i podgrzej. Posyp pozostałym serem i natką."
+      ],
+      "suggested_seasonings": [],
+      "ingredients": [
+        [
+          "Gnocchi ziemniaczane",
+          "500",
+          "g",
+          false
+        ],
+        [
+          "Pieczarki",
+          "300",
+          "g",
+          false
+        ],
+        [
+          "Cebula",
+          "40",
+          "g",
+          false
+        ],
+        [
+          "Szpinak świeży",
+          "150",
+          "g",
+          false
+        ],
+        [
+          "Czosnek",
+          "12",
+          "g",
+          false
+        ],
+        [
+          "Bulion warzywny gotowy",
+          "100",
+          "ml",
+          false
+        ],
+        [
+          "Oliwa z oliwek",
+          "20",
+          "ml",
+          false
+        ],
+        [
+          "Parmezan",
+          "40",
+          "g",
+          false
+        ],
+        [
+          "Sól",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Pieprz czarny mielony",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Natka pietruszki",
+          "15",
+          "g",
+          false
+        ]
+      ]
+    },
+    {
+      "name": "Makaron z karmelizowaną cebulą",
+      "description": "Jesienna propozycja: makaron z karmelizowaną cebulą. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "cuisine": "międzynarodowa",
+      "meal_type": "obiad",
+      "prep_time_min": 15,
+      "cook_time_min": 45,
+      "servings": 2,
+      "difficulty": "łatwy",
+      "tags": [
+        "sezonowe"
+      ],
+      "instructions": [
+        "Pokrój cebulę w cienkie plasterki. Na oliwie duś ją pod przykryciem przez 10 minut.",
+        "Odkryj, dodaj miód i smaż na małym ogniu przez 10–15 minut, często mieszając.",
+        "Dodaj suchy makaron, gotowy bulion, śmietankę i przyprawy. Gotuj łagodnie przez 12–15 minut, aż makaron zmięknie; w razie potrzeby dolej wody.",
+        "Wmieszaj mozzarellę i podaj po jej roztopieniu."
+      ],
+      "suggested_seasonings": [],
+      "ingredients": [
+        [
+          "Makaron pełnoziarnisty",
+          "150",
+          "g",
+          false
+        ],
+        [
+          "Cebula",
+          "400",
+          "g",
+          false
+        ],
+        [
+          "Oliwa z oliwek",
+          "15",
+          "ml",
+          false
+        ],
+        [
+          "Bulion warzywny gotowy",
+          "500",
+          "ml",
+          false
+        ],
+        [
+          "Miód",
+          "24",
+          "g",
+          false
+        ],
+        [
+          "Śmietanka 12%",
+          "126",
+          "g",
+          false
+        ],
+        [
+          "Mozzarella light",
+          "120",
+          "g",
+          false
+        ],
+        [
+          "Sól",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Pieprz czarny mielony",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Tymianek suszony",
+          "1.5",
+          "g",
+          false
+        ],
+        [
+          "Papryka ostra",
+          "1.5",
+          "g",
+          false
+        ],
+        [
+          "Papryka wędzona",
+          "3",
+          "g",
+          false
+        ]
+      ]
+    },
+    {
+      "name": "Chrupiący wrap z jabłkiem i twarogiem",
+      "description": "Jesienna propozycja: chrupiący wrap z jabłkiem i twarogiem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "cuisine": "międzynarodowa",
+      "meal_type": "deser",
+      "prep_time_min": 10,
+      "cook_time_min": 10,
+      "servings": 1,
+      "difficulty": "łatwy",
+      "tags": [
+        "sezonowe",
+        "wegetariańskie"
+      ],
+      "instructions": [
+        "Rozgnieć twaróg i wymieszaj z jogurtem oraz miodem.",
+        "Jabłko pokrój w kostkę i podsmaż na maśle z erytrytolem. Gdy zmięknie, dodaj cynamon i lekko przestudź.",
+        "Podgrzej tortillę z obu stron na suchej patelni. Nałóż twarożek i jabłko, zwiń i podaj od razu."
+      ],
+      "suggested_seasonings": [],
+      "ingredients": [
+        [
+          "Tortilla pełnoziarnista",
+          "60",
+          "g",
+          false
+        ],
+        [
+          "Twaróg półtłusty",
+          "125",
+          "g",
+          false
+        ],
+        [
+          "Jogurt naturalny",
+          "40",
+          "g",
+          false
+        ],
+        [
+          "Miód",
+          "12",
+          "g",
+          false
+        ],
+        [
+          "Jabłka",
+          "75",
+          "g",
+          false
+        ],
+        [
+          "Cynamon",
+          "2",
+          "g",
+          false
+        ],
+        [
+          "Erytrytol",
+          "5",
+          "g",
+          false
+        ],
+        [
+          "Masło extra",
+          "5",
+          "g",
+          false
+        ]
+      ]
+    },
+    {
+      "name": "Brukselka z halloumi i pęczakiem",
+      "description": "Jesienna propozycja: brukselka z halloumi i pęczakiem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "cuisine": "międzynarodowa",
+      "meal_type": "obiad",
+      "prep_time_min": 10,
+      "cook_time_min": 20,
+      "servings": 1,
+      "difficulty": "łatwy",
+      "tags": [
+        "sezonowe"
+      ],
+      "instructions": [
+        "Ugotuj pęczak zgodnie z opakowaniem. Oczyszczoną brukselkę przekrój na pół.",
+        "Smaż brukselkę na oliwie pod przykryciem przez 5 minut, następnie odkryj i dosmaż do miękkości. Dodaj sól i pieprz.",
+        "Halloumi pokrój w plastry i zrumień z obu stron na suchej patelni.",
+        "Wymieszaj musztardę z syropem klonowym. Podaj kaszę z brukselką, serem i sosem."
+      ],
+      "suggested_seasonings": [],
+      "ingredients": [
+        [
+          "Kasza pęczak",
+          "50",
+          "g",
+          false
+        ],
+        [
+          "Brukselka",
+          "150",
+          "g",
+          false
+        ],
+        [
+          "Ser halloumi",
+          "75",
+          "g",
+          false
+        ],
+        [
+          "Oliwa z oliwek",
+          "10",
+          "ml",
+          false
+        ],
+        [
+          "Sól",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Pieprz czarny mielony",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Musztarda",
+          "20",
+          "g",
+          false
+        ],
+        [
+          "Syrop klonowy",
+          "30",
+          "g",
+          false
+        ]
+      ]
+    },
+    {
+      "name": "Nocna owsianka z jabłkiem i orzechami",
+      "description": "Jesienna propozycja: nocna owsianka z jabłkiem i orzechami. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "cuisine": "międzynarodowa",
+      "meal_type": "śniadanie",
+      "prep_time_min": 20,
+      "cook_time_min": 360,
+      "servings": 1,
+      "difficulty": "łatwy",
+      "tags": [
+        "sezonowe",
+        "wegetariańskie"
+      ],
+      "instructions": [
+        "Połowę jabłka pokrój i duś z odrobiną wody, erytrytolem oraz połową cynamonu do uzyskania musu. Ostudź.",
+        "Wymieszaj płatki z mlekiem, puddingiem i musem. Przykryj i schładzaj przez co najmniej 6 godzin.",
+        "Orzechy posiekaj i podpraż. Na owsiance ułóż pozostałe jabłko, orzechy i resztę cynamonu."
+      ],
+      "suggested_seasonings": [],
+      "ingredients": [
+        [
+          "Płatki owsiane",
+          "50",
+          "g",
+          false
+        ],
+        [
+          "Mleko 2%",
+          "125",
+          "ml",
+          false
+        ],
+        [
+          "Pudding proteinowy waniliowy",
+          "100",
+          "g",
+          false
+        ],
+        [
+          "Jabłka",
+          "150",
+          "g",
+          false
+        ],
+        [
+          "Orzechy włoskie",
+          "15",
+          "g",
+          false
+        ],
+        [
+          "Cynamon",
+          "4",
+          "g",
+          false
+        ],
+        [
+          "Erytrytol",
+          "5",
+          "g",
+          false
+        ]
+      ]
+    },
+    {
+      "name": "Sałatka z soczewicą, indykiem i dynią",
+      "description": "Jesienna propozycja: sałatka z soczewicą, indykiem i dynią. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "cuisine": "międzynarodowa",
+      "meal_type": "obiad",
+      "prep_time_min": 15,
+      "cook_time_min": 40,
+      "servings": 2,
+      "difficulty": "łatwy",
+      "tags": [
+        "sezonowe"
+      ],
+      "instructions": [
+        "Ugotuj soczewicę i odcedź. Dynię pokrój, wymieszaj z połową oliwy, tymiankiem, rozmarynem, częścią papryki, solą i pieprzem.",
+        "Piecz dynię w 200°C przez 25–30 minut. Indyka pokrój w cienkie paski, dopraw czosnkiem i pozostałą papryką, a następnie dokładnie usmaż na patelni nieprzywierającej.",
+        "Usuń twarde łodygi jarmużu i posiekaj liście. Z reszty oliwy, soku pomarańczowego, musztardy i miodu zrób sos.",
+        "Połącz soczewicę, dynię, indyka, jarmuż, fetę i żurawinę. Dodaj sos i pestki dyni, podziel na porcje."
+      ],
+      "suggested_seasonings": [],
+      "ingredients": [
+        [
+          "Soczewica zielona",
+          "50",
+          "g",
+          false
+        ],
+        [
+          "Filet z indyka",
+          "150",
+          "g",
+          false
+        ],
+        [
+          "Dynia hokkaido",
+          "150",
+          "g",
+          false
+        ],
+        [
+          "Jarmuż",
+          "50",
+          "g",
+          false
+        ],
+        [
+          "Ser feta",
+          "50",
+          "g",
+          false
+        ],
+        [
+          "Żurawina suszona",
+          "20",
+          "g",
+          false
+        ],
+        [
+          "Pestki dyni",
+          "10",
+          "g",
+          false
+        ],
+        [
+          "Oliwa z oliwek",
+          "15",
+          "ml",
+          false
+        ],
+        [
+          "Sok pomarańczowy",
+          "50",
+          "ml",
+          false
+        ],
+        [
+          "Musztarda",
+          "10",
+          "g",
+          false
+        ],
+        [
+          "Miód",
+          "12",
+          "g",
+          false
+        ],
+        [
+          "Sól",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Pieprz czarny mielony",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Tymianek suszony",
+          "1.5",
+          "g",
+          false
+        ],
+        [
+          "Papryka słodka",
+          "1.5",
+          "g",
+          false
+        ],
+        [
+          "Czosnek granulowany",
+          "1.5",
+          "g",
+          false
+        ],
+        [
+          "Rozmaryn suszony",
+          "1.5",
+          "g",
+          false
+        ]
+      ]
+    },
+    {
+      "name": "Szakszuka z dynią",
+      "description": "Jesienna propozycja: szakszuka z dynią. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "cuisine": "międzynarodowa",
+      "meal_type": "śniadanie",
+      "prep_time_min": 15,
+      "cook_time_min": 35,
+      "servings": 1,
+      "difficulty": "łatwy",
+      "tags": [
+        "sezonowe",
+        "wegetariańskie"
+      ],
+      "instructions": [
+        "Pokrój dynię, cebulę i paprykę, posiekaj czosnek. Na oliwie zeszklij cebulę.",
+        "Dodaj pozostałe warzywa, chwilę podsmaż i dołóż pomidory oraz przyprawy. Duś do miękkości dyni, w razie potrzeby podlewając wodą.",
+        "Zrób zagłębienia w sosie i wbij jajka. Przykryj i gotuj łagodnie, aż jajka osiągną wybrany stopień ścięcia.",
+        "Posyp natką i podaj z pieczywem."
+      ],
+      "suggested_seasonings": [],
+      "ingredients": [
+        [
+          "Dynia hokkaido",
+          "200",
+          "g",
+          false
+        ],
+        [
+          "Cebula",
+          "80",
+          "g",
+          false
+        ],
+        [
+          "Papryka czerwona",
+          "85",
+          "g",
+          false
+        ],
+        [
+          "Czosnek",
+          "6",
+          "g",
+          false
+        ],
+        [
+          "Pomidory krojone",
+          "200",
+          "g",
+          false
+        ],
+        [
+          "Oliwa z oliwek",
+          "5",
+          "ml",
+          false
+        ],
+        [
+          "Jajka",
+          "2",
+          "szt",
+          false
+        ],
+        [
+          "Papryka słodka",
+          "1.5",
+          "g",
+          false
+        ],
+        [
+          "Oregano",
+          "1.5",
+          "g",
+          false
+        ],
+        [
+          "Sól",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Pieprz czarny mielony",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Natka pietruszki",
+          "5",
+          "g",
+          false
+        ],
+        [
+          "Chleb żytni razowy",
+          "60",
+          "g",
+          false
+        ]
+      ]
+    },
+    {
+      "name": "Jajka po turecku z pieczoną dynią",
+      "description": "Jesienna propozycja: jajka po turecku z pieczoną dynią. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "cuisine": "międzynarodowa",
+      "meal_type": "śniadanie",
+      "prep_time_min": 15,
+      "cook_time_min": 30,
+      "servings": 1,
+      "difficulty": "średni",
+      "tags": [
+        "sezonowe",
+        "wegetariańskie"
+      ],
+      "instructions": [
+        "Dynię pokrój, obtocz w oliwie, słodkiej i wędzonej papryce, kuminie, czosnku granulowanym oraz części soli. Piecz w 200°C z termoobiegiem przez 25–30 minut.",
+        "Jogurt połącz ze świeżym czosnkiem i sokiem z cytryny.",
+        "Wodę z octem doprowadź do łagodnego wrzenia. Ostrożnie wsuń jajka i gotuj w koszulce, aż białka się zetną; wyjmij łyżką cedzakową.",
+        "Na jogurcie i dyni ułóż jajka. Dodaj koperek, pestki dyni, ostrą paprykę i pozostałą sól. Podaj z chlebem."
+      ],
+      "suggested_seasonings": [],
+      "ingredients": [
+        [
+          "Dynia hokkaido",
+          "150",
+          "g",
+          false
+        ],
+        [
+          "Oliwa z oliwek",
+          "5",
+          "ml",
+          false
+        ],
+        [
+          "Papryka słodka",
+          "1.5",
+          "g",
+          false
+        ],
+        [
+          "Papryka wędzona",
+          "1.5",
+          "g",
+          false
+        ],
+        [
+          "Kmin rzymski",
+          "1",
+          "g",
+          false
+        ],
+        [
+          "Czosnek granulowany",
+          "1.5",
+          "g",
+          false
+        ],
+        [
+          "Sól",
+          "0.50",
+          "g",
+          false
+        ],
+        [
+          "Jajka",
+          "2",
+          "szt",
+          false
+        ],
+        [
+          "Ocet spirytusowy",
+          "10",
+          "ml",
+          false
+        ],
+        [
+          "Jogurt grecki",
+          "100",
+          "g",
+          false
+        ],
+        [
+          "Czosnek",
+          "3",
+          "g",
+          false
+        ],
+        [
+          "Sok z cytryny",
+          "6",
+          "ml",
+          false
+        ],
+        [
+          "Papryka ostra",
+          "1",
+          "g",
+          false
+        ],
+        [
+          "Pestki dyni",
+          "10",
+          "g",
+          false
+        ],
+        [
+          "Koperek świeży",
+          "4",
+          "g",
+          false
+        ],
+        [
+          "Chleb żytni razowy",
+          "60",
+          "g",
+          false
+        ]
+      ]
+    },
+    {
+      "name": "Omlet z kurkami",
+      "description": "Jesienna propozycja: omlet z kurkami. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "cuisine": "międzynarodowa",
+      "meal_type": "śniadanie",
+      "prep_time_min": 5,
+      "cook_time_min": 15,
+      "servings": 1,
+      "difficulty": "łatwy",
+      "tags": [
+        "sezonowe",
+        "wegetariańskie"
+      ],
+      "instructions": [
+        "Kurki dokładnie oczyść i osusz, większe pokrój. Podsmaż na oliwie, aż zmiękną i odparują.",
+        "Roztrzep jajka z mlekiem i mąką. Dodaj sól, pieprz i tymianek.",
+        "Wlej masę na grzyby i smaż na małym ogniu do ścięcia jajek. W razie potrzeby przykryj na końcu.",
+        "Podaj z chlebem i szczypiorkiem."
+      ],
+      "suggested_seasonings": [],
+      "ingredients": [
+        [
+          "Jajka",
+          "2",
+          "szt",
+          false
+        ],
+        [
+          "Kurki świeże",
+          "100",
+          "g",
+          false
+        ],
+        [
+          "Mleko 2%",
+          "50",
+          "ml",
+          false
+        ],
+        [
+          "Mąka pszenna pełnoziarnista",
+          "30",
+          "g",
+          false
+        ],
+        [
+          "Chleb żytni razowy",
+          "60",
+          "g",
+          false
+        ],
+        [
+          "Oliwa z oliwek",
+          "10",
+          "ml",
+          false
+        ],
+        [
+          "Sól",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Pieprz czarny mielony",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Tymianek suszony",
+          "1.5",
+          "g",
+          false
+        ],
+        [
+          "Szczypiorek",
+          "5",
+          "g",
+          false
+        ]
+      ]
+    },
+    {
+      "name": "Kapuśniak z granulatem sojowym",
+      "description": "Jesienna propozycja: kapuśniak z granulatem sojowym. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "cuisine": "międzynarodowa",
+      "meal_type": "obiad",
+      "prep_time_min": 15,
+      "cook_time_min": 45,
+      "servings": 2,
+      "difficulty": "łatwy",
+      "tags": [
+        "sezonowe",
+        "wegańskie",
+        "wegetariańskie"
+      ],
+      "instructions": [
+        "Granulat namocz w gorącej wodzie zgodnie z opakowaniem, odcedź i połącz z sosem sojowym. Rozłóż na blasze i podpiecz w 180°C przez około 10 minut.",
+        "Cebulę posiekaj, a ziemniaki, marchew i korzeń pietruszki pokrój. Podsmaż warzywa na oliwie.",
+        "Dodaj gotowy bulion, liście laurowe, ziele angielskie, kumin, majeranek i paprykę. Gotuj, aż ziemniaki zmiękną, potem dołóż posiekaną kapustę i koncentrat.",
+        "Gotuj jeszcze przez 10–15 minut. Usuń całe liście i ziele angielskie, dodaj granulat, sól i pieprz; podziel na porcje."
+      ],
+      "suggested_seasonings": [],
+      "ingredients": [
+        [
+          "Granulat sojowy suchy",
+          "150",
+          "g",
+          false
+        ],
+        [
+          "Sos sojowy",
+          "20",
+          "g",
+          false
+        ],
+        [
+          "Oliwa z oliwek",
+          "20",
+          "ml",
+          false
+        ],
+        [
+          "Ziemniaki",
+          "210",
+          "g",
+          false
+        ],
+        [
+          "Marchew",
+          "160",
+          "g",
+          false
+        ],
+        [
+          "Pietruszka korzeń",
+          "50",
+          "g",
+          false
+        ],
+        [
+          "Cebula",
+          "80",
+          "g",
+          false
+        ],
+        [
+          "Bulion warzywny gotowy",
+          "1000",
+          "ml",
+          false
+        ],
+        [
+          "Kapusta kiszona",
+          "400",
+          "g",
+          false
+        ],
+        [
+          "Koncentrat pomidorowy",
+          "25",
+          "g",
+          false
+        ],
+        [
+          "Majeranek suszony",
+          "4",
+          "g",
+          false
+        ],
+        [
+          "Kmin rzymski",
+          "2.5",
+          "g",
+          false
+        ],
+        [
+          "Papryka wędzona",
+          "1.5",
+          "g",
+          false
+        ],
+        [
+          "Liść laurowy",
+          "2",
+          "g",
+          false
+        ],
+        [
+          "Ziele angielskie",
+          "3",
+          "g",
+          false
+        ],
+        [
+          "Sól",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Pieprz czarny mielony",
+          "0.25",
+          "g",
+          false
+        ]
+      ]
+    },
+    {
+      "name": "Sałatka z kurczakiem, dynią i kaszą jaglaną",
+      "description": "Jesienna propozycja: sałatka z kurczakiem, dynią i kaszą jaglaną. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "cuisine": "międzynarodowa",
+      "meal_type": "obiad",
+      "prep_time_min": 15,
+      "cook_time_min": 30,
+      "servings": 2,
+      "difficulty": "łatwy",
+      "tags": [
+        "sezonowe"
+      ],
+      "instructions": [
+        "Ugotuj kaszę jaglaną i ostudź. Dynię pokrój, dopraw solą i cynamonem, skrop oliwą.",
+        "Piecz dynię w 200°C przez 20–25 minut do miękkości. Kurczaka ugotuj do całkowitego ścięcia mięsa i pokrój.",
+        "Połącz jogurt, sok z cytryny, koperek i pieprz. Wymieszaj kaszę, dynię, kurczaka i rukolę z sosem."
+      ],
+      "suggested_seasonings": [],
+      "ingredients": [
+        [
+          "Kasza jaglana",
+          "100",
+          "g",
+          false
+        ],
+        [
+          "Pierś z kurczaka",
+          "150",
+          "g",
+          false
+        ],
+        [
+          "Dynia hokkaido",
+          "200",
+          "g",
+          false
+        ],
+        [
+          "Rukola",
+          "75",
+          "g",
+          false
+        ],
+        [
+          "Oliwa z oliwek",
+          "20",
+          "ml",
+          false
+        ],
+        [
+          "Sól",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Pieprz czarny mielony",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Cynamon",
+          "2",
+          "g",
+          false
+        ],
+        [
+          "Jogurt naturalny",
+          "60",
+          "g",
+          false
+        ],
+        [
+          "Sok z cytryny",
+          "12",
+          "ml",
+          false
+        ],
+        [
+          "Koperek świeży",
+          "8",
+          "g",
+          false
+        ]
+      ]
+    },
+    {
+      "name": "Łosoś z buraczaną kaszą jaglaną",
+      "description": "Jesienna propozycja: łosoś z buraczaną kaszą jaglaną. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "cuisine": "międzynarodowa",
+      "meal_type": "obiad",
+      "prep_time_min": 15,
+      "cook_time_min": 45,
+      "servings": 1,
+      "difficulty": "łatwy",
+      "tags": [
+        "sezonowe"
+      ],
+      "instructions": [
+        "Połącz sok z cytryny, sos sojowy, miód i chili. Natrzyj łososia i marynuj w lodówce przez około 30 minut.",
+        "Ugotuj kaszę. Buraka ugotuj do miękkości i zetrzyj, następnie podgrzej na oliwie z kaszą, solą i pieprzem.",
+        "Usmaż łososia z marynatą do pełnego ugotowania ryby, doprowadzając sos do wrzenia. Podaj na kaszy i posyp natką."
+      ],
+      "suggested_seasonings": [],
+      "ingredients": [
+        [
+          "Buraki",
+          "100",
+          "g",
+          false
+        ],
+        [
+          "Kasza jaglana",
+          "50",
+          "g",
+          false
+        ],
+        [
+          "Sól",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Pieprz czarny mielony",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Oliwa z oliwek",
+          "5",
+          "ml",
+          false
+        ],
+        [
+          "Natka pietruszki",
+          "5",
+          "g",
+          false
+        ],
+        [
+          "Łosoś filet",
+          "150",
+          "g",
+          false
+        ],
+        [
+          "Sok z cytryny",
+          "12",
+          "ml",
+          false
+        ],
+        [
+          "Miód",
+          "18",
+          "g",
+          false
+        ],
+        [
+          "Sos sojowy",
+          "15",
+          "g",
+          false
+        ],
+        [
+          "Płatki chili",
+          "5",
+          "g",
+          false
+        ]
+      ]
+    },
+    {
+      "name": "Sałatka ze stekiem, burakiem i dynią",
+      "description": "Jesienna propozycja: sałatka ze stekiem, burakiem i dynią. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "cuisine": "międzynarodowa",
+      "meal_type": "obiad",
+      "prep_time_min": 15,
+      "cook_time_min": 30,
+      "servings": 2,
+      "difficulty": "średni",
+      "tags": [
+        "sezonowe"
+      ],
+      "instructions": [
+        "Pokrój dynię i buraka. Piecz na papierze w 200°C z termoobiegiem przez 25–30 minut, do miękkości.",
+        "Ugotuj komosę. Stek dopraw solą i pieprzem, usmaż do wybranego stopnia wysmażenia, odstaw na chwilę i pokrój w paski.",
+        "Wymieszaj oliwę, ocet balsamiczny, musztardę i miód. Połącz komosę, warzywa, rukolę i nerkowce ze stekiem i sosem."
+      ],
+      "suggested_seasonings": [],
+      "ingredients": [
+        [
+          "Rostbef wołowy",
+          "150",
+          "g",
+          false
+        ],
+        [
+          "Buraki",
+          "100",
+          "g",
+          false
+        ],
+        [
+          "Dynia hokkaido",
+          "150",
+          "g",
+          false
+        ],
+        [
+          "Quinoa",
+          "50",
+          "g",
+          false
+        ],
+        [
+          "Rukola",
+          "75",
+          "g",
+          false
+        ],
+        [
+          "Orzechy nerkowca",
+          "20",
+          "g",
+          false
+        ],
+        [
+          "Sól",
+          "0.50",
+          "g",
+          false
+        ],
+        [
+          "Pieprz czarny mielony",
+          "0.50",
+          "g",
+          false
+        ],
+        [
+          "Oliwa z oliwek",
+          "10",
+          "ml",
+          false
+        ],
+        [
+          "Ocet balsamiczny",
+          "10",
+          "ml",
+          false
+        ],
+        [
+          "Musztarda",
+          "10",
+          "g",
+          false
+        ],
+        [
+          "Miód",
+          "18",
+          "g",
+          false
+        ]
+      ]
+    },
+    {
+      "name": "Ciasto dyniowe z mikrofalówki",
+      "description": "Jesienna propozycja: ciasto dyniowe z mikrofalówki. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "cuisine": "międzynarodowa",
+      "meal_type": "deser",
+      "prep_time_min": 8,
+      "cook_time_min": 2,
+      "servings": 1,
+      "difficulty": "łatwy",
+      "tags": [
+        "sezonowe",
+        "wegetariańskie"
+      ],
+      "instructions": [
+        "W naczyniu odpowiednim do mikrofalówki wymieszaj puree z dyni, jajko, roztopione masło i większą część erytrytolu.",
+        "Dodaj mąkę owsianą, proszek do pieczenia, imbir i połowę cynamonu. Wymieszaj bez grudek.",
+        "Podgrzewaj na wysokiej mocy przez około 5–6 minut. Sprawdź środek patyczkiem i w razie potrzeby podgrzej dłużej; naczynie będzie gorące.",
+        "Mascarpone wymieszaj z pozostałym erytrytolem. Nałóż na lekko przestudzone ciasto i posyp resztą cynamonu."
+      ],
+      "suggested_seasonings": [],
+      "ingredients": [
+        [
+          "Puree z dyni",
+          "150",
+          "g",
+          false
+        ],
+        [
+          "Mąka owsiana",
+          "24",
+          "g",
+          false
+        ],
+        [
+          "Jajka",
+          "1",
+          "szt",
+          false
+        ],
+        [
+          "Erytrytol",
+          "15",
+          "g",
+          false
+        ],
+        [
+          "Proszek do pieczenia",
+          "2",
+          "g",
+          false
+        ],
+        [
+          "Cynamon",
+          "4",
+          "g",
+          false
+        ],
+        [
+          "Imbir mielony",
+          "0.5",
+          "g",
+          false
+        ],
+        [
+          "Masło extra",
+          "5",
+          "g",
+          false
+        ],
+        [
+          "Mascarpone",
+          "72",
+          "g",
+          false
+        ]
+      ]
+    },
+    {
+      "name": "Placki dyniowe z jabłkiem",
+      "description": "Jesienna propozycja: placki dyniowe z jabłkiem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "cuisine": "międzynarodowa",
+      "meal_type": "deser",
+      "prep_time_min": 15,
+      "cook_time_min": 10,
+      "servings": 2,
+      "difficulty": "łatwy",
+      "tags": [
+        "sezonowe",
+        "wegetariańskie"
+      ],
+      "instructions": [
+        "Zetrzyj dynię. Połącz z jogurtem, jajkami i ksylitolem.",
+        "Dodaj mąkę wymieszaną z proszkiem do pieczenia. Krótko wymieszaj.",
+        "Na patelni posmarowanej oliwą smaż małe placki na umiarkowanym ogniu, z obu stron, aż środek będzie dopieczony.",
+        "Podaj z pokrojonym jabłkiem, miodem i cynamonem."
+      ],
+      "suggested_seasonings": [],
+      "ingredients": [
+        [
+          "Dynia hokkaido",
+          "200",
+          "g",
+          false
+        ],
+        [
+          "Jogurt naturalny",
+          "100",
+          "g",
+          false
+        ],
+        [
+          "Jajka",
+          "2",
+          "szt",
+          false
+        ],
+        [
+          "Ksylitol",
+          "45",
+          "g",
+          false
+        ],
+        [
+          "Mąka orkiszowa",
+          "150",
+          "g",
+          false
+        ],
+        [
+          "Proszek do pieczenia",
+          "6",
+          "g",
+          false
+        ],
+        [
+          "Oliwa z oliwek",
+          "5",
+          "ml",
+          false
+        ],
+        [
+          "Miód",
+          "24",
+          "g",
+          false
+        ],
+        [
+          "Jabłka",
+          "150",
+          "g",
+          false
+        ],
+        [
+          "Cynamon",
+          "2",
+          "g",
+          false
+        ]
+      ]
+    },
+    {
+      "name": "Curry dyniowe z ananasem",
+      "description": "Jesienna propozycja: curry dyniowe z ananasem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "cuisine": "międzynarodowa",
+      "meal_type": "obiad",
+      "prep_time_min": 15,
+      "cook_time_min": 25,
+      "servings": 3,
+      "difficulty": "łatwy",
+      "tags": [
+        "sezonowe",
+        "wegańskie",
+        "wegetariańskie"
+      ],
+      "instructions": [
+        "Ugotuj ryż. Pokrój dynię, cebulę, czosnek, pomidorki i ananasa; odsącz ciecierzycę.",
+        "Na oliwie podsmaż cebulę, czosnek i dynię. Dodaj pomidorki, ananasa, ciecierzycę i curry.",
+        "Wlej mleko kokosowe i duś przez 15–20 minut, aż dynia będzie miękka. Dopraw solą, pieprzem i kolendrą, podaj z ryżem."
+      ],
+      "suggested_seasonings": [],
+      "ingredients": [
+        [
+          "Dynia hokkaido",
+          "1000",
+          "g",
+          false
+        ],
+        [
+          "Oliwa z oliwek",
+          "10",
+          "ml",
+          false
+        ],
+        [
+          "Cebula",
+          "80",
+          "g",
+          false
+        ],
+        [
+          "Czosnek",
+          "12",
+          "g",
+          false
+        ],
+        [
+          "Curry w proszku",
+          "4",
+          "g",
+          false
+        ],
+        [
+          "Pomidorki koktajlowe",
+          "300",
+          "g",
+          false
+        ],
+        [
+          "Ananas",
+          "200",
+          "g",
+          false
+        ],
+        [
+          "Mleko kokosowe",
+          "200",
+          "ml",
+          false
+        ],
+        [
+          "Ciecierzyca konserwowa",
+          "120",
+          "g",
+          false
+        ],
+        [
+          "Sól",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Pieprz czarny mielony",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Kolendra świeża",
+          "2",
+          "g",
+          false
+        ],
+        [
+          "Ryż basmati",
+          "150",
+          "g",
+          false
+        ]
+      ]
+    },
+    {
+      "name": "Hummus dyniowy",
+      "description": "Jesienna propozycja: hummus dyniowy. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "cuisine": "międzynarodowa",
+      "meal_type": "kolacja",
+      "prep_time_min": 10,
+      "cook_time_min": 40,
+      "servings": 3,
+      "difficulty": "łatwy",
+      "tags": [
+        "sezonowe",
+        "wegańskie",
+        "wegetariańskie"
+      ],
+      "instructions": [
+        "Oczyszczoną dynię pokrój i piecz w 200°C przez 25–30 minut, do miękkości. Ostudź.",
+        "Odsącz ciecierzycę, zachowując trochę zalewy. Zblenduj z dynią, tahini, czosnkiem, sokiem z cytryny, kuminem i olejem sezamowym.",
+        "Dopraw solą i pieprzem. Rozrzedź zalewą lub wodą według potrzeby. Podaj z chlebem i ogórkiem, dzieląc całość na porcje."
+      ],
+      "suggested_seasonings": [],
+      "ingredients": [
+        [
+          "Ciecierzyca konserwowa",
+          "400",
+          "g",
+          false
+        ],
+        [
+          "Sok z cytryny",
+          "3",
+          "ml",
+          false
+        ],
+        [
+          "Czosnek",
+          "6",
+          "g",
+          false
+        ],
+        [
+          "Tahini",
+          "60",
+          "g",
+          false
+        ],
+        [
+          "Kmin rzymski",
+          "5",
+          "g",
+          false
+        ],
+        [
+          "Sól",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Pieprz czarny mielony",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Olej sezamowy",
+          "10",
+          "ml",
+          false
+        ],
+        [
+          "Dynia hokkaido",
+          "150",
+          "g",
+          false
+        ],
+        [
+          "Chleb żytni razowy",
+          "180",
+          "g",
+          false
+        ],
+        [
+          "Ogórek",
+          "300",
+          "g",
+          false
+        ]
+      ]
+    },
+    {
+      "name": "Makaron z dynią i fetą",
+      "description": "Jesienna propozycja: makaron z dynią i fetą. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "cuisine": "międzynarodowa",
+      "meal_type": "obiad",
+      "prep_time_min": 15,
+      "cook_time_min": 25,
+      "servings": 2,
+      "difficulty": "łatwy",
+      "tags": [
+        "sezonowe"
+      ],
+      "instructions": [
+        "Ugotuj makaron. Pokrój dynię, cebulę i czosnek; dynię krótko podgotuj i odcedź.",
+        "Podsmaż cebulę i czosnek na oliwie, dodaj dynię i gotowy bulion. Duś do miękkości dyni.",
+        "Zdejmij z ognia, dodaj śmietanę i ostrożnie zblenduj. Dopraw solą i pieprzem.",
+        "Połącz sos z makaronem. Dodaj pokruszoną fetę i pestki dyni."
+      ],
+      "suggested_seasonings": [],
+      "ingredients": [
+        [
+          "Makaron pełnoziarnisty",
+          "80",
+          "g",
+          false
+        ],
+        [
+          "Czosnek",
+          "6",
+          "g",
+          false
+        ],
+        [
+          "Cebula",
+          "40",
+          "g",
+          false
+        ],
+        [
+          "Dynia hokkaido",
+          "200",
+          "g",
+          false
+        ],
+        [
+          "Oliwa z oliwek",
+          "10",
+          "ml",
+          false
+        ],
+        [
+          "Bulion warzywny gotowy",
+          "125",
+          "ml",
+          false
+        ],
+        [
+          "Śmietana 12%",
+          "36",
+          "g",
+          false
+        ],
+        [
+          "Sól",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Pieprz czarny mielony",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Ser feta",
+          "100",
+          "g",
+          false
+        ],
+        [
+          "Pestki dyni",
+          "20",
+          "g",
+          false
+        ]
+      ]
+    },
+    {
+      "name": "Karkówka w sosie grzybowym z puree",
+      "description": "Jesienna propozycja: karkówka w sosie grzybowym z puree. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "cuisine": "międzynarodowa",
+      "meal_type": "obiad",
+      "prep_time_min": 15,
+      "cook_time_min": 50,
+      "servings": 1,
+      "difficulty": "średni",
+      "tags": [
+        "sezonowe"
+      ],
+      "instructions": [
+        "Karkówkę pokrój, dopraw czosnkiem, częścią soli i pieprzu; odstaw w lodówce na około 30 minut.",
+        "Ugotuj ziemniaki, odcedź i rozgnieć z mlekiem, masłem oraz pozostałą solą.",
+        "Oczyszczone grzyby pokrój. Obsmaż mięso na oleju, dodaj grzyby, a po odparowaniu gotowy bulion. Duś do miękkości mięsa i grzybów.",
+        "Śmietanę połącz z odrobiną gorącego sosu, wlej do garnka i podgrzej z tymiankiem oraz resztą pieprzu. Podaj z puree, ogórkiem i natką."
+      ],
+      "suggested_seasonings": [],
+      "ingredients": [
+        [
+          "Ziemniaki",
+          "210",
+          "g",
+          false
+        ],
+        [
+          "Mleko 1,5%",
+          "45",
+          "ml",
+          false
+        ],
+        [
+          "Masło extra",
+          "5",
+          "g",
+          false
+        ],
+        [
+          "Sól",
+          "0.75",
+          "g",
+          false
+        ],
+        [
+          "Karkówka wieprzowa",
+          "125",
+          "g",
+          false
+        ],
+        [
+          "Pieprz czarny mielony",
+          "0.5",
+          "g",
+          false
+        ],
+        [
+          "Czosnek",
+          "3",
+          "g",
+          false
+        ],
+        [
+          "Olej rzepakowy",
+          "5",
+          "ml",
+          false
+        ],
+        [
+          "Grzyby leśne świeże",
+          "100",
+          "g",
+          false
+        ],
+        [
+          "Bulion warzywny gotowy",
+          "125",
+          "ml",
+          false
+        ],
+        [
+          "Tymianek suszony",
+          "1.5",
+          "g",
+          false
+        ],
+        [
+          "Śmietana 12%",
+          "36",
+          "g",
+          false
+        ],
+        [
+          "Ogórki kiszone",
+          "100",
+          "g",
+          false
+        ],
+        [
+          "Natka pietruszki",
+          "15",
+          "g",
+          false
+        ]
+      ]
+    },
+    {
+      "name": "Owsianka z suszonymi śliwkami i czekoladą",
+      "description": "Jesienna propozycja: owsianka z suszonymi śliwkami i czekoladą. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "cuisine": "międzynarodowa",
+      "meal_type": "śniadanie",
+      "prep_time_min": 5,
+      "cook_time_min": 10,
+      "servings": 1,
+      "difficulty": "łatwy",
+      "tags": [
+        "sezonowe",
+        "wegetariańskie"
+      ],
+      "instructions": [
+        "Ugotuj płatki na mleku do miękkości. Odstaw na chwilę, aby lekko przestygły.",
+        "Dodaj skyr, kakao i erytrytol. Dokładnie wymieszaj.",
+        "Posiekaj śliwki i czekoladę, dodaj do owsianki i podaj."
+      ],
+      "suggested_seasonings": [],
+      "ingredients": [
+        [
+          "Płatki owsiane",
+          "40",
+          "g",
+          false
+        ],
+        [
+          "Mleko 2%",
+          "125",
+          "ml",
+          false
+        ],
+        [
+          "Skyr waniliowy",
+          "150",
+          "g",
+          false
+        ],
+        [
+          "Erytrytol",
+          "5",
+          "g",
+          false
+        ],
+        [
+          "Kakao ciemne",
+          "5",
+          "g",
+          false
+        ],
+        [
+          "Śliwki suszone",
+          "30",
+          "g",
+          false
+        ],
+        [
+          "Czekolada gorzka",
+          "20",
+          "g",
+          false
+        ]
+      ]
+    },
+    {
+      "name": "Makaron z camembertem i pomidorami",
+      "description": "Jesienna propozycja: makaron z camembertem i pomidorami. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "cuisine": "międzynarodowa",
+      "meal_type": "obiad",
+      "prep_time_min": 10,
+      "cook_time_min": 25,
+      "servings": 2,
+      "difficulty": "łatwy",
+      "tags": [
+        "sezonowe"
+      ],
+      "instructions": [
+        "Ugotuj makaron. Piekarnik nagrzej do 180°C.",
+        "W naczyniu do zapiekania ułóż camembert, pomidorki i czosnek. Dodaj oliwę, sól i pieprz.",
+        "Piecz przez 15–20 minut, aż ser się roztopi, a pomidorki zmiękną. Wymieszaj z makaronem i polej miodem."
+      ],
+      "suggested_seasonings": [],
+      "ingredients": [
+        [
+          "Makaron penne",
+          "100",
+          "g",
+          false
+        ],
+        [
+          "Ser camembert",
+          "120",
+          "g",
+          false
+        ],
+        [
+          "Pomidorki koktajlowe",
+          "200",
+          "g",
+          false
+        ],
+        [
+          "Czosnek",
+          "12",
+          "g",
+          false
+        ],
+        [
+          "Oliwa z oliwek",
+          "20",
+          "ml",
+          false
+        ],
+        [
+          "Sól",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Pieprz czarny mielony",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Miód",
+          "12",
+          "g",
+          false
+        ]
+      ]
+    },
+    {
+      "name": "Bowl z kurczakiem, burakiem i dynią",
+      "description": "Jesienna propozycja: bowl z kurczakiem, burakiem i dynią. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "cuisine": "międzynarodowa",
+      "meal_type": "obiad",
+      "prep_time_min": 15,
+      "cook_time_min": 40,
+      "servings": 1,
+      "difficulty": "łatwy",
+      "tags": [
+        "sezonowe"
+      ],
+      "instructions": [
+        "Ugotuj pęczak. Pokrój dynię i buraka, dopraw częścią soli i pieprzu i piecz w 200°C przez około 40 minut, do miękkości.",
+        "Kurczaka dopraw ziołami oraz pozostałą solą i pieprzem. Ugotuj na parze do całkowitego ścięcia mięsa.",
+        "Wymieszaj oliwę, sok z cytryny i posiekaną natkę. Ułóż w misce kaszę, warzywa oraz pokrojonego kurczaka i dodaj sos."
+      ],
+      "suggested_seasonings": [],
+      "ingredients": [
+        [
+          "Pierś z kurczaka",
+          "150",
+          "g",
+          false
+        ],
+        [
+          "Sól",
+          "0.75",
+          "g",
+          false
+        ],
+        [
+          "Pieprz czarny mielony",
+          "0.75",
+          "g",
+          false
+        ],
+        [
+          "Zioła prowansalskie",
+          "1.5",
+          "g",
+          false
+        ],
+        [
+          "Dynia hokkaido",
+          "100",
+          "g",
+          false
+        ],
+        [
+          "Buraki",
+          "100",
+          "g",
+          false
+        ],
+        [
+          "Kasza pęczak",
+          "50",
+          "g",
+          false
+        ],
+        [
+          "Oliwa z oliwek",
+          "10",
+          "ml",
+          false
+        ],
+        [
+          "Sok z cytryny",
+          "6",
+          "ml",
+          false
+        ],
+        [
+          "Natka pietruszki",
+          "5",
+          "g",
+          false
+        ]
+      ]
+    },
+    {
+      "name": "Pieczona owsianka z gruszkami i imbirem",
+      "description": "Jesienna propozycja: pieczona owsianka z gruszkami i imbirem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "cuisine": "międzynarodowa",
+      "meal_type": "śniadanie",
+      "prep_time_min": 10,
+      "cook_time_min": 35,
+      "servings": 3,
+      "difficulty": "łatwy",
+      "tags": [
+        "sezonowe",
+        "wegetariańskie"
+      ],
+      "instructions": [
+        "Nagrzej piekarnik do 180°C. Naczynie do zapiekania o wymiarach 20 × 20 cm posmaruj olejem.",
+        "Połącz płatki z proszkiem do pieczenia, cynamonem, imbirem i solą. Osobno roztrzep jajka z mlekiem, syropem i wanilią.",
+        "Połącz obie mieszanki i dodaj pokrojone gruszki. Przełóż do naczynia i piecz przez około 35 minut, aż masa się zetnie. Podziel na porcje."
+      ],
+      "suggested_seasonings": [],
+      "ingredients": [
+        [
+          "Płatki owsiane",
+          "200",
+          "g",
+          false
+        ],
+        [
+          "Proszek do pieczenia",
+          "4",
+          "g",
+          false
+        ],
+        [
+          "Cynamon",
+          "2",
+          "g",
+          false
+        ],
+        [
+          "Imbir mielony",
+          "2",
+          "g",
+          false
+        ],
+        [
+          "Sól",
+          "0.25",
+          "g",
+          false
+        ],
+        [
+          "Jajka",
+          "2",
+          "szt",
+          false
+        ],
+        [
+          "Mleko 2%",
+          "375",
+          "ml",
+          false
+        ],
+        [
+          "Syrop klonowy",
+          "70",
+          "g",
+          false
+        ],
+        [
+          "Ekstrakt waniliowy",
+          "3",
+          "g",
+          false
+        ],
+        [
+          "Gruszki",
+          "260",
+          "g",
+          false
+        ],
+        [
+          "Olej rzepakowy",
+          "5",
+          "ml",
+          false
+        ]
+      ]
+    },
+    {
+      "name": "Francuskie trójkąty z jabłkiem",
+      "description": "Jesienna propozycja: francuskie trójkąty z jabłkiem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "cuisine": "międzynarodowa",
+      "meal_type": "deser",
+      "prep_time_min": 10,
+      "cook_time_min": 20,
+      "servings": 3,
+      "difficulty": "łatwy",
+      "tags": [
+        "sezonowe",
+        "wegetariańskie"
+      ],
+      "instructions": [
+        "Pokrój jabłka i połącz z ksylitolem, cynamonem oraz sokiem z cytryny. Nagrzej piekarnik do 200°C.",
+        "Rozwiń ciasto i wytnij kwadraty. Nałóż nadzienie, złóż w trójkąty i dokładnie sklej brzegi.",
+        "Ułóż na papierze, posmaruj roztrzepanym jajkiem i piecz przez 15–20 minut, do zarumienienia. Podziel na porcje."
+      ],
+      "suggested_seasonings": [],
+      "ingredients": [
+        [
+          "Ciasto francuskie",
+          "275",
+          "g",
+          false
+        ],
+        [
+          "Jajka",
+          "1",
+          "szt",
+          false
+        ],
+        [
+          "Jabłka",
+          "300",
+          "g",
+          false
+        ],
+        [
+          "Ksylitol",
+          "30",
+          "g",
+          false
+        ],
+        [
+          "Cynamon",
+          "4",
+          "g",
+          false
+        ],
+        [
+          "Sok z cytryny",
+          "6",
+          "ml",
+          false
+        ]
+      ]
+    }
+  ],
+  "products": [
+    {
+      "name": "Bulion warzywny gotowy",
+      "en_GB": "Prepared vegetable stock",
+      "unit": "ml",
+      "department": "Przyprawy i sosy",
+      "allergens": [
+        "seler"
+      ],
+      "nutrition": {
+        "kcal": 5,
+        "protein": 0.2,
+        "fat": 0.1,
+        "carbs": 0.7,
+        "fiber": 0
+      }
+    },
+    {
+      "name": "Chleb żytni razowy",
+      "en_GB": "Wholemeal rye bread",
+      "unit": "g",
+      "department": "Pieczywo",
+      "allergens": [
+        "gluten"
+      ],
+      "nutrition": {
+        "kcal": 220,
+        "protein": 6,
+        "fat": 1.5,
+        "carbs": 43,
+        "fiber": 7
+      }
+    },
+    {
+      "name": "Erytrytol",
+      "en_GB": "Erythritol",
+      "unit": "g",
+      "department": "Produkty suche",
+      "allergens": [],
+      "nutrition": {
+        "kcal": 0,
+        "protein": 0,
+        "fat": 0,
+        "carbs": 100,
+        "fiber": 0
+      }
+    },
+    {
+      "name": "Granulat sojowy suchy",
+      "en_GB": "Dried soya mince",
+      "unit": "g",
+      "department": "Produkty suche",
+      "allergens": [
+        "soja"
+      ],
+      "nutrition": {
+        "kcal": 328,
+        "protein": 49,
+        "fat": 1.2,
+        "carbs": 21,
+        "fiber": 15
+      }
+    },
+    {
+      "name": "Grzyby leśne świeże",
+      "en_GB": "Fresh wild mushrooms",
+      "unit": "g",
+      "department": "Warzywa i owoce",
+      "allergens": [],
+      "nutrition": {
+        "kcal": 30,
+        "protein": 3,
+        "fat": 0.5,
+        "carbs": 3,
+        "fiber": 2
+      }
+    },
+    {
+      "name": "Imbir mielony",
+      "en_GB": "Ground ginger",
+      "unit": "g",
+      "department": "Przyprawy i sosy",
+      "allergens": [],
+      "nutrition": {
+        "kcal": 335,
+        "protein": 9,
+        "fat": 4.2,
+        "carbs": 57.5,
+        "fiber": 14.1
+      }
+    },
+    {
+      "name": "Kapusta kiszona",
+      "en_GB": "Sauerkraut",
+      "unit": "g",
+      "department": "Warzywa i owoce",
+      "allergens": [],
+      "nutrition": {
+        "kcal": 19,
+        "protein": 0.9,
+        "fat": 0.1,
+        "carbs": 1.8,
+        "fiber": 2.9
+      }
+    },
+    {
+      "name": "Ksylitol",
+      "en_GB": "Xylitol",
+      "unit": "g",
+      "department": "Produkty suche",
+      "allergens": [],
+      "nutrition": {
+        "kcal": 240,
+        "protein": 0,
+        "fat": 0,
+        "carbs": 100,
+        "fiber": 0
+      }
+    },
+    {
+      "name": "Kurki świeże",
+      "en_GB": "Fresh chanterelle mushrooms",
+      "unit": "g",
+      "department": "Warzywa i owoce",
+      "allergens": [],
+      "nutrition": {
+        "kcal": 32,
+        "protein": 1.5,
+        "fat": 0.5,
+        "carbs": 3,
+        "fiber": 3.8
+      }
+    },
+    {
+      "name": "Majeranek suszony",
+      "en_GB": "Dried marjoram",
+      "unit": "g",
+      "department": "Przyprawy i sosy",
+      "allergens": [],
+      "nutrition": {
+        "kcal": 271,
+        "protein": 12.7,
+        "fat": 7,
+        "carbs": 20.3,
+        "fiber": 40.3
+      }
+    },
+    {
+      "name": "Makaron pełnoziarnisty",
+      "en_GB": "Wholewheat pasta",
+      "unit": "g",
+      "department": "Produkty suche",
+      "allergens": [
+        "gluten"
+      ],
+      "nutrition": {
+        "kcal": 350,
+        "protein": 13,
+        "fat": 2.5,
+        "carbs": 65,
+        "fiber": 8
+      }
+    },
+    {
+      "name": "Mleko 1,5%",
+      "en_GB": "Milk, 1.5% fat",
+      "unit": "ml",
+      "department": "Nabiał",
+      "allergens": [
+        "laktoza"
+      ],
+      "nutrition": {
+        "kcal": 46,
+        "protein": 3.4,
+        "fat": 1.5,
+        "carbs": 4.8,
+        "fiber": 0
+      }
+    },
+    {
+      "name": "Mozzarella light",
+      "en_GB": "Light mozzarella",
+      "unit": "g",
+      "department": "Nabiał",
+      "allergens": [
+        "laktoza"
+      ],
+      "nutrition": {
+        "kcal": 165,
+        "protein": 21,
+        "fat": 8.5,
+        "carbs": 1.5,
+        "fiber": 0
+      }
+    },
+    {
+      "name": "Mąka owsiana",
+      "en_GB": "Oat flour",
+      "unit": "g",
+      "department": "Produkty suche",
+      "allergens": [
+        "gluten"
+      ],
+      "nutrition": {
+        "kcal": 395,
+        "protein": 12.2,
+        "fat": 5.5,
+        "carbs": 62.2,
+        "fiber": 12
+      }
+    },
+    {
+      "name": "Nachosy naturalne",
+      "en_GB": "Plain tortilla chips",
+      "unit": "g",
+      "department": "Produkty suche",
+      "allergens": [],
+      "nutrition": {
+        "kcal": 490,
+        "protein": 6,
+        "fat": 23,
+        "carbs": 63,
+        "fiber": 5
+      }
+    },
+    {
+      "name": "Ocet spirytusowy",
+      "en_GB": "Distilled vinegar",
+      "unit": "ml",
+      "department": "Przyprawy i sosy",
+      "allergens": [],
+      "nutrition": {
+        "kcal": 18,
+        "protein": 0,
+        "fat": 0,
+        "carbs": 0.1,
+        "fiber": 0
+      }
+    },
+    {
+      "name": "Ogórki kiszone",
+      "en_GB": "Fermented gherkins",
+      "unit": "g",
+      "department": "Warzywa i owoce",
+      "allergens": [],
+      "nutrition": {
+        "kcal": 12,
+        "protein": 0.5,
+        "fat": 0.2,
+        "carbs": 1.4,
+        "fiber": 1
+      }
+    },
+    {
+      "name": "Papryczka chili świeża",
+      "en_GB": "Fresh chilli pepper",
+      "unit": "g",
+      "department": "Warzywa i owoce",
+      "allergens": [],
+      "nutrition": {
+        "kcal": 40,
+        "protein": 2,
+        "fat": 0.4,
+        "carbs": 7.3,
+        "fiber": 1.5
+      }
+    },
+    {
+      "name": "Polędwica wołowa",
+      "en_GB": "Beef fillet",
+      "unit": "g",
+      "department": "Mięso i wędliny",
+      "allergens": [],
+      "nutrition": {
+        "kcal": 155,
+        "protein": 20.9,
+        "fat": 7.9,
+        "carbs": 0,
+        "fiber": 0
+      }
+    },
+    {
+      "name": "Pudding proteinowy waniliowy",
+      "en_GB": "Vanilla protein pudding",
+      "unit": "g",
+      "department": "Nabiał",
+      "allergens": [
+        "laktoza"
+      ],
+      "nutrition": {
+        "kcal": 76,
+        "protein": 10,
+        "fat": 1.5,
+        "carbs": 5,
+        "fiber": 0
+      }
+    },
+    {
+      "name": "Rostbef wołowy",
+      "en_GB": "Beef sirloin",
+      "unit": "g",
+      "department": "Mięso i wędliny",
+      "allergens": [],
+      "nutrition": {
+        "kcal": 170,
+        "protein": 21,
+        "fat": 9.5,
+        "carbs": 0,
+        "fiber": 0
+      }
+    },
+    {
+      "name": "Skyr waniliowy",
+      "en_GB": "Vanilla skyr",
+      "unit": "g",
+      "department": "Nabiał",
+      "allergens": [
+        "laktoza"
+      ],
+      "nutrition": {
+        "kcal": 73,
+        "protein": 10,
+        "fat": 0.2,
+        "carbs": 7.5,
+        "fiber": 0
+      }
+    },
+    {
+      "name": "Sok pomarańczowy",
+      "en_GB": "Orange juice",
+      "unit": "ml",
+      "department": "Warzywa i owoce",
+      "allergens": [],
+      "nutrition": {
+        "kcal": 45,
+        "protein": 0.7,
+        "fat": 0.2,
+        "carbs": 10.4,
+        "fiber": 0.2
+      }
+    },
+    {
+      "name": "Sok z cytryny",
+      "en_GB": "Lemon juice",
+      "unit": "ml",
+      "department": "Warzywa i owoce",
+      "allergens": [],
+      "nutrition": {
+        "kcal": 22,
+        "protein": 0.4,
+        "fat": 0.2,
+        "carbs": 2.5,
+        "fiber": 0.3
+      }
+    },
+    {
+      "name": "Tortilla pełnoziarnista",
+      "en_GB": "Wholemeal tortilla wrap",
+      "unit": "g",
+      "department": "Pieczywo",
+      "allergens": [
+        "gluten"
+      ],
+      "nutrition": {
+        "kcal": 315,
+        "protein": 9.8,
+        "fat": 7,
+        "carbs": 51,
+        "fiber": 4.2
+      }
+    },
+    {
+      "name": "Wieprzowina mielona",
+      "en_GB": "Pork mince",
+      "unit": "g",
+      "department": "Mięso i wędliny",
+      "allergens": [],
+      "nutrition": {
+        "kcal": 230,
+        "protein": 18,
+        "fat": 17,
+        "carbs": 0,
+        "fiber": 0
+      }
+    },
+    {
+      "name": "Woda",
+      "en_GB": "Water",
+      "unit": "ml",
+      "department": "Przyprawy i sosy",
+      "allergens": [],
+      "nutrition": {
+        "kcal": 0,
+        "protein": 0,
+        "fat": 0,
+        "carbs": 0,
+        "fiber": 0
+      }
+    },
+    {
+      "name": "Śmietana 12%",
+      "en_GB": "Soured cream, 12% fat",
+      "unit": "g",
+      "department": "Nabiał",
+      "allergens": [
+        "laktoza"
+      ],
+      "nutrition": {
+        "kcal": 134,
+        "protein": 2.7,
+        "fat": 12,
+        "carbs": 3.9,
+        "fiber": 0
+      }
+    },
+    {
+      "name": "Śmietanka 12%",
+      "en_GB": "Cooking cream, 12% fat",
+      "unit": "g",
+      "department": "Nabiał",
+      "allergens": [
+        "laktoza"
+      ],
+      "nutrition": {
+        "kcal": 136,
+        "protein": 2.8,
+        "fat": 12,
+        "carbs": 4.2,
+        "fiber": 0
+      }
+    }
+  ],
+  "provenance": [
+    {
+      "name": "Sałatka z indykiem, dynią i pęczakiem",
+      "source_url": "https://centrumrespo.pl/przepisy/salatka-na-cieplo-z-kasza-peczak-indykiem-i-pieczona-dynia/",
+      "source_title": "Sałatka na ciepło z kaszą pęczak, indykiem i pieczoną dynią",
+      "source_servings": "1 porcja",
+      "source_ingredients": [
+        "50 g kaszy jęczmiennej pęczak",
+        "200 g dyni",
+        "150 g mięsa z piersi indyka",
+        "5 g oliwy",
+        "0.25 g soli",
+        "1.5 g papryki wędzonej",
+        "1.5 g czosnku granulowanego",
+        "1 g kuminu",
+        "0.25 g pieprzu czarnego",
+        "10 g nasion słonecznika",
+        "5 g natki pietruszki",
+        "0 g Dressing:",
+        "20 g masła orzechowego",
+        "10 g sosu sojowego",
+        "6 g soku z cytryny",
+        "12 g miodu",
+        "30 g wody"
+      ],
+      "source_nutrition": {
+        "@type": "NutritionInformation",
+        "servingSize": "1",
+        "calories": "643 kcal",
+        "fatContent": "23 g",
+        "proteinContent": "44 g",
+        "carbohydrateContent": "73 g",
+        "sodiumContent": "775 mg",
+        "fiberContent": "11 g"
+      },
+      "amount_conversions": [
+        {
+          "food": "Oliwa z oliwek",
+          "source_g": "5",
+          "quantity": "5",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        },
+        {
+          "food": "Sok z cytryny",
+          "source_g": "6",
+          "quantity": "6",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        },
+        {
+          "food": "Woda",
+          "source_g": "30",
+          "quantity": "30",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        }
+      ],
+      "photo_asset": "autumn-01-salatka-indyk-dynia-peczak.jpg",
+      "photo_kind": "generated",
+      "text_kind": "independently_rewritten",
+      "retrieved_on": "2026-11-02"
+    },
+    {
+      "name": "Owsianka marchewkowa z orzechami",
+      "source_url": "https://centrumrespo.pl/przepisy/owsianka-a-la-ciasto-marchewkowe-z-korzennymi-przyprawami-i-orzechami/",
+      "source_title": "Owsianka a la ciasto marchewkowe z korzennymi przyprawami i orzechami",
+      "source_servings": "1 porcja",
+      "source_ingredients": [
+        "50 g płatków owsianych",
+        "40 g marchewki",
+        "150 g mleka",
+        "150 g skyru waniliowego",
+        "10 g orzechów włoskich",
+        "10 g rodzynek",
+        "5 g erytrolu",
+        "2 g cynamonu",
+        "1 g imbiru",
+        "1 g gożdzików"
+      ],
+      "source_nutrition": {
+        "@type": "NutritionInformation",
+        "servingSize": "1",
+        "calories": "515 kcal",
+        "fatContent": "13 g",
+        "proteinContent": "29 g",
+        "carbohydrateContent": "75 g",
+        "sodiumContent": "106 mg",
+        "fiberContent": "8 g"
+      },
+      "amount_conversions": [
+        {
+          "food": "Mleko 2%",
+          "source_g": "150",
+          "quantity": "150",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        }
+      ],
+      "photo_asset": "autumn-02-owsianka-marchewkowa-orzechy.jpg",
+      "photo_kind": "generated",
+      "text_kind": "independently_rewritten",
+      "retrieved_on": "2026-11-02"
+    },
+    {
+      "name": "Quinoa z wołowiną i dynią",
+      "source_url": "https://centrumrespo.pl/przepisy/komosa-z-sosem-wolowym-z-dynia/",
+      "source_title": "Komosa z sosem wołowym z dynią",
+      "source_servings": "1 porcja",
+      "source_ingredients": [
+        "50 g komosy ryżowej",
+        "150 g polędwicy wołowej",
+        "150 g dyni",
+        "80 g cebuli",
+        "6 g czosnku",
+        "10 g oliwy",
+        "150 g passaty pomidorowej",
+        "125 g bulionu warzywnego",
+        "0.25 g soli",
+        "0.25 g pieprzu czarnego",
+        "1.5 g słodkiej papryki",
+        "1.5 g oregano suszonego",
+        "5 g natki pietruszki"
+      ],
+      "source_nutrition": {
+        "@type": "NutritionInformation",
+        "servingSize": "1",
+        "calories": "583 kcal",
+        "fatContent": "20 g",
+        "proteinContent": "45 g",
+        "carbohydrateContent": "61 g",
+        "sodiumContent": "658 mg",
+        "fiberContent": "11 g"
+      },
+      "amount_conversions": [
+        {
+          "food": "Oliwa z oliwek",
+          "source_g": "10",
+          "quantity": "10",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        },
+        {
+          "food": "Bulion warzywny gotowy",
+          "source_g": "125",
+          "quantity": "125",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        }
+      ],
+      "photo_asset": "autumn-03-quinoa-wolowina-dynia.jpg",
+      "photo_kind": "generated",
+      "text_kind": "independently_rewritten",
+      "retrieved_on": "2026-11-02"
+    },
+    {
+      "name": "Meksykańska zupa z dynią i kukurydzą",
+      "source_url": "https://centrumrespo.pl/przepisy/zupa-meksykanska-z-dynia-i-kukurydza/",
+      "source_title": "Zupa meksykańska z dynią i kukurydzą",
+      "source_servings": "2 porcje",
+      "source_ingredients": [
+        "150 g mięsa mielonego z indyka",
+        "80 g cebuli czerwonej",
+        "6 g czosnku",
+        "200 g dyni",
+        "85 g papryki czerwonej",
+        "120 g kukurydzy konserwowej",
+        "120 g fasoli czerwonej konserwowej",
+        "10 g papryczki chilli",
+        "2 g kolendry świeżej",
+        "10 g oliwy",
+        "500 g bulionu warzywnego",
+        "3 g papryki słodkiej",
+        "1.5 g papryki ostrej suszonej",
+        "0.25 g soli",
+        "0.25 g pieprzu czarnego",
+        "60 g nachosów naturalnych"
+      ],
+      "source_nutrition": {
+        "@type": "NutritionInformation",
+        "servingSize": "2",
+        "calories": "496 kcal",
+        "fatContent": "17 g",
+        "proteinContent": "25 g",
+        "carbohydrateContent": "57 g",
+        "sodiumContent": "2983 mg",
+        "fiberContent": "12 g"
+      },
+      "amount_conversions": [
+        {
+          "food": "Oliwa z oliwek",
+          "source_g": "10",
+          "quantity": "10",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        },
+        {
+          "food": "Bulion warzywny gotowy",
+          "source_g": "500",
+          "quantity": "500",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        }
+      ],
+      "photo_asset": "autumn-04-zupa-meksykanska-dynia.jpg",
+      "photo_kind": "generated",
+      "text_kind": "independently_rewritten",
+      "retrieved_on": "2026-11-02"
+    },
+    {
+      "name": "Gulasz wołowy z dynią",
+      "source_url": "https://centrumrespo.pl/przepisy/gulasz-wegierski-z-dynia/",
+      "source_title": "Gulasz węgierski z dynią",
+      "source_servings": "2 porcje",
+      "source_ingredients": [
+        "300 g polędwicy wołowej",
+        "80 g cebuli",
+        "120 g marchewki",
+        "85 g papryki czerwonej",
+        "200 g dyni",
+        "12 g czosnku",
+        "25 g koncentratu pomidorowego",
+        "500 g bulionu warzywnego",
+        "3 g papryki słodkiej",
+        "1.5 g papryki ostrej suszonej",
+        "1.5 g papryki wędzonej",
+        "0.25 g soli",
+        "0.25 g pieprzu czarnego",
+        "1.5 g tymianku suszonego",
+        "10 g oliwy",
+        "10 g natki pietruszki",
+        "120 g chleba żytniego razowego"
+      ],
+      "source_nutrition": {
+        "@type": "NutritionInformation",
+        "servingSize": "2",
+        "calories": "478 kcal",
+        "fatContent": "13 g",
+        "proteinContent": "40 g",
+        "carbohydrateContent": "57 g",
+        "sodiumContent": "3004 mg",
+        "fiberContent": "13 g"
+      },
+      "amount_conversions": [
+        {
+          "food": "Bulion warzywny gotowy",
+          "source_g": "500",
+          "quantity": "500",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        },
+        {
+          "food": "Oliwa z oliwek",
+          "source_g": "10",
+          "quantity": "10",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        }
+      ],
+      "photo_asset": "autumn-05-gulasz-wegierski-dynia.jpg",
+      "photo_kind": "generated",
+      "text_kind": "independently_rewritten",
+      "retrieved_on": "2026-11-02"
+    },
+    {
+      "name": "Pęczotto z wieprzowiną i burakami",
+      "source_url": "https://centrumrespo.pl/przepisy/jednogarnkowe-peczotto-z-mielona-wolowina-i-burakiem/",
+      "source_title": "Pęczotto z mieloną wieprzowiną i burakiem",
+      "source_servings": "3 porcje",
+      "source_ingredients": [
+        "0 g Pęczotto:",
+        "150 g kaszy jęczmiennej pęczak",
+        "300 g ugotowanych buraków",
+        "700 g bulionu warzywnego",
+        "10 g oliwy z oliwek",
+        "40 g cebuli",
+        "6 g czosnku",
+        "5 g octu balsamicznego",
+        "0.25 g soli",
+        "0.25 g pieprzu",
+        "0 g Do mięsa:",
+        "250 g mielonego mięsa wieprzowego",
+        "10 g oliwy z oliwek",
+        "0.25 g soli",
+        "0.25 g pieprzu",
+        "0 g Do podania:",
+        "20 g natki pietruszki",
+        "20 g pestek dyni"
+      ],
+      "source_nutrition": {
+        "@type": "NutritionInformation",
+        "servingSize": "3",
+        "calories": "540 kcal",
+        "fatContent": "28 g",
+        "proteinContent": "24 g",
+        "carbohydrateContent": "51 g",
+        "sodiumContent": "1027 mg",
+        "fiberContent": "6 g"
+      },
+      "amount_conversions": [
+        {
+          "food": "Bulion warzywny gotowy",
+          "source_g": "700",
+          "quantity": "700",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        },
+        {
+          "food": "Oliwa z oliwek",
+          "source_g": "10",
+          "quantity": "10",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        },
+        {
+          "food": "Ocet balsamiczny",
+          "source_g": "5",
+          "quantity": "5",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        },
+        {
+          "food": "Oliwa z oliwek",
+          "source_g": "10",
+          "quantity": "10",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        }
+      ],
+      "photo_asset": "autumn-06-peczotto-wieprzowina-buraki.jpg",
+      "photo_kind": "generated",
+      "text_kind": "independently_rewritten",
+      "retrieved_on": "2026-11-02"
+    },
+    {
+      "name": "Gnocchi z pieczarkami i szpinakiem",
+      "source_url": "https://centrumrespo.pl/przepisy/kremowe-gnocchi-w-sosie-grzybowym-z-parmezanem-i-szpinakiem/",
+      "source_title": "Kremowe gnocchi w sosie grzybowym z parmezanem i szpinakiem",
+      "source_servings": "2 porcje",
+      "source_ingredients": [
+        "500 g gnocchi",
+        "300 g pieczarek",
+        "40 g cebuli",
+        "150 g szpinaku",
+        "12 g czosnku",
+        "100 g bulionu",
+        "20 g oliwy z oliwek",
+        "40 g startego parmezanu",
+        "0.25 g soli",
+        "0.25 g pieprzu",
+        "15 g natki pietruszki"
+      ],
+      "source_nutrition": {
+        "@type": "NutritionInformation",
+        "servingSize": "2",
+        "calories": "594 kcal",
+        "fatContent": "19 g",
+        "proteinContent": "25 g",
+        "carbohydrateContent": "83 g",
+        "sodiumContent": "1500 mg",
+        "fiberContent": "8 g"
+      },
+      "amount_conversions": [
+        {
+          "food": "Bulion warzywny gotowy",
+          "source_g": "100",
+          "quantity": "100",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        },
+        {
+          "food": "Oliwa z oliwek",
+          "source_g": "20",
+          "quantity": "20",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        }
+      ],
+      "photo_asset": "autumn-07-gnocchi-grzyby-szpinak.jpg",
+      "photo_kind": "generated",
+      "text_kind": "independently_rewritten",
+      "retrieved_on": "2026-11-02"
+    },
+    {
+      "name": "Makaron z karmelizowaną cebulą",
+      "source_url": "https://centrumrespo.pl/przepisy/jednogarnkowe-danie-makaronowe-z-karmelizowana-cebula/",
+      "source_title": "Jednogarnkowe danie makaronowe z karmelizowaną cebulą",
+      "source_servings": "2 porcje",
+      "source_ingredients": [
+        "150 g makaronu pełnoziarnistego",
+        "400 g cebuli",
+        "15 g oliwy",
+        "500 g bulionu warzywnego",
+        "24 g miodu",
+        "126 g śmietanki 12%",
+        "120 g sera mozzarella light",
+        "0.25 g soli",
+        "0.25 g pieprzu czarnego",
+        "1.5 g tymianku suszonego",
+        "1.5 g papryki ostrej suszonej",
+        "3 g papryki wędzonej"
+      ],
+      "source_nutrition": {
+        "@type": "NutritionInformation",
+        "servingSize": "2",
+        "calories": "652 kcal",
+        "fatContent": "24 g",
+        "proteinContent": "29 g",
+        "carbohydrateContent": "77 g",
+        "sodiumContent": "2644 mg",
+        "fiberContent": "12 g"
+      },
+      "amount_conversions": [
+        {
+          "food": "Oliwa z oliwek",
+          "source_g": "15",
+          "quantity": "15",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        },
+        {
+          "food": "Bulion warzywny gotowy",
+          "source_g": "500",
+          "quantity": "500",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        }
+      ],
+      "photo_asset": "autumn-08-makaron-karmelizowana-cebula.jpg",
+      "photo_kind": "generated",
+      "text_kind": "independently_rewritten",
+      "retrieved_on": "2026-11-02"
+    },
+    {
+      "name": "Chrupiący wrap z jabłkiem i twarogiem",
+      "source_url": "https://centrumrespo.pl/przepisy/chrupiacy-wrap-a-la-szarlotka/",
+      "source_title": "Chrupiący wrap a la szarlotka",
+      "source_servings": "1 porcja",
+      "source_ingredients": [
+        "60 g tortilli pełnoziarnistej",
+        "125 g sera twarogowego",
+        "40 g jogurtu naturalnego",
+        "12 g miodu",
+        "75 g jabłka",
+        "2 g cynamonu",
+        "5 g erytrolu",
+        "5 g masła"
+      ],
+      "source_nutrition": {
+        "@type": "NutritionInformation",
+        "servingSize": "1",
+        "calories": "493 kcal",
+        "fatContent": "17 g",
+        "proteinContent": "29 g",
+        "carbohydrateContent": "55 g",
+        "sodiumContent": "391 mg",
+        "fiberContent": "8 g"
+      },
+      "amount_conversions": [],
+      "photo_asset": "autumn-09-wrap-szarlotka.jpg",
+      "photo_kind": "generated",
+      "text_kind": "independently_rewritten",
+      "retrieved_on": "2026-11-02"
+    },
+    {
+      "name": "Brukselka z halloumi i pęczakiem",
+      "source_url": "https://centrumrespo.pl/przepisy/smazone-brukselki-z-halloumi-kasza-peczak-i-sosem-klonowo-musztardowym/",
+      "source_title": "Smażone brukselki z halloumi, kaszą pęczak i sosem klonowo-musztardowym",
+      "source_servings": "1 porcja",
+      "source_ingredients": [
+        "50 g kaszy jęczmiennej pęczak",
+        "150 g brukselek",
+        "75 g sera halloumi",
+        "10 g oliwy",
+        "0.25 g soli",
+        "0.25 g pieprzu czarnego",
+        "20 g musztardy",
+        "30 g syropu klonowego"
+      ],
+      "source_nutrition": {
+        "@type": "NutritionInformation",
+        "servingSize": "1",
+        "calories": "677 kcal",
+        "fatContent": "32 g",
+        "proteinContent": "27 g",
+        "carbohydrateContent": "77 g",
+        "sodiumContent": "1110 mg",
+        "fiberContent": "11 g"
+      },
+      "amount_conversions": [
+        {
+          "food": "Oliwa z oliwek",
+          "source_g": "10",
+          "quantity": "10",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        }
+      ],
+      "photo_asset": "autumn-10-brukselka-halloumi-peczak.jpg",
+      "photo_kind": "generated",
+      "text_kind": "independently_rewritten",
+      "retrieved_on": "2026-11-02"
+    },
+    {
+      "name": "Nocna owsianka z jabłkiem i orzechami",
+      "source_url": "https://centrumrespo.pl/przepisy/nocna-owsianka-z-musem-jablkowym-cynamonem-i-kruszonka-z-orzechow/",
+      "source_title": "Nocna owsianka z musem jabłkowym, cynamonem i kruszonką z orzechów",
+      "source_servings": "1 porcja",
+      "source_ingredients": [
+        "50 g płatków owsianych górskich",
+        "125 g mleka",
+        "100 g puddingu proteinowego waniliowego",
+        "75 g jabłka",
+        "15 g orzechów włoskich",
+        "2 g cynamonu",
+        "0 g Mus:",
+        "75 g jabłka",
+        "2 g cynamonu",
+        "5 g erytrolu"
+      ],
+      "source_nutrition": {
+        "@type": "NutritionInformation",
+        "servingSize": "1",
+        "calories": "511 kcal",
+        "fatContent": "17 g",
+        "proteinContent": "23 g",
+        "carbohydrateContent": "71 g",
+        "sodiumContent": "111 mg",
+        "fiberContent": "10 g"
+      },
+      "amount_conversions": [
+        {
+          "food": "Mleko 2%",
+          "source_g": "125",
+          "quantity": "125",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        }
+      ],
+      "photo_asset": "autumn-11-nocna-owsianka-jablko-orzechy.jpg",
+      "photo_kind": "generated",
+      "text_kind": "independently_rewritten",
+      "retrieved_on": "2026-11-02"
+    },
+    {
+      "name": "Sałatka z soczewicą, indykiem i dynią",
+      "source_url": "https://centrumrespo.pl/przepisy/salatka-z-zielonej-soczewicy-z-indykiem-pieczona-dynia-jarmuzem-i-dressingiem-pomaranczowym/",
+      "source_title": "Sałatka z zielonej soczewicy, z indykiem, pieczoną dynią, jarmużem i dressingiem pomarańczowym",
+      "source_servings": "2 porcje",
+      "source_ingredients": [
+        "50 g soczewicy zielonej",
+        "150 g mięsa z piersi indyka",
+        "150 g dyni",
+        "50 g jarmużu",
+        "50 g sera typu feta",
+        "20 g suszonej żurawiny",
+        "10 g pestek dyni",
+        "15 g oliwy",
+        "50 g soku z pomarańczy",
+        "10 g musztardy",
+        "12 g miodu",
+        "0.25 g soli",
+        "0.25 g pieprzu czarnego",
+        "1.5 g tymianku suszonego",
+        "1.5 g papryki słodkiej",
+        "1.5 g czosnku granulowanego",
+        "1.5 g rozmarynu suszonego"
+      ],
+      "source_nutrition": {
+        "@type": "NutritionInformation",
+        "servingSize": "2",
+        "calories": "402 kcal",
+        "fatContent": "16 g",
+        "proteinContent": "29 g",
+        "carbohydrateContent": "37 g",
+        "sodiumContent": "408 mg",
+        "fiberContent": "10 g"
+      },
+      "amount_conversions": [
+        {
+          "food": "Oliwa z oliwek",
+          "source_g": "15",
+          "quantity": "15",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        },
+        {
+          "food": "Sok pomarańczowy",
+          "source_g": "50",
+          "quantity": "50",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        }
+      ],
+      "photo_asset": "autumn-12-soczewica-indyk-dynia.jpg",
+      "photo_kind": "generated",
+      "text_kind": "independently_rewritten",
+      "retrieved_on": "2026-11-02"
+    },
+    {
+      "name": "Szakszuka z dynią",
+      "source_url": "https://centrumrespo.pl/przepisy/szakszuka-z-dynia/",
+      "source_title": "Szakszuka z dynią",
+      "source_servings": "1 porcja",
+      "source_ingredients": [
+        "200 g dyni świeżej lub mrożonej",
+        "80 g cebuli",
+        "85 g papryki czerwonej",
+        "6 g czosnku",
+        "200 g pomidorów z puszki",
+        "5 g oliwy",
+        "112 g jaja kurzego",
+        "1.5 g papryki słodkiej",
+        "1.5 g oregano suszonego",
+        "0.25 g soli",
+        "0.25 g pieprzu czarnego",
+        "5 g natki pietruszki",
+        "60 g chleba żytniego razowego"
+      ],
+      "source_nutrition": {
+        "@type": "NutritionInformation",
+        "servingSize": "1",
+        "calories": "522 kcal",
+        "fatContent": "20 g",
+        "proteinContent": "26 g",
+        "carbohydrateContent": "70 g",
+        "sodiumContent": "569 mg",
+        "fiberContent": "19 g"
+      },
+      "amount_conversions": [
+        {
+          "food": "Oliwa z oliwek",
+          "source_g": "5",
+          "quantity": "5",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        },
+        {
+          "food": "Jajka",
+          "source_g": "112",
+          "quantity": "2",
+          "unit": "szt",
+          "note": "Source egg count (56 g/source egg); app uses its shared average edible egg mass."
+        }
+      ],
+      "photo_asset": "autumn-13-szakszuka-dynia.jpg",
+      "photo_kind": "generated",
+      "text_kind": "independently_rewritten",
+      "retrieved_on": "2026-11-02"
+    },
+    {
+      "name": "Jajka po turecku z pieczoną dynią",
+      "source_url": "https://centrumrespo.pl/przepisy/jajka-po-turecku-z-pieczona-dynia/",
+      "source_title": "Jajka po turecku z pieczoną dynią",
+      "source_servings": "1 porcja",
+      "source_ingredients": [
+        "150 g dyni świeżej lub mrożonej",
+        "5 g oliwy",
+        "1.5 g papryki słodkiej",
+        "1.5 g papryki wędzonej",
+        "1 g kuminu",
+        "1.5 g czosnku granulowanego",
+        "0.25 g soli",
+        "0 g Jajka:",
+        "112 g jaja kurzego",
+        "10 g octu",
+        "100 g jogurtu greckiego",
+        "3 g czosnku",
+        "6 g soku z cytryny",
+        "1 g papryki ostrej suszonej",
+        "0.25 g soli",
+        "0 g Do podania:",
+        "10 g pestek dyni",
+        "4 g koperku",
+        "60 g chleba żytniego razowego"
+      ],
+      "source_nutrition": {
+        "@type": "NutritionInformation",
+        "servingSize": "1",
+        "calories": "577 kcal",
+        "fatContent": "31 g",
+        "proteinContent": "27 g",
+        "carbohydrateContent": "53 g",
+        "sodiumContent": "2828 mg",
+        "fiberContent": "11 g"
+      },
+      "amount_conversions": [
+        {
+          "food": "Oliwa z oliwek",
+          "source_g": "5",
+          "quantity": "5",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        },
+        {
+          "food": "Jajka",
+          "source_g": "112",
+          "quantity": "2",
+          "unit": "szt",
+          "note": "Source egg count (56 g/source egg); app uses its shared average edible egg mass."
+        },
+        {
+          "food": "Ocet spirytusowy",
+          "source_g": "10",
+          "quantity": "10",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        },
+        {
+          "food": "Sok z cytryny",
+          "source_g": "6",
+          "quantity": "6",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        }
+      ],
+      "photo_asset": "autumn-14-jajka-turecku-dynia.jpg",
+      "photo_kind": "generated",
+      "text_kind": "independently_rewritten",
+      "retrieved_on": "2026-11-02"
+    },
+    {
+      "name": "Omlet z kurkami",
+      "source_url": "https://centrumrespo.pl/przepisy/omlet-z-kurkami/",
+      "source_title": "Omlet z kurkami",
+      "source_servings": "1 porcja",
+      "source_ingredients": [
+        "112 g jajek",
+        "100 g kurek",
+        "50 g mleka",
+        "30 g mąki pszennej pełnoziarnistej",
+        "60 g chleba żytniego razowego",
+        "10 g oliwy",
+        "0.25 g soli",
+        "0.25 g pieprzu czarnego",
+        "1.5 g tymianku",
+        "5 g szczypiorku"
+      ],
+      "source_nutrition": {
+        "@type": "NutritionInformation",
+        "servingSize": "1",
+        "calories": "546 kcal",
+        "fatContent": "24 g",
+        "proteinContent": "24 g",
+        "carbohydrateContent": "64 g",
+        "sodiumContent": "562 mg",
+        "fiberContent": "13 g"
+      },
+      "amount_conversions": [
+        {
+          "food": "Jajka",
+          "source_g": "112",
+          "quantity": "2",
+          "unit": "szt",
+          "note": "Source egg count (56 g/source egg); app uses its shared average edible egg mass."
+        },
+        {
+          "food": "Mleko 2%",
+          "source_g": "50",
+          "quantity": "50",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        },
+        {
+          "food": "Oliwa z oliwek",
+          "source_g": "10",
+          "quantity": "10",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        }
+      ],
+      "photo_asset": "autumn-15-omlet-kurki.jpg",
+      "photo_kind": "generated",
+      "text_kind": "independently_rewritten",
+      "retrieved_on": "2026-11-02"
+    },
+    {
+      "name": "Kapuśniak z granulatem sojowym",
+      "source_url": "https://centrumrespo.pl/przepisy/weganski-kapusniak/",
+      "source_title": "Wegański kapuśniak",
+      "source_servings": "2 porcje",
+      "source_ingredients": [
+        "150 g granulatu sojowego",
+        "20 g sosu sojowego",
+        "20 g oliwy z oliwek",
+        "210 g ziemniaków",
+        "160 g marchewki",
+        "50 g pietruszki",
+        "80 g cebuli",
+        "1000 g bulionu warzywnego",
+        "400 g kapusty kiszonej",
+        "25 g koncentratu pomidorowego",
+        "4 g majeranku",
+        "2.5 g kuminu",
+        "1.5 g papryki wędzonej",
+        "2 g liścia laurowego",
+        "3 g ziela angielskiego",
+        "0.25 g soli",
+        "0.25 g pieprzu czarnego"
+      ],
+      "source_nutrition": {
+        "@type": "NutritionInformation",
+        "servingSize": "2",
+        "calories": "573 kcal",
+        "fatContent": "14 g",
+        "proteinContent": "48 g",
+        "carbohydrateContent": "67 g",
+        "sodiumContent": "3823 mg",
+        "fiberContent": "19 g"
+      },
+      "amount_conversions": [
+        {
+          "food": "Oliwa z oliwek",
+          "source_g": "20",
+          "quantity": "20",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        },
+        {
+          "food": "Bulion warzywny gotowy",
+          "source_g": "1000",
+          "quantity": "1000",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        }
+      ],
+      "photo_asset": "autumn-16-kapusniak-sojowy.jpg",
+      "photo_kind": "generated",
+      "text_kind": "independently_rewritten",
+      "retrieved_on": "2026-11-02"
+    },
+    {
+      "name": "Sałatka z kurczakiem, dynią i kaszą jaglaną",
+      "source_url": "https://centrumrespo.pl/przepisy/salatka-z-pieczona-dynia-kurczakiem-i-kasza-jaglana/",
+      "source_title": "Sałatka z pieczoną dynią, kurczakiem i kaszą jaglaną",
+      "source_servings": "2 porcje",
+      "source_ingredients": [
+        "100 g kaszy jaglanej",
+        "150 g mięsa z piersi kurczaka",
+        "200 g dyni",
+        "75 g rukoli",
+        "20 g oliwy z oliwek",
+        "0.25 g soli",
+        "0.25 g pieprzu",
+        "2 g cynamonu",
+        "0 g Sos:",
+        "60 g jogurtu naturalnego",
+        "12 g soku z cytryny",
+        "8 g koperku"
+      ],
+      "source_nutrition": {
+        "@type": "NutritionInformation",
+        "servingSize": "2",
+        "calories": "404 kcal",
+        "fatContent": "14 g",
+        "proteinContent": "25 g",
+        "carbohydrateContent": "48 g",
+        "sodiumContent": "126 mg",
+        "fiberContent": "6 g"
+      },
+      "amount_conversions": [
+        {
+          "food": "Oliwa z oliwek",
+          "source_g": "20",
+          "quantity": "20",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        },
+        {
+          "food": "Sok z cytryny",
+          "source_g": "12",
+          "quantity": "12",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        }
+      ],
+      "photo_asset": "autumn-17-salatka-kurczak-dynia-jaglana.jpg",
+      "photo_kind": "generated",
+      "text_kind": "independently_rewritten",
+      "retrieved_on": "2026-11-02"
+    },
+    {
+      "name": "Łosoś z buraczaną kaszą jaglaną",
+      "source_url": "https://centrumrespo.pl/przepisy/losos-z-buraczana-kasza-jaglana/",
+      "source_title": "Łosoś z buraczaną kaszą jaglaną",
+      "source_servings": "1 porcja",
+      "source_ingredients": [
+        "100 g ugotowanych buraków",
+        "50 g kaszy jaglanej",
+        "0.25 g soli",
+        "0.25 g pieprzu",
+        "5 g oliwy z oliwek",
+        "5 g natki pietruszki",
+        "0 g Ryba:",
+        "150 g łososia",
+        "12 g soku z cytryny",
+        "18 g miodu",
+        "15 g sosu sojowego",
+        "5 g płatków chilli"
+      ],
+      "source_nutrition": {
+        "@type": "NutritionInformation",
+        "servingSize": "1",
+        "calories": "645 kcal",
+        "fatContent": "28 g",
+        "proteinContent": "39 g",
+        "carbohydrateContent": "63 g",
+        "sodiumContent": "1176 mg",
+        "fiberContent": "6 g"
+      },
+      "amount_conversions": [
+        {
+          "food": "Oliwa z oliwek",
+          "source_g": "5",
+          "quantity": "5",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        },
+        {
+          "food": "Sok z cytryny",
+          "source_g": "12",
+          "quantity": "12",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        }
+      ],
+      "photo_asset": "autumn-18-losos-buraczana-kasza.jpg",
+      "photo_kind": "generated",
+      "text_kind": "independently_rewritten",
+      "retrieved_on": "2026-11-02"
+    },
+    {
+      "name": "Sałatka ze stekiem, burakiem i dynią",
+      "source_url": "https://centrumrespo.pl/przepisy/salatka-z-burakiem-dynia-i-stekiem-wolowym/",
+      "source_title": "Sałatka z burakiem, dynią i stekiem wołowym",
+      "source_servings": "2 porcje",
+      "source_ingredients": [
+        "150 g rostbefu wołowego",
+        "100 g buraka",
+        "150 g dyni",
+        "50 g komosy ryżowej",
+        "75 g rukoli",
+        "20 g orzechów nerkowca",
+        "0.25 g soli",
+        "0.25 g pieprzu",
+        "0 g Dressing:",
+        "10 g oliwy z oliwek",
+        "10 g octu balsamicznego",
+        "10 g musztardy",
+        "18 g miodu",
+        "0.25 g soli",
+        "0.25 g pieprzu"
+      ],
+      "source_nutrition": {
+        "@type": "NutritionInformation",
+        "servingSize": "2",
+        "calories": "410 kcal",
+        "fatContent": "19 g",
+        "proteinContent": "24 g",
+        "carbohydrateContent": "39 g",
+        "sodiumContent": "226 mg",
+        "fiberContent": "6 g"
+      },
+      "amount_conversions": [
+        {
+          "food": "Oliwa z oliwek",
+          "source_g": "10",
+          "quantity": "10",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        },
+        {
+          "food": "Ocet balsamiczny",
+          "source_g": "10",
+          "quantity": "10",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        }
+      ],
+      "photo_asset": "autumn-19-salatka-stek-burak-dynia.jpg",
+      "photo_kind": "generated",
+      "text_kind": "independently_rewritten",
+      "retrieved_on": "2026-11-02"
+    },
+    {
+      "name": "Ciasto dyniowe z mikrofalówki",
+      "source_url": "https://centrumrespo.pl/przepisy/ciasto-dyniowe-z-mikrofalowki/",
+      "source_title": "Ciasto dyniowe z mikrofalówki",
+      "source_servings": "1 porcja",
+      "source_ingredients": [
+        "150 g przecieru z dyni",
+        "24 g mąki owsianej ",
+        "56 g jaja kurzego",
+        "10 g erytrolu",
+        "2 g proszku do pieczenia",
+        "2 g cynamonu",
+        "0.5 g imbiru mielonego",
+        "5 g masła",
+        "0 g Do podania: ",
+        "72 g mascarpone",
+        "5 g erytrolu",
+        "2 g cynamonu"
+      ],
+      "source_nutrition": {
+        "@type": "NutritionInformation",
+        "servingSize": "1",
+        "calories": "540 kcal",
+        "fatContent": "40 g",
+        "proteinContent": "14 g",
+        "carbohydrateContent": "32 g",
+        "sodiumContent": "373 mg",
+        "fiberContent": "5 g"
+      },
+      "amount_conversions": [
+        {
+          "food": "Jajka",
+          "source_g": "56",
+          "quantity": "1",
+          "unit": "szt",
+          "note": "Source egg count (56 g/source egg); app uses its shared average edible egg mass."
+        }
+      ],
+      "photo_asset": "autumn-20-ciasto-dyniowe-kubek.jpg",
+      "photo_kind": "generated",
+      "text_kind": "independently_rewritten",
+      "retrieved_on": "2026-11-02"
+    },
+    {
+      "name": "Placki dyniowe z jabłkiem",
+      "source_url": "https://centrumrespo.pl/przepisy/placuszki-z-dyni/",
+      "source_title": "Placki z dyni",
+      "source_servings": "2 porcje",
+      "source_ingredients": [
+        "200 g dyni",
+        "100 g jogurtu naturalnego",
+        "112 g jaja kurzego",
+        "45 g ksylitolu",
+        "150 g mąki orkiszowej białej",
+        "6 g proszku do pieczenia",
+        "5 g oliwy z oliwek",
+        "0 g Do podania:",
+        "24 g miodu",
+        "150 g jabłka",
+        "2 g cynamonu"
+      ],
+      "source_nutrition": {
+        "@type": "NutritionInformation",
+        "servingSize": "2",
+        "calories": "542 kcal",
+        "fatContent": "11 g",
+        "proteinContent": "21 g",
+        "carbohydrateContent": "102 g",
+        "sodiumContent": "441 mg",
+        "fiberContent": "9 g"
+      },
+      "amount_conversions": [
+        {
+          "food": "Jajka",
+          "source_g": "112",
+          "quantity": "2",
+          "unit": "szt",
+          "note": "Source egg count (56 g/source egg); app uses its shared average edible egg mass."
+        },
+        {
+          "food": "Oliwa z oliwek",
+          "source_g": "5",
+          "quantity": "5",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        }
+      ],
+      "photo_asset": "autumn-21-placki-dyniowe-jablko.jpg",
+      "photo_kind": "generated",
+      "text_kind": "independently_rewritten",
+      "retrieved_on": "2026-11-02"
+    },
+    {
+      "name": "Curry dyniowe z ananasem",
+      "source_url": "https://centrumrespo.pl/przepisy/curry-z-dyni/",
+      "source_title": "Curry z dynią",
+      "source_servings": "3 porcje",
+      "source_ingredients": [
+        "1000 g dyni",
+        "10 g oliwy z oliwek",
+        "80 g cebuli",
+        "12 g czosnku",
+        "4 g przyprawy curry",
+        "300 g pomidorków koktajlowych",
+        "200 g ananasa",
+        "200 g mleczka kokosowego",
+        "120 g ciecierzycy konserwowej",
+        "0.25 g soli",
+        "0.25 g pieprzu",
+        "2 g kolendry",
+        "0 g Do podania:",
+        "150 g ryżu basmati"
+      ],
+      "source_nutrition": {
+        "@type": "NutritionInformation",
+        "servingSize": "3",
+        "calories": "519 kcal",
+        "fatContent": "14 g",
+        "proteinContent": "12 g",
+        "carbohydrateContent": "89 g",
+        "sodiumContent": "418 mg",
+        "fiberContent": "16 g"
+      },
+      "amount_conversions": [
+        {
+          "food": "Oliwa z oliwek",
+          "source_g": "10",
+          "quantity": "10",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        },
+        {
+          "food": "Mleko kokosowe",
+          "source_g": "200",
+          "quantity": "200",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        }
+      ],
+      "photo_asset": "autumn-22-curry-dyniowe-ananas.jpg",
+      "photo_kind": "generated",
+      "text_kind": "independently_rewritten",
+      "retrieved_on": "2026-11-02"
+    },
+    {
+      "name": "Hummus dyniowy",
+      "source_url": "https://centrumrespo.pl/przepisy/hummus-dyniowy/",
+      "source_title": "Hummus dyniowy",
+      "source_servings": "3 porcje",
+      "source_ingredients": [
+        "0 g Hummus:",
+        "400 g ciecierzycy konserwowej",
+        "3 g soku z cytryny",
+        "6 g czosnku",
+        "60 g tahini",
+        "5 g kuminu",
+        "0.25 g soli",
+        "0.25 g pieprzu ",
+        "10 g oleju sezamowego",
+        "150 g dyni",
+        "0 g Do podania:",
+        "180 g chleba żytniego razowego",
+        "300 g ogórka"
+      ],
+      "source_nutrition": {
+        "@type": "NutritionInformation",
+        "servingSize": "3",
+        "calories": "469 kcal",
+        "fatContent": "19 g",
+        "proteinContent": "17 g",
+        "carbohydrateContent": "63 g",
+        "sodiumContent": "1500 mg",
+        "fiberContent": "16 g"
+      },
+      "amount_conversions": [
+        {
+          "food": "Sok z cytryny",
+          "source_g": "3",
+          "quantity": "3",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        },
+        {
+          "food": "Olej sezamowy",
+          "source_g": "10",
+          "quantity": "10",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        }
+      ],
+      "photo_asset": "autumn-23-hummus-dyniowy.jpg",
+      "photo_kind": "generated",
+      "text_kind": "independently_rewritten",
+      "retrieved_on": "2026-11-02"
+    },
+    {
+      "name": "Makaron z dynią i fetą",
+      "source_url": "https://centrumrespo.pl/przepisy/makaron-z-sosem-dyniowym-i-serem-feta/",
+      "source_title": "Makaron z sosem dyniowym i serem feta",
+      "source_servings": "2 porcje",
+      "source_ingredients": [
+        "80 g makaronu pełnoziarnistego",
+        "6 g czosnku",
+        "40 g cebuli",
+        "200 g dyni",
+        "10 g oliwy z oliwek",
+        "125 g bulionu warzywnego",
+        "36 g śmietany 12%",
+        "0.25 g soli",
+        "0.25 g pieprzu czarnego",
+        "100 g sera typu feta",
+        "20 g pestek dyni"
+      ],
+      "source_nutrition": {
+        "@type": "NutritionInformation",
+        "servingSize": "2",
+        "calories": "427 kcal",
+        "fatContent": "21 g",
+        "proteinContent": "19 g",
+        "carbohydrateContent": "39 g",
+        "sodiumContent": "850 mg",
+        "fiberContent": "8 g"
+      },
+      "amount_conversions": [
+        {
+          "food": "Oliwa z oliwek",
+          "source_g": "10",
+          "quantity": "10",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        },
+        {
+          "food": "Bulion warzywny gotowy",
+          "source_g": "125",
+          "quantity": "125",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        }
+      ],
+      "photo_asset": "autumn-24-makaron-dynia-feta.jpg",
+      "photo_kind": "generated",
+      "text_kind": "independently_rewritten",
+      "retrieved_on": "2026-11-02"
+    },
+    {
+      "name": "Karkówka w sosie grzybowym z puree",
+      "source_url": "https://centrumrespo.pl/przepisy/karkowka-w-sosie-grzybowym-z-puree-ziemniaczanym/",
+      "source_title": "Karkówka w sosie grzybowym z puree ziemniaczanym",
+      "source_servings": "1 porcja",
+      "source_ingredients": [
+        "0 g Puree:",
+        "210 g ziemniaków",
+        "45 g mleka 1,5%",
+        "5 g masła",
+        "0.25 g soli",
+        "0 g Mięso z sosem:",
+        "125 g karkówki wieprzowej",
+        "0.5 g soli",
+        "0.5 g pieprzu czarnego",
+        "3 g czosnku",
+        "5 g oleju rzepakowego",
+        "100 g grzybów leśnych",
+        "125 g bulionu warzywnego",
+        "1.5 g tymianku suszonego",
+        "36 g śmietany 12%",
+        "0 g Do podania:",
+        "100 g ogórka kiszonego",
+        "15 g natki pietruszki"
+      ],
+      "source_nutrition": {
+        "@type": "NutritionInformation",
+        "servingSize": "1",
+        "calories": "645 kcal",
+        "fatContent": "33 g",
+        "proteinContent": "35 g",
+        "carbohydrateContent": "55 g",
+        "sodiumContent": "1594 mg",
+        "fiberContent": "8 g"
+      },
+      "amount_conversions": [
+        {
+          "food": "Mleko 1,5%",
+          "source_g": "45",
+          "quantity": "45",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        },
+        {
+          "food": "Olej rzepakowy",
+          "source_g": "5",
+          "quantity": "5",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        },
+        {
+          "food": "Bulion warzywny gotowy",
+          "source_g": "125",
+          "quantity": "125",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        }
+      ],
+      "photo_asset": "autumn-25-karkowka-grzyby-puree.jpg",
+      "photo_kind": "generated",
+      "text_kind": "independently_rewritten",
+      "retrieved_on": "2026-11-02"
+    },
+    {
+      "name": "Owsianka z suszonymi śliwkami i czekoladą",
+      "source_url": "https://centrumrespo.pl/przepisy/owsianka-z-suszonymi-sliwkami-i-czekolada/",
+      "source_title": "Owsianka z suszonymi śliwkami i czekoladą",
+      "source_servings": "1 porcja",
+      "source_ingredients": [
+        "40 g płatków owsianych",
+        "125 g mleka",
+        "150 g jogurtu skyr waniliowego",
+        "5 g erytrolu",
+        "5 g kakao",
+        "30 g śliwek suszonych",
+        "20 g czekolady gorzkiej"
+      ],
+      "source_nutrition": {
+        "@type": "NutritionInformation",
+        "servingSize": "1",
+        "calories": "574 kcal",
+        "fatContent": "15 g",
+        "proteinContent": "28 g",
+        "carbohydrateContent": "85 g",
+        "sodiumContent": "67 mg",
+        "fiberContent": "8 g"
+      },
+      "amount_conversions": [
+        {
+          "food": "Mleko 2%",
+          "source_g": "125",
+          "quantity": "125",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        }
+      ],
+      "photo_asset": "autumn-26-owsianka-sliwki-czekolada.jpg",
+      "photo_kind": "generated",
+      "text_kind": "independently_rewritten",
+      "retrieved_on": "2026-11-02"
+    },
+    {
+      "name": "Makaron z camembertem i pomidorami",
+      "source_url": "https://centrumrespo.pl/przepisy/pieczony-camembert-z-pomidorkami-i-makaronem/",
+      "source_title": "Makaron z camembertem i pomidorami",
+      "source_servings": "2 porcje",
+      "source_ingredients": [
+        "100 g makaronu ",
+        "0 g Ser: ",
+        "120 g sera camembert",
+        "200 g pomidorków koktajlowych",
+        "12 g czosnku",
+        "20 g oliwy z oliwek",
+        "0.25 g soli",
+        "0.25 g pieprzu",
+        "12 g miodu"
+      ],
+      "source_nutrition": {
+        "@type": "NutritionInformation",
+        "servingSize": "2",
+        "calories": "490 kcal",
+        "fatContent": "26 g",
+        "proteinContent": "19 g",
+        "carbohydrateContent": "42 g",
+        "sodiumContent": "640 mg",
+        "fiberContent": "7 g"
+      },
+      "amount_conversions": [
+        {
+          "food": "Oliwa z oliwek",
+          "source_g": "20",
+          "quantity": "20",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        }
+      ],
+      "photo_asset": "autumn-27-makaron-camembert-pomidory.jpg",
+      "photo_kind": "generated",
+      "text_kind": "independently_rewritten",
+      "retrieved_on": "2026-11-02"
+    },
+    {
+      "name": "Bowl z kurczakiem, burakiem i dynią",
+      "source_url": "https://centrumrespo.pl/przepisy/bowl-z-kurczakiem-na-parze-z-burakiem-i-dynia/",
+      "source_title": "Bowl z kurczakiem na parze z burakiem i dynią",
+      "source_servings": "1 porcja",
+      "source_ingredients": [
+        "150 g mięsa z piersi kurczaka",
+        "0.5 g soli",
+        "0.5 g pieprzu",
+        "1.5 g ziół prowansalskich",
+        "100 g dyni",
+        "100 g buraka",
+        "50 g kaszy jęczmiennej perłowej",
+        "0 g Dressing:",
+        "10 g oliwy z oliwek",
+        "6 g soku z cytryny",
+        "0.25 g soli",
+        "0.25 g pieprzu",
+        "5 g natki pietruszki"
+      ],
+      "source_nutrition": {
+        "@type": "NutritionInformation",
+        "servingSize": "1",
+        "calories": "490 kcal",
+        "fatContent": "14 g",
+        "proteinContent": "39 g",
+        "carbohydrateContent": "56 g",
+        "sodiumContent": "434 mg",
+        "fiberContent": "9 g"
+      },
+      "amount_conversions": [
+        {
+          "food": "Oliwa z oliwek",
+          "source_g": "10",
+          "quantity": "10",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        },
+        {
+          "food": "Sok z cytryny",
+          "source_g": "6",
+          "quantity": "6",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        }
+      ],
+      "photo_asset": "autumn-28-bowl-kurczak-burak-dynia.jpg",
+      "photo_kind": "generated",
+      "text_kind": "independently_rewritten",
+      "retrieved_on": "2026-11-02"
+    },
+    {
+      "name": "Pieczona owsianka z gruszkami i imbirem",
+      "source_url": "https://centrumrespo.pl/przepisy/pieczona-owsianka-z-gruszkami-i-imbirem/",
+      "source_title": "Pieczona owsianka z gruszkami i imbirem",
+      "source_servings": "3 porcje",
+      "source_ingredients": [
+        "200 g płatków owsianych",
+        "4 g proszku do pieczenia",
+        "2 g cynamonu",
+        "2 g imbiru mielonego",
+        "0.25 g soli",
+        "112 g jajek",
+        "375 g mleka",
+        "70 g syropu klonowego",
+        "3 g ekstraktu waniliowego",
+        "260 g gruszek",
+        "5 g oleju rzepakowego"
+      ],
+      "source_nutrition": {
+        "@type": "NutritionInformation",
+        "servingSize": "3",
+        "calories": "493 kcal",
+        "fatContent": "12 g",
+        "proteinContent": "17 g",
+        "carbohydrateContent": "82 g",
+        "sodiumContent": "291 mg",
+        "fiberContent": "7 g"
+      },
+      "amount_conversions": [
+        {
+          "food": "Jajka",
+          "source_g": "112",
+          "quantity": "2",
+          "unit": "szt",
+          "note": "Source egg count (56 g/source egg); app uses its shared average edible egg mass."
+        },
+        {
+          "food": "Mleko 2%",
+          "source_g": "375",
+          "quantity": "375",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        },
+        {
+          "food": "Olej rzepakowy",
+          "source_g": "5",
+          "quantity": "5",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        }
+      ],
+      "photo_asset": "autumn-29-pieczona-owsianka-gruszki.jpg",
+      "photo_kind": "generated",
+      "text_kind": "independently_rewritten",
+      "retrieved_on": "2026-11-02"
+    },
+    {
+      "name": "Francuskie trójkąty z jabłkiem",
+      "source_url": "https://centrumrespo.pl/przepisy/trojkaty-francuskie-z-jablkiem/",
+      "source_title": "Trójkąty francuskie z jabłkiem",
+      "source_servings": "3 porcje",
+      "source_ingredients": [
+        "275 g ciasta francuskiego",
+        "56 g jajka",
+        "0 g Nadzienie:",
+        "300 g jabłek",
+        "30 g ksylitolu",
+        "4 g cynamonu",
+        "6 g soku z cytryny"
+      ],
+      "source_nutrition": {
+        "@type": "NutritionInformation",
+        "servingSize": "3",
+        "calories": "451 kcal",
+        "fatContent": "23 g",
+        "proteinContent": "7 g",
+        "carbohydrateContent": "54 g",
+        "sodiumContent": "29 mg",
+        "fiberContent": "3 g"
+      },
+      "amount_conversions": [
+        {
+          "food": "Jajka",
+          "source_g": "56",
+          "quantity": "1",
+          "unit": "szt",
+          "note": "Source egg count (56 g/source egg); app uses its shared average edible egg mass."
+        },
+        {
+          "food": "Sok z cytryny",
+          "source_g": "6",
+          "quantity": "6",
+          "unit": "ml",
+          "note": "Approximate kitchen liquid volume; recipe nutrition is an estimate."
+        }
+      ],
+      "photo_asset": "autumn-30-trojkaty-francuskie-jablko.jpg",
+      "photo_kind": "generated",
+      "text_kind": "independently_rewritten",
+      "retrieved_on": "2026-11-02"
+    }
+  ]
+}

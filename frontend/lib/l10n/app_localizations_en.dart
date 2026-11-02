@@ -4279,7 +4279,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• Improved Premium activation and purchase restoration.\n• Premium points are credited correctly after a connection interruption or payment retry.\n• Repeat scans and amount selection retain pack size and units.\n• Improved product suggestions and messages in Polish and English.';
+      '• Discover 30 autumn recipes in Polish and English.\n• Each new dish has its own photo and ingredients for your shopping list.\n• Improved conversions between grams, pieces and kitchen measures.\n• Calories and shopping costs use the right amounts; estimates are labelled.';
 
   @override
   String detailPlanPortionHelp(int servings, int baseServings) {
@@ -9543,7 +9543,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get releasePromptChanges =>
-      '• Improved Premium activation and purchase restoration.\n• Premium points are credited correctly after a connection interruption or payment retry.\n• Repeat scans and amount selection retain pack size and units.\n• Improved product suggestions and messages in Polish and English.';
+      '• Discover 30 autumn recipes in Polish and English.\n• Each new dish has its own photo and ingredients for your shopping list.\n• Improved conversions between grams, pieces and kitchen measures.\n• Calories and shopping costs use the right amounts; estimates are labelled.';
 
   @override
   String detailPlanPortionHelp(int servings, int baseServings) {

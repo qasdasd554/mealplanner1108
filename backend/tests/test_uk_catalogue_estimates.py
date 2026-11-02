@@ -6,16 +6,17 @@ from uuid import uuid4
 import pytest
 from app.db.seed import PRODUCTS_DATA
 from app.services.uk_catalogue_import import canonical_base_unit
-from app.services.uk_catalogue_estimates import quote_static_requirement, MODEL_DAY
+from app.services.uk_catalogue_estimates import quote_static_requirement, MODEL_DAY, AUTUMN_MODEL_DAY, AUTUMN_FOOD_RATES
 from app.services.regional_shopping import frozen_regional_purchase_quote
 from tests.test_uk_ons_shopping import food
 
 
-def test_all_390_canonical_foods_have_positive_gbp_planning_prices_not_packs():
+def test_all_419_canonical_foods_have_positive_gbp_planning_prices_not_packs():
+    assert len(PRODUCTS_DATA) == 419
     for name, *_ in PRODUCTS_DATA:
         product = food(name)
         unit = canonical_base_unit(product)
-        quote = quote_static_requirement(product, Decimal(100), unit, store_id=uuid4(), as_of=MODEL_DAY)
+        quote = quote_static_requirement(product, Decimal(100), unit, store_id=uuid4(), as_of=AUTUMN_MODEL_DAY)
         assert quote is not None, name
         assert quote.total_price > 0 and quote.currency_code == "GBP", name
         assert quote.offer_id is None and quote.package_quantity is None
@@ -93,3 +94,19 @@ def test_legacy_mixed_measures_use_original_system_dimension_without_fake_packag
     product.created_by_user_id = uuid4()
     with pytest.raises(ValueError, match="conflicting"):
         canonical_base_unit(product)
+
+
+@pytest.mark.parametrize("name", sorted(AUTUMN_FOOD_RATES))
+def test_new_food_estimates_are_available_only_from_their_actual_model_date(name):
+    from datetime import timedelta
+    product = food(name)
+    unit = canonical_base_unit(product)
+    before = quote_static_requirement(product, Decimal(100), unit, store_id=uuid4(),
+        as_of=AUTUMN_MODEL_DAY - timedelta(days=1))
+    current = quote_static_requirement(product, Decimal(100), unit, store_id=uuid4(),
+        as_of=AUTUMN_MODEL_DAY)
+    assert before is None
+    assert current is not None and current.total_price > 0
+    assert current.price_source["checked_on"] == AUTUMN_MODEL_DAY.isoformat()
+    assert current.price_source["confirms_store_stock"] is False
+    assert current.package_quantity is None

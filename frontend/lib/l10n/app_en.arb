@@ -1855,17 +1855,53 @@
   "blockAuthor": "Block author",
   "blockFailed": "Could not block the user.",
   "commentsMinutes": "{count} min ago",
-  "@commentsMinutes": {"placeholders":{"count":{"type":"int"}}},
+  "@commentsMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "commentsHours": "{count} hr ago",
-  "@commentsHours": {"placeholders":{"count":{"type":"int"}}},
+  "@commentsHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "commentsDays": "{count} days ago",
-  "@commentsDays": {"placeholders":{"count":{"type":"int"}}},
+  "@commentsDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "commentsCount": "{count, plural, one{1 comment} other{{count} comments}}",
-  "@commentsCount": {"placeholders":{"count":{"type":"int"}}},
+  "@commentsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "blockBody": "You will no longer see recipes or comments from \"{name}\". You can unblock them at any time in Profile → Blocked users.",
-  "@blockBody": {"placeholders":{"name":{"type":"String"}}},
+  "@blockBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "blockDone": "\"{name}\" has been blocked.",
-  "@blockDone": {"placeholders":{"name":{"type":"String"}}},
+  "@blockDone": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "profileTitle": "Profile",
   "profileNone": "Not set",
   "profileShop": "Shop",
@@ -1964,39 +2000,114 @@
   "compareCatalogue": "Recipe and product catalogue",
   "comparePrices": "Product price comparison",
   "profileExpiryDays": "Subscription active for {days, plural, one{1 more day} other{{days} more days}}",
-  "@profileExpiryDays": {"placeholders":{"days":{"type":"int"}}},
+  "@profileExpiryDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "profilePeople": "{count, plural, one{1 person} other{{count} people}}",
-  "@profilePeople": {"placeholders":{"count":{"type":"int"}}},
+  "@profilePeople": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "profileWeightSaved": "Saved {weight} kg.",
-  "@profileWeightSaved": {"placeholders":{"weight":{"type":"String"}}},
+  "@profileWeightSaved": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
   "profileDate": "Date: {date}",
-  "@profileDate": {"placeholders":{"date":{"type":"String"}}},
+  "@profileDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "profileDeleteBody": "This cannot be undone. You will lose all saved meal plans, shopping lists, pantry items, favourite recipes, comments and Premium points. If you have an active subscription, cancel it separately in App Store / Google Play settings — deleting your account does not cancel the subscription.",
   "premiumTrialBadge": "{days} DAYS FREE*",
-  "@premiumTrialBadge": {"placeholders":{"days":{"type":"int"}}},
+  "@premiumTrialBadge": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "premiumCheckTrial": "See free trial",
   "premiumTrialEligibilityFootnote": "* For eligible accounts. {store} will show availability, the price after your trial and the renewal date before you confirm.",
-  "@premiumTrialEligibilityFootnote": {"placeholders":{"store":{"type":"String"}}},
+  "@premiumTrialEligibilityFootnote": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
   "premiumNotNow": "Not now",
   "premiumPurchaseError": "There was a problem with your purchase.",
   "premiumAppleOfferOpenFailed": "The App Store offer could not be opened.",
   "premiumPaymentsUnavailable": "Purchases are unavailable on this device. Please check your {store} account.",
-  "@premiumPaymentsUnavailable": {"placeholders":{"store":{"type":"String"}}},
+  "@premiumPaymentsUnavailable": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
   "premiumSubscriptionPricesUnavailable": "Subscription prices could not be loaded. Please try again shortly.",
   "premiumPurchaseFailed": "Purchase failed: {error}",
-  "@premiumPurchaseFailed": {"placeholders":{"error":{"type":"String"}}},
+  "@premiumPurchaseFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "premiumUnknownError": "unknown error",
   "premiumActive": "Premium is active.",
   "premiumActivated": "Premium is now active. Thank you.",
   "premiumPurchaseVerificationFailed": "Your purchase could not be verified: {error}",
-  "@premiumPurchaseVerificationFailed": {"placeholders":{"error":{"type":"String"}}},
+  "@premiumPurchaseVerificationFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "premiumPointsAdded": "Points added. Your balance is {balance}.",
-  "@premiumPointsAdded": {"placeholders":{"balance":{"type":"int"}}},
+  "@premiumPointsAdded": {
+    "placeholders": {
+      "balance": {
+        "type": "int"
+      }
+    }
+  },
   "premiumPurchaseStartFailed": "Your purchase could not be started: {error}",
-  "@premiumPurchaseStartFailed": {"placeholders":{"error":{"type":"String"}}},
+  "@premiumPurchaseStartFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "premiumRestoreEmpty": "There are no previous purchases to restore.",
   "premiumQuickActionPoints": "{subtitle}. Or use {points, plural, one{{points} point} other{{points} points}} without a subscription.",
-  "@premiumQuickActionPoints": {"placeholders":{"subtitle":{"type":"String"},"points":{"type":"int"}}},
+  "@premiumQuickActionPoints": {
+    "placeholders": {
+      "subtitle": {
+        "type": "String"
+      },
+      "points": {
+        "type": "int"
+      }
+    }
+  },
   "premiumAutomaticWeekTitle": "Automatic weekly plan",
   "premiumAutomaticWeekDescription": "Get a meal plan and an optional shopping list on your chosen day.",
   "premiumBatchTitle": "Batch barcode scanning",
@@ -2018,7 +2129,13 @@
   "premiumBatchActionTitle": "Scan several products in one go",
   "premiumBatchActionSubtitle": "Choose your destinations and confirm the whole batch",
   "premiumBatchCompleted": "{count, plural, one{{count} product processed.} other{{count} products processed.}}",
-  "@premiumBatchCompleted": {"placeholders":{"count":{"type":"int"}}},
+  "@premiumBatchCompleted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "premiumPublishActionTitle": "Publish your recipes",
   "premiumPublishActionSubtitle": "Share your recipes with the community",
   "premiumRecipeListsTitle": "Shopping lists from recipes",
@@ -2028,41 +2145,116 @@
   "premiumPantryActionTitle": "Your pantry",
   "premiumPantryActionSubtitle": "Keep track of the food you have at home",
   "premiumSubscriptionLegal": "Subscriptions renew automatically unless cancelled at least 24 hours before the current period ends. Payment is charged to your {store} account when you confirm your purchase. Manage or cancel your subscription in your store account settings.",
-  "@premiumSubscriptionLegal": {"placeholders":{"store":{"type":"String"}}},
+  "@premiumSubscriptionLegal": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
   "premiumAlreadyActive": "Your Premium subscription is active",
   "premiumExpiresToday": "Expires today",
   "premiumDaysRemaining": "{days, plural, one{Active for {days} more day} other{Active for {days} more days}}",
-  "@premiumDaysRemaining": {"placeholders":{"days":{"type":"int"}}},
+  "@premiumDaysRemaining": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "premiumRetry": "Try again",
   "premiumWeekly": "Weekly",
   "premiumMonthly": "Monthly",
   "premiumMonthlyTrial": "{days, plural, one{{days} day free} other{{days} days free}}",
-  "@premiumMonthlyTrial": {"placeholders":{"days":{"type":"int"}}},
+  "@premiumMonthlyTrial": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "premiumYearly": "Yearly",
   "premiumYearlySaving": "Save {percent}%",
-  "@premiumYearlySaving": {"placeholders":{"percent":{"type":"int"}}},
+  "@premiumYearlySaving": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "premiumTrialDisclosureApple": "Eligible accounts can try Premium free for {days} days. It then renews at the price shown above. You can cancel in your Apple account settings.",
-  "@premiumTrialDisclosureApple": {"placeholders":{"days":{"type":"int"}}},
+  "@premiumTrialDisclosureApple": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "premiumTrialDisclosureGoogle": "Eligible accounts can try Premium free for {days} days. It then renews at the price shown above. You can cancel in Google Play.",
-  "@premiumTrialDisclosureGoogle": {"placeholders":{"days":{"type":"int"}}},
+  "@premiumTrialDisclosureGoogle": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "premiumRestorePurchases": "Restore purchases",
   "premiumPointsTitle": "Premium points",
   "premiumPointsBalance": "Your balance: {balance}",
-  "@premiumPointsBalance": {"placeholders":{"balance":{"type":"int"}}},
+  "@premiumPointsBalance": {
+    "placeholders": {
+      "balance": {
+        "type": "int"
+      }
+    }
+  },
   "premiumPointsExplanation": "Import a recipe from a photo, text or link for 2 points. Edit a recipe with AI for 1 point. A subscription is optional.",
   "premiumPointsPricesUnavailable": "Point package prices could not be loaded.",
   "premiumPointsAmount": "{points, plural, one{{points} point} other{{points} points}}",
-  "@premiumPointsAmount": {"placeholders":{"points":{"type":"int"}}},
+  "@premiumPointsAmount": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
   "premiumPromotionalPrice": "Offer price: {price}",
-  "@premiumPromotionalPrice": {"placeholders":{"price":{"type":"String"}}},
+  "@premiumPromotionalPrice": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
   "premiumPointsUses": "{imports, plural, one{{imports} AI import} other{{imports} AI imports}}\nor {edits, plural, one{{edits} AI edit} other{{edits} AI edits}}",
-  "@premiumPointsUses": {"placeholders":{"imports":{"type":"int"},"edits":{"type":"int"}}},
+  "@premiumPointsUses": {
+    "placeholders": {
+      "imports": {
+        "type": "int"
+      },
+      "edits": {
+        "type": "int"
+      }
+    }
+  },
   "premiumBuyInApple": "Buy in the App Store",
   "premiumBuyInGoogle": "Buy in Google Play",
   "premiumPriceAfterTrial": "Then {price} per month",
-  "@premiumPriceAfterTrial": {"placeholders":{"price":{"type":"String"}}},
+  "@premiumPriceAfterTrial": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
   "premiumPriceBeforeCode": "Price before offer code: {price}",
-  "@premiumPriceBeforeCode": {"placeholders":{"price":{"type":"String"}}},
+  "@premiumPriceBeforeCode": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
   "premiumTryFree": "Try for free",
   "premiumBuy": "Get Premium",
   "premiumRedeemCode": "Get offer code",
@@ -2105,9 +2297,21 @@
   "premiumContextJournalBenefitWeight": "Weight progress over time",
   "premiumPackageSemantics": "Package",
   "premiumDiscountSemantics": "{percent} per cent discount",
-  "@premiumDiscountSemantics": {"placeholders":{"percent":{"type":"int"}}},
+  "@premiumDiscountSemantics": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "premiumDiscountRibbon": "SAVE {percent}%",
-  "@premiumDiscountRibbon": {"placeholders":{"percent":{"type":"int"}}},
+  "@premiumDiscountRibbon": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "premiumSeePlans": "See Premium plans",
   "archiveTitle": "Plan archive",
   "archiveChooseStart": "When should the plan start?",
@@ -2189,7 +2393,13 @@
   "ingredientPreferencesDiscard": "Go back without saving",
   "ingredientPreferencesEmpty": "No ingredients selected yet.",
   "ingredientPreferencesRemove": "Remove {name}",
-  "@ingredientPreferencesRemove": {"placeholders": {"name": {"type": "String"}}},
+  "@ingredientPreferencesRemove": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "ingredientPreferencesRetry": "Try again",
   "ingredientPreferencesHint": "We will use your preferences in one meal a day when a matching recipe is available. Allergies and diet take priority.",
   "ingredientPreferencesLike": "Like",
@@ -2201,7 +2411,13 @@
   "ingredientPreferencesRetrySearch": "Search again",
   "ingredientPreferencesNoResults": "No ingredients match this name.",
   "ingredientPreferencesSaveError": "Not saved: {error}",
-  "@ingredientPreferencesSaveError": {"placeholders": {"error": {"type": "String"}}},
+  "@ingredientPreferencesSaveError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "ingredientPreferencesSaving": "Saving…",
   "ingredientPreferencesSave": "Save preferences",
   "ingredientPreferencesSaved": "Preferences saved",
@@ -2212,7 +2428,13 @@
   "blockedUsersUnknown": "User",
   "blockedUsersUnblock": "Unblock",
   "blockedUsersUnblocked": "Unblocked \"{name}\". You can see their content again.",
-  "@blockedUsersUnblocked": {"placeholders": {"name": {"type": "String"}}},
+  "@blockedUsersUnblocked": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "calculatorTitle": "Calorie calculator",
   "calculatorIntro": "Enter your details to calculate your daily calorie needs (the Mifflin–St Jeor formula, also used by Poland's NFZ calorie calculator).",
   "calculatorWeight": "Weight (kg)",
@@ -2236,14 +2458,26 @@
   "calculatorCalculate": "Calculate calorie needs",
   "calculatorSaveFailed": "Could not save your goal.",
   "calculatorGoalSaved": "Goal saved: {kcal} kcal/day",
-  "@calculatorGoalSaved": {"placeholders": {"kcal": {"type": "int"}}},
+  "@calculatorGoalSaved": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
   "calculatorChooseGoal": "Choose your goal",
   "calculatorGoalHint": "Tap a tile to select it, or fine-tune it with the slider below.",
   "calculatorLoss": "Weight loss",
   "calculatorMaintenance": "Maintain",
   "calculatorGain": "Weight gain",
   "calculatorCustomGoal": "Your target: {kcal} kcal/day",
-  "@calculatorCustomGoal": {"placeholders": {"kcal": {"type": "int"}}},
+  "@calculatorCustomGoal": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
   "calculatorMacros": "Estimated macronutrient split",
   "calculatorProtein": "Protein",
   "calculatorFat": "Fat",
@@ -2277,8 +2511,23 @@
   "socialSomeone": "Someone",
   "socialShareRespond": "Tap to respond",
   "socialShareAccept": "Accept",
-  "@socialRecipeSummary": {"placeholders":{"minutes":{"type":"int"},"meal":{"type":"String"}}},
-  "@socialSharedListInvitation": {"placeholders":{"name":{"type":"String"}}},
+  "@socialRecipeSummary": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "meal": {
+        "type": "String"
+      }
+    }
+  },
+  "@socialSharedListInvitation": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "notificationsTitle": "Notifications",
   "notificationsLoadFailed": "Could not load notifications",
   "notificationsMarkAllFailed": "Could not mark all notifications as read",
@@ -2290,15 +2539,42 @@
   "notificationsDays": "{count, plural, =1{1 day ago} other{{count} days ago}}",
   "notificationsMarkAll": "Mark all as read",
   "notificationsEmpty": "No notifications",
-  "@notificationsMinutes": {"placeholders":{"count":{"type":"int"}}},
-  "@notificationsHours": {"placeholders":{"count":{"type":"int"}}},
-  "@notificationsDays": {"placeholders":{"count":{"type":"int"}}},
+  "@notificationsMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@notificationsHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@notificationsDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "releasePromptTitle": "An update is available",
   "releasePromptRequired": "This version is no longer supported. Update the app to continue.",
   "releasePromptStoreError": "Could not open the app store.",
-  "releasePromptChanges": "• Improved Premium activation and purchase restoration.\n• Premium points are credited correctly after a connection interruption or payment retry.\n• Repeat scans and amount selection retain pack size and units.\n• Improved product suggestions and messages in Polish and English.",
+  "releasePromptChanges": "• Discover 30 autumn recipes in Polish and English.\n• Each new dish has its own photo and ingredients for your shopping list.\n• Improved conversions between grams, pieces and kitchen measures.\n• Calories and shopping costs use the right amounts; estimates are labelled.",
   "detailPlanPortionHelp": "Ingredients are scaled to {servings} portions. Quantities written in the method refer to the original recipe ({baseServings} portions).",
-  "@detailPlanPortionHelp": {"placeholders":{"servings":{"type":"int"},"baseServings":{"type":"int"}}},
+  "@detailPlanPortionHelp": {
+    "placeholders": {
+      "servings": {
+        "type": "int"
+      },
+      "baseServings": {
+        "type": "int"
+      }
+    }
+  },
   "releasePromptApple": "Open App Store",
   "releasePromptGoogle": "Open Google Play",
   "releasePromptLater": "Later",
@@ -2312,7 +2588,13 @@
   "pantrySearchStart": "Enter a product name.",
   "pantrySearchEmpty": "No results.",
   "pantrySaved": "Added \"{name}\" to pantry.",
-  "@pantrySaved": {"placeholders":{"name":{"type":"String"}}},
+  "@pantrySaved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "matchTitle": "Cook from my pantry",
   "matchPremium": "Premium feature",
   "matchPremiumBody": "Matching recipes to what you have in your pantry is available with an active Premium subscription.",
@@ -2321,29 +2603,71 @@
   "matchEmptyPantry": "Your pantry is empty. Add the products you have at home to find matching recipes.",
   "matchAddPantry": "Add a product to pantry",
   "matchSelected": "Selected {selected} of {total}",
-  "@matchSelected": {"placeholders":{"selected":{"type":"int"},"total":{"type":"int"}}},
+  "@matchSelected": {
+    "placeholders": {
+      "selected": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "matchDeselect": "Deselect all",
   "matchSelectAll": "Select all",
   "matchSearch": "Find recipes ({count})",
-  "@matchSearch": {"placeholders":{"count":{"type":"int"}}},
+  "@matchSearch": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "matchGenerate": "Generate a new recipe with AI",
   "matchResultsTitle": "Matching recipes",
   "matchResultsEmpty": "No recipes in the catalogue match the selected ingredients. You can generate a new recipe with AI instead.",
   "matchOtherAi": "Nothing suitable? Generate with AI",
   "matchReady": "Ready to cook",
   "matchMissing": "Missing: {ingredients}",
-  "@matchMissing": {"placeholders":{"ingredients":{"type":"String"}}},
+  "@matchMissing": {
+    "placeholders": {
+      "ingredients": {
+        "type": "String"
+      }
+    }
+  },
   "matchSelectPrompt": "Generate a recipe for a dish using mainly these ingredients I have at home: {ingredients}. You may add at most 2–3 commonly available ingredients, such as salt, spices or olive oil.",
-  "@matchSelectPrompt": {"placeholders":{"ingredients":{"type":"String"}}},
+  "@matchSelectPrompt": {
+    "placeholders": {
+      "ingredients": {
+        "type": "String"
+      }
+    }
+  },
   "matchResultsPrompt": "Generate a recipe for a dish using MAINLY these ingredients I have at home: {ingredients}. You may add at most 2-3 extra commonly available ingredients (e.g. salt, spices, olive oil), if needed.",
-  "@matchResultsPrompt": {"placeholders":{"ingredients":{"type":"String"}}},
+  "@matchResultsPrompt": {
+    "placeholders": {
+      "ingredients": {
+        "type": "String"
+      }
+    }
+  },
   "leaderTitle": "Recipe author ranking",
   "leaderWeek": "This week",
   "leaderAll": "All time",
   "leaderEmptyWeek": "No one has added an approved recipe\nthis week yet. Be the first!",
   "leaderEmptyAll": "No one has added an approved recipe\nto the shared catalogue yet.",
   "leaderCount": "{count} {noun}",
-  "@leaderCount": {"placeholders":{"count":{"type":"int"},"noun":{"type":"String"}}},
+  "@leaderCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "noun": {
+        "type": "String"
+      }
+    }
+  },
   "leaderRecipeSingular": "recipe",
   "leaderRecipeFew": "recipes",
   "leaderRecipeMany": "recipes",
@@ -2383,28 +2707,94 @@
   "statsPremiumBody": "Unlock calorie, hydration and weight analysis with practical insights each week.",
   "statsPremiumAction": "View full report",
   "statsDailyMacroLine": "{kcal} kcal  •  P {protein} g  •  F {fat} g  •  C {carbs} g",
-  "@statsDailyMacroLine": {"placeholders":{"kcal":{"type":"String"},"protein":{"type":"String"},"fat":{"type":"String"},"carbs":{"type":"String"}}},
+  "@statsDailyMacroLine": {
+    "placeholders": {
+      "kcal": {
+        "type": "String"
+      },
+      "protein": {
+        "type": "String"
+      },
+      "fat": {
+        "type": "String"
+      },
+      "carbs": {
+        "type": "String"
+      }
+    }
+  },
   "statsWaterLine": "Water: {amount} ml",
-  "@statsWaterLine": {"placeholders":{"amount":{"type":"int"}}},
+  "@statsWaterLine": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
   "statsMaximum": "Maximum: {amount} {unit}",
-  "@statsMaximum": {"placeholders":{"amount":{"type":"String"},"unit":{"type":"String"}}},
+  "@statsMaximum": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "insightRegularity": "Consistency: {count} of 7 days",
-  "@insightRegularity": {"placeholders":{"count":{"type":"int"}}},
+  "@insightRegularity": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "insightEnough": "You now have enough data to compare weeks.",
   "insightMoreDays": "Log {count} more days for a more accurate report.",
-  "@insightMoreDays": {"placeholders":{"count":{"type":"int"}}},
+  "@insightMoreDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "insightCalories": "Average {count} kcal per day",
-  "@insightCalories": {"placeholders":{"count":{"type":"int"}}},
+  "@insightCalories": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "insightCaloriesDetail": "Compare weekly averages rather than judging a single day.",
   "insightWaterMissing": "Hydration data is missing",
   "insightWaterAverage": "Average {amount} ml of water",
-  "@insightWaterAverage": {"placeholders":{"amount":{"type":"int"}}},
+  "@insightWaterAverage": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
   "insightWaterEveryDay": "Hydration was logged every day this week.",
   "insightWaterDays": "Hydration was logged on {count} of 7 days.",
-  "@insightWaterDays": {"placeholders":{"count":{"type":"int"}}},
+  "@insightWaterDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "insightWeightStable": "No significant weight change",
   "insightWeightChange": "Weight change {amount} kg",
-  "@insightWeightChange": {"placeholders":{"amount":{"type":"String"}}},
+  "@insightWeightChange": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "insightWeightDetail": "Comparison of the first and last measurements from the past 7 days.",
   "cookingTipsTitle": "Cooking tips",
   "splashSubtitle": "Plan meals wisely and save",
@@ -2434,8 +2824,29 @@
   "adminDeleteRecipeTitle": "Delete recipe?",
   "adminDeleteRecipeBody": "You will delete \"{name}\", its comments and its links to shopping lists and meal plans used by other users. This cannot be undone.",
   "adminRecipeFallback": "this recipe",
-  "@adminProductNutrition": {"placeholders": {"kcal": {"type": "String"}, "protein": {"type": "String"}, "fat": {"type": "String"}, "carbs": {"type": "String"}}},
-  "@adminDeleteRecipeBody": {"placeholders": {"name": {"type": "String"}}},
+  "@adminProductNutrition": {
+    "placeholders": {
+      "kcal": {
+        "type": "String"
+      },
+      "protein": {
+        "type": "String"
+      },
+      "fat": {
+        "type": "String"
+      },
+      "carbs": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminDeleteRecipeBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "adminUsersTitle": "Users",
   "adminUsersSearch": "Search by email or name…",
   "adminUsersOnlyBanned": "Banned accounts only",
@@ -2470,11 +2881,41 @@
   "adminPhotosSubmittedBy": "Submitted by: {name}",
   "adminPhotosReplaceWarning": "Please note: this recipe already has a photo — approving this one will replace it.",
   "adminPhotosLoadError": "Could not load the photo",
-  "@adminUsersVersion": {"placeholders":{"version":{"type":"String"}}},
-  "@adminUsersReason": {"placeholders":{"reason":{"type":"String"}}},
-  "@adminUsersBanTitle": {"placeholders":{"name":{"type":"String"}}},
-  "@adminCommentsRecipe": {"placeholders":{"name":{"type":"String"}}},
-  "@adminPhotosSubmittedBy": {"placeholders":{"name":{"type":"String"}}},
+  "@adminUsersVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminUsersReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminUsersBanTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminCommentsRecipe": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminPhotosSubmittedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "adminPhotosApprove": "Approve",
   "adminMainTitle": "Admin panel",
   "adminMainBroadcastSent": "Sent to {count} users.",
@@ -2568,17 +3009,92 @@
   "adminMarketHelp": "Changes the data view, not your account’s country.",
   "adminMarketPl": "Poland",
   "adminMarketGb": "United Kingdom",
-  "@adminMainBroadcastSent": {"placeholders":{"count":{"type":"String"}}},
-  "@adminMainReportDetails": {"placeholders":{"details":{"type":"String"}}},
-  "@adminMainAuthor": {"placeholders":{"email":{"type":"String"}}},
-  "@adminMainReporter": {"placeholders":{"email":{"type":"String"}}},
-  "@adminMainScanSummary": {"placeholders":{"found":{"type":"String"},"queued":{"type":"String"}}},
-  "@adminMainRecipeMeta": {"placeholders":{"mealType":{"type":"String"},"servings":{"type":"String"},"difficulty":{"type":"String"}}},
-  "@adminMainScanShop": {"placeholders":{"store":{"type":"String"}}},
-  "@adminMainScanningShop": {"placeholders":{"store":{"type":"String"}}},
-  "@campaignConfirmPoints": {"placeholders":{"store":{"type":"String"}}},
-  "@campaignDeleteBody": {"placeholders":{"name":{"type":"String"}}},
-  "@campaignPointsHelp": {"placeholders":{"store":{"type":"String"}}},
+  "@adminMainBroadcastSent": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminMainReportDetails": {
+    "placeholders": {
+      "details": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminMainAuthor": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminMainReporter": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminMainScanSummary": {
+    "placeholders": {
+      "found": {
+        "type": "String"
+      },
+      "queued": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminMainRecipeMeta": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      },
+      "servings": {
+        "type": "String"
+      },
+      "difficulty": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminMainScanShop": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminMainScanningShop": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "@campaignConfirmPoints": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "@campaignDeleteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@campaignPointsHelp": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
   "approvalRecipePending": "This recipe is awaiting your approval for the shared catalogue",
   "approvalRecipeApprove": "Approve",
   "approvalRecipeApproved": "Recipe approved",
@@ -2603,10 +3119,34 @@
   "exportListOpenApp": "Open {name}",
   "exportListAppMissing": "This app is not installed.",
   "exportListAppFailed": "Could not open the app.",
-  "@shoppingAddSuccess": {"placeholders":{"name":{"type":"String"}}},
-  "@exportListHeading": {"placeholders":{"store":{"type":"String"}}},
-  "@exportListSubject": {"placeholders":{"store":{"type":"String"}}},
-  "@exportListOpenApp": {"placeholders":{"name":{"type":"String"}}},
+  "@shoppingAddSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@exportListHeading": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "@exportListSubject": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "@exportListOpenApp": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "exportListComingSoon": "Coming soon",
   "diarySignInView": "Sign in to view your diary.",
   "diarySignInAdd": "Sign in to add an entry.",

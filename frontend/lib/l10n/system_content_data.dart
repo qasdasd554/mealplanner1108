@@ -3517,6 +3517,760 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       "suggested_seasonings": ["vanilla", "cinnamon"],
     },
   },
+  "9b700d52-311a-564a-86b2-3598e27ef50c": {
+    "source": {
+      "name": "Sałatka z indykiem, dynią i pęczakiem",
+      "description":
+          "Jesienna propozycja: sałatka z indykiem, dynią i pęczakiem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "instructions": [
+        "Ugotuj pęczak zgodnie z opakowaniem. Dynię oczyść i pokrój, a indyka podziel na kawałki.",
+        "Wymieszaj dynię i indyka z oliwą, papryką wędzoną, czosnkiem, kuminem, solą i pieprzem. Piecz w 200°C przez 18–20 minut; sprawdź, czy mięso jest całkowicie upieczone.",
+        "Połącz masło orzechowe, sos sojowy, sok z cytryny, miód i wodę. Słonecznik podpraż na suchej patelni.",
+        "Ułóż kaszę, dynię i indyka w misce. Dodaj sos, słonecznik oraz posiekaną natkę.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Warm turkey, pumpkin and barley salad",
+      "description":
+          "An autumn dish: warm turkey, pumpkin and barley salad. Adapted from Centrum Respo. Nutritional values are estimates.",
+      "instructions": [
+        "Cook the barley following the packet. Deseed and dice the pumpkin, then cut the turkey into pieces.",
+        "Toss the pumpkin and turkey with the olive oil, smoked paprika, garlic powder, cumin, salt and pepper. Roast at 200°C for 18–20 minutes; check that the turkey is fully cooked.",
+        "Mix the peanut butter, soy sauce, lemon juice, honey and water. Toast the sunflower seeds in a dry pan.",
+        "Arrange the barley, pumpkin and turkey in a bowl. Finish with the dressing, seeds and chopped parsley.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "b355be88-0b8b-5874-a582-d81cc84574cc": {
+    "source": {
+      "name": "Owsianka marchewkowa z orzechami",
+      "description":
+          "Jesienna propozycja: owsianka marchewkowa z orzechami. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "instructions": [
+        "Zetrzyj marchew i włóż do rondla z płatkami, rodzynkami, cynamonem, imbirem i goździkami.",
+        "Wlej mleko i gotuj łagodnie przez 8–10 minut, mieszając. Gdy trzeba, dolej trochę wody.",
+        "Dodaj erytrytol. Przełóż do miski, a po lekkim przestudzeniu dodaj skyr i posiekane orzechy.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Carrot cake porridge with walnuts",
+      "description":
+          "An autumn dish: carrot cake porridge with walnuts. Adapted from Centrum Respo. Nutritional values are estimates.",
+      "instructions": [
+        "Grate the carrot into a saucepan with the oats, raisins, cinnamon, ginger and cloves.",
+        "Add the milk and simmer for 8–10 minutes, stirring. Add a splash of water if needed.",
+        "Stir in the erythritol. Transfer to a bowl, allow to cool slightly, then add the skyr and chopped walnuts.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "2b5a96c1-cb41-5b2a-982e-7555734d91e5": {
+    "source": {
+      "name": "Quinoa z wołowiną i dynią",
+      "description":
+          "Jesienna propozycja: quinoa z wołowiną i dynią. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "instructions": [
+        "Ugotuj komosę według opakowania. Pokrój cebulę, czosnek, dynię i polędwicę.",
+        "Na oliwie zeszklij cebulę, dodaj czosnek, a następnie obsmaż wołowinę. Dołóż dynię, paprykę i oregano.",
+        "Dodaj passatę i gotowy bulion. Duś przez 10–12 minut, aż dynia i mięso będą miękkie; dopraw solą i pieprzem.",
+        "Podaj z komosą i natką pietruszki.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Quinoa with beef and pumpkin",
+      "description":
+          "An autumn dish: quinoa with beef and pumpkin. Adapted from Centrum Respo. Nutritional values are estimates.",
+      "instructions": [
+        "Cook the quinoa following the packet. Chop the onion, garlic, pumpkin and beef fillet.",
+        "Soften the onion in the olive oil, add the garlic, then brown the beef. Stir in the pumpkin, paprika and oregano.",
+        "Pour in the passata and prepared stock. Simmer for 10–12 minutes until the pumpkin and beef are tender; season with salt and pepper.",
+        "Serve with the quinoa and parsley.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "36a1771f-37dd-51bd-964c-fc71e1f5e32b": {
+    "source": {
+      "name": "Meksykańska zupa z dynią i kukurydzą",
+      "description":
+          "Jesienna propozycja: meksykańska zupa z dynią i kukurydzą. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "instructions": [
+        "Posiekaj cebulę i czosnek, pokrój dynię i paprykę. Fasolę i kukurydzę odsącz.",
+        "Na oliwie zeszklij cebulę z czosnkiem. Dodaj dynię i paprykę, chwilę smaż, po czym wlej gotowy bulion i dodaj suche przyprawy.",
+        "Gotuj do miękkości dyni i ostrożnie zblenduj. Na osobnej patelni dokładnie usmaż mielonego indyka, rozdzielając grudki.",
+        "Dodaj mięso, fasolę i kukurydzę do zupy i podgrzewaj przez 5–10 minut. Podaj z nachosami, chili i kolendrą.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Mexican pumpkin and sweetcorn soup",
+      "description":
+          "An autumn dish: mexican pumpkin and sweetcorn soup. Adapted from Centrum Respo. Nutritional values are estimates.",
+      "instructions": [
+        "Chop the onion and garlic, dice the pumpkin and pepper, and drain the beans and sweetcorn.",
+        "Soften the onion and garlic in the olive oil. Add the pumpkin and pepper, fry briefly, then add the prepared stock and dried seasonings.",
+        "Simmer until the pumpkin is soft, then blend carefully. Fully cook the turkey mince in a separate pan, breaking up any lumps.",
+        "Add the turkey, beans and sweetcorn to the soup and simmer for 5–10 minutes. Serve with the tortilla chips, chilli and coriander.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "cbb746b3-22c3-54d7-aaff-fc99dab74f0a": {
+    "source": {
+      "name": "Gulasz wołowy z dynią",
+      "description":
+          "Jesienna propozycja: gulasz wołowy z dynią. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "instructions": [
+        "Pokrój wołowinę, cebulę, marchew, paprykę i dynię. Posiekaj czosnek.",
+        "Na oliwie obsmaż wołowinę i odłóż. W tym samym garnku podsmaż cebulę, czosnek, marchew i paprykę.",
+        "Włóż mięso z powrotem, dodaj koncentrat, przyprawy i gotowy bulion. Duś przez 20–25 minut, potem dodaj dynię i gotuj jeszcze przez 10–15 minut, do miękkości.",
+        "Posyp natką i podaj z chlebem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Hungarian-style beef and pumpkin stew",
+      "description":
+          "An autumn dish: hungarian-style beef and pumpkin stew. Adapted from Centrum Respo. Nutritional values are estimates.",
+      "instructions": [
+        "Dice the beef, onion, carrot, pepper and pumpkin. Chop the garlic.",
+        "Brown the beef in the olive oil and set aside. In the same pan, fry the onion, garlic, carrot and pepper.",
+        "Return the beef to the pan with the tomato purée, seasonings and prepared stock. Simmer for 20–25 minutes, then add the pumpkin and cook for another 10–15 minutes until tender.",
+        "Scatter with parsley and serve with the bread.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "b30efc57-5371-50a2-9656-bc34009f569d": {
+    "source": {
+      "name": "Pęczotto z wieprzowiną i burakami",
+      "description":
+          "Jesienna propozycja: pęczotto z wieprzowiną i burakami. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "instructions": [
+        "Buraki ugotuj do miękkości; połowę zblenduj, resztę pokrój. Posiekaj cebulę i czosnek.",
+        "Na połowie oliwy zeszklij cebulę z czosnkiem i krótko podpraż pęczak. Dolewaj ciepły gotowy bulion partiami, mieszając, aż kasza zmięknie.",
+        "Dodaj buraczane puree, ocet, sól i pieprz. Na reszcie oliwy dokładnie usmaż mięso mielone, rozbijając je na drobne kawałki.",
+        "Podziel kaszę i mięso na porcje. Dodaj kawałki buraka, natkę i podprażone pestki dyni.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Pork and beetroot pearl barley",
+      "description":
+          "An autumn dish: pork and beetroot pearl barley. Adapted from Centrum Respo. Nutritional values are estimates.",
+      "instructions": [
+        "Cook the beetroot until tender; blend half and dice the rest. Chop the onion and garlic.",
+        "Soften the onion and garlic in half the olive oil and briefly toast the barley. Add the warm prepared stock gradually, stirring until the barley is tender.",
+        "Stir in the beetroot purée, vinegar, salt and pepper. Fully cook the pork mince in the remaining oil, breaking it into small pieces.",
+        "Divide the barley and pork between bowls. Add the diced beetroot, parsley and toasted pumpkin seeds.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "fd6c889c-f491-5aec-b77f-8c56d3fa4c89": {
+    "source": {
+      "name": "Gnocchi z pieczarkami i szpinakiem",
+      "description":
+          "Jesienna propozycja: gnocchi z pieczarkami i szpinakiem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "instructions": [
+        "Ugotuj gnocchi według opakowania. Pokrój pieczarki, posiekaj cebulę, czosnek i natkę.",
+        "Na oliwie zeszklij cebulę. Dodaj pieczarki i smaż, aż odparują, a na końcu dodaj czosnek.",
+        "Wlej gotowy bulion, krótko zredukuj i dołóż szpinak. Gdy zwiędnie, dodaj większość parmezanu, sól i pieprz.",
+        "Połącz sos z gnocchi i podgrzej. Posyp pozostałym serem i natką.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Mushroom and spinach gnocchi",
+      "description":
+          "An autumn dish: mushroom and spinach gnocchi. Adapted from Centrum Respo. Nutritional values are estimates.",
+      "instructions": [
+        "Cook the gnocchi following the packet. Slice the mushrooms and chop the onion, garlic and parsley.",
+        "Soften the onion in the olive oil. Add the mushrooms and fry until their liquid evaporates, then add the garlic.",
+        "Pour in the prepared stock and reduce briefly. Add the spinach; once wilted, stir in most of the Parmesan, salt and pepper.",
+        "Toss the gnocchi in the sauce and heat through. Finish with the remaining cheese and parsley.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "37c3c655-791a-5c62-b6fa-cf097144190f": {
+    "source": {
+      "name": "Makaron z karmelizowaną cebulą",
+      "description":
+          "Jesienna propozycja: makaron z karmelizowaną cebulą. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "instructions": [
+        "Pokrój cebulę w cienkie plasterki. Na oliwie duś ją pod przykryciem przez 10 minut.",
+        "Odkryj, dodaj miód i smaż na małym ogniu przez 10–15 minut, często mieszając.",
+        "Dodaj suchy makaron, gotowy bulion, śmietankę i przyprawy. Gotuj łagodnie przez 12–15 minut, aż makaron zmięknie; w razie potrzeby dolej wody.",
+        "Wmieszaj mozzarellę i podaj po jej roztopieniu.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "One-pot caramelised onion pasta",
+      "description":
+          "An autumn dish: one-pot caramelised onion pasta. Adapted from Centrum Respo. Nutritional values are estimates.",
+      "instructions": [
+        "Thinly slice the onions and soften in the olive oil, covered, for 10 minutes.",
+        "Uncover, add the honey and cook over a low heat for 10–15 minutes, stirring often.",
+        "Add the dry pasta, prepared stock, cream and seasonings. Simmer for 12–15 minutes until the pasta is tender, adding water if needed.",
+        "Stir in the mozzarella and serve once melted.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "2ef8f0f3-7982-5c09-83c1-db96d1f75394": {
+    "source": {
+      "name": "Chrupiący wrap z jabłkiem i twarogiem",
+      "description":
+          "Jesienna propozycja: chrupiący wrap z jabłkiem i twarogiem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "instructions": [
+        "Rozgnieć twaróg i wymieszaj z jogurtem oraz miodem.",
+        "Jabłko pokrój w kostkę i podsmaż na maśle z erytrytolem. Gdy zmięknie, dodaj cynamon i lekko przestudź.",
+        "Podgrzej tortillę z obu stron na suchej patelni. Nałóż twarożek i jabłko, zwiń i podaj od razu.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Crispy apple and quark wrap",
+      "description":
+          "An autumn dish: crispy apple and quark wrap. Adapted from Centrum Respo. Nutritional values are estimates.",
+      "instructions": [
+        "Mash the quark and mix with the yoghurt and honey.",
+        "Dice the apple and cook in the butter with the erythritol. Once soft, add the cinnamon and allow to cool slightly.",
+        "Warm both sides of the tortilla in a dry pan. Fill with the quark mixture and apple, fold and serve straight away.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "fbb810be-1029-5b2c-a7c2-b99eccf90347": {
+    "source": {
+      "name": "Brukselka z halloumi i pęczakiem",
+      "description":
+          "Jesienna propozycja: brukselka z halloumi i pęczakiem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "instructions": [
+        "Ugotuj pęczak zgodnie z opakowaniem. Oczyszczoną brukselkę przekrój na pół.",
+        "Smaż brukselkę na oliwie pod przykryciem przez 5 minut, następnie odkryj i dosmaż do miękkości. Dodaj sól i pieprz.",
+        "Halloumi pokrój w plastry i zrumień z obu stron na suchej patelni.",
+        "Wymieszaj musztardę z syropem klonowym. Podaj kaszę z brukselką, serem i sosem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Brussels sprouts, halloumi and barley",
+      "description":
+          "An autumn dish: brussels sprouts, halloumi and barley. Adapted from Centrum Respo. Nutritional values are estimates.",
+      "instructions": [
+        "Cook the barley following the packet. Trim and halve the Brussels sprouts.",
+        "Fry the sprouts in the olive oil, covered, for 5 minutes, then uncover and cook until tender. Season with salt and pepper.",
+        "Slice the halloumi and brown on both sides in a dry pan.",
+        "Mix the mustard and maple syrup. Serve the barley with the sprouts, halloumi and dressing.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "50721369-9817-5ce7-b319-dfe8bdcd8b27": {
+    "source": {
+      "name": "Nocna owsianka z jabłkiem i orzechami",
+      "description":
+          "Jesienna propozycja: nocna owsianka z jabłkiem i orzechami. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "instructions": [
+        "Połowę jabłka pokrój i duś z odrobiną wody, erytrytolem oraz połową cynamonu do uzyskania musu. Ostudź.",
+        "Wymieszaj płatki z mlekiem, puddingiem i musem. Przykryj i schładzaj przez co najmniej 6 godzin.",
+        "Orzechy posiekaj i podpraż. Na owsiance ułóż pozostałe jabłko, orzechy i resztę cynamonu.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Apple and walnut overnight oats",
+      "description":
+          "An autumn dish: apple and walnut overnight oats. Adapted from Centrum Respo. Nutritional values are estimates.",
+      "instructions": [
+        "Dice half the apple and simmer with a splash of water, the erythritol and half the cinnamon until soft. Cool.",
+        "Mix the oats with the milk, pudding and apple compote. Cover and refrigerate for at least 6 hours.",
+        "Chop and toast the walnuts. Top the oats with the remaining apple, walnuts and cinnamon.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "2cc18937-637d-57e7-be67-7f022cc67338": {
+    "source": {
+      "name": "Sałatka z soczewicą, indykiem i dynią",
+      "description":
+          "Jesienna propozycja: sałatka z soczewicą, indykiem i dynią. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "instructions": [
+        "Ugotuj soczewicę i odcedź. Dynię pokrój, wymieszaj z połową oliwy, tymiankiem, rozmarynem, częścią papryki, solą i pieprzem.",
+        "Piecz dynię w 200°C przez 25–30 minut. Indyka pokrój w cienkie paski, dopraw czosnkiem i pozostałą papryką, a następnie dokładnie usmaż na patelni nieprzywierającej.",
+        "Usuń twarde łodygi jarmużu i posiekaj liście. Z reszty oliwy, soku pomarańczowego, musztardy i miodu zrób sos.",
+        "Połącz soczewicę, dynię, indyka, jarmuż, fetę i żurawinę. Dodaj sos i pestki dyni, podziel na porcje.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Lentil, turkey and pumpkin salad",
+      "description":
+          "An autumn dish: lentil, turkey and pumpkin salad. Adapted from Centrum Respo. Nutritional values are estimates.",
+      "instructions": [
+        "Cook and drain the lentils. Dice the pumpkin and toss with half the olive oil, thyme, rosemary, some of the paprika, salt and pepper.",
+        "Roast the pumpkin at 200°C for 25–30 minutes. Thinly slice the turkey, season with the garlic powder and remaining paprika, then fully cook in a non-stick pan.",
+        "Remove the tough kale stems and chop the leaves. Mix the remaining oil with the orange juice, mustard and honey for the dressing.",
+        "Combine the lentils, pumpkin, turkey, kale, feta and cranberries. Add the dressing and pumpkin seeds, then divide into servings.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "945e4350-48f8-5015-b686-6d1393c38b70": {
+    "source": {
+      "name": "Szakszuka z dynią",
+      "description":
+          "Jesienna propozycja: szakszuka z dynią. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "instructions": [
+        "Pokrój dynię, cebulę i paprykę, posiekaj czosnek. Na oliwie zeszklij cebulę.",
+        "Dodaj pozostałe warzywa, chwilę podsmaż i dołóż pomidory oraz przyprawy. Duś do miękkości dyni, w razie potrzeby podlewając wodą.",
+        "Zrób zagłębienia w sosie i wbij jajka. Przykryj i gotuj łagodnie, aż jajka osiągną wybrany stopień ścięcia.",
+        "Posyp natką i podaj z pieczywem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Pumpkin shakshuka",
+      "description":
+          "An autumn dish: pumpkin shakshuka. Adapted from Centrum Respo. Nutritional values are estimates.",
+      "instructions": [
+        "Dice the pumpkin, onion and pepper, and chop the garlic. Soften the onion in the olive oil.",
+        "Add the remaining vegetables, fry briefly, then add the tomatoes and seasonings. Simmer until the pumpkin is tender, adding water if needed.",
+        "Make wells in the sauce and crack in the eggs. Cover and cook gently until the eggs are set to your liking.",
+        "Scatter with parsley and serve with the bread.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "233aaca5-4850-5d1c-8436-6d01278d678e": {
+    "source": {
+      "name": "Jajka po turecku z pieczoną dynią",
+      "description":
+          "Jesienna propozycja: jajka po turecku z pieczoną dynią. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "instructions": [
+        "Dynię pokrój, obtocz w oliwie, słodkiej i wędzonej papryce, kuminie, czosnku granulowanym oraz części soli. Piecz w 200°C z termoobiegiem przez 25–30 minut.",
+        "Jogurt połącz ze świeżym czosnkiem i sokiem z cytryny.",
+        "Wodę z octem doprowadź do łagodnego wrzenia. Ostrożnie wsuń jajka i gotuj w koszulce, aż białka się zetną; wyjmij łyżką cedzakową.",
+        "Na jogurcie i dyni ułóż jajka. Dodaj koperek, pestki dyni, ostrą paprykę i pozostałą sól. Podaj z chlebem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Turkish-style eggs with roast pumpkin",
+      "description":
+          "An autumn dish: turkish-style eggs with roast pumpkin. Adapted from Centrum Respo. Nutritional values are estimates.",
+      "instructions": [
+        "Cut the pumpkin and coat with the oil, sweet and smoked paprika, cumin, garlic powder and some salt. Roast at 200°C fan for 25–30 minutes.",
+        "Mix the yoghurt with the fresh garlic and lemon juice.",
+        "Bring water and vinegar to a gentle simmer. Carefully slide in the eggs and poach until the whites set; lift out with a slotted spoon.",
+        "Arrange the eggs over the yoghurt and pumpkin. Add the dill, pumpkin seeds, hot paprika and remaining salt. Serve with the bread.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "35692976-4234-5ac4-8938-d5b7ca81e24e": {
+    "source": {
+      "name": "Omlet z kurkami",
+      "description":
+          "Jesienna propozycja: omlet z kurkami. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "instructions": [
+        "Kurki dokładnie oczyść i osusz, większe pokrój. Podsmaż na oliwie, aż zmiękną i odparują.",
+        "Roztrzep jajka z mlekiem i mąką. Dodaj sól, pieprz i tymianek.",
+        "Wlej masę na grzyby i smaż na małym ogniu do ścięcia jajek. W razie potrzeby przykryj na końcu.",
+        "Podaj z chlebem i szczypiorkiem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Chanterelle mushroom omelette",
+      "description":
+          "An autumn dish: chanterelle mushroom omelette. Adapted from Centrum Respo. Nutritional values are estimates.",
+      "instructions": [
+        "Clean and dry the chanterelles, cutting up any large ones. Fry in the olive oil until tender and their liquid has evaporated.",
+        "Beat the eggs with the milk and flour. Add the salt, pepper and thyme.",
+        "Pour the mixture over the mushrooms and cook over a low heat until set. Cover briefly towards the end if needed.",
+        "Serve with the bread and chives.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "a5b6d1af-52f9-5533-8557-c741eea9e057": {
+    "source": {
+      "name": "Kapuśniak z granulatem sojowym",
+      "description":
+          "Jesienna propozycja: kapuśniak z granulatem sojowym. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "instructions": [
+        "Granulat namocz w gorącej wodzie zgodnie z opakowaniem, odcedź i połącz z sosem sojowym. Rozłóż na blasze i podpiecz w 180°C przez około 10 minut.",
+        "Cebulę posiekaj, a ziemniaki, marchew i korzeń pietruszki pokrój. Podsmaż warzywa na oliwie.",
+        "Dodaj gotowy bulion, liście laurowe, ziele angielskie, kumin, majeranek i paprykę. Gotuj, aż ziemniaki zmiękną, potem dołóż posiekaną kapustę i koncentrat.",
+        "Gotuj jeszcze przez 10–15 minut. Usuń całe liście i ziele angielskie, dodaj granulat, sól i pieprz; podziel na porcje.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Vegan sauerkraut and soya soup",
+      "description":
+          "An autumn dish: vegan sauerkraut and soya soup. Adapted from Centrum Respo. Nutritional values are estimates.",
+      "instructions": [
+        "Rehydrate the soya mince in hot water following the packet, drain and mix with the soy sauce. Spread on a tray and bake at 180°C for about 10 minutes.",
+        "Chop the onion and dice the potatoes, carrots and parsley root. Fry the vegetables in the olive oil.",
+        "Add the prepared stock, bay leaves, allspice, cumin, marjoram and paprika. Simmer until the potatoes are tender, then add the chopped sauerkraut and tomato purée.",
+        "Simmer for another 10–15 minutes. Remove the whole bay leaves and allspice, add the soya mince, salt and pepper, and divide into servings.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "c7919335-c298-5c0f-b191-ef0edb5a088d": {
+    "source": {
+      "name": "Sałatka z kurczakiem, dynią i kaszą jaglaną",
+      "description":
+          "Jesienna propozycja: sałatka z kurczakiem, dynią i kaszą jaglaną. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "instructions": [
+        "Ugotuj kaszę jaglaną i ostudź. Dynię pokrój, dopraw solą i cynamonem, skrop oliwą.",
+        "Piecz dynię w 200°C przez 20–25 minut do miękkości. Kurczaka ugotuj do całkowitego ścięcia mięsa i pokrój.",
+        "Połącz jogurt, sok z cytryny, koperek i pieprz. Wymieszaj kaszę, dynię, kurczaka i rukolę z sosem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Chicken, pumpkin and millet salad",
+      "description":
+          "An autumn dish: chicken, pumpkin and millet salad. Adapted from Centrum Respo. Nutritional values are estimates.",
+      "instructions": [
+        "Cook and cool the millet. Cut the pumpkin, season with salt and cinnamon, and drizzle with the oil.",
+        "Roast the pumpkin at 200°C for 20–25 minutes until tender. Cook the chicken through in simmering water, then dice.",
+        "Mix the yoghurt, lemon juice, dill and pepper. Toss the millet, pumpkin, chicken and rocket with the dressing.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "21243f19-ece1-530c-9ee3-82f9847838e3": {
+    "source": {
+      "name": "Łosoś z buraczaną kaszą jaglaną",
+      "description":
+          "Jesienna propozycja: łosoś z buraczaną kaszą jaglaną. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "instructions": [
+        "Połącz sok z cytryny, sos sojowy, miód i chili. Natrzyj łososia i marynuj w lodówce przez około 30 minut.",
+        "Ugotuj kaszę. Buraka ugotuj do miękkości i zetrzyj, następnie podgrzej na oliwie z kaszą, solą i pieprzem.",
+        "Usmaż łososia z marynatą do pełnego ugotowania ryby, doprowadzając sos do wrzenia. Podaj na kaszy i posyp natką.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Salmon with beetroot millet",
+      "description":
+          "An autumn dish: salmon with beetroot millet. Adapted from Centrum Respo. Nutritional values are estimates.",
+      "instructions": [
+        "Mix the lemon juice, soy sauce, honey and chilli. Coat the salmon and marinate in the fridge for about 30 minutes.",
+        "Cook the millet. Cook the beetroot until tender and grate it, then heat in the oil with the millet, salt and pepper.",
+        "Cook the salmon through in its marinade, bringing the sauce to a simmer. Serve over the millet and finish with parsley.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "f090d431-ff4a-5590-9b8b-76769341d8bd": {
+    "source": {
+      "name": "Sałatka ze stekiem, burakiem i dynią",
+      "description":
+          "Jesienna propozycja: sałatka ze stekiem, burakiem i dynią. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "instructions": [
+        "Pokrój dynię i buraka. Piecz na papierze w 200°C z termoobiegiem przez 25–30 minut, do miękkości.",
+        "Ugotuj komosę. Stek dopraw solą i pieprzem, usmaż do wybranego stopnia wysmażenia, odstaw na chwilę i pokrój w paski.",
+        "Wymieszaj oliwę, ocet balsamiczny, musztardę i miód. Połącz komosę, warzywa, rukolę i nerkowce ze stekiem i sosem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Steak, beetroot and pumpkin salad",
+      "description":
+          "An autumn dish: steak, beetroot and pumpkin salad. Adapted from Centrum Respo. Nutritional values are estimates.",
+      "instructions": [
+        "Dice the pumpkin and beetroot. Roast on a lined tray at 200°C fan for 25–30 minutes until tender.",
+        "Cook the quinoa. Season the steak with salt and pepper, cook to your liking, rest briefly and slice.",
+        "Mix the olive oil, balsamic vinegar, mustard and honey. Combine the quinoa, vegetables, rocket and cashews with the steak and dressing.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "b5eb24b8-5a09-50f8-830f-88bc0b63349e": {
+    "source": {
+      "name": "Ciasto dyniowe z mikrofalówki",
+      "description":
+          "Jesienna propozycja: ciasto dyniowe z mikrofalówki. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "instructions": [
+        "W naczyniu odpowiednim do mikrofalówki wymieszaj puree z dyni, jajko, roztopione masło i większą część erytrytolu.",
+        "Dodaj mąkę owsianą, proszek do pieczenia, imbir i połowę cynamonu. Wymieszaj bez grudek.",
+        "Podgrzewaj na wysokiej mocy przez około 5–6 minut. Sprawdź środek patyczkiem i w razie potrzeby podgrzej dłużej; naczynie będzie gorące.",
+        "Mascarpone wymieszaj z pozostałym erytrytolem. Nałóż na lekko przestudzone ciasto i posyp resztą cynamonu.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Pumpkin microwave mug cake",
+      "description":
+          "An autumn dish: pumpkin microwave mug cake. Adapted from Centrum Respo. Nutritional values are estimates.",
+      "instructions": [
+        "In a microwave-safe bowl, mix the pumpkin purée, egg, melted butter and most of the erythritol.",
+        "Add the oat flour, baking powder, ginger and half the cinnamon. Mix until smooth.",
+        "Microwave on high for about 5–6 minutes. Check the centre with a skewer and cook longer if needed; the bowl will be hot.",
+        "Mix the mascarpone with the remaining erythritol. Spoon over the slightly cooled cake and sprinkle with the remaining cinnamon.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "79b825e5-3e3d-5932-bd34-0d3208129770": {
+    "source": {
+      "name": "Placki dyniowe z jabłkiem",
+      "description":
+          "Jesienna propozycja: placki dyniowe z jabłkiem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "instructions": [
+        "Zetrzyj dynię. Połącz z jogurtem, jajkami i ksylitolem.",
+        "Dodaj mąkę wymieszaną z proszkiem do pieczenia. Krótko wymieszaj.",
+        "Na patelni posmarowanej oliwą smaż małe placki na umiarkowanym ogniu, z obu stron, aż środek będzie dopieczony.",
+        "Podaj z pokrojonym jabłkiem, miodem i cynamonem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Pumpkin pancakes with apple",
+      "description":
+          "An autumn dish: pumpkin pancakes with apple. Adapted from Centrum Respo. Nutritional values are estimates.",
+      "instructions": [
+        "Grate the pumpkin and mix with the yoghurt, eggs and xylitol.",
+        "Fold in the flour mixed with the baking powder, stirring only until combined.",
+        "Cook small pancakes in a pan brushed with the oil, turning once and checking that the centres are cooked.",
+        "Serve with the sliced apple, honey and cinnamon.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "e759d6c1-ae45-51e5-a021-ddf58bd4db56": {
+    "source": {
+      "name": "Curry dyniowe z ananasem",
+      "description":
+          "Jesienna propozycja: curry dyniowe z ananasem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "instructions": [
+        "Ugotuj ryż. Pokrój dynię, cebulę, czosnek, pomidorki i ananasa; odsącz ciecierzycę.",
+        "Na oliwie podsmaż cebulę, czosnek i dynię. Dodaj pomidorki, ananasa, ciecierzycę i curry.",
+        "Wlej mleko kokosowe i duś przez 15–20 minut, aż dynia będzie miękka. Dopraw solą, pieprzem i kolendrą, podaj z ryżem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Pumpkin and pineapple curry",
+      "description":
+          "An autumn dish: pumpkin and pineapple curry. Adapted from Centrum Respo. Nutritional values are estimates.",
+      "instructions": [
+        "Cook the rice. Chop the pumpkin, onion, garlic, tomatoes and pineapple, and drain the chickpeas.",
+        "Fry the onion, garlic and pumpkin in the olive oil. Add the tomatoes, pineapple, chickpeas and curry powder.",
+        "Pour in the coconut milk and simmer for 15–20 minutes until the pumpkin is tender. Add the salt, pepper and coriander, and serve with the rice.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "2b0fb78b-b794-57a9-a6e0-4c17a8a2bbc1": {
+    "source": {
+      "name": "Hummus dyniowy",
+      "description":
+          "Jesienna propozycja: hummus dyniowy. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "instructions": [
+        "Oczyszczoną dynię pokrój i piecz w 200°C przez 25–30 minut, do miękkości. Ostudź.",
+        "Odsącz ciecierzycę, zachowując trochę zalewy. Zblenduj z dynią, tahini, czosnkiem, sokiem z cytryny, kuminem i olejem sezamowym.",
+        "Dopraw solą i pieprzem. Rozrzedź zalewą lub wodą według potrzeby. Podaj z chlebem i ogórkiem, dzieląc całość na porcje.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Roasted pumpkin hummus",
+      "description":
+          "An autumn dish: roasted pumpkin hummus. Adapted from Centrum Respo. Nutritional values are estimates.",
+      "instructions": [
+        "Cut the deseeded pumpkin and roast at 200°C for 25–30 minutes until soft. Cool.",
+        "Drain the chickpeas, reserving some liquid. Blend with the pumpkin, tahini, garlic, lemon juice, cumin and sesame oil.",
+        "Season with salt and pepper and loosen with the reserved liquid or water as needed. Divide into servings with the bread and cucumber.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "70fed98b-db31-526d-a966-b97e18173874": {
+    "source": {
+      "name": "Makaron z dynią i fetą",
+      "description":
+          "Jesienna propozycja: makaron z dynią i fetą. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "instructions": [
+        "Ugotuj makaron. Pokrój dynię, cebulę i czosnek; dynię krótko podgotuj i odcedź.",
+        "Podsmaż cebulę i czosnek na oliwie, dodaj dynię i gotowy bulion. Duś do miękkości dyni.",
+        "Zdejmij z ognia, dodaj śmietanę i ostrożnie zblenduj. Dopraw solą i pieprzem.",
+        "Połącz sos z makaronem. Dodaj pokruszoną fetę i pestki dyni.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Pumpkin and feta pasta",
+      "description":
+          "An autumn dish: pumpkin and feta pasta. Adapted from Centrum Respo. Nutritional values are estimates.",
+      "instructions": [
+        "Cook the pasta. Chop the pumpkin, onion and garlic; briefly boil the pumpkin and drain.",
+        "Soften the onion and garlic in the oil, then add the pumpkin and prepared stock. Simmer until the pumpkin is tender.",
+        "Remove from the heat, add the soured cream and blend carefully. Season with salt and pepper.",
+        "Toss the pasta with the sauce. Add the crumbled feta and pumpkin seeds.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "ea0ec67e-7890-52fd-a76b-cd02e200ffeb": {
+    "source": {
+      "name": "Karkówka w sosie grzybowym z puree",
+      "description":
+          "Jesienna propozycja: karkówka w sosie grzybowym z puree. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "instructions": [
+        "Karkówkę pokrój, dopraw czosnkiem, częścią soli i pieprzu; odstaw w lodówce na około 30 minut.",
+        "Ugotuj ziemniaki, odcedź i rozgnieć z mlekiem, masłem oraz pozostałą solą.",
+        "Oczyszczone grzyby pokrój. Obsmaż mięso na oleju, dodaj grzyby, a po odparowaniu gotowy bulion. Duś do miękkości mięsa i grzybów.",
+        "Śmietanę połącz z odrobiną gorącego sosu, wlej do garnka i podgrzej z tymiankiem oraz resztą pieprzu. Podaj z puree, ogórkiem i natką.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Pork neck with mushrooms and mash",
+      "description":
+          "An autumn dish: pork neck with mushrooms and mash. Adapted from Centrum Respo. Nutritional values are estimates.",
+      "instructions": [
+        "Cut the pork, season with the garlic and some salt and pepper, and refrigerate for about 30 minutes.",
+        "Boil and drain the potatoes, then mash with the milk, butter and remaining salt.",
+        "Clean and slice the mushrooms. Brown the pork in the oil, add the mushrooms and let their liquid evaporate, then add the prepared stock. Simmer until the pork and mushrooms are tender.",
+        "Mix the soured cream with a little hot sauce, return it to the pan and heat gently with the thyme and remaining pepper. Serve with the mash, gherkins and parsley.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "a377828e-e85e-5b9d-8ba8-aac69a970910": {
+    "source": {
+      "name": "Owsianka z suszonymi śliwkami i czekoladą",
+      "description":
+          "Jesienna propozycja: owsianka z suszonymi śliwkami i czekoladą. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "instructions": [
+        "Ugotuj płatki na mleku do miękkości. Odstaw na chwilę, aby lekko przestygły.",
+        "Dodaj skyr, kakao i erytrytol. Dokładnie wymieszaj.",
+        "Posiekaj śliwki i czekoladę, dodaj do owsianki i podaj.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Prune and dark chocolate porridge",
+      "description":
+          "An autumn dish: prune and dark chocolate porridge. Adapted from Centrum Respo. Nutritional values are estimates.",
+      "instructions": [
+        "Cook the oats in the milk until soft, then allow to cool slightly.",
+        "Stir in the skyr, cocoa and erythritol.",
+        "Chop the prunes and chocolate, scatter over the porridge and serve.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "cd1aa157-812f-5573-a308-c3e22ac5c659": {
+    "source": {
+      "name": "Makaron z camembertem i pomidorami",
+      "description":
+          "Jesienna propozycja: makaron z camembertem i pomidorami. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "instructions": [
+        "Ugotuj makaron. Piekarnik nagrzej do 180°C.",
+        "W naczyniu do zapiekania ułóż camembert, pomidorki i czosnek. Dodaj oliwę, sól i pieprz.",
+        "Piecz przez 15–20 minut, aż ser się roztopi, a pomidorki zmiękną. Wymieszaj z makaronem i polej miodem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Camembert and tomato pasta",
+      "description":
+          "An autumn dish: camembert and tomato pasta. Adapted from Centrum Respo. Nutritional values are estimates.",
+      "instructions": [
+        "Cook the pasta and preheat the oven to 180°C.",
+        "Place the Camembert, tomatoes and garlic in a baking dish. Add the olive oil, salt and pepper.",
+        "Bake for 15–20 minutes until the cheese melts and the tomatoes soften. Toss with the pasta and drizzle with the honey.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "d9415115-542e-59b5-be00-de60463a9c92": {
+    "source": {
+      "name": "Bowl z kurczakiem, burakiem i dynią",
+      "description":
+          "Jesienna propozycja: bowl z kurczakiem, burakiem i dynią. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "instructions": [
+        "Ugotuj pęczak. Pokrój dynię i buraka, dopraw częścią soli i pieprzu i piecz w 200°C przez około 40 minut, do miękkości.",
+        "Kurczaka dopraw ziołami oraz pozostałą solą i pieprzem. Ugotuj na parze do całkowitego ścięcia mięsa.",
+        "Wymieszaj oliwę, sok z cytryny i posiekaną natkę. Ułóż w misce kaszę, warzywa oraz pokrojonego kurczaka i dodaj sos.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Chicken, beetroot and pumpkin bowl",
+      "description":
+          "An autumn dish: chicken, beetroot and pumpkin bowl. Adapted from Centrum Respo. Nutritional values are estimates.",
+      "instructions": [
+        "Cook the barley. Chop the pumpkin and beetroot, season with some salt and pepper, and roast at 200°C for about 40 minutes until tender.",
+        "Season the chicken with the herbs and remaining salt and pepper. Steam until fully cooked.",
+        "Mix the oil, lemon juice and chopped parsley. Arrange the barley, vegetables and sliced chicken in a bowl and add the dressing.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "39deca0e-c511-52e6-bf3e-453b8dfccdf6": {
+    "source": {
+      "name": "Pieczona owsianka z gruszkami i imbirem",
+      "description":
+          "Jesienna propozycja: pieczona owsianka z gruszkami i imbirem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "instructions": [
+        "Nagrzej piekarnik do 180°C. Naczynie do zapiekania o wymiarach 20 × 20 cm posmaruj olejem.",
+        "Połącz płatki z proszkiem do pieczenia, cynamonem, imbirem i solą. Osobno roztrzep jajka z mlekiem, syropem i wanilią.",
+        "Połącz obie mieszanki i dodaj pokrojone gruszki. Przełóż do naczynia i piecz przez około 35 minut, aż masa się zetnie. Podziel na porcje.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Baked pear and ginger oats",
+      "description":
+          "An autumn dish: baked pear and ginger oats. Adapted from Centrum Respo. Nutritional values are estimates.",
+      "instructions": [
+        "Preheat the oven to 180°C. Grease a 20 × 20 cm baking dish with the oil.",
+        "Mix the oats with the baking powder, cinnamon, ginger and salt. Separately beat the eggs with the milk, maple syrup and vanilla.",
+        "Combine both mixtures and fold in the diced pears. Transfer to the dish and bake for about 35 minutes until set. Divide into servings.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "6d725cc0-e7c1-58f9-94c4-1240c9bcb453": {
+    "source": {
+      "name": "Francuskie trójkąty z jabłkiem",
+      "description":
+          "Jesienna propozycja: francuskie trójkąty z jabłkiem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "instructions": [
+        "Pokrój jabłka i połącz z ksylitolem, cynamonem oraz sokiem z cytryny. Nagrzej piekarnik do 200°C.",
+        "Rozwiń ciasto i wytnij kwadraty. Nałóż nadzienie, złóż w trójkąty i dokładnie sklej brzegi.",
+        "Ułóż na papierze, posmaruj roztrzepanym jajkiem i piecz przez 15–20 minut, do zarumienienia. Podziel na porcje.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Apple puff pastry triangles",
+      "description":
+          "An autumn dish: apple puff pastry triangles. Adapted from Centrum Respo. Nutritional values are estimates.",
+      "instructions": [
+        "Dice the apples and mix with the xylitol, cinnamon and lemon juice. Preheat the oven to 200°C.",
+        "Unroll the pastry and cut into squares. Add the filling, fold into triangles and firmly seal the edges.",
+        "Arrange on a lined tray, brush with beaten egg and bake for 15–20 minutes until golden. Divide into servings.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
 };
 
 const systemIngredientText = <String, Map<String, String>>{
@@ -3602,6 +4356,10 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Bulion warzywny",
     "en_GB": "Vegetable stock",
   },
+  "2858df96-a1b2-5708-be0b-316bd19d111c": {
+    "source": "Bulion warzywny gotowy",
+    "en_GB": "Prepared vegetable stock",
+  },
   "4d0876fb-5965-57b9-ba00-c6ce01f5b42f": {
     "source": "Bulion wołowy",
     "en_GB": "Beef stock",
@@ -3649,6 +4407,10 @@ const systemIngredientText = <String, Map<String, String>>{
   "79303edd-d9f3-5c43-b145-466720e00afe": {
     "source": "Chleb pszenny",
     "en_GB": "White bread",
+  },
+  "4aa11c73-1bef-5e0c-9662-1b987e1bfa0a": {
+    "source": "Chleb żytni razowy",
+    "en_GB": "Wholemeal rye bread",
   },
   "ee4a63e3-a830-53ca-bb6b-86884681fcd5": {
     "source": "Chorizo",
@@ -3758,6 +4520,10 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Ekstrakt waniliowy",
     "en_GB": "Vanilla extract",
   },
+  "a9cf3799-6168-5391-b02a-873135da7bd1": {
+    "source": "Erytrytol",
+    "en_GB": "Erythritol",
+  },
   "e9c1d091-75f2-5deb-a7c2-9a7affcc19f2": {
     "source": "Estragon suszony",
     "en_GB": "Dried tarragon",
@@ -3834,6 +4600,10 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Granat",
     "en_GB": "Pomegranate",
   },
+  "f5a66c18-f5f2-5d07-a53f-3170c3da1eb7": {
+    "source": "Granulat sojowy suchy",
+    "en_GB": "Dried soya mince",
+  },
   "4e2553dc-db1a-5644-813d-f0b6287e41b3": {
     "source": "Grejpfrut",
     "en_GB": "Grapefruit",
@@ -3858,6 +4628,10 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Gruszki",
     "en_GB": "Pears",
   },
+  "7d37cb55-71f7-58d2-a3a6-361ba3ff91c7": {
+    "source": "Grzyby leśne świeże",
+    "en_GB": "Fresh wild mushrooms",
+  },
   "7e4fd315-9468-5c31-9c56-e30626b7da13": {
     "source": "Harissa",
     "en_GB": "Harissa",
@@ -3869,6 +4643,10 @@ const systemIngredientText = <String, Map<String, String>>{
   "3d031750-0b97-55ac-bb4f-023971a20541": {
     "source": "Hummus",
     "en_GB": "Hummus",
+  },
+  "06cec7dc-2d83-526b-be1a-8dd2aa2fc749": {
+    "source": "Imbir mielony",
+    "en_GB": "Ground ginger",
   },
   "5e63d88b-366c-571e-a8ac-583a5609debc": {
     "source": "Imbir świeży",
@@ -3931,6 +4709,10 @@ const systemIngredientText = <String, Map<String, String>>{
   "4c0ca62c-1fd8-54fb-9bc9-31476c859058": {
     "source": "Kapusta czerwona",
     "en_GB": "Red cabbage",
+  },
+  "1dccc55b-0ae9-55ca-857e-66b95ba178d6": {
+    "source": "Kapusta kiszona",
+    "en_GB": "Sauerkraut",
   },
   "d4633375-8ff5-564f-b541-64d3c80f6539": {
     "source": "Kapusta pekińska",
@@ -4037,6 +4819,10 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Krewetki mrożone",
     "en_GB": "Frozen prawns",
   },
+  "1bbf5ee3-982c-5752-aba6-0311e0f78dac": {
+    "source": "Ksylitol",
+    "en_GB": "Xylitol",
+  },
   "e32f58bd-c5ce-5da5-b51f-ade7514e2dcc": {
     "source": "Kukurydza kolba",
     "en_GB": "Corn on the cob",
@@ -4048,6 +4834,10 @@ const systemIngredientText = <String, Map<String, String>>{
   "88e0e374-fa91-5c17-8148-ce79b6e53e0b": {
     "source": "Kukurydza mrożona",
     "en_GB": "Frozen sweetcorn",
+  },
+  "1d42c011-6895-55bf-81d9-82bf3d50e449": {
+    "source": "Kurki świeże",
+    "en_GB": "Fresh chanterelle mushrooms",
   },
   "58a17ff6-6079-5477-9650-893ed9cd32ff": {
     "source": "Kurkuma mielona",
@@ -4068,6 +4858,10 @@ const systemIngredientText = <String, Map<String, String>>{
   "4990b371-3cb7-53e5-94ab-be4b9c20e68f": {
     "source": "Liść laurowy",
     "en_GB": "Bay leaf",
+  },
+  "6443ea51-2fa5-5798-b759-fa6efdb88822": {
+    "source": "Majeranek suszony",
+    "en_GB": "Dried marjoram",
   },
   "750e7a30-665c-5d30-92e8-21fcb014cd4b": {
     "source": "Majonez",
@@ -4092,6 +4886,10 @@ const systemIngredientText = <String, Map<String, String>>{
   "8cca272d-414c-5e8f-a044-0ddef8f5e2b3": {
     "source": "Makaron penne",
     "en_GB": "Penne pasta",
+  },
+  "e842e0c1-866f-5e26-b300-e0bd24e8eba0": {
+    "source": "Makaron pełnoziarnisty",
+    "en_GB": "Wholewheat pasta",
   },
   "6eb3a4e3-936e-56f0-9b08-0ca6edcd0d1b": {
     "source": "Makaron ryżowy",
@@ -4189,6 +4987,10 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Mleczko kokosowe light",
     "en_GB": "Light coconut milk",
   },
+  "ab0670ae-58b4-5c0c-9819-528f7120eb45": {
+    "source": "Mleko 1,5%",
+    "en_GB": "Milk, 1.5% fat",
+  },
   "527c542c-dae3-52d1-b75f-d7a4e76204a3": {
     "source": "Mleko 2%",
     "en_GB": "Milk (2% fat)",
@@ -4228,6 +5030,10 @@ const systemIngredientText = <String, Map<String, String>>{
   "18fb3018-050e-56bc-8c2f-055cf005cb91": {
     "source": "Mozzarella",
     "en_GB": "Mozzarella",
+  },
+  "8dda96f3-6fb6-5c71-8473-b226ef9d108f": {
+    "source": "Mozzarella light",
+    "en_GB": "Light mozzarella",
   },
   "10e29658-6504-5aa0-aabd-4835ddb1391e": {
     "source": "Mrożone warzywa mieszanka",
@@ -4273,6 +5079,10 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Mąka orkiszowa",
     "en_GB": "Spelt flour",
   },
+  "73e80006-f52a-591b-af5b-424e76bc4a20": {
+    "source": "Mąka owsiana",
+    "en_GB": "Oat flour",
+  },
   "fda48b0e-7fc4-5175-80ff-3ac0503f22c1": {
     "source": "Mąka pszenna",
     "en_GB": "Wheat flour",
@@ -4296,6 +5106,10 @@ const systemIngredientText = <String, Map<String, String>>{
   "c6183d12-91d8-5d85-8e79-9a55ee76fa88": {
     "source": "Mąka żytnia",
     "en_GB": "Rye flour",
+  },
+  "8ed6f515-6348-59ac-838c-49b117d6c26a": {
+    "source": "Nachosy naturalne",
+    "en_GB": "Plain tortilla chips",
   },
   "f31db480-7a95-53eb-b320-25068281cf56": {
     "source": "Nasiona chia",
@@ -4325,6 +5139,10 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Ocet ryżowy",
     "en_GB": "Rice vinegar",
   },
+  "9456e63a-ab89-51f9-8a95-eaa290eb559b": {
+    "source": "Ocet spirytusowy",
+    "en_GB": "Distilled vinegar",
+  },
   "106194ca-8052-5ef8-9634-62ba3ea7d503": {
     "source": "Ocet winny czerwony",
     "en_GB": "Red wine vinegar",
@@ -4332,6 +5150,10 @@ const systemIngredientText = <String, Map<String, String>>{
   "f069ad9f-c14b-58ae-b4b8-9b01ce8e318c": {
     "source": "Ogórek",
     "en_GB": "Cucumber",
+  },
+  "82b42103-ac01-5377-a4c3-ca69d2d3a7cd": {
+    "source": "Ogórki kiszone",
+    "en_GB": "Fermented gherkins",
   },
   "98aab66d-d80c-5938-a140-229705674f6a": {
     "source": "Ogórki konserwowe",
@@ -4396,6 +5218,10 @@ const systemIngredientText = <String, Map<String, String>>{
   "9ca1673a-16bc-5312-9e21-6098d7c64af0": {
     "source": "Pak choi",
     "en_GB": "Pak choi",
+  },
+  "02682b35-4187-5a13-b52e-5f8b92947c07": {
+    "source": "Papryczka chili świeża",
+    "en_GB": "Fresh chilli pepper",
   },
   "69061f34-df52-51c1-bdb0-2cbdef1f0496": {
     "source": "Papryka czerwona",
@@ -4517,6 +5343,10 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Polenta",
     "en_GB": "Polenta",
   },
+  "3d9f9190-06d6-57d3-be02-dc91a71025fa": {
+    "source": "Polędwica wołowa",
+    "en_GB": "Beef fillet",
+  },
   "87a4bb58-b963-57b1-a02b-7a261b547a31": {
     "source": "Polędwiczka wieprzowa",
     "en_GB": "Pork tenderloin",
@@ -4570,6 +5400,10 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Pstrąg filet",
     "en_GB": "Trout fillet",
   },
+  "7fcc830a-da7b-556d-ab70-9da324801321": {
+    "source": "Pudding proteinowy waniliowy",
+    "en_GB": "Vanilla protein pudding",
+  },
   "2d3cf360-ab2c-536e-b79a-72be8f5d7138": {
     "source": "Puree z dyni",
     "en_GB": "Pumpkin purée",
@@ -4613,6 +5447,10 @@ const systemIngredientText = <String, Map<String, String>>{
   "a8452f8f-a8ec-5ff3-b3ff-a3df15a0456f": {
     "source": "Rodzynki",
     "en_GB": "Raisins",
+  },
+  "6bff42d7-183a-5acf-9991-241f2fffa609": {
+    "source": "Rostbef wołowy",
+    "en_GB": "Beef sirloin",
   },
   "984b22f4-34d5-58c6-bffd-f6ce76a65595": {
     "source": "Roszponka",
@@ -4774,6 +5612,10 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Skyr naturalny",
     "en_GB": "Natural skyr",
   },
+  "bf585f66-89bc-5b0e-8dfa-26afb2feba1b": {
+    "source": "Skyr waniliowy",
+    "en_GB": "Vanilla skyr",
+  },
   "c2b07d09-07f1-554b-bde0-3ea97cb284fe": {
     "source": "Soczewica czarna beluga",
     "en_GB": "Black beluga lentils",
@@ -4793,6 +5635,14 @@ const systemIngredientText = <String, Map<String, String>>{
   "e1360634-fd9d-5aef-8581-a9eedd11e908": {
     "source": "Soda oczyszczona",
     "en_GB": "Bicarbonate of soda",
+  },
+  "67cee078-5167-5a2b-a529-300fbfd841b0": {
+    "source": "Sok pomarańczowy",
+    "en_GB": "Orange juice",
+  },
+  "587c3cf5-2f09-5675-a727-7421c5400a6f": {
+    "source": "Sok z cytryny",
+    "en_GB": "Lemon juice",
   },
   "a2f134aa-d760-54ec-a95f-1d3db0580ea7": {
     "source": "Sos Worcestershire",
@@ -4932,6 +5782,10 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Tortilla kukurydziana",
     "en_GB": "Corn tortilla",
   },
+  "0ed95ad1-3cf0-5eb6-8701-0a22fc5f9d26": {
+    "source": "Tortilla pełnoziarnista",
+    "en_GB": "Wholemeal tortilla wrap",
+  },
   "fa285d67-f8b9-5035-b15a-9d0714b489a6": {
     "source": "Tortilla pszenna",
     "en_GB": "Wheat tortilla",
@@ -4964,6 +5818,10 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Wanilia (cukier waniliowy)",
     "en_GB": "Vanilla sugar",
   },
+  "8366a2e6-f0fe-5da9-a2c7-c50baa6256de": {
+    "source": "Wieprzowina mielona",
+    "en_GB": "Pork mince",
+  },
   "9018f03b-c249-5372-a8d8-39794168bb16": {
     "source": "Winogrona ciemne",
     "en_GB": "Dark grapes",
@@ -4976,6 +5834,7 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Wiórki kokosowe",
     "en_GB": "Desiccated coconut",
   },
+  "e3f77274-e941-5808-b9c7-da6a82084f79": {"source": "Woda", "en_GB": "Water"},
   "27fa4303-fab9-5778-a2a2-4d1af33a5111": {
     "source": "Wołowina mielona",
     "en_GB": "Beef mince",
@@ -5016,6 +5875,10 @@ const systemIngredientText = <String, Map<String, String>>{
     "source": "Śliwki suszone",
     "en_GB": "Prunes",
   },
+  "1236a1ec-be3e-5f7c-ba7e-15605d5f13bc": {
+    "source": "Śmietana 12%",
+    "en_GB": "Soured cream, 12% fat",
+  },
   "d2099836-9015-530e-91b7-ab21724c0aa6": {
     "source": "Śmietana 18%",
     "en_GB": "Soured cream (18% fat)",
@@ -5023,6 +5886,10 @@ const systemIngredientText = <String, Map<String, String>>{
   "6c2d972e-16cd-55a4-9d52-b851d2446ca7": {
     "source": "Śmietana 30%",
     "en_GB": "Cream (30% fat)",
+  },
+  "40108d5c-52e4-58ea-95cc-3f14d80324c4": {
+    "source": "Śmietanka 12%",
+    "en_GB": "Cooking cream, 12% fat",
   },
   "82285426-ecfa-53b5-8ff9-d3d8e3176927": {
     "source": "Śmietanka kokosowa",

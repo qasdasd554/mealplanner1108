@@ -51,6 +51,13 @@ from fastapi import HTTPException
 logger = logging.getLogger(__name__)
 
 
+class IngredientAmounts(dict):
+    """Physical totals plus original amounts for an unresolved ingredient."""
+    def __init__(self):
+        super().__init__()
+        self.raw_amounts = defaultdict(list)
+
+
 def pantry_coverage_grams(
     product_name: str,
     required_grams: float,
@@ -437,12 +444,15 @@ class ShoppingListBuilder:
         Returns:
             Słownik ``{product_id: total_quantity_w_gramach_lub_ml}``.
         """
-        aggregated: dict[UUID, float] = defaultdict(float)
+        aggregated = IngredientAmounts()
+        unresolved = set()
 
         for entry in meal_plan.entries:
             recipe = entry.recipe
             if recipe is None:
                 continue
+            from app.services.recipe_amounts import repair_recipe_amounts
+            repair_recipe_amounts(recipe)
 
             multiplier = float(entry.servings_multiplier or 1.0)
 
@@ -456,9 +466,14 @@ class ShoppingListBuilder:
                     getattr(product, "serving_quantity", None),
                     getattr(product, "measure_options", None),
                 )
-                aggregated[ing.product_id] += grams * multiplier
+                aggregated.raw_amounts[ing.product_id].append((float(ing.quantity) * multiplier, ing.unit))
+                if grams <= 0:
+                    unresolved.add(ing.product_id)
+                aggregated[ing.product_id] = aggregated.get(ing.product_id, 0.0) + grams * multiplier
 
-        return dict(aggregated)
+        for product_id in unresolved:
+            aggregated[product_id] = None
+        return aggregated
 
     async def _resolve_store_details(
         self,
@@ -530,6 +545,23 @@ class ShoppingListBuilder:
 
             product_name = product.name
             product_unit = getattr(product, "unit", None) or "szt"
+
+            if total_qty_grams is None:
+                # Keep the whole raw requirement, including any known fraction.
+                # Unknown count must neither disappear nor buy 100 g per piece.
+                from app.services.product_measures import canonical_measure_code
+                grouped = defaultdict(float)
+                for amount, unit in aggregated.raw_amounts[product_id]:
+                    grouped[canonical_measure_code(unit)] += amount
+                for unit, amount in grouped.items():
+                    items_data.append(dict(
+                        store_product_id=store_product.id if store_product else None,
+                        custom_name=None if store_product else product_name,
+                        required_quantity=round(amount, 3), unit=unit,
+                        estimated_price=None, department_id=None,
+                        is_checked=False, is_from_pantry=False, is_generated=True,
+                    ))
+                continue
 
             pantry_grams = pantry_coverage_grams(
                 product_name, total_qty_grams,

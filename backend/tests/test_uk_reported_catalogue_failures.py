@@ -220,7 +220,7 @@ def test_uk_breakfast_selection_has_real_candidates_without_importing_off_into_n
     assert {row.id for row in values} == eligible_ids
     assert sum(row.meal_type == "śniadanie" for row in values) >= 7
     assert session.scalar(select(OffCatalogueProduct.barcode).limit(1)) is None
-    catalogue = [row for skip in (0, 200) for row in run(products.list_products(
+    catalogue = [row for skip in (0, 200, 400) for row in run(products.list_products(
         skip=skip, limit=200, search=None, db=adapter, current_user=user))]
     assert {row.id for row in catalogue} == {food.id for food in foods.values()}
     with patch("app.services.meal_plan_generator.utc_market_date", return_value=date(2026, 10, 25)):

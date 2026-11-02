@@ -93,3 +93,22 @@ def test_session_adapter_does_not_leak_to_another_session():
         untouched.dispatch.before_flush(untouched, None, None)
         assert row.id is None
     engine.dispose()
+
+
+def test_postgres_uuid_numeric_hex_stays_exact_text_only_in_sqlite():
+    from uuid import UUID as PythonUUID
+    from sqlalchemy import Column, MetaData, Table, select
+    from sqlalchemy.dialects import postgresql, sqlite
+    from sqlalchemy.dialects.postgresql import UUID
+    kind = UUID(as_uuid=True)
+    assert kind.compile(dialect=sqlite.dialect()) == "CHAR(32)"
+    assert kind.compile(dialect=postgresql.dialect()) == "UUID"
+    table = Table("numeric_uuid", MetaData(), Column("id", kind, primary_key=True))
+    engine = create_engine("sqlite://")
+    table.metadata.create_all(engine)
+    identifier = PythonUUID("12345678901234567890123456789012")
+    with engine.begin() as connection:
+        connection.execute(table.insert().values(id=identifier))
+        assert connection.scalar(select(table.c.id)) == identifier
+        assert connection.exec_driver_sql("SELECT typeof(id) FROM numeric_uuid").scalar_one() == "text"
+    engine.dispose()

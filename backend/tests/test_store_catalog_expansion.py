@@ -21,7 +21,7 @@ from app.db.seed import (
 )
 from app.models.product import ProductAllergen, StoreProduct
 from app.models.store import Store, StoreDepartment
-from app.models import Base
+from app.models import Base, Recipe
 
 
 NEW_STORES = {"Stokrotka", "Kaufland", "Auchan"}
@@ -80,6 +80,8 @@ class RecordingSeedSession:
 
     async def execute(self, statement):
         self.queries.append(statement)
+        if list(statement.column_descriptions)[0]["entity"] is Recipe:
+            return PairResult([(row.id, row.name) for (kind, *identity), row in self.rows.items() if kind is Recipe])
         return PairResult([
             (row.store_id, row.product_id) for row in self.store_products
         ])
@@ -105,13 +107,13 @@ def run_seed(session):
     asyncio.run(seed_database(session))
 
 
-def test_seven_stores_have_all_390_planning_products_and_departments():
+def test_seven_stores_have_all_419_planning_products_and_departments():
     session = RecordingSeedSession()
     run_seed(session)
 
     assert len(STORE_NAMES) == len(set(STORE_NAMES)) == 7
     assert NEW_STORES <= set(STORE_NAMES)
-    assert len(session.store_products) == 390 * 7
+    assert len(session.store_products) == 419 * 7
     assert len([row for row in session.rows.values() if isinstance(row, Store)]) == 7
     departments = [
         row for row in session.rows.values() if isinstance(row, StoreDepartment)
@@ -143,7 +145,7 @@ def test_new_stores_use_reference_purchase_prices_not_fictional_verified_prices(
     new_store_ids = {_uid(f"store:{name}") for name in NEW_STORES}
     assert len([
         row for row in session.store_products if row.store_id in new_store_ids
-    ]) == 390 * 3
+    ]) == 419 * 3
     for row in session.store_products:
         if row.store_id not in new_store_ids:
             continue
@@ -185,10 +187,10 @@ def test_seed_preserves_verified_manual_price_and_withdrawal_on_redeployment():
     assert record.last_verified == date(2026, 10, 11)
     assert record.withdrawn_at == date(2026, 10, 12)
     assert record.is_available is False
-    assert len(session.store_products) == 390 * 7
-    assert session.added_store_products == 390 * 7 - 1
+    assert len(session.store_products) == 419 * 7
+    assert session.added_store_products == 419 * 7 - 1
     assert session.store_product_merges == 0
-    assert len(session.queries) == 2
+    assert len(session.queries) == 4
 
 
 def test_existing_store_product_with_non_seed_id_is_not_duplicated_or_changed():
@@ -212,14 +214,14 @@ def test_existing_store_product_with_non_seed_id_is_not_duplicated_or_changed():
     assert entries == [record]
     assert record.price == Decimal("8.99")
     assert record.last_verified == date(2026, 10, 10)
-    assert len(session.store_products) == 390 * 7
+    assert len(session.store_products) == 419 * 7
 
 
 def test_catalogue_lookup_is_batched_and_excludes_restaurant_or_scanned_products():
     session = RecordingSeedSession()
     run_seed(session)
 
-    assert len(session.queries) == 1
+    assert len(session.queries) == 2
     statement = str(session.queries[0].compile(
         dialect=postgresql.dialect(), compile_kwargs={"literal_binds": True}
     ))
@@ -276,7 +278,7 @@ def test_real_orm_seed_redeployment_preserves_store_product_changes():
             assert record.is_available is False
             assert record.withdrawn_at == date(2026, 10, 12)
             assert record.last_verified == date(2026, 10, 11)
-            assert session.scalar(select(func.count()).select_from(StoreProduct)) == 390 * 7
+            assert session.scalar(select(func.count()).select_from(StoreProduct)) == 419 * 7
             assert session.scalar(select(func.count()).select_from(StoreDepartment)) == 9 * 7
     finally:
         engine.dispose()

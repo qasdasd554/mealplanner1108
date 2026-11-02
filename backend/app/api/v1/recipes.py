@@ -109,6 +109,13 @@ async def _validate_recipe_ingredient_products(
                     f'Nie znamy masy całego opakowania produktu "{product.name}". Wybierz gramy lub mililitry.'
                 ),
             )
+        from app.services.recipe_amounts import ingredient_base_amount
+        if not ingredient_base_amount(product, ingredient.quantity, ingredient.unit):
+            raise HTTPException(status_code=422, detail=(
+                f'The measure for "{product.name}" is unknown. Enter grams, millilitres or a supported product measure.'
+                if country_code == "GB" else
+                f'Nie znamy przelicznika tej jednostki dla produktu "{product.name}". Wybierz gramy, mililitry lub dostępną miarę produktu.'
+            ))
     return products
 
 
@@ -602,6 +609,11 @@ async def get_recipe(
     # Administrators must also be able to inspect a recipe before approval.
     if not is_own and getattr(current_user, "role", None) != "admin":
         await ensure_recipe_available_in_market(db, recipe, current_user)
+    from app.services.recipe_amounts import repair_recipe_amounts
+    if repair_recipe_amounts(recipe):
+        await db.commit()
+        from app.services.recipe_amounts import repair_open_lists_for_recipes
+        await repair_open_lists_for_recipes(db, {recipe.id})
     favorite_ids = await _get_favorite_recipe_ids(db, current_user.id)
     recipe.is_favorite = recipe.id in favorite_ids
     recipe.is_own_recipe = is_own
@@ -1207,6 +1219,8 @@ async def _create_ai_recipe(
     from app.services.recipe_ingredient_integrity import validate_ingredient_names
     from app.services.recipe_ingredient_catalogue import resolve_recipe_ingredients, materialize_recipe_ingredients
     matched_ingredients = await resolve_recipe_ingredients(parsed["ingredients"], available_product_rows, country=country, user_id=current_user.id, db=db)
+    from app.services.recipe_amounts import normalize_import_amounts
+    matched_ingredients = normalize_import_amounts(parsed, matched_ingredients, source_text=payload.text)
     unresolved_names = [ingredient["product_name"] for ingredient, product in matched_ingredients
         if product is None or not is_ingredient_quantity_reasonable(ingredient["quantity"], ingredient["unit"])]
     if unresolved_names:
@@ -1409,6 +1423,8 @@ async def edit_recipe_with_ai(
     )))
     from app.services.recipe_ingredient_catalogue import resolve_recipe_ingredients, materialize_recipe_ingredients
     pairs = await resolve_recipe_ingredients(parsed["ingredients"], catalogue_result.scalars().all(), country=country, user_id=user_id, db=db)
+    from app.services.recipe_amounts import normalize_import_amounts
+    pairs = normalize_import_amounts(parsed, pairs)
     for ingredient, _ in pairs:
         if not is_ingredient_quantity_reasonable(ingredient["quantity"], ingredient["unit"]):
             raise HTTPException(status_code=422, detail=recipe_message(country, "AI podało nieprawidłową ilość składnika.", "AI returned an invalid ingredient quantity."))

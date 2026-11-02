@@ -1936,17 +1936,53 @@
   "blockAuthor": "Zablokuj autora",
   "blockFailed": "Nie udało się zablokować użytkownika.",
   "commentsMinutes": "{count} min temu",
-  "@commentsMinutes": {"placeholders":{"count":{"type":"int"}}},
+  "@commentsMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "commentsHours": "{count} godz. temu",
-  "@commentsHours": {"placeholders":{"count":{"type":"int"}}},
+  "@commentsHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "commentsDays": "{count} dni temu",
-  "@commentsDays": {"placeholders":{"count":{"type":"int"}}},
+  "@commentsDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "commentsCount": "{count, plural, one{1 komentarz} few{{count} komentarze} many{{count} komentarzy} other{{count} komentarza}}",
-  "@commentsCount": {"placeholders":{"count":{"type":"int"}}},
+  "@commentsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "blockBody": "Nie będziesz już widzieć przepisów ani komentarzy od \"{name}\". Możesz cofnąć blokadę w dowolnym momencie w Profil → Zablokowani użytkownicy.",
-  "@blockBody": {"placeholders":{"name":{"type":"String"}}},
+  "@blockBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "blockDone": "Użytkownik \"{name}\" został zablokowany.",
-  "@blockDone": {"placeholders":{"name":{"type":"String"}}},
+  "@blockDone": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "profileTitle": "Profil",
   "profileNone": "Brak",
   "profileShop": "Sklep",
@@ -2045,39 +2081,114 @@
   "compareCatalogue": "Baza przepisów i produktów",
   "comparePrices": "Porównywarka cen produktów",
   "profileExpiryDays": "Subskrypcja aktywna jeszcze przez {days, plural, one{1 dzień} other{{days} dni}}",
-  "@profileExpiryDays": {"placeholders":{"days":{"type":"int"}}},
+  "@profileExpiryDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "profilePeople": "{count} os.",
-  "@profilePeople": {"placeholders":{"count":{"type":"int"}}},
+  "@profilePeople": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "profileWeightSaved": "Zapisano {weight} kg.",
-  "@profileWeightSaved": {"placeholders":{"weight":{"type":"String"}}},
+  "@profileWeightSaved": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
   "profileDate": "Data: {date}",
-  "@profileDate": {"placeholders":{"date":{"type":"String"}}},
+  "@profileDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "profileDeleteBody": "Ta operacja jest NIEODWRACALNA. Stracisz wszystkie zapisane plany posiłków, listy zakupów, spiżarnię, ulubione przepisy, komentarze i punkty premium. Jeśli masz aktywną subskrypcję, pamiętaj, żeby anulować ją osobno w ustawieniach App Store / Google Play — usunięcie konta samo jej nie anuluje.",
   "premiumTrialBadge": "{days} DNI ZA 0 ZŁ*",
-  "@premiumTrialBadge": {"placeholders":{"days":{"type":"int"}}},
+  "@premiumTrialBadge": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "premiumCheckTrial": "Sprawdź okres próbny",
   "premiumTrialEligibilityFootnote": "* Dla kont uprawnionych do oferty. Dostępność, cena po okresie próbnym i termin odnowienia zostaną pokazane przez {store} przed potwierdzeniem.",
-  "@premiumTrialEligibilityFootnote": {"placeholders":{"store":{"type":"String"}}},
+  "@premiumTrialEligibilityFootnote": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
   "premiumNotNow": "Nie teraz",
   "premiumPurchaseError": "Wystąpił błąd podczas zakupu.",
   "premiumAppleOfferOpenFailed": "Nie udało się otworzyć oferty w App Store.",
   "premiumPaymentsUnavailable": "Płatności są niedostępne na tym urządzeniu (sprawdź konto {store}).",
-  "@premiumPaymentsUnavailable": {"placeholders":{"store":{"type":"String"}}},
+  "@premiumPaymentsUnavailable": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
   "premiumSubscriptionPricesUnavailable": "Nie udało się pobrać cen subskrypcji. Spróbuj ponownie za chwilę.",
   "premiumPurchaseFailed": "Zakup nie powiódł się: {error}",
-  "@premiumPurchaseFailed": {"placeholders":{"error":{"type":"String"}}},
+  "@premiumPurchaseFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "premiumUnknownError": "nieznany błąd",
   "premiumActive": "Premium jest aktywne.",
   "premiumActivated": "Premium aktywowane — dziękujemy!",
   "premiumPurchaseVerificationFailed": "Nie udało się potwierdzić zakupu: {error}",
-  "@premiumPurchaseVerificationFailed": {"placeholders":{"error":{"type":"String"}}},
+  "@premiumPurchaseVerificationFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "premiumPointsAdded": "Dodano punkty! Masz teraz {balance} punktów.",
-  "@premiumPointsAdded": {"placeholders":{"balance":{"type":"int"}}},
+  "@premiumPointsAdded": {
+    "placeholders": {
+      "balance": {
+        "type": "int"
+      }
+    }
+  },
   "premiumPurchaseStartFailed": "Nie udało się rozpocząć zakupu: {error}",
-  "@premiumPurchaseStartFailed": {"placeholders":{"error":{"type":"String"}}},
+  "@premiumPurchaseStartFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "premiumRestoreEmpty": "Nie znaleziono żadnych wcześniejszych zakupów do przywrócenia.",
   "premiumQuickActionPoints": "{subtitle} — albo {points} pkt bez subskrypcji",
-  "@premiumQuickActionPoints": {"placeholders":{"subtitle":{"type":"String"},"points":{"type":"int"}}},
+  "@premiumQuickActionPoints": {
+    "placeholders": {
+      "subtitle": {
+        "type": "String"
+      },
+      "points": {
+        "type": "int"
+      }
+    }
+  },
   "premiumAutomaticWeekTitle": "Automatyczny tydzień",
   "premiumAutomaticWeekDescription": "W wybranym dniu przygotujemy plan i opcjonalną listę zakupów.",
   "premiumBatchTitle": "Skanowanie seryjne",
@@ -2099,7 +2210,13 @@
   "premiumBatchActionTitle": "Skanuj wiele produktów po kolei",
   "premiumBatchActionSubtitle": "Wybierz kilka miejsc i zatwierdź całą serię",
   "premiumBatchCompleted": "Obsłużono: {count} produktów.",
-  "@premiumBatchCompleted": {"placeholders":{"count":{"type":"int"}}},
+  "@premiumBatchCompleted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "premiumPublishActionTitle": "Publikuj przepisy we wspólnocie",
   "premiumPublishActionSubtitle": "Podziel się swoimi przepisami z innymi",
   "premiumRecipeListsTitle": "Listy zakupów z przepisów",
@@ -2109,41 +2226,116 @@
   "premiumPantryActionTitle": "Twoja spiżarnia",
   "premiumPantryActionSubtitle": "Zarządzaj produktami, które masz w domu",
   "premiumSubscriptionLegal": "Subskrypcje odnawiają się automatycznie, chyba że zostaną anulowane co najmniej 24 godziny przed końcem bieżącego okresu. Płatność jest pobierana z konta {store} po potwierdzeniu zakupu. Możesz zarządzać subskrypcją albo ją anulować w ustawieniach swojego konta w sklepie.",
-  "@premiumSubscriptionLegal": {"placeholders":{"store":{"type":"String"}}},
+  "@premiumSubscriptionLegal": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
   "premiumAlreadyActive": "Masz już aktywne Premium",
   "premiumExpiresToday": "Wygasa dziś",
   "premiumDaysRemaining": "Aktywne jeszcze przez {days, plural, one{{days} dzień} few{{days} dni} many{{days} dni} other{{days} dnia}}",
-  "@premiumDaysRemaining": {"placeholders":{"days":{"type":"int"}}},
+  "@premiumDaysRemaining": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "premiumRetry": "Spróbuj ponownie",
   "premiumWeekly": "Tygodniowo",
   "premiumMonthly": "Miesięcznie",
   "premiumMonthlyTrial": "{days, plural, one{{days} dzień za darmo} few{{days} dni za darmo} many{{days} dni za darmo} other{{days} dnia za darmo}}",
-  "@premiumMonthlyTrial": {"placeholders":{"days":{"type":"int"}}},
+  "@premiumMonthlyTrial": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "premiumYearly": "Rocznie",
   "premiumYearlySaving": "Oszczędzasz {percent}%",
-  "@premiumYearlySaving": {"placeholders":{"percent":{"type":"int"}}},
+  "@premiumYearlySaving": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "premiumTrialDisclosureApple": "{days}-dniowy okres próbny jest dostępny dla uprawnionych kont. Potem subskrypcja odnawia się za cenę pokazaną powyżej; możesz ją anulować w ustawieniach Apple ID.",
-  "@premiumTrialDisclosureApple": {"placeholders":{"days":{"type":"int"}}},
+  "@premiumTrialDisclosureApple": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "premiumTrialDisclosureGoogle": "{days}-dniowy okres próbny jest dostępny dla uprawnionych kont. Potem subskrypcja odnawia się za cenę pokazaną powyżej; możesz ją anulować w Google Play.",
-  "@premiumTrialDisclosureGoogle": {"placeholders":{"days":{"type":"int"}}},
+  "@premiumTrialDisclosureGoogle": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "premiumRestorePurchases": "Przywróć zakupy",
   "premiumPointsTitle": "Punkty premium",
   "premiumPointsBalance": "Masz: {balance}",
-  "@premiumPointsBalance": {"placeholders":{"balance":{"type":"int"}}},
+  "@premiumPointsBalance": {
+    "placeholders": {
+      "balance": {
+        "type": "int"
+      }
+    }
+  },
   "premiumPointsExplanation": "Import przepisu ze zdjęcia, tekstu lub linku kosztuje 2 punkty, a edycja AI 1 punkt — bez subskrypcji.",
   "premiumPointsPricesUnavailable": "Nie udało się pobrać cen pakietów punktów.",
   "premiumPointsAmount": "{points} pkt",
-  "@premiumPointsAmount": {"placeholders":{"points":{"type":"int"}}},
+  "@premiumPointsAmount": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
   "premiumPromotionalPrice": "Cena promocyjna: {price}",
-  "@premiumPromotionalPrice": {"placeholders":{"price":{"type":"String"}}},
+  "@premiumPromotionalPrice": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
   "premiumPointsUses": "{imports} importów AI\nlub {edits} edycji AI",
-  "@premiumPointsUses": {"placeholders":{"imports":{"type":"int"},"edits":{"type":"int"}}},
+  "@premiumPointsUses": {
+    "placeholders": {
+      "imports": {
+        "type": "int"
+      },
+      "edits": {
+        "type": "int"
+      }
+    }
+  },
   "premiumBuyInApple": "Kup w App Store",
   "premiumBuyInGoogle": "Kup w Google Play",
   "premiumPriceAfterTrial": "Potem {price} miesięcznie",
-  "@premiumPriceAfterTrial": {"placeholders":{"price":{"type":"String"}}},
+  "@premiumPriceAfterTrial": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
   "premiumPriceBeforeCode": "Cena przed kodem: {price}",
-  "@premiumPriceBeforeCode": {"placeholders":{"price":{"type":"String"}}},
+  "@premiumPriceBeforeCode": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
   "premiumTryFree": "Wypróbuj za 0 zł",
   "premiumBuy": "Kup Premium",
   "premiumRedeemCode": "Odbierz kod",
@@ -2186,9 +2378,21 @@
   "premiumContextJournalBenefitWeight": "Postępy wagi w czasie",
   "premiumPackageSemantics": "Pakiet",
   "premiumDiscountSemantics": "Rabat {percent} procent",
-  "@premiumDiscountSemantics": {"placeholders":{"percent":{"type":"int"}}},
+  "@premiumDiscountSemantics": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "premiumDiscountRibbon": "RABAT -{percent}%",
-  "@premiumDiscountRibbon": {"placeholders":{"percent":{"type":"int"}}},
+  "@premiumDiscountRibbon": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "premiumSeePlans": "Zobacz plany Premium",
   "archiveTitle": "Archiwum planów",
   "archiveChooseStart": "Od kiedy wznowić plan?",
@@ -2270,7 +2474,13 @@
   "ingredientPreferencesDiscard": "Wróć bez zapisu",
   "ingredientPreferencesEmpty": "Jeszcze nie wybrano składników.",
   "ingredientPreferencesRemove": "Usuń {name}",
-  "@ingredientPreferencesRemove": {"placeholders": {"name": {"type": "String"}}},
+  "@ingredientPreferencesRemove": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "ingredientPreferencesRetry": "Spróbuj ponownie",
   "ingredientPreferencesHint": "Uwzględnimy preferencje w jednym daniu dziennie, jeśli znajdziemy pasujący przepis. Alergie i dieta mają pierwszeństwo.",
   "ingredientPreferencesLike": "Lubię",
@@ -2282,7 +2492,13 @@
   "ingredientPreferencesRetrySearch": "Ponów wyszukiwanie",
   "ingredientPreferencesNoResults": "Brak składników o tej nazwie.",
   "ingredientPreferencesSaveError": "Nie zapisano: {error}",
-  "@ingredientPreferencesSaveError": {"placeholders": {"error": {"type": "String"}}},
+  "@ingredientPreferencesSaveError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "ingredientPreferencesSaving": "Zapisywanie…",
   "ingredientPreferencesSave": "Zapisz preferencje",
   "ingredientPreferencesSaved": "Preferencje zapisane",
@@ -2293,7 +2509,13 @@
   "blockedUsersUnknown": "Użytkownik",
   "blockedUsersUnblock": "Odblokuj",
   "blockedUsersUnblocked": "Odblokowano \"{name}\". Znów zobaczysz jej/jego treści.",
-  "@blockedUsersUnblocked": {"placeholders": {"name": {"type": "String"}}},
+  "@blockedUsersUnblocked": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "calculatorTitle": "Kalkulator zapotrzebowania kalorycznego",
   "calculatorIntro": "Podaj swoje dane, żeby obliczyć dzienne zapotrzebowanie kaloryczne (wzór Mifflin-St Jeor — ten sam standard, na którym opiera się m.in. kalkulator NFZ).",
   "calculatorWeight": "Waga (kg)",
@@ -2317,14 +2539,26 @@
   "calculatorCalculate": "Oblicz zapotrzebowanie",
   "calculatorSaveFailed": "Nie udało się zapisać celu.",
   "calculatorGoalSaved": "Cel zapisany: {kcal} kcal/dzień",
-  "@calculatorGoalSaved": {"placeholders": {"kcal": {"type": "int"}}},
+  "@calculatorGoalSaved": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
   "calculatorChooseGoal": "Wybierz swój cel",
   "calculatorGoalHint": "Dotknij kafelek, żeby go wybrać, albo dostrój suwakiem poniżej.",
   "calculatorLoss": "Redukcja",
   "calculatorMaintenance": "Utrzymanie",
   "calculatorGain": "Przyrost",
   "calculatorCustomGoal": "Własna wartość: {kcal} kcal/dzień",
-  "@calculatorCustomGoal": {"placeholders": {"kcal": {"type": "int"}}},
+  "@calculatorCustomGoal": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
   "calculatorMacros": "Orientacyjny podział makroskładników",
   "calculatorProtein": "Białko",
   "calculatorFat": "Tłuszcz",
@@ -2358,8 +2592,23 @@
   "socialSomeone": "Ktoś",
   "socialShareRespond": "Dotknij, aby odpowiedzieć",
   "socialShareAccept": "Zaakceptuj",
-  "@socialRecipeSummary": {"placeholders":{"minutes":{"type":"int"},"meal":{"type":"String"}}},
-  "@socialSharedListInvitation": {"placeholders":{"name":{"type":"String"}}},
+  "@socialRecipeSummary": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "meal": {
+        "type": "String"
+      }
+    }
+  },
+  "@socialSharedListInvitation": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "notificationsTitle": "Powiadomienia",
   "notificationsLoadFailed": "Nie udało się załadować powiadomień",
   "notificationsMarkAllFailed": "Nie udało się oznaczyć wszystkich jako przeczytane",
@@ -2371,15 +2620,42 @@
   "notificationsDays": "{count} dni temu",
   "notificationsMarkAll": "Oznacz wszystkie",
   "notificationsEmpty": "Brak powiadomień",
-  "@notificationsMinutes": {"placeholders":{"count":{"type":"int"}}},
-  "@notificationsHours": {"placeholders":{"count":{"type":"int"}}},
-  "@notificationsDays": {"placeholders":{"count":{"type":"int"}}},
+  "@notificationsMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@notificationsHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@notificationsDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "releasePromptTitle": "Dostępna nowa wersja",
   "releasePromptRequired": "Ta wersja aplikacji nie jest już obsługiwana. Zaktualizuj ją, aby korzystać dalej.",
   "releasePromptStoreError": "Nie udało się otworzyć sklepu.",
-  "releasePromptChanges": "• Poprawiliśmy aktywację i przywracanie Premium po płatności.\n• Punkty Premium są naliczane prawidłowo także po przerwaniu połączenia lub ponowieniu płatności.\n• Ponowne skanowanie i wybór ilości zachowują gramaturę oraz jednostkę opakowania.\n• Poprawiliśmy podpowiedzi produktów i komunikaty w polskiej oraz angielskiej wersji.",
+  "releasePromptChanges": "• Dodaliśmy 30 jesiennych przepisów po polsku i angielsku.\n• Nowe dania mają własne zdjęcia oraz listy składników do zakupów.\n• Poprawiliśmy przeliczanie gramów, sztuk i miar kuchennych.\n• Kalorie i koszty zakupów liczymy z właściwych ilości; szacunki są oznaczone.",
   "detailPlanPortionHelp": "Składniki przeliczono na {servings} porcji. Ilości wpisane w opisie przygotowania dotyczą bazowego przepisu ({baseServings} porcji).",
-  "@detailPlanPortionHelp": {"placeholders":{"servings":{"type":"int"},"baseServings":{"type":"int"}}},
+  "@detailPlanPortionHelp": {
+    "placeholders": {
+      "servings": {
+        "type": "int"
+      },
+      "baseServings": {
+        "type": "int"
+      }
+    }
+  },
   "releasePromptApple": "Otwórz App Store",
   "releasePromptGoogle": "Otwórz Google Play",
   "releasePromptLater": "Później",
@@ -2393,7 +2669,13 @@
   "pantrySearchStart": "Wpisz nazwę produktu.",
   "pantrySearchEmpty": "Brak wyników.",
   "pantrySaved": "Dodano \"{name}\" do spiżarni.",
-  "@pantrySaved": {"placeholders":{"name":{"type":"String"}}},
+  "@pantrySaved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "matchTitle": "Co ugotować z tego, co mam",
   "matchPremium": "Funkcja Premium",
   "matchPremiumBody": "Dopasowywanie przepisów do tego, co masz w spiżarni, jest dostępne dla kont z aktywną subskrypcją Premium.",
@@ -2402,29 +2684,71 @@
   "matchEmptyPantry": "Twoja spiżarnia jest pusta. Dodaj do niej produkty, które masz w domu, żeby dopasować przepisy.",
   "matchAddPantry": "Dodaj produkt do spiżarni",
   "matchSelected": "Zaznaczono {selected} z {total}",
-  "@matchSelected": {"placeholders":{"selected":{"type":"int"},"total":{"type":"int"}}},
+  "@matchSelected": {
+    "placeholders": {
+      "selected": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "matchDeselect": "Odznacz wszystko",
   "matchSelectAll": "Zaznacz wszystko",
   "matchSearch": "Szukaj przepisów ({count})",
-  "@matchSearch": {"placeholders":{"count":{"type":"int"}}},
+  "@matchSearch": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "matchGenerate": "Wygeneruj nowy przepis przez AI",
   "matchResultsTitle": "Dopasowane przepisy",
   "matchResultsEmpty": "Nie znaleziono żadnego przepisu w bazie pasującego do wybranych składników. Możesz zamiast tego wygenerować nowy przepis przez AI.",
   "matchOtherAi": "Żaden nie pasuje? Wygeneruj przez AI",
   "matchReady": "Możesz ugotować teraz",
   "matchMissing": "Brakuje: {ingredients}",
-  "@matchMissing": {"placeholders":{"ingredients":{"type":"String"}}},
+  "@matchMissing": {
+    "placeholders": {
+      "ingredients": {
+        "type": "String"
+      }
+    }
+  },
   "matchSelectPrompt": "Wygeneruj przepis na danie wykorzystujące głównie te składniki, które mam w domu: {ingredients}. Możesz dodać maksymalnie 2–3 powszechnie dostępne składniki, na przykład sól, przyprawy lub oliwę.",
-  "@matchSelectPrompt": {"placeholders":{"ingredients":{"type":"String"}}},
+  "@matchSelectPrompt": {
+    "placeholders": {
+      "ingredients": {
+        "type": "String"
+      }
+    }
+  },
   "matchResultsPrompt": "Wygeneruj przepis na danie wykorzystujące GŁÓWNIE te składniki, które mam w domu: {ingredients}. Możesz dodać maksymalnie 2-3 dodatkowe, powszechnie dostępne składniki (np. sól, przyprawy, oliwę), jeśli są potrzebne.",
-  "@matchResultsPrompt": {"placeholders":{"ingredients":{"type":"String"}}},
+  "@matchResultsPrompt": {
+    "placeholders": {
+      "ingredients": {
+        "type": "String"
+      }
+    }
+  },
   "leaderTitle": "Ranking autorów przepisów",
   "leaderWeek": "Ten tydzień",
   "leaderAll": "Cały czas",
   "leaderEmptyWeek": "W tym tygodniu nikt jeszcze nie dodał\nzaakceptowanego przepisu. Bądź pierwszy!",
   "leaderEmptyAll": "Jeszcze nikt nie dodał zaakceptowanego przepisu\ndo wspólnego katalogu.",
   "leaderCount": "{count} {noun}",
-  "@leaderCount": {"placeholders":{"count":{"type":"int"},"noun":{"type":"String"}}},
+  "@leaderCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "noun": {
+        "type": "String"
+      }
+    }
+  },
   "leaderRecipeSingular": "przepis",
   "leaderRecipeFew": "przepisy",
   "leaderRecipeMany": "przepisów",
@@ -2464,28 +2788,94 @@
   "statsPremiumBody": "Odblokuj analizę kalorii, nawodnienia i zmian wagi z konkretnymi wnioskami na każdy tydzień.",
   "statsPremiumAction": "Zobacz pełny raport",
   "statsDailyMacroLine": "{kcal} kcal  •  B {protein} g  •  T {fat} g  •  W {carbs} g",
-  "@statsDailyMacroLine": {"placeholders":{"kcal":{"type":"String"},"protein":{"type":"String"},"fat":{"type":"String"},"carbs":{"type":"String"}}},
+  "@statsDailyMacroLine": {
+    "placeholders": {
+      "kcal": {
+        "type": "String"
+      },
+      "protein": {
+        "type": "String"
+      },
+      "fat": {
+        "type": "String"
+      },
+      "carbs": {
+        "type": "String"
+      }
+    }
+  },
   "statsWaterLine": "Woda: {amount} ml",
-  "@statsWaterLine": {"placeholders":{"amount":{"type":"int"}}},
+  "@statsWaterLine": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
   "statsMaximum": "Maksimum: {amount} {unit}",
-  "@statsMaximum": {"placeholders":{"amount":{"type":"String"},"unit":{"type":"String"}}},
+  "@statsMaximum": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "insightRegularity": "Regularność: {count} z 7 dni",
-  "@insightRegularity": {"placeholders":{"count":{"type":"int"}}},
+  "@insightRegularity": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "insightEnough": "Masz już wystarczająco dużo danych, aby porównywać tygodnie.",
   "insightMoreDays": "Uzupełnij jeszcze {count} dni, aby raport był dokładniejszy.",
-  "@insightMoreDays": {"placeholders":{"count":{"type":"int"}}},
+  "@insightMoreDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "insightCalories": "Średnio {count} kcal dziennie",
-  "@insightCalories": {"placeholders":{"count":{"type":"int"}}},
+  "@insightCalories": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "insightCaloriesDetail": "Porównuj średnią tydzień do tygodnia, zamiast oceniać pojedynczy dzień.",
   "insightWaterMissing": "Brakuje danych o nawodnieniu",
   "insightWaterAverage": "Średnio {amount} ml wody",
-  "@insightWaterAverage": {"placeholders":{"amount":{"type":"int"}}},
+  "@insightWaterAverage": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
   "insightWaterEveryDay": "Nawodnienie zostało zapisane każdego dnia tego tygodnia.",
   "insightWaterDays": "Zapisano nawodnienie w {count} z 7 dni.",
-  "@insightWaterDays": {"placeholders":{"count":{"type":"int"}}},
+  "@insightWaterDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "insightWeightStable": "Waga bez większej zmiany",
   "insightWeightChange": "Zmiana wagi {amount} kg",
-  "@insightWeightChange": {"placeholders":{"amount":{"type":"String"}}},
+  "@insightWeightChange": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "insightWeightDetail": "Porównanie pierwszego i ostatniego pomiaru z ostatnich 7 dni.",
   "cookingTipsTitle": "Porady kulinarne",
   "splashSubtitle": "Planuj posiłki mądrze i oszczędzaj",
@@ -2515,8 +2905,29 @@
   "adminDeleteRecipeTitle": "Usunąć przepis?",
   "adminDeleteRecipeBody": "Usuniesz \"{name}\" oraz jego komentarze i powiązania (listy zakupów, plany posiłków innych użytkowników, którzy go używali). Tej operacji nie da się cofnąć.",
   "adminRecipeFallback": "ten przepis",
-  "@adminProductNutrition": {"placeholders": {"kcal": {"type": "String"}, "protein": {"type": "String"}, "fat": {"type": "String"}, "carbs": {"type": "String"}}},
-  "@adminDeleteRecipeBody": {"placeholders": {"name": {"type": "String"}}},
+  "@adminProductNutrition": {
+    "placeholders": {
+      "kcal": {
+        "type": "String"
+      },
+      "protein": {
+        "type": "String"
+      },
+      "fat": {
+        "type": "String"
+      },
+      "carbs": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminDeleteRecipeBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "adminUsersTitle": "Użytkownicy",
   "adminUsersSearch": "Szukaj po e-mailu lub nazwie…",
   "adminUsersOnlyBanned": "Tylko zablokowani",
@@ -2551,11 +2962,41 @@
   "adminPhotosSubmittedBy": "Zgłosił: {name}",
   "adminPhotosReplaceWarning": "Uwaga: ten przepis ma już zdjęcie — akceptacja je zastąpi.",
   "adminPhotosLoadError": "Nie udało się wczytać zdjęcia",
-  "@adminUsersVersion": {"placeholders":{"version":{"type":"String"}}},
-  "@adminUsersReason": {"placeholders":{"reason":{"type":"String"}}},
-  "@adminUsersBanTitle": {"placeholders":{"name":{"type":"String"}}},
-  "@adminCommentsRecipe": {"placeholders":{"name":{"type":"String"}}},
-  "@adminPhotosSubmittedBy": {"placeholders":{"name":{"type":"String"}}},
+  "@adminUsersVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminUsersReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminUsersBanTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminCommentsRecipe": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminPhotosSubmittedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "adminPhotosApprove": "Zaakceptuj",
   "adminMainTitle": "Panel administratora",
   "adminMainBroadcastSent": "Wysłano do {count} użytkowników.",
@@ -2649,17 +3090,92 @@
   "adminMarketHelp": "Zmienia widok danych, nie kraj Twojego konta.",
   "adminMarketPl": "Polska",
   "adminMarketGb": "Wielka Brytania",
-  "@adminMainBroadcastSent": {"placeholders":{"count":{"type":"String"}}},
-  "@adminMainReportDetails": {"placeholders":{"details":{"type":"String"}}},
-  "@adminMainAuthor": {"placeholders":{"email":{"type":"String"}}},
-  "@adminMainReporter": {"placeholders":{"email":{"type":"String"}}},
-  "@adminMainScanSummary": {"placeholders":{"found":{"type":"String"},"queued":{"type":"String"}}},
-  "@adminMainRecipeMeta": {"placeholders":{"mealType":{"type":"String"},"servings":{"type":"String"},"difficulty":{"type":"String"}}},
-  "@adminMainScanShop": {"placeholders":{"store":{"type":"String"}}},
-  "@adminMainScanningShop": {"placeholders":{"store":{"type":"String"}}},
-  "@campaignConfirmPoints": {"placeholders":{"store":{"type":"String"}}},
-  "@campaignDeleteBody": {"placeholders":{"name":{"type":"String"}}},
-  "@campaignPointsHelp": {"placeholders":{"store":{"type":"String"}}},
+  "@adminMainBroadcastSent": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminMainReportDetails": {
+    "placeholders": {
+      "details": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminMainAuthor": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminMainReporter": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminMainScanSummary": {
+    "placeholders": {
+      "found": {
+        "type": "String"
+      },
+      "queued": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminMainRecipeMeta": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      },
+      "servings": {
+        "type": "String"
+      },
+      "difficulty": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminMainScanShop": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminMainScanningShop": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "@campaignConfirmPoints": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "@campaignDeleteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@campaignPointsHelp": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
   "approvalRecipePending": "Ten przepis czeka na Twoją akceptację do wspólnego katalogu",
   "approvalRecipeApprove": "Zaakceptuj",
   "approvalRecipeApproved": "Przepis zaakceptowany",
@@ -2684,10 +3200,34 @@
   "exportListOpenApp": "Otwórz {name}",
   "exportListAppMissing": "Aplikacja nie jest zainstalowana.",
   "exportListAppFailed": "Nie udało się otworzyć aplikacji.",
-  "@shoppingAddSuccess": {"placeholders":{"name":{"type":"String"}}},
-  "@exportListHeading": {"placeholders":{"store":{"type":"String"}}},
-  "@exportListSubject": {"placeholders":{"store":{"type":"String"}}},
-  "@exportListOpenApp": {"placeholders":{"name":{"type":"String"}}},
+  "@shoppingAddSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@exportListHeading": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "@exportListSubject": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "@exportListOpenApp": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "exportListComingSoon": "Wkrótce",
   "diarySignInView": "Musisz być zalogowany, aby zobaczyć dziennik.",
   "diarySignInAdd": "Musisz być zalogowany, aby dodać wpis.",

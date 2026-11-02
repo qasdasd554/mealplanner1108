@@ -25,9 +25,26 @@ def _head(value):
             if word not in _DESCRIPTORS]
 
 
+# A puree of one named vegetable/fruit is a cooking component. Do not exempt
+# all names containing "puree": a complete dinner can also include mash.
+_PUREE_FOODS = {
+    "dyni", "ziemniakow", "marchewki", "jablek", "pomidorow", "batatow",
+    "groszku", "selera", "kalafiora", "burakow", "gruszki", "mango", "banana",
+    "pumpkin", "potato", "carrot", "apple", "tomato", "sweet potato", "pea",
+    "celeriac", "cauliflower", "beetroot", "pear", "banana", "butternut squash",
+}
+
+
+def _single_food_puree(value):
+    normal = _normal(value)
+    return any(normal in {f"puree z {food}", f"puree of {food}",
+                          f"{food} puree", f"puree {food}"}
+               for food in _PUREE_FOODS)
+
+
 def _component(value):
     head = _head(value)
-    return (bool(set(head) & _COMPONENTS) or " ".join(head).startswith("pasta curry")
+    return (_single_food_puree(value) or bool(set(head) & _COMPONENTS) or " ".join(head).startswith("pasta curry")
             or " w proszku" in _normal(value))
 
 

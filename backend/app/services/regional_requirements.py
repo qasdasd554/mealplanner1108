@@ -18,15 +18,7 @@ from app.services.uk_catalogue_import import canonical_base_unit
 MAX_STORED_QUANTITY = Decimal("9999999.999")
 
 
-def canonical_measure_code(unit: str) -> str:
-    value = (unit or '').strip().casefold()
-    return {
-        'łyżeczka': 'lyzeczka', 'łyżeczki': 'lyzeczka', 'łyżeczek': 'lyzeczka',
-        'tsp': 'lyzeczka', 'teaspoon': 'lyzeczka', 'teaspoons': 'lyzeczka',
-        'łyżka': 'lyzka', 'łyżki': 'lyzka', 'łyżek': 'lyzka',
-        'tbsp': 'lyzka', 'tablespoon': 'lyzka', 'tablespoons': 'lyzka',
-        'szt.': 'szt', 'pcs': 'szt',
-    }.get(value, value)
+from app.services.product_measures import canonical_measure_code
 
 
 def _amount(value: Any) -> Decimal:
@@ -134,6 +126,8 @@ def aggregate_regional_requirements(plan: Any) -> dict[UUID, RegionalRequirement
         recipe = entry.recipe
         if recipe is None:
             continue
+        from app.services.recipe_amounts import repair_recipe_amounts
+        repair_recipe_amounts(recipe)
         for ingredient in recipe.ingredients or []:
             product_id = ingredient.product_id
             if product_id is None:

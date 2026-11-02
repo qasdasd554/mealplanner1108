@@ -42,25 +42,17 @@ void main() {
             .map((value) => value.data ?? '')
             .firstWhere((value) => value.startsWith('•'));
         expect(body.split('\n'), hasLength(4));
+        expect(body, contains(english ? 'grams, pieces' : 'gramów, sztuk'));
+        expect(body, contains(english ? 'shopping costs' : 'koszty zakupów'));
         expect(
           body,
-          contains(
-            english ? 'Premium activation' : 'aktywację i przywracanie Premium',
-          ),
-        );
-        expect(
-          body,
-          contains(english ? 'payment retry' : 'ponowieniu płatności'),
+          contains(english ? '30 autumn recipes' : '30 jesiennych przepisów'),
         );
         expect(
           body,
           contains(
-            english ? 'pack size and units' : 'gramaturę oraz jednostkę',
+            english ? 'estimates are labelled' : 'szacunki są oznaczone',
           ),
-        );
-        expect(
-          body,
-          contains(english ? 'product suggestions' : 'podpowiedzi produktów'),
         );
         expect(body, isNot(contains('splash screen')));
         expect(body, isNot(contains('Ekran startowy')));

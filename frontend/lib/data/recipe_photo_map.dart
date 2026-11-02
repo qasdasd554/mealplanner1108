@@ -1,4 +1,4 @@
-/// Mapowanie 137 oficjalnych przepisów -> lokalne zdjęcie dania.
+/// Mapowanie 167 oficjalnych przepisów -> lokalne zdjęcie dania.
 /// Przepisy użytkowników nie korzystają z tej mapy, nawet gdy mają taką
 /// samą nazwę; dla nich źródłem jest przesłane zdjęcie albo ilustracja
 /// kategorii.
@@ -246,4 +246,61 @@ const Map<String, String> kRecipePhotoAssets = {
       'assets/recipe_photos/136-bananowo-kakaowe-muffinki-z-airfryera.jpg',
   'Brzoskwiniowe rożki z ciasta francuskiego':
       'assets/recipe_photos/137-brzoskwiniowe-rozki-z-ciasta-francuskiego.jpg',
+  'Sałatka z indykiem, dynią i pęczakiem':
+      'assets/recipe_photos/autumn-01-salatka-indyk-dynia-peczak.jpg',
+  'Owsianka marchewkowa z orzechami':
+      'assets/recipe_photos/autumn-02-owsianka-marchewkowa-orzechy.jpg',
+  'Quinoa z wołowiną i dynią':
+      'assets/recipe_photos/autumn-03-quinoa-wolowina-dynia.jpg',
+  'Meksykańska zupa z dynią i kukurydzą':
+      'assets/recipe_photos/autumn-04-zupa-meksykanska-dynia.jpg',
+  'Gulasz wołowy z dynią':
+      'assets/recipe_photos/autumn-05-gulasz-wegierski-dynia.jpg',
+  'Pęczotto z wieprzowiną i burakami':
+      'assets/recipe_photos/autumn-06-peczotto-wieprzowina-buraki.jpg',
+  'Gnocchi z pieczarkami i szpinakiem':
+      'assets/recipe_photos/autumn-07-gnocchi-grzyby-szpinak.jpg',
+  'Makaron z karmelizowaną cebulą':
+      'assets/recipe_photos/autumn-08-makaron-karmelizowana-cebula.jpg',
+  'Chrupiący wrap z jabłkiem i twarogiem':
+      'assets/recipe_photos/autumn-09-wrap-szarlotka.jpg',
+  'Brukselka z halloumi i pęczakiem':
+      'assets/recipe_photos/autumn-10-brukselka-halloumi-peczak.jpg',
+  'Nocna owsianka z jabłkiem i orzechami':
+      'assets/recipe_photos/autumn-11-nocna-owsianka-jablko-orzechy.jpg',
+  'Sałatka z soczewicą, indykiem i dynią':
+      'assets/recipe_photos/autumn-12-soczewica-indyk-dynia.jpg',
+  'Szakszuka z dynią': 'assets/recipe_photos/autumn-13-szakszuka-dynia.jpg',
+  'Jajka po turecku z pieczoną dynią':
+      'assets/recipe_photos/autumn-14-jajka-turecku-dynia.jpg',
+  'Omlet z kurkami': 'assets/recipe_photos/autumn-15-omlet-kurki.jpg',
+  'Kapuśniak z granulatem sojowym':
+      'assets/recipe_photos/autumn-16-kapusniak-sojowy.jpg',
+  'Sałatka z kurczakiem, dynią i kaszą jaglaną':
+      'assets/recipe_photos/autumn-17-salatka-kurczak-dynia-jaglana.jpg',
+  'Łosoś z buraczaną kaszą jaglaną':
+      'assets/recipe_photos/autumn-18-losos-buraczana-kasza.jpg',
+  'Sałatka ze stekiem, burakiem i dynią':
+      'assets/recipe_photos/autumn-19-salatka-stek-burak-dynia.jpg',
+  'Ciasto dyniowe z mikrofalówki':
+      'assets/recipe_photos/autumn-20-ciasto-dyniowe-kubek.jpg',
+  'Placki dyniowe z jabłkiem':
+      'assets/recipe_photos/autumn-21-placki-dyniowe-jablko.jpg',
+  'Curry dyniowe z ananasem':
+      'assets/recipe_photos/autumn-22-curry-dyniowe-ananas.jpg',
+  'Hummus dyniowy': 'assets/recipe_photos/autumn-23-hummus-dyniowy.jpg',
+  'Makaron z dynią i fetą':
+      'assets/recipe_photos/autumn-24-makaron-dynia-feta.jpg',
+  'Karkówka w sosie grzybowym z puree':
+      'assets/recipe_photos/autumn-25-karkowka-grzyby-puree.jpg',
+  'Owsianka z suszonymi śliwkami i czekoladą':
+      'assets/recipe_photos/autumn-26-owsianka-sliwki-czekolada.jpg',
+  'Makaron z camembertem i pomidorami':
+      'assets/recipe_photos/autumn-27-makaron-camembert-pomidory.jpg',
+  'Bowl z kurczakiem, burakiem i dynią':
+      'assets/recipe_photos/autumn-28-bowl-kurczak-burak-dynia.jpg',
+  'Pieczona owsianka z gruszkami i imbirem':
+      'assets/recipe_photos/autumn-29-pieczona-owsianka-gruszki.jpg',
+  'Francuskie trójkąty z jabłkiem':
+      'assets/recipe_photos/autumn-30-trojkaty-francuskie-jablko.jpg',
 };

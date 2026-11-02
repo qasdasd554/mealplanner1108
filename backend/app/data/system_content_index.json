@@ -821,6 +821,186 @@
       "description": "Kruche rożki z brzoskwinią, migdałami i wanilią.",
       "en_GB": "Peach puff pastry turnovers",
       "detail_sha256": "29f301374cfc479ae84f10d278901827463b6e5b807f02e7de69eb7bc0af9026"
+    },
+    "9b700d52-311a-564a-86b2-3598e27ef50c": {
+      "source": "Sałatka z indykiem, dynią i pęczakiem",
+      "description": "Jesienna propozycja: sałatka z indykiem, dynią i pęczakiem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "en_GB": "Warm turkey, pumpkin and barley salad",
+      "detail_sha256": "1780bd3dad6135712dafdabe5cbec3ea574cc1fe88af39f8b8db9cda2da8494e"
+    },
+    "b355be88-0b8b-5874-a582-d81cc84574cc": {
+      "source": "Owsianka marchewkowa z orzechami",
+      "description": "Jesienna propozycja: owsianka marchewkowa z orzechami. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "en_GB": "Carrot cake porridge with walnuts",
+      "detail_sha256": "9ef6ee6c1a3da86df9648238ffbfcecb7d74901f889a9529fe4bccae2b8d18c5"
+    },
+    "2b5a96c1-cb41-5b2a-982e-7555734d91e5": {
+      "source": "Quinoa z wołowiną i dynią",
+      "description": "Jesienna propozycja: quinoa z wołowiną i dynią. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "en_GB": "Quinoa with beef and pumpkin",
+      "detail_sha256": "d7ce0197471c632bd6e1748c03ec5d7d329cc0c49b6ff666486028a58bdfd6d8"
+    },
+    "36a1771f-37dd-51bd-964c-fc71e1f5e32b": {
+      "source": "Meksykańska zupa z dynią i kukurydzą",
+      "description": "Jesienna propozycja: meksykańska zupa z dynią i kukurydzą. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "en_GB": "Mexican pumpkin and sweetcorn soup",
+      "detail_sha256": "1e7d5d26d97ea76b11149bd95cddecaa2c2e901507a815f6a408d4b37ef66b2e"
+    },
+    "cbb746b3-22c3-54d7-aaff-fc99dab74f0a": {
+      "source": "Gulasz wołowy z dynią",
+      "description": "Jesienna propozycja: gulasz wołowy z dynią. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "en_GB": "Hungarian-style beef and pumpkin stew",
+      "detail_sha256": "6413c69ae96e8c7be7f79f64bc2d691216628ec0d3cdfb064ef849f3032a78a4"
+    },
+    "b30efc57-5371-50a2-9656-bc34009f569d": {
+      "source": "Pęczotto z wieprzowiną i burakami",
+      "description": "Jesienna propozycja: pęczotto z wieprzowiną i burakami. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "en_GB": "Pork and beetroot pearl barley",
+      "detail_sha256": "1f6353abe2d4ab35d44be2848c25559bcda1103ba1e15a7ab5f7c77e0573852c"
+    },
+    "fd6c889c-f491-5aec-b77f-8c56d3fa4c89": {
+      "source": "Gnocchi z pieczarkami i szpinakiem",
+      "description": "Jesienna propozycja: gnocchi z pieczarkami i szpinakiem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "en_GB": "Mushroom and spinach gnocchi",
+      "detail_sha256": "edb5bdb4643381c841f1499b0a8e1ef738bcfcacefb36893a065bff5b7f3d1cb"
+    },
+    "37c3c655-791a-5c62-b6fa-cf097144190f": {
+      "source": "Makaron z karmelizowaną cebulą",
+      "description": "Jesienna propozycja: makaron z karmelizowaną cebulą. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "en_GB": "One-pot caramelised onion pasta",
+      "detail_sha256": "034e5bb6e55e35210346908e768186505a2c613dd1208517fb436d7171d5dba2"
+    },
+    "2ef8f0f3-7982-5c09-83c1-db96d1f75394": {
+      "source": "Chrupiący wrap z jabłkiem i twarogiem",
+      "description": "Jesienna propozycja: chrupiący wrap z jabłkiem i twarogiem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "en_GB": "Crispy apple and quark wrap",
+      "detail_sha256": "3d78bb0b981501a8b57b110dc3bcbc9ce2cf325e3063b720d54e4e699ad97679"
+    },
+    "fbb810be-1029-5b2c-a7c2-b99eccf90347": {
+      "source": "Brukselka z halloumi i pęczakiem",
+      "description": "Jesienna propozycja: brukselka z halloumi i pęczakiem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "en_GB": "Brussels sprouts, halloumi and barley",
+      "detail_sha256": "8146209e65931074177e76664dce764e71296f94f26cdd4dd57e42a45df0eeff"
+    },
+    "50721369-9817-5ce7-b319-dfe8bdcd8b27": {
+      "source": "Nocna owsianka z jabłkiem i orzechami",
+      "description": "Jesienna propozycja: nocna owsianka z jabłkiem i orzechami. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "en_GB": "Apple and walnut overnight oats",
+      "detail_sha256": "64b5563a5ed6baadbc58b905659302ccf040a3c21a6d5da862c9e4e8e57b5631"
+    },
+    "2cc18937-637d-57e7-be67-7f022cc67338": {
+      "source": "Sałatka z soczewicą, indykiem i dynią",
+      "description": "Jesienna propozycja: sałatka z soczewicą, indykiem i dynią. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "en_GB": "Lentil, turkey and pumpkin salad",
+      "detail_sha256": "404045e24b98d9d30d00446f5cf0201a7a793e5a6eaba0796a1499f9e03634d0"
+    },
+    "945e4350-48f8-5015-b686-6d1393c38b70": {
+      "source": "Szakszuka z dynią",
+      "description": "Jesienna propozycja: szakszuka z dynią. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "en_GB": "Pumpkin shakshuka",
+      "detail_sha256": "ca57c62a8219223dfbba4f49de9fcb3fa75ee23dac3627cc0a3270e7711bd681"
+    },
+    "233aaca5-4850-5d1c-8436-6d01278d678e": {
+      "source": "Jajka po turecku z pieczoną dynią",
+      "description": "Jesienna propozycja: jajka po turecku z pieczoną dynią. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "en_GB": "Turkish-style eggs with roast pumpkin",
+      "detail_sha256": "2c6bb6be4614fc779e65554a772dfb42243a591f3497cf2e198e4e4a70154a2c"
+    },
+    "35692976-4234-5ac4-8938-d5b7ca81e24e": {
+      "source": "Omlet z kurkami",
+      "description": "Jesienna propozycja: omlet z kurkami. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "en_GB": "Chanterelle mushroom omelette",
+      "detail_sha256": "5628b3f07ac69e4321e58fb9bf0fdb9c2274e05b84ecc8a033ecf311a7a01e00"
+    },
+    "a5b6d1af-52f9-5533-8557-c741eea9e057": {
+      "source": "Kapuśniak z granulatem sojowym",
+      "description": "Jesienna propozycja: kapuśniak z granulatem sojowym. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "en_GB": "Vegan sauerkraut and soya soup",
+      "detail_sha256": "1d69f54550983f339e6baea128d0bf23d6bff62c343ed0358501899c8bbb87f5"
+    },
+    "c7919335-c298-5c0f-b191-ef0edb5a088d": {
+      "source": "Sałatka z kurczakiem, dynią i kaszą jaglaną",
+      "description": "Jesienna propozycja: sałatka z kurczakiem, dynią i kaszą jaglaną. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "en_GB": "Chicken, pumpkin and millet salad",
+      "detail_sha256": "424c659e98a14f83b2fcc4b2b0179a741a94801c25afc5b8242f9a6674ed2dbe"
+    },
+    "21243f19-ece1-530c-9ee3-82f9847838e3": {
+      "source": "Łosoś z buraczaną kaszą jaglaną",
+      "description": "Jesienna propozycja: łosoś z buraczaną kaszą jaglaną. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "en_GB": "Salmon with beetroot millet",
+      "detail_sha256": "522bfa9054ef9cda255e9c71bf1a97dd6ab554f0ddf0de09e0cd41dbc8eecfad"
+    },
+    "f090d431-ff4a-5590-9b8b-76769341d8bd": {
+      "source": "Sałatka ze stekiem, burakiem i dynią",
+      "description": "Jesienna propozycja: sałatka ze stekiem, burakiem i dynią. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "en_GB": "Steak, beetroot and pumpkin salad",
+      "detail_sha256": "835a22fd1c26e205de3ac4f2a84c0907a79aa95c1f77151ca5334c0a7e700639"
+    },
+    "b5eb24b8-5a09-50f8-830f-88bc0b63349e": {
+      "source": "Ciasto dyniowe z mikrofalówki",
+      "description": "Jesienna propozycja: ciasto dyniowe z mikrofalówki. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "en_GB": "Pumpkin microwave mug cake",
+      "detail_sha256": "3e3ec3ba4df4d9dafcdfcee675382fb86b245dcb451744bc2ba4fe3bcd10e10c"
+    },
+    "79b825e5-3e3d-5932-bd34-0d3208129770": {
+      "source": "Placki dyniowe z jabłkiem",
+      "description": "Jesienna propozycja: placki dyniowe z jabłkiem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "en_GB": "Pumpkin pancakes with apple",
+      "detail_sha256": "3b257fc269cc7e034951f322f0f99629a5754c24462c1346270993ac5fc57ff9"
+    },
+    "e759d6c1-ae45-51e5-a021-ddf58bd4db56": {
+      "source": "Curry dyniowe z ananasem",
+      "description": "Jesienna propozycja: curry dyniowe z ananasem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "en_GB": "Pumpkin and pineapple curry",
+      "detail_sha256": "499ecc553ac8df8531fdfaf4c942825ee12631fbe9ee188632869434045a9b7c"
+    },
+    "2b0fb78b-b794-57a9-a6e0-4c17a8a2bbc1": {
+      "source": "Hummus dyniowy",
+      "description": "Jesienna propozycja: hummus dyniowy. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "en_GB": "Roasted pumpkin hummus",
+      "detail_sha256": "46bc98cff2df5f5ec41a46f5d4c583c0a300207508a4fb97897fc7e8427e0325"
+    },
+    "70fed98b-db31-526d-a966-b97e18173874": {
+      "source": "Makaron z dynią i fetą",
+      "description": "Jesienna propozycja: makaron z dynią i fetą. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "en_GB": "Pumpkin and feta pasta",
+      "detail_sha256": "4fe989e905789710cd79958166ac5ef8bbff6607d7fda515bf75d756a7b8b900"
+    },
+    "ea0ec67e-7890-52fd-a76b-cd02e200ffeb": {
+      "source": "Karkówka w sosie grzybowym z puree",
+      "description": "Jesienna propozycja: karkówka w sosie grzybowym z puree. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "en_GB": "Pork neck with mushrooms and mash",
+      "detail_sha256": "3de694b88ac6c5085fef279fc9a425f9d282f04d71298a85696eda95a7afcb0e"
+    },
+    "a377828e-e85e-5b9d-8ba8-aac69a970910": {
+      "source": "Owsianka z suszonymi śliwkami i czekoladą",
+      "description": "Jesienna propozycja: owsianka z suszonymi śliwkami i czekoladą. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "en_GB": "Prune and dark chocolate porridge",
+      "detail_sha256": "d67de77209626f543852535e862ca11a903c5dc4ebb1c7d67cc4f4ce7da7d6eb"
+    },
+    "cd1aa157-812f-5573-a308-c3e22ac5c659": {
+      "source": "Makaron z camembertem i pomidorami",
+      "description": "Jesienna propozycja: makaron z camembertem i pomidorami. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "en_GB": "Camembert and tomato pasta",
+      "detail_sha256": "da4e57a8dcc24824388d82ec6d329360ec80dffdb99b0f1538678f07097a8644"
+    },
+    "d9415115-542e-59b5-be00-de60463a9c92": {
+      "source": "Bowl z kurczakiem, burakiem i dynią",
+      "description": "Jesienna propozycja: bowl z kurczakiem, burakiem i dynią. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "en_GB": "Chicken, beetroot and pumpkin bowl",
+      "detail_sha256": "7e31624f1f622561b12036693f3d5b291677d17f3bca0ae3346a995371a35a97"
+    },
+    "39deca0e-c511-52e6-bf3e-453b8dfccdf6": {
+      "source": "Pieczona owsianka z gruszkami i imbirem",
+      "description": "Jesienna propozycja: pieczona owsianka z gruszkami i imbirem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "en_GB": "Baked pear and ginger oats",
+      "detail_sha256": "2cf972c93850e8bf959b3ad5473e440aff108e26c794dd442006385a380ec922"
+    },
+    "6d725cc0-e7c1-58f9-94c4-1240c9bcb453": {
+      "source": "Francuskie trójkąty z jabłkiem",
+      "description": "Jesienna propozycja: francuskie trójkąty z jabłkiem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
+      "en_GB": "Apple puff pastry triangles",
+      "detail_sha256": "58add62220bb6d258cd2843bffb6363ac087478a866612cd1a78eae0cb926a76"
     }
   },
   "ingredients": {
@@ -912,6 +1092,10 @@
       "source": "Bulion warzywny",
       "en_GB": "Vegetable stock"
     },
+    "2858df96-a1b2-5708-be0b-316bd19d111c": {
+      "source": "Bulion warzywny gotowy",
+      "en_GB": "Prepared vegetable stock"
+    },
     "4d0876fb-5965-57b9-ba00-c6ce01f5b42f": {
       "source": "Bulion wołowy",
       "en_GB": "Beef stock"
@@ -959,6 +1143,10 @@
     "79303edd-d9f3-5c43-b145-466720e00afe": {
       "source": "Chleb pszenny",
       "en_GB": "White bread"
+    },
+    "4aa11c73-1bef-5e0c-9662-1b987e1bfa0a": {
+      "source": "Chleb żytni razowy",
+      "en_GB": "Wholemeal rye bread"
     },
     "ee4a63e3-a830-53ca-bb6b-86884681fcd5": {
       "source": "Chorizo",
@@ -1068,6 +1256,10 @@
       "source": "Ekstrakt waniliowy",
       "en_GB": "Vanilla extract"
     },
+    "a9cf3799-6168-5391-b02a-873135da7bd1": {
+      "source": "Erytrytol",
+      "en_GB": "Erythritol"
+    },
     "e9c1d091-75f2-5deb-a7c2-9a7affcc19f2": {
       "source": "Estragon suszony",
       "en_GB": "Dried tarragon"
@@ -1144,6 +1336,10 @@
       "source": "Granat",
       "en_GB": "Pomegranate"
     },
+    "f5a66c18-f5f2-5d07-a53f-3170c3da1eb7": {
+      "source": "Granulat sojowy suchy",
+      "en_GB": "Dried soya mince"
+    },
     "4e2553dc-db1a-5644-813d-f0b6287e41b3": {
       "source": "Grejpfrut",
       "en_GB": "Grapefruit"
@@ -1168,6 +1364,10 @@
       "source": "Gruszki",
       "en_GB": "Pears"
     },
+    "7d37cb55-71f7-58d2-a3a6-361ba3ff91c7": {
+      "source": "Grzyby leśne świeże",
+      "en_GB": "Fresh wild mushrooms"
+    },
     "7e4fd315-9468-5c31-9c56-e30626b7da13": {
       "source": "Harissa",
       "en_GB": "Harissa"
@@ -1179,6 +1379,10 @@
     "3d031750-0b97-55ac-bb4f-023971a20541": {
       "source": "Hummus",
       "en_GB": "Hummus"
+    },
+    "06cec7dc-2d83-526b-be1a-8dd2aa2fc749": {
+      "source": "Imbir mielony",
+      "en_GB": "Ground ginger"
     },
     "5e63d88b-366c-571e-a8ac-583a5609debc": {
       "source": "Imbir świeży",
@@ -1247,6 +1451,10 @@
     "4c0ca62c-1fd8-54fb-9bc9-31476c859058": {
       "source": "Kapusta czerwona",
       "en_GB": "Red cabbage"
+    },
+    "1dccc55b-0ae9-55ca-857e-66b95ba178d6": {
+      "source": "Kapusta kiszona",
+      "en_GB": "Sauerkraut"
     },
     "d4633375-8ff5-564f-b541-64d3c80f6539": {
       "source": "Kapusta pekińska",
@@ -1356,6 +1564,10 @@
       "source": "Krewetki mrożone",
       "en_GB": "Frozen prawns"
     },
+    "1bbf5ee3-982c-5752-aba6-0311e0f78dac": {
+      "source": "Ksylitol",
+      "en_GB": "Xylitol"
+    },
     "e32f58bd-c5ce-5da5-b51f-ade7514e2dcc": {
       "source": "Kukurydza kolba",
       "en_GB": "Corn on the cob"
@@ -1367,6 +1579,10 @@
     "88e0e374-fa91-5c17-8148-ce79b6e53e0b": {
       "source": "Kukurydza mrożona",
       "en_GB": "Frozen sweetcorn"
+    },
+    "1d42c011-6895-55bf-81d9-82bf3d50e449": {
+      "source": "Kurki świeże",
+      "en_GB": "Fresh chanterelle mushrooms"
     },
     "58a17ff6-6079-5477-9650-893ed9cd32ff": {
       "source": "Kurkuma mielona",
@@ -1387,6 +1603,10 @@
     "4990b371-3cb7-53e5-94ab-be4b9c20e68f": {
       "source": "Liść laurowy",
       "en_GB": "Bay leaf"
+    },
+    "6443ea51-2fa5-5798-b759-fa6efdb88822": {
+      "source": "Majeranek suszony",
+      "en_GB": "Dried marjoram"
     },
     "750e7a30-665c-5d30-92e8-21fcb014cd4b": {
       "source": "Majonez",
@@ -1411,6 +1631,10 @@
     "8cca272d-414c-5e8f-a044-0ddef8f5e2b3": {
       "source": "Makaron penne",
       "en_GB": "Penne pasta"
+    },
+    "e842e0c1-866f-5e26-b300-e0bd24e8eba0": {
+      "source": "Makaron pełnoziarnisty",
+      "en_GB": "Wholewheat pasta"
     },
     "6eb3a4e3-936e-56f0-9b08-0ca6edcd0d1b": {
       "source": "Makaron ryżowy",
@@ -1520,6 +1744,10 @@
       "source": "Mleczko kokosowe light",
       "en_GB": "Light coconut milk"
     },
+    "ab0670ae-58b4-5c0c-9819-528f7120eb45": {
+      "source": "Mleko 1,5%",
+      "en_GB": "Milk, 1.5% fat"
+    },
     "527c542c-dae3-52d1-b75f-d7a4e76204a3": {
       "source": "Mleko 2%",
       "en_GB": "Milk (2% fat)"
@@ -1559,6 +1787,10 @@
     "18fb3018-050e-56bc-8c2f-055cf005cb91": {
       "source": "Mozzarella",
       "en_GB": "Mozzarella"
+    },
+    "8dda96f3-6fb6-5c71-8473-b226ef9d108f": {
+      "source": "Mozzarella light",
+      "en_GB": "Light mozzarella"
     },
     "10e29658-6504-5aa0-aabd-4835ddb1391e": {
       "source": "Mrożone warzywa mieszanka",
@@ -1604,6 +1836,10 @@
       "source": "Mąka orkiszowa",
       "en_GB": "Spelt flour"
     },
+    "73e80006-f52a-591b-af5b-424e76bc4a20": {
+      "source": "Mąka owsiana",
+      "en_GB": "Oat flour"
+    },
     "fda48b0e-7fc4-5175-80ff-3ac0503f22c1": {
       "source": "Mąka pszenna",
       "en_GB": "Wheat flour"
@@ -1627,6 +1863,10 @@
     "c6183d12-91d8-5d85-8e79-9a55ee76fa88": {
       "source": "Mąka żytnia",
       "en_GB": "Rye flour"
+    },
+    "8ed6f515-6348-59ac-838c-49b117d6c26a": {
+      "source": "Nachosy naturalne",
+      "en_GB": "Plain tortilla chips"
     },
     "f31db480-7a95-53eb-b320-25068281cf56": {
       "source": "Nasiona chia",
@@ -1656,6 +1896,10 @@
       "source": "Ocet ryżowy",
       "en_GB": "Rice vinegar"
     },
+    "9456e63a-ab89-51f9-8a95-eaa290eb559b": {
+      "source": "Ocet spirytusowy",
+      "en_GB": "Distilled vinegar"
+    },
     "106194ca-8052-5ef8-9634-62ba3ea7d503": {
       "source": "Ocet winny czerwony",
       "en_GB": "Red wine vinegar"
@@ -1663,6 +1907,10 @@
     "f069ad9f-c14b-58ae-b4b8-9b01ce8e318c": {
       "source": "Ogórek",
       "en_GB": "Cucumber"
+    },
+    "82b42103-ac01-5377-a4c3-ca69d2d3a7cd": {
+      "source": "Ogórki kiszone",
+      "en_GB": "Fermented gherkins"
     },
     "98aab66d-d80c-5938-a140-229705674f6a": {
       "source": "Ogórki konserwowe",
@@ -1727,6 +1975,10 @@
     "9ca1673a-16bc-5312-9e21-6098d7c64af0": {
       "source": "Pak choi",
       "en_GB": "Pak choi"
+    },
+    "02682b35-4187-5a13-b52e-5f8b92947c07": {
+      "source": "Papryczka chili świeża",
+      "en_GB": "Fresh chilli pepper"
     },
     "69061f34-df52-51c1-bdb0-2cbdef1f0496": {
       "source": "Papryka czerwona",
@@ -1848,6 +2100,10 @@
       "source": "Polenta",
       "en_GB": "Polenta"
     },
+    "3d9f9190-06d6-57d3-be02-dc91a71025fa": {
+      "source": "Polędwica wołowa",
+      "en_GB": "Beef fillet"
+    },
     "87a4bb58-b963-57b1-a02b-7a261b547a31": {
       "source": "Polędwiczka wieprzowa",
       "en_GB": "Pork tenderloin"
@@ -1904,6 +2160,10 @@
       "source": "Pstrąg filet",
       "en_GB": "Trout fillet"
     },
+    "7fcc830a-da7b-556d-ab70-9da324801321": {
+      "source": "Pudding proteinowy waniliowy",
+      "en_GB": "Vanilla protein pudding"
+    },
     "2d3cf360-ab2c-536e-b79a-72be8f5d7138": {
       "source": "Puree z dyni",
       "en_GB": "Pumpkin purée"
@@ -1947,6 +2207,10 @@
     "a8452f8f-a8ec-5ff3-b3ff-a3df15a0456f": {
       "source": "Rodzynki",
       "en_GB": "Raisins"
+    },
+    "6bff42d7-183a-5acf-9991-241f2fffa609": {
+      "source": "Rostbef wołowy",
+      "en_GB": "Beef sirloin"
     },
     "984b22f4-34d5-58c6-bffd-f6ce76a65595": {
       "source": "Roszponka",
@@ -2108,6 +2372,10 @@
       "source": "Skyr naturalny",
       "en_GB": "Natural skyr"
     },
+    "bf585f66-89bc-5b0e-8dfa-26afb2feba1b": {
+      "source": "Skyr waniliowy",
+      "en_GB": "Vanilla skyr"
+    },
     "c2b07d09-07f1-554b-bde0-3ea97cb284fe": {
       "source": "Soczewica czarna beluga",
       "en_GB": "Black beluga lentils"
@@ -2127,6 +2395,14 @@
     "e1360634-fd9d-5aef-8581-a9eedd11e908": {
       "source": "Soda oczyszczona",
       "en_GB": "Bicarbonate of soda"
+    },
+    "67cee078-5167-5a2b-a529-300fbfd841b0": {
+      "source": "Sok pomarańczowy",
+      "en_GB": "Orange juice"
+    },
+    "587c3cf5-2f09-5675-a727-7421c5400a6f": {
+      "source": "Sok z cytryny",
+      "en_GB": "Lemon juice"
     },
     "a2f134aa-d760-54ec-a95f-1d3db0580ea7": {
       "source": "Sos Worcestershire",
@@ -2272,6 +2548,10 @@
       "source": "Tortilla kukurydziana",
       "en_GB": "Corn tortilla"
     },
+    "0ed95ad1-3cf0-5eb6-8701-0a22fc5f9d26": {
+      "source": "Tortilla pełnoziarnista",
+      "en_GB": "Wholemeal tortilla wrap"
+    },
     "fa285d67-f8b9-5035-b15a-9d0714b489a6": {
       "source": "Tortilla pszenna",
       "en_GB": "Wheat tortilla"
@@ -2304,6 +2584,10 @@
       "source": "Wanilia (cukier waniliowy)",
       "en_GB": "Vanilla sugar"
     },
+    "8366a2e6-f0fe-5da9-a2c7-c50baa6256de": {
+      "source": "Wieprzowina mielona",
+      "en_GB": "Pork mince"
+    },
     "9018f03b-c249-5372-a8d8-39794168bb16": {
       "source": "Winogrona ciemne",
       "en_GB": "Dark grapes"
@@ -2315,6 +2599,10 @@
     "a79271a0-2af5-5e74-a5b1-62dc085e8ee4": {
       "source": "Wiórki kokosowe",
       "en_GB": "Desiccated coconut"
+    },
+    "e3f77274-e941-5808-b9c7-da6a82084f79": {
+      "source": "Woda",
+      "en_GB": "Water"
     },
     "27fa4303-fab9-5778-a2a2-4d1af33a5111": {
       "source": "Wołowina mielona",
@@ -2356,6 +2644,10 @@
       "source": "Śliwki suszone",
       "en_GB": "Prunes"
     },
+    "1236a1ec-be3e-5f7c-ba7e-15605d5f13bc": {
+      "source": "Śmietana 12%",
+      "en_GB": "Soured cream, 12% fat"
+    },
     "d2099836-9015-530e-91b7-ab21724c0aa6": {
       "source": "Śmietana 18%",
       "en_GB": "Soured cream (18% fat)"
@@ -2363,6 +2655,10 @@
     "6c2d972e-16cd-55a4-9d52-b851d2446ca7": {
       "source": "Śmietana 30%",
       "en_GB": "Cream (30% fat)"
+    },
+    "40108d5c-52e4-58ea-95cc-3f14d80324c4": {
+      "source": "Śmietanka 12%",
+      "en_GB": "Cooking cream, 12% fat"
     },
     "82285426-ecfa-53b5-8ff9-d3d8e3176927": {
       "source": "Śmietanka kokosowa",

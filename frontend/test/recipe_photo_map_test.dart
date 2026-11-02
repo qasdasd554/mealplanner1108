@@ -26,7 +26,7 @@ Recipe _recipe({String? authorId}) => Recipe(
 
 void main() {
   test('każdy oficjalny przepis ma istniejący plik zdjęcia', () {
-    expect(kRecipePhotoAssets, hasLength(137));
+    expect(kRecipePhotoAssets, hasLength(167));
     for (final entry in kRecipePhotoAssets.entries) {
       expect(
         File(entry.value).existsSync(),

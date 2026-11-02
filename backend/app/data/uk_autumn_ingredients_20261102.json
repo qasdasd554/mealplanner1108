@@ -1,0 +1,891 @@
+{
+  "version": 1,
+  "automatic_import": false,
+  "scope": "Country-level generic cooking ingredient only; not shop stock, price, nutrition or packaging.",
+  "references": [
+    {
+      "product_id": "c91245d5-cc8f-56b6-8122-3aed97a3ccf1",
+      "product_name": "Ananas",
+      "product_brand": "Greenyard Fresh",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/search?query=pineapple",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Pineapple"
+      }
+    },
+    {
+      "product_id": "2858df96-a1b2-5708-be0b-316bd19d111c",
+      "product_name": "Bulion warzywny gotowy",
+      "product_brand": null,
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/browse/groceries-and-essentials/food-cupboard/cooking-ingredients/stock-cubes-and-pots?facetsArgs=category%3AReady+To+Use+Stock",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Oxo ready-to-use vegetable stock"
+      }
+    },
+    {
+      "product_id": "08b4b8c8-127f-53e9-84cf-a248bf2f6a00",
+      "product_name": "Buraki",
+      "product_brand": "Greenyard Fresh",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/search?query=Beetroot",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Beetroot"
+      }
+    },
+    {
+      "product_id": "d34809d1-e2c1-5d66-9e45-d4a038227d43",
+      "product_name": "Cebula czerwona",
+      "product_brand": "Greenyard Fresh",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/search?query=onions",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Tesco Red Onions"
+      }
+    },
+    {
+      "product_id": "4aa11c73-1bef-5e0c-9662-1b987e1bfa0a",
+      "product_name": "Chleb żytni razowy",
+      "product_brand": null,
+      "country_code": "GB",
+      "source": {
+        "url": "https://uk.foodplus.eu/en_GB/p/Benus-Mestemacher-Wholemeal-Rye-Bread-500g/22779",
+        "publisher": "uk.foodplus.eu",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Wholemeal rye bread"
+      }
+    },
+    {
+      "product_id": "28b435e8-5e61-5a55-9871-e48b21d1702a",
+      "product_name": "Czekolada gorzka",
+      "product_brand": "E.Wedel",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/search?query=dark+chocolate",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Dark chocolate"
+      }
+    },
+    {
+      "product_id": "1af89b3b-897d-5ed9-bd4c-3c16253d6076",
+      "product_name": "Czosnek granulowany",
+      "product_brand": "Kamis",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.waitrose.com/ecom/products/cooks-ingredients-garlic-granules/470588-784844-784845",
+        "publisher": "www.waitrose.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Garlic granules"
+      }
+    },
+    {
+      "product_id": "428aaf2e-99c7-5da6-a9dd-74a40758e98c",
+      "product_name": "Dynia hokkaido",
+      "product_brand": "Greenyard Fresh",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.realfoods.co.uk/shop/fresh-fruit-and-veg/organic-fresh-vegetables/squashes",
+        "publisher": "www.realfoods.co.uk",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Red Hokkaido squash"
+      }
+    },
+    {
+      "product_id": "e307396e-2efb-5598-b70c-e95ad51228df",
+      "product_name": "Ekstrakt waniliowy",
+      "product_brand": "Dr. Oetker",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.waitrose.com/ecom/products/speciality-no55-vanilla-extract/557615-78868-78869",
+        "publisher": "www.waitrose.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Vanilla extract"
+      }
+    },
+    {
+      "product_id": "a9cf3799-6168-5391-b02a-873135da7bd1",
+      "product_name": "Erytrytol",
+      "product_brand": null,
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/search?query=erythritol",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Erythritol"
+      }
+    },
+    {
+      "product_id": "b25066fb-b6de-5838-a8e3-4b7b7ce36088",
+      "product_name": "Goździki mielone",
+      "product_brand": "Kamis",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/products/287841498",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Ground cloves"
+      }
+    },
+    {
+      "product_id": "f5a66c18-f5f2-5d07-a53f-3170c3da1eb7",
+      "product_name": "Granulat sojowy suchy",
+      "product_brand": null,
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/products/260261027?msockid=34a53885b3c66b3106a82e28b2956a33",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Dried soya mince"
+      }
+    },
+    {
+      "product_id": "7d37cb55-71f7-58d2-a3a6-361ba3ff91c7",
+      "product_name": "Grzyby leśne świeże",
+      "product_brand": null,
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.firstchoiceproduce.com/product-category/fresh-produce/wild-mushrooms/",
+        "publisher": "www.firstchoiceproduce.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Fresh mixed wild mushrooms"
+      }
+    },
+    {
+      "product_id": "06cec7dc-2d83-526b-be1a-8dd2aa2fc749",
+      "product_name": "Imbir mielony",
+      "product_brand": null,
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/search?query=ground",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Ground ginger"
+      }
+    },
+    {
+      "product_id": "193e2511-ee61-579e-9a34-6db12246998b",
+      "product_name": "Jarmuż",
+      "product_brand": "Greenyard Fresh",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/browse/groceries-and-essentials/fresh-food/fresh-vegetables-and-fresh-flowers/spinach-cabbages-and-greens?facetsArgs=category%3AGreens+%26+Kale",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Kale"
+      }
+    },
+    {
+      "product_id": "1dccc55b-0ae9-55ca-857e-66b95ba178d6",
+      "product_name": "Kapusta kiszona",
+      "product_brand": null,
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/search?query=sauerkraut",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Sauerkraut"
+      }
+    },
+    {
+      "product_id": "e244a3cc-2264-5da7-84f7-9c1663d79664",
+      "product_name": "Karkówka wieprzowa",
+      "product_brand": "Sokołów",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.pilgrimfoods.co.uk/pork---neck-collar-whole-avg-18-25kg-bprk17c",
+        "publisher": "www.pilgrimfoods.co.uk",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Plain pork neck collar"
+      }
+    },
+    {
+      "product_id": "4d1c3653-26b4-5fb3-a6c8-9bf0dbe70cf3",
+      "product_name": "Kasza pęczak",
+      "product_brand": "Kupiec",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.hollandandbarrett.com/shop/product/holland-barrett-pearl-barley-500g-6100001607",
+        "publisher": "www.hollandandbarrett.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Pearl barley"
+      }
+    },
+    {
+      "product_id": "a816a3b8-7ea7-5924-811e-bde6a75e0c9f",
+      "product_name": "Kolendra świeża",
+      "product_brand": "Greenyard Fresh",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/search?query=fresh+coriander",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Fresh coriander"
+      }
+    },
+    {
+      "product_id": "891b2a54-59a0-57b7-9e3c-1f5802e72953",
+      "product_name": "Koperek świeży",
+      "product_brand": "Greenyard Fresh",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.waitrose.com/ecom/shop/browse/groceries/fresh_and_chilled/fresh_salad_and_herbs/fresh_herbs/dill_leaves",
+        "publisher": "www.waitrose.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Fresh dill"
+      }
+    },
+    {
+      "product_id": "1bbf5ee3-982c-5752-aba6-0311e0f78dac",
+      "product_name": "Ksylitol",
+      "product_brand": null,
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.hollandandbarrett.com/shop/food-drink/home-baking/sweeteners-sugar-alternatives/",
+        "publisher": "www.hollandandbarrett.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Xylitol"
+      }
+    },
+    {
+      "product_id": "69e2130a-c1c1-5425-9433-1812951874eb",
+      "product_name": "Kukurydza konserwowa",
+      "product_brand": "Bonduelle",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/search?query=tinned+sweetcorn",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Tinned sweetcorn"
+      }
+    },
+    {
+      "product_id": "1d42c011-6895-55bf-81d9-82bf3d50e449",
+      "product_name": "Kurki świeże",
+      "product_brand": null,
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.fineandwild.com/collections/wild-mushrooms",
+        "publisher": "www.fineandwild.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Fresh chanterelles and girolles"
+      }
+    },
+    {
+      "product_id": "4990b371-3cb7-53e5-94ab-be4b9c20e68f",
+      "product_name": "Liść laurowy",
+      "product_brand": "Kamis",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.ocado.com/categories/food-cupboard/cooking-ingredients/herbs-spices/bay-leaf/57c49403-f5b5-496c-9a80-90e61b85007d",
+        "publisher": "www.ocado.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Bay leaf"
+      }
+    },
+    {
+      "product_id": "6443ea51-2fa5-5798-b759-fa6efdb88822",
+      "product_name": "Majeranek suszony",
+      "product_brand": null,
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.ocado.com/products/m-s-marjoram/647320011",
+        "publisher": "www.ocado.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Dried marjoram"
+      }
+    },
+    {
+      "product_id": "e842e0c1-866f-5e26-b300-e0bd24e8eba0",
+      "product_name": "Makaron pełnoziarnisty",
+      "product_brand": null,
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.ocado.com/categories/food-cupboard/dry-rice-pasta-pulses/pasta/wholewheat-pasta/826dc14f-d0d9-4828-a788-a0712c975e87",
+        "publisher": "www.ocado.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Wholewheat pasta"
+      }
+    },
+    {
+      "product_id": "e3732d34-3708-5c71-8686-306eba838d6e",
+      "product_name": "Mascarpone",
+      "product_brand": "Piątnica",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/search?query=mascarpone",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Mascarpone"
+      }
+    },
+    {
+      "product_id": "ab0670ae-58b4-5c0c-9819-528f7120eb45",
+      "product_name": "Mleko 1,5%",
+      "product_brand": null,
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.milkandmore.co.uk/Fresh-Milk-Delivery/Semi-Skimmed-Milk-Delivery/Milk-%26-More-Semi-Skimmed-Milk%2C-1L/p/2020902",
+        "publisher": "www.milkandmore.co.uk",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Semi-skimmed milk, 1.5% fat"
+      }
+    },
+    {
+      "product_id": "8dda96f3-6fb6-5c71-8473-b226ef9d108f",
+      "product_name": "Mozzarella light",
+      "product_brand": null,
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.waitrose.com/ecom/shop/browse/groceries/fresh_and_chilled/cheese/lighter_and_low_fat_cheese?s_emlid=CTA_Engagement",
+        "publisher": "www.waitrose.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Light mozzarella"
+      }
+    },
+    {
+      "product_id": "c9627249-6da5-54b5-8a66-8bbf277ceb61",
+      "product_name": "Musztarda",
+      "product_brand": "Roleski",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/search?query=Mustard",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Mustard"
+      }
+    },
+    {
+      "product_id": "cebacef0-1c4f-5abe-a5fa-720a067654ca",
+      "product_name": "Mąka orkiszowa",
+      "product_brand": "Melvit",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.waitrose.com/ecom/shop/browse/groceries/food_cupboard/sugar_and_home_baking/flour",
+        "publisher": "www.waitrose.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Spelt flour"
+      }
+    },
+    {
+      "product_id": "73e80006-f52a-591b-af5b-424e76bc4a20",
+      "product_name": "Mąka owsiana",
+      "product_brand": null,
+      "country_code": "GB",
+      "source": {
+        "url": "https://uk.foodplus.eu/en_GB/p/Flour-Oat-1kg-Melvit/24989",
+        "publisher": "uk.foodplus.eu",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Oat flour"
+      }
+    },
+    {
+      "product_id": "719b3711-b148-50f8-b637-a5f33a4c0524",
+      "product_name": "Mąka pszenna pełnoziarnista",
+      "product_brand": "Lubella",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.ocado.com/products/m-s-plain-wholemeal-flour/562255011",
+        "publisher": "www.ocado.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Plain wholemeal wheat flour"
+      }
+    },
+    {
+      "product_id": "8ed6f515-6348-59ac-838c-49b117d6c26a",
+      "product_name": "Nachosy naturalne",
+      "product_brand": null,
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/search?query=tesco+tortilla",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Plain tortilla chips"
+      }
+    },
+    {
+      "product_id": "9456e63a-ab89-51f9-8a95-eaa290eb559b",
+      "product_name": "Ocet spirytusowy",
+      "product_brand": null,
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.ocado.com/products/sarsons-distilled-vinegar/305709011",
+        "publisher": "www.ocado.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Distilled vinegar"
+      }
+    },
+    {
+      "product_id": "82b42103-ac01-5377-a4c3-ca69d2d3a7cd",
+      "product_name": "Ogórki kiszone",
+      "product_brand": null,
+      "country_code": "GB",
+      "source": {
+        "url": "https://magyarshop.co.uk/en/product/60",
+        "publisher": "magyarshop.co.uk",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Fermented gherkins"
+      }
+    },
+    {
+      "product_id": "c5e6ec52-0878-5b82-a8ad-bd0db8e2a31a",
+      "product_name": "Olej sezamowy",
+      "product_brand": "House of Asia",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/search?query=sesame",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Sesame oil"
+      }
+    },
+    {
+      "product_id": "3dfd1c18-a8e5-5167-9632-5d8ef198cf4b",
+      "product_name": "Orzechy nerkowca",
+      "product_brand": "Helio",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/search?query=CASHEWS",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Cashews"
+      }
+    },
+    {
+      "product_id": "02682b35-4187-5a13-b52e-5f8b92947c07",
+      "product_name": "Papryczka chili świeża",
+      "product_brand": null,
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.ocado.com/categories/fresh-chilled-food/vegetables/chillies-ginger-ingredients/chillies/7fdb710f-8ba5-4635-b736-913d49de5dc3?sortBy=favorite",
+        "publisher": "www.ocado.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Fresh chilli pepper"
+      }
+    },
+    {
+      "product_id": "e59795ce-e655-5ec5-89ba-0a99ebceabe1",
+      "product_name": "Papryka ostra",
+      "product_brand": "Prymat",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/search?query=paprika",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Hot paprika"
+      }
+    },
+    {
+      "product_id": "b7afa336-04d5-5d24-beea-b4d90c17573d",
+      "product_name": "Papryka wędzona",
+      "product_brand": "Kotányi",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/products/255770365",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Smoked paprika"
+      }
+    },
+    {
+      "product_id": "426d8a35-35cb-5c6b-8013-0856def0653a",
+      "product_name": "Pestki dyni",
+      "product_brand": "Helio",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/search?query=pumpkin+seeds",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Pumpkin seeds"
+      }
+    },
+    {
+      "product_id": "96097d9d-c7fb-58ec-9f53-1fcea17eb817",
+      "product_name": "Pestki słonecznika",
+      "product_brand": "Helio",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/search?query=sunflower+seeds",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Sunflower seeds"
+      }
+    },
+    {
+      "product_id": "765ad139-39b6-56fa-8033-51950b539551",
+      "product_name": "Pietruszka korzeń",
+      "product_brand": "Greenyard Fresh",
+      "country_code": "GB",
+      "source": {
+        "url": "https://troopsfruitandveg.co.uk/product/parsly-root/",
+        "publisher": "troopsfruitandveg.co.uk",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Parsley root, not parsley leaves"
+      }
+    },
+    {
+      "product_id": "3d9f9190-06d6-57d3-be02-dc91a71025fa",
+      "product_name": "Polędwica wołowa",
+      "product_brand": null,
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.waitrose.com/ecom/products/waitrose-british-beef-fillet-steak/939225-1-2",
+        "publisher": "www.waitrose.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Beef fillet steak"
+      }
+    },
+    {
+      "product_id": "7fcc830a-da7b-556d-ab70-9da324801321",
+      "product_name": "Pudding proteinowy waniliowy",
+      "product_brand": null,
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/search?query=vanilla+protein",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Vanilla protein pudding"
+      }
+    },
+    {
+      "product_id": "2d3cf360-ab2c-536e-b79a-72be8f5d7138",
+      "product_name": "Puree z dyni",
+      "product_brand": "Dawtona",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.ocado.com/categories/world-foods/american/f01bb32e-ca1c-4241-801c-b8927cefb491",
+        "publisher": "www.ocado.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Pumpkin purée"
+      }
+    },
+    {
+      "product_id": "a95c2923-2f00-55ce-97d9-ad5a6789157c",
+      "product_name": "Płatki chili",
+      "product_brand": "Kotányi",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/search?query=chilli+flakes",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Chilli flakes"
+      }
+    },
+    {
+      "product_id": "a8452f8f-a8ec-5ff3-b3ff-a3df15a0456f",
+      "product_name": "Rodzynki",
+      "product_brand": "Helio",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/search?inputType=suggested&query=raisins",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Raisins"
+      }
+    },
+    {
+      "product_id": "6bff42d7-183a-5acf-9991-241f2fffa609",
+      "product_name": "Rostbef wołowy",
+      "product_brand": null,
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.waitrose.com/ecom/products/waitrose-british-beef-sirloin-steak/278081-852000-852001",
+        "publisher": "www.waitrose.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Beef sirloin steak"
+      }
+    },
+    {
+      "product_id": "84c02416-faae-558d-9cad-4ff1de418da9",
+      "product_name": "Rozmaryn suszony",
+      "product_brand": "Kamis",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.hollandandbarrett.com/shop/food-drink/cooking/herbs-spices-seasoning/",
+        "publisher": "www.hollandandbarrett.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Dried rosemary"
+      }
+    },
+    {
+      "product_id": "b24066f4-a491-59db-a352-8a905a0536fd",
+      "product_name": "Rukola",
+      "product_brand": "Greenyard Fresh",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.ocado.com/categories/fresh-chilled-food/salad-herbs/salad-bags/aromatic-peppery/1577b96a-407e-4970-ba24-5bd824e4a724",
+        "publisher": "www.ocado.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Rocket"
+      }
+    },
+    {
+      "product_id": "a5edc9eb-536a-5f68-87cb-d6f726593eea",
+      "product_name": "Ser camembert",
+      "product_brand": "Turek",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/search?query=camembert",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Camembert"
+      }
+    },
+    {
+      "product_id": "bf585f66-89bc-5b0e-8dfa-26afb2feba1b",
+      "product_name": "Skyr waniliowy",
+      "product_brand": null,
+      "country_code": "GB",
+      "source": {
+        "url": "https://uk.foodplus.eu/en_GB/p/Skyr-Yogurt-Vanilla-150g-Piatnica/27794",
+        "publisher": "uk.foodplus.eu",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Vanilla skyr yoghurt"
+      }
+    },
+    {
+      "product_id": "d1c5da9e-868f-5caa-adb7-d63c35e3c511",
+      "product_name": "Soczewica zielona",
+      "product_brand": "Kupiec",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.ocado.com/products/ocado-green-lentils/559439011",
+        "publisher": "www.ocado.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Dried green lentils"
+      }
+    },
+    {
+      "product_id": "67cee078-5167-5a2b-a529-300fbfd841b0",
+      "product_name": "Sok pomarańczowy",
+      "product_brand": null,
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/search?query=orange+juices",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Orange juice"
+      }
+    },
+    {
+      "product_id": "587c3cf5-2f09-5675-a727-7421c5400a6f",
+      "product_name": "Sok z cytryny",
+      "product_brand": null,
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/search?query=lemon",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Lemon juice"
+      }
+    },
+    {
+      "product_id": "d1844cba-b20c-5b6c-bf2b-857ebc9fe1bb",
+      "product_name": "Syrop klonowy",
+      "product_brand": "Maple Joe",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/search?query=maple+syrup",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Maple syrup"
+      }
+    },
+    {
+      "product_id": "0ed95ad1-3cf0-5eb6-8701-0a22fc5f9d26",
+      "product_name": "Tortilla pełnoziarnista",
+      "product_brand": null,
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/search?query=tortilla+wrap",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Wholemeal tortilla wrap"
+      }
+    },
+    {
+      "product_id": "4933aada-c016-5a3f-8858-476ec19307c0",
+      "product_name": "Tymianek suszony",
+      "product_brand": "Kamis",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.ocado.com/categories/food-cupboard/cooking-ingredients/herbs-spices/thyme/7cc07156-1c0d-4ad5-887e-48b55286cb8b",
+        "publisher": "www.ocado.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Dried thyme"
+      }
+    },
+    {
+      "product_id": "8366a2e6-f0fe-5da9-a2c7-c50baa6256de",
+      "product_name": "Wieprzowina mielona",
+      "product_brand": null,
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.waitrose.com/ecom/shop/browse/groceries/fresh_and_chilled/fresh_meat/pork/mince?listOverlayDisplayed=false",
+        "publisher": "www.waitrose.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Pork mince"
+      }
+    },
+    {
+      "product_id": "e3f77274-e941-5808-b9c7-da6a82084f79",
+      "product_name": "Woda",
+      "product_brand": null,
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.hollandandbarrett.com/shop/food-drink/drinks/water/",
+        "publisher": "www.hollandandbarrett.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Water"
+      }
+    },
+    {
+      "product_id": "2ae1eacf-6999-55d7-9d32-167f3445ec78",
+      "product_name": "Ziele angielskie",
+      "product_brand": "Kamis",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.waitrose.com/ecom/products/cooks-ingredients-allspice/422708-784796-784797",
+        "publisher": "www.waitrose.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Allspice"
+      }
+    },
+    {
+      "product_id": "4be7f650-b5ed-5140-9208-ca36f38b73df",
+      "product_name": "Zioła prowansalskie",
+      "product_brand": "Kamis",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/products/254919509",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Herbes de Provence"
+      }
+    },
+    {
+      "product_id": "37dd70ec-dd00-5c3d-9406-5b2ce43fe5ac",
+      "product_name": "Śliwki suszone",
+      "product_brand": "Helio",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.hollandandbarrett.com/shop/category/prunes/",
+        "publisher": "www.hollandandbarrett.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Prunes"
+      }
+    },
+    {
+      "product_id": "1236a1ec-be3e-5f7c-ba7e-15605d5f13bc",
+      "product_name": "Śmietana 12%",
+      "product_brand": null,
+      "country_code": "GB",
+      "source": {
+        "url": "https://uk.foodplus.eu/smietany",
+        "publisher": "uk.foodplus.eu",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Piatnica sour cream 12%"
+      }
+    },
+    {
+      "product_id": "40108d5c-52e4-58ea-95cc-3f14d80324c4",
+      "product_name": "Śmietanka 12%",
+      "product_brand": null,
+      "country_code": "GB",
+      "source": {
+        "url": "https://realfrenchfood.co.uk/bridelice-double-cream-light-3x20cl_4646/",
+        "publisher": "realfrenchfood.co.uk",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Uncultured cooking cream 12% fat"
+      }
+    },
+    {
+      "product_id": "a9fe7a14-d43b-5a11-bf29-6fd9f9a0dfa1",
+      "product_name": "Żurawina suszona",
+      "product_brand": "Helio",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.hollandandbarrett.com/shop/category/cranberries-dried/",
+        "publisher": "www.hollandandbarrett.com",
+        "reviewed_on": "2026-11-02",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Dried cranberries"
+      }
+    }
+  ]
+}

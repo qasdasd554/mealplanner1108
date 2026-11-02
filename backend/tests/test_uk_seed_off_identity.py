@@ -93,7 +93,7 @@ def test_seed_exception_never_accepts_arbitrary_branded_food_or_stale_snapshot(c
 def test_all_legacy_seed_ingredient_identities_are_recognised_without_brand_guessing():
     from app.db.seed import PRODUCT_BRANDS, PRODUCTS_DATA, _uid
     entries = _index()["ingredients"]
-    assert len(entries) == len(PRODUCTS_DATA) == 390
+    assert len(entries) == len(PRODUCTS_DATA) == 419
     assert set(entries) == {str(_uid("product:" + row[0])) for row in PRODUCTS_DATA}
     assert {row["source"] for row in entries.values()} == {row[0] for row in PRODUCTS_DATA}
     for identity, row in entries.items():

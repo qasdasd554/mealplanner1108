@@ -409,6 +409,8 @@ async def compare_prices(
         recipe = entry.recipe
         if not recipe:
             continue
+        from app.services.recipe_amounts import repair_recipe_amounts
+        repair_recipe_amounts(recipe)
         # UWAGA: `servings_multiplier` zapisany na wpisie planu JEST JUŻ
         # finalnym mnożnikiem całego przepisu (np. 0.5 = pół przepisu,
         # 2.0 = podwójna porcja) — dokładnie tak samo liczy to

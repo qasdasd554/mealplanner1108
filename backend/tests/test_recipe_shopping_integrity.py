@@ -288,3 +288,22 @@ def test_basket_is_exact_recipe_ingredients_even_when_cheap_ready_meal_exists(db
     multiplier = 2 if action == "append" else 1
     assert actual == {product.id: amount * multiplier for product, amount in zip(raw, [400, 500, 100, 80])}
     assert prepared.id not in actual
+
+
+@pytest.mark.parametrize("name", ["Puree z dyni", "Puree z ziemniakow", "Puree z jablek", "Pumpkin puree", "Sweet potato puree", "Purée of carrot"])
+def test_single_food_purees_are_ingredients(name):
+    from app.services.recipe_ingredient_integrity import looks_like_whole_meal
+    assert not looks_like_whole_meal(name)
+
+
+@pytest.mark.parametrize("name", ["Puree z kurczakiem i warzywami", "Puree with chicken and vegetables", "Pumpkin puree with rice ready meal", "Cordon bleu with puree"])
+def test_puree_does_not_exempt_whole_meals(name):
+    from app.services.recipe_ingredient_integrity import looks_like_whole_meal
+    assert looks_like_whole_meal(name)
+
+
+def test_summary_without_loaded_ingredients_is_not_repaired():
+    from app.services.recipe_amounts import repair_recipe_amounts
+    row = SimpleNamespace(name="Recipe summary", nutrition_total={"kcal": 123})
+    assert not repair_recipe_amounts(row)
+    assert row.nutrition_total == {"kcal": 123}

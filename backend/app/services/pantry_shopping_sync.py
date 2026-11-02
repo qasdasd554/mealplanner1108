@@ -112,6 +112,12 @@ async def sync_product_in_shopping_lists(
         if not rows:
             continue
 
+        if any(quantity_to_grams(product.name, float(row.required_quantity), row.unit,
+               getattr(product, "serving_quantity", None), getattr(product, "measure_options", None)) <= 0
+               for row in rows):
+            # Do not turn an unresolved amount into zero and delete the item.
+            continue
+
         covered, purchase = split_required_quantity(product, rows, pantry)
         pantry_row = next((row for row in rows if row.is_from_pantry), None)
         purchase_row = next((row for row in rows if not row.is_from_pantry), None)

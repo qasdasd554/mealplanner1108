@@ -43,17 +43,17 @@ def seed_cookbook(session):
     return foods, recipes
 
 
-def test_all_137_system_recipes_have_reviewed_uk_ingredients_and_english_content(db, monkeypatch):
+def test_all_167_system_recipes_have_reviewed_uk_ingredients_and_english_content(db, monkeypatch):
     from app.services.meal_plan_generator import MealPlanGenerator
     from app.services.market_catalog import ensure_recipe_available_in_market
 
     session, _, user, _, _ = db
     foods, recipes = seed_cookbook(session)
     actual = set(session.scalars(select(Recipe.id).where(
-        recipe_market_availability('GB', as_of=date(2026, 10, 25)))))
+        recipe_market_availability('GB', as_of=date(2026, 11, 2)))))
     missing = [row.name for row in recipes if row.id not in actual]
     assert not missing, missing
-    assert len(actual) == len(RECIPES_DATA) == 137
+    assert len(actual) == len(RECIPES_DATA) == 167
     for row in recipes:
         translated = recipe_display_content(row, country_code='GB')
         # International dish names may legitimately be identical (Shakshuka).
@@ -61,13 +61,13 @@ def test_all_137_system_recipes_have_reviewed_uk_ingredients_and_english_content
         assert len(translated['instructions']) == len(row.instructions)
         assert row.nutrition_total['kcal'] > 0
     pages = [list(session.scalars(select(Recipe.id).where(
-        recipe_market_availability('GB', as_of=date(2026, 10, 25)))
-        .order_by(Recipe.id).offset(skip).limit(30))) for skip in range(0, 150, 30)]
-    assert [len(page) for page in pages] == [30, 30, 30, 30, 17]
+        recipe_market_availability('GB', as_of=date(2026, 11, 2)))
+        .order_by(Recipe.id).offset(skip).limit(30))) for skip in range(0, 180, 30)]
+    assert [len(page) for page in pages] == [30, 30, 30, 30, 30, 17]
     assert {identity for page in pages for identity in page} == actual
     assert sum(map(len, pages)) == len(actual)
-    monkeypatch.setattr('app.services.meal_plan_generator.utc_market_date', lambda: date(2026, 10, 25))
-    monkeypatch.setattr('app.services.market_catalog.utc_market_date', lambda: date(2026, 10, 25))
+    monkeypatch.setattr('app.services.meal_plan_generator.utc_market_date', lambda: date(2026, 11, 2))
+    monkeypatch.setattr('app.services.market_catalog.utc_market_date', lambda: date(2026, 11, 2))
     eligible = asyncio.run(MealPlanGenerator(db[1])._filter_eligible_recipes(
         store_id=UK_STORES[0].id, allergen_ids=set(), user_id=user.id, country_code='GB'))
     assert {row.id for row in eligible} == actual
@@ -90,7 +90,7 @@ def test_all_137_system_recipes_have_reviewed_uk_ingredients_and_english_content
     session.add(foreign)
     session.commit()
     assert session.scalar(select(Recipe.id).where(Recipe.id == foreign.id,
-        recipe_market_availability('GB', as_of=date(2026, 10, 25)))) is None
+        recipe_market_availability('GB', as_of=date(2026, 11, 2)))) is None
     assert recipe_display_content(foreign, country_code='GB')['description'] == 'Original user description'
 
 
@@ -111,7 +111,7 @@ def test_official_catalogue_country_proof_never_borrows_a_user_identity_or_claim
     if change == 'pending': food.review_status = 'pending'
     session.add(food)
     session.commit()
-    day = date(2026, 12, 1) if change == 'expired' else date(2026, 10, 24) if change == 'future' else date(2026, 10, 25)
+    day = date(2026, 12, 1) if change == 'expired' else date(2026, 10, 24) if change == 'future' else date(2026, 11, 2)
     actual = asyncio.run(retailer_country_product_ids(adapter, {food.id}, as_of=day))
     assert actual == ({food.id} if change == 'none' else set())
     # An official catalogue proof is never an invented OFF country record.
@@ -138,5 +138,5 @@ async def test_no_extra_db_read_for_unrelated_user_product():
     from app.services.uk_system_recipe_reference import retailer_country_product_ids
 
     db = AsyncMock()
-    assert await retailer_country_product_ids(db, {uuid4()}, as_of=date(2026, 10, 25)) == set()
+    assert await retailer_country_product_ids(db, {uuid4()}, as_of=date(2026, 11, 2)) == set()
     db.execute.assert_not_called()

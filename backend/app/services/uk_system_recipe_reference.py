@@ -83,9 +83,11 @@ def retailer_country_evidence_condition(product_id, *, as_of: date):
     if type(as_of) is not date:
         raise ValueError('An explicit calendar date is required')
     food = aliased(Product)
+    from app.services.uk_autumn_reference import reviewed_autumn_references
+    rows = reviewed_system_recipe_references()[1] + reviewed_autumn_references()
     matches = [and_(food.id == row['product_id'], food.name == row['product_name'],
         food.brand.is_not_distinct_from(row['product_brand']))
-        for row in reviewed_system_recipe_references()[1]
+        for row in rows
         if as_of-timedelta(days=30) <= row['reviewed_on'] <= as_of]
     if not matches:
         return false()
@@ -95,7 +97,9 @@ def retailer_country_evidence_condition(product_id, *, as_of: date):
 
 
 async def retailer_country_product_ids(db, product_ids, *, as_of: date):
-    relevant = set(product_ids) & {row['product_id'] for row in reviewed_system_recipe_references()[1]}
+    from app.services.uk_autumn_reference import reviewed_autumn_references
+    rows = reviewed_system_recipe_references()[1] + reviewed_autumn_references()
+    relevant = set(product_ids) & {row['product_id'] for row in rows}
     if not relevant:
         return set()
     result = await db.execute(select(Product.id).where(Product.id.in_(relevant),

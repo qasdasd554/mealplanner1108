@@ -604,16 +604,17 @@ async def _backfill_missing_nutrition_totals() -> None:
             from sqlalchemy.orm import load_only
             from app.models.product import Product
             from app.services.nutrition_calculator import FRYING_FATS
+            from app.services.product_measures import canonical_measure_code
             cursor = None
             updated = 0
             # SQL NULL i JSON null nadal rozpoznajemy po deserializacji.
             # Nie pobieramy jednak zdjęć ani całego katalogu do pamięci.
             while True:
                 query = select(Recipe).options(
-                    load_only(Recipe.id, Recipe.nutrition_total),
+                    load_only(Recipe.id, Recipe.nutrition_total, Recipe.instructions),
                     selectinload(Recipe.ingredients)
                     .selectinload(RecipeIngredient.product)
-                    .load_only(Product.id, Product.name, Product.nutrition_per_100,
+                    .load_only(Product.id, Product.name, Product.unit, Product.nutrition_per_100,
                                Product.serving_quantity, Product.measure_options),
                 ).order_by(Recipe.id).limit(BACKFILL_BATCH_SIZE)
                 if cursor is not None:
@@ -623,19 +624,30 @@ async def _backfill_missing_nutrition_totals() -> None:
                     break
                 cursor = rows[-1].id
                 changed = False
+                repaired_amount_ids = set()
                 for recipe in rows:
+                    from app.services.recipe_amounts import repair_recipe_amounts
+                    if repair_recipe_amounts(recipe):
+                        repaired_amount_ids.add(recipe.id)
+                        changed = True
+                        updated += 1
                     needs_recalculation = not recipe.nutrition_total or any(
-                        ingredient.unit == "opak" or (
+                        canonical_measure_code(ingredient.unit) not in {"g", "kg", "ml", "l"} or (
                             ingredient.product is not None and
                             (ingredient.product.name or "").strip().lower() in FRYING_FATS
                         ) for ingredient in recipe.ingredients
                     )
                     if needs_recalculation:
-                        recipe.nutrition_total = compute_recipe_nutrition_total(recipe.ingredients)
-                        updated += 1
-                        changed = True
+                        total = compute_recipe_nutrition_total(recipe.ingredients)
+                        if recipe.nutrition_total != total:
+                            recipe.nutrition_total = total
+                            updated += 1
+                            changed = True
                 if changed:
                     await db.commit()
+                if repaired_amount_ids:
+                    from app.services.recipe_amounts import repair_open_lists_for_recipes
+                    await repair_open_lists_for_recipes(db, repaired_amount_ids)
             if updated:
                 logger.info("Przeliczono nutrition_total dla %d przepisów.", updated)
     except Exception:

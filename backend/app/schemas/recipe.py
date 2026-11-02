@@ -302,7 +302,12 @@ class RecipeResponse(RecipeBase):
 
         stored = getattr(data, "nutrition_total", None)
         stale_zero = isinstance(stored, dict) and all(stored.get(key) == 0 for key in ("kcal", "protein", "fat", "carbs"))
-        if (not stored or stale_zero or isinstance(stored, dict) and stored.get("_incomplete")) and hasattr(data, "ingredients"):
+        from app.services.recipe_amounts import ingredient_base_amount
+        invalid_amount = hasattr(data, "ingredients") and any(
+            not ingredient_base_amount(ingredient.product, ingredient.quantity, ingredient.unit)
+            for ingredient in data.ingredients
+        )
+        if (not stored or stale_zero or invalid_amount or isinstance(stored, dict) and stored.get("_incomplete")) and hasattr(data, "ingredients"):
             from app.services.nutrition_calculator import compute_recipe_nutrition_total
             total = compute_recipe_nutrition_total(data.ingredients)
             # UWAGA (naprawa): wcześniej ten blok wykonywał się TYLKO gdy

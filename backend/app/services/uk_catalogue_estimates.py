@@ -97,6 +97,25 @@ def _seeds():
     return {_uid("product:" + row[0]): (row[0], row[1], row[3]) for row in PRODUCTS_DATA}
 
 
+# Additional static assumptions, not observed retailer quotes. Existing model
+# identities/rates remain unchanged; these new foods were reviewed on Nov 2.
+AUTUMN_MODEL_DAY = date(2026, 11, 2)
+AUTUMN_FOOD_RATES = {
+    'Bulion warzywny gotowy':'5.00', 'Chleb żytni razowy':'3.50',
+    'Erytrytol':'10.00', 'Granulat sojowy suchy':'10.00',
+    'Grzyby leśne świeże':'35.00', 'Imbir mielony':'25.00',
+    'Kapusta kiszona':'4.00', 'Ksylitol':'12.00', 'Kurki świeże':'60.00',
+    'Majeranek suszony':'80.00', 'Makaron pełnoziarnisty':'1.40',
+    'Mleko 1,5%':'1.00', 'Mozzarella light':'8.00', 'Mąka owsiana':'5.00',
+    'Nachosy naturalne':'4.50', 'Ocet spirytusowy':'1.50', 'Ogórki kiszone':'4.00',
+    'Papryczka chili świeża':'12.00', 'Polędwica wołowa':'44.00',
+    'Pudding proteinowy waniliowy':'5.00', 'Rostbef wołowy':'25.00',
+    'Skyr waniliowy':'4.50', 'Sok pomarańczowy':'1.50', 'Sok z cytryny':'4.00',
+    'Tortilla pełnoziarnista':'3.00', 'Wieprzowina mielona':'7.00',
+    'Woda':'.50', 'Śmietana 12%':'5.00', 'Śmietanka 12%':'5.00',
+}
+
+
 def _reference(product, unit):
     row = _seeds().get(product.id)
     if row is None or row[0] != product.name or row[1] != product.unit:
@@ -115,7 +134,7 @@ def _reference(product, unit):
         return (rate, amount) if amount.is_finite() and amount > 0 else None
     if canonical_base_unit(product) != unit:
         return None
-    return Decimal(FOOD_RATES.get(name, DEPARTMENT_RATES[department])), Decimal(1000)
+    return Decimal(AUTUMN_FOOD_RATES.get(name, FOOD_RATES.get(name, DEPARTMENT_RATES[department]))), Decimal(1000)
 
 
 def quote_static_requirement(product, quantity, unit, *, store_id, as_of):
@@ -130,6 +149,9 @@ def quote_static_requirement(product, quantity, unit, *, store_id, as_of):
         reference = _reference(product, unit)
         if reference is None:
             return None
+        model_day = AUTUMN_MODEL_DAY if product.name in AUTUMN_FOOD_RATES else MODEL_DAY
+        if as_of < model_day:
+            return None
         rate, reference_quantity = reference
         total = (rate * quantity / reference_quantity).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         # The display precision is one penny; never turn a positive cost into free food.
@@ -141,7 +163,7 @@ def quote_static_requirement(product, quantity, unit, *, store_id, as_of):
         return NationalReferenceQuote(product.id, store_id,
             ingredient_display_name(product, country_code="GB"), quantity, unit, total,
             {"provider": "uk_catalogue_estimate", "model_version": MODEL_VERSION,
-             "publisher": "Meal Planner", "checked_on": MODEL_DAY.isoformat(),
+             "publisher": "Meal Planner", "checked_on": model_day.isoformat(),
              "basis": "required_quantity_not_shop_price", "confirms_package": False,
              "confirms_store_stock": False, "canonical_product_id": str(product.id),
              "reference_price_gbp": str(rate), "reference_quantity": str(reference_quantity),
