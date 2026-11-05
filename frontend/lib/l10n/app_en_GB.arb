@@ -1,4 +1,24 @@
 {
+  "receiptScanTitle": "Scan receipt",
+  "receiptQuickAddHint": "Add groceries to your pantry",
+  "receiptPremiumMessage": "Receipt scanning is a Premium feature. Take a photo of your receipt and add recognised groceries to your pantry.",
+  "receiptPhotoGuide": "Photograph the full list of items on your receipt.",
+  "receiptPhotoPrivacy": "The photo is sent for AI recognition. Where possible, leave out payment and loyalty card details.",
+  "receiptPhotoSize": "Choose a photo under 8 MB.",
+  "receiptPhotoError": "We couldn't open the photo. Take another one or choose a different photo from your gallery.",
+  "receiptReadAction": "Read receipt",
+  "receiptReading": "Reading receipt…",
+  "receiptReviewTitle": "Review your groceries",
+  "receiptReviewHint": "Untick anything you don't want to save. Check the quantities and units before adding items to your pantry.",
+  "receiptQuantityUnreadable": "Quantity unreadable. Tick this item to enter it.",
+  "receiptCheckQuantity": "Check quantity",
+  "receiptEmpty": "We couldn't identify any groceries in this photo. Try a clearer picture of the receipt.",
+  "receiptSaveAction": "Save to pantry",
+  "receiptSaving": "Saving groceries…",
+  "receiptNoCompatibleStock": "The quantities in your pantry use different units or are unknown. Update them before importing again.",
+  "receiptAlreadySaved": "This receipt has already been saved.",
+  "receiptSaved": "{count, plural, one{Saved 1 item to your pantry.} other{Saved {count} items to your pantry.}}",
+  "receiptSkipped": "{count, plural, one{Skipped 1 item because its pantry quantity couldn't be combined.} other{Skipped {count} items because their pantry quantities couldn't be combined.}}",
   "scanPantryAmountHint": "Choose an amount in grams or millilitres",
   "foodEntryTitle": "Add a meal",
   "foodEntryFromPlan": "From plan",
@@ -263,7 +283,7 @@
   "batchDestinationHint": "Choose where to save the whole batch and confirm once",
   "aiRecipeSources": "From a photo, text or link",
   "recordCaloriesAndMacros": "Record calories and macros",
-  "premiumTwoPoints": "PREMIUM · 2 PTS",
+  "premiumTwoPoints": "Premium or 2 points",
   "recipeLoadError": "Could not load recipes: {error}",
   "recipeLoadMoreError": "Could not load more recipes: {error}",
   "recipeImportInProgress": "AI is adding your recipe",
@@ -2115,17 +2135,17 @@
   "premiumUnlimitedPlansTitle": "Unlimited meal plans",
   "premiumUnlimitedPlansDescription": "Create as many meal plans as you need, with no weekly limit.",
   "premiumAiRecipesTitle": "AI recipe import",
-  "premiumAiRecipesDescription": "Add your own recipes from pasted text or a photo.",
+  "premiumAiRecipesDescription": "Import recipes from links, text or photos without spending points. AI editing costs 1 point, including with Premium.",
   "premiumFullDiaryTitle": "Full Diary history",
   "premiumFullDiaryDescription": "View your full calorie history beyond the last 30 days.",
   "premiumUnlimitedListsTitle": "Unlimited shopping lists",
   "premiumUnlimitedListsDescription": "Create a new shopping list whenever you need one.",
   "premiumProductName": "Meal Planner Premium",
-  "premiumHeroDescription": "Plan your week, scan your groceries and put together a shopping list in minutes.",
+  "premiumHeroDescription": "Let your next week plan itself. Choose how you want to use Premium.",
   "premiumAutomaticWeekSubtitle": "Your weekly plan and optional shopping list, ready each week",
   "premiumAutomaticWeekRequired": "Automatic weekly planning is available with Premium.",
   "premiumAiActionTitle": "Add a recipe with AI",
-  "premiumAiActionSubtitle": "Start with a photo, text or link and let AI build the recipe",
+  "premiumAiActionSubtitle": "Link, photo or text. Imports use no points with Premium",
   "premiumBatchActionTitle": "Scan several products in one go",
   "premiumBatchActionSubtitle": "Choose your destinations and confirm the whole batch",
   "premiumBatchCompleted": "{count, plural, one{{count} product processed.} other{{count} products processed.}}",
@@ -2182,22 +2202,8 @@
       }
     }
   },
-  "premiumTrialDisclosureApple": "Eligible accounts can try Premium free for {days} days. It then renews at the price shown above. You can cancel in your Apple account settings.",
-  "@premiumTrialDisclosureApple": {
-    "placeholders": {
-      "days": {
-        "type": "int"
-      }
-    }
-  },
-  "premiumTrialDisclosureGoogle": "Eligible accounts can try Premium free for {days} days. It then renews at the price shown above. You can cancel in Google Play.",
-  "@premiumTrialDisclosureGoogle": {
-    "placeholders": {
-      "days": {
-        "type": "int"
-      }
-    }
-  },
+  "premiumTrialDisclosureApple": "Renews automatically each month. Cancel in your Apple account settings.",
+  "premiumTrialDisclosureGoogle": "Renews automatically each month. Cancel in Google Play.",
   "premiumRestorePurchases": "Restore purchases",
   "premiumPointsTitle": "Premium points",
   "premiumPointsBalance": "Your balance: {balance}",
@@ -2261,16 +2267,16 @@
   "premiumBuyDiscount": "Buy at the offer price",
   "premiumContextRecipeEyebrow": "PREMIUM FOR RECIPES",
   "premiumContextRecipeTitle": "Turn an idea into a recipe",
-  "premiumContextRecipeDescription": "Paste a link, add a photo or describe a dish. Get a recipe with ingredients, servings and clear steps.",
+  "premiumContextRecipeDescription": "Save a recipe from a link, photo or description without typing it out. Premium imports use no points.",
   "premiumContextRecipeBenefitImport": "A recipe from a link, photo or description",
   "premiumContextRecipeBenefitSteps": "Ingredients and steps put together for you",
-  "premiumContextRecipeBenefitEdit": "Edit recipes with AI",
+  "premiumContextRecipeBenefitEdit": "AI editing: 1 point, including with Premium",
   "premiumContextMealPlanEyebrow": "PREMIUM FOR PLANNING",
-  "premiumContextMealPlanTitle": "Plan as many weeks as you need",
-  "premiumContextMealPlanDescription": "Create as many meal plans as you need and fit your meals around your day.",
+  "premiumContextMealPlanTitle": "Your next week, planned automatically",
+  "premiumContextMealPlanDescription": "Schedule planning for your chosen day. Create more plans and shopping lists whenever you need them.",
   "premiumContextMealPlanBenefitUnlimited": "Unlimited meal plans",
   "premiumContextMealPlanBenefitWeekly": "An automatic plan for next week",
-  "premiumContextMealPlanBenefitSwap": "Find and swap meals",
+  "premiumContextMealPlanBenefitSwap": "Ingredient preferences taken into account",
   "premiumContextBarcodeEyebrow": "PREMIUM FOR SCANNING",
   "premiumContextBarcodeTitle": "Scan your groceries in one go",
   "premiumContextBarcodeDescription": "Scan products one after another, then add the whole batch to your chosen destinations.",
@@ -2290,11 +2296,11 @@
   "premiumContextPantryBenefitMissing": "Fewer missing ingredients",
   "premiumContextPantryBenefitWaste": "Less food waste",
   "premiumContextJournalEyebrow": "PREMIUM FOR YOUR DIARY",
-  "premiumContextJournalTitle": "See your progress over time",
-  "premiumContextJournalDescription": "Look back over a longer period to spot changes in calories, macros, hydration and weight.",
+  "premiumContextJournalTitle": "Look back through your full Food diary",
+  "premiumContextJournalDescription": "Browse entries older than 30 days and see all your weekly insights.",
   "premiumContextJournalBenefitHistory": "Your full Diary history",
-  "premiumContextJournalBenefitCharts": "Calorie, macro and hydration charts",
-  "premiumContextJournalBenefitWeight": "Weight progress over time",
+  "premiumContextJournalBenefitCharts": "Entries older than 30 days",
+  "premiumContextJournalBenefitWeight": "All weekly insights",
   "premiumPackageSemantics": "Package",
   "premiumDiscountSemantics": "{percent} per cent discount",
   "@premiumDiscountSemantics": {
@@ -2563,7 +2569,7 @@
   "releasePromptTitle": "An update is available",
   "releasePromptRequired": "This version is no longer supported. Update the app to continue.",
   "releasePromptStoreError": "Could not open the app store.",
-  "releasePromptChanges": "• Discover 30 autumn recipes in Polish and English.\n• Each new dish has its own photo and ingredients for your shopping list.\n• Improved conversions between grams, pieces and kitchen measures.\n• Calories and shopping costs use the right amounts; estimates are labelled.",
+  "releasePromptChanges": "• Premium: scan receipts and add groceries to your pantry.\n• Premium benefits and prices are now easier to find.\n• We made trial pricing, renewal and access with points clearer.\n• Premium offers no longer immediately cover a new plan or shopping list.\n• We improved the return to your task after activation and access to purchase restoration.",
   "detailPlanPortionHelp": "Ingredients are scaled to {servings} portions. Quantities written in the method refer to the original recipe ({baseServings} portions).",
   "@detailPlanPortionHelp": {
     "placeholders": {
@@ -3160,4 +3166,8 @@
   "shoppingLimitSeePremium": "Explore Premium",
   "shoppingLimitBack": "Back to my shopping list",
   "shoppingLimitShort": "You have reached this week's list limit. Create more lists with Premium."
+,
+  "compareNoPoints": "No points needed"
+,
+  "compareImportPointCost": "2 points / import"
 }

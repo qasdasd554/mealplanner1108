@@ -9,6 +9,91 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get receiptScanTitle => 'Scan receipt';
+
+  @override
+  String get receiptQuickAddHint => 'Add groceries to your pantry';
+
+  @override
+  String get receiptPremiumMessage =>
+      'Receipt scanning is a Premium feature. Take a photo of your receipt and add recognised groceries to your pantry.';
+
+  @override
+  String get receiptPhotoGuide =>
+      'Photograph the full list of items on your receipt.';
+
+  @override
+  String get receiptPhotoPrivacy =>
+      'The photo is sent for AI recognition. Where possible, leave out payment and loyalty card details.';
+
+  @override
+  String get receiptPhotoSize => 'Choose a photo under 8 MB.';
+
+  @override
+  String get receiptPhotoError =>
+      'We couldn\'t open the photo. Take another one or choose a different photo from your gallery.';
+
+  @override
+  String get receiptReadAction => 'Read receipt';
+
+  @override
+  String get receiptReading => 'Reading receipt…';
+
+  @override
+  String get receiptReviewTitle => 'Review your groceries';
+
+  @override
+  String get receiptReviewHint =>
+      'Untick anything you don\'t want to save. Check the quantities and units before adding items to your pantry.';
+
+  @override
+  String get receiptQuantityUnreadable =>
+      'Quantity unreadable. Tick this item to enter it.';
+
+  @override
+  String get receiptCheckQuantity => 'Check quantity';
+
+  @override
+  String get receiptEmpty =>
+      'We couldn\'t identify any groceries in this photo. Try a clearer picture of the receipt.';
+
+  @override
+  String get receiptSaveAction => 'Save to pantry';
+
+  @override
+  String get receiptSaving => 'Saving groceries…';
+
+  @override
+  String get receiptNoCompatibleStock =>
+      'The quantities in your pantry use different units or are unknown. Update them before importing again.';
+
+  @override
+  String get receiptAlreadySaved => 'This receipt has already been saved.';
+
+  @override
+  String receiptSaved(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Saved $count items to your pantry.',
+      one: 'Saved 1 item to your pantry.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String receiptSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Skipped $count items because their pantry quantities couldn\'t be combined.',
+      one: 'Skipped 1 item because its pantry quantity couldn\'t be combined.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get scanPantryAmountHint => 'Choose an amount in grams or millilitres';
 
   @override
@@ -529,7 +614,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recordCaloriesAndMacros => 'Record calories and macros';
 
   @override
-  String get premiumTwoPoints => 'PREMIUM · 2 PTS';
+  String get premiumTwoPoints => 'Premium or 2 points';
 
   @override
   String recipeLoadError(String error) {
@@ -3395,7 +3480,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get premiumAiRecipesDescription =>
-      'Add your own recipes from pasted text or a photo.';
+      'Import recipes from links, text or photos without spending points. AI editing costs 1 point, including with Premium.';
 
   @override
   String get premiumFullDiaryTitle => 'Full Diary history';
@@ -3416,7 +3501,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get premiumHeroDescription =>
-      'Plan your week, scan your groceries and put together a shopping list in minutes.';
+      'Let your next week plan itself. Choose how you want to use Premium.';
 
   @override
   String get premiumAutomaticWeekSubtitle =>
@@ -3431,7 +3516,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get premiumAiActionSubtitle =>
-      'Start with a photo, text or link and let AI build the recipe';
+      'Link, photo or text. Imports use no points with Premium';
 
   @override
   String get premiumBatchActionTitle => 'Scan several products in one go';
@@ -3529,14 +3614,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String premiumTrialDisclosureApple(int days) {
-    return 'Eligible accounts can try Premium free for $days days. It then renews at the price shown above. You can cancel in your Apple account settings.';
-  }
+  String get premiumTrialDisclosureApple =>
+      'Renews automatically each month. Cancel in your Apple account settings.';
 
   @override
-  String premiumTrialDisclosureGoogle(int days) {
-    return 'Eligible accounts can try Premium free for $days days. It then renews at the price shown above. You can cancel in Google Play.';
-  }
+  String get premiumTrialDisclosureGoogle =>
+      'Renews automatically each month. Cancel in Google Play.';
 
   @override
   String get premiumRestorePurchases => 'Restore purchases';
@@ -3626,7 +3709,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get premiumContextRecipeDescription =>
-      'Paste a link, add a photo or describe a dish. Get a recipe with ingredients, servings and clear steps.';
+      'Save a recipe from a link, photo or description without typing it out. Premium imports use no points.';
 
   @override
   String get premiumContextRecipeBenefitImport =>
@@ -3637,17 +3720,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'Ingredients and steps put together for you';
 
   @override
-  String get premiumContextRecipeBenefitEdit => 'Edit recipes with AI';
+  String get premiumContextRecipeBenefitEdit =>
+      'AI editing: 1 point, including with Premium';
 
   @override
   String get premiumContextMealPlanEyebrow => 'PREMIUM FOR PLANNING';
 
   @override
-  String get premiumContextMealPlanTitle => 'Plan as many weeks as you need';
+  String get premiumContextMealPlanTitle =>
+      'Your next week, planned automatically';
 
   @override
   String get premiumContextMealPlanDescription =>
-      'Create as many meal plans as you need and fit your meals around your day.';
+      'Schedule planning for your chosen day. Create more plans and shopping lists whenever you need them.';
 
   @override
   String get premiumContextMealPlanBenefitUnlimited => 'Unlimited meal plans';
@@ -3657,7 +3742,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'An automatic plan for next week';
 
   @override
-  String get premiumContextMealPlanBenefitSwap => 'Find and swap meals';
+  String get premiumContextMealPlanBenefitSwap =>
+      'Ingredient preferences taken into account';
 
   @override
   String get premiumContextBarcodeEyebrow => 'PREMIUM FOR SCANNING';
@@ -3726,21 +3812,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get premiumContextJournalEyebrow => 'PREMIUM FOR YOUR DIARY';
 
   @override
-  String get premiumContextJournalTitle => 'See your progress over time';
+  String get premiumContextJournalTitle =>
+      'Look back through your full Food diary';
 
   @override
   String get premiumContextJournalDescription =>
-      'Look back over a longer period to spot changes in calories, macros, hydration and weight.';
+      'Browse entries older than 30 days and see all your weekly insights.';
 
   @override
   String get premiumContextJournalBenefitHistory => 'Your full Diary history';
 
   @override
-  String get premiumContextJournalBenefitCharts =>
-      'Calorie, macro and hydration charts';
+  String get premiumContextJournalBenefitCharts => 'Entries older than 30 days';
 
   @override
-  String get premiumContextJournalBenefitWeight => 'Weight progress over time';
+  String get premiumContextJournalBenefitWeight => 'All weekly insights';
 
   @override
   String get premiumPackageSemantics => 'Package';
@@ -4279,7 +4365,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• Discover 30 autumn recipes in Polish and English.\n• Each new dish has its own photo and ingredients for your shopping list.\n• Improved conversions between grams, pieces and kitchen measures.\n• Calories and shopping costs use the right amounts; estimates are labelled.';
+      '• Premium: scan receipts and add groceries to your pantry.\n• Premium benefits and prices are now easier to find.\n• We made trial pricing, renewal and access with points clearer.\n• Premium offers no longer immediately cover a new plan or shopping list.\n• We improved the return to your task after activation and access to purchase restoration.';
 
   @override
   String detailPlanPortionHelp(int servings, int baseServings) {
@@ -5266,6 +5352,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get shoppingLimitShort =>
       'You have reached this week\'s list limit. Create more lists with Premium.';
+
+  @override
+  String get compareNoPoints => 'No points needed';
+
+  @override
+  String get compareImportPointCost => '2 points / import';
 }
 
 /// The translations for English, as used in the United Kingdom (`en_GB`).
@@ -5273,6 +5365,91 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
   AppLocalizationsEnGb() : super('en_GB');
 
   @override
+  String get receiptScanTitle => 'Scan receipt';
+
+  @override
+  String get receiptQuickAddHint => 'Add groceries to your pantry';
+
+  @override
+  String get receiptPremiumMessage =>
+      'Receipt scanning is a Premium feature. Take a photo of your receipt and add recognised groceries to your pantry.';
+
+  @override
+  String get receiptPhotoGuide =>
+      'Photograph the full list of items on your receipt.';
+
+  @override
+  String get receiptPhotoPrivacy =>
+      'The photo is sent for AI recognition. Where possible, leave out payment and loyalty card details.';
+
+  @override
+  String get receiptPhotoSize => 'Choose a photo under 8 MB.';
+
+  @override
+  String get receiptPhotoError =>
+      'We couldn\'t open the photo. Take another one or choose a different photo from your gallery.';
+
+  @override
+  String get receiptReadAction => 'Read receipt';
+
+  @override
+  String get receiptReading => 'Reading receipt…';
+
+  @override
+  String get receiptReviewTitle => 'Review your groceries';
+
+  @override
+  String get receiptReviewHint =>
+      'Untick anything you don\'t want to save. Check the quantities and units before adding items to your pantry.';
+
+  @override
+  String get receiptQuantityUnreadable =>
+      'Quantity unreadable. Tick this item to enter it.';
+
+  @override
+  String get receiptCheckQuantity => 'Check quantity';
+
+  @override
+  String get receiptEmpty =>
+      'We couldn\'t identify any groceries in this photo. Try a clearer picture of the receipt.';
+
+  @override
+  String get receiptSaveAction => 'Save to pantry';
+
+  @override
+  String get receiptSaving => 'Saving groceries…';
+
+  @override
+  String get receiptNoCompatibleStock =>
+      'The quantities in your pantry use different units or are unknown. Update them before importing again.';
+
+  @override
+  String get receiptAlreadySaved => 'This receipt has already been saved.';
+
+  @override
+  String receiptSaved(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Saved $count items to your pantry.',
+      one: 'Saved 1 item to your pantry.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String receiptSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Skipped $count items because their pantry quantities couldn\'t be combined.',
+      one: 'Skipped 1 item because its pantry quantity couldn\'t be combined.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get scanPantryAmountHint => 'Choose an amount in grams or millilitres';
 
   @override
@@ -5793,7 +5970,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
   String get recordCaloriesAndMacros => 'Record calories and macros';
 
   @override
-  String get premiumTwoPoints => 'PREMIUM · 2 PTS';
+  String get premiumTwoPoints => 'Premium or 2 points';
 
   @override
   String recipeLoadError(String error) {
@@ -8659,7 +8836,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get premiumAiRecipesDescription =>
-      'Add your own recipes from pasted text or a photo.';
+      'Import recipes from links, text or photos without spending points. AI editing costs 1 point, including with Premium.';
 
   @override
   String get premiumFullDiaryTitle => 'Full Diary history';
@@ -8680,7 +8857,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get premiumHeroDescription =>
-      'Plan your week, scan your groceries and put together a shopping list in minutes.';
+      'Let your next week plan itself. Choose how you want to use Premium.';
 
   @override
   String get premiumAutomaticWeekSubtitle =>
@@ -8695,7 +8872,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get premiumAiActionSubtitle =>
-      'Start with a photo, text or link and let AI build the recipe';
+      'Link, photo or text. Imports use no points with Premium';
 
   @override
   String get premiumBatchActionTitle => 'Scan several products in one go';
@@ -8793,14 +8970,12 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
   }
 
   @override
-  String premiumTrialDisclosureApple(int days) {
-    return 'Eligible accounts can try Premium free for $days days. It then renews at the price shown above. You can cancel in your Apple account settings.';
-  }
+  String get premiumTrialDisclosureApple =>
+      'Renews automatically each month. Cancel in your Apple account settings.';
 
   @override
-  String premiumTrialDisclosureGoogle(int days) {
-    return 'Eligible accounts can try Premium free for $days days. It then renews at the price shown above. You can cancel in Google Play.';
-  }
+  String get premiumTrialDisclosureGoogle =>
+      'Renews automatically each month. Cancel in Google Play.';
 
   @override
   String get premiumRestorePurchases => 'Restore purchases';
@@ -8890,7 +9065,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get premiumContextRecipeDescription =>
-      'Paste a link, add a photo or describe a dish. Get a recipe with ingredients, servings and clear steps.';
+      'Save a recipe from a link, photo or description without typing it out. Premium imports use no points.';
 
   @override
   String get premiumContextRecipeBenefitImport =>
@@ -8901,17 +9076,19 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
       'Ingredients and steps put together for you';
 
   @override
-  String get premiumContextRecipeBenefitEdit => 'Edit recipes with AI';
+  String get premiumContextRecipeBenefitEdit =>
+      'AI editing: 1 point, including with Premium';
 
   @override
   String get premiumContextMealPlanEyebrow => 'PREMIUM FOR PLANNING';
 
   @override
-  String get premiumContextMealPlanTitle => 'Plan as many weeks as you need';
+  String get premiumContextMealPlanTitle =>
+      'Your next week, planned automatically';
 
   @override
   String get premiumContextMealPlanDescription =>
-      'Create as many meal plans as you need and fit your meals around your day.';
+      'Schedule planning for your chosen day. Create more plans and shopping lists whenever you need them.';
 
   @override
   String get premiumContextMealPlanBenefitUnlimited => 'Unlimited meal plans';
@@ -8921,7 +9098,8 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
       'An automatic plan for next week';
 
   @override
-  String get premiumContextMealPlanBenefitSwap => 'Find and swap meals';
+  String get premiumContextMealPlanBenefitSwap =>
+      'Ingredient preferences taken into account';
 
   @override
   String get premiumContextBarcodeEyebrow => 'PREMIUM FOR SCANNING';
@@ -8990,21 +9168,21 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
   String get premiumContextJournalEyebrow => 'PREMIUM FOR YOUR DIARY';
 
   @override
-  String get premiumContextJournalTitle => 'See your progress over time';
+  String get premiumContextJournalTitle =>
+      'Look back through your full Food diary';
 
   @override
   String get premiumContextJournalDescription =>
-      'Look back over a longer period to spot changes in calories, macros, hydration and weight.';
+      'Browse entries older than 30 days and see all your weekly insights.';
 
   @override
   String get premiumContextJournalBenefitHistory => 'Your full Diary history';
 
   @override
-  String get premiumContextJournalBenefitCharts =>
-      'Calorie, macro and hydration charts';
+  String get premiumContextJournalBenefitCharts => 'Entries older than 30 days';
 
   @override
-  String get premiumContextJournalBenefitWeight => 'Weight progress over time';
+  String get premiumContextJournalBenefitWeight => 'All weekly insights';
 
   @override
   String get premiumPackageSemantics => 'Package';
@@ -9543,7 +9721,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get releasePromptChanges =>
-      '• Discover 30 autumn recipes in Polish and English.\n• Each new dish has its own photo and ingredients for your shopping list.\n• Improved conversions between grams, pieces and kitchen measures.\n• Calories and shopping costs use the right amounts; estimates are labelled.';
+      '• Premium: scan receipts and add groceries to your pantry.\n• Premium benefits and prices are now easier to find.\n• We made trial pricing, renewal and access with points clearer.\n• Premium offers no longer immediately cover a new plan or shopping list.\n• We improved the return to your task after activation and access to purchase restoration.';
 
   @override
   String detailPlanPortionHelp(int servings, int baseServings) {
@@ -10530,4 +10708,10 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
   @override
   String get shoppingLimitShort =>
       'You have reached this week\'s list limit. Create more lists with Premium.';
+
+  @override
+  String get compareNoPoints => 'No points needed';
+
+  @override
+  String get compareImportPointCost => '2 points / import';
 }

@@ -99,6 +99,126 @@ abstract class AppLocalizations {
     Locale('pl'),
   ];
 
+  /// No description provided for @receiptScanTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Skanuj paragon'**
+  String get receiptScanTitle;
+
+  /// No description provided for @receiptQuickAddHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj zakupy spożywcze do spiżarni'**
+  String get receiptQuickAddHint;
+
+  /// No description provided for @receiptPremiumMessage.
+  ///
+  /// In pl, this message translates to:
+  /// **'Skanowanie paragonów jest dostępne z Premium. Zrób zdjęcie paragonu i dodaj rozpoznane zakupy spożywcze do spiżarni.'**
+  String get receiptPremiumMessage;
+
+  /// No description provided for @receiptPhotoGuide.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zrób zdjęcie całej listy produktów na paragonie.'**
+  String get receiptPhotoGuide;
+
+  /// No description provided for @receiptPhotoPrivacy.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zdjęcie zostanie przesłane do rozpoznania przez AI. Jeśli możesz, pomiń fragment z danymi płatności lub karty lojalnościowej.'**
+  String get receiptPhotoPrivacy;
+
+  /// No description provided for @receiptPhotoSize.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zdjęcie musi mieć mniej niż 8 MB.'**
+  String get receiptPhotoSize;
+
+  /// No description provided for @receiptPhotoError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się otworzyć zdjęcia. Zrób nowe lub wybierz inne z galerii.'**
+  String get receiptPhotoError;
+
+  /// No description provided for @receiptReadAction.
+  ///
+  /// In pl, this message translates to:
+  /// **'Odczytaj paragon'**
+  String get receiptReadAction;
+
+  /// No description provided for @receiptReading.
+  ///
+  /// In pl, this message translates to:
+  /// **'Odczytuję paragon…'**
+  String get receiptReading;
+
+  /// No description provided for @receiptReviewTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Sprawdź produkty spożywcze'**
+  String get receiptReviewTitle;
+
+  /// No description provided for @receiptReviewHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Odznacz pozycje, których nie chcesz zapisać. Sprawdź ilości i jednostki przed dodaniem do spiżarni.'**
+  String get receiptReviewHint;
+
+  /// No description provided for @receiptQuantityUnreadable.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nieczytelna ilość. Zaznacz produkt, aby ją wpisać.'**
+  String get receiptQuantityUnreadable;
+
+  /// No description provided for @receiptCheckQuantity.
+  ///
+  /// In pl, this message translates to:
+  /// **'Sprawdź ilość'**
+  String get receiptCheckQuantity;
+
+  /// No description provided for @receiptEmpty.
+  ///
+  /// In pl, this message translates to:
+  /// **'Na zdjęciu nie rozpoznano produktów spożywczych. Spróbuj z wyraźniejszym zdjęciem.'**
+  String get receiptEmpty;
+
+  /// No description provided for @receiptSaveAction.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zapisz w spiżarni'**
+  String get receiptSaveAction;
+
+  /// No description provided for @receiptSaving.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zapisuję produkty…'**
+  String get receiptSaving;
+
+  /// No description provided for @receiptNoCompatibleStock.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ilości w spiżarni zapisano w innych jednostkach lub są nieznane. Popraw ilości w spiżarni przed ponownym importem.'**
+  String get receiptNoCompatibleStock;
+
+  /// No description provided for @receiptAlreadySaved.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ten paragon jest już zapisany.'**
+  String get receiptAlreadySaved;
+
+  /// No description provided for @receiptSaved.
+  ///
+  /// In pl, this message translates to:
+  /// **'{count, plural, one{Zapisano 1 produkt w spiżarni.} few{Zapisano {count} produkty w spiżarni.} other{Zapisano {count} produktów w spiżarni.}}'**
+  String receiptSaved(int count);
+
+  /// No description provided for @receiptSkipped.
+  ///
+  /// In pl, this message translates to:
+  /// **'{count, plural, one{Pominięto 1 pozycję ze względu na ilość w spiżarni.} other{Pominięto {count} pozycji ze względu na ilości w spiżarni.}}'**
+  String receiptSkipped(int count);
+
   /// No description provided for @scanPantryAmountHint.
   ///
   /// In pl, this message translates to:
@@ -1032,7 +1152,7 @@ abstract class AppLocalizations {
   /// No description provided for @premiumTwoPoints.
   ///
   /// In pl, this message translates to:
-  /// **'PREMIUM · 2 PKT'**
+  /// **'Premium lub 2 pkt'**
   String get premiumTwoPoints;
 
   /// No description provided for @recipeLoadError.
@@ -6047,7 +6167,7 @@ abstract class AppLocalizations {
   /// No description provided for @premiumAiRecipesDescription.
   ///
   /// In pl, this message translates to:
-  /// **'Dodawaj własne przepisy z wklejonego tekstu albo zdjęcia.'**
+  /// **'Importuj przepisy z linku, tekstu lub zdjęcia bez pobierania punktów. Edycja AI: 1 pkt także w Premium.'**
   String get premiumAiRecipesDescription;
 
   /// No description provided for @premiumFullDiaryTitle.
@@ -6083,7 +6203,7 @@ abstract class AppLocalizations {
   /// No description provided for @premiumHeroDescription.
   ///
   /// In pl, this message translates to:
-  /// **'Zaplanuj cały tydzień, zeskanuj zakupy i przygotuj listę w kilka minut.'**
+  /// **'Twój kolejny tydzień zaplanuje się sam. Wybierz, jak chcesz korzystać z Premium.'**
   String get premiumHeroDescription;
 
   /// No description provided for @premiumAutomaticWeekSubtitle.
@@ -6107,7 +6227,7 @@ abstract class AppLocalizations {
   /// No description provided for @premiumAiActionSubtitle.
   ///
   /// In pl, this message translates to:
-  /// **'Zdjęcie, tekst albo link — AI zrobi resztę'**
+  /// **'Link, zdjęcie lub tekst. Import bez punktów w Premium'**
   String get premiumAiActionSubtitle;
 
   /// No description provided for @premiumBatchActionTitle.
@@ -6239,14 +6359,14 @@ abstract class AppLocalizations {
   /// No description provided for @premiumTrialDisclosureApple.
   ///
   /// In pl, this message translates to:
-  /// **'{days}-dniowy okres próbny jest dostępny dla uprawnionych kont. Potem subskrypcja odnawia się za cenę pokazaną powyżej; możesz ją anulować w ustawieniach Apple ID.'**
-  String premiumTrialDisclosureApple(int days);
+  /// **'Odnawia się automatycznie co miesiąc. Anulujesz w ustawieniach konta Apple.'**
+  String get premiumTrialDisclosureApple;
 
   /// No description provided for @premiumTrialDisclosureGoogle.
   ///
   /// In pl, this message translates to:
-  /// **'{days}-dniowy okres próbny jest dostępny dla uprawnionych kont. Potem subskrypcja odnawia się za cenę pokazaną powyżej; możesz ją anulować w Google Play.'**
-  String premiumTrialDisclosureGoogle(int days);
+  /// **'Odnawia się automatycznie co miesiąc. Anulujesz w Google Play.'**
+  String get premiumTrialDisclosureGoogle;
 
   /// No description provided for @premiumRestorePurchases.
   ///
@@ -6359,7 +6479,7 @@ abstract class AppLocalizations {
   /// No description provided for @premiumContextRecipeDescription.
   ///
   /// In pl, this message translates to:
-  /// **'Dodaj link, zdjęcie albo krótki opis. Otrzymasz składniki, porcje i kolejne kroki bez ręcznego przepisywania.'**
+  /// **'Zapisz przepis z linku, zdjęcia lub opisu bez ręcznego przepisywania. W Premium import nie pobiera punktów.'**
   String get premiumContextRecipeDescription;
 
   /// No description provided for @premiumContextRecipeBenefitImport.
@@ -6377,7 +6497,7 @@ abstract class AppLocalizations {
   /// No description provided for @premiumContextRecipeBenefitEdit.
   ///
   /// In pl, this message translates to:
-  /// **'Edycja przepisu z pomocą AI'**
+  /// **'Edycja AI: 1 pkt także w Premium'**
   String get premiumContextRecipeBenefitEdit;
 
   /// No description provided for @premiumContextMealPlanEyebrow.
@@ -6389,13 +6509,13 @@ abstract class AppLocalizations {
   /// No description provided for @premiumContextMealPlanTitle.
   ///
   /// In pl, this message translates to:
-  /// **'Zaplanuj kolejne tygodnie bez limitu'**
+  /// **'Kolejny tydzień gotowy automatycznie'**
   String get premiumContextMealPlanTitle;
 
   /// No description provided for @premiumContextMealPlanDescription.
   ///
   /// In pl, this message translates to:
-  /// **'Twórz tyle planów, ile potrzebujesz, i szybciej dopasuj posiłki do swojego dnia.'**
+  /// **'Ustaw automatyczne planowanie na wybrany dzień. Twórz kolejne plany i listy wtedy, gdy ich potrzebujesz.'**
   String get premiumContextMealPlanDescription;
 
   /// No description provided for @premiumContextMealPlanBenefitUnlimited.
@@ -6413,7 +6533,7 @@ abstract class AppLocalizations {
   /// No description provided for @premiumContextMealPlanBenefitSwap.
   ///
   /// In pl, this message translates to:
-  /// **'Wygodna zamiana i wyszukiwanie dań'**
+  /// **'Uwzględnianie preferencji składników'**
   String get premiumContextMealPlanBenefitSwap;
 
   /// No description provided for @premiumContextBarcodeEyebrow.
@@ -6533,13 +6653,13 @@ abstract class AppLocalizations {
   /// No description provided for @premiumContextJournalTitle.
   ///
   /// In pl, this message translates to:
-  /// **'Zobacz, jak zmieniają się Twoje wyniki'**
+  /// **'Wróć do całej historii swojego Dziennika'**
   String get premiumContextJournalTitle;
 
   /// No description provided for @premiumContextJournalDescription.
   ///
   /// In pl, this message translates to:
-  /// **'Śledź dłuższy okres i łatwiej zauważaj zmiany w kaloriach, makro, nawodnieniu oraz wadze.'**
+  /// **'Przeglądaj wpisy starsze niż 30 dni i korzystaj z pełnych tygodniowych wniosków.'**
   String get premiumContextJournalDescription;
 
   /// No description provided for @premiumContextJournalBenefitHistory.
@@ -6551,13 +6671,13 @@ abstract class AppLocalizations {
   /// No description provided for @premiumContextJournalBenefitCharts.
   ///
   /// In pl, this message translates to:
-  /// **'Wykresy kalorii, makro i nawodnienia'**
+  /// **'Wpisy starsze niż 30 dni'**
   String get premiumContextJournalBenefitCharts;
 
   /// No description provided for @premiumContextJournalBenefitWeight.
   ///
   /// In pl, this message translates to:
-  /// **'Postępy wagi w czasie'**
+  /// **'Pełne tygodniowe wnioski'**
   String get premiumContextJournalBenefitWeight;
 
   /// No description provided for @premiumPackageSemantics.
@@ -7505,7 +7625,7 @@ abstract class AppLocalizations {
   /// No description provided for @releasePromptChanges.
   ///
   /// In pl, this message translates to:
-  /// **'• Dodaliśmy 30 jesiennych przepisów po polsku i angielsku.\n• Nowe dania mają własne zdjęcia oraz listy składników do zakupów.\n• Poprawiliśmy przeliczanie gramów, sztuk i miar kuchennych.\n• Kalorie i koszty zakupów liczymy z właściwych ilości; szacunki są oznaczone.'**
+  /// **'• Premium: skanuj paragony i zapisuj zakupy spożywcze w spiżarni.\n• Uporządkowaliśmy ekran Premium: korzyści i ceny są łatwiejsze do znalezienia.\n• Doprecyzowaliśmy cenę po okresie próbnym, odnowienie i dostęp za punkty.\n• Oferty Premium nie zasłaniają od razu nowego planu ani listy zakupów.\n• Ułatwiliśmy powrót do funkcji po aktywacji i przywracanie zakupu.'**
   String get releasePromptChanges;
 
   /// No description provided for @detailPlanPortionHelp.
@@ -9225,6 +9345,18 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Tygodniowy limit list został wykorzystany. Z Premium tworzysz kolejne bez limitu.'**
   String get shoppingLimitShort;
+
+  /// No description provided for @compareNoPoints.
+  ///
+  /// In pl, this message translates to:
+  /// **'Bez punktów'**
+  String get compareNoPoints;
+
+  /// No description provided for @compareImportPointCost.
+  ///
+  /// In pl, this message translates to:
+  /// **'2 pkt / import'**
+  String get compareImportPointCost;
 }
 
 class _AppLocalizationsDelegate

@@ -11,6 +11,8 @@ import '../../providers/store_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/meal_plan.dart';
 import '../../models/recipe.dart';
+import '../../models/premium_offer.dart';
+import '../../services/contextual_premium_offer_service.dart';
 import '../../services/recipe_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/recipe_photo.dart';
@@ -399,284 +401,302 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
           ),
         ],
       ),
-      body: Stack(
-        children: [
-          const DecorativeCircles(),
-          SafeArea(
-            // UWAGA (naprawa — ten sam błąd, co w plan_config_screen.dart):
-            // dolny panel akcji ("Zmień parametry"/"Zatwierdź plan"/"Przejdź
-            // do zakupów") miał tylko sztywny margines 24px, bez SafeArea —
-            // w trybie edge-to-edge mogło to wyglądać, jakby przyciski
-            // częściowo chowały się pod systemowym paskiem nawigacji na
-            // niektórych telefonach.
-            child: Column(
-              children: [
-                // Podsumowanie makroskładników DLA WYBRANEGO DNIA — bez tego
-                // nie było wcale widać, ile faktycznie wychodzi kalorii/makro
-                // w wygenerowanym planie, mimo że backend już dobrze to liczy.
-                Container(
-                  margin: const EdgeInsets.fromLTRB(24, 12, 24, 0),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppTheme.surfaceColor,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildMacroStat(
-                        '${totalKcal.round()}',
-                        'kcal',
-                        AppTheme.primaryColor,
-                      ),
-                      _buildMacroStat(
-                        '${totalProtein.round()}g',
-                        context.strings.homeProtein.toLowerCase(),
-                        AppTheme.secondaryColor,
-                      ),
-                      _buildMacroStat(
-                        '${totalFat.round()}g',
-                        context.strings.homeFat.toLowerCase(),
-                        const Color(0xFFE0A62E),
-                      ),
-                      _buildMacroStat(
-                        '${totalCarbs.round()}g',
-                        context.strings.homeCarbsShort.toLowerCase(),
-                        const Color(0xFF3B82F6),
-                      ),
-                    ],
-                  ),
-                ).animate().fadeIn(),
+      body: PremiumOfferAfterResult(
+        resultId: plan.id,
+        enabled: ContextualPremiumOfferService.isRecentResult(
+          context,
+          PremiumOfferContext.mealPlan,
+          plan.id,
+        ),
+        offerContext: PremiumOfferContext.mealPlan,
+        child: Stack(
+          children: [
+            const DecorativeCircles(),
+            SafeArea(
+              // UWAGA (naprawa — ten sam błąd, co w plan_config_screen.dart):
+              // dolny panel akcji ("Zmień parametry"/"Zatwierdź plan"/"Przejdź
+              // do zakupów") miał tylko sztywny margines 24px, bez SafeArea —
+              // w trybie edge-to-edge mogło to wyglądać, jakby przyciski
+              // częściowo chowały się pod systemowym paskiem nawigacji na
+              // niektórych telefonach.
+              child: Column(
+                children: [
+                  // Podsumowanie makroskładników DLA WYBRANEGO DNIA — bez tego
+                  // nie było wcale widać, ile faktycznie wychodzi kalorii/makro
+                  // w wygenerowanym planie, mimo że backend już dobrze to liczy.
+                  Container(
+                    margin: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceColor,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildMacroStat(
+                          '${totalKcal.round()}',
+                          'kcal',
+                          AppTheme.primaryColor,
+                        ),
+                        _buildMacroStat(
+                          '${totalProtein.round()}g',
+                          context.strings.homeProtein.toLowerCase(),
+                          AppTheme.secondaryColor,
+                        ),
+                        _buildMacroStat(
+                          '${totalFat.round()}g',
+                          context.strings.homeFat.toLowerCase(),
+                          const Color(0xFFE0A62E),
+                        ),
+                        _buildMacroStat(
+                          '${totalCarbs.round()}g',
+                          context.strings.homeCarbsShort.toLowerCase(),
+                          const Color(0xFF3B82F6),
+                        ),
+                      ],
+                    ),
+                  ).animate().fadeIn(),
 
-                // 1. Pozioma lista dni (Dzień 1, Dzień 2...)
-                Container(
-                  height: 60,
-                  margin: const EdgeInsets.symmetric(vertical: 12),
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: plan.durationDays,
-                    itemBuilder: (context, index) {
-                      final day = index + 1;
-                      final isSelected = _selectedDay == day;
+                  // 1. Pozioma lista dni (Dzień 1, Dzień 2...)
+                  Container(
+                    height: 60,
+                    margin: const EdgeInsets.symmetric(vertical: 12),
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: plan.durationDays,
+                      itemBuilder: (context, index) {
+                        final day = index + 1;
+                        final isSelected = _selectedDay == day;
 
-                      return GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _selectedDay = day;
-                          });
-                        },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          margin: const EdgeInsets.only(right: 12),
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          decoration: BoxDecoration(
-                            color:
-                                isSelected
-                                    ? AppTheme.actionPrimaryColor
-                                    : AppTheme.controlFillColor,
-                            borderRadius: const BorderRadius.all(
-                              Radius.circular(16),
-                            ),
-                            border: Border.all(
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _selectedDay = day;
+                            });
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            margin: const EdgeInsets.only(right: 12),
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            decoration: BoxDecoration(
                               color:
                                   isSelected
                                       ? AppTheme.actionPrimaryColor
-                                      : AppTheme.outlineColor,
+                                      : AppTheme.controlFillColor,
+                              borderRadius: const BorderRadius.all(
+                                Radius.circular(16),
+                              ),
+                              border: Border.all(
+                                color:
+                                    isSelected
+                                        ? AppTheme.actionPrimaryColor
+                                        : AppTheme.outlineColor,
+                              ),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              context.strings.planDay(day),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color:
+                                    isSelected
+                                        ? Theme.of(
+                                          context,
+                                        ).colorScheme.onPrimary
+                                        : AppTheme.textPrimary,
+                              ),
                             ),
                           ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            context.strings.planDay(day),
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color:
-                                  isSelected
-                                      ? Theme.of(context).colorScheme.onPrimary
-                                      : AppTheme.textPrimary,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
-                ),
 
-                // 2. Lista posiłków dla wybranego dnia
-                Expanded(
-                  child:
-                      mealPlanProvider.isLoading
-                          ? const Center(child: CircularProgressIndicator())
-                          : ListView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
-                            itemCount: entries.length,
-                            itemBuilder: (context, index) {
-                              final entry = entries[index];
+                  // 2. Lista posiłków dla wybranego dnia
+                  Expanded(
+                    child:
+                        mealPlanProvider.isLoading
+                            ? const Center(child: CircularProgressIndicator())
+                            : ListView.builder(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                              ),
+                              itemCount: entries.length,
+                              itemBuilder: (context, index) {
+                                final entry = entries[index];
 
-                              return GestureDetector(
-                                    onTap: () {
-                                      Navigator.of(context).pushNamed(
-                                        '/recipe/detail',
-                                        arguments: entry,
-                                      );
-                                    },
-                                    onLongPress:
-                                        plan.isArchived
-                                            ? null
-                                            : () => _openSwapBottomSheet(
-                                              entry,
-                                              plan.id,
-                                            ),
-                                    child: Container(
-                                      margin: const EdgeInsets.only(bottom: 16),
-                                      padding: const EdgeInsets.all(18),
-                                      decoration: BoxDecoration(
-                                        color: AppTheme.surfaceColor,
-                                        borderRadius: BorderRadius.all(
-                                          Radius.circular(16),
+                                return GestureDetector(
+                                      onTap: () {
+                                        Navigator.of(context).pushNamed(
+                                          '/recipe/detail',
+                                          arguments: entry,
+                                        );
+                                      },
+                                      onLongPress:
+                                          plan.isArchived
+                                              ? null
+                                              : () => _openSwapBottomSheet(
+                                                entry,
+                                                plan.id,
+                                              ),
+                                      child: Container(
+                                        margin: const EdgeInsets.only(
+                                          bottom: 16,
                                         ),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          SizedBox(
-                                            width: 40,
-                                            height: 40,
-                                            child: RecipePhoto(
-                                              recipe: entry.recipe,
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                              showAiBadge: false,
-                                            ),
+                                        padding: const EdgeInsets.all(18),
+                                        decoration: BoxDecoration(
+                                          color: AppTheme.surfaceColor,
+                                          borderRadius: BorderRadius.all(
+                                            Radius.circular(16),
                                           ),
-                                          const SizedBox(width: 16),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  context.strings
-                                                      .mealTypeLabel(
-                                                        entry.mealSlot,
-                                                      )
-                                                      .toUpperCase(),
-                                                  style: const TextStyle(
-                                                    color:
-                                                        AppTheme.primaryColor,
-                                                    fontSize: 10,
-                                                    fontWeight: FontWeight.bold,
-                                                    letterSpacing: 1.0,
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 4),
-                                                Text(
-                                                  entry.recipe.displayName(
-                                                    context,
-                                                  ),
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .titleLarge
-                                                      ?.copyWith(fontSize: 16),
-                                                ),
-                                                const SizedBox(height: 4),
-                                                Row(
-                                                  // Kcal na porcję (na osobę), spójnie z
-                                                  // resztą aplikacji — nie łączna wartość
-                                                  // dla całego ugotowanego przepisu.
-                                                  children: [
-                                                    Icon(
-                                                      Icons.schedule,
-                                                      size: 14,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            SizedBox(
+                                              width: 40,
+                                              height: 40,
+                                              child: RecipePhoto(
+                                                recipe: entry.recipe,
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                                showAiBadge: false,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 16),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    context.strings
+                                                        .mealTypeLabel(
+                                                          entry.mealSlot,
+                                                        )
+                                                        .toUpperCase(),
+                                                    style: const TextStyle(
                                                       color:
-                                                          AppTheme
-                                                              .textSecondary,
+                                                          AppTheme.primaryColor,
+                                                      fontSize: 10,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      letterSpacing: 1.0,
                                                     ),
-                                                    const SizedBox(width: 4),
-                                                    Text(
-                                                      '${entry.recipe.totalTimeMin} min • ${(entry.recipe.nutritionTotal.kcal / (entry.recipe.servings > 0 ? entry.recipe.servings : 1)).round()} kcal',
-                                                      style: TextStyle(
+                                                  ),
+                                                  const SizedBox(height: 4),
+                                                  Text(
+                                                    entry.recipe.displayName(
+                                                      context,
+                                                    ),
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .titleLarge
+                                                        ?.copyWith(
+                                                          fontSize: 16,
+                                                        ),
+                                                  ),
+                                                  const SizedBox(height: 4),
+                                                  Row(
+                                                    // Kcal na porcję (na osobę), spójnie z
+                                                    // resztą aplikacji — nie łączna wartość
+                                                    // dla całego ugotowanego przepisu.
+                                                    children: [
+                                                      Icon(
+                                                        Icons.schedule,
+                                                        size: 14,
                                                         color:
                                                             AppTheme
                                                                 .textSecondary,
-                                                        fontSize: 12,
                                                       ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          if (!plan.isArchived)
-                                            IconButton(
-                                              icon: const Icon(
-                                                Icons.swap_horiz,
-                                                color: AppTheme.primaryColor,
-                                              ),
-                                              onPressed:
-                                                  () => _openSwapBottomSheet(
-                                                    entry,
-                                                    plan.id,
+                                                      const SizedBox(width: 4),
+                                                      Text(
+                                                        '${entry.recipe.totalTimeMin} min • ${(entry.recipe.nutritionTotal.kcal / (entry.recipe.servings > 0 ? entry.recipe.servings : 1)).round()} kcal',
+                                                        style: TextStyle(
+                                                          color:
+                                                              AppTheme
+                                                                  .textSecondary,
+                                                          fontSize: 12,
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
+                                                ],
+                                              ),
                                             ),
-                                        ],
+                                            if (!plan.isArchived)
+                                              IconButton(
+                                                icon: const Icon(
+                                                  Icons.swap_horiz,
+                                                  color: AppTheme.primaryColor,
+                                                ),
+                                                onPressed:
+                                                    () => _openSwapBottomSheet(
+                                                      entry,
+                                                      plan.id,
+                                                    ),
+                                              ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  )
-                                  .animate()
-                                  .fadeIn(delay: (index * 100).ms)
-                                  .slideX(begin: 0.1, end: 0);
-                            },
-                          ),
-                ),
+                                    )
+                                    .animate()
+                                    .fadeIn(delay: (index * 100).ms)
+                                    .slideX(begin: 0.1, end: 0);
+                              },
+                            ),
+                  ),
 
-                // 3. Dolny panel akcji
-                Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child:
-                      plan.isArchived
-                          ? OutlinedButton.icon(
-                            icon: const Icon(Icons.inventory_2_outlined),
-                            onPressed:
-                                () => Navigator.of(
-                                  context,
-                                ).pushNamed('/plan/archive'),
-                            label: Text(context.strings.planResumeArchive),
-                          )
-                          : plan.status == 'draft'
-                          ? Row(
-                            children: [
-                              Expanded(
-                                child: OutlinedButton(
-                                  onPressed: () {
-                                    Navigator.of(
-                                      context,
-                                    ).pushReplacementNamed('/plan/config');
-                                  },
-                                  child: Text(
-                                    context.strings.planChangeSettings,
+                  // 3. Dolny panel akcji
+                  Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child:
+                        plan.isArchived
+                            ? OutlinedButton.icon(
+                              icon: const Icon(Icons.inventory_2_outlined),
+                              onPressed:
+                                  () => Navigator.of(
+                                    context,
+                                  ).pushNamed('/plan/archive'),
+                              label: Text(context.strings.planResumeArchive),
+                            )
+                            : plan.status == 'draft'
+                            ? Row(
+                              children: [
+                                Expanded(
+                                  child: OutlinedButton(
+                                    onPressed: () {
+                                      Navigator.of(
+                                        context,
+                                      ).pushReplacementNamed('/plan/config');
+                                    },
+                                    child: Text(
+                                      context.strings.planChangeSettings,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: ElevatedButton(
-                                  onPressed: () => _activatePlan(plan.id),
-                                  child: Text(context.strings.planActivate),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: ElevatedButton(
+                                    onPressed: () => _activatePlan(plan.id),
+                                    child: Text(context.strings.planActivate),
+                                  ),
                                 ),
-                              ),
-                            ],
-                          )
-                          : ElevatedButton(
-                            onPressed: () {
-                              Navigator.of(context).pushNamed('/shopping');
-                            },
-                            child: Text(context.strings.planGoShopping),
-                          ),
-                ),
-              ],
+                              ],
+                            )
+                            : ElevatedButton(
+                              onPressed: () {
+                                Navigator.of(context).pushNamed('/shopping');
+                              },
+                              child: Text(context.strings.planGoShopping),
+                            ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

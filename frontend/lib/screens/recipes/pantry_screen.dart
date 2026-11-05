@@ -10,6 +10,7 @@ import '../../providers/shopping_list_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/product.dart';
 import '../../services/pantry_service.dart';
+import '../../services/pantry_receipt_service.dart';
 import '../../services/product_search_service.dart';
 import '../../widgets/barcode_destination_sheet.dart';
 import '../../widgets/premium_feature_tag.dart';
@@ -19,6 +20,7 @@ import '../../utils/error_utils.dart';
 import '../../utils/quantity_formatter.dart';
 import '../../utils/product_measures.dart';
 import '../../widgets/product_amount_picker.dart';
+import 'pantry_receipt_screen.dart';
 
 /// Spiżarnia — trwała lista produktów, które użytkownik faktycznie ma w
 /// domu. Źródło dla "Co ugotować z tego, co mam" — zamiast wyszukiwać
@@ -174,7 +176,7 @@ class _PantryScreenState extends State<PantryScreen> {
   }
 
   Future<void> _showAddDialog() async {
-    final added = await showModalBottomSheet<bool>(
+    final added = await showModalBottomSheet<Object>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -187,10 +189,10 @@ class _PantryScreenState extends State<PantryScreen> {
             searchService: widget.searchService,
           ),
     );
-    if (added == true) {
-      _load();
-      if (mounted) _refreshShoppingLists();
-    }
+    if (!mounted || (added != true && added is! ReceiptSave)) return;
+    unawaited(_load());
+    _refreshShoppingLists();
+    if (added is ReceiptSave) showReceiptSaved(context, added);
   }
 
   @override
@@ -430,6 +432,12 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
     Navigator.of(context).pop(true);
   }
 
+  Future<void> _scanReceipt() async {
+    FocusScope.of(context).unfocus();
+    final result = await openPantryReceiptScanner(context);
+    if (mounted && result != null) Navigator.of(context).pop(result);
+  }
+
   @override
   void dispose() {
     _controller.dispose();
@@ -439,7 +447,7 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: EdgeInsets.only(
           left: 20,
           right: 20,
@@ -487,10 +495,32 @@ class _AddToPantrySheetState extends State<_AddToPantrySheet> {
                 ),
               ),
             ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: _isSaving ? null : _scanReceipt,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.receipt_long_outlined, size: 19),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        context.strings.receiptScanTitle,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const PremiumFeatureTag(fontSize: 8),
+                  ],
+                ),
+              ),
+            ),
             const SizedBox(height: 12),
             TextField(
               controller: _controller,
-              autofocus: true,
               onChanged: _search,
               decoration: InputDecoration(
                 hintText: context.strings.pantrySearchHint,

@@ -9,6 +9,8 @@ import '../../providers/meal_plan_provider.dart';
 import '../../providers/store_provider.dart';
 import '../../providers/promotion_provider.dart';
 import '../../models/shopping_list.dart';
+import '../../models/premium_offer.dart';
+import '../../services/contextual_premium_offer_service.dart';
 import '../../l10n/catalog_labels.dart';
 import '../../l10n/market_locale.dart';
 import '../../services/shopping_list_limit_offer.dart';
@@ -747,300 +749,317 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                 : context.strings.shoppingAddProduct,
         child: const Icon(Icons.add, color: Colors.white),
       ),
-      body: Stack(
-        children: [
-          const DecorativeCircles(),
-          shoppingListProvider.isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : list == null
-              ? _buildEmptyState()
-              : CustomScrollView(
-                controller: _scrollController,
-                // Nagłówek i produkty należą do jednego przewijania.
-                // Dzięki temu górna część znika dokładnie wraz z gestem,
-                // bez odbierania wysokości osobnej, wewnętrznej liście.
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: Column(
-                      children: [
-                        // Rząd kafelków akcji — ten sam wzorzec wizualny co
-                        // szybkie filtry w zakładce Przepisy (ikona + podpis
-                        // w ramce). Wcześniej były to nieopisane ikony w pasku,
-                        // po których nie dało się poznać, co robią.
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(13, 12, 13, 0),
-                          child: Row(
-                            children: [
-                              _buildActionTile(
-                                icon: Icons.mail_outline,
-                                label: context.strings.shoppingInvites,
-                                onTap:
-                                    () => Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder:
-                                            (_) => const PendingSharesScreen(),
-                                      ),
-                                    ),
-                              ),
-                              _buildActionTile(
-                                icon: Icons.person_add_alt_outlined,
-                                label: context.strings.shoppingShare,
-                                onTap: () => _showShareDialog(list.id),
-                              ),
-                              _buildActionTile(
-                                icon: Icons.refresh,
-                                label: context.strings.shoppingRefresh,
-                                onTap: _loadData,
-                              ),
-                              _buildActionTile(
-                                icon: Icons.delete_outline,
-                                label: context.strings.shoppingDeleteList,
-                                color: AppTheme.errorColor,
-                                onTap: () {
-                                  final idx = shoppingListProvider.allLists
-                                      .indexWhere(
-                                        (l) =>
-                                            l.mealPlanId ==
-                                            shoppingListProvider.selectedListId,
-                                      );
-                                  _confirmDeleteList(
-                                    shoppingListProvider,
-                                    list,
-                                    idx >= 0 ? idx + 1 : 1,
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // 0. Przełącznik listy — widoczny tylko gdy użytkownik
-                        // ma więcej niż jedną (Premium może mieć do 5).
-                        if (shoppingListProvider.allLists.length > 1)
-                          _buildListSelector(shoppingListProvider),
-                        if (shoppingListProvider.allLists.any(
-                          (other) =>
-                              other.mealPlanId != list.mealPlanId &&
-                              other.storeId == list.storeId,
-                        ))
+      body: PremiumOfferAfterResult(
+        resultId: list?.id ?? 'no-list',
+        enabled:
+            list != null &&
+            !shoppingListProvider.isLoading &&
+            ContextualPremiumOfferService.isRecentResult(
+              context,
+              PremiumOfferContext.shoppingList,
+              list.id,
+            ),
+        offerContext: PremiumOfferContext.shoppingList,
+        child: Stack(
+          children: [
+            const DecorativeCircles(),
+            shoppingListProvider.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : list == null
+                ? _buildEmptyState()
+                : CustomScrollView(
+                  controller: _scrollController,
+                  // Nagłówek i produkty należą do jednego przewijania.
+                  // Dzięki temu górna część znika dokładnie wraz z gestem,
+                  // bez odbierania wysokości osobnej, wewnętrznej liście.
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: Column(
+                        children: [
+                          // Rząd kafelków akcji — ten sam wzorzec wizualny co
+                          // szybkie filtry w zakładce Przepisy (ikona + podpis
+                          // w ramce). Wcześniej były to nieopisane ikony w pasku,
+                          // po których nie dało się poznać, co robią.
                           Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
-                            child: Align(
-                              alignment: Alignment.centerRight,
-                              child: OutlinedButton.icon(
-                                onPressed:
-                                    () =>
-                                        _showMergeDialog(shoppingListProvider),
-                                icon: const Icon(Icons.merge_type, size: 18),
-                                label: Text(context.strings.shoppingMergeLists),
-                              ),
-                            ),
-                          ),
-
-                        // Panel domknięcia zakupów — pokazuje się DOPIERO
-                        // po odhaczeniu wszystkiego, więc nie zabiera miejsca
-                        // w trakcie zakupów, a pojawia się dokładnie w
-                        // momencie, gdy jest potrzebny.
-                        if (list.isFullyChecked)
-                          _buildCompletionPanel(shoppingListProvider, list),
-
-                        // Cały nagłówek przewija się teraz w tym samym sliverze
-                        // co produkty, więc znika płynnie bez skoku zawartości.
-                        _buildSummaryCard(list),
-
-                        // 1b. Akcje: Porównaj ceny i Eksportuj
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24.0,
-                            vertical: 8.0,
-                          ),
-                          child: Flex(
-                            direction:
-                                compactBritish
-                                    ? Axis.vertical
-                                    : Axis.horizontal,
-                            crossAxisAlignment:
-                                compactBritish
-                                    ? CrossAxisAlignment.stretch
-                                    : CrossAxisAlignment.center,
-                            children: [
-                              Flexible(
-                                flex: compactBritish ? 0 : 1,
-                                fit: FlexFit.tight,
-                                child: ElevatedButton.icon(
-                                  icon: const Icon(Icons.store, size: 18),
-                                  label: Text(
-                                    context.strings.shoppingCompare,
-                                    style: const TextStyle(fontSize: 13),
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppTheme.primaryTintColor,
-                                    foregroundColor:
-                                        AppTheme.actionPrimaryColor,
-                                    side: BorderSide(
-                                      color: AppTheme.actionPrimaryColor
-                                          .withOpacity(
-                                            AppTheme.isDark ? 0.85 : 0.35,
-                                          ),
-                                    ),
-                                    elevation: 0,
-                                  ),
-                                  onPressed: () async {
-                                    final switched = await Navigator.of(
-                                      context,
-                                    ).push<bool>(
-                                      MaterialPageRoute(
-                                        builder:
-                                            (context) =>
-                                                PriceCompareScreen.shoppingList(
-                                                  shoppingListId:
-                                                      list.mealPlanId,
-                                                  currencyCode:
-                                                      list.currencyCode,
-                                                  service:
-                                                      widget
-                                                          .priceCompareService,
-                                                ),
-                                      ),
-                                    );
-                                    if (!context.mounted || switched != true) {
-                                      return;
-                                    }
-                                    await context
-                                        .read<ShoppingListProvider>()
-                                        .loadAllLists(
-                                          preferredListId: list.mealPlanId,
-                                        );
-                                  },
-                                ),
-                              ),
-                              SizedBox(
-                                width: compactBritish ? 0 : 12,
-                                height: compactBritish ? 12 : 0,
-                              ),
-                              Flexible(
-                                flex: compactBritish ? 0 : 1,
-                                fit: FlexFit.tight,
-                                child: ElevatedButton.icon(
-                                  icon: const Icon(Icons.ios_share, size: 18),
-                                  label: Text(
-                                    context.strings.shoppingExport,
-                                    style: const TextStyle(fontSize: 13),
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppTheme.accentTintColor,
-                                    foregroundColor: AppTheme.actionAccentColor,
-                                    side: BorderSide(
-                                      color: AppTheme.actionAccentColor
-                                          .withOpacity(
-                                            AppTheme.isDark ? 0.85 : 0.35,
-                                          ),
-                                    ),
-                                    elevation: 0,
-                                  ),
-                                  onPressed: () {
-                                    final accountCountry =
-                                        context
-                                            .read<AuthProvider?>()
-                                            ?.currentUser
-                                            ?.countryCode ??
-                                        'PL';
-                                    showDialog(
-                                      context: context,
-                                      builder:
-                                          (context) => ExportListDialog(
-                                            shoppingList: list,
-                                            accountCountry: accountCountry,
-                                          ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // 2. Grupy produktów wg działów. To kontynuacja tego
-                  // samego scrolla, a nie druga lista z osobnym offsetem.
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 8,
-                    ),
-                    sliver: SliverList.builder(
-                      itemCount: list.itemsByDepartment.length,
-                      itemBuilder: (context, index) {
-                        final deptName = list.itemsByDepartment.keys.elementAt(
-                          index,
-                        );
-                        final items = list.itemsByDepartment[deptName]!;
-                        final deptIcon = _getDeptIcon(deptName);
-
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 20),
-                          decoration: BoxDecoration(
-                            color: AppTheme.surfaceColor,
-                            borderRadius: const BorderRadius.all(
-                              Radius.circular(20),
-                            ),
-                          ),
-                          child: ExpansionTile(
-                            initiallyExpanded: true,
-                            shape: const Border(),
-                            leading: Icon(
-                              deptIcon,
-                              color: AppTheme.primaryColor,
-                            ),
-                            title: Text(
-                              items.isNotEmpty &&
-                                      items.every((item) => item.isFromPantry)
-                                  ? context.strings.shoppingInPantry
-                                  : deptName == 'Inne'
-                                  ? context.strings.shoppingOther
-                                  : deptName,
-                              style: Theme.of(context).textTheme.titleLarge
-                                  ?.copyWith(fontWeight: FontWeight.bold),
-                            ),
-                            subtitle: Text(
-                              items.isNotEmpty &&
-                                      items.every((item) => item.isFromPantry)
-                                  ? context.strings.shoppingPantryCount(
-                                    items.length,
-                                    list.currencyCode == 'PLN'
-                                        ? '0 zł'
-                                        : formatMarketMoney(
-                                          0,
-                                          currencyCode: list.currencyCode,
+                            padding: const EdgeInsets.fromLTRB(13, 12, 13, 0),
+                            child: Row(
+                              children: [
+                                _buildActionTile(
+                                  icon: Icons.mail_outline,
+                                  label: context.strings.shoppingInvites,
+                                  onTap:
+                                      () => Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder:
+                                              (_) =>
+                                                  const PendingSharesScreen(),
                                         ),
-                                  )
-                                  : context.strings.shoppingBoughtCount(
-                                    items.where((i) => i.isChecked).length,
-                                    items.length,
+                                      ),
+                                ),
+                                _buildActionTile(
+                                  icon: Icons.person_add_alt_outlined,
+                                  label: context.strings.shoppingShare,
+                                  onTap: () => _showShareDialog(list.id),
+                                ),
+                                _buildActionTile(
+                                  icon: Icons.refresh,
+                                  label: context.strings.shoppingRefresh,
+                                  onTap: _loadData,
+                                ),
+                                _buildActionTile(
+                                  icon: Icons.delete_outline,
+                                  label: context.strings.shoppingDeleteList,
+                                  color: AppTheme.errorColor,
+                                  onTap: () {
+                                    final idx = shoppingListProvider.allLists
+                                        .indexWhere(
+                                          (l) =>
+                                              l.mealPlanId ==
+                                              shoppingListProvider
+                                                  .selectedListId,
+                                        );
+                                    _confirmDeleteList(
+                                      shoppingListProvider,
+                                      list,
+                                      idx >= 0 ? idx + 1 : 1,
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // 0. Przełącznik listy — widoczny tylko gdy użytkownik
+                          // ma więcej niż jedną (Premium może mieć do 5).
+                          if (shoppingListProvider.allLists.length > 1)
+                            _buildListSelector(shoppingListProvider),
+                          if (shoppingListProvider.allLists.any(
+                            (other) =>
+                                other.mealPlanId != list.mealPlanId &&
+                                other.storeId == list.storeId,
+                          ))
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: OutlinedButton.icon(
+                                  onPressed:
+                                      () => _showMergeDialog(
+                                        shoppingListProvider,
+                                      ),
+                                  icon: const Icon(Icons.merge_type, size: 18),
+                                  label: Text(
+                                    context.strings.shoppingMergeLists,
                                   ),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppTheme.textSecondary,
+                                ),
                               ),
                             ),
-                            children:
-                                items.map((item) {
-                                  return _buildShoppingItemTile(
-                                    item,
-                                    shoppingListProvider,
-                                    list.storeId,
-                                  );
-                                }).toList(),
+
+                          // Panel domknięcia zakupów — pokazuje się DOPIERO
+                          // po odhaczeniu wszystkiego, więc nie zabiera miejsca
+                          // w trakcie zakupów, a pojawia się dokładnie w
+                          // momencie, gdy jest potrzebny.
+                          if (list.isFullyChecked)
+                            _buildCompletionPanel(shoppingListProvider, list),
+
+                          // Cały nagłówek przewija się teraz w tym samym sliverze
+                          // co produkty, więc znika płynnie bez skoku zawartości.
+                          _buildSummaryCard(list),
+
+                          // 1b. Akcje: Porównaj ceny i Eksportuj
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24.0,
+                              vertical: 8.0,
+                            ),
+                            child: Flex(
+                              direction:
+                                  compactBritish
+                                      ? Axis.vertical
+                                      : Axis.horizontal,
+                              crossAxisAlignment:
+                                  compactBritish
+                                      ? CrossAxisAlignment.stretch
+                                      : CrossAxisAlignment.center,
+                              children: [
+                                Flexible(
+                                  flex: compactBritish ? 0 : 1,
+                                  fit: FlexFit.tight,
+                                  child: ElevatedButton.icon(
+                                    icon: const Icon(Icons.store, size: 18),
+                                    label: Text(
+                                      context.strings.shoppingCompare,
+                                      style: const TextStyle(fontSize: 13),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor:
+                                          AppTheme.primaryTintColor,
+                                      foregroundColor:
+                                          AppTheme.actionPrimaryColor,
+                                      side: BorderSide(
+                                        color: AppTheme.actionPrimaryColor
+                                            .withOpacity(
+                                              AppTheme.isDark ? 0.85 : 0.35,
+                                            ),
+                                      ),
+                                      elevation: 0,
+                                    ),
+                                    onPressed: () async {
+                                      final switched = await Navigator.of(
+                                        context,
+                                      ).push<bool>(
+                                        MaterialPageRoute(
+                                          builder:
+                                              (
+                                                context,
+                                              ) => PriceCompareScreen.shoppingList(
+                                                shoppingListId: list.mealPlanId,
+                                                currencyCode: list.currencyCode,
+                                                service:
+                                                    widget.priceCompareService,
+                                              ),
+                                        ),
+                                      );
+                                      if (!context.mounted ||
+                                          switched != true) {
+                                        return;
+                                      }
+                                      await context
+                                          .read<ShoppingListProvider>()
+                                          .loadAllLists(
+                                            preferredListId: list.mealPlanId,
+                                          );
+                                    },
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: compactBritish ? 0 : 12,
+                                  height: compactBritish ? 12 : 0,
+                                ),
+                                Flexible(
+                                  flex: compactBritish ? 0 : 1,
+                                  fit: FlexFit.tight,
+                                  child: ElevatedButton.icon(
+                                    icon: const Icon(Icons.ios_share, size: 18),
+                                    label: Text(
+                                      context.strings.shoppingExport,
+                                      style: const TextStyle(fontSize: 13),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppTheme.accentTintColor,
+                                      foregroundColor:
+                                          AppTheme.actionAccentColor,
+                                      side: BorderSide(
+                                        color: AppTheme.actionAccentColor
+                                            .withOpacity(
+                                              AppTheme.isDark ? 0.85 : 0.35,
+                                            ),
+                                      ),
+                                      elevation: 0,
+                                    ),
+                                    onPressed: () {
+                                      final accountCountry =
+                                          context
+                                              .read<AuthProvider?>()
+                                              ?.currentUser
+                                              ?.countryCode ??
+                                          'PL';
+                                      showDialog(
+                                        context: context,
+                                        builder:
+                                            (context) => ExportListDialog(
+                                              shoppingList: list,
+                                              accountCountry: accountCountry,
+                                            ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        );
-                      },
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-        ],
+
+                    // 2. Grupy produktów wg działów. To kontynuacja tego
+                    // samego scrolla, a nie druga lista z osobnym offsetem.
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 8,
+                      ),
+                      sliver: SliverList.builder(
+                        itemCount: list.itemsByDepartment.length,
+                        itemBuilder: (context, index) {
+                          final deptName = list.itemsByDepartment.keys
+                              .elementAt(index);
+                          final items = list.itemsByDepartment[deptName]!;
+                          final deptIcon = _getDeptIcon(deptName);
+
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 20),
+                            decoration: BoxDecoration(
+                              color: AppTheme.surfaceColor,
+                              borderRadius: const BorderRadius.all(
+                                Radius.circular(20),
+                              ),
+                            ),
+                            child: ExpansionTile(
+                              initiallyExpanded: true,
+                              shape: const Border(),
+                              leading: Icon(
+                                deptIcon,
+                                color: AppTheme.primaryColor,
+                              ),
+                              title: Text(
+                                items.isNotEmpty &&
+                                        items.every((item) => item.isFromPantry)
+                                    ? context.strings.shoppingInPantry
+                                    : deptName == 'Inne'
+                                    ? context.strings.shoppingOther
+                                    : deptName,
+                                style: Theme.of(context).textTheme.titleLarge
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              subtitle: Text(
+                                items.isNotEmpty &&
+                                        items.every((item) => item.isFromPantry)
+                                    ? context.strings.shoppingPantryCount(
+                                      items.length,
+                                      list.currencyCode == 'PLN'
+                                          ? '0 zł'
+                                          : formatMarketMoney(
+                                            0,
+                                            currencyCode: list.currencyCode,
+                                          ),
+                                    )
+                                    : context.strings.shoppingBoughtCount(
+                                      items.where((i) => i.isChecked).length,
+                                      items.length,
+                                    ),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppTheme.textSecondary,
+                                ),
+                              ),
+                              children:
+                                  items.map((item) {
+                                    return _buildShoppingItemTile(
+                                      item,
+                                      shoppingListProvider,
+                                      list.storeId,
+                                    );
+                                  }).toList(),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+          ],
+        ),
       ),
     );
   }

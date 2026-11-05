@@ -1,4 +1,38 @@
 {
+  "receiptScanTitle": "Skanuj paragon",
+  "receiptQuickAddHint": "Dodaj zakupy spożywcze do spiżarni",
+  "receiptPremiumMessage": "Skanowanie paragonów jest dostępne z Premium. Zrób zdjęcie paragonu i dodaj rozpoznane zakupy spożywcze do spiżarni.",
+  "receiptPhotoGuide": "Zrób zdjęcie całej listy produktów na paragonie.",
+  "receiptPhotoPrivacy": "Zdjęcie zostanie przesłane do rozpoznania przez AI. Jeśli możesz, pomiń fragment z danymi płatności lub karty lojalnościowej.",
+  "receiptPhotoSize": "Zdjęcie musi mieć mniej niż 8 MB.",
+  "receiptPhotoError": "Nie udało się otworzyć zdjęcia. Zrób nowe lub wybierz inne z galerii.",
+  "receiptReadAction": "Odczytaj paragon",
+  "receiptReading": "Odczytuję paragon…",
+  "receiptReviewTitle": "Sprawdź produkty spożywcze",
+  "receiptReviewHint": "Odznacz pozycje, których nie chcesz zapisać. Sprawdź ilości i jednostki przed dodaniem do spiżarni.",
+  "receiptQuantityUnreadable": "Nieczytelna ilość. Zaznacz produkt, aby ją wpisać.",
+  "receiptCheckQuantity": "Sprawdź ilość",
+  "receiptEmpty": "Na zdjęciu nie rozpoznano produktów spożywczych. Spróbuj z wyraźniejszym zdjęciem.",
+  "receiptSaveAction": "Zapisz w spiżarni",
+  "receiptSaving": "Zapisuję produkty…",
+  "receiptNoCompatibleStock": "Ilości w spiżarni zapisano w innych jednostkach lub są nieznane. Popraw ilości w spiżarni przed ponownym importem.",
+  "receiptAlreadySaved": "Ten paragon jest już zapisany.",
+  "receiptSaved": "{count, plural, one{Zapisano 1 produkt w spiżarni.} few{Zapisano {count} produkty w spiżarni.} other{Zapisano {count} produktów w spiżarni.}}",
+  "receiptSkipped": "{count, plural, one{Pominięto 1 pozycję ze względu na ilość w spiżarni.} other{Pominięto {count} pozycji ze względu na ilości w spiżarni.}}",
+  "@receiptSaved": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@receiptSkipped": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "scanPantryAmountHint": "Wybierz ilość w gramach lub mililitrach",
   "foodEntryTitle": "Dodaj posiłek",
   "foodEntryFromPlan": "Z planu",
@@ -263,7 +297,7 @@
   "batchDestinationHint": "Jeden cel i jedno zatwierdzenie dla całej serii",
   "aiRecipeSources": "Ze zdjęcia, tekstu albo linku",
   "recordCaloriesAndMacros": "Zapisz kalorie i makroskładniki",
-  "premiumTwoPoints": "PREMIUM · 2 PKT",
+  "premiumTwoPoints": "Premium lub 2 pkt",
   "recipeLoadError": "Błąd podczas pobierania przepisów: {error}",
   "@recipeLoadError": {
     "placeholders": {
@@ -2196,17 +2230,17 @@
   "premiumUnlimitedPlansTitle": "Plany posiłków bez limitu",
   "premiumUnlimitedPlansDescription": "Generuj tyle planów, ile chcesz — bez tygodniowego limitu.",
   "premiumAiRecipesTitle": "Przepisy rozpoznawane przez AI",
-  "premiumAiRecipesDescription": "Dodawaj własne przepisy z wklejonego tekstu albo zdjęcia.",
+  "premiumAiRecipesDescription": "Importuj przepisy z linku, tekstu lub zdjęcia bez pobierania punktów. Edycja AI: 1 pkt także w Premium.",
   "premiumFullDiaryTitle": "Pełna historia Dziennika",
   "premiumFullDiaryDescription": "Przeglądaj całą historię kalorii, bez limitu 30 dni wstecz.",
   "premiumUnlimitedListsTitle": "Listy zakupów bez limitu",
   "premiumUnlimitedListsDescription": "Twórz nowe listy zakupów wtedy, kiedy ich potrzebujesz.",
   "premiumProductName": "Meal Planner Premium",
-  "premiumHeroDescription": "Zaplanuj cały tydzień, zeskanuj zakupy i przygotuj listę w kilka minut.",
+  "premiumHeroDescription": "Twój kolejny tydzień zaplanuje się sam. Wybierz, jak chcesz korzystać z Premium.",
   "premiumAutomaticWeekSubtitle": "Plan i opcjonalna lista zakupów gotowe co tydzień",
   "premiumAutomaticWeekRequired": "Automatyczny tydzień jest dostępny w Premium.",
   "premiumAiActionTitle": "Dodaj przepis przez AI",
-  "premiumAiActionSubtitle": "Zdjęcie, tekst albo link — AI zrobi resztę",
+  "premiumAiActionSubtitle": "Link, zdjęcie lub tekst. Import bez punktów w Premium",
   "premiumBatchActionTitle": "Skanuj wiele produktów po kolei",
   "premiumBatchActionSubtitle": "Wybierz kilka miejsc i zatwierdź całą serię",
   "premiumBatchCompleted": "Obsłużono: {count} produktów.",
@@ -2263,22 +2297,8 @@
       }
     }
   },
-  "premiumTrialDisclosureApple": "{days}-dniowy okres próbny jest dostępny dla uprawnionych kont. Potem subskrypcja odnawia się za cenę pokazaną powyżej; możesz ją anulować w ustawieniach Apple ID.",
-  "@premiumTrialDisclosureApple": {
-    "placeholders": {
-      "days": {
-        "type": "int"
-      }
-    }
-  },
-  "premiumTrialDisclosureGoogle": "{days}-dniowy okres próbny jest dostępny dla uprawnionych kont. Potem subskrypcja odnawia się za cenę pokazaną powyżej; możesz ją anulować w Google Play.",
-  "@premiumTrialDisclosureGoogle": {
-    "placeholders": {
-      "days": {
-        "type": "int"
-      }
-    }
-  },
+  "premiumTrialDisclosureApple": "Odnawia się automatycznie co miesiąc. Anulujesz w ustawieniach konta Apple.",
+  "premiumTrialDisclosureGoogle": "Odnawia się automatycznie co miesiąc. Anulujesz w Google Play.",
   "premiumRestorePurchases": "Przywróć zakupy",
   "premiumPointsTitle": "Punkty premium",
   "premiumPointsBalance": "Masz: {balance}",
@@ -2342,16 +2362,16 @@
   "premiumBuyDiscount": "Kup z rabatem",
   "premiumContextRecipeEyebrow": "PREMIUM DLA PRZEPISÓW",
   "premiumContextRecipeTitle": "Zamień inspirację w gotowy przepis",
-  "premiumContextRecipeDescription": "Dodaj link, zdjęcie albo krótki opis. Otrzymasz składniki, porcje i kolejne kroki bez ręcznego przepisywania.",
+  "premiumContextRecipeDescription": "Zapisz przepis z linku, zdjęcia lub opisu bez ręcznego przepisywania. W Premium import nie pobiera punktów.",
   "premiumContextRecipeBenefitImport": "Przepis z linku, zdjęcia lub opisu",
   "premiumContextRecipeBenefitSteps": "Automatycznie ułożone składniki i kroki",
-  "premiumContextRecipeBenefitEdit": "Edycja przepisu z pomocą AI",
+  "premiumContextRecipeBenefitEdit": "Edycja AI: 1 pkt także w Premium",
   "premiumContextMealPlanEyebrow": "PREMIUM DLA PLANOWANIA",
-  "premiumContextMealPlanTitle": "Zaplanuj kolejne tygodnie bez limitu",
-  "premiumContextMealPlanDescription": "Twórz tyle planów, ile potrzebujesz, i szybciej dopasuj posiłki do swojego dnia.",
+  "premiumContextMealPlanTitle": "Kolejny tydzień gotowy automatycznie",
+  "premiumContextMealPlanDescription": "Ustaw automatyczne planowanie na wybrany dzień. Twórz kolejne plany i listy wtedy, gdy ich potrzebujesz.",
   "premiumContextMealPlanBenefitUnlimited": "Plany posiłków bez limitu",
   "premiumContextMealPlanBenefitWeekly": "Automatyczny plan na kolejny tydzień",
-  "premiumContextMealPlanBenefitSwap": "Wygodna zamiana i wyszukiwanie dań",
+  "premiumContextMealPlanBenefitSwap": "Uwzględnianie preferencji składników",
   "premiumContextBarcodeEyebrow": "PREMIUM DLA SKANOWANIA",
   "premiumContextBarcodeTitle": "Zeskanuj całe zakupy bez zamykania aparatu",
   "premiumContextBarcodeDescription": "Skanuj produkty jeden po drugim, a potem dodaj całą serię do wybranych miejsc jednym ruchem.",
@@ -2371,11 +2391,11 @@
   "premiumContextPantryBenefitMissing": "Mniej brakujących produktów",
   "premiumContextPantryBenefitWaste": "Mniej marnowania jedzenia",
   "premiumContextJournalEyebrow": "PREMIUM DLA DZIENNIKA",
-  "premiumContextJournalTitle": "Zobacz, jak zmieniają się Twoje wyniki",
-  "premiumContextJournalDescription": "Śledź dłuższy okres i łatwiej zauważaj zmiany w kaloriach, makro, nawodnieniu oraz wadze.",
+  "premiumContextJournalTitle": "Wróć do całej historii swojego Dziennika",
+  "premiumContextJournalDescription": "Przeglądaj wpisy starsze niż 30 dni i korzystaj z pełnych tygodniowych wniosków.",
   "premiumContextJournalBenefitHistory": "Pełna historia Dziennika",
-  "premiumContextJournalBenefitCharts": "Wykresy kalorii, makro i nawodnienia",
-  "premiumContextJournalBenefitWeight": "Postępy wagi w czasie",
+  "premiumContextJournalBenefitCharts": "Wpisy starsze niż 30 dni",
+  "premiumContextJournalBenefitWeight": "Pełne tygodniowe wnioski",
   "premiumPackageSemantics": "Pakiet",
   "premiumDiscountSemantics": "Rabat {percent} procent",
   "@premiumDiscountSemantics": {
@@ -2644,7 +2664,7 @@
   "releasePromptTitle": "Dostępna nowa wersja",
   "releasePromptRequired": "Ta wersja aplikacji nie jest już obsługiwana. Zaktualizuj ją, aby korzystać dalej.",
   "releasePromptStoreError": "Nie udało się otworzyć sklepu.",
-  "releasePromptChanges": "• Dodaliśmy 30 jesiennych przepisów po polsku i angielsku.\n• Nowe dania mają własne zdjęcia oraz listy składników do zakupów.\n• Poprawiliśmy przeliczanie gramów, sztuk i miar kuchennych.\n• Kalorie i koszty zakupów liczymy z właściwych ilości; szacunki są oznaczone.",
+  "releasePromptChanges": "• Premium: skanuj paragony i zapisuj zakupy spożywcze w spiżarni.\n• Uporządkowaliśmy ekran Premium: korzyści i ceny są łatwiejsze do znalezienia.\n• Doprecyzowaliśmy cenę po okresie próbnym, odnowienie i dostęp za punkty.\n• Oferty Premium nie zasłaniają od razu nowego planu ani listy zakupów.\n• Ułatwiliśmy powrót do funkcji po aktywacji i przywracanie zakupu.",
   "detailPlanPortionHelp": "Składniki przeliczono na {servings} porcji. Ilości wpisane w opisie przygotowania dotyczą bazowego przepisu ({baseServings} porcji).",
   "@detailPlanPortionHelp": {
     "placeholders": {
@@ -3241,4 +3261,8 @@
   "shoppingLimitSeePremium": "Zobacz Premium",
   "shoppingLimitBack": "Wróć do mojej listy",
   "shoppingLimitShort": "Tygodniowy limit list został wykorzystany. Z Premium tworzysz kolejne bez limitu."
+,
+  "compareNoPoints": "Bez punktów"
+,
+  "compareImportPointCost": "2 pkt / import"
 }

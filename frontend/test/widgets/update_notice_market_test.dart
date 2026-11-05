@@ -41,18 +41,25 @@ void main() {
             .widgetList<Text>(find.byType(Text))
             .map((value) => value.data ?? '')
             .firstWhere((value) => value.startsWith('•'));
-        expect(body.split('\n'), hasLength(4));
-        expect(body, contains(english ? 'grams, pieces' : 'gramów, sztuk'));
-        expect(body, contains(english ? 'shopping costs' : 'koszty zakupów'));
+        expect(body.split('\n'), hasLength(5));
+        expect(body, contains(english ? 'scan receipts' : 'skanuj paragony'));
         expect(
           body,
-          contains(english ? '30 autumn recipes' : '30 jesiennych przepisów'),
+          contains(english ? 'Premium benefits and prices' : 'korzyści i ceny'),
+        );
+        expect(
+          body,
+          contains(english ? 'access with points' : 'dostęp za punkty'),
         );
         expect(
           body,
           contains(
-            english ? 'estimates are labelled' : 'szacunki są oznaczone',
+            english ? 'new plan or shopping list' : 'nowego planu ani listy',
           ),
+        );
+        expect(
+          body,
+          contains(english ? 'purchase restoration' : 'przywracanie zakupu'),
         );
         expect(body, isNot(contains('splash screen')));
         expect(body, isNot(contains('Ekran startowy')));

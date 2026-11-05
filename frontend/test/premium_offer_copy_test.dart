@@ -20,8 +20,10 @@ void main() {
 
     expect(copy.title, 'Zamień inspirację w gotowy przepis');
     expect(copy.description, contains('link'));
-    expect(copy.description, contains('zdjęcie'));
-    expect(copy.description, contains('składniki'));
+    expect(copy.description, contains('zdjęcia'));
+    expect(copy.description, contains('punktów'));
+    expect(copy.benefits.last, contains('1 pkt'));
+    expect(copy.benefits.last, contains('Premium'));
     expect(copy.benefits, hasLength(3));
   });
 

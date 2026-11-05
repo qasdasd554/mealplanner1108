@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../services/contextual_premium_offer_service.dart';
+import '../../models/premium_offer.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
@@ -7,9 +9,7 @@ import '../../l10n/market_locale.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/store_provider.dart';
 import '../../providers/meal_plan_provider.dart';
-import '../../services/contextual_premium_offer_service.dart';
 import '../../services/shopping_list_limit_offer.dart';
-import '../../models/premium_offer.dart';
 import '../../models/store.dart';
 import '../../models/meal_plan.dart';
 import '../../config/constants.dart';
@@ -371,13 +371,17 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                   child: Text(context.strings.planExplorePremium),
                 ),
               ElevatedButton(
-                onPressed: () async {
+                onPressed: () {
                   Navigator.of(ctx).pop();
-                  await ContextualPremiumOfferService.maybeShow(
-                    context,
-                    PremiumOfferContext.mealPlan,
-                  );
-                  if (!mounted) return;
+                  // Open the generated result immediately. Its own screen
+                  // waits for reading and interaction before an optional offer.
+                  if (plan != null) {
+                    ContextualPremiumOfferService.rememberResult(
+                      context,
+                      PremiumOfferContext.mealPlan,
+                      plan.id,
+                    );
+                  }
                   Navigator.of(context).pushReplacementNamed('/plan/view');
                 },
                 child: Text(context.strings.planViewAction),

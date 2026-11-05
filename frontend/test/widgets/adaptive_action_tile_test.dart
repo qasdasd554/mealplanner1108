@@ -16,7 +16,8 @@ void main() {
       ..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf'));
     await icons.load();
     final font = File('C:/Windows/Fonts/arial.ttf');
-    if (await font.exists()) {
+    if (const bool.fromEnvironment('CAPTURE_UK_LAYOUT') &&
+        await font.exists()) {
       final loader = FontLoader('UKLayoutProof')
         ..addFont(font.readAsBytes().then(ByteData.sublistView));
       await loader.load();
@@ -69,7 +70,7 @@ void main() {
                         title: 'Take a photo',
                         subtitle: 'Of a recipe or a finished dish',
                         trailing: const PremiumFeatureTag(
-                          label: 'PREMIUM · 2 PTS',
+                          label: 'Premium or 2 points',
                           fontSize: 8,
                         ),
                         onTap: () => taps++,
@@ -85,11 +86,19 @@ void main() {
           final tile = tester.widget<ListTile>(find.byType(ListTile));
           expect(tile.trailing == null, width == 320 || scale == 2);
           final title = find.text('Take a photo');
-          expect(tester.getSize(title).width, greaterThan(100));
+          final badge = find.text('Premium or 2 points');
+          expect(badge, findsOneWidget);
+          final titleBounds = tester.getRect(title);
+          final badgeBounds = tester.getRect(badge);
+          expect(titleBounds.overlaps(badgeBounds), isFalse);
+          if (tile.trailing == null) {
+            expect(badgeBounds.top, greaterThanOrEqualTo(titleBounds.bottom));
+          } else {
+            expect(badgeBounds.left, greaterThanOrEqualTo(titleBounds.right));
+          }
           expect(title.hitTestable(), findsOneWidget);
           await tester.tap(title);
           expect(taps, 1);
-          expect(find.text('PREMIUM · 2 PTS'), findsOneWidget);
           if (const bool.fromEnvironment('CAPTURE_UK_LAYOUT') &&
               width == 320 &&
               scale == 2) {

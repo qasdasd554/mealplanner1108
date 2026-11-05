@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../l10n/market_locale.dart';
 import '../theme/app_theme.dart';
 
@@ -18,16 +19,24 @@ class PremiumComparisonTable extends StatelessWidget {
     (context.strings.compareWeekly, true, false),
     (context.strings.compareArchive, true, false),
     (context.strings.compareLikes, true, false),
-    (context.strings.compareAi, true, false),
+    (
+      context.strings.compareAi,
+      context.strings.compareNoPoints,
+      context.strings.compareImportPointCost,
+    ),
     (context.strings.compareBatch, true, false),
-    (context.strings.comparePublish, true, false),
+    (context.strings.comparePublish, true, true),
     (context.strings.compareTikTok, true, false),
     (
       context.strings.compareLists,
       context.strings.compareUnlimited,
       context.strings.compareOneWeek,
     ),
-    (context.strings.compareGenerate, true, true),
+    (
+      context.strings.compareGenerate,
+      context.strings.compareUnlimited,
+      context.strings.compareOneWeek,
+    ),
     (context.strings.compareJournal, true, true),
     (context.strings.compareCalculator, true, true),
     (context.strings.compareCatalogue, true, true),
@@ -47,6 +56,7 @@ class PremiumComparisonTable extends StatelessWidget {
     }
     return Text(
       value.toString(),
+      textAlign: TextAlign.center,
       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
     );
   }

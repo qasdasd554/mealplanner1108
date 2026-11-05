@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../services/contextual_premium_offer_service.dart';
+import '../models/premium_offer.dart';
 import '../l10n/market_locale.dart';
 import 'package:provider/provider.dart';
 import '../models/recipe.dart';
@@ -6,8 +8,6 @@ import '../models/shopping_list.dart';
 import '../providers/store_provider.dart';
 import '../services/shopping_list_service.dart';
 import '../services/shopping_list_limit_offer.dart';
-import '../services/contextual_premium_offer_service.dart';
-import '../models/premium_offer.dart';
 import '../providers/shopping_list_provider.dart';
 import '../providers/auth_provider.dart';
 import '../screens/profile/premium_screen.dart';
@@ -206,12 +206,12 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
       await shoppingProvider.loadAllLists(preferredListId: list.mealPlanId);
       if (!mounted) return;
 
-      await ContextualPremiumOfferService.maybeShow(
+      // The list is ready: show it before considering any optional offer.
+      ContextualPremiumOfferService.rememberResult(
         context,
         PremiumOfferContext.shoppingList,
+        list.id,
       );
-      if (!mounted) return;
-
       final rootNavigator = Navigator.of(context);
       // `route.isFirst` nie zawsze oznacza ekran główny (np. po wejściu
       // z udostępnionego linku pierwszą trasą potrafił być ekran logowania).

@@ -88,7 +88,9 @@ void main() {
         findsOneWidget,
       );
       expect(
-        find.text(country == 'GB' ? 'PREMIUM · 2 PTS' : 'PREMIUM · 2 PKT'),
+        find.text(
+          country == 'GB' ? 'Premium or 2 points' : 'Premium lub 2 pkt',
+        ),
         findsOneWidget,
       );
       expect(tester.takeException(), isNull);

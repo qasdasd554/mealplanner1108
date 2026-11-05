@@ -38,15 +38,14 @@ class PremiumOfferCopy {
                 'Zamień inspirację w gotowy przepis'),
         description:
             (strings?.premiumContextRecipeDescription ??
-                'Dodaj link, zdjęcie albo krótki opis. Otrzymasz składniki, '
-                    'porcje i kolejne kroki bez ręcznego przepisywania.'),
+                'Zapisz przepis z linku, zdjęcia lub opisu bez ręcznego przepisywania. W Premium import nie pobiera punktów.'),
         benefits: [
           (strings?.premiumContextRecipeBenefitImport ??
               'Przepis z linku, zdjęcia lub opisu'),
           (strings?.premiumContextRecipeBenefitSteps ??
               'Automatycznie ułożone składniki i kroki'),
           (strings?.premiumContextRecipeBenefitEdit ??
-              'Edycja przepisu z pomocą AI'),
+              'Edycja AI: 1 pkt także w Premium'),
         ],
       ),
       PremiumOfferContext.mealPlan => PremiumOfferCopy(
@@ -55,18 +54,17 @@ class PremiumOfferCopy {
                 'PREMIUM DLA PLANOWANIA'),
         title:
             (strings?.premiumContextMealPlanTitle ??
-                'Zaplanuj kolejne tygodnie bez limitu'),
+                'Kolejny tydzień gotowy automatycznie'),
         description:
             (strings?.premiumContextMealPlanDescription ??
-                'Twórz tyle planów, ile potrzebujesz, i szybciej dopasuj '
-                    'posiłki do swojego dnia.'),
+                'Ustaw automatyczne planowanie na wybrany dzień. Twórz kolejne plany i listy wtedy, gdy ich potrzebujesz.'),
         benefits: [
           (strings?.premiumContextMealPlanBenefitUnlimited ??
               'Plany posiłków bez limitu'),
           (strings?.premiumContextMealPlanBenefitWeekly ??
               'Automatyczny plan na kolejny tydzień'),
           (strings?.premiumContextMealPlanBenefitSwap ??
-              'Wygodna zamiana i wyszukiwanie dań'),
+              'Uwzględnianie preferencji składników'),
         ],
       ),
       PremiumOfferContext.barcodeScanner => PremiumOfferCopy(
@@ -131,18 +129,17 @@ class PremiumOfferCopy {
             (strings?.premiumContextJournalEyebrow ?? 'PREMIUM DLA DZIENNIKA'),
         title:
             (strings?.premiumContextJournalTitle ??
-                'Zobacz, jak zmieniają się Twoje wyniki'),
+                'Wróć do całej historii swojego Dziennika'),
         description:
             (strings?.premiumContextJournalDescription ??
-                'Śledź dłuższy okres i łatwiej zauważaj zmiany w kaloriach, '
-                    'makro, nawodnieniu oraz wadze.'),
+                'Przeglądaj wpisy starsze niż 30 dni i korzystaj z pełnych tygodniowych wniosków.'),
         benefits: [
           (strings?.premiumContextJournalBenefitHistory ??
               'Pełna historia Dziennika'),
           (strings?.premiumContextJournalBenefitCharts ??
-              'Wykresy kalorii, makro i nawodnienia'),
+              'Wpisy starsze niż 30 dni'),
           (strings?.premiumContextJournalBenefitWeight ??
-              'Postępy wagi w czasie'),
+              'Pełne tygodniowe wnioski'),
         ],
       ),
     };

@@ -199,6 +199,28 @@ void main() {
   setUpAll(loadProductFormFonts);
   for (final english in [false, true]) {
     testWidgets(
+      'pantry Add product opens the Premium receipt scanner: $english',
+      (tester) async {
+        await _open(
+          tester,
+          PantryScreen(service: _Pantry([])),
+          english: english,
+          premium: false,
+        );
+        await tester.tap(find.byType(FloatingActionButton));
+        await tester.pumpAndSettle();
+        final receipt = find.text(english ? 'Scan receipt' : 'Skanuj paragon');
+        await tester.ensureVisible(receipt);
+        await tester.tap(receipt);
+        await tester.pumpAndSettle();
+        expect(
+          find.text(english ? 'Explore Premium' : 'Zobacz Premium'),
+          findsOneWidget,
+        );
+        expect(tester.takeException(), isNull);
+      },
+    );
+    testWidgets(
       'pantry matching sends selected canonical IDs unchanged: $english',
       (tester) async {
         final pantry = _Pantry([

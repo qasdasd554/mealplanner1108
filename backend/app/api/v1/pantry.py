@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import get_current_user
+from app.api.v1.pantry_receipts import router as receipt_router
 from app.core.exceptions import NotFoundException
 from app.core.language import account_text
 from app.core.markets import account_country
@@ -19,6 +20,7 @@ from app.schemas.product import ProductResponse
 from app.services.pantry_shopping_sync import sync_product_in_shopping_lists
 
 router = APIRouter()
+router.include_router(receipt_router)
 
 
 class PantryItemResponse(BaseModel):

@@ -28,6 +28,7 @@ from app.models.shopping_list import ShoppingList, ShoppingListItem
 from app.models.shopping_list_creation import ShoppingListCreation
 from app.models.shopping_list_share import ShoppingListShare
 from app.models.pantry import PantryItem
+from app.models.pantry_receipt import PantryReceipt
 from app.models.processed_apple_purchase import ProcessedApplePurchase
 from app.models.points_purchase import PointsPurchase
 from app.models.store import Store, StoreDepartment
@@ -81,6 +82,7 @@ __all__ = [
     "ShoppingListCreation",
     # Pantry
     "PantryItem",
+    "PantryReceipt",
     "ProcessedApplePurchase",
     "PointsPurchase",
     # Food Log

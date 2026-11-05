@@ -15,6 +15,7 @@ import 'package:smart_meal_planner/providers/store_provider.dart';
 import 'package:smart_meal_planner/providers/wellness_provider.dart';
 import 'package:smart_meal_planner/screens/home/home_screen.dart';
 import 'package:smart_meal_planner/screens/recipes/manual_add_recipe_screen.dart';
+import 'package:smart_meal_planner/screens/recipes/pantry_receipt_screen.dart';
 import 'package:smart_meal_planner/services/wellness_service.dart';
 
 // Same completed synthetic provider states as the Home localization/ticker
@@ -161,6 +162,14 @@ void main() {
         find.widgetWithText(OutlinedButton, 'Add'),
         844 - bottom,
       );
+      await tester.tap(find.widgetWithText(OutlinedButton, 'Add'));
+      await tester.pumpAndSettle();
+      final receipt = find.text('Scan receipt');
+      await tester.ensureVisible(receipt);
+      await tester.tap(receipt);
+      await tester.pumpAndSettle();
+      expect(find.byType(PantryReceiptScreen), findsOneWidget);
+      expect(find.text('Explore Premium'), findsOneWidget);
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox.shrink());
     });

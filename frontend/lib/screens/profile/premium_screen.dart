@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../../l10n/market_locale.dart';
+
 import 'package:flutter/foundation.dart';
 
 import 'dart:io' show Platform;
@@ -672,6 +674,10 @@ class _PremiumScreenState extends State<PremiumScreen> {
     final auth = context.read<AuthProvider>();
     final userId = auth.currentUser?.id;
     final session = auth.sessionGeneration;
+    bool isPurchaseSessionCurrent() =>
+        userId != null &&
+        auth.currentUser?.id == userId &&
+        auth.sessionGeneration == session;
     final wasRestoring = _isRestoring;
     final alreadyHadPremium =
         Provider.of<AuthProvider>(
@@ -740,16 +746,26 @@ class _PremiumScreenState extends State<PremiumScreen> {
 
       if (!mounted) return true;
       if (result['is_premium'] == true) {
-        if (applied) {
-          unawaited(auth.loadProfile());
-        } else {
-          await auth.loadProfile();
+        if (isPurchaseSessionCurrent()) {
+          if (applied) {
+            unawaited(auth.loadProfile());
+          } else {
+            await auth.loadProfile();
+          }
         }
         if (!mounted) return true;
         setState(() {
           _isProcessingPurchase = false;
           _isRestoring = false;
         });
+        // Store callbacks can arrive after account changes or after another
+        // route was opened. Finish the verified transaction, but only return
+        // from the paywall that still owns this purchase's active session.
+        if (!applied ||
+            !isPurchaseSessionCurrent() ||
+            !(ModalRoute.of(context)?.isCurrent ?? false)) {
+          return true;
+        }
         // Strumień sklepu potrafi ponownie przesłać stary zakup po
         // uruchomieniu aplikacji. Nie pokazujemy wtedy fałszywej,
         // ponownej aktywacji. Informacja pozostaje przy zakupie nowym
@@ -1108,13 +1124,86 @@ class _PremiumScreenState extends State<PremiumScreen> {
     ),
   ];
 
+  Widget _buildFeatureRow(_PremiumFeature feature) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppTheme.secondaryColor.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(feature.icon, color: AppTheme.secondaryColor, size: 22),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  feature.title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  feature.description,
+                  style: TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 13,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubscriptionSection(BuildContext context) {
+    return Column(
+      key: _pricingSectionKey,
+      children: [
+        ..._buildPricingSection(context),
+        const SizedBox(height: 12),
+        Center(
+          child: TextButton.icon(
+            onPressed: _isRestoring || _isProcessingPurchase ? null : _restore,
+            icon:
+                _isRestoring
+                    ? const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                    : const Icon(Icons.restore, size: 16),
+            label: Text(context.strings.premiumRestorePurchases),
+          ),
+        ),
+        const SizedBox(height: 8),
+        _buildLegalFooter(context),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // UWAGA (przebudowa): zakładka Premium ma pokazywać FAKTYCZNE
-    // funkcje Premium (bezpośrednie skróty), nie tylko listę/tabelę —
-    // tabela porównawcza przeniesiona do Profilu (PremiumComparisonTable).
     final user = Provider.of<AuthProvider>(context).currentUser;
     final isPremium = user?.hasPremiumAccess ?? false;
+    final features = _features(context);
+    final isGeneralOffer = !isPremium && widget.offerContext == null;
+    // A prospective subscriber sees three benefits and the store's offer
+    // before operational shortcuts. Existing subscribers keep their shortcuts.
+    final primaryFeatures = [features[0], features[5], features[3]];
+    final remainingFeatures =
+        isGeneralOffer ? [features[1], features[2], features[4]] : features;
 
     return Scaffold(
       body: LayoutBuilder(
@@ -1191,16 +1280,18 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   padding: const EdgeInsets.all(20),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
-                      if (widget.offerContext != null && !isPremium) ...[
-                        _buildContextualOfferCard(context)
-                            .animate()
-                            .fadeIn(duration: 250.ms)
-                            .slideY(begin: 0.04, end: 0),
-                        const SizedBox(height: 22),
-                        Column(
-                          key: _pricingSectionKey,
-                          children: _buildPricingSection(context),
-                        ),
+                      if (!isPremium) ...[
+                        if (widget.offerContext != null) ...[
+                          _buildContextualOfferCard(context)
+                              .animate()
+                              .fadeIn(duration: 250.ms)
+                              .slideY(begin: 0.04, end: 0),
+                          const SizedBox(height: 22),
+                        ] else ...[
+                          ...primaryFeatures.map(_buildFeatureRow),
+                          const SizedBox(height: 8),
+                        ],
+                        _buildSubscriptionSection(context),
                         const SizedBox(height: 26),
                       ],
                       // Skróty do FAKTYCZNYCH funkcji Premium — bezpośrednie
@@ -1299,7 +1390,9 @@ class _PremiumScreenState extends State<PremiumScreen> {
                         icon: Icons.groups,
                         title: context.strings.premiumPublishActionTitle,
                         subtitle: context.strings.premiumPublishActionSubtitle,
-                        isPremium: isPremium,
+                        // Submission is available to every signed-in account;
+                        // publication still goes through the existing review.
+                        isPremium: true,
                         onTap:
                             () => Navigator.of(context).push(
                               MaterialPageRoute(
@@ -1356,69 +1449,18 @@ class _PremiumScreenState extends State<PremiumScreen> {
                             ),
                       ),
                       const SizedBox(height: 28),
-                      ..._features(context).asMap().entries.map((entry) {
+                      ...remainingFeatures.asMap().entries.map((entry) {
                         final index = entry.key;
                         final feature = entry.value;
-                        return Padding(
-                              padding: const EdgeInsets.only(bottom: 14),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.secondaryColor
-                                          .withOpacity(0.12),
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                    child: Icon(
-                                      feature.icon,
-                                      color: AppTheme.secondaryColor,
-                                      size: 22,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 14),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          feature.title,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          feature.description,
-                                          style: TextStyle(
-                                            color: AppTheme.textSecondary,
-                                            fontSize: 13,
-                                            height: 1.3,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
+                        return _buildFeatureRow(feature)
                             .animate()
                             .fadeIn(delay: (300 + index * 100).ms)
                             .slideX(begin: 0.05, end: 0);
                       }),
                       const SizedBox(height: 12),
-                      if (widget.offerContext == null || isPremium)
-                        Column(
-                          key: _pricingSectionKey,
-                          children: _buildPricingSection(context),
-                        ),
+                      if (isPremium) _buildSubscriptionSection(context),
                       const SizedBox(height: 24),
                       ..._buildPointsSection(context),
-                      const SizedBox(height: 20),
-                      _buildLegalFooter(context),
                       const SizedBox(height: 12),
                     ]),
                   ),
@@ -1455,7 +1497,8 @@ class _PremiumScreenState extends State<PremiumScreen> {
   }
 
   /// Buduje sekcję cennika: status "już masz Premium", stan ładowania,
-  /// błąd, albo dwie karty z PRAWDZIWYMI, lokalnymi cenami ze sklepu.
+  /// błąd albo karty z prawdziwymi, lokalnymi cenami ze sklepu.
+  /// Przywracanie zakupów jest niezależne od dostępności cennika.
   List<Widget> _buildPricingSection(BuildContext context) {
     final user = Provider.of<AuthProvider>(context).currentUser;
     if (user?.hasPremiumAccess ?? false) {
@@ -1468,36 +1511,59 @@ class _PremiumScreenState extends State<PremiumScreen> {
             borderRadius: BorderRadius.circular(18),
             border: Border.all(color: AppTheme.primaryColor.withOpacity(0.3)),
           ),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Icon(
-                Icons.check_circle,
-                color: AppTheme.primaryColor,
-                size: 28,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      context.strings.premiumAlreadyActive,
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    if (daysLeft != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        daysLeft == 0
-                            ? context.strings.premiumExpiresToday
-                            : context.strings.premiumDaysRemaining(daysLeft),
-                        style: TextStyle(
-                          color: AppTheme.textSecondary,
-                          fontSize: 12,
+              Row(
+                children: [
+                  const Icon(
+                    Icons.check_circle,
+                    color: AppTheme.primaryColor,
+                    size: 28,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          context.strings.premiumAlreadyActive,
+                          style: TextStyle(fontWeight: FontWeight.bold),
                         ),
+                        if (daysLeft != null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            daysLeft == 0
+                                ? context.strings.premiumExpiresToday
+                                : context.strings.premiumDaysRemaining(
+                                  daysLeft,
+                                ),
+                            style: TextStyle(
+                              color: AppTheme.textSecondary,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                context.strings.premiumAutomaticWeekSubtitle,
+                style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+              ),
+              const SizedBox(height: 8),
+              FilledButton.icon(
+                onPressed:
+                    () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const WeeklyPlanAutomationScreen(),
                       ),
-                    ],
-                  ],
-                ),
+                    ),
+                icon: const Icon(Icons.auto_mode_outlined),
+                label: Text(context.strings.premiumAutomaticWeekTitle),
               ),
             ],
           ),
@@ -1542,21 +1608,6 @@ class _PremiumScreenState extends State<PremiumScreen> {
     final annualSaving = annualSavingsPercent(monthly, yearly);
 
     return [
-      if (weekly != null)
-        _buildPricingCard(
-          context: context,
-          title: context.strings.premiumWeekly,
-          price: _billing.regularSubscriptionPrice(weekly),
-          period: '',
-          highlight: false,
-          discountPercent:
-              _activeOffers[kWeeklyProductId]?['discount_percent'] as int?,
-          onTap:
-              _isProcessingPurchase
-                  ? null
-                  : () => _useSubscriptionOffer(kWeeklyProductId),
-        ).animate().fadeIn(delay: 650.ms),
-      if (weekly != null) const SizedBox(height: 12),
       if (monthly != null)
         _buildPricingCard(
           context: context,
@@ -1567,6 +1618,12 @@ class _PremiumScreenState extends State<PremiumScreen> {
               _monthlyHasSevenDayTrial
                   ? context.strings.premiumMonthlyTrial(7)
                   : null,
+          trialDisclosure:
+              _monthlyHasSevenDayTrial
+                  ? (Platform.isIOS
+                      ? context.strings.premiumTrialDisclosureApple
+                      : context.strings.premiumTrialDisclosureGoogle)
+                  : null,
           highlight: false,
           discountPercent:
               _activeOffers[kMonthlyProductId]?['discount_percent'] as int?,
@@ -1574,7 +1631,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
               _isProcessingPurchase
                   ? null
                   : () => _useSubscriptionOffer(kMonthlyProductId),
-        ).animate().fadeIn(delay: 700.ms),
+        ).animate().fadeIn(delay: 100.ms),
       if (monthly != null) const SizedBox(height: 12),
       if (yearly != null)
         _buildPricingCard(
@@ -1594,31 +1651,24 @@ class _PremiumScreenState extends State<PremiumScreen> {
               _isProcessingPurchase
                   ? null
                   : () => _useSubscriptionOffer(kYearlyProductId),
-        ).animate().fadeIn(delay: 800.ms),
+        ).animate().fadeIn(delay: 150.ms),
+      if (weekly != null) ...[
+        const SizedBox(height: 12),
+        _buildPricingCard(
+          context: context,
+          title: context.strings.premiumWeekly,
+          price: _billing.regularSubscriptionPrice(weekly),
+          period: '',
+          highlight: false,
+          discountPercent:
+              _activeOffers[kWeeklyProductId]?['discount_percent'] as int?,
+          onTap:
+              _isProcessingPurchase
+                  ? null
+                  : () => _useSubscriptionOffer(kWeeklyProductId),
+        ).animate().fadeIn(delay: 200.ms),
+      ],
       const SizedBox(height: 20),
-      if (_monthlyHasSevenDayTrial)
-        Text(
-          Platform.isIOS
-              ? context.strings.premiumTrialDisclosureApple(7)
-              : context.strings.premiumTrialDisclosureGoogle(7),
-          textAlign: TextAlign.center,
-          style: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
-        ),
-      const SizedBox(height: 12),
-      Center(
-        child: TextButton.icon(
-          onPressed: _isRestoring || _isProcessingPurchase ? null : _restore,
-          icon:
-              _isRestoring
-                  ? const SizedBox(
-                    width: 14,
-                    height: 14,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                  : const Icon(Icons.restore, size: 16),
-          label: Text(context.strings.premiumRestorePurchases),
-        ),
-      ),
     ];
   }
 
@@ -1833,11 +1883,13 @@ class _PremiumScreenState extends State<PremiumScreen> {
     required String price,
     required String period,
     String? trialLabel,
+    String? trialDisclosure,
     String? badge,
     int? discountPercent,
     required bool highlight,
     required VoidCallback? onTap,
   }) {
+    const annualInk = Color(0xFF3B2605);
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -1879,7 +1931,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
               child: Text(
                 badge,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: annualInk,
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                 ),
@@ -1890,7 +1942,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
               alignment: Alignment.centerLeft,
               child: CampaignIcon(
                 icon: Icons.workspace_premium,
-                color: highlight ? Colors.white : AppTheme.accentColor,
+                color: highlight ? annualInk : AppTheme.accentColor,
                 discountPercent: discountPercent,
               ),
             ),
@@ -1904,7 +1956,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
-                      color: highlight ? Colors.white : null,
+                      color: highlight ? annualInk : null,
                     ),
                   ),
                   if (trialLabel != null) ...[
@@ -1944,6 +1996,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   ],
                   RichText(
                     text: TextSpan(
+                      style: DefaultTextStyle.of(context).style,
                       children: [
                         TextSpan(
                           text:
@@ -1969,9 +2022,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                                     : 15,
                             fontWeight: FontWeight.bold,
                             color:
-                                highlight
-                                    ? Colors.white
-                                    : AppTheme.primaryColor,
+                                highlight ? annualInk : AppTheme.primaryColor,
                           ),
                         ),
                         if (period.isNotEmpty)
@@ -1981,7 +2032,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                               fontSize: 13,
                               color:
                                   highlight
-                                      ? Colors.white.withOpacity(0.85)
+                                      ? annualInk
                                       : AppTheme.textSecondary,
                             ),
                           ),
@@ -1996,7 +2047,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                     highlight
                         ? ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
-                          foregroundColor: const Color(0xFFE0A62E),
+                          foregroundColor: annualInk,
                           minimumSize: const Size(100, 44),
                         )
                         : ElevatedButton.styleFrom(
@@ -2019,10 +2070,21 @@ class _PremiumScreenState extends State<PremiumScreen> {
                               : context.strings.premiumBuyDiscount,
                         ),
               );
-              if (constraints.maxWidth < 350) {
+              if (trialDisclosure != null || constraints.maxWidth < 350) {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [details, const SizedBox(height: 12), buyButton],
+                  children: [
+                    details,
+                    const SizedBox(height: 12),
+                    buyButton,
+                    if (trialDisclosure != null) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        trialDisclosure,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ],
                 );
               }
               return Row(

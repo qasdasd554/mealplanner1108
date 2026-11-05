@@ -99,6 +99,16 @@ def english_system_name_match(model, term: str, *, kind: str):
     return or_(*matches) if matches else false()
 
 
+def english_ingredient_name_in(model, names: set[str]):
+    """Match an exact, reviewed GB ingredient label to its canonical identity."""
+    matches = [
+        and_(model.id == UUID(identity), model.name == row['source'])
+        for identity, row in _index()['ingredients'].items()
+        if row['en_GB'].casefold() in names
+    ]
+    return and_(model.created_by_user_id.is_(None), or_(*matches)) if matches else false()
+
+
 @lru_cache(maxsize=4)
 def english_system_name_order(model, *, kind: str):
     clauses = []

@@ -1,10 +1,14 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+// The inherited BillingService field is initialized even with mocked methods.
+// ignore: depend_on_referenced_packages
+import 'package:in_app_purchase_platform_interface/in_app_purchase_platform_interface.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_meal_planner/l10n/app_localizations.dart';
@@ -19,7 +23,13 @@ import '../../utils/subscription_presentation_test.dart' as fixtures;
 
 const _proofKey = ValueKey('premium-responsive-proof');
 
-Future<void> capturePremium(WidgetTester tester, String name) async {
+class _Store extends InAppPurchasePlatform {}
+
+Future<void> capturePremium(
+  WidgetTester tester,
+  String name, {
+  bool cropAtPricing = true,
+}) async {
   if (!const bool.fromEnvironment('UK_WRITE_UI_PROOF')) return;
   final originalSize = tester.view.physicalSize;
   // Capture only the header/context card. Raw RichText in the unrelated price
@@ -28,7 +38,7 @@ Future<void> capturePremium(WidgetTester tester, String name) async {
       find.text('Monthly').evaluate().isNotEmpty
           ? find.text('Monthly')
           : find.text('Miesięcznie');
-  if (monthly.evaluate().isNotEmpty) {
+  if (cropAtPricing && monthly.evaluate().isNotEmpty) {
     final height = tester.getTopLeft(monthly).dy - 24;
     if (height > 0 && height < originalSize.height) {
       tester.view.physicalSize = Size(originalSize.width, height);
@@ -53,26 +63,31 @@ Future<void> capturePremium(WidgetTester tester, String name) async {
 class _Billing extends BillingService {
   bool eligible = false;
   bool available = true;
+  bool productsFail = false;
   int buys = 0;
+  int restores = 0;
   List<Future<bool>> pending = [];
   @override
   Stream<List<PurchaseDetails>> get purchaseStream => const Stream.empty();
   @override
   Future<bool> isAvailable() async => available;
   @override
-  Future<ProductDetailsResponse> queryProducts() async =>
-      ProductDetailsResponse(
-        productDetails: [
-          fixtures.android(trial: 0, amount: 5000000),
-          fixtures.android(
-            id: kYearlyProductId,
-            trial: 0,
-            amount: 48000000,
-            period: 'P1Y',
-          ),
-        ],
-        notFoundIDs: [],
-      );
+  Future<ProductDetailsResponse> queryProducts() async {
+    if (productsFail) throw StateError('Synthetic product query failure');
+    return ProductDetailsResponse(
+      productDetails: [
+        fixtures.android(trial: 0, amount: 5000000),
+        fixtures.android(
+          id: kYearlyProductId,
+          trial: 0,
+          amount: 48000000,
+          period: 'P1Y',
+        ),
+      ],
+      notFoundIDs: [],
+    );
+  }
+
   @override
   Future<ProductDetailsResponse> queryPointsProducts() async =>
       ProductDetailsResponse(productDetails: [], notFoundIDs: []);
@@ -82,6 +97,11 @@ class _Billing extends BillingService {
   @override
   Future<void> buy(ProductDetails product) async {
     buys++;
+  }
+
+  @override
+  Future<void> restorePurchases() async {
+    restores++;
   }
 }
 
@@ -105,6 +125,7 @@ Future<void> open(
   bool dark = false,
   _Api? api,
   bool shoppingListLimit = false,
+  bool generalOffer = false,
 }) async {
   tester.view.physicalSize =
       viewport ?? (narrow ? const Size(320, 740) : const Size(390, 844));
@@ -115,11 +136,27 @@ Future<void> open(
   addTearDown(auth.dispose);
   AppTheme.setDark(dark);
   addTearDown(() => AppTheme.setDark(false));
+  final baseTheme = branded ? productFormTheme(dark) : null;
+  final buttonStyle = baseTheme?.elevatedButtonTheme.style;
+  final theme =
+      const bool.fromEnvironment('UK_WRITE_UI_PROOF') && baseTheme != null
+          ? baseTheme.copyWith(
+            elevatedButtonTheme: ElevatedButtonThemeData(
+              style: (buttonStyle ?? const ButtonStyle()).copyWith(
+                textStyle: WidgetStateProperty.resolveWith(
+                  (states) => (buttonStyle?.textStyle?.resolve(states) ??
+                          const TextStyle())
+                      .copyWith(fontFamily: 'UKStage8Proof'),
+                ),
+              ),
+            ),
+          )
+          : baseTheme;
   await tester.pumpWidget(
     ChangeNotifierProvider<AuthProvider>.value(
       value: auth,
       child: MaterialApp(
-        theme: branded ? productFormTheme(dark) : null,
+        theme: theme,
         locale: english ? const Locale('en', 'GB') : const Locale('pl', 'PL'),
         supportedLocales: AppLocalizations.supportedLocales,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -136,7 +173,9 @@ Future<void> open(
             billing: billing,
             client: api ?? _Api(),
             offerContext:
-                shoppingListLimit
+                generalOffer
+                    ? null
+                    : shoppingListLimit
                     ? PremiumOfferContext.shoppingList
                     : PremiumOfferContext.recipe,
             shoppingListLimit: shoppingListLimit,
@@ -154,9 +193,76 @@ Future<void> pricing(WidgetTester tester, String monthly) async {
 }
 
 void main() {
-  setUpAll(loadProductFormFonts);
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(() async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+    InAppPurchasePlatform.instance = _Store();
+    BillingService();
+    debugDefaultTargetPlatformOverride = null;
+    await loadProductFormFonts();
+  });
   setUp(() => SharedPreferences.setMockInitialValues({}));
   for (final english in [false, true]) {
+    testWidgets(
+      'general offer shows local plans before shortcuts (${english ? "GB" : "PL"})',
+      (tester) async {
+        await open(
+          tester,
+          _Billing()..eligible = true,
+          english: english,
+          generalOffer: true,
+          branded: true,
+        );
+        final strings = AppLocalizations.of(
+          tester.element(find.byType(PremiumScreen)),
+        );
+        final monthly = find.text(strings.premiumMonthly);
+        // A profile entry used to require scrolling past seven shortcut cards
+        // and six descriptions before the first store price appeared.
+        expect(monthly, findsOneWidget);
+        expect(tester.getTopLeft(monthly).dy, lessThan(844));
+        expect(find.text(strings.premiumBatchActionTitle), findsNothing);
+        expect(find.text(strings.premiumPointsTitle), findsNothing);
+        expect(find.text(strings.premiumTryFree), findsOneWidget);
+        expect(tester.takeException(), isNull);
+        await capturePremium(
+          tester,
+          'premium-conversion-${english ? "gb" : "pl"}-general',
+          cropAtPricing: false,
+        );
+        await pricing(tester, strings.premiumMonthly);
+        await capturePremium(
+          tester,
+          'premium-conversion-${english ? "gb" : "pl"}-plans',
+          cropAtPricing: false,
+        );
+      },
+    );
+    for (final productsFail in [false, true]) {
+      testWidgets('restore works independently of product prices '
+          '(${english ? "GB" : "PL"}, query failure=$productsFail)', (
+        tester,
+      ) async {
+        final billing =
+            _Billing()
+              ..available = productsFail
+              ..productsFail = productsFail;
+        await open(tester, billing, english: english, generalOffer: true);
+        final strings = AppLocalizations.of(
+          tester.element(find.byType(PremiumScreen)),
+        );
+        final restore = find.text(strings.premiumRestorePurchases);
+        await tester.scrollUntilVisible(restore, 250);
+        await tester.pumpAndSettle();
+        await tester.tap(restore);
+        await tester.pump();
+        expect(billing.restores, 1);
+        await tester.pump(const Duration(seconds: 3));
+        await tester.pumpAndSettle();
+        expect(find.text(strings.premiumRestoreEmpty), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+    }
     for (final trial in [false, true]) {
       testWidgets(
         'weekly list limit offer ${english ? "GB" : "PL"} trial=$trial fits narrow screen',
@@ -204,7 +310,22 @@ void main() {
       expect(find.text('7 days free'), findsNothing);
       expect(find.text('Try for free'), findsNothing);
       expect(find.text('£5.00', findRichText: true), findsOneWidget);
+      expect(
+        find.textContaining('Renews automatically each month'),
+        findsNothing,
+      );
       expect(find.text('Save 20%'), findsOneWidget);
+      final yearlyLabel = tester.widget<Text>(find.text('Yearly'));
+      final textLuminance = yearlyLabel.style!.color!.computeLuminance();
+      for (final background in [
+        const Color(0xFFF5C24D),
+        const Color(0xFFE0A62E),
+      ]) {
+        expect(
+          (background.computeLuminance() + .05) / (textLuminance + .05),
+          greaterThanOrEqualTo(4.5),
+        );
+      }
       expect(find.text('Save 17%'), findsNothing);
       expect(billing.buys, 0);
       expect(tester.takeException(), isNull);
@@ -227,6 +348,17 @@ void main() {
         expect(
           find.text(english ? 'Try for free' : 'Wypróbuj za 0 zł'),
           findsOneWidget,
+        );
+        final button = find.text(english ? 'Try for free' : 'Wypróbuj za 0 zł');
+        final terms = find.textContaining(
+          english
+              ? 'Renews automatically each month'
+              : 'Odnawia się automatycznie co miesiąc',
+        );
+        expect(terms, findsOneWidget);
+        expect(
+          tester.getTopLeft(terms).dy - tester.getBottomLeft(button).dy,
+          inInclusiveRange(0, 44),
         );
         expect(tester.takeException(), isNull);
       },

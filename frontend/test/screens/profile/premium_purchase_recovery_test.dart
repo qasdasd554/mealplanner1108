@@ -14,11 +14,12 @@ import 'package:smart_meal_planner/services/billing_service.dart';
 
 class _Auth extends AuthService {
   bool offline = false;
+  String userId = 'qa';
   @override
   Future<User> getProfile() async {
     if (offline) throw ApiException(503, 'offline');
     return User(
-      id: 'qa',
+      id: userId,
       email: 'qa@example.invalid',
       householdSize: 1,
       createdAt: DateTime(2026),
@@ -115,6 +116,8 @@ Future<AuthProvider> open(
   _Billing billing,
   bool english, {
   _Auth? service,
+  bool pushed = false,
+  bool popAfterSuccess = false,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final auth = AuthProvider(
@@ -125,28 +128,125 @@ Future<AuthProvider> open(
   if (service != null) await auth.loadProfile();
   addTearDown(auth.dispose);
   addTearDown(billing.events.close);
+  final navigatorKey = GlobalKey<NavigatorState>();
+  Widget premium() => PremiumScreen(
+    billing: billing,
+    client: _Api(),
+    popAfterSuccess: popAfterSuccess,
+  );
   await tester.pumpWidget(
     ChangeNotifierProvider.value(
       value: auth,
       child: MaterialApp(
+        navigatorKey: navigatorKey,
         locale: english ? const Locale('en', 'GB') : const Locale('pl', 'PL'),
         supportedLocales: AppLocalizations.supportedLocales,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
-        home: PremiumScreen(
-          billing: billing,
-          client: _Api(),
-          popAfterSuccess: false,
-        ),
+        home:
+            pushed ? const Scaffold(body: Text('Original recipe')) : premium(),
       ),
     ),
   );
   await tester.pumpAndSettle();
+  if (pushed) {
+    unawaited(
+      navigatorKey.currentState!.push(
+        MaterialPageRoute<void>(builder: (_) => premium()),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
   return auth;
 }
 
 void main() {
   for (final english in [false, true]) {
     final market = english ? 'GB' : 'PL';
+    for (final covered in [false, true]) {
+      testWidgets(
+        '$market verified purchase returns to its recipe only while current '
+        '(covered=$covered)',
+        (tester) async {
+          final billing = _Billing();
+          final service = _Auth();
+          final auth = await open(
+            tester,
+            billing,
+            english,
+            service: service,
+            pushed: true,
+            popAfterSuccess: true,
+          );
+          service.offline = true;
+          billing.events.add([purchase()]);
+          await tester.pump();
+          if (covered) {
+            unawaited(
+              Navigator.of(tester.element(find.byType(PremiumScreen))).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const Scaffold(body: Text('Another screen')),
+                ),
+              ),
+            );
+            await tester.pumpAndSettle();
+          }
+          billing.pending.complete({
+            'is_premium': true,
+            'premium_product_id': kMonthlyProductId,
+            'premium_expires_at':
+                DateTime.now()
+                    .toUtc()
+                    .add(const Duration(days: 7))
+                    .toIso8601String(),
+          });
+          await tester.pumpAndSettle();
+          expect(auth.currentUser!.hasPremiumAccess, isTrue);
+          expect(
+            find.text(covered ? 'Another screen' : 'Original recipe'),
+            findsOneWidget,
+          );
+          expect(billing.completed, 1);
+          expect(tester.takeException(), isNull);
+          service.offline = false;
+          await auth.loadProfile();
+        },
+      );
+    }
+    testWidgets(
+      '$market an old account purchase cannot close the current paywall',
+      (tester) async {
+        final billing = _Billing();
+        final service = _Auth();
+        final auth = await open(
+          tester,
+          billing,
+          english,
+          service: service,
+          pushed: true,
+          popAfterSuccess: true,
+        );
+        billing.events.add([purchase()]);
+        await tester.pump();
+        service.userId = 'other-user';
+        await auth.loadProfile();
+        billing.pending.complete({
+          'is_premium': true,
+          'premium_product_id': kMonthlyProductId,
+          'premium_expires_at':
+              DateTime.now()
+                  .toUtc()
+                  .add(const Duration(days: 7))
+                  .toIso8601String(),
+        });
+        await tester.pumpAndSettle();
+        expect(auth.currentUser!.id, 'other-user');
+        expect(auth.currentUser!.hasPremiumAccess, isFalse);
+        expect(find.byType(PremiumScreen), findsOneWidget);
+        expect(find.text('Original recipe'), findsNothing);
+        expect(billing.completed, 1);
+        expect(tester.takeException(), isNull);
+      },
+    );
     testWidgets(
       '$market late purchase responses cannot update another session',
       (tester) async {
@@ -273,6 +373,7 @@ void main() {
         english ? 'Restore purchases' : 'Przywróć zakupy',
       );
       await tester.scrollUntilVisible(restore, 500, maxScrolls: 35);
+      await tester.pumpAndSettle();
       await tester.tap(restore);
       await tester.pump();
       billing.events.add([purchase(status: PurchaseStatus.restored)]);

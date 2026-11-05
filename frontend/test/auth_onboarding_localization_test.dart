@@ -174,7 +174,7 @@ void main() {
         findsOneWidget,
       );
       expect(
-        find.text(english ? 'PREMIUM · 2 PTS' : 'PREMIUM · 2 PKT'),
+        find.text(english ? 'Premium or 2 points' : 'Premium lub 2 pkt'),
         findsOneWidget,
       );
       expect(tester.takeException(), isNull);

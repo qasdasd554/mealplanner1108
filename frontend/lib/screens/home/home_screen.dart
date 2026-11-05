@@ -9,6 +9,7 @@ import '../../providers/food_log_provider.dart';
 import '../../providers/wellness_provider.dart';
 import '../../providers/meal_plan_provider.dart';
 import '../../providers/store_provider.dart';
+import '../../providers/shopping_list_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/recipe_photo.dart';
 import '../../widgets/notification_bell.dart';
@@ -20,6 +21,7 @@ import '../../models/meal_plan.dart';
 import '../recipes/recipes_screen.dart';
 import '../recipes/recipe_leaderboard_screen.dart';
 import '../recipes/pantry_screen.dart';
+import '../recipes/pantry_receipt_screen.dart';
 import '../recipes/ai_add_recipe_screen.dart';
 import '../batch_barcode_scanner_screen.dart';
 import '../../widgets/decorative_circles.dart';
@@ -451,6 +453,27 @@ class _HomeScreenState extends State<HomeScreen> {
                       onTap: () {
                         Navigator.pop(sheetContext);
                         _openBatchScanner();
+                      },
+                    ),
+                    _quickAddOption(
+                      sheetContext,
+                      icon: Icons.receipt_long_outlined,
+                      title: sheetContext.strings.receiptScanTitle,
+                      subtitle: sheetContext.strings.receiptQuickAddHint,
+                      trailing: const PremiumFeatureTag(),
+                      onTap: () async {
+                        Navigator.pop(sheetContext);
+                        final result = await openPantryReceiptScanner(context);
+                        if (!mounted || result == null) return;
+                        final shopping = context.read<ShoppingListProvider?>();
+                        if (shopping != null) {
+                          unawaited(
+                            shopping.loadAllLists(
+                              preferredListId: shopping.selectedListId,
+                            ),
+                          );
+                        }
+                        showReceiptSaved(context, result);
                       },
                     ),
                     _quickAddOption(
