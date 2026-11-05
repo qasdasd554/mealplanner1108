@@ -2248,5 +2248,961 @@
       "Arrange on a lined tray, brush with beaten egg and bake for 15–20 minutes until golden. Divide into servings."
     ],
     "suggested_seasonings": []
+  },
+  "Tosty żytnie z ricottą i malinami": {
+    "name": "Rye toast with ricotta and raspberries",
+    "description": "Creamy ricotta and fresh raspberries on warm toast.",
+    "instructions": [
+      "Toast the flaked almonds in a dry pan and toast the bread.",
+      "Spread the ricotta on the toast, add the raspberries and scatter over the almonds."
+    ],
+    "suggested_seasonings": []
+  },
+  "Muffiny jajeczne ze szpinakiem i cheddarem": {
+    "name": "Spinach and Cheddar egg muffins",
+    "description": "Small savoury muffins for a breakfast on the go.",
+    "instructions": [
+      "Heat the oven to 180°C. Wilt the spinach in a pan, squeeze dry and chop.",
+      "Beat the eggs with the milk and stir in the spinach and grated Cheddar.",
+      "Oil 4 muffin holes, divide the mixture between them and bake for 16–18 minutes until set."
+    ],
+    "suggested_seasonings": []
+  },
+  "Komosa na mleku z borówkami i kokosem": {
+    "name": "Blueberry and coconut breakfast quinoa",
+    "description": "Creamy warm quinoa with toasted coconut.",
+    "instructions": [
+      "Rinse the quinoa, add the milk and simmer gently for 15–18 minutes, stirring towards the end.",
+      "Toast the coconut in a dry pan. Top the cooked quinoa with the blueberries, honey and coconut."
+    ],
+    "suggested_seasonings": []
+  },
+  "Grzanki z pastą fasolową i pieczarkami": {
+    "name": "Rye toast with white beans and mushrooms",
+    "description": "Crunchy toast with creamy beans and browned mushrooms.",
+    "instructions": [
+      "Slice the mushrooms and fry in half the oil until golden.",
+      "Rinse the drained beans, warm with the remaining oil and garlic, then mash.",
+      "Toast the bread, spread with the beans and top with the mushrooms."
+    ],
+    "suggested_seasonings": []
+  },
+  "Patelnia z batatem, szpinakiem i jajkami": {
+    "name": "Sweet potato and spinach breakfast hash",
+    "description": "Golden sweet potato cubes and eggs cooked in one pan.",
+    "instructions": [
+      "Dice the sweet potatoes and chop the onion. Fry in the oil with the paprika for 12–15 minutes until tender.",
+      "Stir in the spinach. Once wilted, make wells, crack in the eggs and cover until the whites are set."
+    ],
+    "suggested_seasonings": []
+  },
+  "Kokosowy pudding chia z mango": {
+    "name": "Coconut chia pudding with mango",
+    "description": "A make-ahead breakfast topped with ripe mango. Chill for at least 4 hours.",
+    "instructions": [
+      "Mix the chia with the coconut milk and yoghurt. Stir again after 10 minutes.",
+      "Divide between bowls and chill for at least 4 hours. Top with diced mango just before serving."
+    ],
+    "suggested_seasonings": []
+  },
+  "Placuszki gryczane z tartym jabłkiem": {
+    "name": "Buckwheat and grated apple pancakes",
+    "description": "Tender pancakes with grated apple folded into the batter.",
+    "instructions": [
+      "Whisk the egg, milk, flour and baking powder. Grate the apple and fold it into the batter.",
+      "Drop spoonfuls into an oiled frying pan and cook on both sides until cooked through.",
+      "Serve with the yoghurt."
+    ],
+    "suggested_seasonings": []
+  },
+  "Frittata ziemniaczana z wędzonym łososiem": {
+    "name": "Smoked salmon and potato frittata",
+    "description": "Oven-baked eggs with tender potatoes and smoked salmon.",
+    "instructions": [
+      "Boil the thinly sliced potatoes until tender, drain and layer in an oiled oven dish.",
+      "Beat the eggs with the milk, add pieces of salmon and chopped chives, then pour over the potatoes.",
+      "Bake at 190°C for 15–18 minutes until the centre is set."
+    ],
+    "suggested_seasonings": []
+  },
+  "Nocna komosa z malinami i masłem orzechowym": {
+    "name": "Overnight quinoa with raspberries and peanut butter",
+    "description": "Chilled quinoa with fork-crushed raspberries. Chill overnight.",
+    "instructions": [
+      "Rinse the quinoa and cook in water according to the packet. Cool promptly.",
+      "Stir the peanut butter into the yoghurt, then add the quinoa and crushed raspberries. Cover and refrigerate overnight."
+    ],
+    "suggested_seasonings": []
+  },
+  "Tosty francuskie z żytniego chleba z gruszką": {
+    "name": "Rye French toast with pears",
+    "description": "Wholemeal French toast with soft pan-cooked pears.",
+    "instructions": [
+      "Cut the pears into wedges and fry in half the butter until tender.",
+      "Beat the eggs with the milk and dip the bread in the mixture. Fry in the remaining butter until golden and set.",
+      "Serve with the pears and yoghurt."
+    ],
+    "suggested_seasonings": []
+  },
+  "Łosoś z pieczonymi ziemniakami i brokułem": {
+    "name": "Salmon, potato and broccoli traybake",
+    "description": "A complete supper from one tray, finished with lemon.",
+    "instructions": [
+      "Cut the potatoes into wedges, toss with half the oil and roast for 18 minutes at 210°C.",
+      "Add the broccoli florets and salmon, drizzle with the remaining oil and roast for 12–14 minutes until the fish is opaque and flakes easily.",
+      "Serve with lemon wedges."
+    ],
+    "suggested_seasonings": []
+  },
+  "Papryki nadziewane indykiem i ryżem": {
+    "name": "Turkey and rice stuffed peppers",
+    "description": "Roast pepper halves with a tomato, rice and turkey filling.",
+    "instructions": [
+      "Cook the rice. Halve and deseed the peppers and roast for 12 minutes at 200°C.",
+      "Fry the onion and turkey in the oil. When the turkey is no longer pink, stir in the tomatoes and rice.",
+      "Fill the peppers and bake for another 12–15 minutes until piping hot in the centre and the turkey is cooked through."
+    ],
+    "suggested_seasonings": []
+  },
+  "Dorsz w pomidorowej potrawce z białą fasolą": {
+    "name": "Cod and white bean tomato stew",
+    "description": "Flaky cod simmered in a chunky bean and tomato stew.",
+    "instructions": [
+      "Soften the onion and garlic in the oil. Add the tomatoes and drained beans and simmer for 12 minutes.",
+      "Nestle in the cod portions, cover and simmer gently for 8–10 minutes until opaque and flaky.",
+      "Finish with chopped parsley."
+    ],
+    "suggested_seasonings": []
+  },
+  "Komosa z krewetkami, cukinią i limonką": {
+    "name": "Prawn, courgette and lime quinoa",
+    "description": "Quinoa with browned courgette and a squeeze of lime.",
+    "instructions": [
+      "Cook the quinoa. Defrost the prawns according to the packet and pat dry.",
+      "Fry the courgette in oil. Add the chopped garlic and prawns and cook until the prawns are opaque and cooked through.",
+      "Toss with the quinoa and lime juice."
+    ],
+    "suggested_seasonings": []
+  },
+  "Pulpeciki z indyka na kremowej polencie": {
+    "name": "Turkey meatballs with creamy polenta",
+    "description": "Tomato-braised meatballs served over soft polenta.",
+    "instructions": [
+      "Mix the turkey with the breadcrumbs and oregano, shape into meatballs and brown in some of the oil.",
+      "Soften the onion in the remaining oil, then add the tomatoes and meatballs. Simmer until cooked through.",
+      "Cook the polenta until soft according to the packet and spoon the meatballs and sauce over it."
+    ],
+    "suggested_seasonings": []
+  },
+  "Pęczak z duszoną wołowiną i pieczarkami": {
+    "name": "Braised beef, mushroom and barley bowl",
+    "description": "Pearl barley with tender braised beef and browned mushrooms.",
+    "instructions": [
+      "Brown the beef in batches in the oil. Add onion and carrot and pour in water halfway up the meat.",
+      "Cover and braise gently for about 75–90 minutes until tender. Brown the mushrooms separately and stir them in towards the end.",
+      "Cook the barley and serve with the beef."
+    ],
+    "suggested_seasonings": []
+  },
+  "Zapiekanka z bakłażana i czerwonej soczewicy": {
+    "name": "Aubergine and red lentil bake",
+    "description": "Roasted aubergine layered with lentils and topped with Cheddar.",
+    "instructions": [
+      "Slice the aubergine, brush with some of the oil and roast for 15 minutes at 210°C.",
+      "Soften the onion in the remaining oil. Add the rinsed lentils, tomatoes and water and simmer until tender.",
+      "Layer in an oven dish, sprinkle with Cheddar and bake until browned."
+    ],
+    "suggested_seasonings": []
+  },
+  "Chili z czarnej fasoli i batatów": {
+    "name": "Black bean and sweet potato chilli",
+    "description": "Thick vegetable chilli with a spoonful of cool yoghurt.",
+    "instructions": [
+      "Soften the onion in oil, then stir in the smoked paprika, chilli and diced sweet potatoes.",
+      "Add the tomatoes and a little water. Simmer until tender, adding the drained beans for the last 5 minutes.",
+      "Serve with yoghurt."
+    ],
+    "suggested_seasonings": []
+  },
+  "Cytrynowe risotto z groszkiem i ricottą": {
+    "name": "Lemon, pea and ricotta risotto",
+    "description": "Soft, creamy risotto with peas and lemon zest.",
+    "instructions": [
+      "Soften the onion in oil, add the rice and stir for a minute.",
+      "Add hot stock a ladle at a time, stirring until the rice is tender with a little bite. Add the peas towards the end.",
+      "Take off the heat and stir in the ricotta, lemon zest and a squeeze of juice."
+    ],
+    "suggested_seasonings": []
+  },
+  "Zapiekanka z kurczakiem i porem pod ziemniakami": {
+    "name": "Chicken and leek pie with a sliced potato topping",
+    "description": "Creamy chicken and leeks beneath a golden sliced potato topping.",
+    "instructions": [
+      "Thinly slice the potatoes and boil for 5 minutes.",
+      "Fry the leeks and diced chicken in the butter. Stir in the flour, add the milk and stir until thickened.",
+      "Transfer to an oven dish, top with the potatoes and bake at 200°C until golden and the chicken is cooked through."
+    ],
+    "suggested_seasonings": []
+  },
+  "Łosoś duszony w kokosowych pomidorach z fasolką": {
+    "name": "Coconut and tomato salmon stew with green beans",
+    "description": "Tender salmon in a mellow coconut and tomato sauce.",
+    "instructions": [
+      "Cook the rice. Soften the onion in the oil, then add the tomatoes and coconut milk.",
+      "Add the cut beans and simmer until almost tender. Add large pieces of salmon and simmer until opaque and cooked through.",
+      "Serve with the rice."
+    ],
+    "suggested_seasonings": []
+  },
+  "Pieczone ziemniaki z pieczarkami i cheddarem": {
+    "name": "Jacket potatoes with mushrooms and Cheddar",
+    "description": "Crisp potato skins, browned mushrooms and melted Cheddar.",
+    "instructions": [
+      "Prick the scrubbed potatoes and bake at 210°C until tender, usually 45–55 minutes.",
+      "Fry the mushrooms in the butter. Split the potatoes, fill with the mushrooms and Cheddar and return to the oven until melted.",
+      "Finish with yoghurt and chives."
+    ],
+    "suggested_seasonings": []
+  },
+  "Makaron zapiekany z indykiem i brokułem": {
+    "name": "Turkey and broccoli pasta bake",
+    "description": "Wholewheat pasta with a creamy middle and crisp edges.",
+    "instructions": [
+      "Parboil the pasta, adding the broccoli florets for the last 3 minutes. Brown the pieces of turkey.",
+      "Make a smooth sauce with the butter, flour and milk, then stir in half the Cheddar.",
+      "Combine in a baking dish, top with the rest of the cheese and bake at 200°C until browned and the turkey is cooked through."
+    ],
+    "suggested_seasonings": []
+  },
+  "Zupa z czerwonej soczewicy i wędzonej papryki": {
+    "name": "Smoky red lentil and tomato soup",
+    "description": "A thick red lentil soup with a gentle smoky flavour.",
+    "instructions": [
+      "Fry the onion and carrot in the oil, then stir in the smoked paprika.",
+      "Add the rinsed lentils, tomatoes and stock. Simmer until the lentils break down. Crush some of the carrot if you prefer a thicker soup."
+    ],
+    "suggested_seasonings": []
+  },
+  "Kremowa zupa z kukurydzą, porem i ziemniakami": {
+    "name": "Sweetcorn, leek and potato chowder",
+    "description": "A creamy soup with chunks of potato and sweetcorn kernels.",
+    "instructions": [
+      "Soften the sliced leek in the butter. Add diced potatoes and stock and simmer until tender.",
+      "Add the drained sweetcorn and milk. Crush some of the potatoes to thicken the soup and heat through."
+    ],
+    "suggested_seasonings": []
+  },
+  "Biała fasola w pomidorach ze szpinakiem": {
+    "name": "Tomato, spinach and white bean skillet",
+    "description": "Tomato-braised beans with rye toast for the sauce.",
+    "instructions": [
+      "Briefly fry the garlic in the oil. Add the tomatoes and simmer for 10 minutes.",
+      "Add the drained beans and spinach and cook until the spinach wilts and the beans are hot. Serve with toasted rye."
+    ],
+    "suggested_seasonings": []
+  },
+  "Frittata z krewetkami i zielonym groszkiem": {
+    "name": "Prawn and pea frittata",
+    "description": "A savoury frittata with peas and chives.",
+    "instructions": [
+      "Defrost the prawns as directed on the packet, pat dry and fry in oil. Add the peas and heat briefly.",
+      "Pour in the eggs beaten with milk and chives. Bake in the ovenproof pan at 190°C until the eggs are set and the prawns are cooked through."
+    ],
+    "suggested_seasonings": []
+  },
+  "Wrap z halloumi i pieczoną papryką": {
+    "name": "Halloumi and roast pepper wrap",
+    "description": "A warm wrap with golden halloumi and sweet roast peppers.",
+    "instructions": [
+      "Slice the peppers, drizzle with oil and roast at 220°C until tender.",
+      "Fry the halloumi slices in a dry pan. Stir a little lemon juice into the yoghurt.",
+      "Spread the yoghurt over the warm tortillas, add the spinach, peppers and halloumi, and roll tightly."
+    ],
+    "suggested_seasonings": []
+  },
+  "Sałatka ziemniaczana z wędzonym łososiem i jabłkiem": {
+    "name": "Smoked salmon, apple and potato salad",
+    "description": "Crunchy apple lifts a creamy smoked salmon and potato salad.",
+    "instructions": [
+      "Boil the potato chunks, drain and cool slightly.",
+      "Mix the yoghurt with the mustard. Toss with the potatoes, thin apple slices, pieces of salmon and chives."
+    ],
+    "suggested_seasonings": []
+  },
+  "Sałatka z pieczonych buraków, pomarańczy i orzechów": {
+    "name": "Roast beetroot, orange and walnut salad",
+    "description": "Roast beetroot with juicy oranges and toasted walnuts.",
+    "instructions": [
+      "Peel the beetroot, cut into wedges and roast at 200°C with half the oil until tender.",
+      "Weigh 260 g of peeled orange and separate into segments. Toast the walnuts in a dry pan.",
+      "Arrange over spinach and dress with the remaining oil and vinegar."
+    ],
+    "suggested_seasonings": []
+  },
+  "Cytrynowy makaron z białą fasolą i szpinakiem": {
+    "name": "Lemon, white bean and spinach pasta",
+    "description": "A light lemon and olive oil sauce coats the pasta and beans.",
+    "instructions": [
+      "Cook the pasta and save a little of the cooking water.",
+      "Briefly fry the garlic in the oil, then add the drained beans, spinach and a splash of pasta water.",
+      "Toss with the pasta, lemon zest and juice to taste."
+    ],
+    "suggested_seasonings": []
+  },
+  "Smażony ryż z wieprzowiną, groszkiem i jajkiem": {
+    "name": "Pork, pea and egg fried rice",
+    "description": "Fried rice with thin strips of pork, peas and little ribbons of egg.",
+    "instructions": [
+      "Cook and drain the rice well. Beat the eggs, fry into a thin omelette and slice.",
+      "Stir-fry the thin pork strips in the remaining oil until cooked through. Add the peas, rice, omelette and soy sauce and toss until hot."
+    ],
+    "suggested_seasonings": []
+  },
+  "Grillowana polenta z pomidorkami i fetą": {
+    "name": "Griddled polenta with cherry tomatoes and feta",
+    "description": "Golden slices of polenta with blistered tomatoes and crumbled feta. Allow the polenta to set before griddling.",
+    "instructions": [
+      "Cook the polenta according to the packet, spread in a shallow dish and leave to set.",
+      "Slice and griddle in some of the oil. Fry the tomatoes in the remaining oil until the skins split.",
+      "Top the polenta with the tomatoes, feta and basil."
+    ],
+    "suggested_seasonings": []
+  },
+  "Pieczony kalafior z ciecierzycą i tahini": {
+    "name": "Roasted cauliflower and chickpeas with tahini",
+    "description": "Roast cauliflower and chickpeas with a lemon and sesame dressing.",
+    "instructions": [
+      "Break the cauliflower into florets and pat the drained chickpeas dry.",
+      "Toss with the oil and smoked paprika, spread out on a tray and roast at 210°C until golden.",
+      "Mix the tahini with lemon juice and water and drizzle over the roast vegetables."
+    ],
+    "suggested_seasonings": []
+  },
+  "Sałatka z kurczakiem, fasolką i musztardą": {
+    "name": "Chicken, green bean and mustard potato salad",
+    "description": "A warm potato salad with green beans and wholegrain mustard.",
+    "instructions": [
+      "Boil the potatoes and beans until tender. Slice the chicken and fry in some of the oil until cooked through.",
+      "Whisk the mustard, remaining oil and lemon juice. Toss with the vegetables and chicken."
+    ],
+    "suggested_seasonings": []
+  },
+  "Makaron w sosie z groszku z pieczonym brokułem": {
+    "name": "Pasta with pea sauce and roasted broccoli",
+    "description": "Smooth pea sauce with crisp-edged roasted broccoli.",
+    "instructions": [
+      "Toss the florets with the oil and roast at 210°C for 18–22 minutes. Cook the pasta, saving a little water.",
+      "Cook the peas and blend with the yoghurt, a squeeze of lemon and some pasta water.",
+      "Toss the pasta with the sauce and top with the broccoli."
+    ],
+    "suggested_seasonings": []
+  },
+  "Tosty z białą fasolą i roztopionym cheddarem": {
+    "name": "White bean and Cheddar toastie",
+    "description": "A toasted sandwich with mashed beans, mustard and melted Cheddar.",
+    "instructions": [
+      "Mash the drained beans with the mustard. Sandwich the beans and cheese between the bread slices.",
+      "Butter the outside and toast in a pan on both sides until golden and the cheese melts."
+    ],
+    "suggested_seasonings": []
+  },
+  "Łódeczki z sałaty z indykiem i kapustą": {
+    "name": "Turkey and cabbage lettuce cups",
+    "description": "Crisp lettuce leaves filled with warm turkey and cabbage.",
+    "instructions": [
+      "Separate and wash the large lettuce leaves. Shred the cabbage and grate the carrot and ginger.",
+      "Fry the turkey in the oil, then add the cabbage, carrot, ginger and soy sauce. Cook the turkey through.",
+      "Spoon the filling into the lettuce just before eating."
+    ],
+    "suggested_seasonings": []
+  },
+  "Kakaowe kulki z daktyli i kokosa": {
+    "name": "Cocoa, date and coconut bites",
+    "description": "Small cocoa bites sweetened with dates.",
+    "instructions": [
+      "If the dates are firm, soak in hot water for a few minutes and drain.",
+      "Blend with the cocoa, peanut butter and half the coconut. Roll into 12 balls, coat with the remaining coconut and chill."
+    ],
+    "suggested_seasonings": []
+  },
+  "Pieczona ricotta ze śliwkami": {
+    "name": "Baked ricotta with roast plums",
+    "description": "Warm baked ricotta with roast plums and their juices.",
+    "instructions": [
+      "Mix the ricotta, egg, almond flour and half the honey and divide between two ramekins.",
+      "Halve and stone the plums, set them alongside the ramekins on a tray and drizzle with the remaining honey.",
+      "Bake at 180°C until the ricotta is set and the plums are soft. Serve together."
+    ],
+    "suggested_seasonings": []
+  },
+  "Jogurt kakaowy z gruszką i orzechami": {
+    "name": "Cocoa yoghurt with pear and walnuts",
+    "description": "Thick cocoa yoghurt with juicy pear and walnuts.",
+    "instructions": [
+      "Mix the cocoa with a little yoghurt until smooth, then stir in the remaining yoghurt and honey.",
+      "Spoon into glasses and top with diced pear and chopped walnuts."
+    ],
+    "suggested_seasonings": []
+  },
+  "Ciasto z polenty i malin": {
+    "name": "Raspberry polenta cake",
+    "description": "A moist, slightly grainy cake with tart raspberries.",
+    "instructions": [
+      "Cream the softened butter and sugar and beat in the eggs one at a time.",
+      "Stir in the polenta, almond flour and baking powder, then gently fold in the raspberries.",
+      "Spoon into a small lined tin and bake at 175°C for 30–35 minutes, until a skewer comes out without wet batter."
+    ],
+    "suggested_seasonings": []
+  },
+  "Czekoladowy krem z ricotty i malin": {
+    "name": "Chocolate ricotta mousse with raspberries",
+    "description": "A thick chocolate cream topped with fresh raspberries. Chill before serving.",
+    "instructions": [
+      "Melt the chocolate over a pan of hot water and cool slightly.",
+      "Blend the ricotta with the milk and then the chocolate. Spoon into dishes, chill and top with raspberries."
+    ],
+    "suggested_seasonings": []
+  },
+  "Owsiane kostki kakaowe z gruszką": {
+    "name": "Pear and cocoa oat squares",
+    "description": "Soft oat squares with cocoa and chunks of pear.",
+    "instructions": [
+      "Whisk the eggs with the milk and honey, then stir in the oats, cocoa and baking powder.",
+      "Fold in the diced pear, spread in a small tin and bake at 180°C until set. Cool before cutting."
+    ],
+    "suggested_seasonings": []
+  },
+  "Pieczone śliwki z chrupiącą żytnią posypką": {
+    "name": "Roast plums with rye crumbs",
+    "description": "Oven-roasted plums finished with toasted rye crumbs.",
+    "instructions": [
+      "Halve and stone the plums, drizzle with honey and roast at 190°C until soft.",
+      "Crumble the bread and fry in butter until crisp. Serve the plums with yoghurt and the crumbs."
+    ],
+    "suggested_seasonings": []
+  },
+  "Skyr z rozgniecionymi borówkami i kokosem": {
+    "name": "Skyr with crushed blueberries and toasted coconut",
+    "description": "Crushed blueberries swirled through chilled skyr with toasted coconut.",
+    "instructions": [
+      "Toast the coconut in a dry pan and tip onto a plate.",
+      "Crush half the blueberries with a fork and swirl through the skyr. Top with the remaining berries, honey and coconut."
+    ],
+    "suggested_seasonings": []
+  },
+  "Polędwiczka z jabłkami w sosie cydrowym": {
+    "name": "Pork tenderloin with apples and a cider vinegar glaze",
+    "description": "Roast pork tenderloin and soft apples with a tangy pan glaze.",
+    "instructions": [
+      "Sear the pork in the oil on all sides. Transfer to a 200°C oven and cook through.",
+      "In the same pan, fry the onion and apple wedges in butter. Add the cider vinegar and a splash of water, scraping the pan. Simmer briefly to reduce.",
+      "Rest the cooked pork for a few minutes, slice and serve with the apples and glaze."
+    ],
+    "suggested_seasonings": []
+  },
+  "Gołąbki z kapusty pekińskiej z wieprzowiną i imbirem": {
+    "name": "Ginger pork and rice cabbage rolls",
+    "description": "Tender Chinese cabbage rolls braised with ginger and soy.",
+    "instructions": [
+      "Parboil the rice for 6 minutes and drain. Blanch 6 large cabbage leaves and trim the thick ribs.",
+      "Mix the pork with the rice, chopped onion, ginger and half the soy sauce. Divide between the leaves and tuck in the sides.",
+      "Place seam side down, pour in the stock and remaining soy sauce and simmer, covered, for about 25–30 minutes until the pork and rice are cooked through."
+    ],
+    "suggested_seasonings": []
+  },
+  "Waniliowy ryż na mleku z pieczonymi brzoskwiniami": {
+    "name": "Vanilla rice pudding with roast peaches",
+    "description": "Creamy rice pudding topped with warm, lightly caramelised peaches.",
+    "instructions": [
+      "Cut the peaches into wedges and toss with the honey and butter. Roast at 200°C for 15–18 minutes until tender.",
+      "Simmer the rice gently in the milk, stirring often. Stir in the vanilla sugar once the rice is soft.",
+      "Spoon into bowls and top with the peaches and their roasting juices."
+    ],
+    "suggested_seasonings": []
+  },
+  "Zapiekany budyń z komosy z jabłkami i orzechami": {
+    "name": "Baked quinoa and apple custard with walnuts",
+    "description": "Tender apples and cooked quinoa set in a soft vanilla custard.",
+    "instructions": [
+      "Cook the quinoa in water, drain and cool slightly. Thinly slice the apples.",
+      "Beat the eggs with the milk and vanilla sugar. Layer the apples and quinoa in a buttered dish and pour over the custard.",
+      "Bake at 180°C until the centre sets. Serve with roughly chopped toasted walnuts."
+    ],
+    "suggested_seasonings": []
+  },
+  "Kasza gryczana na słodko z jabłkami i ricottą": {
+    "name": "Sweet buckwheat with apples and ricotta",
+    "description": "Warm buckwheat with soft pan-cooked apples.",
+    "instructions": [
+      "Cook the buckwheat according to the packet.",
+      "Fry the apple wedges in butter until tender. Serve over the warm buckwheat with ricotta and honey."
+    ],
+    "suggested_seasonings": []
+  },
+  "Owsianka z pieczoną brzoskwinią i migdałami": {
+    "name": "Porridge with roast peaches and almonds",
+    "description": "Warm porridge with browned peaches and crisp almonds.",
+    "instructions": [
+      "Slice the peaches, drizzle with honey and roast at 200°C until soft.",
+      "Cook the oats in the milk, stirring. Serve with the peaches and toasted almonds."
+    ],
+    "suggested_seasonings": []
+  },
+  "Grzanki żytnie z pastą buraczaną i jajkiem": {
+    "name": "Rye toast with beetroot spread and egg",
+    "description": "A pink beetroot spread with sliced egg on crisp rye.",
+    "instructions": [
+      "Dice and boil the beetroot until tender. Hard-boil the eggs in a separate pan.",
+      "Blend the drained beetroot with the yoghurt. Spread over the toast and add sliced eggs and chives."
+    ],
+    "suggested_seasonings": []
+  },
+  "Placuszki z kukurydzy i cheddara": {
+    "name": "Sweetcorn and Cheddar pancakes",
+    "description": "Savoury pancakes with sweetcorn kernels in every bite.",
+    "instructions": [
+      "Whisk the egg, milk and flour. Stir in the drained sweetcorn and grated cheese.",
+      "Fry small pancakes in the oil until golden and cooked through on both sides. Serve with yoghurt."
+    ],
+    "suggested_seasonings": []
+  },
+  "Jaglanka kakaowa z malinami": {
+    "name": "Cocoa millet porridge with raspberries",
+    "description": "Thick millet porridge with dark cocoa and fresh raspberries.",
+    "instructions": [
+      "Rinse the millet in a sieve with hot water. Simmer gently in the milk until tender.",
+      "Mix the cocoa into a spoonful of hot porridge, stir it back in with the honey and serve with raspberries."
+    ],
+    "suggested_seasonings": []
+  },
+  "Jajka zapiekane z pieczarkami w kokilkach": {
+    "name": "Baked eggs with mushrooms in ramekins",
+    "description": "Golden mushrooms under baked eggs, with toast for dipping.",
+    "instructions": [
+      "Fry the mushrooms in butter, let the liquid evaporate and stir in the cream.",
+      "Divide between ramekins, crack in the eggs and bake at 180°C until the whites are set. Serve with toast."
+    ],
+    "suggested_seasonings": []
+  },
+  "Skyr z gruszką i granolą z patelni": {
+    "name": "Skyr with pear and stovetop granola",
+    "description": "Chilled skyr with pear and quick toasted granola.",
+    "instructions": [
+      "Toast the oats and chopped hazelnuts in a dry pan. Stir in the honey, spread on a plate and cool.",
+      "Dice the pear and spoon over the skyr. Scatter over the granola just before serving."
+    ],
+    "suggested_seasonings": []
+  },
+  "Koktajl bananowy z daktylami i płatkami": {
+    "name": "Banana, date and oat shake",
+    "description": "A thick breakfast shake sweetened with dates.",
+    "instructions": [
+      "Stone the dates, soak briefly in warm water and drain.",
+      "Blend with the bananas, oats and cold milk. Let it stand briefly if you prefer a thicker shake."
+    ],
+    "suggested_seasonings": []
+  },
+  "Jajecznica ze szpinakiem i fetą": {
+    "name": "Spinach and feta scrambled eggs",
+    "description": "Soft scrambled eggs with pockets of feta and rye toast.",
+    "instructions": [
+      "Wilt the spinach in half the butter. Add beaten eggs and stir over low heat.",
+      "Fold in crumbled feta and the remaining butter towards the end. Serve with toasted rye."
+    ],
+    "suggested_seasonings": []
+  },
+  "Cienkie naleśniki z ricottą i mango": {
+    "name": "Ricotta and mango crêpes",
+    "description": "Thin crêpes with creamy ricotta and ripe mango.",
+    "instructions": [
+      "Whisk the milk, flour and egg. Cook thin crêpes in a lightly oiled pan.",
+      "Spread with ricotta, top with diced mango and fold."
+    ],
+    "suggested_seasonings": []
+  },
+  "Paprykarz ze schabu z czerwoną papryką": {
+    "name": "Pork and red pepper paprikash",
+    "description": "Pork strips in a creamy paprika sauce, served with pearl barley.",
+    "instructions": [
+      "Cook the barley. Fry the onion and strips of pork in the oil.",
+      "Add the sliced pepper, paprika and a splash of water. Simmer until the vegetables are tender and the pork is cooked through.",
+      "Stir a little hot sauce into the soured cream, then stir it into the pan off the heat. Serve with the barley."
+    ],
+    "suggested_seasonings": []
+  },
+  "Dorsz na polencie z pieczoną papryką": {
+    "name": "Cod with soft polenta and roast peppers",
+    "description": "Pan-fried cod over soft polenta with sweet roast peppers.",
+    "instructions": [
+      "Slice the peppers, drizzle with half the oil and roast at 210°C until tender.",
+      "Cook the polenta according to the packet. Fry the cod in the remaining oil until opaque and flaky.",
+      "Arrange the fish and peppers over the polenta. Add parsley and a squeeze of lemon."
+    ],
+    "suggested_seasonings": []
+  },
+  "Kurczak pieczony z brzoskwinią i czerwoną cebulą": {
+    "name": "Roast chicken with peaches and red onion",
+    "description": "Peaches and red onion roast with the chicken to make a light pan sauce.",
+    "instructions": [
+      "Cook the barley. Cut the peaches and onion into wedges and arrange on a tray with the chicken. Drizzle with oil and vinegar.",
+      "Roast at 200°C until the chicken is cooked through. Slice and serve with the barley and pan juices."
+    ],
+    "suggested_seasonings": []
+  },
+  "Pieczeń z indyka i tartego jabłka": {
+    "name": "Turkey and apple meatloaf",
+    "description": "Juicy turkey meatloaf with grated apple, served in thick slices.",
+    "instructions": [
+      "Grate the apple and squeeze out excess juice. Mix with turkey, breadcrumbs and egg.",
+      "Shape into a small loaf, drizzle with oil and bake at 190°C until cooked through. Rest before slicing.",
+      "Boil the potatoes and green beans and serve with the meatloaf."
+    ],
+    "suggested_seasonings": []
+  },
+  "Zapiekanka ryżowa z mięsem mielonym i bakłażanem": {
+    "name": "Pork and beef rice bake with aubergine",
+    "description": "Layered rice, roasted aubergine and a savoury meat sauce.",
+    "instructions": [
+      "Cook the rice. Brush the aubergine slices with half the oil and roast at 210°C until browned.",
+      "Fry the onion and pork and beef mince in the remaining oil. Add tomatoes and oregano and simmer until thickened.",
+      "Layer the rice, sauce and aubergine in a dish. Bake at 190°C until piping hot in the centre and the mince is cooked through."
+    ],
+    "suggested_seasonings": []
+  },
+  "Kotlety ziemniaczane z łososiem": {
+    "name": "Salmon and potato fishcakes",
+    "description": "Golden fishcakes with flakes of salmon and a lemon yoghurt dip.",
+    "instructions": [
+      "Boil and drain the potatoes, then let them steam dry and mash. Bake the salmon at 190°C until cooked through and flake it.",
+      "Mix the salmon with the potato and egg. Shape, coat with breadcrumbs and fry on both sides until cooked through.",
+      "Stir lemon juice into the yoghurt and serve with the fishcakes."
+    ],
+    "suggested_seasonings": []
+  },
+  "Kotlety z czerwonej soczewicy i marchewki": {
+    "name": "Red lentil and carrot patties with tahini",
+    "description": "Baked lentil patties with a soft centre and lemon tahini dressing.",
+    "instructions": [
+      "Cook the lentils and drain well. Grate the carrot and fry with the onion in some of the oil.",
+      "Mix with the lentils and oats, shape into patties and brush with the remaining oil. Bake at 200°C until golden, turning halfway.",
+      "Mix the tahini with lemon juice and water. Serve with the patties."
+    ],
+    "suggested_seasonings": []
+  },
+  "Lasagne z porem, szpinakiem i ricottą": {
+    "name": "Leek, spinach and ricotta lasagne",
+    "description": "Soft leeks and ricotta in a lasagne with a golden cheese top.",
+    "instructions": [
+      "Soften the sliced leeks in some of the butter, add the spinach and let excess liquid evaporate. Stir in the ricotta.",
+      "Make a sauce with the remaining butter, flour and milk. Layer the filling and sauce with the sheets, following the packet for any pre-cooking.",
+      "Scatter over the Cheddar and bake at 190°C until the pasta is tender."
+    ],
+    "suggested_seasonings": []
+  },
+  "Orzo w pomidorach z krewetkami": {
+    "name": "Tomato orzo with prawns",
+    "description": "Small pasta shapes in a thick tomato sauce with prawns.",
+    "instructions": [
+      "Defrost the prawns as directed on the packet. Cook and drain the orzo.",
+      "Fry the garlic in oil, add the tomatoes and reduce. Add the prawns and cook until opaque and cooked through.",
+      "Toss with the orzo and torn basil."
+    ],
+    "suggested_seasonings": []
+  },
+  "Zapiekany kalafior z kurczakiem i cheddarem": {
+    "name": "Chicken and cauliflower cheese bake",
+    "description": "Creamy cauliflower and chicken under a golden Cheddar crust.",
+    "instructions": [
+      "Parboil and drain the cauliflower. Dice the chicken and brown it in some of the butter.",
+      "Make a sauce with the remaining butter, flour and milk and add half the cheese.",
+      "Arrange the cauliflower and chicken in a dish, pour over the sauce and add the remaining cheese. Bake at 200°C until golden and the chicken is cooked through."
+    ],
+    "suggested_seasonings": []
+  },
+  "Schab pieczony ze śliwkami i pęczakiem": {
+    "name": "Roast pork loin with plums and pearl barley",
+    "description": "Roast plums give the pan juices a sweet, tart finish.",
+    "instructions": [
+      "Cook the barley. Brown the pork in the oil and transfer to a small roasting dish.",
+      "Add onion wedges and stoned plums tossed with the vinegar. Roast at 200°C until the pork is cooked through.",
+      "Rest the pork briefly, slice and serve with the barley, plums and pan juices."
+    ],
+    "suggested_seasonings": []
+  },
+  "Strogonow z indyka i pieczarek": {
+    "name": "Turkey and mushroom stroganoff",
+    "description": "Turkey and browned mushrooms in a creamy sauce over buckwheat.",
+    "instructions": [
+      "Cook the buckwheat. Brown the turkey in some of the oil and set aside.",
+      "Fry the onion and mushrooms in the remaining oil. Add the turkey, mustard and a splash of water. Simmer until the turkey is cooked through.",
+      "Take off the heat, stir in the soured cream and serve over the buckwheat."
+    ],
+    "suggested_seasonings": []
+  },
+  "Brytyjska zapiekanka z dorszem i groszkiem": {
+    "name": "Cod and pea fish pie",
+    "description": "Cod and peas in a white sauce beneath golden mash.",
+    "instructions": [
+      "Boil the potatoes and mash with some of the milk and butter.",
+      "Make a sauce with the remaining butter, flour and milk. Add the diced cod and peas and transfer to an oven dish.",
+      "Cover with mash, roughen the top with a fork and bake at 200°C until golden and the fish is cooked through."
+    ],
+    "suggested_seasonings": []
+  },
+  "Kieszonki francuskie z soczewicą i szpinakiem": {
+    "name": "Puff pastry pockets with lentils and spinach",
+    "description": "Crisp pastry pockets with a thick, gently smoky filling.",
+    "instructions": [
+      "Cook the lentils and drain thoroughly. Fry the onion and spinach in oil and evaporate excess liquid. Add the lentils and paprika and cool.",
+      "Cut the pastry into squares, fill, fold, seal the edges and brush with beaten egg.",
+      "Bake at 200°C until the pastry is golden and the filling is piping hot."
+    ],
+    "suggested_seasonings": []
+  },
+  "Kokosowy ryż z kukurydzą, limonką i tofu": {
+    "name": "Coconut, lime and sweetcorn rice with tofu",
+    "description": "Coconut rice with sweetcorn and smoked paprika baked tofu.",
+    "instructions": [
+      "Pat the tofu dry, cube it and toss in the oil and paprika. Roast at 210°C until golden.",
+      "Cook the rice in the coconut milk and water. Add the drained sweetcorn towards the end.",
+      "Finish with lime juice and zest and serve with the tofu."
+    ],
+    "suggested_seasonings": []
+  },
+  "Zupa buraczana z porem i jogurtem": {
+    "name": "Beetroot and leek soup with yoghurt",
+    "description": "A light soup with diced beetroot, leek and a spoonful of yoghurt.",
+    "instructions": [
+      "Finely dice the beetroot and potatoes. Soften the sliced leek in oil.",
+      "Add the beetroot and stock. Once the beetroot starts to soften, add the potatoes and simmer until tender.",
+      "Finish with vinegar and add a spoonful of yoghurt to each bowl."
+    ],
+    "suggested_seasonings": []
+  },
+  "Grzanki z groszkiem, miętą i ricottą": {
+    "name": "Crushed pea, mint and ricotta toast",
+    "description": "Fork-crushed peas on rye toast with mint and soft ricotta.",
+    "instructions": [
+      "Cook and drain the peas. Crush with the oil, mint and a squeeze of lemon.",
+      "Toast the bread, spread with the crushed peas and add spoonfuls of ricotta."
+    ],
+    "suggested_seasonings": []
+  },
+  "Placki z tartych batatów i fety": {
+    "name": "Grated sweet potato and feta fritters",
+    "description": "Crisp edges and a soft sweet potato centre with crumbled feta.",
+    "instructions": [
+      "Grate the sweet potatoes, squeeze out excess moisture and mix with the eggs, flour and feta.",
+      "Fry thin fritters in batches until golden and tender inside. Serve with yoghurt."
+    ],
+    "suggested_seasonings": []
+  },
+  "Zupa z pieczonej papryki i pomidorów z żytnim chlebem": {
+    "name": "Roast pepper and tomato bread soup",
+    "description": "Thick tomato soup with bread that soaks up the roast pepper flavour.",
+    "instructions": [
+      "Slice the pepper, drizzle with half the oil and roast at 220°C until browned at the edges.",
+      "Fry the garlic in the remaining oil, add the tomatoes, pepper and stock and simmer.",
+      "Tear the bread into the pan, heat until softened and add the basil."
+    ],
+    "suggested_seasonings": []
+  },
+  "Papryki nadziewane brokułem, komosą i cheddarem": {
+    "name": "Broccoli, quinoa and Cheddar stuffed peppers",
+    "description": "Roast pepper halves with tender broccoli and melted Cheddar.",
+    "instructions": [
+      "Halve and deseed the peppers. Drizzle with some oil and soften in a 200°C oven.",
+      "Cook the quinoa. Finely chop the broccoli and onion, fry in the remaining oil and mix with the quinoa and half the cheese.",
+      "Fill the pepper halves, top with the remaining Cheddar and bake until browned."
+    ],
+    "suggested_seasonings": []
+  },
+  "Sałatka z pieczonego kalafiora i pęczaku": {
+    "name": "Warm cauliflower and pearl barley salad",
+    "description": "Warm pearl barley with golden cauliflower and lemon yoghurt.",
+    "instructions": [
+      "Cook and drain the barley. Break the cauliflower into florets, toss with oil and roast at 210°C until golden.",
+      "Mix the yoghurt with lemon juice and a little water. Toss with the barley and cauliflower and add chopped parsley."
+    ],
+    "suggested_seasonings": []
+  },
+  "Wrap z wędzonym łososiem i ogórkiem": {
+    "name": "Smoked salmon and cucumber wrap",
+    "description": "A soft wrap with crisp cucumber and lemon yoghurt.",
+    "instructions": [
+      "Slice the cucumber into thin sticks. Mix the yoghurt with a squeeze of lemon and chives.",
+      "Spread the sauce on the wraps, add the salmon and cucumber, roll tightly and cut diagonally."
+    ],
+    "suggested_seasonings": []
+  },
+  "Surówka z kapusty pekińskiej z jabłkiem i orzechami": {
+    "name": "Chinese cabbage, apple and walnut slaw",
+    "description": "Crunchy slaw in a yoghurt dressing, served with rye toast.",
+    "instructions": [
+      "Finely shred the cabbage and cut the apple into matchsticks. Toast the walnuts and the bread.",
+      "Mix the yoghurt with vinegar, toss with the cabbage, apple and nuts and serve with the toast."
+    ],
+    "suggested_seasonings": []
+  },
+  "Zapiekana polenta z pomidorami i szpinakiem": {
+    "name": "Baked tomato and spinach polenta",
+    "description": "Soft polenta beneath baked tomatoes and mozzarella.",
+    "instructions": [
+      "Cook the polenta according to the packet. Fry the garlic in oil and wilt the spinach.",
+      "Spread the polenta in a dish and layer over spinach, sliced tomatoes and torn mozzarella.",
+      "Bake at 200°C until the cheese melts and the top is golden."
+    ],
+    "suggested_seasonings": []
+  },
+  "Grzanki z awokado i krewetkami": {
+    "name": "Avocado and prawn rye toast",
+    "description": "Garlic prawns over creamy avocado and crisp rye bread.",
+    "instructions": [
+      "Defrost the prawns according to the packet and pat dry. Fry in oil with the garlic until cooked through.",
+      "Mash the avocado flesh with lime juice. Spread on toasted rye and top with the prawns."
+    ],
+    "suggested_seasonings": []
+  },
+  "Pieczone cebule nadziewane wieprzowiną i pieczarkami": {
+    "name": "Baked onions stuffed with pork and mushrooms",
+    "description": "Tender onion halves with a browned pork and mushroom filling.",
+    "instructions": [
+      "Halve the peeled onions and parboil until the layers soften. Scoop out and chop the centres.",
+      "Fry the pork, onion centres, mushrooms and carrots in the oil. Add the soy sauce.",
+      "Fill the onion halves and bake at 200°C until the onions are tender and the pork is cooked through."
+    ],
+    "suggested_seasonings": []
+  },
+  "Pieczone krokiety ziemniaczane z kukurydzą i cheddarem": {
+    "name": "Baked potato croquettes with sweetcorn and Cheddar",
+    "description": "A crisp crumb coating around soft potato, cheese and sweetcorn.",
+    "instructions": [
+      "Boil the potatoes, drain, mash and cool. Mix with the Cheddar and drained sweetcorn.",
+      "Shape into short logs, dip in egg, roll in breadcrumbs and drizzle with oil.",
+      "Bake on a tray at 210°C, turning once, until golden and piping hot."
+    ],
+    "suggested_seasonings": []
+  },
+  "Komosa z fasolką szparagową i sosem tahini": {
+    "name": "Quinoa and green bean salad with tahini",
+    "description": "A salad with crisp green beans, red pepper and lemon tahini.",
+    "instructions": [
+      "Cook the quinoa. Boil the cut green beans until just tender, then drain.",
+      "Whisk the tahini with oil, lemon juice and a splash of water. Toss with the quinoa, green beans and sliced pepper."
+    ],
+    "suggested_seasonings": []
+  },
+  "Sałatka z halloumi i pieczonymi śliwkami": {
+    "name": "Warm halloumi and roast plum salad",
+    "description": "Salty halloumi, soft roast plums and fresh spinach.",
+    "instructions": [
+      "Halve and stone the plums, drizzle with oil and vinegar and roast at 200°C until tender.",
+      "Brown the halloumi slices and toast the walnuts in a dry pan. Arrange on spinach with the plums and their juices."
+    ],
+    "suggested_seasonings": []
+  },
+  "Tofu w sezamie z groszkiem i marchewką": {
+    "name": "Sesame tofu with crushed peas and carrots",
+    "description": "Sesame-crusted tofu with crushed peas and carrot ribbons.",
+    "instructions": [
+      "Pat the tofu dry, cut into rectangles and coat in soy sauce and sesame seeds. Brown in some of the oil.",
+      "Boil the peas and crush with a fork and lemon juice. Peel the carrots into ribbons and quickly fry in the remaining oil.",
+      "Serve the tofu with the peas and carrots."
+    ],
+    "suggested_seasonings": []
+  },
+  "Chrupiące grzanki cynamonowe z dipem jogurtowym": {
+    "name": "Cinnamon rye crisps with yoghurt dip",
+    "description": "Thin cinnamon rye strips for dipping into honey yoghurt.",
+    "instructions": [
+      "Cut the bread into strips, brush with melted butter and dust with cinnamon.",
+      "Bake at 180°C until crisp, turning once. Stir the honey into the yoghurt and serve alongside."
+    ],
+    "suggested_seasonings": []
+  },
+  "Muffiny owsiane z jabłkiem i marchewką": {
+    "name": "Apple and carrot oat muffins",
+    "description": "Tender muffins with grated carrot and apple in the batter.",
+    "instructions": [
+      "Grate the apple and carrot. Whisk the eggs with milk, oil and honey.",
+      "Mix with the flour and baking powder and fold in the grated produce. Divide into a tin and bake at 180°C until a skewer comes out without wet batter."
+    ],
+    "suggested_seasonings": []
+  },
+  "Pucharek jogurtowy z pieczoną śliwką i czekoladą": {
+    "name": "Roast plum and dark chocolate yoghurt parfait",
+    "description": "Layers of Greek yoghurt, soft roast plums and grated chocolate.",
+    "instructions": [
+      "Halve and stone the plums and drizzle with honey. Roast at 200°C until tender and cool slightly.",
+      "Layer the yoghurt, plums and grated chocolate in glasses. Spoon over the roasting juices."
+    ],
+    "suggested_seasonings": []
+  },
+  "Cytrynowe ciasto z ricottą": {
+    "name": "Lemon ricotta cake",
+    "description": "A moist ricotta cake with fresh lemon zest.",
+    "instructions": [
+      "Cream the softened butter and sugar, add the eggs one at a time, then stir in the ricotta, zest and a little lemon juice.",
+      "Gently fold in the flour and baking powder. Spoon into a small lined tin and bake at 175°C until a skewer comes out without wet batter.",
+      "Cool before slicing."
+    ],
+    "suggested_seasonings": []
+  },
+  "Mrożone płatki jogurtowe z mango i migdałami": {
+    "name": "Frozen mango and almond yoghurt bark",
+    "description": "A thin sheet of yoghurt to break into frozen shards. Freeze for at least 4 hours.",
+    "instructions": [
+      "Mix the yoghurt with honey and spread thinly over baking paper.",
+      "Scatter over diced mango and flaked almonds. Freeze for at least 4 hours, then break into shards and serve from the freezer."
+    ],
+    "suggested_seasonings": []
+  },
+  "Cytrynowo-makowe ciasteczka owsiane": {
+    "name": "Lemon and poppy seed oat cookies",
+    "description": "Buttery oat cookies with lemon zest and tiny poppy seeds.",
+    "instructions": [
+      "Cream the butter and sugar, then beat in the egg and lemon zest. Mix in the oats, flour and poppy seeds.",
+      "Drop spoonfuls onto a tray and flatten slightly. Bake at 180°C until the edges are golden, then cool on a rack."
+    ],
+    "suggested_seasonings": []
+  },
+  "Clafoutis z gruszkami i malinami": {
+    "name": "Pear and raspberry clafoutis",
+    "description": "Tender fruit baked in a light, set pancake batter.",
+    "instructions": [
+      "Butter a shallow baking dish. Arrange thinly sliced pears and scatter over the raspberries.",
+      "Whisk the eggs, milk, flour and sugar. Pour over the fruit and bake at 180°C until set in the centre and golden at the edges.",
+      "Rest for a few minutes before serving."
+    ],
+    "suggested_seasonings": []
+  },
+  "Czekoladowy pudding z polenty z gruszką": {
+    "name": "Chocolate polenta pudding with pear",
+    "description": "Creamy polenta with dark chocolate and pan-cooked pears.",
+    "instructions": [
+      "Slice the pears and soften them in butter and honey.",
+      "Whisk the polenta into warm milk and cook until tender according to the packet.",
+      "Take off the heat, stir in the chopped chocolate and serve with the pears."
+    ],
+    "suggested_seasonings": []
+  },
+  "Grillowany ananas z miętowym skyrem": {
+    "name": "Griddled pineapple with mint skyr",
+    "description": "Warm slices of pineapple with chilled skyr and fresh mint.",
+    "instructions": [
+      "Slice the peeled pineapple and remove the tough core. Brown on both sides in a hot griddle pan.",
+      "Mix the skyr with chopped mint and a squeeze of lime. Serve with the pineapple and a drizzle of honey."
+    ],
+    "suggested_seasonings": []
+  },
+  "Pieczone babeczki ryżowe z kokosem i borówkami": {
+    "name": "Baked blueberry and coconut rice cups",
+    "description": "Small baked portions of coconut rice with blueberries.",
+    "instructions": [
+      "Cook the rice in coconut milk and water and cool. Mix with the eggs, sugar and coconut.",
+      "Butter a muffin tin, divide the mixture between the holes and press in the blueberries. Bake at 180°C until set.",
+      "Let the cups rest before lifting them out."
+    ],
+    "suggested_seasonings": []
   }
 }

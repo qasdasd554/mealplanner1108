@@ -37,18 +37,22 @@ AUTUMN_RECIPES = [dict(row, ingredients=[
 AUTUMN_RECIPE_NAMES = frozenset(row['name'] for row in AUTUMN_RECIPES)
 
 
-def append_autumn_recipes(existing):
-    """Fail closed on an accidental bundled duplicate, never change old meals."""
+def append_system_recipes(existing, additions):
+    """Reject bundled duplicates by title or ingredients per serving."""
     def fingerprint(row):
-        return tuple(sorted((name.casefold(), str(Decimal(qty) / row['servings']), unit)
+        return tuple(sorted((name.casefold(), Decimal(qty) / row['servings'], unit)
             for name, qty, unit, optional in row['ingredients'] if not optional))
     names = {row['name'].strip().casefold() for row in existing}
     fingerprints = {fingerprint(row) for row in existing}
-    for row in AUTUMN_RECIPES:
+    for row in additions:
         key = row['name'].strip().casefold()
         signature = fingerprint(row)
         if key in names or signature in fingerprints:
-            raise ValueError('Duplicate autumn system recipe: ' + row['name'])
+            raise ValueError('Duplicate system recipe: ' + row['name'])
         names.add(key)
         fingerprints.add(signature)
-    return [*existing, *AUTUMN_RECIPES]
+    return [*existing, *additions]
+
+
+def append_autumn_recipes(existing):
+    return append_system_recipes(existing, AUTUMN_RECIPES)

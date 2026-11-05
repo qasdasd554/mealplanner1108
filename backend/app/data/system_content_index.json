@@ -1001,6 +1001,606 @@
       "description": "Jesienna propozycja: francuskie trójkąty z jabłkiem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
       "en_GB": "Apple puff pastry triangles",
       "detail_sha256": "58add62220bb6d258cd2843bffb6363ac087478a866612cd1a78eae0cb926a76"
+    },
+    "d14fb04d-5be6-5778-81f6-486647aa069d": {
+      "source": "Tosty żytnie z ricottą i malinami",
+      "description": "Ricotta i świeże maliny na ciepłej grzance.",
+      "en_GB": "Rye toast with ricotta and raspberries",
+      "detail_sha256": "81f9ff8f5f0a945e646f6f5afa0ca9daf000ed76c9f4126034b8b675b3ccff74"
+    },
+    "f4852628-3e1d-55cd-abb6-d6a4c972a611": {
+      "source": "Muffiny jajeczne ze szpinakiem i cheddarem",
+      "description": "Małe wytrawne muffiny, które można zabrać na wynos.",
+      "en_GB": "Spinach and Cheddar egg muffins",
+      "detail_sha256": "94d7c9a7b4fe30b36eb57cc29fe7251929abfd63109aaeadb794326fc57adf8a"
+    },
+    "88334e76-4ed6-55b3-bb4a-b9f5e7a14e05": {
+      "source": "Komosa na mleku z borówkami i kokosem",
+      "description": "Kremowa komosa na ciepło z podprażonym kokosem.",
+      "en_GB": "Blueberry and coconut breakfast quinoa",
+      "detail_sha256": "b7d092088a3a38d3a59b7147713a32aad2ad9e05c167dba270605ba2b3acb747"
+    },
+    "d401e1df-068e-5159-b7d6-77796b49972b": {
+      "source": "Grzanki z pastą fasolową i pieczarkami",
+      "description": "Chrupiące grzanki z kremową fasolą i rumianymi pieczarkami.",
+      "en_GB": "Rye toast with white beans and mushrooms",
+      "detail_sha256": "f9abda5af8dfccf9991a0f3260cff5d6ef0172852dec5cf6cb7b97aac3164ac8"
+    },
+    "0bf1caae-bd99-50e1-a7a1-0747ec7d3e84": {
+      "source": "Patelnia z batatem, szpinakiem i jajkami",
+      "description": "Rumiane kostki batata z jajkami z jednej patelni.",
+      "en_GB": "Sweet potato and spinach breakfast hash",
+      "detail_sha256": "df245d51360b7ea3590a6f656786450fd963a4d483c0b2a6b6d13d0b802a1353"
+    },
+    "0f6c539c-5a88-5705-bb4a-c159df5fa83f": {
+      "source": "Kokosowy pudding chia z mango",
+      "description": "Śniadanie do przygotowania wieczorem, z dojrzałym mango. Schładzanie: co najmniej 4 godziny.",
+      "en_GB": "Coconut chia pudding with mango",
+      "detail_sha256": "f34952f41908d90b64fa067feb3004733696866e16daf867d557c59989bcea39"
+    },
+    "f958f8a9-85c9-5b24-aada-a9977f17b24a": {
+      "source": "Placuszki gryczane z tartym jabłkiem",
+      "description": "Miękkie placuszki, w których jabłko trafia prosto do ciasta.",
+      "en_GB": "Buckwheat and grated apple pancakes",
+      "detail_sha256": "cafaa6b8bfa181f0a68a6e9d2ceb4abbdeff2f15337f494d1ce1bb602f2c1626"
+    },
+    "50ee91f8-642e-5e63-987b-71e0dd2f69ca": {
+      "source": "Frittata ziemniaczana z wędzonym łososiem",
+      "description": "Zapiekany omlet z miękkimi ziemniakami i wędzonym łososiem.",
+      "en_GB": "Smoked salmon and potato frittata",
+      "detail_sha256": "60092c3eec72e73c61976f28b4eb84aa5d8630866178c437ad9294d66a19a6d9"
+    },
+    "cf2f2dff-8f02-5ec0-a0d6-a9107826761c": {
+      "source": "Nocna komosa z malinami i masłem orzechowym",
+      "description": "Komosa na zimno z malinami rozgniecionymi widelcem. Schładzanie: przez noc.",
+      "en_GB": "Overnight quinoa with raspberries and peanut butter",
+      "detail_sha256": "9de8390dbaf2af7cf310e2655aa19154fee91dbb46a559cdcf487c534715b95d"
+    },
+    "766ff235-910b-56ab-875e-b24fd1866ccc": {
+      "source": "Tosty francuskie z żytniego chleba z gruszką",
+      "description": "Pełnoziarniste tosty z miękką gruszką z patelni.",
+      "en_GB": "Rye French toast with pears",
+      "detail_sha256": "7366a623ecacbd95a8c442faa234237859e599d35d58dc9c3653cd043393e086"
+    },
+    "fe81f2f2-5b97-5dc6-9ac7-af31929228ec": {
+      "source": "Łosoś z pieczonymi ziemniakami i brokułem",
+      "description": "Cały obiad z jednej blachy z cytryną do skropienia.",
+      "en_GB": "Salmon, potato and broccoli traybake",
+      "detail_sha256": "1dca4e24789f5df4cddecf619c161a5787bef632bd72226d5f266cf8a399a2fb"
+    },
+    "ce73246d-dba6-5921-8aad-e5ab85a51e85": {
+      "source": "Papryki nadziewane indykiem i ryżem",
+      "description": "Pieczone połówki papryki z pomidorowym farszem.",
+      "en_GB": "Turkey and rice stuffed peppers",
+      "detail_sha256": "114f8e524fe307e289465001d9ea9220fc6d821e4f3fce7e2cff4877953cd441"
+    },
+    "d089a624-5b2c-5181-b83d-1f6d9cbb7ec1": {
+      "source": "Polędwiczka z jabłkami w sosie cydrowym",
+      "description": "Pieczona polędwiczka i miękkie jabłka w lekko kwaśnym sosie z patelni.",
+      "en_GB": "Pork tenderloin with apples and a cider vinegar glaze",
+      "detail_sha256": "50e80c763a872c9421b71ddfc059a30bbaa703c977161c256e3d211768eb0e77"
+    },
+    "4cc0f98d-3620-5bbb-996a-075cee3ab328": {
+      "source": "Dorsz w pomidorowej potrawce z białą fasolą",
+      "description": "Dorsz duszony w gęstej potrawce z fasoli i pomidorów.",
+      "en_GB": "Cod and white bean tomato stew",
+      "detail_sha256": "68518f4706a5b5629959c80a5b5840df1058ad201a8a0318663a60fc10d0703d"
+    },
+    "93fa1485-f325-53ba-a725-3e271186962a": {
+      "source": "Komosa z krewetkami, cukinią i limonką",
+      "description": "Komosa z rumianą cukinią i świeżą limonką.",
+      "en_GB": "Prawn, courgette and lime quinoa",
+      "detail_sha256": "e54a204a44d052623cd592c2e4d7dde9bfb6779b70f8e6b1b558b303ff87e5cd"
+    },
+    "04a9d01f-2bf2-5deb-9747-5737690110ff": {
+      "source": "Pulpeciki z indyka na kremowej polencie",
+      "description": "Pulpeciki w sosie pomidorowym podane na miękkiej polencie.",
+      "en_GB": "Turkey meatballs with creamy polenta",
+      "detail_sha256": "cac43fc79198e47d25ff1bfe43e91e5cdbd60331c6eae61632cf51c1acaed97e"
+    },
+    "980683f9-ad98-54c8-8c3e-612e29087423": {
+      "source": "Pęczak z duszoną wołowiną i pieczarkami",
+      "description": "Pęczak z miękką wołowiną i zrumienionymi pieczarkami.",
+      "en_GB": "Braised beef, mushroom and barley bowl",
+      "detail_sha256": "829c4423774deaaf04e33eac8e46b62b5961f68047507afdb69ebe443d0ec871"
+    },
+    "a45c90ce-e665-51f1-b928-8de2ed36724a": {
+      "source": "Zapiekanka z bakłażana i czerwonej soczewicy",
+      "description": "Warstwy pieczonego bakłażana i soczewicy pod cheddarem.",
+      "en_GB": "Aubergine and red lentil bake",
+      "detail_sha256": "c138285f92728320e41fdea5275aa460b4fcfdd1e9b17e862c948f8356ee3f27"
+    },
+    "d0162b56-1f62-53a7-a551-cbf8cd74745d": {
+      "source": "Chili z czarnej fasoli i batatów",
+      "description": "Gęste warzywne chili z łyżką chłodnego jogurtu.",
+      "en_GB": "Black bean and sweet potato chilli",
+      "detail_sha256": "e522f779c7921758e959ff10347d908a211ed78947b9c570f6b3705cfaba43b1"
+    },
+    "a1efd1f4-3fbe-5b3f-980c-b8ecebb8e359": {
+      "source": "Cytrynowe risotto z groszkiem i ricottą",
+      "description": "Kremowe risotto z zielonym groszkiem i skórką cytrynową.",
+      "en_GB": "Lemon, pea and ricotta risotto",
+      "detail_sha256": "1aa185e4e11b46e9b9cbf48262ca7aa9538ab95ff7d7af66f6c76110879d2dc6"
+    },
+    "7e354371-5417-5bdc-ad52-af7cc723d547": {
+      "source": "Zapiekanka z kurczakiem i porem pod ziemniakami",
+      "description": "Kremowe nadzienie z pora i kurczaka pod rumianymi plasterkami ziemniaków.",
+      "en_GB": "Chicken and leek pie with a sliced potato topping",
+      "detail_sha256": "59f79f22ec9d75177b6de5a2067375a053411b7ccbeaa10af60295c69f942be2"
+    },
+    "4722fce6-86fe-5f8b-b0a1-83b472472e26": {
+      "source": "Łosoś duszony w kokosowych pomidorach z fasolką",
+      "description": "Delikatny łosoś w pomidorach złagodzonych mlekiem kokosowym.",
+      "en_GB": "Coconut and tomato salmon stew with green beans",
+      "detail_sha256": "af3f8373d6bd65462e62221328282a30c9c7fffe6a038812a7a3b4f2edfc3c1b"
+    },
+    "a8ebd7f7-c731-5180-aa9d-5036e611e7ff": {
+      "source": "Pieczone ziemniaki z pieczarkami i cheddarem",
+      "description": "Chrupiąca skórka, rumiane pieczarki i roztopiony cheddar.",
+      "en_GB": "Jacket potatoes with mushrooms and Cheddar",
+      "detail_sha256": "204c43d2cb6d3fed65998b1e347ede2659a3a60352bfc3d7f4e6898348755d69"
+    },
+    "3eb50a5b-07d5-537a-bab4-3a9d29fc89f1": {
+      "source": "Gołąbki z kapusty pekińskiej z wieprzowiną i imbirem",
+      "description": "Delikatne gołąbki z kapusty pekińskiej duszone z sosem sojowym.",
+      "en_GB": "Ginger pork and rice cabbage rolls",
+      "detail_sha256": "a1f7893ae09bbf02c905e90002cb3a7e0d0b6121e0ead81bfd6ca85a9bc6be07"
+    },
+    "e5ea11bc-0eba-5f08-b17e-1595d2231f4d": {
+      "source": "Makaron zapiekany z indykiem i brokułem",
+      "description": "Pełnoziarnisty makaron z miękkim środkiem i chrupiącymi brzegami.",
+      "en_GB": "Turkey and broccoli pasta bake",
+      "detail_sha256": "631e4c4ae9966a74d2da9b1922f804fcbd782c273e27ac75d493d75c50a06a4f"
+    },
+    "a6fc5712-7043-546f-9885-fafacf587b15": {
+      "source": "Zupa z czerwonej soczewicy i wędzonej papryki",
+      "description": "Gęsta zupa z czerwonej soczewicy o lekko dymnym smaku.",
+      "en_GB": "Smoky red lentil and tomato soup",
+      "detail_sha256": "3d1ec0aaa2205c6bacec782945e989dc99d779745cf81d3d11b7a2c1667ec684"
+    },
+    "e23edb06-f57c-5dc9-8a41-a4af0008b495": {
+      "source": "Kremowa zupa z kukurydzą, porem i ziemniakami",
+      "description": "Zupa z wyraźnymi kawałkami ziemniaków i słodką kukurydzą.",
+      "en_GB": "Sweetcorn, leek and potato chowder",
+      "detail_sha256": "4c7306a348f0a7e83aa95646564f66c011d13d9ee9a786fc92951e3b696d6ff9"
+    },
+    "98732973-8f15-5d50-9c56-6199dcc84746": {
+      "source": "Biała fasola w pomidorach ze szpinakiem",
+      "description": "Pomidorowa fasola z patelni i żytnie grzanki do zbierania sosu.",
+      "en_GB": "Tomato, spinach and white bean skillet",
+      "detail_sha256": "924e50892fd3c7875bc281b6c4ea872d6d98fb0c1d6ff6692b336562353e4be1"
+    },
+    "d0a8469c-8d77-5b8f-8753-7d56e1918665": {
+      "source": "Frittata z krewetkami i zielonym groszkiem",
+      "description": "Wytrawna frittata z groszkiem i szczypiorkiem.",
+      "en_GB": "Prawn and pea frittata",
+      "detail_sha256": "34c2a36c1fc353a8bf5926a6877d6a7087aa75ebc01baa4f8d43bc162ca1976d"
+    },
+    "5a8fdad8-b6e0-5f68-9215-e1e0d99967bc": {
+      "source": "Wrap z halloumi i pieczoną papryką",
+      "description": "Ciepła tortilla z rumianym halloumi i słodką pieczoną papryką.",
+      "en_GB": "Halloumi and roast pepper wrap",
+      "detail_sha256": "8963be53077b2563f231f27997776a2ae73eb9e60520a8cf49a870899f7120c1"
+    },
+    "cdb73d19-4e9b-59b4-af91-bd7e48f5c513": {
+      "source": "Sałatka ziemniaczana z wędzonym łososiem i jabłkiem",
+      "description": "Jabłko dodaje chrupkości ziemniakom i wędzonemu łososiowi.",
+      "en_GB": "Smoked salmon, apple and potato salad",
+      "detail_sha256": "1662a53269f9a9c0cc59e6475547d6aa354522428a76268192f4aa927aa16f54"
+    },
+    "2ec2b462-bc96-5770-9196-af3a5b9ea8e2": {
+      "source": "Sałatka z pieczonych buraków, pomarańczy i orzechów",
+      "description": "Pieczone buraki z soczystą pomarańczą i orzechami włoskimi.",
+      "en_GB": "Roast beetroot, orange and walnut salad",
+      "detail_sha256": "7774cc5060629c4771ede0afc8897e1f9eed55209b326975ba109d9a10f6c983"
+    },
+    "a207d0e1-ca22-510c-b9ed-9a64c31518b5": {
+      "source": "Cytrynowy makaron z białą fasolą i szpinakiem",
+      "description": "Lekki sos z oliwy i cytryny oblepia makaron oraz fasolę.",
+      "en_GB": "Lemon, white bean and spinach pasta",
+      "detail_sha256": "b8623354a55e389d1a457f8b4b6804570c313dd1dda41943723576340ed345a5"
+    },
+    "2f6cb847-d95d-575d-ac70-b6814ded0620": {
+      "source": "Smażony ryż z wieprzowiną, groszkiem i jajkiem",
+      "description": "Ryż z paskami schabu, groszkiem i kawałkami jajka.",
+      "en_GB": "Pork, pea and egg fried rice",
+      "detail_sha256": "0a7ff54b92ae4adfa565ce3b73e542c88cbd1224b9b63914acaf16529b3351a4"
+    },
+    "4579e1db-6d6d-54da-b11c-e6f7855fd536": {
+      "source": "Grillowana polenta z pomidorkami i fetą",
+      "description": "Rumiane plastry polenty z popękanymi pomidorkami i fetą. Przed grillowaniem odstaw polentę do stężenia.",
+      "en_GB": "Griddled polenta with cherry tomatoes and feta",
+      "detail_sha256": "c6616a5f8ae51a8fc82eba2db62958fc9a776065d8f70fa2d8e6061393e3b61a"
+    },
+    "7065de21-54be-53c0-ae81-5df31e65ce8d": {
+      "source": "Pieczony kalafior z ciecierzycą i tahini",
+      "description": "Rumiane różyczki i ciecierzyca z cytrynowym sosem sezamowym.",
+      "en_GB": "Roasted cauliflower and chickpeas with tahini",
+      "detail_sha256": "478d32bcba04e33fb3a65454e4fabdb72c8dee06ad0538d0e9feecce46b33048"
+    },
+    "4fb0ff2c-2ef4-5c58-b443-1cf91a7cae55": {
+      "source": "Sałatka z kurczakiem, fasolką i musztardą",
+      "description": "Ciepła sałatka ziemniaczana z fasolką i ziarnistą musztardą.",
+      "en_GB": "Chicken, green bean and mustard potato salad",
+      "detail_sha256": "29be51fc0b48482e1cf64062091d02e79e0ceacc72b9e3ea65845e3f4e70bceb"
+    },
+    "276e6455-ebd8-5d3c-9f52-13c0e93d29b1": {
+      "source": "Makaron w sosie z groszku z pieczonym brokułem",
+      "description": "Gładki sos z groszku i rumiane różyczki brokułu.",
+      "en_GB": "Pasta with pea sauce and roasted broccoli",
+      "detail_sha256": "f4ebb63b49f3c37442e84526f927454eb95052b8239b52c1446d54f7aa54b421"
+    },
+    "c2289f85-159b-5e46-88f7-cd404007131f": {
+      "source": "Tosty z białą fasolą i roztopionym cheddarem",
+      "description": "Opiekana kanapka z kremową fasolą, musztardą i cheddarem.",
+      "en_GB": "White bean and Cheddar toastie",
+      "detail_sha256": "95d9706fc2bc6cf3ac35c28d121fba953f5c337b5e36cda864291a9c1d082db3"
+    },
+    "7c3aeab4-f336-5fd3-b81e-7a7882871004": {
+      "source": "Łódeczki z sałaty z indykiem i kapustą",
+      "description": "Chrupiące liście sałaty napełnione ciepłym farszem z indyka.",
+      "en_GB": "Turkey and cabbage lettuce cups",
+      "detail_sha256": "f222409d0d2f4ecb3cd0647b84658f843c423e5287018b2da6d4b9746e63b592"
+    },
+    "0949bb02-422a-5a98-84f6-14686a0919ac": {
+      "source": "Kakaowe kulki z daktyli i kokosa",
+      "description": "Małe kakaowe kulki słodzone daktylami.",
+      "en_GB": "Cocoa, date and coconut bites",
+      "detail_sha256": "20473b8845892dd348a055ad748dc70d42bae271b9981199978ce890ea4867af"
+    },
+    "416ba64b-5bd8-501b-93e5-1f886ee79ba0": {
+      "source": "Pieczona ricotta ze śliwkami",
+      "description": "Ciepła ricotta z pieczonymi śliwkami i ich sokiem.",
+      "en_GB": "Baked ricotta with roast plums",
+      "detail_sha256": "847e5393e384a9ff332f54cf68f961df0447708823991af5720095c0648f936e"
+    },
+    "46c5abf2-582c-54ef-908d-427e33c825c0": {
+      "source": "Jogurt kakaowy z gruszką i orzechami",
+      "description": "Gęsty jogurt o smaku kakao z soczystą gruszką.",
+      "en_GB": "Cocoa yoghurt with pear and walnuts",
+      "detail_sha256": "9f33abea3aeacecac11f7c7e3eade21ff8a3e2d391567fd7be1253c5693060a0"
+    },
+    "aa5e0689-766a-5889-8793-acc870d9a1c8": {
+      "source": "Waniliowy ryż na mleku z pieczonymi brzoskwiniami",
+      "description": "Mleczny ryż z ciepłymi, lekko skarmelizowanymi brzoskwiniami.",
+      "en_GB": "Vanilla rice pudding with roast peaches",
+      "detail_sha256": "8e729a328b2abb5c49bd0367a7da36239a8d5de4a9fb9957731dbbea0672404f"
+    },
+    "2fe018e0-05a0-57d2-aad2-30186e003f9c": {
+      "source": "Ciasto z polenty i malin",
+      "description": "Wilgotne ciasto z wyczuwalną polentą i kwaskowatymi malinami.",
+      "en_GB": "Raspberry polenta cake",
+      "detail_sha256": "1e993a968a2b6a71a2f6d032d74f2514c9b89701369b660ebd35e4ed8a74511c"
+    },
+    "bd2610a9-ead1-5b06-aded-fbfcb741cff3": {
+      "source": "Czekoladowy krem z ricotty i malin",
+      "description": "Gęsty czekoladowy krem z odrobiną świeżych malin. Przed podaniem schłodź krem.",
+      "en_GB": "Chocolate ricotta mousse with raspberries",
+      "detail_sha256": "9f3301ce269baaef44727744c70f2c3227e373a64c713256f6ef4cae8606ec42"
+    },
+    "36cc9a0c-02f0-523a-af8a-c573e0ae0e9d": {
+      "source": "Owsiane kostki kakaowe z gruszką",
+      "description": "Miękkie kostki z owsa, kakao i kawałków gruszki.",
+      "en_GB": "Pear and cocoa oat squares",
+      "detail_sha256": "6aba75f4b7ac7c4dfd5b8a3c8502a6fe7eb6d949ba26a831993247fdbbc9d0d9"
+    },
+    "c692adaf-b671-5d8a-a9b2-fc6058ef5cf6": {
+      "source": "Pieczone śliwki z chrupiącą żytnią posypką",
+      "description": "Śliwki z piekarnika posypane rumianymi okruchami chleba.",
+      "en_GB": "Roast plums with rye crumbs",
+      "detail_sha256": "79c923400f71953e974b3ce442d073d65d9f28842946151245d32899ea9a57cb"
+    },
+    "259027e2-1ac8-52d8-8876-de861926607e": {
+      "source": "Zapiekany budyń z komosy z jabłkami i orzechami",
+      "description": "Miękkie jabłka i ugotowana komosa zapieczone w mlecznej masie jajecznej.",
+      "en_GB": "Baked quinoa and apple custard with walnuts",
+      "detail_sha256": "9afaaeeb0053a720665c43acfe5e99e6e3a72aad570e2f629f79f54e9241fa9e"
+    },
+    "9d26834c-93d0-5d33-869c-96efee1b8456": {
+      "source": "Skyr z rozgniecionymi borówkami i kokosem",
+      "description": "Rozgniecione borówki mieszają się z chłodnym skyrem i prażonym kokosem.",
+      "en_GB": "Skyr with crushed blueberries and toasted coconut",
+      "detail_sha256": "d1a6f92bc88775ef3e5cc060bab939bbb2b9693c455572f27f4764187460ccd7"
+    },
+    "1cc22196-60ef-51b3-b186-67a3545bb3fd": {
+      "source": "Kasza gryczana na słodko z jabłkami i ricottą",
+      "description": "Gryczane śniadanie z miękkimi jabłkami z patelni.",
+      "en_GB": "Sweet buckwheat with apples and ricotta",
+      "detail_sha256": "26cc831a0210509d8db4db1cf1c6eb244c2a437ac64b9ac628a095c9223dbf91"
+    },
+    "69871bea-eead-5d84-8843-062b18f8c418": {
+      "source": "Owsianka z pieczoną brzoskwinią i migdałami",
+      "description": "Ciepła owsianka z zarumienionymi brzoskwiniami i chrupiącymi migdałami.",
+      "en_GB": "Porridge with roast peaches and almonds",
+      "detail_sha256": "0f62a9916ae04498e6ebc9a45a942b4959618ab61c3741f8b45a800c0fb3d7f8"
+    },
+    "cc2742b0-3ee4-5a01-b574-1d5b0f27d449": {
+      "source": "Grzanki żytnie z pastą buraczaną i jajkiem",
+      "description": "Różowa pasta z buraka z jajkiem na chrupiącej kromce.",
+      "en_GB": "Rye toast with beetroot spread and egg",
+      "detail_sha256": "d3349750c5fbcad5461ed985244cf98285e1e01247a4dce3b4a82f2d17933354"
+    },
+    "e9685a51-c79c-5202-b933-b15a7495d034": {
+      "source": "Placuszki z kukurydzy i cheddara",
+      "description": "Wytrawne placuszki z chrupiącymi ziarnami kukurydzy.",
+      "en_GB": "Sweetcorn and Cheddar pancakes",
+      "detail_sha256": "1a065589ec4270176e27ff591dcc9575a25a49d42d13730b31e6d1fce4b3bbef"
+    },
+    "6a629651-5f35-5816-9870-f38428e797e8": {
+      "source": "Jaglanka kakaowa z malinami",
+      "description": "Gęsta jaglanka z gorzkim kakao i świeżymi malinami.",
+      "en_GB": "Cocoa millet porridge with raspberries",
+      "detail_sha256": "bc363863c705e1903367e6f634550217dea037d140353a57287aec109d1538aa"
+    },
+    "a28fd15c-0251-5933-bf32-958889dc0486": {
+      "source": "Jajka zapiekane z pieczarkami w kokilkach",
+      "description": "Rumiane pieczarki pod zapieczonym jajkiem z grzanką do maczania.",
+      "en_GB": "Baked eggs with mushrooms in ramekins",
+      "detail_sha256": "4407dea6e3b9afd4065c9f7344e3179a83ed9747114e0272110f484abfc9eadd"
+    },
+    "6178be2b-e0ec-5b0e-a36b-083ccf11ca70": {
+      "source": "Skyr z gruszką i granolą z patelni",
+      "description": "Chłodny skyr z gruszką i granolą prażoną na patelni.",
+      "en_GB": "Skyr with pear and stovetop granola",
+      "detail_sha256": "3edd6b8fed2bb39a9e652215b36f5431c0f6a616a2cb2915192ef799406bbf19"
+    },
+    "2999d077-6c30-5b28-a037-3875e28943c5": {
+      "source": "Koktajl bananowy z daktylami i płatkami",
+      "description": "Gęsty koktajl śniadaniowy słodzony daktylami.",
+      "en_GB": "Banana, date and oat shake",
+      "detail_sha256": "b0d29e02ed3f5f9e7835ac5fac602d8fc821f6b381e6d2d540a2756eaece19bc"
+    },
+    "e41f2666-fe20-5d6e-a6a9-9cd9a563f02a": {
+      "source": "Jajecznica ze szpinakiem i fetą",
+      "description": "Miękka jajecznica z kawałkami fety i żytnimi grzankami.",
+      "en_GB": "Spinach and feta scrambled eggs",
+      "detail_sha256": "f2f8011b003063611d5301c4017f41fe7e5363dd286a1d86fbb8ae363b2091ca"
+    },
+    "09c05257-67a6-55ed-b236-762982f3a4fd": {
+      "source": "Cienkie naleśniki z ricottą i mango",
+      "description": "Cienkie naleśniki z kremową ricottą i dojrzałym mango.",
+      "en_GB": "Ricotta and mango crêpes",
+      "detail_sha256": "f6ad9640bbccf12ec51d988514d8d247420f0979fa712a072ff9a359c1b9052b"
+    },
+    "5995629c-7021-5d37-9721-9648e82d5e30": {
+      "source": "Paprykarz ze schabu z czerwoną papryką",
+      "description": "Paski schabu w śmietanowym sosie paprykowym z pęczakiem.",
+      "en_GB": "Pork and red pepper paprikash",
+      "detail_sha256": "3f99279823947ae7fd44806f01d0f089a164a077593e507d6c4c09614e636eca"
+    },
+    "bd9a4d14-88d1-539d-a5da-02f492854661": {
+      "source": "Dorsz na polencie z pieczoną papryką",
+      "description": "Smażony dorsz na miękkiej polencie ze słodką pieczoną papryką.",
+      "en_GB": "Cod with soft polenta and roast peppers",
+      "detail_sha256": "77f80ceff92739d7cfd46178a9979601fbe7971aa01b72c47062cbdec21cde6a"
+    },
+    "ff7b60ce-588c-54b7-8133-70ea70df6a7a": {
+      "source": "Kurczak pieczony z brzoskwinią i czerwoną cebulą",
+      "description": "Brzoskwinie i cebula pieką się razem z kurczakiem, tworząc lekki sos.",
+      "en_GB": "Roast chicken with peaches and red onion",
+      "detail_sha256": "708fdc6f38b8eb1fd3bddaffe24cbd18d46540b7bb7ee71eabc8287d0ce3bc9d"
+    },
+    "43d7ebc6-3549-5d3c-bedb-5c214adb80e9": {
+      "source": "Pieczeń z indyka i tartego jabłka",
+      "description": "Soczysta pieczeń z jabłkiem, podawana w grubych plastrach.",
+      "en_GB": "Turkey and apple meatloaf",
+      "detail_sha256": "5cf37159c3727401050f1d15775949b98991d3df76c1a4b97a799d93ec15f726"
+    },
+    "809ce8e7-b6f7-522b-a28e-7a57a515baa9": {
+      "source": "Zapiekanka ryżowa z mięsem mielonym i bakłażanem",
+      "description": "Warstwowa zapiekanka z ryżem, pieczonym bakłażanem i mięsnym sosem.",
+      "en_GB": "Pork and beef rice bake with aubergine",
+      "detail_sha256": "993d2eb5b5d484fe82a36b3907f1aed3501ea534f9278cb4faf4d23ae4b0c3f2"
+    },
+    "5a8381f7-a06d-503b-9e7a-0f3e246f57d2": {
+      "source": "Kotlety ziemniaczane z łososiem",
+      "description": "Złote kotlety z kawałkami łososia i sosem cytrynowym.",
+      "en_GB": "Salmon and potato fishcakes",
+      "detail_sha256": "26a309e96e2eac6519da405357b00727223851ea569a974a583b80f77c1b3c71"
+    },
+    "f69cc90a-5c7d-5a9f-8e9b-9c7a8cc03909": {
+      "source": "Kotlety z czerwonej soczewicy i marchewki",
+      "description": "Pieczone kotlety z miękkim środkiem i cytrynowym tahini.",
+      "en_GB": "Red lentil and carrot patties with tahini",
+      "detail_sha256": "ed2e94474c679ee6bf5e77bea05bac990e13da857b1d9dc6e388e94a2b51afea"
+    },
+    "e5e01a43-a26e-54ae-af55-20b4caf310ec": {
+      "source": "Lasagne z porem, szpinakiem i ricottą",
+      "description": "Warstwy miękkiego pora i ricotty pod rumianą serową skórką.",
+      "en_GB": "Leek, spinach and ricotta lasagne",
+      "detail_sha256": "ec8488d9912ff3bc47a936cddefd5e3dba14bc62a9ffaad7b486ff7e2a7e3963"
+    },
+    "46c1ba95-079a-5de9-9892-30a27d16760b": {
+      "source": "Orzo w pomidorach z krewetkami",
+      "description": "Drobny makaron w gęstym sosie pomidorowym z krewetkami.",
+      "en_GB": "Tomato orzo with prawns",
+      "detail_sha256": "b416908a96b213227f05ce282d0f51d89d8030d8c88702586516e47e183b8628"
+    },
+    "b022c82d-928e-577f-86cc-3da5eb6b4c8a": {
+      "source": "Zapiekany kalafior z kurczakiem i cheddarem",
+      "description": "Kremowy kalafior z kurczakiem pod zapieczonym cheddarem.",
+      "en_GB": "Chicken and cauliflower cheese bake",
+      "detail_sha256": "ad81a65c0405d2b6443ac16f8411fb9a54a8a4a95720f0320a436460556eb66b"
+    },
+    "ec2642cc-5f6b-5b9d-bbcd-de9c3c12969f": {
+      "source": "Schab pieczony ze śliwkami i pęczakiem",
+      "description": "Pieczone śliwki nadają sokowi z mięsa słodko-kwaśny smak.",
+      "en_GB": "Roast pork loin with plums and pearl barley",
+      "detail_sha256": "7a927a9cf7efe6e947aa0947ce54491d5851e30ae525222359bce5611603ed47"
+    },
+    "26566f33-2b2c-51ed-a048-6f00fc51e034": {
+      "source": "Strogonow z indyka i pieczarek",
+      "description": "Paski indyka i pieczarki w kremowym sosie na kaszy gryczanej.",
+      "en_GB": "Turkey and mushroom stroganoff",
+      "detail_sha256": "965cd900eed5322c57c57db5619f8b3dd444e24970df1bdc0445ed8f27cb8ff7"
+    },
+    "64fd429f-ebc3-51a4-99b5-76bcf6eb8a05": {
+      "source": "Brytyjska zapiekanka z dorszem i groszkiem",
+      "description": "Dorsz z groszkiem w białym sosie pod rumianym purée.",
+      "en_GB": "Cod and pea fish pie",
+      "detail_sha256": "f1eb41159b627cf870ba5988220f35e9792135665b53e6802f0bed21becf0ff0"
+    },
+    "ce206d4f-71fe-50cd-a185-a2ce5f02c65b": {
+      "source": "Kieszonki francuskie z soczewicą i szpinakiem",
+      "description": "Chrupiące kieszonki z gęstym, lekko dymnym farszem.",
+      "en_GB": "Puff pastry pockets with lentils and spinach",
+      "detail_sha256": "4c3b84d446762a6a1db37247eb0295e2f1ff72c6b844e5768e8b06e5a63ae50e"
+    },
+    "3de65259-32a2-5e7d-a1a5-ecbaac8888f5": {
+      "source": "Kokosowy ryż z kukurydzą, limonką i tofu",
+      "description": "Kokosowy ryż z kukurydzą i tofu pieczonym w wędzonej papryce.",
+      "en_GB": "Coconut, lime and sweetcorn rice with tofu",
+      "detail_sha256": "0fea8b27ba1f642fe419c6b897068073967491b8294c60a0a76435cacf9cf112"
+    },
+    "84b212f2-30a8-5a21-980d-88323a121ee2": {
+      "source": "Zupa buraczana z porem i jogurtem",
+      "description": "Lekka zupa z kawałkami buraków i pora oraz łyżką jogurtu.",
+      "en_GB": "Beetroot and leek soup with yoghurt",
+      "detail_sha256": "9c83e68a62e5362c3d94f0939948079bc9948e0a32a1d10159ef06522e79d669"
+    },
+    "e2125477-06c1-5f80-b523-ce5a113da71f": {
+      "source": "Grzanki z groszkiem, miętą i ricottą",
+      "description": "Groszek rozgnieciony widelcem na grzankach z miętą i ricottą.",
+      "en_GB": "Crushed pea, mint and ricotta toast",
+      "detail_sha256": "d6bccce68c2d85eb7ba75ec05d8c7186bf7807d5975a5a62dc882eddacef5d3f"
+    },
+    "f5bfd3a3-9fab-59e0-8d4f-05d874a21f3d": {
+      "source": "Placki z tartych batatów i fety",
+      "description": "Chrupiące brzegi i miękki środek z batata oraz pokruszonej fety.",
+      "en_GB": "Grated sweet potato and feta fritters",
+      "detail_sha256": "71c11b30382a767f9a2473f71d42591c3245c01fc58be251fd91a030919738f9"
+    },
+    "e8888d25-0ba7-5caf-9078-266b797a5291": {
+      "source": "Zupa z pieczonej papryki i pomidorów z żytnim chlebem",
+      "description": "Gęsta pomidorowa z kawałkami chleba, które wchłaniają smak pieczonej papryki.",
+      "en_GB": "Roast pepper and tomato bread soup",
+      "detail_sha256": "0cb2bb78a6839b8f97531e6ef335cce31f5703c929368d74f559a14567bec094"
+    },
+    "bdb410bc-4c84-5770-877d-db00d3bb3c00": {
+      "source": "Papryki nadziewane brokułem, komosą i cheddarem",
+      "description": "Rumiane połówki papryki z brokułem i ciągnącym się cheddarem.",
+      "en_GB": "Broccoli, quinoa and Cheddar stuffed peppers",
+      "detail_sha256": "ef7a017248a25389323db499337e4cf219d9428739cee4ed48b4951bdaad5691"
+    },
+    "31133836-f83f-55aa-adf5-7001cc71576c": {
+      "source": "Sałatka z pieczonego kalafiora i pęczaku",
+      "description": "Ciepły pęczak z rumianym kalafiorem i cytrynowym jogurtem.",
+      "en_GB": "Warm cauliflower and pearl barley salad",
+      "detail_sha256": "7c30f18ba0207bf13f3faa3fdb0d1dd3ab28ac7dddd98642b60f2f80c4e6f1d8"
+    },
+    "081f8329-0b11-5b63-a99f-6f30d09cd834": {
+      "source": "Wrap z wędzonym łososiem i ogórkiem",
+      "description": "Miękka tortilla z chrupiącym ogórkiem i cytrynowym jogurtem.",
+      "en_GB": "Smoked salmon and cucumber wrap",
+      "detail_sha256": "5c317ac8830a3f4c16911715661640446d247d60898632b9ae9802121eeb1158"
+    },
+    "299540e4-f02e-5744-aa0a-b3b0bc058cec": {
+      "source": "Surówka z kapusty pekińskiej z jabłkiem i orzechami",
+      "description": "Chrupiąca surówka w jogurtowym sosie, podawana z żytnimi grzankami.",
+      "en_GB": "Chinese cabbage, apple and walnut slaw",
+      "detail_sha256": "75bd65c0eabd8ae2c50c32c6c1ebd78851a22679114ff15be3a72d71db7abe26"
+    },
+    "c7801cfe-42f9-5517-a73b-6d7d5f76c0e8": {
+      "source": "Zapiekana polenta z pomidorami i szpinakiem",
+      "description": "Miękka warstwa polenty pod zapiekanymi pomidorami i mozzarellą.",
+      "en_GB": "Baked tomato and spinach polenta",
+      "detail_sha256": "9156087f838dbb304600d8930b30e8af7b7c77d634f7dd4f26abe6724c07ff30"
+    },
+    "2f146e21-a8f4-516b-8623-657c4c728c03": {
+      "source": "Grzanki z awokado i krewetkami",
+      "description": "Krewetki z czosnkiem na kremowym awokado i chrupiącym chlebie.",
+      "en_GB": "Avocado and prawn rye toast",
+      "detail_sha256": "c6129f84a48aae044e3b8be7fddd72317c529e82a69b4126f0b4652381e1e3c7"
+    },
+    "eb7c554f-8d37-56e2-9f70-072a3962d7f9": {
+      "source": "Pieczone cebule nadziewane wieprzowiną i pieczarkami",
+      "description": "Miękkie połówki cebuli z rumianym farszem.",
+      "en_GB": "Baked onions stuffed with pork and mushrooms",
+      "detail_sha256": "4ce877326b6edfbac52349f5a443a42639afcb500949d184ef4e7456fd1b1490"
+    },
+    "a3607a09-8c47-51a6-9ebd-89484fcfb107": {
+      "source": "Pieczone krokiety ziemniaczane z kukurydzą i cheddarem",
+      "description": "Złota panierka kryje miękkie wnętrze z ziemniaków, sera i kukurydzy.",
+      "en_GB": "Baked potato croquettes with sweetcorn and Cheddar",
+      "detail_sha256": "d485d86ffa49912be09bee90a7cb38e1a134e404fb7b157fec76c59a3ff4c285"
+    },
+    "0d0811ca-e21a-52f2-bfb2-0dfaebdda659": {
+      "source": "Komosa z fasolką szparagową i sosem tahini",
+      "description": "Sałatka z chrupką fasolką, papryką i cytrynowym tahini.",
+      "en_GB": "Quinoa and green bean salad with tahini",
+      "detail_sha256": "c7c789b8fe347a11e796aafc351b91045431a7c79fcbccf9676b9197687e29fd"
+    },
+    "c6f974c9-c3f7-5fd6-8091-a00a725832d8": {
+      "source": "Sałatka z halloumi i pieczonymi śliwkami",
+      "description": "Słone halloumi, miękkie śliwki i świeży szpinak.",
+      "en_GB": "Warm halloumi and roast plum salad",
+      "detail_sha256": "4218d227c225f0fc54348269423b1e468cf8a13f896638027de56dda0ba7490b"
+    },
+    "b450d9e5-7294-51f3-9694-a586534baf32": {
+      "source": "Tofu w sezamie z groszkiem i marchewką",
+      "description": "Chrupiące sezamowe tofu z rozgniecionym groszkiem i wstążkami marchewki.",
+      "en_GB": "Sesame tofu with crushed peas and carrots",
+      "detail_sha256": "012a81844e104b8c12d17e41865219b53d11562a9062d7dbec7edaacee0cdb16"
+    },
+    "dffad032-b3c4-50f1-b89e-7c52ed4a0705": {
+      "source": "Chrupiące grzanki cynamonowe z dipem jogurtowym",
+      "description": "Cienkie paski żytniego chleba do maczania w miodowym jogurcie.",
+      "en_GB": "Cinnamon rye crisps with yoghurt dip",
+      "detail_sha256": "a95a438f2cf29e223808e917347d2f9823aa162d3923e731d6771cdf07da198f"
+    },
+    "dd7d7b29-9749-5979-99bc-2da784f72ab6": {
+      "source": "Muffiny owsiane z jabłkiem i marchewką",
+      "description": "Miękkie muffiny z tartą marchewką i jabłkiem w cieście.",
+      "en_GB": "Apple and carrot oat muffins",
+      "detail_sha256": "e258d239d9bcd02988926be3b0991787494b2811d0f48ed7ae56b0178317e286"
+    },
+    "b4370a84-1e16-5049-bc34-c04d73745518": {
+      "source": "Pucharek jogurtowy z pieczoną śliwką i czekoladą",
+      "description": "Warstwy jogurtu, miękkich śliwek i tartej czekolady.",
+      "en_GB": "Roast plum and dark chocolate yoghurt parfait",
+      "detail_sha256": "69c63fd05e7a77ab584bb9cbe4bcc83bd72e26dbb5281789d083de4009e432bb"
+    },
+    "bc4c2531-1e35-5fcc-956f-9e37143e236f": {
+      "source": "Cytrynowe ciasto z ricottą",
+      "description": "Wilgotne ciasto z ricottą i skórką cytrynową.",
+      "en_GB": "Lemon ricotta cake",
+      "detail_sha256": "22b0001883c0c50eebdfd10792b2a8d54842550b4ec7a516eb44cd5e17c906e1"
+    },
+    "d1b25d95-b08d-5928-b1b9-62bec0a86bb2": {
+      "source": "Mrożone płatki jogurtowe z mango i migdałami",
+      "description": "Cienka tafla jogurtu do przełamania na mrożone kawałki. Mrożenie: co najmniej 4 godziny.",
+      "en_GB": "Frozen mango and almond yoghurt bark",
+      "detail_sha256": "c40b8b438a48e9e78c946ab19a4b59a308793fe415cf6a814ee9f18f90f72648"
+    },
+    "548f227b-6055-5e5b-976a-b0dee1e35a7c": {
+      "source": "Cytrynowo-makowe ciasteczka owsiane",
+      "description": "Maślane ciasteczka z wyraźną skórką cytrynową i ziarnami maku.",
+      "en_GB": "Lemon and poppy seed oat cookies",
+      "detail_sha256": "c249c1116b35148ed9c4804c82294c4e7b135e4a9a255913a9f7c08ed379e9fd"
+    },
+    "acbd83dd-40fe-5956-9bd8-6f233ff6c7c1": {
+      "source": "Clafoutis z gruszkami i malinami",
+      "description": "Miękkie owoce zapieczone w lekkim cieście naleśnikowym.",
+      "en_GB": "Pear and raspberry clafoutis",
+      "detail_sha256": "a0844b4de3b2d613ec8a44d9539067a92e121257416b9bb2eac74ebc44af6c45"
+    },
+    "75d814b3-e806-5b93-be7d-c864ded372f3": {
+      "source": "Czekoladowy pudding z polenty z gruszką",
+      "description": "Kremowy deser z polenty, ciemnej czekolady i gruszki z patelni.",
+      "en_GB": "Chocolate polenta pudding with pear",
+      "detail_sha256": "d27cecba4f9e8106082ee54d679949a181f0698a789bf2f4a42b22724ff288dc"
+    },
+    "7d4a2af4-0469-5739-a71f-df4c16050ea8": {
+      "source": "Grillowany ananas z miętowym skyrem",
+      "description": "Ciepłe plastry ananasa z chłodnym skyrem i świeżą miętą.",
+      "en_GB": "Griddled pineapple with mint skyr",
+      "detail_sha256": "85e58d6bc4953507292b975d0551f9666c86b1f9235660ff78ef3e283d793a63"
+    },
+    "5ce95505-535c-51ce-83a4-c0d78abccad5": {
+      "source": "Pieczone babeczki ryżowe z kokosem i borówkami",
+      "description": "Małe pieczone porcje kokosowego ryżu z borówkami.",
+      "en_GB": "Baked blueberry and coconut rice cups",
+      "detail_sha256": "6883a0a280e164c92fcc74da20f28b6368cb688c55134b55ca0f33121a31d5e4"
     }
   },
   "ingredients": {

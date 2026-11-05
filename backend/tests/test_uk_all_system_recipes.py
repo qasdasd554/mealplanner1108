@@ -43,17 +43,18 @@ def seed_cookbook(session):
     return foods, recipes
 
 
-def test_all_167_system_recipes_have_reviewed_uk_ingredients_and_english_content(db, monkeypatch):
+def test_all_system_recipes_have_reviewed_uk_ingredients_and_english_content(db, monkeypatch):
     from app.services.meal_plan_generator import MealPlanGenerator
     from app.services.market_catalog import ensure_recipe_available_in_market
 
     session, _, user, _, _ = db
     foods, recipes = seed_cookbook(session)
+    reference_date = date(2026, 11, 5)
     actual = set(session.scalars(select(Recipe.id).where(
-        recipe_market_availability('GB', as_of=date(2026, 11, 2)))))
+        recipe_market_availability('GB', as_of=reference_date))))
     missing = [row.name for row in recipes if row.id not in actual]
     assert not missing, missing
-    assert len(actual) == len(RECIPES_DATA) == 167
+    assert len(actual) == len(RECIPES_DATA) == 267
     for row in recipes:
         translated = recipe_display_content(row, country_code='GB')
         # International dish names may legitimately be identical (Shakshuka).
@@ -61,13 +62,13 @@ def test_all_167_system_recipes_have_reviewed_uk_ingredients_and_english_content
         assert len(translated['instructions']) == len(row.instructions)
         assert row.nutrition_total['kcal'] > 0
     pages = [list(session.scalars(select(Recipe.id).where(
-        recipe_market_availability('GB', as_of=date(2026, 11, 2)))
-        .order_by(Recipe.id).offset(skip).limit(30))) for skip in range(0, 180, 30)]
-    assert [len(page) for page in pages] == [30, 30, 30, 30, 30, 17]
+        recipe_market_availability('GB', as_of=reference_date))
+        .order_by(Recipe.id).offset(skip).limit(30))) for skip in range(0, len(actual), 30)]
+    assert [len(page) for page in pages] == [30] * 8 + [27]
     assert {identity for page in pages for identity in page} == actual
     assert sum(map(len, pages)) == len(actual)
-    monkeypatch.setattr('app.services.meal_plan_generator.utc_market_date', lambda: date(2026, 11, 2))
-    monkeypatch.setattr('app.services.market_catalog.utc_market_date', lambda: date(2026, 11, 2))
+    monkeypatch.setattr('app.services.meal_plan_generator.utc_market_date', lambda: reference_date)
+    monkeypatch.setattr('app.services.market_catalog.utc_market_date', lambda: reference_date)
     eligible = asyncio.run(MealPlanGenerator(db[1])._filter_eligible_recipes(
         store_id=UK_STORES[0].id, allergen_ids=set(), user_id=user.id, country_code='GB'))
     assert {row.id for row in eligible} == actual
@@ -90,7 +91,7 @@ def test_all_167_system_recipes_have_reviewed_uk_ingredients_and_english_content
     session.add(foreign)
     session.commit()
     assert session.scalar(select(Recipe.id).where(Recipe.id == foreign.id,
-        recipe_market_availability('GB', as_of=date(2026, 11, 2)))) is None
+        recipe_market_availability('GB', as_of=reference_date))) is None
     assert recipe_display_content(foreign, country_code='GB')['description'] == 'Original user description'
 
 

@@ -19,10 +19,11 @@ from app.models.product import Allergen, Product, ProductAllergen, StoreProduct
 from app.models.recipe import Recipe, RecipeIngredient, RecipeTag
 from app.models.store import Store, StoreDepartment
 from app.db.fast_food_catalog import FAST_FOOD_PRODUCTS
+from app.db.new_system_recipes import NEW_SYSTEM_RECIPES, NEW_SYSTEM_RECIPE_NAMES
 from app.services.product_measures import build_measure_options
 from app.db.autumn_catalog import (
     AUTUMN_PRODUCTS, AUTUMN_NUTRITION, AUTUMN_PRODUCT_NAMES,
-    AUTUMN_RECIPE_NAMES, append_autumn_recipes,
+    AUTUMN_RECIPE_NAMES, append_autumn_recipes, append_system_recipes,
 )
 
 # ──────────────────────────────────────────────────────────────────
@@ -5051,6 +5052,7 @@ AIRFRYER_RECIPES = [
 
 RECIPES_DATA.extend(AIRFRYER_RECIPES)
 RECIPES_DATA[:] = append_autumn_recipes(RECIPES_DATA)
+RECIPES_DATA[:] = append_system_recipes(RECIPES_DATA, NEW_SYSTEM_RECIPES)
 
 
 # Dania, które wcześniej wpadały do śniadań albo przekąsek mimo że są
@@ -5277,12 +5279,13 @@ async def seed_database(session: AsyncSession) -> None:
         (await session.execute(select(Recipe.id, Recipe.name).where(
             Recipe.created_by_user_id.is_(None)))).all()
     }
+    added_system_titles = AUTUMN_RECIPE_NAMES | NEW_SYSTEM_RECIPE_NAMES
     for recipe_data in RECIPES_DATA:
         # Do not duplicate an already present system dish under another UUID.
         # Private/public recipes authored by users are never touched here.
         expected_id = _uid(f"recipe:{recipe_data['name']}")
         previous = existing_system_titles.get(recipe_data['name'].strip().casefold())
-        if recipe_data['name'] in AUTUMN_RECIPE_NAMES and previous is not None and previous != expected_id:
+        if recipe_data['name'] in added_system_titles and previous is not None and previous != expected_id:
             continue
         total_nutrition = {"kcal": 0, "protein": 0, "fat": 0, "carbs": 0, "fiber": 0}
         for prod_name, qty, unit, is_optional in recipe_data["ingredients"]:

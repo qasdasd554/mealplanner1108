@@ -32,7 +32,10 @@ def build():
                 for key, value in zip(node.keys, node.values)
                 if ast.literal_eval(key) in text_keys} for node in recipe_nodes]
     autumn = json.loads((ROOT / 'backend/app/data/autumn_recipes_20261102.json').read_text(encoding='utf-8'))
-    recipes.extend({key: row[key] for key in text_keys} for row in autumn['recipes'])
+    latest = json.loads((ROOT / 'backend/app/data/new_system_recipes_20261105.json').read_text(encoding='utf-8'))
+    winter = json.loads((ROOT / 'backend/app/data/winter_recipes_20261105.json').read_text(encoding='utf-8'))
+    additional_recipes = [*autumn['recipes'], *latest, *winter]
+    recipes.extend({key: row[key] for key in text_keys} for row in additional_recipes)
     # seed.py normalises descriptions AFTER the literal recipe declarations.
     # The display registry must fingerprint the actual persisted text, not the
     # pre-normalisation AST; otherwise valid system translations disappear.
@@ -43,7 +46,7 @@ def build():
     recipe_ingredient_names = {ast.literal_eval(ingredient.elts[0])
         for node in recipe_nodes for key, value in zip(node.keys, node.values)
         if ast.literal_eval(key) == 'ingredients' for ingredient in value.elts}
-    recipe_ingredient_names.update(item[0] for row in autumn['recipes'] for item in row['ingredients'])
+    recipe_ingredient_names.update(item[0] for row in additional_recipes for item in row['ingredients'])
     # The catalogue includes foods not yet used by the bundled recipes. They
     # need the same display/search identity; otherwise valid system foods are
     # mistaken for arbitrary Polish branded SKUs during UK OFF review.
@@ -56,7 +59,7 @@ def build():
     assert recipe_ingredient_names <= set(ingredient_names), 'Recipe food missing from catalogue'
     english = json.loads((ROOT / 'backend/app/data/system_recipes_en_GB.json').read_text(encoding='utf-8'))
     labels = json.loads((ROOT / 'backend/app/data/system_ingredients_en_GB.json').read_text(encoding='utf-8'))
-    assert len(recipes) == 167
+    assert len(recipes) == 267
     assert set(english) == {recipe['name'] for recipe in recipes}
     assert set(labels) == set(ingredient_names)
     registry = {}

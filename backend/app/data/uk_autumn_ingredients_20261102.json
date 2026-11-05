@@ -886,6 +886,123 @@
         "kind": "country_catalogue_listing",
         "food_concept": "Dried cranberries"
       }
+    },
+    {
+      "product_id": "348b2ef7-917a-56f7-a4f7-b472addb2c33",
+      "product_name": "Fasola biała konserwowa",
+      "product_brand": "Bonduelle",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/browse/groceries-and-essentials/food-cupboard/tins-cans-and-packets/pulses-lentils-and-beans/all",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-05",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Tinned plain white cannellini beans"
+      }
+    },
+    {
+      "product_id": "54c9ec0d-8059-5ea1-ae1d-7b1fc0a9d36f",
+      "product_name": "Fasola czarna konserwowa",
+      "product_brand": "Bonduelle",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/browse/groceries-and-essentials/food-cupboard/tins-cans-and-packets/pulses-lentils-and-beans/all",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-05",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Tinned plain black beans"
+      }
+    },
+    {
+      "product_id": "e2bdaaaf-1f3c-5213-befb-79fb2436accd",
+      "product_name": "Mąka gryczana",
+      "product_brand": "Melvit",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.waitrose.com/ecom/products/doves-farm-organic-buckwheat-flour/039136-19419-19420",
+        "publisher": "www.waitrose.com",
+        "reviewed_on": "2026-11-05",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Doves Farm Organic Buckwheat Flour"
+      }
+    },
+    {
+      "product_id": "f2267444-b715-5f8f-95a3-b4e53d6a8fea",
+      "product_name": "Wołowina na gulasz",
+      "product_brand": "Sokołów",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/products/308094566",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-05",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Tesco Diced Beef"
+      }
+    },
+    {
+      "product_id": "b8d7c40f-5c5b-544b-bd2d-e12101ac696a",
+      "product_name": "Śliwki",
+      "product_brand": "Greenyard Fresh",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/browse/groceries-and-essentials/fresh-food/fresh-fruit/peaches-nectarines-plums-and-apricots?facetsArgs=category%3APlums",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-05",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Tesco Plums"
+      }
+    },
+    {
+      "product_id": "c1cc19a4-202c-514d-88a3-7e9c124634f3",
+      "product_name": "Ocet jabłkowy",
+      "product_brand": "Kühne",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/browse/food-cupboard/cooking-ingredients/vinegars/apple-cider-vinegar/all",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-05",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Tesco Cider Vinegar"
+      }
+    },
+    {
+      "product_id": "6d07cd99-16d9-596e-b2ca-272bcc29a765",
+      "product_name": "Mak niebieski",
+      "product_brand": "Kresto",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.waitrose.com/ecom/products/waitrose-poppy-seeds/028152-13690-13691",
+        "publisher": "www.waitrose.com",
+        "reviewed_on": "2026-11-05",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Waitrose Poppy Seeds"
+      }
+    },
+    {
+      "product_id": "7dda22b2-f2fa-5a29-9164-397f7e04e3ec",
+      "product_name": "Makaron lasagne",
+      "product_brand": "Barilla",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/products/314943129",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-05",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Dried durum wheat lasagne sheets"
+      }
+    },
+    {
+      "product_id": "6becc94f-b918-562e-9697-1f84406eee1c",
+      "product_name": "Makaron orzo",
+      "product_brand": "Lubella",
+      "country_code": "GB",
+      "source": {
+        "url": "https://www.tesco.com/shop/en-GB/browse/food-cupboard/dried-pasta-rice-noodles-and-cous-cous/pasta-and-spaghetti/pasta-gnocchi-polenta-and-orzo/all",
+        "publisher": "www.tesco.com",
+        "reviewed_on": "2026-11-05",
+        "kind": "country_catalogue_listing",
+        "food_concept": "Tesco Finest Orzo Pasta"
+      }
     }
   ]
 }

@@ -303,4 +303,403 @@ const Map<String, String> kRecipePhotoAssets = {
       'assets/recipe_photos/autumn-29-pieczona-owsianka-gruszki.jpg',
   'Francuskie trójkąty z jabłkiem':
       'assets/recipe_photos/autumn-30-trojkaty-francuskie-jablko.jpg',
+  'Tosty żytnie z ricottą i malinami':
+      'assets/recipe_photos/new-01-berry-ricotta-toast.jpg',
+  'Rye toast with ricotta and raspberries':
+      'assets/recipe_photos/new-01-berry-ricotta-toast.jpg',
+  'Muffiny jajeczne ze szpinakiem i cheddarem':
+      'assets/recipe_photos/new-02-spinach-cheddar-muffins.jpg',
+  'Spinach and Cheddar egg muffins':
+      'assets/recipe_photos/new-02-spinach-cheddar-muffins.jpg',
+  'Komosa na mleku z borówkami i kokosem':
+      'assets/recipe_photos/new-03-blueberry-quinoa-porridge.jpg',
+  'Blueberry and coconut breakfast quinoa':
+      'assets/recipe_photos/new-03-blueberry-quinoa-porridge.jpg',
+  'Grzanki z pastą fasolową i pieczarkami':
+      'assets/recipe_photos/new-04-mushroom-beans-toast.jpg',
+  'Rye toast with white beans and mushrooms':
+      'assets/recipe_photos/new-04-mushroom-beans-toast.jpg',
+  'Patelnia z batatem, szpinakiem i jajkami':
+      'assets/recipe_photos/new-05-sweet-potato-egg-hash.jpg',
+  'Sweet potato and spinach breakfast hash':
+      'assets/recipe_photos/new-05-sweet-potato-egg-hash.jpg',
+  'Kokosowy pudding chia z mango':
+      'assets/recipe_photos/new-06-mango-chia-pudding.jpg',
+  'Coconut chia pudding with mango':
+      'assets/recipe_photos/new-06-mango-chia-pudding.jpg',
+  'Placuszki gryczane z tartym jabłkiem':
+      'assets/recipe_photos/new-07-apple-buckwheat-pancakes.jpg',
+  'Buckwheat and grated apple pancakes':
+      'assets/recipe_photos/new-07-apple-buckwheat-pancakes.jpg',
+  'Frittata ziemniaczana z wędzonym łososiem':
+      'assets/recipe_photos/new-08-smoked-salmon-potato-frittata.jpg',
+  'Smoked salmon and potato frittata':
+      'assets/recipe_photos/new-08-smoked-salmon-potato-frittata.jpg',
+  'Nocna komosa z malinami i masłem orzechowym':
+      'assets/recipe_photos/new-09-peanut-raspberry-overnight-quinoa.jpg',
+  'Overnight quinoa with raspberries and peanut butter':
+      'assets/recipe_photos/new-09-peanut-raspberry-overnight-quinoa.jpg',
+  'Tosty francuskie z żytniego chleba z gruszką':
+      'assets/recipe_photos/new-10-pear-rye-french-toast.jpg',
+  'Rye French toast with pears':
+      'assets/recipe_photos/new-10-pear-rye-french-toast.jpg',
+  'Łosoś z pieczonymi ziemniakami i brokułem':
+      'assets/recipe_photos/new-11-salmon-broccoli-potato-traybake.jpg',
+  'Salmon, potato and broccoli traybake':
+      'assets/recipe_photos/new-11-salmon-broccoli-potato-traybake.jpg',
+  'Papryki nadziewane indykiem i ryżem':
+      'assets/recipe_photos/new-12-turkey-stuffed-peppers.jpg',
+  'Turkey and rice stuffed peppers':
+      'assets/recipe_photos/new-12-turkey-stuffed-peppers.jpg',
+  'Polędwiczka z jabłkami w sosie cydrowym':
+      'assets/recipe_photos/new-13-pork-apples-cider.jpg',
+  'Pork tenderloin with apples and a cider vinegar glaze':
+      'assets/recipe_photos/new-13-pork-apples-cider.jpg',
+  'Dorsz w pomidorowej potrawce z białą fasolą':
+      'assets/recipe_photos/new-14-cod-white-bean-tomato-stew.jpg',
+  'Cod and white bean tomato stew':
+      'assets/recipe_photos/new-14-cod-white-bean-tomato-stew.jpg',
+  'Komosa z krewetkami, cukinią i limonką':
+      'assets/recipe_photos/new-15-prawn-lime-quinoa.jpg',
+  'Prawn, courgette and lime quinoa':
+      'assets/recipe_photos/new-15-prawn-lime-quinoa.jpg',
+  'Pulpeciki z indyka na kremowej polencie':
+      'assets/recipe_photos/new-16-turkey-meatball-polenta.jpg',
+  'Turkey meatballs with creamy polenta':
+      'assets/recipe_photos/new-16-turkey-meatball-polenta.jpg',
+  'Pęczak z duszoną wołowiną i pieczarkami':
+      'assets/recipe_photos/new-17-beef-mushroom-barley.jpg',
+  'Braised beef, mushroom and barley bowl':
+      'assets/recipe_photos/new-17-beef-mushroom-barley.jpg',
+  'Zapiekanka z bakłażana i czerwonej soczewicy':
+      'assets/recipe_photos/new-18-red-lentil-aubergine-bake.jpg',
+  'Aubergine and red lentil bake':
+      'assets/recipe_photos/new-18-red-lentil-aubergine-bake.jpg',
+  'Chili z czarnej fasoli i batatów':
+      'assets/recipe_photos/new-19-sweet-potato-black-bean-chilli.jpg',
+  'Black bean and sweet potato chilli':
+      'assets/recipe_photos/new-19-sweet-potato-black-bean-chilli.jpg',
+  'Cytrynowe risotto z groszkiem i ricottą':
+      'assets/recipe_photos/new-20-lemon-pea-ricotta-risotto.jpg',
+  'Lemon, pea and ricotta risotto':
+      'assets/recipe_photos/new-20-lemon-pea-ricotta-risotto.jpg',
+  'Zapiekanka z kurczakiem i porem pod ziemniakami':
+      'assets/recipe_photos/new-21-chicken-leek-potato-pie.jpg',
+  'Chicken and leek pie with a sliced potato topping':
+      'assets/recipe_photos/new-21-chicken-leek-potato-pie.jpg',
+  'Łosoś duszony w kokosowych pomidorach z fasolką':
+      'assets/recipe_photos/new-22-salmon-coconut-tomato-stew.jpg',
+  'Coconut and tomato salmon stew with green beans':
+      'assets/recipe_photos/new-22-salmon-coconut-tomato-stew.jpg',
+  'Pieczone ziemniaki z pieczarkami i cheddarem':
+      'assets/recipe_photos/new-23-mushroom-cheddar-jacket.jpg',
+  'Jacket potatoes with mushrooms and Cheddar':
+      'assets/recipe_photos/new-23-mushroom-cheddar-jacket.jpg',
+  'Gołąbki z kapusty pekińskiej z wieprzowiną i imbirem':
+      'assets/recipe_photos/new-24-ginger-pork-cabbage-rolls.jpg',
+  'Ginger pork and rice cabbage rolls':
+      'assets/recipe_photos/new-24-ginger-pork-cabbage-rolls.jpg',
+  'Makaron zapiekany z indykiem i brokułem':
+      'assets/recipe_photos/new-25-turkey-broccoli-pasta-bake.jpg',
+  'Turkey and broccoli pasta bake':
+      'assets/recipe_photos/new-25-turkey-broccoli-pasta-bake.jpg',
+  'Zupa z czerwonej soczewicy i wędzonej papryki':
+      'assets/recipe_photos/new-26-smoky-red-lentil-soup.jpg',
+  'Smoky red lentil and tomato soup':
+      'assets/recipe_photos/new-26-smoky-red-lentil-soup.jpg',
+  'Kremowa zupa z kukurydzą, porem i ziemniakami':
+      'assets/recipe_photos/new-27-sweetcorn-leek-chowder.jpg',
+  'Sweetcorn, leek and potato chowder':
+      'assets/recipe_photos/new-27-sweetcorn-leek-chowder.jpg',
+  'Biała fasola w pomidorach ze szpinakiem':
+      'assets/recipe_photos/new-28-butter-bean-tomato-skillet.jpg',
+  'Tomato, spinach and white bean skillet':
+      'assets/recipe_photos/new-28-butter-bean-tomato-skillet.jpg',
+  'Frittata z krewetkami i zielonym groszkiem':
+      'assets/recipe_photos/new-29-prawn-pea-frittata.jpg',
+  'Prawn and pea frittata':
+      'assets/recipe_photos/new-29-prawn-pea-frittata.jpg',
+  'Wrap z halloumi i pieczoną papryką':
+      'assets/recipe_photos/new-30-pepper-halloumi-wrap.jpg',
+  'Halloumi and roast pepper wrap':
+      'assets/recipe_photos/new-30-pepper-halloumi-wrap.jpg',
+  'Sałatka ziemniaczana z wędzonym łososiem i jabłkiem':
+      'assets/recipe_photos/new-31-salmon-apple-potato-salad.jpg',
+  'Smoked salmon, apple and potato salad':
+      'assets/recipe_photos/new-31-salmon-apple-potato-salad.jpg',
+  'Sałatka z pieczonych buraków, pomarańczy i orzechów':
+      'assets/recipe_photos/new-32-beetroot-orange-walnut-salad.jpg',
+  'Roast beetroot, orange and walnut salad':
+      'assets/recipe_photos/new-32-beetroot-orange-walnut-salad.jpg',
+  'Cytrynowy makaron z białą fasolą i szpinakiem':
+      'assets/recipe_photos/new-33-pasta-white-bean-lemon.jpg',
+  'Lemon, white bean and spinach pasta':
+      'assets/recipe_photos/new-33-pasta-white-bean-lemon.jpg',
+  'Smażony ryż z wieprzowiną, groszkiem i jajkiem':
+      'assets/recipe_photos/new-34-pork-pea-rice.jpg',
+  'Pork, pea and egg fried rice':
+      'assets/recipe_photos/new-34-pork-pea-rice.jpg',
+  'Grillowana polenta z pomidorkami i fetą':
+      'assets/recipe_photos/new-35-polenta-tomato-feta.jpg',
+  'Griddled polenta with cherry tomatoes and feta':
+      'assets/recipe_photos/new-35-polenta-tomato-feta.jpg',
+  'Pieczony kalafior z ciecierzycą i tahini':
+      'assets/recipe_photos/new-36-cauliflower-chickpea-traybake.jpg',
+  'Roasted cauliflower and chickpeas with tahini':
+      'assets/recipe_photos/new-36-cauliflower-chickpea-traybake.jpg',
+  'Sałatka z kurczakiem, fasolką i musztardą':
+      'assets/recipe_photos/new-37-chicken-green-bean-mustard-salad.jpg',
+  'Chicken, green bean and mustard potato salad':
+      'assets/recipe_photos/new-37-chicken-green-bean-mustard-salad.jpg',
+  'Makaron w sosie z groszku z pieczonym brokułem':
+      'assets/recipe_photos/new-38-roasted-broccoli-pea-pasta.jpg',
+  'Pasta with pea sauce and roasted broccoli':
+      'assets/recipe_photos/new-38-roasted-broccoli-pea-pasta.jpg',
+  'Tosty z białą fasolą i roztopionym cheddarem':
+      'assets/recipe_photos/new-39-cheddar-bean-toastie.jpg',
+  'White bean and Cheddar toastie':
+      'assets/recipe_photos/new-39-cheddar-bean-toastie.jpg',
+  'Łódeczki z sałaty z indykiem i kapustą':
+      'assets/recipe_photos/new-40-turkey-cabbage-lettuce-cups.jpg',
+  'Turkey and cabbage lettuce cups':
+      'assets/recipe_photos/new-40-turkey-cabbage-lettuce-cups.jpg',
+  'Kakaowe kulki z daktyli i kokosa':
+      'assets/recipe_photos/new-41-coconut-date-bites.jpg',
+  'Cocoa, date and coconut bites':
+      'assets/recipe_photos/new-41-coconut-date-bites.jpg',
+  'Pieczona ricotta ze śliwkami':
+      'assets/recipe_photos/new-42-baked-ricotta-plums.jpg',
+  'Baked ricotta with roast plums':
+      'assets/recipe_photos/new-42-baked-ricotta-plums.jpg',
+  'Jogurt kakaowy z gruszką i orzechami':
+      'assets/recipe_photos/new-43-cocoa-pear-yoghurt.jpg',
+  'Cocoa yoghurt with pear and walnuts':
+      'assets/recipe_photos/new-43-cocoa-pear-yoghurt.jpg',
+  'Waniliowy ryż na mleku z pieczonymi brzoskwiniami':
+      'assets/recipe_photos/new-44-vanilla-rice-roast-peaches.jpg',
+  'Vanilla rice pudding with roast peaches':
+      'assets/recipe_photos/new-44-vanilla-rice-roast-peaches.jpg',
+  'Ciasto z polenty i malin':
+      'assets/recipe_photos/new-45-raspberry-polenta-cake.jpg',
+  'Raspberry polenta cake':
+      'assets/recipe_photos/new-45-raspberry-polenta-cake.jpg',
+  'Czekoladowy krem z ricotty i malin':
+      'assets/recipe_photos/new-46-chocolate-ricotta-raspberry.jpg',
+  'Chocolate ricotta mousse with raspberries':
+      'assets/recipe_photos/new-46-chocolate-ricotta-raspberry.jpg',
+  'Owsiane kostki kakaowe z gruszką':
+      'assets/recipe_photos/new-47-pear-cocoa-oat-bars.jpg',
+  'Pear and cocoa oat squares':
+      'assets/recipe_photos/new-47-pear-cocoa-oat-bars.jpg',
+  'Pieczone śliwki z chrupiącą żytnią posypką':
+      'assets/recipe_photos/new-48-roast-plum-rye-crumb.jpg',
+  'Roast plums with rye crumbs':
+      'assets/recipe_photos/new-48-roast-plum-rye-crumb.jpg',
+  'Zapiekany budyń z komosy z jabłkami i orzechami':
+      'assets/recipe_photos/new-49-quinoa-apple-custard.jpg',
+  'Baked quinoa and apple custard with walnuts':
+      'assets/recipe_photos/new-49-quinoa-apple-custard.jpg',
+  'Skyr z rozgniecionymi borówkami i kokosem':
+      'assets/recipe_photos/new-50-blueberry-coconut-skyr.jpg',
+  'Skyr with crushed blueberries and toasted coconut':
+      'assets/recipe_photos/new-50-blueberry-coconut-skyr.jpg',
+  'Kasza gryczana na słodko z jabłkami i ricottą':
+      'assets/recipe_photos/new-51-sweet-buckwheat-with-apples-and-ricotta.jpg',
+  'Sweet buckwheat with apples and ricotta':
+      'assets/recipe_photos/new-51-sweet-buckwheat-with-apples-and-ricotta.jpg',
+  'Owsianka z pieczoną brzoskwinią i migdałami':
+      'assets/recipe_photos/new-52-porridge-with-roast-peaches-and-almonds.jpg',
+  'Porridge with roast peaches and almonds':
+      'assets/recipe_photos/new-52-porridge-with-roast-peaches-and-almonds.jpg',
+  'Grzanki żytnie z pastą buraczaną i jajkiem':
+      'assets/recipe_photos/new-53-rye-toast-with-beetroot-spread-and-egg.jpg',
+  'Rye toast with beetroot spread and egg':
+      'assets/recipe_photos/new-53-rye-toast-with-beetroot-spread-and-egg.jpg',
+  'Placuszki z kukurydzy i cheddara':
+      'assets/recipe_photos/new-54-sweetcorn-and-cheddar-pancakes.jpg',
+  'Sweetcorn and Cheddar pancakes':
+      'assets/recipe_photos/new-54-sweetcorn-and-cheddar-pancakes.jpg',
+  'Jaglanka kakaowa z malinami':
+      'assets/recipe_photos/new-55-cocoa-millet-porridge-with-raspberries.jpg',
+  'Cocoa millet porridge with raspberries':
+      'assets/recipe_photos/new-55-cocoa-millet-porridge-with-raspberries.jpg',
+  'Jajka zapiekane z pieczarkami w kokilkach':
+      'assets/recipe_photos/new-56-baked-eggs-with-mushrooms-in-ramekins.jpg',
+  'Baked eggs with mushrooms in ramekins':
+      'assets/recipe_photos/new-56-baked-eggs-with-mushrooms-in-ramekins.jpg',
+  'Skyr z gruszką i granolą z patelni':
+      'assets/recipe_photos/new-57-skyr-with-pear-and-stovetop-granola.jpg',
+  'Skyr with pear and stovetop granola':
+      'assets/recipe_photos/new-57-skyr-with-pear-and-stovetop-granola.jpg',
+  'Koktajl bananowy z daktylami i płatkami':
+      'assets/recipe_photos/new-58-banana-date-and-oat-shake.jpg',
+  'Banana, date and oat shake':
+      'assets/recipe_photos/new-58-banana-date-and-oat-shake.jpg',
+  'Jajecznica ze szpinakiem i fetą':
+      'assets/recipe_photos/new-59-spinach-and-feta-scrambled-eggs.jpg',
+  'Spinach and feta scrambled eggs':
+      'assets/recipe_photos/new-59-spinach-and-feta-scrambled-eggs.jpg',
+  'Cienkie naleśniki z ricottą i mango':
+      'assets/recipe_photos/new-60-ricotta-and-mango-crepes.jpg',
+  'Ricotta and mango crêpes':
+      'assets/recipe_photos/new-60-ricotta-and-mango-crepes.jpg',
+  'Paprykarz ze schabu z czerwoną papryką':
+      'assets/recipe_photos/new-61-pork-and-red-pepper-paprikash.jpg',
+  'Pork and red pepper paprikash':
+      'assets/recipe_photos/new-61-pork-and-red-pepper-paprikash.jpg',
+  'Dorsz na polencie z pieczoną papryką':
+      'assets/recipe_photos/new-62-cod-with-soft-polenta-and-roast-peppers.jpg',
+  'Cod with soft polenta and roast peppers':
+      'assets/recipe_photos/new-62-cod-with-soft-polenta-and-roast-peppers.jpg',
+  'Kurczak pieczony z brzoskwinią i czerwoną cebulą':
+      'assets/recipe_photos/new-63-roast-chicken-with-peaches-and-red-onion.jpg',
+  'Roast chicken with peaches and red onion':
+      'assets/recipe_photos/new-63-roast-chicken-with-peaches-and-red-onion.jpg',
+  'Pieczeń z indyka i tartego jabłka':
+      'assets/recipe_photos/new-64-turkey-and-apple-meatloaf.jpg',
+  'Turkey and apple meatloaf':
+      'assets/recipe_photos/new-64-turkey-and-apple-meatloaf.jpg',
+  'Zapiekanka ryżowa z mięsem mielonym i bakłażanem':
+      'assets/recipe_photos/new-65-pork-and-beef-rice-bake-with-aubergine.jpg',
+  'Pork and beef rice bake with aubergine':
+      'assets/recipe_photos/new-65-pork-and-beef-rice-bake-with-aubergine.jpg',
+  'Kotlety ziemniaczane z łososiem':
+      'assets/recipe_photos/new-66-salmon-and-potato-fishcakes.jpg',
+  'Salmon and potato fishcakes':
+      'assets/recipe_photos/new-66-salmon-and-potato-fishcakes.jpg',
+  'Kotlety z czerwonej soczewicy i marchewki':
+      'assets/recipe_photos/new-67-red-lentil-and-carrot-patties-with-tahini.jpg',
+  'Red lentil and carrot patties with tahini':
+      'assets/recipe_photos/new-67-red-lentil-and-carrot-patties-with-tahini.jpg',
+  'Lasagne z porem, szpinakiem i ricottą':
+      'assets/recipe_photos/new-68-leek-spinach-and-ricotta-lasagne.jpg',
+  'Leek, spinach and ricotta lasagne':
+      'assets/recipe_photos/new-68-leek-spinach-and-ricotta-lasagne.jpg',
+  'Orzo w pomidorach z krewetkami':
+      'assets/recipe_photos/new-69-tomato-orzo-with-prawns.jpg',
+  'Tomato orzo with prawns':
+      'assets/recipe_photos/new-69-tomato-orzo-with-prawns.jpg',
+  'Zapiekany kalafior z kurczakiem i cheddarem':
+      'assets/recipe_photos/new-70-chicken-and-cauliflower-cheese-bake.jpg',
+  'Chicken and cauliflower cheese bake':
+      'assets/recipe_photos/new-70-chicken-and-cauliflower-cheese-bake.jpg',
+  'Schab pieczony ze śliwkami i pęczakiem':
+      'assets/recipe_photos/new-71-roast-pork-loin-with-plums-and-pearl-barley.jpg',
+  'Roast pork loin with plums and pearl barley':
+      'assets/recipe_photos/new-71-roast-pork-loin-with-plums-and-pearl-barley.jpg',
+  'Strogonow z indyka i pieczarek':
+      'assets/recipe_photos/new-72-turkey-and-mushroom-stroganoff.jpg',
+  'Turkey and mushroom stroganoff':
+      'assets/recipe_photos/new-72-turkey-and-mushroom-stroganoff.jpg',
+  'Brytyjska zapiekanka z dorszem i groszkiem':
+      'assets/recipe_photos/new-73-cod-and-pea-fish-pie.jpg',
+  'Cod and pea fish pie':
+      'assets/recipe_photos/new-73-cod-and-pea-fish-pie.jpg',
+  'Kieszonki francuskie z soczewicą i szpinakiem':
+      'assets/recipe_photos/new-74-puff-pastry-pockets-with-lentils-and-spinach.jpg',
+  'Puff pastry pockets with lentils and spinach':
+      'assets/recipe_photos/new-74-puff-pastry-pockets-with-lentils-and-spinach.jpg',
+  'Kokosowy ryż z kukurydzą, limonką i tofu':
+      'assets/recipe_photos/new-75-coconut-lime-and-sweetcorn-rice-with-tofu.jpg',
+  'Coconut, lime and sweetcorn rice with tofu':
+      'assets/recipe_photos/new-75-coconut-lime-and-sweetcorn-rice-with-tofu.jpg',
+  'Zupa buraczana z porem i jogurtem':
+      'assets/recipe_photos/new-76-beetroot-and-leek-soup-with-yoghurt.jpg',
+  'Beetroot and leek soup with yoghurt':
+      'assets/recipe_photos/new-76-beetroot-and-leek-soup-with-yoghurt.jpg',
+  'Grzanki z groszkiem, miętą i ricottą':
+      'assets/recipe_photos/new-77-crushed-pea-mint-and-ricotta-toast.jpg',
+  'Crushed pea, mint and ricotta toast':
+      'assets/recipe_photos/new-77-crushed-pea-mint-and-ricotta-toast.jpg',
+  'Placki z tartych batatów i fety':
+      'assets/recipe_photos/new-78-grated-sweet-potato-and-feta-fritters.jpg',
+  'Grated sweet potato and feta fritters':
+      'assets/recipe_photos/new-78-grated-sweet-potato-and-feta-fritters.jpg',
+  'Zupa z pieczonej papryki i pomidorów z żytnim chlebem':
+      'assets/recipe_photos/new-79-roast-pepper-and-tomato-bread-soup.jpg',
+  'Roast pepper and tomato bread soup':
+      'assets/recipe_photos/new-79-roast-pepper-and-tomato-bread-soup.jpg',
+  'Papryki nadziewane brokułem, komosą i cheddarem':
+      'assets/recipe_photos/new-80-broccoli-quinoa-and-cheddar-stuffed-peppers.jpg',
+  'Broccoli, quinoa and Cheddar stuffed peppers':
+      'assets/recipe_photos/new-80-broccoli-quinoa-and-cheddar-stuffed-peppers.jpg',
+  'Sałatka z pieczonego kalafiora i pęczaku':
+      'assets/recipe_photos/new-81-warm-cauliflower-and-pearl-barley-salad.jpg',
+  'Warm cauliflower and pearl barley salad':
+      'assets/recipe_photos/new-81-warm-cauliflower-and-pearl-barley-salad.jpg',
+  'Wrap z wędzonym łososiem i ogórkiem':
+      'assets/recipe_photos/new-82-smoked-salmon-and-cucumber-wrap.jpg',
+  'Smoked salmon and cucumber wrap':
+      'assets/recipe_photos/new-82-smoked-salmon-and-cucumber-wrap.jpg',
+  'Surówka z kapusty pekińskiej z jabłkiem i orzechami':
+      'assets/recipe_photos/new-83-chinese-cabbage-apple-and-walnut-slaw.jpg',
+  'Chinese cabbage, apple and walnut slaw':
+      'assets/recipe_photos/new-83-chinese-cabbage-apple-and-walnut-slaw.jpg',
+  'Zapiekana polenta z pomidorami i szpinakiem':
+      'assets/recipe_photos/new-84-baked-tomato-and-spinach-polenta.jpg',
+  'Baked tomato and spinach polenta':
+      'assets/recipe_photos/new-84-baked-tomato-and-spinach-polenta.jpg',
+  'Grzanki z awokado i krewetkami':
+      'assets/recipe_photos/new-85-avocado-and-prawn-rye-toast.jpg',
+  'Avocado and prawn rye toast':
+      'assets/recipe_photos/new-85-avocado-and-prawn-rye-toast.jpg',
+  'Pieczone cebule nadziewane wieprzowiną i pieczarkami':
+      'assets/recipe_photos/new-86-baked-onions-stuffed-with-pork-and-mushrooms.jpg',
+  'Baked onions stuffed with pork and mushrooms':
+      'assets/recipe_photos/new-86-baked-onions-stuffed-with-pork-and-mushrooms.jpg',
+  'Pieczone krokiety ziemniaczane z kukurydzą i cheddarem':
+      'assets/recipe_photos/new-87-baked-potato-croquettes-with-sweetcorn-and-cheddar.jpg',
+  'Baked potato croquettes with sweetcorn and Cheddar':
+      'assets/recipe_photos/new-87-baked-potato-croquettes-with-sweetcorn-and-cheddar.jpg',
+  'Komosa z fasolką szparagową i sosem tahini':
+      'assets/recipe_photos/new-88-quinoa-and-green-bean-salad-with-tahini.jpg',
+  'Quinoa and green bean salad with tahini':
+      'assets/recipe_photos/new-88-quinoa-and-green-bean-salad-with-tahini.jpg',
+  'Sałatka z halloumi i pieczonymi śliwkami':
+      'assets/recipe_photos/new-89-warm-halloumi-and-roast-plum-salad.jpg',
+  'Warm halloumi and roast plum salad':
+      'assets/recipe_photos/new-89-warm-halloumi-and-roast-plum-salad.jpg',
+  'Tofu w sezamie z groszkiem i marchewką':
+      'assets/recipe_photos/new-90-sesame-tofu-with-crushed-peas-and-carrots.jpg',
+  'Sesame tofu with crushed peas and carrots':
+      'assets/recipe_photos/new-90-sesame-tofu-with-crushed-peas-and-carrots.jpg',
+  'Chrupiące grzanki cynamonowe z dipem jogurtowym':
+      'assets/recipe_photos/new-91-cinnamon-rye-crisps-with-yoghurt-dip.jpg',
+  'Cinnamon rye crisps with yoghurt dip':
+      'assets/recipe_photos/new-91-cinnamon-rye-crisps-with-yoghurt-dip.jpg',
+  'Muffiny owsiane z jabłkiem i marchewką':
+      'assets/recipe_photos/new-92-apple-and-carrot-oat-muffins.jpg',
+  'Apple and carrot oat muffins':
+      'assets/recipe_photos/new-92-apple-and-carrot-oat-muffins.jpg',
+  'Pucharek jogurtowy z pieczoną śliwką i czekoladą':
+      'assets/recipe_photos/new-93-roast-plum-and-dark-chocolate-yoghurt-parfait.jpg',
+  'Roast plum and dark chocolate yoghurt parfait':
+      'assets/recipe_photos/new-93-roast-plum-and-dark-chocolate-yoghurt-parfait.jpg',
+  'Cytrynowe ciasto z ricottą':
+      'assets/recipe_photos/new-94-lemon-ricotta-cake.jpg',
+  'Lemon ricotta cake': 'assets/recipe_photos/new-94-lemon-ricotta-cake.jpg',
+  'Mrożone płatki jogurtowe z mango i migdałami':
+      'assets/recipe_photos/new-95-frozen-mango-and-almond-yoghurt-bark.jpg',
+  'Frozen mango and almond yoghurt bark':
+      'assets/recipe_photos/new-95-frozen-mango-and-almond-yoghurt-bark.jpg',
+  'Cytrynowo-makowe ciasteczka owsiane':
+      'assets/recipe_photos/new-96-lemon-and-poppy-seed-oat-cookies.jpg',
+  'Lemon and poppy seed oat cookies':
+      'assets/recipe_photos/new-96-lemon-and-poppy-seed-oat-cookies.jpg',
+  'Clafoutis z gruszkami i malinami':
+      'assets/recipe_photos/new-97-pear-and-raspberry-clafoutis.jpg',
+  'Pear and raspberry clafoutis':
+      'assets/recipe_photos/new-97-pear-and-raspberry-clafoutis.jpg',
+  'Czekoladowy pudding z polenty z gruszką':
+      'assets/recipe_photos/new-98-chocolate-polenta-pudding-with-pear.jpg',
+  'Chocolate polenta pudding with pear':
+      'assets/recipe_photos/new-98-chocolate-polenta-pudding-with-pear.jpg',
+  'Grillowany ananas z miętowym skyrem':
+      'assets/recipe_photos/new-99-griddled-pineapple-with-mint-skyr.jpg',
+  'Griddled pineapple with mint skyr':
+      'assets/recipe_photos/new-99-griddled-pineapple-with-mint-skyr.jpg',
+  'Pieczone babeczki ryżowe z kokosem i borówkami':
+      'assets/recipe_photos/new-100-baked-blueberry-and-coconut-rice-cups.jpg',
+  'Baked blueberry and coconut rice cups':
+      'assets/recipe_photos/new-100-baked-blueberry-and-coconut-rice-cups.jpg',
 };

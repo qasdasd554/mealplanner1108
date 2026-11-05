@@ -1,4 +1,4 @@
-"""Pinned UK country-food observations for the autumn additions.
+"""Pinned UK country-food observations for seasonal system recipes.
 
 These pages establish a generic ingredient in the UK catalogue, not current
 stock at any of our shops, a package size, price or another SKU's nutrition.
@@ -13,7 +13,7 @@ from types import MappingProxyType
 from urllib.parse import urlparse
 from uuid import UUID
 
-REFERENCE_SHA256 = 'fd059f324a54b160f2dfab5d4d97ce92c0a410f7b52bbf7b4d700c59293c4a90'
+REFERENCE_SHA256 = 'b45063df7333a91c6d1e707dd06a457133a5bc858295fa0e6a0c7f1eed2bddac'
 
 
 def validate_autumn_reference(data):
@@ -21,7 +21,7 @@ def validate_autumn_reference(data):
                            separators=(',', ':'), allow_nan=False).encode()
     if hashlib.sha256(canonical).hexdigest() != REFERENCE_SHA256:
         raise ValueError('Autumn country references differ from reviewed observations')
-    if data['version'] != 1 or data['automatic_import'] is not False or len(data['references']) != 68:
+    if data['version'] != 1 or data['automatic_import'] is not False or len(data['references']) != 77:
         raise ValueError('Unexpected autumn reference schema')
     from app.services.system_content_language import _index
     seen, result = set(), []

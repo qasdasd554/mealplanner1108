@@ -7625,7 +7625,7 @@ abstract class AppLocalizations {
   /// No description provided for @releasePromptChanges.
   ///
   /// In pl, this message translates to:
-  /// **'• Premium: skanuj paragony i zapisuj zakupy spożywcze w spiżarni.\n• Uporządkowaliśmy ekran Premium: korzyści i ceny są łatwiejsze do znalezienia.\n• Doprecyzowaliśmy cenę po okresie próbnym, odnowienie i dostęp za punkty.\n• Oferty Premium nie zasłaniają od razu nowego planu ani listy zakupów.\n• Ułatwiliśmy powrót do funkcji po aktywacji i przywracanie zakupu.'**
+  /// **'• 100 nowych przepisów w polskiej i brytyjskiej wersji aplikacji.\n• Każde nowe danie ma osobne zdjęcie.'**
   String get releasePromptChanges;
 
   /// No description provided for @detailPlanPortionHelp.

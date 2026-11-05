@@ -41,28 +41,12 @@ void main() {
             .widgetList<Text>(find.byType(Text))
             .map((value) => value.data ?? '')
             .firstWhere((value) => value.startsWith('•'));
-        expect(body.split('\n'), hasLength(5));
-        expect(body, contains(english ? 'scan receipts' : 'skanuj paragony'));
+        expect(body.split('\n'), hasLength(2));
         expect(
           body,
-          contains(english ? 'Premium benefits and prices' : 'korzyści i ceny'),
+          contains(english ? '100 new recipes' : '100 nowych przepisów'),
         );
-        expect(
-          body,
-          contains(english ? 'access with points' : 'dostęp za punkty'),
-        );
-        expect(
-          body,
-          contains(
-            english ? 'new plan or shopping list' : 'nowego planu ani listy',
-          ),
-        );
-        expect(
-          body,
-          contains(english ? 'purchase restoration' : 'przywracanie zakupu'),
-        );
-        expect(body, isNot(contains('splash screen')));
-        expect(body, isNot(contains('Ekran startowy')));
+        expect(body, contains(english ? 'its own photo' : 'osobne zdjęcie'));
         expect(tester.takeException(), isNull);
       },
     );

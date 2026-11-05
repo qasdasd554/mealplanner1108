@@ -4365,7 +4365,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• Premium: scan receipts and add groceries to your pantry.\n• Premium benefits and prices are now easier to find.\n• We made trial pricing, renewal and access with points clearer.\n• Premium offers no longer immediately cover a new plan or shopping list.\n• We improved the return to your task after activation and access to purchase restoration.';
+      '• 100 new recipes for the UK and Poland.\n• Every new dish has its own photo.';
 
   @override
   String detailPlanPortionHelp(int servings, int baseServings) {
@@ -9721,7 +9721,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get releasePromptChanges =>
-      '• Premium: scan receipts and add groceries to your pantry.\n• Premium benefits and prices are now easier to find.\n• We made trial pricing, renewal and access with points clearer.\n• Premium offers no longer immediately cover a new plan or shopping list.\n• We improved the return to your task after activation and access to purchase restoration.';
+      '• 100 new recipes for the UK and Poland.\n• Every new dish has its own photo.';
 
   @override
   String detailPlanPortionHelp(int servings, int baseServings) {

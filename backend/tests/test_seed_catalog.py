@@ -92,7 +92,7 @@ def test_25_airfryer_recipes_are_new_and_complete() -> None:
     }
 
     assert len(AIRFRYER_RECIPES) == len(set(airfryer_names)) == 25
-    assert len(RECIPES_DATA) == 167
+    assert len(RECIPES_DATA) == 267
     assert not {name.strip().casefold() for name in airfryer_names} & existing_names
     assert all("airfryer" in recipe["tags"] for recipe in AIRFRYER_RECIPES)
     assert all(recipe["instructions"] for recipe in AIRFRYER_RECIPES)

@@ -2664,7 +2664,7 @@
   "releasePromptTitle": "Dostępna nowa wersja",
   "releasePromptRequired": "Ta wersja aplikacji nie jest już obsługiwana. Zaktualizuj ją, aby korzystać dalej.",
   "releasePromptStoreError": "Nie udało się otworzyć sklepu.",
-  "releasePromptChanges": "• Premium: skanuj paragony i zapisuj zakupy spożywcze w spiżarni.\n• Uporządkowaliśmy ekran Premium: korzyści i ceny są łatwiejsze do znalezienia.\n• Doprecyzowaliśmy cenę po okresie próbnym, odnowienie i dostęp za punkty.\n• Oferty Premium nie zasłaniają od razu nowego planu ani listy zakupów.\n• Ułatwiliśmy powrót do funkcji po aktywacji i przywracanie zakupu.",
+  "releasePromptChanges": "• 100 nowych przepisów w polskiej i brytyjskiej wersji aplikacji.\n• Każde nowe danie ma osobne zdjęcie.",
   "detailPlanPortionHelp": "Składniki przeliczono na {servings} porcji. Ilości wpisane w opisie przygotowania dotyczą bazowego przepisu ({baseServings} porcji).",
   "@detailPlanPortionHelp": {
     "placeholders": {

@@ -1,0 +1,2820 @@
+[
+  {
+    "name": "Tosty żytnie z ricottą i malinami",
+    "description": "Ricotta i świeże maliny na ciepłej grzance.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "śniadanie",
+    "prep_time_min": 5,
+    "cook_time_min": 5,
+    "servings": 1,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie"
+    ],
+    "instructions": [
+      "Podpraż płatki migdałowe na suchej patelni i opiecz pieczywo.",
+      "Rozsmaruj ricottę na grzankach, dodaj maliny i posyp migdałami."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Chleb żytni razowy",
+        "80",
+        "g",
+        false
+      ],
+      [
+        "Ricotta",
+        "85",
+        "g",
+        false
+      ],
+      [
+        "Maliny",
+        "65",
+        "g",
+        false
+      ],
+      [
+        "Migdały płatki",
+        "10",
+        "g",
+        false
+      ]
+    ],
+    "photo": "new-01-berry-ricotta-toast.jpg"
+  },
+  {
+    "name": "Muffiny jajeczne ze szpinakiem i cheddarem",
+    "description": "Małe wytrawne muffiny, które można zabrać na wynos.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "śniadanie",
+    "prep_time_min": 10,
+    "cook_time_min": 18,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie"
+    ],
+    "instructions": [
+      "Rozgrzej piekarnik do 180°C. Zwiędnij szpinak na patelni, odciśnij i posiekaj.",
+      "Roztrzep jajka z mlekiem i wymieszaj ze szpinakiem oraz startym cheddarem.",
+      "Natłuść 4 wgłębienia formy, rozlej masę i piecz 16–18 minut, aż środek się zetnie."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Jajka",
+        "4",
+        "szt",
+        false
+      ],
+      [
+        "Szpinak świeży",
+        "80",
+        "g",
+        false
+      ],
+      [
+        "Ser cheddar",
+        "60",
+        "g",
+        false
+      ],
+      [
+        "Mleko 2%",
+        "40",
+        "ml",
+        false
+      ],
+      [
+        "Olej rzepakowy",
+        "5",
+        "ml",
+        false
+      ]
+    ],
+    "photo": "new-02-spinach-cheddar-muffins.jpg"
+  },
+  {
+    "name": "Komosa na mleku z borówkami i kokosem",
+    "description": "Kremowa komosa na ciepło z podprażonym kokosem.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "śniadanie",
+    "prep_time_min": 5,
+    "cook_time_min": 18,
+    "servings": 1,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie"
+    ],
+    "instructions": [
+      "Opłucz komosę, zalej mlekiem i gotuj powoli 15–18 minut, mieszając pod koniec.",
+      "Podpraż wiórki kokosowe na suchej patelni. Dodaj borówki, miód i wiórki do ugotowanej komosy."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Quinoa",
+        "55",
+        "g",
+        false
+      ],
+      [
+        "Mleko 2%",
+        "200",
+        "ml",
+        false
+      ],
+      [
+        "Borówki",
+        "80",
+        "g",
+        false
+      ],
+      [
+        "Wiórki kokosowe",
+        "8",
+        "g",
+        false
+      ],
+      [
+        "Miód",
+        "8",
+        "g",
+        false
+      ]
+    ],
+    "photo": "new-03-blueberry-quinoa-porridge.jpg"
+  },
+  {
+    "name": "Grzanki z pastą fasolową i pieczarkami",
+    "description": "Chrupiące grzanki z kremową fasolą i rumianymi pieczarkami.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "śniadanie",
+    "prep_time_min": 10,
+    "cook_time_min": 12,
+    "servings": 1,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie",
+      "wegańskie"
+    ],
+    "instructions": [
+      "Pokrój pieczarki i usmaż na połowie oliwy na złoty kolor.",
+      "Opłucz odsączoną fasolę, podgrzej z resztą oliwy i czosnkiem, a następnie rozgnieć.",
+      "Opiecz chleb, posmaruj pastą i ułóż na niej pieczarki."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Chleb żytni razowy",
+        "80",
+        "g",
+        false
+      ],
+      [
+        "Fasola biała konserwowa",
+        "125",
+        "g",
+        false
+      ],
+      [
+        "Pieczarki",
+        "100",
+        "g",
+        false
+      ],
+      [
+        "Oliwa z oliwek",
+        "10",
+        "ml",
+        false
+      ],
+      [
+        "Czosnek",
+        "4",
+        "g",
+        false
+      ]
+    ],
+    "photo": "new-04-mushroom-beans-toast.jpg"
+  },
+  {
+    "name": "Patelnia z batatem, szpinakiem i jajkami",
+    "description": "Rumiane kostki batata z jajkami z jednej patelni.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "śniadanie",
+    "prep_time_min": 10,
+    "cook_time_min": 20,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie"
+    ],
+    "instructions": [
+      "Bataty pokrój w kostkę, cebulę posiekaj. Smaż w oleju z papryką przez 12–15 minut, aż bataty zmiękną.",
+      "Dodaj szpinak. Kiedy zwiędnie, zrób wgłębienia, wbij jajka i przykryj, aż białka się zetną."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Bataty",
+        "400",
+        "g",
+        false
+      ],
+      [
+        "Szpinak świeży",
+        "100",
+        "g",
+        false
+      ],
+      [
+        "Jajka",
+        "4",
+        "szt",
+        false
+      ],
+      [
+        "Cebula",
+        "80",
+        "g",
+        false
+      ],
+      [
+        "Olej rzepakowy",
+        "15",
+        "ml",
+        false
+      ],
+      [
+        "Papryka wędzona",
+        "2",
+        "g",
+        false
+      ]
+    ],
+    "photo": "new-05-sweet-potato-egg-hash.jpg"
+  },
+  {
+    "name": "Kokosowy pudding chia z mango",
+    "description": "Śniadanie do przygotowania wieczorem, z dojrzałym mango. Schładzanie: co najmniej 4 godziny.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "śniadanie",
+    "prep_time_min": 10,
+    "cook_time_min": 0,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie"
+    ],
+    "instructions": [
+      "Wymieszaj chia z mlekiem kokosowym i jogurtem. Po 10 minutach zamieszaj ponownie.",
+      "Rozłóż do miseczek i schładzaj co najmniej 4 godziny. Przed podaniem dodaj mango pokrojone w kostkę."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Nasiona chia",
+        "40",
+        "g",
+        false
+      ],
+      [
+        "Mleko kokosowe",
+        "200",
+        "ml",
+        false
+      ],
+      [
+        "Jogurt naturalny",
+        "150",
+        "g",
+        false
+      ],
+      [
+        "Mango",
+        "180",
+        "g",
+        false
+      ]
+    ],
+    "photo": "new-06-mango-chia-pudding.jpg"
+  },
+  {
+    "name": "Placuszki gryczane z tartym jabłkiem",
+    "description": "Miękkie placuszki, w których jabłko trafia prosto do ciasta.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "śniadanie",
+    "prep_time_min": 10,
+    "cook_time_min": 15,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie"
+    ],
+    "instructions": [
+      "Wymieszaj jajko, mleko, mąkę i proszek do pieczenia. Zetrzyj jabłko i dodaj do ciasta.",
+      "Nakładaj małe porcje na patelnię z olejem. Smaż z obu stron, aż środek nie będzie surowy.",
+      "Podawaj z jogurtem."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Mąka gryczana",
+        "100",
+        "g",
+        false
+      ],
+      [
+        "Jabłka",
+        "160",
+        "g",
+        false
+      ],
+      [
+        "Jajka",
+        "1",
+        "szt",
+        false
+      ],
+      [
+        "Mleko 2%",
+        "120",
+        "ml",
+        false
+      ],
+      [
+        "Proszek do pieczenia",
+        "4",
+        "g",
+        false
+      ],
+      [
+        "Olej rzepakowy",
+        "10",
+        "ml",
+        false
+      ],
+      [
+        "Jogurt naturalny",
+        "80",
+        "g",
+        false
+      ]
+    ],
+    "photo": "new-07-apple-buckwheat-pancakes.jpg"
+  },
+  {
+    "name": "Frittata ziemniaczana z wędzonym łososiem",
+    "description": "Zapiekany omlet z miękkimi ziemniakami i wędzonym łososiem.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "śniadanie",
+    "prep_time_min": 12,
+    "cook_time_min": 23,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [],
+    "instructions": [
+      "Ugotuj ziemniaki pokrojone w cienkie plasterki, odcedź i ułóż w natłuszczonej formie.",
+      "Roztrzep jajka z mlekiem, dodaj kawałki łososia i szczypiorek. Wylej na ziemniaki.",
+      "Piecz w 190°C przez 15–18 minut, aż środek się zetnie."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Ziemniaki",
+        "300",
+        "g",
+        false
+      ],
+      [
+        "Jajka",
+        "4",
+        "szt",
+        false
+      ],
+      [
+        "Łosoś wędzony",
+        "80",
+        "g",
+        false
+      ],
+      [
+        "Szczypiorek",
+        "8",
+        "g",
+        false
+      ],
+      [
+        "Mleko 2%",
+        "40",
+        "ml",
+        false
+      ],
+      [
+        "Olej rzepakowy",
+        "10",
+        "ml",
+        false
+      ]
+    ],
+    "photo": "new-08-smoked-salmon-potato-frittata.jpg"
+  },
+  {
+    "name": "Nocna komosa z malinami i masłem orzechowym",
+    "description": "Komosa na zimno z malinami rozgniecionymi widelcem. Schładzanie: przez noc.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "śniadanie",
+    "prep_time_min": 10,
+    "cook_time_min": 15,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie"
+    ],
+    "instructions": [
+      "Opłucz komosę i ugotuj w wodzie według instrukcji na opakowaniu. Szybko ostudź.",
+      "Połącz jogurt z masłem orzechowym, dodaj komosę i rozgniecione maliny. Przykryj i wstaw na noc do lodówki."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Quinoa",
+        "90",
+        "g",
+        false
+      ],
+      [
+        "Jogurt naturalny",
+        "240",
+        "g",
+        false
+      ],
+      [
+        "Masło orzechowe",
+        "30",
+        "g",
+        false
+      ],
+      [
+        "Maliny",
+        "140",
+        "g",
+        false
+      ]
+    ],
+    "photo": "new-09-peanut-raspberry-overnight-quinoa.jpg"
+  },
+  {
+    "name": "Tosty francuskie z żytniego chleba z gruszką",
+    "description": "Pełnoziarniste tosty z miękką gruszką z patelni.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "śniadanie",
+    "prep_time_min": 10,
+    "cook_time_min": 12,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie"
+    ],
+    "instructions": [
+      "Pokrój gruszki w kliny i podsmaż na połowie masła, aż zmiękną.",
+      "Roztrzep jajka z mlekiem i zamocz kromki. Usmaż je na pozostałym maśle, aż się zrumienią, a masa jajeczna zetnie.",
+      "Podaj z gruszkami i jogurtem."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Chleb żytni razowy",
+        "150",
+        "g",
+        false
+      ],
+      [
+        "Jajka",
+        "2",
+        "szt",
+        false
+      ],
+      [
+        "Mleko 2%",
+        "100",
+        "ml",
+        false
+      ],
+      [
+        "Gruszki",
+        "220",
+        "g",
+        false
+      ],
+      [
+        "Masło extra",
+        "15",
+        "g",
+        false
+      ],
+      [
+        "Jogurt naturalny",
+        "80",
+        "g",
+        false
+      ]
+    ],
+    "photo": "new-10-pear-rye-french-toast.jpg"
+  },
+  {
+    "name": "Łosoś z pieczonymi ziemniakami i brokułem",
+    "description": "Cały obiad z jednej blachy z cytryną do skropienia.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "obiad",
+    "prep_time_min": 12,
+    "cook_time_min": 32,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [],
+    "instructions": [
+      "Pokrój ziemniaki w kliny, wymieszaj z połową oliwy i piecz 18 minut w 210°C.",
+      "Dodaj różyczki brokułu i łososia. Skrop resztą oliwy i piecz 12–14 minut, aż ryba będzie nieprzezroczysta i łatwo podzieli się na płatki.",
+      "Podaj z cząstkami cytryny."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Łosoś filet",
+        "300",
+        "g",
+        false
+      ],
+      [
+        "Ziemniaki",
+        "450",
+        "g",
+        false
+      ],
+      [
+        "Brokuł",
+        "300",
+        "g",
+        false
+      ],
+      [
+        "Oliwa z oliwek",
+        "20",
+        "ml",
+        false
+      ],
+      [
+        "Cytryna",
+        "1",
+        "szt",
+        false
+      ]
+    ],
+    "photo": "new-11-salmon-broccoli-potato-traybake.jpg"
+  },
+  {
+    "name": "Papryki nadziewane indykiem i ryżem",
+    "description": "Pieczone połówki papryki z pomidorowym farszem.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "obiad",
+    "prep_time_min": 15,
+    "cook_time_min": 30,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [],
+    "instructions": [
+      "Ugotuj ryż. Przekrój papryki wzdłuż, usuń gniazda i piecz 12 minut w 200°C.",
+      "Podsmaż cebulę i indyka na oliwie. Gdy mięso przestanie być różowe, dodaj pomidory i ryż.",
+      "Napełnij połówki i piecz jeszcze 12–15 minut, aż farsz będzie gorący w środku, a indyk całkowicie ugotowany."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Papryka czerwona",
+        "2",
+        "szt",
+        false
+      ],
+      [
+        "Mięso mielone z indyka",
+        "250",
+        "g",
+        false
+      ],
+      [
+        "Ryż biały",
+        "90",
+        "g",
+        false
+      ],
+      [
+        "Pomidory krojone",
+        "200",
+        "g",
+        false
+      ],
+      [
+        "Cebula",
+        "70",
+        "g",
+        false
+      ],
+      [
+        "Oliwa z oliwek",
+        "10",
+        "ml",
+        false
+      ]
+    ],
+    "photo": "new-12-turkey-stuffed-peppers.jpg"
+  },
+  {
+    "name": "Polędwiczka z jabłkami w sosie cydrowym",
+    "description": "Pieczona polędwiczka i miękkie jabłka w lekko kwaśnym sosie z patelni.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "obiad",
+    "prep_time_min": 12,
+    "cook_time_min": 25,
+    "servings": 2,
+    "difficulty": "średni",
+    "tags": [],
+    "instructions": [
+      "Obsmaż polędwiczkę na oleju ze wszystkich stron. Przełóż do piekarnika nagrzanego do 200°C i dopiecz.",
+      "Na tej samej patelni podsmaż cebulę i kliny jabłka na maśle. Wlej ocet jabłkowy i trochę wody, zeskrobując smak z dna. Gotuj chwilę, aż płyn się zredukuje.",
+      "Odstaw upieczone mięso na kilka minut, pokrój w plastry i podaj z jabłkami oraz sosem."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Polędwiczka wieprzowa",
+        "330",
+        "g",
+        false
+      ],
+      [
+        "Jabłka",
+        "220",
+        "g",
+        false
+      ],
+      [
+        "Ocet jabłkowy",
+        "15",
+        "ml",
+        false
+      ],
+      [
+        "Cebula",
+        "90",
+        "g",
+        false
+      ],
+      [
+        "Olej rzepakowy",
+        "12",
+        "ml",
+        false
+      ],
+      [
+        "Masło extra",
+        "10",
+        "g",
+        false
+      ]
+    ],
+    "photo": "new-13-pork-apples-cider.jpg"
+  },
+  {
+    "name": "Dorsz w pomidorowej potrawce z białą fasolą",
+    "description": "Dorsz duszony w gęstej potrawce z fasoli i pomidorów.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "obiad",
+    "prep_time_min": 10,
+    "cook_time_min": 22,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [],
+    "instructions": [
+      "Zeszklij cebulę i czosnek na oliwie. Dodaj pomidory i odsączoną fasolę, gotuj 12 minut.",
+      "Włóż porcje dorsza do sosu, przykryj i duś łagodnie 8–10 minut, aż ryba będzie nieprzezroczysta i zacznie się dzielić na płatki.",
+      "Posyp natką."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Dorsz filet",
+        "300",
+        "g",
+        false
+      ],
+      [
+        "Fasola biała konserwowa",
+        "240",
+        "g",
+        false
+      ],
+      [
+        "Pomidory krojone",
+        "400",
+        "g",
+        false
+      ],
+      [
+        "Cebula",
+        "90",
+        "g",
+        false
+      ],
+      [
+        "Czosnek",
+        "5",
+        "g",
+        false
+      ],
+      [
+        "Oliwa z oliwek",
+        "15",
+        "ml",
+        false
+      ],
+      [
+        "Natka pietruszki",
+        "8",
+        "g",
+        false
+      ]
+    ],
+    "photo": "new-14-cod-white-bean-tomato-stew.jpg"
+  },
+  {
+    "name": "Komosa z krewetkami, cukinią i limonką",
+    "description": "Komosa z rumianą cukinią i świeżą limonką.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "obiad",
+    "prep_time_min": 12,
+    "cook_time_min": 20,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [],
+    "instructions": [
+      "Ugotuj komosę. Rozmroź krewetki zgodnie z instrukcją i osusz.",
+      "Podsmaż cukinię na oliwie. Dodaj posiekany czosnek i krewetki, smaż aż będą nieprzezroczyste i ugotowane.",
+      "Wymieszaj z komosą i sokiem z limonki."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Quinoa",
+        "130",
+        "g",
+        false
+      ],
+      [
+        "Krewetki mrożone",
+        "240",
+        "g",
+        false
+      ],
+      [
+        "Cukinia",
+        "240",
+        "g",
+        false
+      ],
+      [
+        "Limonka",
+        "1",
+        "szt",
+        false
+      ],
+      [
+        "Oliwa z oliwek",
+        "15",
+        "ml",
+        false
+      ],
+      [
+        "Czosnek",
+        "5",
+        "g",
+        false
+      ]
+    ],
+    "photo": "new-15-prawn-lime-quinoa.jpg"
+  },
+  {
+    "name": "Pulpeciki z indyka na kremowej polencie",
+    "description": "Pulpeciki w sosie pomidorowym podane na miękkiej polencie.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "obiad",
+    "prep_time_min": 15,
+    "cook_time_min": 25,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [],
+    "instructions": [
+      "Połącz indyka z bułką tartą i oregano, uformuj pulpeciki i obsmaż je na części oliwy.",
+      "Na reszcie oliwy zeszklij cebulę, dodaj pomidory i pulpeciki. Duś do pełnego ugotowania mięsa.",
+      "Ugotuj polentę na miękko według instrukcji i rozłóż na niej pulpeciki z sosem."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Mięso mielone z indyka",
+        "300",
+        "g",
+        false
+      ],
+      [
+        "Polenta",
+        "115",
+        "g",
+        false
+      ],
+      [
+        "Pomidory krojone",
+        "400",
+        "g",
+        false
+      ],
+      [
+        "Bułka tarta",
+        "30",
+        "g",
+        false
+      ],
+      [
+        "Oregano",
+        "2",
+        "g",
+        false
+      ],
+      [
+        "Cebula",
+        "90",
+        "g",
+        false
+      ],
+      [
+        "Oliwa z oliwek",
+        "15",
+        "ml",
+        false
+      ]
+    ],
+    "photo": "new-16-turkey-meatball-polenta.jpg"
+  },
+  {
+    "name": "Pęczak z duszoną wołowiną i pieczarkami",
+    "description": "Pęczak z miękką wołowiną i zrumienionymi pieczarkami.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "obiad",
+    "prep_time_min": 15,
+    "cook_time_min": 95,
+    "servings": 3,
+    "difficulty": "średni",
+    "tags": [],
+    "instructions": [
+      "Obsmaż kostki wołowiny partiami na oleju. Dodaj cebulę i marchew, zalej wodą do połowy wysokości mięsa.",
+      "Duś pod przykryciem na małym ogniu do miękkości, około 75–90 minut. Pod koniec dodaj osobno zrumienione pieczarki.",
+      "Ugotuj pęczak i podaj z gulaszem."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Wołowina na gulasz",
+        "450",
+        "g",
+        false
+      ],
+      [
+        "Kasza pęczak",
+        "180",
+        "g",
+        false
+      ],
+      [
+        "Pieczarki",
+        "250",
+        "g",
+        false
+      ],
+      [
+        "Cebula",
+        "130",
+        "g",
+        false
+      ],
+      [
+        "Marchew",
+        "160",
+        "g",
+        false
+      ],
+      [
+        "Olej rzepakowy",
+        "15",
+        "ml",
+        false
+      ]
+    ],
+    "photo": "new-17-beef-mushroom-barley.jpg"
+  },
+  {
+    "name": "Zapiekanka z bakłażana i czerwonej soczewicy",
+    "description": "Warstwy pieczonego bakłażana i soczewicy pod cheddarem.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "obiad",
+    "prep_time_min": 15,
+    "cook_time_min": 40,
+    "servings": 3,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie"
+    ],
+    "instructions": [
+      "Pokrój bakłażana w plastry, posmaruj częścią oliwy i piecz 15 minut w 210°C.",
+      "Zeszklij cebulę na reszcie oliwy. Dodaj opłukaną soczewicę, pomidory i wodę; gotuj do miękkości.",
+      "Ułóż warstwy w formie, posyp cheddarem i zapiecz do zrumienienia sera."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Bakłażan",
+        "450",
+        "g",
+        false
+      ],
+      [
+        "Soczewica czerwona",
+        "180",
+        "g",
+        false
+      ],
+      [
+        "Pomidory krojone",
+        "400",
+        "g",
+        false
+      ],
+      [
+        "Ser cheddar",
+        "90",
+        "g",
+        false
+      ],
+      [
+        "Cebula",
+        "90",
+        "g",
+        false
+      ],
+      [
+        "Oliwa z oliwek",
+        "20",
+        "ml",
+        false
+      ]
+    ],
+    "photo": "new-18-red-lentil-aubergine-bake.jpg"
+  },
+  {
+    "name": "Chili z czarnej fasoli i batatów",
+    "description": "Gęste warzywne chili z łyżką chłodnego jogurtu.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "obiad",
+    "prep_time_min": 12,
+    "cook_time_min": 25,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie"
+    ],
+    "instructions": [
+      "Zeszklij cebulę na oleju, dodaj paprykę wędzoną, chili i pokrojone bataty.",
+      "Dodaj pomidory i trochę wody. Duś do miękkości batatów, dodając odsączoną fasolę na ostatnie 5 minut.",
+      "Podaj z jogurtem."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Fasola czarna konserwowa",
+        "260",
+        "g",
+        false
+      ],
+      [
+        "Bataty",
+        "360",
+        "g",
+        false
+      ],
+      [
+        "Pomidory krojone",
+        "400",
+        "g",
+        false
+      ],
+      [
+        "Cebula",
+        "90",
+        "g",
+        false
+      ],
+      [
+        "Olej rzepakowy",
+        "12",
+        "ml",
+        false
+      ],
+      [
+        "Papryka wędzona",
+        "3",
+        "g",
+        false
+      ],
+      [
+        "Chili suszone",
+        "1",
+        "g",
+        false
+      ],
+      [
+        "Jogurt naturalny",
+        "80",
+        "g",
+        false
+      ]
+    ],
+    "photo": "new-19-sweet-potato-black-bean-chilli.jpg"
+  },
+  {
+    "name": "Cytrynowe risotto z groszkiem i ricottą",
+    "description": "Kremowe risotto z zielonym groszkiem i skórką cytrynową.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "obiad",
+    "prep_time_min": 10,
+    "cook_time_min": 25,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie"
+    ],
+    "instructions": [
+      "Zeszklij cebulę na oliwie, wsyp ryż i mieszaj minutę.",
+      "Dolewaj gorący bulion po chochli i mieszaj, aż ryż będzie miękki, ale sprężysty. Pod koniec dodaj groszek.",
+      "Zdejmij z ognia. Dodaj ricottę, startą skórkę i trochę soku z cytryny."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Ryż arborio",
+        "155",
+        "g",
+        false
+      ],
+      [
+        "Groszek zielony mrożony",
+        "180",
+        "g",
+        false
+      ],
+      [
+        "Ricotta",
+        "120",
+        "g",
+        false
+      ],
+      [
+        "Cebula",
+        "70",
+        "g",
+        false
+      ],
+      [
+        "Bulion warzywny gotowy",
+        "550",
+        "ml",
+        false
+      ],
+      [
+        "Cytryna",
+        "1",
+        "szt",
+        false
+      ],
+      [
+        "Oliwa z oliwek",
+        "12",
+        "ml",
+        false
+      ]
+    ],
+    "photo": "new-20-lemon-pea-ricotta-risotto.jpg"
+  },
+  {
+    "name": "Zapiekanka z kurczakiem i porem pod ziemniakami",
+    "description": "Kremowe nadzienie z pora i kurczaka pod rumianymi plasterkami ziemniaków.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "obiad",
+    "prep_time_min": 15,
+    "cook_time_min": 40,
+    "servings": 3,
+    "difficulty": "średni",
+    "tags": [],
+    "instructions": [
+      "Pokrój ziemniaki w cienkie plasterki i podgotuj 5 minut.",
+      "Na maśle podsmaż por i pokrojonego kurczaka. Wsyp mąkę, wlej mleko i mieszaj do zgęstnienia.",
+      "Przełóż do formy, przykryj ziemniakami i piecz w 200°C, aż wierzch się zrumieni, a kurczak będzie w pełni ugotowany."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Pierś z kurczaka",
+        "420",
+        "g",
+        false
+      ],
+      [
+        "Por",
+        "200",
+        "g",
+        false
+      ],
+      [
+        "Ziemniaki",
+        "450",
+        "g",
+        false
+      ],
+      [
+        "Mleko 2%",
+        "220",
+        "ml",
+        false
+      ],
+      [
+        "Mąka pszenna",
+        "18",
+        "g",
+        false
+      ],
+      [
+        "Masło extra",
+        "22",
+        "g",
+        false
+      ]
+    ],
+    "photo": "new-21-chicken-leek-potato-pie.jpg"
+  },
+  {
+    "name": "Łosoś duszony w kokosowych pomidorach z fasolką",
+    "description": "Delikatny łosoś w pomidorach złagodzonych mlekiem kokosowym.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "obiad",
+    "prep_time_min": 10,
+    "cook_time_min": 24,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [],
+    "instructions": [
+      "Ugotuj ryż. Zeszklij cebulę na oleju, wlej pomidory i mleko kokosowe.",
+      "Dodaj pokrojoną fasolkę i duś do prawie miękkiej. Włóż duże kawałki łososia i duś, aż będą nieprzezroczyste i ugotowane.",
+      "Podaj z ryżem."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Łosoś filet",
+        "280",
+        "g",
+        false
+      ],
+      [
+        "Fasola szparagowa świeża",
+        "190",
+        "g",
+        false
+      ],
+      [
+        "Pomidory krojone",
+        "250",
+        "g",
+        false
+      ],
+      [
+        "Mleko kokosowe",
+        "180",
+        "ml",
+        false
+      ],
+      [
+        "Ryż biały",
+        "100",
+        "g",
+        false
+      ],
+      [
+        "Cebula",
+        "70",
+        "g",
+        false
+      ],
+      [
+        "Olej rzepakowy",
+        "8",
+        "ml",
+        false
+      ]
+    ],
+    "photo": "new-22-salmon-coconut-tomato-stew.jpg"
+  },
+  {
+    "name": "Pieczone ziemniaki z pieczarkami i cheddarem",
+    "description": "Chrupiąca skórka, rumiane pieczarki i roztopiony cheddar.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "obiad",
+    "prep_time_min": 10,
+    "cook_time_min": 55,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie"
+    ],
+    "instructions": [
+      "Nakłuj umyte ziemniaki i piecz w 210°C do miękkości, zwykle 45–55 minut.",
+      "Usmaż pieczarki na maśle. Rozetnij ziemniaki, dodaj pieczarki i ser, po czym zapiecz chwilę do roztopienia.",
+      "Podaj z jogurtem i szczypiorkiem."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Ziemniaki",
+        "550",
+        "g",
+        false
+      ],
+      [
+        "Pieczarki",
+        "260",
+        "g",
+        false
+      ],
+      [
+        "Ser cheddar",
+        "85",
+        "g",
+        false
+      ],
+      [
+        "Jogurt naturalny",
+        "90",
+        "g",
+        false
+      ],
+      [
+        "Masło extra",
+        "14",
+        "g",
+        false
+      ],
+      [
+        "Szczypiorek",
+        "7",
+        "g",
+        false
+      ]
+    ],
+    "photo": "new-23-mushroom-cheddar-jacket.jpg"
+  },
+  {
+    "name": "Gołąbki z kapusty pekińskiej z wieprzowiną i imbirem",
+    "description": "Delikatne gołąbki z kapusty pekińskiej duszone z sosem sojowym.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "obiad",
+    "prep_time_min": 20,
+    "cook_time_min": 35,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [],
+    "instructions": [
+      "Podgotuj ryż przez 6 minut i odcedź. Oddziel 6 dużych liści kapusty, sparz i zetnij zgrubiałe nerwy.",
+      "Wymieszaj wieprzowinę z ryżem, posiekaną cebulą, imbirem i połową sosu sojowego. Podziel farsz między liście i zawiń boki.",
+      "Ułóż łączeniem do dołu, wlej bulion i resztę sosu. Duś pod przykryciem około 25–30 minut, aż mięso i ryż będą w pełni ugotowane."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Wieprzowina mielona",
+        "280",
+        "g",
+        false
+      ],
+      [
+        "Kapusta pekińska",
+        "350",
+        "g",
+        false
+      ],
+      [
+        "Ryż biały",
+        "90",
+        "g",
+        false
+      ],
+      [
+        "Sos sojowy",
+        "22",
+        "ml",
+        false
+      ],
+      [
+        "Imbir świeży",
+        "12",
+        "g",
+        false
+      ],
+      [
+        "Cebula",
+        "75",
+        "g",
+        false
+      ],
+      [
+        "Bulion warzywny gotowy",
+        "300",
+        "ml",
+        false
+      ]
+    ],
+    "photo": "new-24-ginger-pork-cabbage-rolls.jpg"
+  },
+  {
+    "name": "Makaron zapiekany z indykiem i brokułem",
+    "description": "Pełnoziarnisty makaron z miękkim środkiem i chrupiącymi brzegami.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "obiad",
+    "prep_time_min": 15,
+    "cook_time_min": 30,
+    "servings": 3,
+    "difficulty": "średni",
+    "tags": [],
+    "instructions": [
+      "Podgotuj makaron, dodając różyczki brokułu na ostatnie 3 minuty. Podsmaż kawałki indyka.",
+      "Z masła, mąki i mleka zrób gładki sos, dodaj połowę cheddara.",
+      "Wymieszaj składniki w formie, posyp pozostałym serem i piecz w 200°C, aż wierzch zbrązowieje, a mięso będzie ugotowane."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Makaron pełnoziarnisty",
+        "220",
+        "g",
+        false
+      ],
+      [
+        "Filet z indyka",
+        "350",
+        "g",
+        false
+      ],
+      [
+        "Brokuł",
+        "300",
+        "g",
+        false
+      ],
+      [
+        "Ser cheddar",
+        "95",
+        "g",
+        false
+      ],
+      [
+        "Mleko 2%",
+        "280",
+        "ml",
+        false
+      ],
+      [
+        "Mąka pszenna",
+        "20",
+        "g",
+        false
+      ],
+      [
+        "Masło extra",
+        "22",
+        "g",
+        false
+      ]
+    ],
+    "photo": "new-25-turkey-broccoli-pasta-bake.jpg"
+  },
+  {
+    "name": "Zupa z czerwonej soczewicy i wędzonej papryki",
+    "description": "Gęsta zupa z czerwonej soczewicy o lekko dymnym smaku.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "kolacja",
+    "prep_time_min": 10,
+    "cook_time_min": 26,
+    "servings": 3,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie",
+      "wegańskie"
+    ],
+    "instructions": [
+      "Podsmaż cebulę i marchew na oliwie, po czym dodaj wędzoną paprykę.",
+      "Wsyp opłukaną soczewicę, wlej pomidory i bulion. Gotuj, aż soczewica się rozpadnie. Rozgnieć część marchewki, jeśli wolisz gęstszą zupę."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Soczewica czerwona",
+        "200",
+        "g",
+        false
+      ],
+      [
+        "Pomidory krojone",
+        "400",
+        "g",
+        false
+      ],
+      [
+        "Marchew",
+        "160",
+        "g",
+        false
+      ],
+      [
+        "Cebula",
+        "100",
+        "g",
+        false
+      ],
+      [
+        "Bulion warzywny gotowy",
+        "650",
+        "ml",
+        false
+      ],
+      [
+        "Papryka wędzona",
+        "4",
+        "g",
+        false
+      ],
+      [
+        "Oliwa z oliwek",
+        "15",
+        "ml",
+        false
+      ]
+    ],
+    "photo": "new-26-smoky-red-lentil-soup.jpg"
+  },
+  {
+    "name": "Kremowa zupa z kukurydzą, porem i ziemniakami",
+    "description": "Zupa z wyraźnymi kawałkami ziemniaków i słodką kukurydzą.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "kolacja",
+    "prep_time_min": 12,
+    "cook_time_min": 25,
+    "servings": 3,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie"
+    ],
+    "instructions": [
+      "Zmiękcz pokrojony por na maśle. Dodaj ziemniaki w kostkę i bulion, gotuj do miękkości.",
+      "Dodaj odsączoną kukurydzę i mleko. Rozgnieć część ziemniaków, żeby zagęścić zupę, i podgrzej."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Kukurydza konserwowa",
+        "260",
+        "g",
+        false
+      ],
+      [
+        "Por",
+        "170",
+        "g",
+        false
+      ],
+      [
+        "Ziemniaki",
+        "350",
+        "g",
+        false
+      ],
+      [
+        "Mleko 2%",
+        "300",
+        "ml",
+        false
+      ],
+      [
+        "Bulion warzywny gotowy",
+        "350",
+        "ml",
+        false
+      ],
+      [
+        "Masło extra",
+        "18",
+        "g",
+        false
+      ]
+    ],
+    "photo": "new-27-sweetcorn-leek-chowder.jpg"
+  },
+  {
+    "name": "Biała fasola w pomidorach ze szpinakiem",
+    "description": "Pomidorowa fasola z patelni i żytnie grzanki do zbierania sosu.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "kolacja",
+    "prep_time_min": 10,
+    "cook_time_min": 16,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie",
+      "wegańskie"
+    ],
+    "instructions": [
+      "Krótko podsmaż czosnek na oliwie. Dodaj pomidory i duś 10 minut.",
+      "Dodaj odsączoną fasolę i szpinak, gotuj, aż szpinak zwiędnie, a fasola się rozgrzeje. Podaj z opieczonym chlebem."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Fasola biała konserwowa",
+        "320",
+        "g",
+        false
+      ],
+      [
+        "Pomidory krojone",
+        "400",
+        "g",
+        false
+      ],
+      [
+        "Szpinak świeży",
+        "100",
+        "g",
+        false
+      ],
+      [
+        "Czosnek",
+        "6",
+        "g",
+        false
+      ],
+      [
+        "Oliwa z oliwek",
+        "15",
+        "ml",
+        false
+      ],
+      [
+        "Chleb żytni razowy",
+        "110",
+        "g",
+        false
+      ]
+    ],
+    "photo": "new-28-butter-bean-tomato-skillet.jpg"
+  },
+  {
+    "name": "Frittata z krewetkami i zielonym groszkiem",
+    "description": "Wytrawna frittata z groszkiem i szczypiorkiem.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "kolacja",
+    "prep_time_min": 10,
+    "cook_time_min": 19,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [],
+    "instructions": [
+      "Rozmroź krewetki zgodnie z opakowaniem, osusz i podsmaż na oleju. Dodaj groszek i krótko podgrzej.",
+      "Wlej jajka roztrzepane z mlekiem i szczypiorkiem. Piecz w żaroodpornej patelni w 190°C, aż masa i krewetki będą ugotowane."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Jajka",
+        "4",
+        "szt",
+        false
+      ],
+      [
+        "Krewetki mrożone",
+        "170",
+        "g",
+        false
+      ],
+      [
+        "Groszek zielony mrożony",
+        "130",
+        "g",
+        false
+      ],
+      [
+        "Mleko 2%",
+        "45",
+        "ml",
+        false
+      ],
+      [
+        "Olej rzepakowy",
+        "10",
+        "ml",
+        false
+      ],
+      [
+        "Szczypiorek",
+        "6",
+        "g",
+        false
+      ]
+    ],
+    "photo": "new-29-prawn-pea-frittata.jpg"
+  },
+  {
+    "name": "Wrap z halloumi i pieczoną papryką",
+    "description": "Ciepła tortilla z rumianym halloumi i słodką pieczoną papryką.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "kolacja",
+    "prep_time_min": 12,
+    "cook_time_min": 23,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie"
+    ],
+    "instructions": [
+      "Pokrój papryki w paski, skrop oliwą i piecz w 220°C do miękkości.",
+      "Usmaż plastry halloumi na suchej patelni. Wymieszaj jogurt z odrobiną soku z cytryny.",
+      "Posmaruj podgrzane tortille sosem, dodaj szpinak, paprykę i halloumi, po czym ciasno zawiń."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Tortilla pszenna",
+        "120",
+        "g",
+        false
+      ],
+      [
+        "Ser halloumi",
+        "160",
+        "g",
+        false
+      ],
+      [
+        "Papryka czerwona",
+        "2",
+        "szt",
+        false
+      ],
+      [
+        "Szpinak świeży",
+        "50",
+        "g",
+        false
+      ],
+      [
+        "Jogurt naturalny",
+        "80",
+        "g",
+        false
+      ],
+      [
+        "Oliwa z oliwek",
+        "10",
+        "ml",
+        false
+      ],
+      [
+        "Cytryna",
+        "1",
+        "szt",
+        false
+      ]
+    ],
+    "photo": "new-30-pepper-halloumi-wrap.jpg"
+  },
+  {
+    "name": "Sałatka ziemniaczana z wędzonym łososiem i jabłkiem",
+    "description": "Jabłko dodaje chrupkości ziemniakom i wędzonemu łososiowi.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "kolacja",
+    "prep_time_min": 12,
+    "cook_time_min": 17,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [],
+    "instructions": [
+      "Ugotuj ziemniaki w kawałkach, odcedź i lekko przestudź.",
+      "Wymieszaj jogurt z musztardą. Dodaj ziemniaki, cienkie plasterki jabłka, kawałki łososia i szczypiorek."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Ziemniaki",
+        "380",
+        "g",
+        false
+      ],
+      [
+        "Łosoś wędzony",
+        "130",
+        "g",
+        false
+      ],
+      [
+        "Jabłka",
+        "160",
+        "g",
+        false
+      ],
+      [
+        "Jogurt naturalny",
+        "110",
+        "g",
+        false
+      ],
+      [
+        "Musztarda francuska",
+        "18",
+        "g",
+        false
+      ],
+      [
+        "Szczypiorek",
+        "8",
+        "g",
+        false
+      ]
+    ],
+    "photo": "new-31-salmon-apple-potato-salad.jpg"
+  },
+  {
+    "name": "Sałatka z pieczonych buraków, pomarańczy i orzechów",
+    "description": "Pieczone buraki z soczystą pomarańczą i orzechami włoskimi.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "kolacja",
+    "prep_time_min": 15,
+    "cook_time_min": 40,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie",
+      "wegańskie"
+    ],
+    "instructions": [
+      "Obierz buraki, pokrój w kliny i piecz w 200°C z połową oliwy, aż zmiękną.",
+      "Odważ 260 g obranych pomarańczy i podziel na cząstki. Podpraż orzechy na suchej patelni.",
+      "Ułóż składniki na szpinaku, polej resztą oliwy wymieszaną z octem."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Buraki",
+        "360",
+        "g",
+        false
+      ],
+      [
+        "Pomarańcze",
+        "260",
+        "g",
+        false
+      ],
+      [
+        "Orzechy włoskie",
+        "45",
+        "g",
+        false
+      ],
+      [
+        "Szpinak świeży",
+        "100",
+        "g",
+        false
+      ],
+      [
+        "Oliwa z oliwek",
+        "15",
+        "ml",
+        false
+      ],
+      [
+        "Ocet balsamiczny",
+        "10",
+        "ml",
+        false
+      ]
+    ],
+    "photo": "new-32-beetroot-orange-walnut-salad.jpg"
+  },
+  {
+    "name": "Cytrynowy makaron z białą fasolą i szpinakiem",
+    "description": "Lekki sos z oliwy i cytryny oblepia makaron oraz fasolę.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "kolacja",
+    "prep_time_min": 10,
+    "cook_time_min": 15,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie",
+      "wegańskie"
+    ],
+    "instructions": [
+      "Ugotuj makaron i zachowaj trochę wody z gotowania.",
+      "Na oliwie krótko podsmaż czosnek, dodaj odsączoną fasolę, szpinak i odrobinę wody z makaronu.",
+      "Połącz z makaronem, startą skórką cytryny i sokiem do smaku."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Makaron pełnoziarnisty",
+        "160",
+        "g",
+        false
+      ],
+      [
+        "Fasola biała konserwowa",
+        "230",
+        "g",
+        false
+      ],
+      [
+        "Szpinak świeży",
+        "110",
+        "g",
+        false
+      ],
+      [
+        "Cytryna",
+        "1",
+        "szt",
+        false
+      ],
+      [
+        "Czosnek",
+        "6",
+        "g",
+        false
+      ],
+      [
+        "Oliwa z oliwek",
+        "18",
+        "ml",
+        false
+      ]
+    ],
+    "photo": "new-33-pasta-white-bean-lemon.jpg"
+  },
+  {
+    "name": "Smażony ryż z wieprzowiną, groszkiem i jajkiem",
+    "description": "Ryż z paskami schabu, groszkiem i kawałkami jajka.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "kolacja",
+    "prep_time_min": 10,
+    "cook_time_min": 23,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [],
+    "instructions": [
+      "Ugotuj ryż i dobrze odcedź. Roztrzep jajka, usmaż cienki omlet i pokrój w paski.",
+      "Obsmaż cienkie paski schabu na reszcie oleju do pełnego ugotowania. Dodaj groszek, ryż, omlet i sos sojowy, podgrzej mieszając."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Ryż biały",
+        "130",
+        "g",
+        false
+      ],
+      [
+        "Schab wieprzowy",
+        "240",
+        "g",
+        false
+      ],
+      [
+        "Groszek zielony mrożony",
+        "140",
+        "g",
+        false
+      ],
+      [
+        "Jajka",
+        "2",
+        "szt",
+        false
+      ],
+      [
+        "Sos sojowy",
+        "20",
+        "ml",
+        false
+      ],
+      [
+        "Olej rzepakowy",
+        "15",
+        "ml",
+        false
+      ]
+    ],
+    "photo": "new-34-pork-pea-rice.jpg"
+  },
+  {
+    "name": "Grillowana polenta z pomidorkami i fetą",
+    "description": "Rumiane plastry polenty z popękanymi pomidorkami i fetą. Przed grillowaniem odstaw polentę do stężenia.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "kolacja",
+    "prep_time_min": 12,
+    "cook_time_min": 25,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie"
+    ],
+    "instructions": [
+      "Ugotuj polentę według instrukcji, rozprowadź w płaskiej formie i odstaw do stężenia.",
+      "Pokrój na plastry i obsmaż na części oliwy. Na reszcie podsmaż całe pomidorki, aż skórki popękają.",
+      "Na polencie ułóż pomidorki, fetę i bazylię."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Polenta",
+        "125",
+        "g",
+        false
+      ],
+      [
+        "Pomidorki koktajlowe",
+        "280",
+        "g",
+        false
+      ],
+      [
+        "Ser feta",
+        "100",
+        "g",
+        false
+      ],
+      [
+        "Oliwa z oliwek",
+        "18",
+        "ml",
+        false
+      ],
+      [
+        "Bazylia świeża",
+        "7",
+        "g",
+        false
+      ]
+    ],
+    "photo": "new-35-polenta-tomato-feta.jpg"
+  },
+  {
+    "name": "Pieczony kalafior z ciecierzycą i tahini",
+    "description": "Rumiane różyczki i ciecierzyca z cytrynowym sosem sezamowym.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "kolacja",
+    "prep_time_min": 12,
+    "cook_time_min": 28,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie",
+      "wegańskie"
+    ],
+    "instructions": [
+      "Podziel kalafior na różyczki i dobrze osusz odsączoną ciecierzycę.",
+      "Wymieszaj z oliwą i wędzoną papryką, rozłóż na blasze i piecz w 210°C do zrumienienia.",
+      "Rozmieszaj tahini z sokiem z cytryny i wodą, polej po upieczeniu."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Kalafior",
+        "520",
+        "g",
+        false
+      ],
+      [
+        "Ciecierzyca konserwowa",
+        "260",
+        "g",
+        false
+      ],
+      [
+        "Tahini",
+        "35",
+        "g",
+        false
+      ],
+      [
+        "Cytryna",
+        "1",
+        "szt",
+        false
+      ],
+      [
+        "Oliwa z oliwek",
+        "17",
+        "ml",
+        false
+      ],
+      [
+        "Papryka wędzona",
+        "2",
+        "g",
+        false
+      ]
+    ],
+    "photo": "new-36-cauliflower-chickpea-traybake.jpg"
+  },
+  {
+    "name": "Sałatka z kurczakiem, fasolką i musztardą",
+    "description": "Ciepła sałatka ziemniaczana z fasolką i ziarnistą musztardą.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "kolacja",
+    "prep_time_min": 12,
+    "cook_time_min": 22,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [],
+    "instructions": [
+      "Ugotuj ziemniaki i fasolkę do miękkości. Pokrój kurczaka, usmaż na części oliwy do pełnego ugotowania.",
+      "Wymieszaj musztardę, resztę oliwy i sok z cytryny. Połącz z warzywami i kurczakiem."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Pierś z kurczaka",
+        "300",
+        "g",
+        false
+      ],
+      [
+        "Fasola szparagowa świeża",
+        "220",
+        "g",
+        false
+      ],
+      [
+        "Ziemniaki",
+        "320",
+        "g",
+        false
+      ],
+      [
+        "Musztarda francuska",
+        "20",
+        "g",
+        false
+      ],
+      [
+        "Oliwa z oliwek",
+        "18",
+        "ml",
+        false
+      ],
+      [
+        "Cytryna",
+        "1",
+        "szt",
+        false
+      ]
+    ],
+    "photo": "new-37-chicken-green-bean-mustard-salad.jpg"
+  },
+  {
+    "name": "Makaron w sosie z groszku z pieczonym brokułem",
+    "description": "Gładki sos z groszku i rumiane różyczki brokułu.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "kolacja",
+    "prep_time_min": 10,
+    "cook_time_min": 23,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie"
+    ],
+    "instructions": [
+      "Skrop różyczki oliwą i piecz w 210°C około 18–22 minut. Ugotuj makaron, zachowaj trochę wody.",
+      "Ugotuj groszek, zmiksuj z jogurtem, odrobiną soku z cytryny i wodą z makaronu.",
+      "Wymieszaj sos z makaronem i podaj z brokułem."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Makaron pełnoziarnisty",
+        "170",
+        "g",
+        false
+      ],
+      [
+        "Groszek zielony mrożony",
+        "230",
+        "g",
+        false
+      ],
+      [
+        "Brokuł",
+        "280",
+        "g",
+        false
+      ],
+      [
+        "Jogurt grecki",
+        "90",
+        "g",
+        false
+      ],
+      [
+        "Oliwa z oliwek",
+        "16",
+        "ml",
+        false
+      ],
+      [
+        "Cytryna",
+        "1",
+        "szt",
+        false
+      ]
+    ],
+    "photo": "new-38-roasted-broccoli-pea-pasta.jpg"
+  },
+  {
+    "name": "Tosty z białą fasolą i roztopionym cheddarem",
+    "description": "Opiekana kanapka z kremową fasolą, musztardą i cheddarem.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "kolacja",
+    "prep_time_min": 10,
+    "cook_time_min": 9,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie"
+    ],
+    "instructions": [
+      "Rozgnieć odsączoną fasolę z musztardą. Ułóż pastę i ser między kromkami.",
+      "Posmaruj zewnętrzne strony masłem. Opiekaj na patelni z obu stron, aż chleb się zrumieni i ser się roztopi."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Chleb żytni razowy",
+        "170",
+        "g",
+        false
+      ],
+      [
+        "Fasola biała konserwowa",
+        "210",
+        "g",
+        false
+      ],
+      [
+        "Ser cheddar",
+        "85",
+        "g",
+        false
+      ],
+      [
+        "Musztarda francuska",
+        "16",
+        "g",
+        false
+      ],
+      [
+        "Masło extra",
+        "12",
+        "g",
+        false
+      ]
+    ],
+    "photo": "new-39-cheddar-bean-toastie.jpg"
+  },
+  {
+    "name": "Łódeczki z sałaty z indykiem i kapustą",
+    "description": "Chrupiące liście sałaty napełnione ciepłym farszem z indyka.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "kolacja",
+    "prep_time_min": 12,
+    "cook_time_min": 14,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [],
+    "instructions": [
+      "Oddziel i umyj duże liście sałaty. Cienko pokrój kapustę, zetrzyj marchew i imbir.",
+      "Podsmaż indyka na oleju, dodaj kapustę, marchew, imbir i sos. Smaż do pełnego ugotowania mięsa.",
+      "Nakładaj farsz do liści bezpośrednio przed jedzeniem."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Mięso mielone z indyka",
+        "320",
+        "g",
+        false
+      ],
+      [
+        "Kapusta pekińska",
+        "180",
+        "g",
+        false
+      ],
+      [
+        "Sałata lodowa",
+        "170",
+        "g",
+        false
+      ],
+      [
+        "Marchew",
+        "110",
+        "g",
+        false
+      ],
+      [
+        "Imbir świeży",
+        "8",
+        "g",
+        false
+      ],
+      [
+        "Sos sojowy",
+        "20",
+        "ml",
+        false
+      ],
+      [
+        "Olej rzepakowy",
+        "13",
+        "ml",
+        false
+      ]
+    ],
+    "photo": "new-40-turkey-cabbage-lettuce-cups.jpg"
+  },
+  {
+    "name": "Kakaowe kulki z daktyli i kokosa",
+    "description": "Małe kakaowe kulki słodzone daktylami.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "przekąska",
+    "prep_time_min": 15,
+    "cook_time_min": 0,
+    "servings": 4,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie",
+      "wegańskie"
+    ],
+    "instructions": [
+      "Jeśli daktyle są twarde, zalej gorącą wodą na kilka minut i odcedź.",
+      "Zmiksuj z kakao, masłem orzechowym i połową wiórków. Uformuj 12 kulek, obtocz w reszcie kokosa i schłodź."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Daktyle suszone",
+        "150",
+        "g",
+        false
+      ],
+      [
+        "Wiórki kokosowe",
+        "45",
+        "g",
+        false
+      ],
+      [
+        "Kakao ciemne",
+        "15",
+        "g",
+        false
+      ],
+      [
+        "Masło orzechowe",
+        "30",
+        "g",
+        false
+      ]
+    ],
+    "photo": "new-41-coconut-date-bites.jpg"
+  },
+  {
+    "name": "Pieczona ricotta ze śliwkami",
+    "description": "Ciepła ricotta z pieczonymi śliwkami i ich sokiem.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "deser",
+    "prep_time_min": 10,
+    "cook_time_min": 25,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie"
+    ],
+    "instructions": [
+      "Wymieszaj ricottę, jajko, mąkę migdałową i połowę miodu, rozłóż do dwóch kokilek.",
+      "Przekrój śliwki, usuń pestki i ułóż obok kokilek na blasze, skrop resztą miodu.",
+      "Piecz w 180°C do ścięcia ricotty i miękkości śliwek. Podaj razem."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Ricotta",
+        "200",
+        "g",
+        false
+      ],
+      [
+        "Jajka",
+        "1",
+        "szt",
+        false
+      ],
+      [
+        "Śliwki",
+        "220",
+        "g",
+        false
+      ],
+      [
+        "Miód",
+        "18",
+        "g",
+        false
+      ],
+      [
+        "Mąka migdałowa",
+        "15",
+        "g",
+        false
+      ]
+    ],
+    "photo": "new-42-baked-ricotta-plums.jpg"
+  },
+  {
+    "name": "Jogurt kakaowy z gruszką i orzechami",
+    "description": "Gęsty jogurt o smaku kakao z soczystą gruszką.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "deser",
+    "prep_time_min": 10,
+    "cook_time_min": 0,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie"
+    ],
+    "instructions": [
+      "Wymieszaj kakao z odrobiną jogurtu na gładką pastę, połącz z resztą jogurtu i miodem.",
+      "Rozłóż do szklanek, dodaj gruszkę w kostkę i posiekane orzechy."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Jogurt grecki",
+        "280",
+        "g",
+        false
+      ],
+      [
+        "Gruszki",
+        "180",
+        "g",
+        false
+      ],
+      [
+        "Kakao ciemne",
+        "12",
+        "g",
+        false
+      ],
+      [
+        "Orzechy włoskie",
+        "22",
+        "g",
+        false
+      ],
+      [
+        "Miód",
+        "16",
+        "g",
+        false
+      ]
+    ],
+    "photo": "new-43-cocoa-pear-yoghurt.jpg"
+  },
+  {
+    "name": "Waniliowy ryż na mleku z pieczonymi brzoskwiniami",
+    "description": "Mleczny ryż z ciepłymi, lekko skarmelizowanymi brzoskwiniami.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "deser",
+    "prep_time_min": 10,
+    "cook_time_min": 32,
+    "servings": 3,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie"
+    ],
+    "instructions": [
+      "Pokrój brzoskwinie w kliny, wymieszaj z miodem i masłem. Piecz w 200°C przez 15–18 minut, aż zmiękną.",
+      "Ryż gotuj powoli w mleku, często mieszając. Gdy zmięknie, dodaj cukier waniliowy.",
+      "Rozłóż ryż do miseczek i podaj z brzoskwiniami oraz sokiem z blachy."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Ryż biały",
+        "120",
+        "g",
+        false
+      ],
+      [
+        "Mleko 2%",
+        "550",
+        "ml",
+        false
+      ],
+      [
+        "Brzoskwinie",
+        "330",
+        "g",
+        false
+      ],
+      [
+        "Wanilia (cukier waniliowy)",
+        "12",
+        "g",
+        false
+      ],
+      [
+        "Masło extra",
+        "10",
+        "g",
+        false
+      ],
+      [
+        "Miód",
+        "15",
+        "g",
+        false
+      ]
+    ],
+    "photo": "new-44-vanilla-rice-roast-peaches.jpg"
+  },
+  {
+    "name": "Ciasto z polenty i malin",
+    "description": "Wilgotne ciasto z wyczuwalną polentą i kwaskowatymi malinami.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "deser",
+    "prep_time_min": 12,
+    "cook_time_min": 35,
+    "servings": 6,
+    "difficulty": "średni",
+    "tags": [
+      "wegetariańskie"
+    ],
+    "instructions": [
+      "Utrzyj miękkie masło z cukrem i dodaj jajka po jednym.",
+      "Wymieszaj z polentą, mąką i proszkiem, delikatnie wmieszaj maliny.",
+      "Przełóż do małej wyłożonej formy i piecz w 175°C około 30–35 minut, aż patyczek wyjdzie bez surowego ciasta."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Polenta",
+        "115",
+        "g",
+        false
+      ],
+      [
+        "Mąka migdałowa",
+        "75",
+        "g",
+        false
+      ],
+      [
+        "Maliny",
+        "150",
+        "g",
+        false
+      ],
+      [
+        "Jajka",
+        "2",
+        "szt",
+        false
+      ],
+      [
+        "Masło extra",
+        "75",
+        "g",
+        false
+      ],
+      [
+        "Cukier",
+        "70",
+        "g",
+        false
+      ],
+      [
+        "Proszek do pieczenia",
+        "5",
+        "g",
+        false
+      ]
+    ],
+    "photo": "new-45-raspberry-polenta-cake.jpg"
+  },
+  {
+    "name": "Czekoladowy krem z ricotty i malin",
+    "description": "Gęsty czekoladowy krem z odrobiną świeżych malin. Przed podaniem schłodź krem.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "deser",
+    "prep_time_min": 12,
+    "cook_time_min": 3,
+    "servings": 3,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie"
+    ],
+    "instructions": [
+      "Rozpuść czekoladę w kąpieli wodnej i lekko przestudź.",
+      "Zmiksuj ricottę z mlekiem, a potem z czekoladą. Rozłóż do naczyń, schłodź i dodaj maliny."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Ricotta",
+        "260",
+        "g",
+        false
+      ],
+      [
+        "Czekolada gorzka",
+        "65",
+        "g",
+        false
+      ],
+      [
+        "Maliny",
+        "120",
+        "g",
+        false
+      ],
+      [
+        "Mleko 2%",
+        "30",
+        "ml",
+        false
+      ]
+    ],
+    "photo": "new-46-chocolate-ricotta-raspberry.jpg"
+  },
+  {
+    "name": "Owsiane kostki kakaowe z gruszką",
+    "description": "Miękkie kostki z owsa, kakao i kawałków gruszki.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "deser",
+    "prep_time_min": 12,
+    "cook_time_min": 25,
+    "servings": 6,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie"
+    ],
+    "instructions": [
+      "Wymieszaj jajka z mlekiem i miodem, wsyp owies, kakao i proszek.",
+      "Dodaj pokrojoną gruszkę, rozłóż w małej formie i piecz w 180°C, aż środek się zetnie. Ostudź przed krojeniem."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Płatki owsiane",
+        "155",
+        "g",
+        false
+      ],
+      [
+        "Gruszki",
+        "240",
+        "g",
+        false
+      ],
+      [
+        "Kakao ciemne",
+        "18",
+        "g",
+        false
+      ],
+      [
+        "Jajka",
+        "2",
+        "szt",
+        false
+      ],
+      [
+        "Mleko 2%",
+        "160",
+        "ml",
+        false
+      ],
+      [
+        "Miód",
+        "28",
+        "g",
+        false
+      ],
+      [
+        "Proszek do pieczenia",
+        "4",
+        "g",
+        false
+      ]
+    ],
+    "photo": "new-47-pear-cocoa-oat-bars.jpg"
+  },
+  {
+    "name": "Pieczone śliwki z chrupiącą żytnią posypką",
+    "description": "Śliwki z piekarnika posypane rumianymi okruchami chleba.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "deser",
+    "prep_time_min": 10,
+    "cook_time_min": 20,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie"
+    ],
+    "instructions": [
+      "Przekrój śliwki, usuń pestki, skrop miodem i piecz w 190°C do miękkości.",
+      "Pokrusz chleb i podsmaż na maśle na chrupko. Podaj śliwki z jogurtem i okruchami."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Śliwki",
+        "340",
+        "g",
+        false
+      ],
+      [
+        "Chleb żytni razowy",
+        "55",
+        "g",
+        false
+      ],
+      [
+        "Masło extra",
+        "14",
+        "g",
+        false
+      ],
+      [
+        "Jogurt naturalny",
+        "100",
+        "g",
+        false
+      ],
+      [
+        "Miód",
+        "14",
+        "g",
+        false
+      ]
+    ],
+    "photo": "new-48-roast-plum-rye-crumb.jpg"
+  },
+  {
+    "name": "Zapiekany budyń z komosy z jabłkami i orzechami",
+    "description": "Miękkie jabłka i ugotowana komosa zapieczone w mlecznej masie jajecznej.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "deser",
+    "prep_time_min": 14,
+    "cook_time_min": 35,
+    "servings": 3,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie"
+    ],
+    "instructions": [
+      "Ugotuj komosę w wodzie, odcedź i lekko ostudź. Pokrój jabłka w cienkie plastry.",
+      "Roztrzep jajka z mlekiem i cukrem waniliowym. W natłuszczonej formie rozłóż jabłka i komosę, wlej masę.",
+      "Piecz w 180°C do ścięcia środka. Podaj z grubo posiekanymi, podprażonymi orzechami."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Jabłka",
+        "330",
+        "g",
+        false
+      ],
+      [
+        "Quinoa",
+        "65",
+        "g",
+        false
+      ],
+      [
+        "Jajka",
+        "2",
+        "szt",
+        false
+      ],
+      [
+        "Mleko 2%",
+        "220",
+        "ml",
+        false
+      ],
+      [
+        "Orzechy włoskie",
+        "34",
+        "g",
+        false
+      ],
+      [
+        "Wanilia (cukier waniliowy)",
+        "10",
+        "g",
+        false
+      ],
+      [
+        "Masło extra",
+        "6",
+        "g",
+        false
+      ]
+    ],
+    "photo": "new-49-quinoa-apple-custard.jpg"
+  },
+  {
+    "name": "Skyr z rozgniecionymi borówkami i kokosem",
+    "description": "Rozgniecione borówki mieszają się z chłodnym skyrem i prażonym kokosem.",
+    "cuisine": "międzynarodowa",
+    "meal_type": "deser",
+    "prep_time_min": 8,
+    "cook_time_min": 3,
+    "servings": 2,
+    "difficulty": "łatwy",
+    "tags": [
+      "wegetariańskie"
+    ],
+    "instructions": [
+      "Podpraż wiórki na suchej patelni i przesyp na talerz.",
+      "Rozgnieć połowę borówek widelcem i zawiń w skyr kilkoma ruchami. Podaj z resztą borówek, miodem i wiórkami."
+    ],
+    "suggested_seasonings": [],
+    "ingredients": [
+      [
+        "Skyr naturalny",
+        "300",
+        "g",
+        false
+      ],
+      [
+        "Borówki",
+        "180",
+        "g",
+        false
+      ],
+      [
+        "Wiórki kokosowe",
+        "20",
+        "g",
+        false
+      ],
+      [
+        "Miód",
+        "12",
+        "g",
+        false
+      ]
+    ],
+    "photo": "new-50-blueberry-coconut-skyr.jpg"
+  }
+]

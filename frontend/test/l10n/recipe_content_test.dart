@@ -40,9 +40,9 @@ Recipe fromSource(
 
 void main() {
   test(
-    'registry covers 167 reviewed system recipes and all 419 catalogue ingredients',
+    'registry covers 267 reviewed system recipes and all 419 catalogue ingredients',
     () {
-      expect(systemRecipeText, hasLength(167));
+      expect(systemRecipeText, hasLength(267));
       expect(systemIngredientText, hasLength(419));
     },
   );

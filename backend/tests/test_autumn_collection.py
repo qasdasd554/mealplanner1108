@@ -9,6 +9,7 @@ import pytest
 from sqlalchemy import select, func
 
 from app.db.autumn_catalog import AUTUMN_RECIPES, AUTUMN_PRODUCT_NAMES, DATA, append_autumn_recipes
+from app.db.new_system_recipes import NEW_SYSTEM_RECIPE_NAMES
 from app.db.seed import RECIPES_DATA, PRODUCTS_DATA, NUTRITION_DATA, PRODUCT_BRANDS, _uid, seed_database, calculate_nutrition
 from app.models import Product, Recipe, RecipeIngredient
 from app.services.product_measures import build_measure_options
@@ -22,7 +23,8 @@ UNITS = {row[0]:row[1] for row in PRODUCTS_DATA}
 
 def test_thirty_distinct_complete_recipes_match_source_servings_and_photos():
     assert len(AUTUMN_RECIPES) == 30
-    old = [r for r in RECIPES_DATA if r['name'] not in {x['name'] for x in AUTUMN_RECIPES}]
+    additions = {x['name'] for x in AUTUMN_RECIPES} | NEW_SYSTEM_RECIPE_NAMES
+    old = [r for r in RECIPES_DATA if r['name'] not in additions]
     assert len(old) == 137
     assert len(append_autumn_recipes(old)) == 167
     for row, source in zip(AUTUMN_RECIPES, DATA['provenance']):
@@ -56,7 +58,7 @@ def test_each_amount_resolves_and_seed_equals_runtime_without_unknown_or_fake_ze
 
 
 def test_country_reference_is_pinned_and_has_no_prices_packages_or_nutrition():
-    assert len(reviewed_autumn_references()) == 68
+    assert len(reviewed_autumn_references()) == 77
     path=ROOT/'backend/app/data/uk_autumn_ingredients_20261102.json'
     data=json.loads(path.read_text(encoding='utf-8'))
     for row in data['references']:
@@ -95,7 +97,7 @@ def test_seed_is_idempotent_and_does_not_translate_authored_recipes(db):
     asyncio.run(seed_database(seed_adapter));session.commit()
     first=session.scalar(select(func.count()).select_from(Recipe))
     asyncio.run(seed_database(seed_adapter));session.commit()
-    assert session.scalar(select(func.count()).select_from(Recipe))==first==168
+    assert session.scalar(select(func.count()).select_from(Recipe)) == first == len(RECIPES_DATA) + 1
     assert authored.description=='My private original' and authored.instructions==['Original user step']
     for name in AUTUMN_PRODUCT_NAMES:
         food=session.get(Product,_uid('product:'+name))
@@ -104,4 +106,4 @@ def test_seed_is_idempotent_and_does_not_translate_authored_recipes(db):
     from app.services.meal_plan_generator import MealPlanGenerator
     eligible=asyncio.run(MealPlanGenerator(adapter)._filter_eligible_recipes(
         allergen_ids=set(),store_id=_uid('store:Biedronka'),country_code='PL',user_id=user.id))
-    assert {_uid('recipe:'+row['name']) for row in AUTUMN_RECIPES} <= {r.id for r in eligible}
+    assert {_uid('recipe:'+name) for name in NEW_SYSTEM_RECIPE_NAMES | {r['name'] for r in AUTUMN_RECIPES}} <= {r.id for r in eligible}

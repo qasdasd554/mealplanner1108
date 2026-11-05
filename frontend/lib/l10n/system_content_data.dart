@@ -4271,6 +4271,2224 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       "suggested_seasonings": [],
     },
   },
+  "d14fb04d-5be6-5778-81f6-486647aa069d": {
+    "source": {
+      "name": "Tosty żytnie z ricottą i malinami",
+      "description": "Ricotta i świeże maliny na ciepłej grzance.",
+      "instructions": [
+        "Podpraż płatki migdałowe na suchej patelni i opiecz pieczywo.",
+        "Rozsmaruj ricottę na grzankach, dodaj maliny i posyp migdałami.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Rye toast with ricotta and raspberries",
+      "description": "Creamy ricotta and fresh raspberries on warm toast.",
+      "instructions": [
+        "Toast the flaked almonds in a dry pan and toast the bread.",
+        "Spread the ricotta on the toast, add the raspberries and scatter over the almonds.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "f4852628-3e1d-55cd-abb6-d6a4c972a611": {
+    "source": {
+      "name": "Muffiny jajeczne ze szpinakiem i cheddarem",
+      "description": "Małe wytrawne muffiny, które można zabrać na wynos.",
+      "instructions": [
+        "Rozgrzej piekarnik do 180°C. Zwiędnij szpinak na patelni, odciśnij i posiekaj.",
+        "Roztrzep jajka z mlekiem i wymieszaj ze szpinakiem oraz startym cheddarem.",
+        "Natłuść 4 wgłębienia formy, rozlej masę i piecz 16–18 minut, aż środek się zetnie.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Spinach and Cheddar egg muffins",
+      "description": "Small savoury muffins for a breakfast on the go.",
+      "instructions": [
+        "Heat the oven to 180°C. Wilt the spinach in a pan, squeeze dry and chop.",
+        "Beat the eggs with the milk and stir in the spinach and grated Cheddar.",
+        "Oil 4 muffin holes, divide the mixture between them and bake for 16–18 minutes until set.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "88334e76-4ed6-55b3-bb4a-b9f5e7a14e05": {
+    "source": {
+      "name": "Komosa na mleku z borówkami i kokosem",
+      "description": "Kremowa komosa na ciepło z podprażonym kokosem.",
+      "instructions": [
+        "Opłucz komosę, zalej mlekiem i gotuj powoli 15–18 minut, mieszając pod koniec.",
+        "Podpraż wiórki kokosowe na suchej patelni. Dodaj borówki, miód i wiórki do ugotowanej komosy.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Blueberry and coconut breakfast quinoa",
+      "description": "Creamy warm quinoa with toasted coconut.",
+      "instructions": [
+        "Rinse the quinoa, add the milk and simmer gently for 15–18 minutes, stirring towards the end.",
+        "Toast the coconut in a dry pan. Top the cooked quinoa with the blueberries, honey and coconut.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "d401e1df-068e-5159-b7d6-77796b49972b": {
+    "source": {
+      "name": "Grzanki z pastą fasolową i pieczarkami",
+      "description":
+          "Chrupiące grzanki z kremową fasolą i rumianymi pieczarkami.",
+      "instructions": [
+        "Pokrój pieczarki i usmaż na połowie oliwy na złoty kolor.",
+        "Opłucz odsączoną fasolę, podgrzej z resztą oliwy i czosnkiem, a następnie rozgnieć.",
+        "Opiecz chleb, posmaruj pastą i ułóż na niej pieczarki.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Rye toast with white beans and mushrooms",
+      "description": "Crunchy toast with creamy beans and browned mushrooms.",
+      "instructions": [
+        "Slice the mushrooms and fry in half the oil until golden.",
+        "Rinse the drained beans, warm with the remaining oil and garlic, then mash.",
+        "Toast the bread, spread with the beans and top with the mushrooms.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "0bf1caae-bd99-50e1-a7a1-0747ec7d3e84": {
+    "source": {
+      "name": "Patelnia z batatem, szpinakiem i jajkami",
+      "description": "Rumiane kostki batata z jajkami z jednej patelni.",
+      "instructions": [
+        "Bataty pokrój w kostkę, cebulę posiekaj. Smaż w oleju z papryką przez 12–15 minut, aż bataty zmiękną.",
+        "Dodaj szpinak. Kiedy zwiędnie, zrób wgłębienia, wbij jajka i przykryj, aż białka się zetną.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Sweet potato and spinach breakfast hash",
+      "description": "Golden sweet potato cubes and eggs cooked in one pan.",
+      "instructions": [
+        "Dice the sweet potatoes and chop the onion. Fry in the oil with the paprika for 12–15 minutes until tender.",
+        "Stir in the spinach. Once wilted, make wells, crack in the eggs and cover until the whites are set.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "0f6c539c-5a88-5705-bb4a-c159df5fa83f": {
+    "source": {
+      "name": "Kokosowy pudding chia z mango",
+      "description":
+          "Śniadanie do przygotowania wieczorem, z dojrzałym mango. Schładzanie: co najmniej 4 godziny.",
+      "instructions": [
+        "Wymieszaj chia z mlekiem kokosowym i jogurtem. Po 10 minutach zamieszaj ponownie.",
+        "Rozłóż do miseczek i schładzaj co najmniej 4 godziny. Przed podaniem dodaj mango pokrojone w kostkę.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Coconut chia pudding with mango",
+      "description":
+          "A make-ahead breakfast topped with ripe mango. Chill for at least 4 hours.",
+      "instructions": [
+        "Mix the chia with the coconut milk and yoghurt. Stir again after 10 minutes.",
+        "Divide between bowls and chill for at least 4 hours. Top with diced mango just before serving.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "f958f8a9-85c9-5b24-aada-a9977f17b24a": {
+    "source": {
+      "name": "Placuszki gryczane z tartym jabłkiem",
+      "description":
+          "Miękkie placuszki, w których jabłko trafia prosto do ciasta.",
+      "instructions": [
+        "Wymieszaj jajko, mleko, mąkę i proszek do pieczenia. Zetrzyj jabłko i dodaj do ciasta.",
+        "Nakładaj małe porcje na patelnię z olejem. Smaż z obu stron, aż środek nie będzie surowy.",
+        "Podawaj z jogurtem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Buckwheat and grated apple pancakes",
+      "description":
+          "Tender pancakes with grated apple folded into the batter.",
+      "instructions": [
+        "Whisk the egg, milk, flour and baking powder. Grate the apple and fold it into the batter.",
+        "Drop spoonfuls into an oiled frying pan and cook on both sides until cooked through.",
+        "Serve with the yoghurt.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "50ee91f8-642e-5e63-987b-71e0dd2f69ca": {
+    "source": {
+      "name": "Frittata ziemniaczana z wędzonym łososiem",
+      "description":
+          "Zapiekany omlet z miękkimi ziemniakami i wędzonym łososiem.",
+      "instructions": [
+        "Ugotuj ziemniaki pokrojone w cienkie plasterki, odcedź i ułóż w natłuszczonej formie.",
+        "Roztrzep jajka z mlekiem, dodaj kawałki łososia i szczypiorek. Wylej na ziemniaki.",
+        "Piecz w 190°C przez 15–18 minut, aż środek się zetnie.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Smoked salmon and potato frittata",
+      "description": "Oven-baked eggs with tender potatoes and smoked salmon.",
+      "instructions": [
+        "Boil the thinly sliced potatoes until tender, drain and layer in an oiled oven dish.",
+        "Beat the eggs with the milk, add pieces of salmon and chopped chives, then pour over the potatoes.",
+        "Bake at 190°C for 15–18 minutes until the centre is set.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "cf2f2dff-8f02-5ec0-a0d6-a9107826761c": {
+    "source": {
+      "name": "Nocna komosa z malinami i masłem orzechowym",
+      "description":
+          "Komosa na zimno z malinami rozgniecionymi widelcem. Schładzanie: przez noc.",
+      "instructions": [
+        "Opłucz komosę i ugotuj w wodzie według instrukcji na opakowaniu. Szybko ostudź.",
+        "Połącz jogurt z masłem orzechowym, dodaj komosę i rozgniecione maliny. Przykryj i wstaw na noc do lodówki.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Overnight quinoa with raspberries and peanut butter",
+      "description":
+          "Chilled quinoa with fork-crushed raspberries. Chill overnight.",
+      "instructions": [
+        "Rinse the quinoa and cook in water according to the packet. Cool promptly.",
+        "Stir the peanut butter into the yoghurt, then add the quinoa and crushed raspberries. Cover and refrigerate overnight.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "766ff235-910b-56ab-875e-b24fd1866ccc": {
+    "source": {
+      "name": "Tosty francuskie z żytniego chleba z gruszką",
+      "description": "Pełnoziarniste tosty z miękką gruszką z patelni.",
+      "instructions": [
+        "Pokrój gruszki w kliny i podsmaż na połowie masła, aż zmiękną.",
+        "Roztrzep jajka z mlekiem i zamocz kromki. Usmaż je na pozostałym maśle, aż się zrumienią, a masa jajeczna zetnie.",
+        "Podaj z gruszkami i jogurtem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Rye French toast with pears",
+      "description": "Wholemeal French toast with soft pan-cooked pears.",
+      "instructions": [
+        "Cut the pears into wedges and fry in half the butter until tender.",
+        "Beat the eggs with the milk and dip the bread in the mixture. Fry in the remaining butter until golden and set.",
+        "Serve with the pears and yoghurt.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "fe81f2f2-5b97-5dc6-9ac7-af31929228ec": {
+    "source": {
+      "name": "Łosoś z pieczonymi ziemniakami i brokułem",
+      "description": "Cały obiad z jednej blachy z cytryną do skropienia.",
+      "instructions": [
+        "Pokrój ziemniaki w kliny, wymieszaj z połową oliwy i piecz 18 minut w 210°C.",
+        "Dodaj różyczki brokułu i łososia. Skrop resztą oliwy i piecz 12–14 minut, aż ryba będzie nieprzezroczysta i łatwo podzieli się na płatki.",
+        "Podaj z cząstkami cytryny.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Salmon, potato and broccoli traybake",
+      "description": "A complete supper from one tray, finished with lemon.",
+      "instructions": [
+        "Cut the potatoes into wedges, toss with half the oil and roast for 18 minutes at 210°C.",
+        "Add the broccoli florets and salmon, drizzle with the remaining oil and roast for 12–14 minutes until the fish is opaque and flakes easily.",
+        "Serve with lemon wedges.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "ce73246d-dba6-5921-8aad-e5ab85a51e85": {
+    "source": {
+      "name": "Papryki nadziewane indykiem i ryżem",
+      "description": "Pieczone połówki papryki z pomidorowym farszem.",
+      "instructions": [
+        "Ugotuj ryż. Przekrój papryki wzdłuż, usuń gniazda i piecz 12 minut w 200°C.",
+        "Podsmaż cebulę i indyka na oliwie. Gdy mięso przestanie być różowe, dodaj pomidory i ryż.",
+        "Napełnij połówki i piecz jeszcze 12–15 minut, aż farsz będzie gorący w środku, a indyk całkowicie ugotowany.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Turkey and rice stuffed peppers",
+      "description":
+          "Roast pepper halves with a tomato, rice and turkey filling.",
+      "instructions": [
+        "Cook the rice. Halve and deseed the peppers and roast for 12 minutes at 200°C.",
+        "Fry the onion and turkey in the oil. When the turkey is no longer pink, stir in the tomatoes and rice.",
+        "Fill the peppers and bake for another 12–15 minutes until piping hot in the centre and the turkey is cooked through.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "d089a624-5b2c-5181-b83d-1f6d9cbb7ec1": {
+    "source": {
+      "name": "Polędwiczka z jabłkami w sosie cydrowym",
+      "description":
+          "Pieczona polędwiczka i miękkie jabłka w lekko kwaśnym sosie z patelni.",
+      "instructions": [
+        "Obsmaż polędwiczkę na oleju ze wszystkich stron. Przełóż do piekarnika nagrzanego do 200°C i dopiecz.",
+        "Na tej samej patelni podsmaż cebulę i kliny jabłka na maśle. Wlej ocet jabłkowy i trochę wody, zeskrobując smak z dna. Gotuj chwilę, aż płyn się zredukuje.",
+        "Odstaw upieczone mięso na kilka minut, pokrój w plastry i podaj z jabłkami oraz sosem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Pork tenderloin with apples and a cider vinegar glaze",
+      "description":
+          "Roast pork tenderloin and soft apples with a tangy pan glaze.",
+      "instructions": [
+        "Sear the pork in the oil on all sides. Transfer to a 200°C oven and cook through.",
+        "In the same pan, fry the onion and apple wedges in butter. Add the cider vinegar and a splash of water, scraping the pan. Simmer briefly to reduce.",
+        "Rest the cooked pork for a few minutes, slice and serve with the apples and glaze.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "4cc0f98d-3620-5bbb-996a-075cee3ab328": {
+    "source": {
+      "name": "Dorsz w pomidorowej potrawce z białą fasolą",
+      "description": "Dorsz duszony w gęstej potrawce z fasoli i pomidorów.",
+      "instructions": [
+        "Zeszklij cebulę i czosnek na oliwie. Dodaj pomidory i odsączoną fasolę, gotuj 12 minut.",
+        "Włóż porcje dorsza do sosu, przykryj i duś łagodnie 8–10 minut, aż ryba będzie nieprzezroczysta i zacznie się dzielić na płatki.",
+        "Posyp natką.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Cod and white bean tomato stew",
+      "description": "Flaky cod simmered in a chunky bean and tomato stew.",
+      "instructions": [
+        "Soften the onion and garlic in the oil. Add the tomatoes and drained beans and simmer for 12 minutes.",
+        "Nestle in the cod portions, cover and simmer gently for 8–10 minutes until opaque and flaky.",
+        "Finish with chopped parsley.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "93fa1485-f325-53ba-a725-3e271186962a": {
+    "source": {
+      "name": "Komosa z krewetkami, cukinią i limonką",
+      "description": "Komosa z rumianą cukinią i świeżą limonką.",
+      "instructions": [
+        "Ugotuj komosę. Rozmroź krewetki zgodnie z instrukcją i osusz.",
+        "Podsmaż cukinię na oliwie. Dodaj posiekany czosnek i krewetki, smaż aż będą nieprzezroczyste i ugotowane.",
+        "Wymieszaj z komosą i sokiem z limonki.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Prawn, courgette and lime quinoa",
+      "description": "Quinoa with browned courgette and a squeeze of lime.",
+      "instructions": [
+        "Cook the quinoa. Defrost the prawns according to the packet and pat dry.",
+        "Fry the courgette in oil. Add the chopped garlic and prawns and cook until the prawns are opaque and cooked through.",
+        "Toss with the quinoa and lime juice.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "04a9d01f-2bf2-5deb-9747-5737690110ff": {
+    "source": {
+      "name": "Pulpeciki z indyka na kremowej polencie",
+      "description":
+          "Pulpeciki w sosie pomidorowym podane na miękkiej polencie.",
+      "instructions": [
+        "Połącz indyka z bułką tartą i oregano, uformuj pulpeciki i obsmaż je na części oliwy.",
+        "Na reszcie oliwy zeszklij cebulę, dodaj pomidory i pulpeciki. Duś do pełnego ugotowania mięsa.",
+        "Ugotuj polentę na miękko według instrukcji i rozłóż na niej pulpeciki z sosem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Turkey meatballs with creamy polenta",
+      "description": "Tomato-braised meatballs served over soft polenta.",
+      "instructions": [
+        "Mix the turkey with the breadcrumbs and oregano, shape into meatballs and brown in some of the oil.",
+        "Soften the onion in the remaining oil, then add the tomatoes and meatballs. Simmer until cooked through.",
+        "Cook the polenta until soft according to the packet and spoon the meatballs and sauce over it.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "980683f9-ad98-54c8-8c3e-612e29087423": {
+    "source": {
+      "name": "Pęczak z duszoną wołowiną i pieczarkami",
+      "description": "Pęczak z miękką wołowiną i zrumienionymi pieczarkami.",
+      "instructions": [
+        "Obsmaż kostki wołowiny partiami na oleju. Dodaj cebulę i marchew, zalej wodą do połowy wysokości mięsa.",
+        "Duś pod przykryciem na małym ogniu do miękkości, około 75–90 minut. Pod koniec dodaj osobno zrumienione pieczarki.",
+        "Ugotuj pęczak i podaj z gulaszem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Braised beef, mushroom and barley bowl",
+      "description":
+          "Pearl barley with tender braised beef and browned mushrooms.",
+      "instructions": [
+        "Brown the beef in batches in the oil. Add onion and carrot and pour in water halfway up the meat.",
+        "Cover and braise gently for about 75–90 minutes until tender. Brown the mushrooms separately and stir them in towards the end.",
+        "Cook the barley and serve with the beef.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "a45c90ce-e665-51f1-b928-8de2ed36724a": {
+    "source": {
+      "name": "Zapiekanka z bakłażana i czerwonej soczewicy",
+      "description": "Warstwy pieczonego bakłażana i soczewicy pod cheddarem.",
+      "instructions": [
+        "Pokrój bakłażana w plastry, posmaruj częścią oliwy i piecz 15 minut w 210°C.",
+        "Zeszklij cebulę na reszcie oliwy. Dodaj opłukaną soczewicę, pomidory i wodę; gotuj do miękkości.",
+        "Ułóż warstwy w formie, posyp cheddarem i zapiecz do zrumienienia sera.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Aubergine and red lentil bake",
+      "description":
+          "Roasted aubergine layered with lentils and topped with Cheddar.",
+      "instructions": [
+        "Slice the aubergine, brush with some of the oil and roast for 15 minutes at 210°C.",
+        "Soften the onion in the remaining oil. Add the rinsed lentils, tomatoes and water and simmer until tender.",
+        "Layer in an oven dish, sprinkle with Cheddar and bake until browned.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "d0162b56-1f62-53a7-a551-cbf8cd74745d": {
+    "source": {
+      "name": "Chili z czarnej fasoli i batatów",
+      "description": "Gęste warzywne chili z łyżką chłodnego jogurtu.",
+      "instructions": [
+        "Zeszklij cebulę na oleju, dodaj paprykę wędzoną, chili i pokrojone bataty.",
+        "Dodaj pomidory i trochę wody. Duś do miękkości batatów, dodając odsączoną fasolę na ostatnie 5 minut.",
+        "Podaj z jogurtem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Black bean and sweet potato chilli",
+      "description": "Thick vegetable chilli with a spoonful of cool yoghurt.",
+      "instructions": [
+        "Soften the onion in oil, then stir in the smoked paprika, chilli and diced sweet potatoes.",
+        "Add the tomatoes and a little water. Simmer until tender, adding the drained beans for the last 5 minutes.",
+        "Serve with yoghurt.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "a1efd1f4-3fbe-5b3f-980c-b8ecebb8e359": {
+    "source": {
+      "name": "Cytrynowe risotto z groszkiem i ricottą",
+      "description": "Kremowe risotto z zielonym groszkiem i skórką cytrynową.",
+      "instructions": [
+        "Zeszklij cebulę na oliwie, wsyp ryż i mieszaj minutę.",
+        "Dolewaj gorący bulion po chochli i mieszaj, aż ryż będzie miękki, ale sprężysty. Pod koniec dodaj groszek.",
+        "Zdejmij z ognia. Dodaj ricottę, startą skórkę i trochę soku z cytryny.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Lemon, pea and ricotta risotto",
+      "description": "Soft, creamy risotto with peas and lemon zest.",
+      "instructions": [
+        "Soften the onion in oil, add the rice and stir for a minute.",
+        "Add hot stock a ladle at a time, stirring until the rice is tender with a little bite. Add the peas towards the end.",
+        "Take off the heat and stir in the ricotta, lemon zest and a squeeze of juice.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "7e354371-5417-5bdc-ad52-af7cc723d547": {
+    "source": {
+      "name": "Zapiekanka z kurczakiem i porem pod ziemniakami",
+      "description":
+          "Kremowe nadzienie z pora i kurczaka pod rumianymi plasterkami ziemniaków.",
+      "instructions": [
+        "Pokrój ziemniaki w cienkie plasterki i podgotuj 5 minut.",
+        "Na maśle podsmaż por i pokrojonego kurczaka. Wsyp mąkę, wlej mleko i mieszaj do zgęstnienia.",
+        "Przełóż do formy, przykryj ziemniakami i piecz w 200°C, aż wierzch się zrumieni, a kurczak będzie w pełni ugotowany.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Chicken and leek pie with a sliced potato topping",
+      "description":
+          "Creamy chicken and leeks beneath a golden sliced potato topping.",
+      "instructions": [
+        "Thinly slice the potatoes and boil for 5 minutes.",
+        "Fry the leeks and diced chicken in the butter. Stir in the flour, add the milk and stir until thickened.",
+        "Transfer to an oven dish, top with the potatoes and bake at 200°C until golden and the chicken is cooked through.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "4722fce6-86fe-5f8b-b0a1-83b472472e26": {
+    "source": {
+      "name": "Łosoś duszony w kokosowych pomidorach z fasolką",
+      "description":
+          "Delikatny łosoś w pomidorach złagodzonych mlekiem kokosowym.",
+      "instructions": [
+        "Ugotuj ryż. Zeszklij cebulę na oleju, wlej pomidory i mleko kokosowe.",
+        "Dodaj pokrojoną fasolkę i duś do prawie miękkiej. Włóż duże kawałki łososia i duś, aż będą nieprzezroczyste i ugotowane.",
+        "Podaj z ryżem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Coconut and tomato salmon stew with green beans",
+      "description": "Tender salmon in a mellow coconut and tomato sauce.",
+      "instructions": [
+        "Cook the rice. Soften the onion in the oil, then add the tomatoes and coconut milk.",
+        "Add the cut beans and simmer until almost tender. Add large pieces of salmon and simmer until opaque and cooked through.",
+        "Serve with the rice.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "a8ebd7f7-c731-5180-aa9d-5036e611e7ff": {
+    "source": {
+      "name": "Pieczone ziemniaki z pieczarkami i cheddarem",
+      "description":
+          "Chrupiąca skórka, rumiane pieczarki i roztopiony cheddar.",
+      "instructions": [
+        "Nakłuj umyte ziemniaki i piecz w 210°C do miękkości, zwykle 45–55 minut.",
+        "Usmaż pieczarki na maśle. Rozetnij ziemniaki, dodaj pieczarki i ser, po czym zapiecz chwilę do roztopienia.",
+        "Podaj z jogurtem i szczypiorkiem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Jacket potatoes with mushrooms and Cheddar",
+      "description":
+          "Crisp potato skins, browned mushrooms and melted Cheddar.",
+      "instructions": [
+        "Prick the scrubbed potatoes and bake at 210°C until tender, usually 45–55 minutes.",
+        "Fry the mushrooms in the butter. Split the potatoes, fill with the mushrooms and Cheddar and return to the oven until melted.",
+        "Finish with yoghurt and chives.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "3eb50a5b-07d5-537a-bab4-3a9d29fc89f1": {
+    "source": {
+      "name": "Gołąbki z kapusty pekińskiej z wieprzowiną i imbirem",
+      "description":
+          "Delikatne gołąbki z kapusty pekińskiej duszone z sosem sojowym.",
+      "instructions": [
+        "Podgotuj ryż przez 6 minut i odcedź. Oddziel 6 dużych liści kapusty, sparz i zetnij zgrubiałe nerwy.",
+        "Wymieszaj wieprzowinę z ryżem, posiekaną cebulą, imbirem i połową sosu sojowego. Podziel farsz między liście i zawiń boki.",
+        "Ułóż łączeniem do dołu, wlej bulion i resztę sosu. Duś pod przykryciem około 25–30 minut, aż mięso i ryż będą w pełni ugotowane.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Ginger pork and rice cabbage rolls",
+      "description":
+          "Tender Chinese cabbage rolls braised with ginger and soy.",
+      "instructions": [
+        "Parboil the rice for 6 minutes and drain. Blanch 6 large cabbage leaves and trim the thick ribs.",
+        "Mix the pork with the rice, chopped onion, ginger and half the soy sauce. Divide between the leaves and tuck in the sides.",
+        "Place seam side down, pour in the stock and remaining soy sauce and simmer, covered, for about 25–30 minutes until the pork and rice are cooked through.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "e5ea11bc-0eba-5f08-b17e-1595d2231f4d": {
+    "source": {
+      "name": "Makaron zapiekany z indykiem i brokułem",
+      "description":
+          "Pełnoziarnisty makaron z miękkim środkiem i chrupiącymi brzegami.",
+      "instructions": [
+        "Podgotuj makaron, dodając różyczki brokułu na ostatnie 3 minuty. Podsmaż kawałki indyka.",
+        "Z masła, mąki i mleka zrób gładki sos, dodaj połowę cheddara.",
+        "Wymieszaj składniki w formie, posyp pozostałym serem i piecz w 200°C, aż wierzch zbrązowieje, a mięso będzie ugotowane.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Turkey and broccoli pasta bake",
+      "description": "Wholewheat pasta with a creamy middle and crisp edges.",
+      "instructions": [
+        "Parboil the pasta, adding the broccoli florets for the last 3 minutes. Brown the pieces of turkey.",
+        "Make a smooth sauce with the butter, flour and milk, then stir in half the Cheddar.",
+        "Combine in a baking dish, top with the rest of the cheese and bake at 200°C until browned and the turkey is cooked through.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "a6fc5712-7043-546f-9885-fafacf587b15": {
+    "source": {
+      "name": "Zupa z czerwonej soczewicy i wędzonej papryki",
+      "description": "Gęsta zupa z czerwonej soczewicy o lekko dymnym smaku.",
+      "instructions": [
+        "Podsmaż cebulę i marchew na oliwie, po czym dodaj wędzoną paprykę.",
+        "Wsyp opłukaną soczewicę, wlej pomidory i bulion. Gotuj, aż soczewica się rozpadnie. Rozgnieć część marchewki, jeśli wolisz gęstszą zupę.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Smoky red lentil and tomato soup",
+      "description": "A thick red lentil soup with a gentle smoky flavour.",
+      "instructions": [
+        "Fry the onion and carrot in the oil, then stir in the smoked paprika.",
+        "Add the rinsed lentils, tomatoes and stock. Simmer until the lentils break down. Crush some of the carrot if you prefer a thicker soup.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "e23edb06-f57c-5dc9-8a41-a4af0008b495": {
+    "source": {
+      "name": "Kremowa zupa z kukurydzą, porem i ziemniakami",
+      "description":
+          "Zupa z wyraźnymi kawałkami ziemniaków i słodką kukurydzą.",
+      "instructions": [
+        "Zmiękcz pokrojony por na maśle. Dodaj ziemniaki w kostkę i bulion, gotuj do miękkości.",
+        "Dodaj odsączoną kukurydzę i mleko. Rozgnieć część ziemniaków, żeby zagęścić zupę, i podgrzej.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Sweetcorn, leek and potato chowder",
+      "description":
+          "A creamy soup with chunks of potato and sweetcorn kernels.",
+      "instructions": [
+        "Soften the sliced leek in the butter. Add diced potatoes and stock and simmer until tender.",
+        "Add the drained sweetcorn and milk. Crush some of the potatoes to thicken the soup and heat through.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "98732973-8f15-5d50-9c56-6199dcc84746": {
+    "source": {
+      "name": "Biała fasola w pomidorach ze szpinakiem",
+      "description":
+          "Pomidorowa fasola z patelni i żytnie grzanki do zbierania sosu.",
+      "instructions": [
+        "Krótko podsmaż czosnek na oliwie. Dodaj pomidory i duś 10 minut.",
+        "Dodaj odsączoną fasolę i szpinak, gotuj, aż szpinak zwiędnie, a fasola się rozgrzeje. Podaj z opieczonym chlebem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Tomato, spinach and white bean skillet",
+      "description": "Tomato-braised beans with rye toast for the sauce.",
+      "instructions": [
+        "Briefly fry the garlic in the oil. Add the tomatoes and simmer for 10 minutes.",
+        "Add the drained beans and spinach and cook until the spinach wilts and the beans are hot. Serve with toasted rye.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "d0a8469c-8d77-5b8f-8753-7d56e1918665": {
+    "source": {
+      "name": "Frittata z krewetkami i zielonym groszkiem",
+      "description": "Wytrawna frittata z groszkiem i szczypiorkiem.",
+      "instructions": [
+        "Rozmroź krewetki zgodnie z opakowaniem, osusz i podsmaż na oleju. Dodaj groszek i krótko podgrzej.",
+        "Wlej jajka roztrzepane z mlekiem i szczypiorkiem. Piecz w żaroodpornej patelni w 190°C, aż masa i krewetki będą ugotowane.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Prawn and pea frittata",
+      "description": "A savoury frittata with peas and chives.",
+      "instructions": [
+        "Defrost the prawns as directed on the packet, pat dry and fry in oil. Add the peas and heat briefly.",
+        "Pour in the eggs beaten with milk and chives. Bake in the ovenproof pan at 190°C until the eggs are set and the prawns are cooked through.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "5a8fdad8-b6e0-5f68-9215-e1e0d99967bc": {
+    "source": {
+      "name": "Wrap z halloumi i pieczoną papryką",
+      "description":
+          "Ciepła tortilla z rumianym halloumi i słodką pieczoną papryką.",
+      "instructions": [
+        "Pokrój papryki w paski, skrop oliwą i piecz w 220°C do miękkości.",
+        "Usmaż plastry halloumi na suchej patelni. Wymieszaj jogurt z odrobiną soku z cytryny.",
+        "Posmaruj podgrzane tortille sosem, dodaj szpinak, paprykę i halloumi, po czym ciasno zawiń.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Halloumi and roast pepper wrap",
+      "description":
+          "A warm wrap with golden halloumi and sweet roast peppers.",
+      "instructions": [
+        "Slice the peppers, drizzle with oil and roast at 220°C until tender.",
+        "Fry the halloumi slices in a dry pan. Stir a little lemon juice into the yoghurt.",
+        "Spread the yoghurt over the warm tortillas, add the spinach, peppers and halloumi, and roll tightly.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "cdb73d19-4e9b-59b4-af91-bd7e48f5c513": {
+    "source": {
+      "name": "Sałatka ziemniaczana z wędzonym łososiem i jabłkiem",
+      "description":
+          "Jabłko dodaje chrupkości ziemniakom i wędzonemu łososiowi.",
+      "instructions": [
+        "Ugotuj ziemniaki w kawałkach, odcedź i lekko przestudź.",
+        "Wymieszaj jogurt z musztardą. Dodaj ziemniaki, cienkie plasterki jabłka, kawałki łososia i szczypiorek.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Smoked salmon, apple and potato salad",
+      "description":
+          "Crunchy apple lifts a creamy smoked salmon and potato salad.",
+      "instructions": [
+        "Boil the potato chunks, drain and cool slightly.",
+        "Mix the yoghurt with the mustard. Toss with the potatoes, thin apple slices, pieces of salmon and chives.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "2ec2b462-bc96-5770-9196-af3a5b9ea8e2": {
+    "source": {
+      "name": "Sałatka z pieczonych buraków, pomarańczy i orzechów",
+      "description":
+          "Pieczone buraki z soczystą pomarańczą i orzechami włoskimi.",
+      "instructions": [
+        "Obierz buraki, pokrój w kliny i piecz w 200°C z połową oliwy, aż zmiękną.",
+        "Odważ 260 g obranych pomarańczy i podziel na cząstki. Podpraż orzechy na suchej patelni.",
+        "Ułóż składniki na szpinaku, polej resztą oliwy wymieszaną z octem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Roast beetroot, orange and walnut salad",
+      "description": "Roast beetroot with juicy oranges and toasted walnuts.",
+      "instructions": [
+        "Peel the beetroot, cut into wedges and roast at 200°C with half the oil until tender.",
+        "Weigh 260 g of peeled orange and separate into segments. Toast the walnuts in a dry pan.",
+        "Arrange over spinach and dress with the remaining oil and vinegar.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "a207d0e1-ca22-510c-b9ed-9a64c31518b5": {
+    "source": {
+      "name": "Cytrynowy makaron z białą fasolą i szpinakiem",
+      "description": "Lekki sos z oliwy i cytryny oblepia makaron oraz fasolę.",
+      "instructions": [
+        "Ugotuj makaron i zachowaj trochę wody z gotowania.",
+        "Na oliwie krótko podsmaż czosnek, dodaj odsączoną fasolę, szpinak i odrobinę wody z makaronu.",
+        "Połącz z makaronem, startą skórką cytryny i sokiem do smaku.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Lemon, white bean and spinach pasta",
+      "description":
+          "A light lemon and olive oil sauce coats the pasta and beans.",
+      "instructions": [
+        "Cook the pasta and save a little of the cooking water.",
+        "Briefly fry the garlic in the oil, then add the drained beans, spinach and a splash of pasta water.",
+        "Toss with the pasta, lemon zest and juice to taste.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "2f6cb847-d95d-575d-ac70-b6814ded0620": {
+    "source": {
+      "name": "Smażony ryż z wieprzowiną, groszkiem i jajkiem",
+      "description": "Ryż z paskami schabu, groszkiem i kawałkami jajka.",
+      "instructions": [
+        "Ugotuj ryż i dobrze odcedź. Roztrzep jajka, usmaż cienki omlet i pokrój w paski.",
+        "Obsmaż cienkie paski schabu na reszcie oleju do pełnego ugotowania. Dodaj groszek, ryż, omlet i sos sojowy, podgrzej mieszając.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Pork, pea and egg fried rice",
+      "description":
+          "Fried rice with thin strips of pork, peas and little ribbons of egg.",
+      "instructions": [
+        "Cook and drain the rice well. Beat the eggs, fry into a thin omelette and slice.",
+        "Stir-fry the thin pork strips in the remaining oil until cooked through. Add the peas, rice, omelette and soy sauce and toss until hot.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "4579e1db-6d6d-54da-b11c-e6f7855fd536": {
+    "source": {
+      "name": "Grillowana polenta z pomidorkami i fetą",
+      "description":
+          "Rumiane plastry polenty z popękanymi pomidorkami i fetą. Przed grillowaniem odstaw polentę do stężenia.",
+      "instructions": [
+        "Ugotuj polentę według instrukcji, rozprowadź w płaskiej formie i odstaw do stężenia.",
+        "Pokrój na plastry i obsmaż na części oliwy. Na reszcie podsmaż całe pomidorki, aż skórki popękają.",
+        "Na polencie ułóż pomidorki, fetę i bazylię.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Griddled polenta with cherry tomatoes and feta",
+      "description":
+          "Golden slices of polenta with blistered tomatoes and crumbled feta. Allow the polenta to set before griddling.",
+      "instructions": [
+        "Cook the polenta according to the packet, spread in a shallow dish and leave to set.",
+        "Slice and griddle in some of the oil. Fry the tomatoes in the remaining oil until the skins split.",
+        "Top the polenta with the tomatoes, feta and basil.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "7065de21-54be-53c0-ae81-5df31e65ce8d": {
+    "source": {
+      "name": "Pieczony kalafior z ciecierzycą i tahini",
+      "description":
+          "Rumiane różyczki i ciecierzyca z cytrynowym sosem sezamowym.",
+      "instructions": [
+        "Podziel kalafior na różyczki i dobrze osusz odsączoną ciecierzycę.",
+        "Wymieszaj z oliwą i wędzoną papryką, rozłóż na blasze i piecz w 210°C do zrumienienia.",
+        "Rozmieszaj tahini z sokiem z cytryny i wodą, polej po upieczeniu.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Roasted cauliflower and chickpeas with tahini",
+      "description":
+          "Roast cauliflower and chickpeas with a lemon and sesame dressing.",
+      "instructions": [
+        "Break the cauliflower into florets and pat the drained chickpeas dry.",
+        "Toss with the oil and smoked paprika, spread out on a tray and roast at 210°C until golden.",
+        "Mix the tahini with lemon juice and water and drizzle over the roast vegetables.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "4fb0ff2c-2ef4-5c58-b443-1cf91a7cae55": {
+    "source": {
+      "name": "Sałatka z kurczakiem, fasolką i musztardą",
+      "description":
+          "Ciepła sałatka ziemniaczana z fasolką i ziarnistą musztardą.",
+      "instructions": [
+        "Ugotuj ziemniaki i fasolkę do miękkości. Pokrój kurczaka, usmaż na części oliwy do pełnego ugotowania.",
+        "Wymieszaj musztardę, resztę oliwy i sok z cytryny. Połącz z warzywami i kurczakiem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Chicken, green bean and mustard potato salad",
+      "description":
+          "A warm potato salad with green beans and wholegrain mustard.",
+      "instructions": [
+        "Boil the potatoes and beans until tender. Slice the chicken and fry in some of the oil until cooked through.",
+        "Whisk the mustard, remaining oil and lemon juice. Toss with the vegetables and chicken.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "276e6455-ebd8-5d3c-9f52-13c0e93d29b1": {
+    "source": {
+      "name": "Makaron w sosie z groszku z pieczonym brokułem",
+      "description": "Gładki sos z groszku i rumiane różyczki brokułu.",
+      "instructions": [
+        "Skrop różyczki oliwą i piecz w 210°C około 18–22 minut. Ugotuj makaron, zachowaj trochę wody.",
+        "Ugotuj groszek, zmiksuj z jogurtem, odrobiną soku z cytryny i wodą z makaronu.",
+        "Wymieszaj sos z makaronem i podaj z brokułem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Pasta with pea sauce and roasted broccoli",
+      "description": "Smooth pea sauce with crisp-edged roasted broccoli.",
+      "instructions": [
+        "Toss the florets with the oil and roast at 210°C for 18–22 minutes. Cook the pasta, saving a little water.",
+        "Cook the peas and blend with the yoghurt, a squeeze of lemon and some pasta water.",
+        "Toss the pasta with the sauce and top with the broccoli.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "c2289f85-159b-5e46-88f7-cd404007131f": {
+    "source": {
+      "name": "Tosty z białą fasolą i roztopionym cheddarem",
+      "description":
+          "Opiekana kanapka z kremową fasolą, musztardą i cheddarem.",
+      "instructions": [
+        "Rozgnieć odsączoną fasolę z musztardą. Ułóż pastę i ser między kromkami.",
+        "Posmaruj zewnętrzne strony masłem. Opiekaj na patelni z obu stron, aż chleb się zrumieni i ser się roztopi.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "White bean and Cheddar toastie",
+      "description":
+          "A toasted sandwich with mashed beans, mustard and melted Cheddar.",
+      "instructions": [
+        "Mash the drained beans with the mustard. Sandwich the beans and cheese between the bread slices.",
+        "Butter the outside and toast in a pan on both sides until golden and the cheese melts.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "7c3aeab4-f336-5fd3-b81e-7a7882871004": {
+    "source": {
+      "name": "Łódeczki z sałaty z indykiem i kapustą",
+      "description":
+          "Chrupiące liście sałaty napełnione ciepłym farszem z indyka.",
+      "instructions": [
+        "Oddziel i umyj duże liście sałaty. Cienko pokrój kapustę, zetrzyj marchew i imbir.",
+        "Podsmaż indyka na oleju, dodaj kapustę, marchew, imbir i sos. Smaż do pełnego ugotowania mięsa.",
+        "Nakładaj farsz do liści bezpośrednio przed jedzeniem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Turkey and cabbage lettuce cups",
+      "description":
+          "Crisp lettuce leaves filled with warm turkey and cabbage.",
+      "instructions": [
+        "Separate and wash the large lettuce leaves. Shred the cabbage and grate the carrot and ginger.",
+        "Fry the turkey in the oil, then add the cabbage, carrot, ginger and soy sauce. Cook the turkey through.",
+        "Spoon the filling into the lettuce just before eating.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "0949bb02-422a-5a98-84f6-14686a0919ac": {
+    "source": {
+      "name": "Kakaowe kulki z daktyli i kokosa",
+      "description": "Małe kakaowe kulki słodzone daktylami.",
+      "instructions": [
+        "Jeśli daktyle są twarde, zalej gorącą wodą na kilka minut i odcedź.",
+        "Zmiksuj z kakao, masłem orzechowym i połową wiórków. Uformuj 12 kulek, obtocz w reszcie kokosa i schłodź.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Cocoa, date and coconut bites",
+      "description": "Small cocoa bites sweetened with dates.",
+      "instructions": [
+        "If the dates are firm, soak in hot water for a few minutes and drain.",
+        "Blend with the cocoa, peanut butter and half the coconut. Roll into 12 balls, coat with the remaining coconut and chill.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "416ba64b-5bd8-501b-93e5-1f886ee79ba0": {
+    "source": {
+      "name": "Pieczona ricotta ze śliwkami",
+      "description": "Ciepła ricotta z pieczonymi śliwkami i ich sokiem.",
+      "instructions": [
+        "Wymieszaj ricottę, jajko, mąkę migdałową i połowę miodu, rozłóż do dwóch kokilek.",
+        "Przekrój śliwki, usuń pestki i ułóż obok kokilek na blasze, skrop resztą miodu.",
+        "Piecz w 180°C do ścięcia ricotty i miękkości śliwek. Podaj razem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Baked ricotta with roast plums",
+      "description": "Warm baked ricotta with roast plums and their juices.",
+      "instructions": [
+        "Mix the ricotta, egg, almond flour and half the honey and divide between two ramekins.",
+        "Halve and stone the plums, set them alongside the ramekins on a tray and drizzle with the remaining honey.",
+        "Bake at 180°C until the ricotta is set and the plums are soft. Serve together.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "46c5abf2-582c-54ef-908d-427e33c825c0": {
+    "source": {
+      "name": "Jogurt kakaowy z gruszką i orzechami",
+      "description": "Gęsty jogurt o smaku kakao z soczystą gruszką.",
+      "instructions": [
+        "Wymieszaj kakao z odrobiną jogurtu na gładką pastę, połącz z resztą jogurtu i miodem.",
+        "Rozłóż do szklanek, dodaj gruszkę w kostkę i posiekane orzechy.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Cocoa yoghurt with pear and walnuts",
+      "description": "Thick cocoa yoghurt with juicy pear and walnuts.",
+      "instructions": [
+        "Mix the cocoa with a little yoghurt until smooth, then stir in the remaining yoghurt and honey.",
+        "Spoon into glasses and top with diced pear and chopped walnuts.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "aa5e0689-766a-5889-8793-acc870d9a1c8": {
+    "source": {
+      "name": "Waniliowy ryż na mleku z pieczonymi brzoskwiniami",
+      "description":
+          "Mleczny ryż z ciepłymi, lekko skarmelizowanymi brzoskwiniami.",
+      "instructions": [
+        "Pokrój brzoskwinie w kliny, wymieszaj z miodem i masłem. Piecz w 200°C przez 15–18 minut, aż zmiękną.",
+        "Ryż gotuj powoli w mleku, często mieszając. Gdy zmięknie, dodaj cukier waniliowy.",
+        "Rozłóż ryż do miseczek i podaj z brzoskwiniami oraz sokiem z blachy.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Vanilla rice pudding with roast peaches",
+      "description":
+          "Creamy rice pudding topped with warm, lightly caramelised peaches.",
+      "instructions": [
+        "Cut the peaches into wedges and toss with the honey and butter. Roast at 200°C for 15–18 minutes until tender.",
+        "Simmer the rice gently in the milk, stirring often. Stir in the vanilla sugar once the rice is soft.",
+        "Spoon into bowls and top with the peaches and their roasting juices.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "2fe018e0-05a0-57d2-aad2-30186e003f9c": {
+    "source": {
+      "name": "Ciasto z polenty i malin",
+      "description":
+          "Wilgotne ciasto z wyczuwalną polentą i kwaskowatymi malinami.",
+      "instructions": [
+        "Utrzyj miękkie masło z cukrem i dodaj jajka po jednym.",
+        "Wymieszaj z polentą, mąką i proszkiem, delikatnie wmieszaj maliny.",
+        "Przełóż do małej wyłożonej formy i piecz w 175°C około 30–35 minut, aż patyczek wyjdzie bez surowego ciasta.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Raspberry polenta cake",
+      "description": "A moist, slightly grainy cake with tart raspberries.",
+      "instructions": [
+        "Cream the softened butter and sugar and beat in the eggs one at a time.",
+        "Stir in the polenta, almond flour and baking powder, then gently fold in the raspberries.",
+        "Spoon into a small lined tin and bake at 175°C for 30–35 minutes, until a skewer comes out without wet batter.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "bd2610a9-ead1-5b06-aded-fbfcb741cff3": {
+    "source": {
+      "name": "Czekoladowy krem z ricotty i malin",
+      "description":
+          "Gęsty czekoladowy krem z odrobiną świeżych malin. Przed podaniem schłodź krem.",
+      "instructions": [
+        "Rozpuść czekoladę w kąpieli wodnej i lekko przestudź.",
+        "Zmiksuj ricottę z mlekiem, a potem z czekoladą. Rozłóż do naczyń, schłodź i dodaj maliny.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Chocolate ricotta mousse with raspberries",
+      "description":
+          "A thick chocolate cream topped with fresh raspberries. Chill before serving.",
+      "instructions": [
+        "Melt the chocolate over a pan of hot water and cool slightly.",
+        "Blend the ricotta with the milk and then the chocolate. Spoon into dishes, chill and top with raspberries.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "36cc9a0c-02f0-523a-af8a-c573e0ae0e9d": {
+    "source": {
+      "name": "Owsiane kostki kakaowe z gruszką",
+      "description": "Miękkie kostki z owsa, kakao i kawałków gruszki.",
+      "instructions": [
+        "Wymieszaj jajka z mlekiem i miodem, wsyp owies, kakao i proszek.",
+        "Dodaj pokrojoną gruszkę, rozłóż w małej formie i piecz w 180°C, aż środek się zetnie. Ostudź przed krojeniem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Pear and cocoa oat squares",
+      "description": "Soft oat squares with cocoa and chunks of pear.",
+      "instructions": [
+        "Whisk the eggs with the milk and honey, then stir in the oats, cocoa and baking powder.",
+        "Fold in the diced pear, spread in a small tin and bake at 180°C until set. Cool before cutting.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "c692adaf-b671-5d8a-a9b2-fc6058ef5cf6": {
+    "source": {
+      "name": "Pieczone śliwki z chrupiącą żytnią posypką",
+      "description": "Śliwki z piekarnika posypane rumianymi okruchami chleba.",
+      "instructions": [
+        "Przekrój śliwki, usuń pestki, skrop miodem i piecz w 190°C do miękkości.",
+        "Pokrusz chleb i podsmaż na maśle na chrupko. Podaj śliwki z jogurtem i okruchami.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Roast plums with rye crumbs",
+      "description": "Oven-roasted plums finished with toasted rye crumbs.",
+      "instructions": [
+        "Halve and stone the plums, drizzle with honey and roast at 190°C until soft.",
+        "Crumble the bread and fry in butter until crisp. Serve the plums with yoghurt and the crumbs.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "259027e2-1ac8-52d8-8876-de861926607e": {
+    "source": {
+      "name": "Zapiekany budyń z komosy z jabłkami i orzechami",
+      "description":
+          "Miękkie jabłka i ugotowana komosa zapieczone w mlecznej masie jajecznej.",
+      "instructions": [
+        "Ugotuj komosę w wodzie, odcedź i lekko ostudź. Pokrój jabłka w cienkie plastry.",
+        "Roztrzep jajka z mlekiem i cukrem waniliowym. W natłuszczonej formie rozłóż jabłka i komosę, wlej masę.",
+        "Piecz w 180°C do ścięcia środka. Podaj z grubo posiekanymi, podprażonymi orzechami.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Baked quinoa and apple custard with walnuts",
+      "description":
+          "Tender apples and cooked quinoa set in a soft vanilla custard.",
+      "instructions": [
+        "Cook the quinoa in water, drain and cool slightly. Thinly slice the apples.",
+        "Beat the eggs with the milk and vanilla sugar. Layer the apples and quinoa in a buttered dish and pour over the custard.",
+        "Bake at 180°C until the centre sets. Serve with roughly chopped toasted walnuts.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "9d26834c-93d0-5d33-869c-96efee1b8456": {
+    "source": {
+      "name": "Skyr z rozgniecionymi borówkami i kokosem",
+      "description":
+          "Rozgniecione borówki mieszają się z chłodnym skyrem i prażonym kokosem.",
+      "instructions": [
+        "Podpraż wiórki na suchej patelni i przesyp na talerz.",
+        "Rozgnieć połowę borówek widelcem i zawiń w skyr kilkoma ruchami. Podaj z resztą borówek, miodem i wiórkami.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Skyr with crushed blueberries and toasted coconut",
+      "description":
+          "Crushed blueberries swirled through chilled skyr with toasted coconut.",
+      "instructions": [
+        "Toast the coconut in a dry pan and tip onto a plate.",
+        "Crush half the blueberries with a fork and swirl through the skyr. Top with the remaining berries, honey and coconut.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "1cc22196-60ef-51b3-b186-67a3545bb3fd": {
+    "source": {
+      "name": "Kasza gryczana na słodko z jabłkami i ricottą",
+      "description": "Gryczane śniadanie z miękkimi jabłkami z patelni.",
+      "instructions": [
+        "Ugotuj kaszę według instrukcji na opakowaniu.",
+        "Podsmaż kliny jabłek na maśle do miękkości. Podaj na ciepłej kaszy z ricottą i miodem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Sweet buckwheat with apples and ricotta",
+      "description": "Warm buckwheat with soft pan-cooked apples.",
+      "instructions": [
+        "Cook the buckwheat according to the packet.",
+        "Fry the apple wedges in butter until tender. Serve over the warm buckwheat with ricotta and honey.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "69871bea-eead-5d84-8843-062b18f8c418": {
+    "source": {
+      "name": "Owsianka z pieczoną brzoskwinią i migdałami",
+      "description":
+          "Ciepła owsianka z zarumienionymi brzoskwiniami i chrupiącymi migdałami.",
+      "instructions": [
+        "Pokrój brzoskwinie, skrop miodem i piecz w 200°C do miękkości.",
+        "Ugotuj płatki na mleku, mieszając. Podaj z owocami i podprażonymi migdałami.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Porridge with roast peaches and almonds",
+      "description": "Warm porridge with browned peaches and crisp almonds.",
+      "instructions": [
+        "Slice the peaches, drizzle with honey and roast at 200°C until soft.",
+        "Cook the oats in the milk, stirring. Serve with the peaches and toasted almonds.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "cc2742b0-3ee4-5a01-b574-1d5b0f27d449": {
+    "source": {
+      "name": "Grzanki żytnie z pastą buraczaną i jajkiem",
+      "description": "Różowa pasta z buraka z jajkiem na chrupiącej kromce.",
+      "instructions": [
+        "Pokrój buraki w drobną kostkę i ugotuj do miękkości. W osobnym garnku ugotuj jajka na twardo.",
+        "Zmiksuj odcedzone buraki z jogurtem. Rozsmaruj na grzankach, dodaj plastry jajka i szczypiorek.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Rye toast with beetroot spread and egg",
+      "description": "A pink beetroot spread with sliced egg on crisp rye.",
+      "instructions": [
+        "Dice and boil the beetroot until tender. Hard-boil the eggs in a separate pan.",
+        "Blend the drained beetroot with the yoghurt. Spread over the toast and add sliced eggs and chives.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "e9685a51-c79c-5202-b933-b15a7495d034": {
+    "source": {
+      "name": "Placuszki z kukurydzy i cheddara",
+      "description": "Wytrawne placuszki z chrupiącymi ziarnami kukurydzy.",
+      "instructions": [
+        "Roztrzep jajko z mlekiem i mąką. Wmieszaj odsączoną kukurydzę i starty ser.",
+        "Smaż małe placuszki na oleju z obu stron do zrumienienia. Podaj z jogurtem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Sweetcorn and Cheddar pancakes",
+      "description": "Savoury pancakes with sweetcorn kernels in every bite.",
+      "instructions": [
+        "Whisk the egg, milk and flour. Stir in the drained sweetcorn and grated cheese.",
+        "Fry small pancakes in the oil until golden and cooked through on both sides. Serve with yoghurt.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "6a629651-5f35-5816-9870-f38428e797e8": {
+    "source": {
+      "name": "Jaglanka kakaowa z malinami",
+      "description": "Gęsta jaglanka z gorzkim kakao i świeżymi malinami.",
+      "instructions": [
+        "Opłucz kaszę na sicie gorącą wodą. Gotuj ją w mleku na małym ogniu do miękkości.",
+        "Rozmieszaj kakao w łyżce ciepłej jaglanki, dodaj z powrotem do garnka razem z miodem. Podaj z malinami.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Cocoa millet porridge with raspberries",
+      "description":
+          "Thick millet porridge with dark cocoa and fresh raspberries.",
+      "instructions": [
+        "Rinse the millet in a sieve with hot water. Simmer gently in the milk until tender.",
+        "Mix the cocoa into a spoonful of hot porridge, stir it back in with the honey and serve with raspberries.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "a28fd15c-0251-5933-bf32-958889dc0486": {
+    "source": {
+      "name": "Jajka zapiekane z pieczarkami w kokilkach",
+      "description":
+          "Rumiane pieczarki pod zapieczonym jajkiem z grzanką do maczania.",
+      "instructions": [
+        "Usmaż pieczarki na maśle, odparuj płyn i dodaj śmietankę.",
+        "Rozłóż w kokilkach, wbij jajka i piecz w 180°C, aż białka się zetną. Podaj z opieczonym chlebem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Baked eggs with mushrooms in ramekins",
+      "description":
+          "Golden mushrooms under baked eggs, with toast for dipping.",
+      "instructions": [
+        "Fry the mushrooms in butter, let the liquid evaporate and stir in the cream.",
+        "Divide between ramekins, crack in the eggs and bake at 180°C until the whites are set. Serve with toast.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "6178be2b-e0ec-5b0e-a36b-083ccf11ca70": {
+    "source": {
+      "name": "Skyr z gruszką i granolą z patelni",
+      "description": "Chłodny skyr z gruszką i granolą prażoną na patelni.",
+      "instructions": [
+        "Podpraż płatki i posiekane orzechy na suchej patelni. Wmieszaj miód, przełóż na talerz i ostudź.",
+        "Pokrój gruszkę i rozłóż na skyrze. Posyp granolą bezpośrednio przed jedzeniem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Skyr with pear and stovetop granola",
+      "description": "Chilled skyr with pear and quick toasted granola.",
+      "instructions": [
+        "Toast the oats and chopped hazelnuts in a dry pan. Stir in the honey, spread on a plate and cool.",
+        "Dice the pear and spoon over the skyr. Scatter over the granola just before serving.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "2999d077-6c30-5b28-a037-3875e28943c5": {
+    "source": {
+      "name": "Koktajl bananowy z daktylami i płatkami",
+      "description": "Gęsty koktajl śniadaniowy słodzony daktylami.",
+      "instructions": [
+        "Usuń pestki z daktyli i namocz owoce chwilę w ciepłej wodzie. Odcedź.",
+        "Zmiksuj z bananami, płatkami i zimnym mlekiem. Odstaw na chwilę, jeśli wolisz gęstszy koktajl.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Banana, date and oat shake",
+      "description": "A thick breakfast shake sweetened with dates.",
+      "instructions": [
+        "Stone the dates, soak briefly in warm water and drain.",
+        "Blend with the bananas, oats and cold milk. Let it stand briefly if you prefer a thicker shake.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "e41f2666-fe20-5d6e-a6a9-9cd9a563f02a": {
+    "source": {
+      "name": "Jajecznica ze szpinakiem i fetą",
+      "description": "Miękka jajecznica z kawałkami fety i żytnimi grzankami.",
+      "instructions": [
+        "Zwiędnij szpinak na połowie masła. Dodaj roztrzepane jajka i mieszaj na małym ogniu.",
+        "Pod koniec wmieszaj pokruszoną fetę i resztę masła. Podaj z opieczonym chlebem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Spinach and feta scrambled eggs",
+      "description": "Soft scrambled eggs with pockets of feta and rye toast.",
+      "instructions": [
+        "Wilt the spinach in half the butter. Add beaten eggs and stir over low heat.",
+        "Fold in crumbled feta and the remaining butter towards the end. Serve with toasted rye.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "09c05257-67a6-55ed-b236-762982f3a4fd": {
+    "source": {
+      "name": "Cienkie naleśniki z ricottą i mango",
+      "description": "Cienkie naleśniki z kremową ricottą i dojrzałym mango.",
+      "instructions": [
+        "Roztrzep mleko z mąką i jajkiem. Smaż cienkie naleśniki na patelni lekko posmarowanej olejem.",
+        "Rozsmaruj ricottę, ułóż pokrojone mango i złóż naleśniki.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Ricotta and mango crêpes",
+      "description": "Thin crêpes with creamy ricotta and ripe mango.",
+      "instructions": [
+        "Whisk the milk, flour and egg. Cook thin crêpes in a lightly oiled pan.",
+        "Spread with ricotta, top with diced mango and fold.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "5995629c-7021-5d37-9721-9648e82d5e30": {
+    "source": {
+      "name": "Paprykarz ze schabu z czerwoną papryką",
+      "description": "Paski schabu w śmietanowym sosie paprykowym z pęczakiem.",
+      "instructions": [
+        "Ugotuj pęczak. Podsmaż cebulę i paski schabu na oleju.",
+        "Dodaj pokrojoną paprykę, paprykę w proszku i odrobinę wody. Duś do miękkości warzyw i pełnego ugotowania mięsa.",
+        "Zahartuj śmietanę odrobiną gorącego sosu, wmieszaj poza ogniem i podaj z kaszą.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Pork and red pepper paprikash",
+      "description":
+          "Pork strips in a creamy paprika sauce, served with pearl barley.",
+      "instructions": [
+        "Cook the barley. Fry the onion and strips of pork in the oil.",
+        "Add the sliced pepper, paprika and a splash of water. Simmer until the vegetables are tender and the pork is cooked through.",
+        "Stir a little hot sauce into the soured cream, then stir it into the pan off the heat. Serve with the barley.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "bd9a4d14-88d1-539d-a5da-02f492854661": {
+    "source": {
+      "name": "Dorsz na polencie z pieczoną papryką",
+      "description":
+          "Smażony dorsz na miękkiej polencie ze słodką pieczoną papryką.",
+      "instructions": [
+        "Pokrój paprykę w paski, skrop połową oliwy i upiecz w 210°C do miękkości.",
+        "Ugotuj polentę według opakowania. Usmaż dorsza na reszcie oliwy, aż będzie nieprzezroczysty i łatwo rozdzieli się na płatki.",
+        "Ułóż rybę i paprykę na polencie. Dodaj natkę i sok z cytryny.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Cod with soft polenta and roast peppers",
+      "description":
+          "Pan-fried cod over soft polenta with sweet roast peppers.",
+      "instructions": [
+        "Slice the peppers, drizzle with half the oil and roast at 210°C until tender.",
+        "Cook the polenta according to the packet. Fry the cod in the remaining oil until opaque and flaky.",
+        "Arrange the fish and peppers over the polenta. Add parsley and a squeeze of lemon.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "ff7b60ce-588c-54b7-8133-70ea70df6a7a": {
+    "source": {
+      "name": "Kurczak pieczony z brzoskwinią i czerwoną cebulą",
+      "description":
+          "Brzoskwinie i cebula pieką się razem z kurczakiem, tworząc lekki sos.",
+      "instructions": [
+        "Ugotuj pęczak. Pokrój brzoskwinie i cebulę w kliny. Rozłóż z kurczakiem na blasze, skrop oliwą i octem.",
+        "Piecz w 200°C, aż kurczak będzie w pełni ugotowany. Pokrój w plastry i podaj z pęczakiem oraz sokiem z blachy.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Roast chicken with peaches and red onion",
+      "description":
+          "Peaches and red onion roast with the chicken to make a light pan sauce.",
+      "instructions": [
+        "Cook the barley. Cut the peaches and onion into wedges and arrange on a tray with the chicken. Drizzle with oil and vinegar.",
+        "Roast at 200°C until the chicken is cooked through. Slice and serve with the barley and pan juices.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "43d7ebc6-3549-5d3c-bedb-5c214adb80e9": {
+    "source": {
+      "name": "Pieczeń z indyka i tartego jabłka",
+      "description":
+          "Soczysta pieczeń z jabłkiem, podawana w grubych plastrach.",
+      "instructions": [
+        "Zetrzyj jabłko i odciśnij nadmiar soku. Wymieszaj z indykiem, bułką tartą i jajkiem.",
+        "Uformuj mały bochenek, skrop olejem i piecz w 190°C do pełnego ugotowania. Odstaw przed krojeniem.",
+        "Ugotuj ziemniaki i fasolkę, podaj z pieczenią.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Turkey and apple meatloaf",
+      "description":
+          "Juicy turkey meatloaf with grated apple, served in thick slices.",
+      "instructions": [
+        "Grate the apple and squeeze out excess juice. Mix with turkey, breadcrumbs and egg.",
+        "Shape into a small loaf, drizzle with oil and bake at 190°C until cooked through. Rest before slicing.",
+        "Boil the potatoes and green beans and serve with the meatloaf.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "809ce8e7-b6f7-522b-a28e-7a57a515baa9": {
+    "source": {
+      "name": "Zapiekanka ryżowa z mięsem mielonym i bakłażanem",
+      "description":
+          "Warstwowa zapiekanka z ryżem, pieczonym bakłażanem i mięsnym sosem.",
+      "instructions": [
+        "Ugotuj ryż. Posmaruj plastry bakłażana połową oliwy i piecz w 210°C do zrumienienia.",
+        "Na reszcie oliwy podsmaż cebulę oraz mieloną wieprzowinę z wołowiną. Dodaj pomidory i oregano, gotuj do zagęszczenia.",
+        "Ułóż w formie warstwy ryżu, sosu i bakłażana. Zapiecz w 190°C, aż środek będzie gorący, a mięso całkowicie ugotowane.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Pork and beef rice bake with aubergine",
+      "description":
+          "Layered rice, roasted aubergine and a savoury meat sauce.",
+      "instructions": [
+        "Cook the rice. Brush the aubergine slices with half the oil and roast at 210°C until browned.",
+        "Fry the onion and pork and beef mince in the remaining oil. Add tomatoes and oregano and simmer until thickened.",
+        "Layer the rice, sauce and aubergine in a dish. Bake at 190°C until piping hot in the centre and the mince is cooked through.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "5a8381f7-a06d-503b-9e7a-0f3e246f57d2": {
+    "source": {
+      "name": "Kotlety ziemniaczane z łososiem",
+      "description": "Złote kotlety z kawałkami łososia i sosem cytrynowym.",
+      "instructions": [
+        "Ugotuj ziemniaki i odparuj, potem rozgnieć. Upiecz łososia w 190°C do pełnego ugotowania i rozdziel na płatki.",
+        "Wymieszaj łososia z ziemniakami i jajkiem. Uformuj kotlety, obtocz w bułce tartej i usmaż z obu stron.",
+        "Wymieszaj jogurt z sokiem z cytryny i podaj do kotletów.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Salmon and potato fishcakes",
+      "description":
+          "Golden fishcakes with flakes of salmon and a lemon yoghurt dip.",
+      "instructions": [
+        "Boil and drain the potatoes, then let them steam dry and mash. Bake the salmon at 190°C until cooked through and flake it.",
+        "Mix the salmon with the potato and egg. Shape, coat with breadcrumbs and fry on both sides until cooked through.",
+        "Stir lemon juice into the yoghurt and serve with the fishcakes.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "f69cc90a-5c7d-5a9f-8e9b-9c7a8cc03909": {
+    "source": {
+      "name": "Kotlety z czerwonej soczewicy i marchewki",
+      "description": "Pieczone kotlety z miękkim środkiem i cytrynowym tahini.",
+      "instructions": [
+        "Ugotuj soczewicę i dobrze odcedź. Zetrzyj marchew i podsmaż z cebulą na części oleju.",
+        "Połącz z soczewicą i płatkami, uformuj kotlety i posmaruj resztą oleju. Piecz w 200°C do zrumienienia, obracając w połowie.",
+        "Rozmieszaj tahini z sokiem z cytryny i wodą. Podaj do kotletów.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Red lentil and carrot patties with tahini",
+      "description":
+          "Baked lentil patties with a soft centre and lemon tahini dressing.",
+      "instructions": [
+        "Cook the lentils and drain well. Grate the carrot and fry with the onion in some of the oil.",
+        "Mix with the lentils and oats, shape into patties and brush with the remaining oil. Bake at 200°C until golden, turning halfway.",
+        "Mix the tahini with lemon juice and water. Serve with the patties.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "e5e01a43-a26e-54ae-af55-20b4caf310ec": {
+    "source": {
+      "name": "Lasagne z porem, szpinakiem i ricottą",
+      "description":
+          "Warstwy miękkiego pora i ricotty pod rumianą serową skórką.",
+      "instructions": [
+        "Uduś pokrojony por na części masła, dodaj szpinak i odparuj nadmiar płynu. Wymieszaj z ricottą.",
+        "Z reszty masła, mąki i mleka zrób sos. Przekładaj płaty farszem i sosem zgodnie z instrukcją przygotowania makaronu.",
+        "Posyp cheddarem i piecz w 190°C do miękkości płatów.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Leek, spinach and ricotta lasagne",
+      "description":
+          "Soft leeks and ricotta in a lasagne with a golden cheese top.",
+      "instructions": [
+        "Soften the sliced leeks in some of the butter, add the spinach and let excess liquid evaporate. Stir in the ricotta.",
+        "Make a sauce with the remaining butter, flour and milk. Layer the filling and sauce with the sheets, following the packet for any pre-cooking.",
+        "Scatter over the Cheddar and bake at 190°C until the pasta is tender.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "46c1ba95-079a-5de9-9892-30a27d16760b": {
+    "source": {
+      "name": "Orzo w pomidorach z krewetkami",
+      "description": "Drobny makaron w gęstym sosie pomidorowym z krewetkami.",
+      "instructions": [
+        "Rozmroź krewetki zgodnie z opakowaniem. Ugotuj orzo i odcedź.",
+        "Podsmaż czosnek na oliwie, dodaj pomidory i odparuj sos. Dorzuć krewetki i gotuj, aż będą nieprzezroczyste i w pełni ugotowane.",
+        "Wymieszaj z orzo oraz porwaną bazylią.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Tomato orzo with prawns",
+      "description": "Small pasta shapes in a thick tomato sauce with prawns.",
+      "instructions": [
+        "Defrost the prawns as directed on the packet. Cook and drain the orzo.",
+        "Fry the garlic in oil, add the tomatoes and reduce. Add the prawns and cook until opaque and cooked through.",
+        "Toss with the orzo and torn basil.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "b022c82d-928e-577f-86cc-3da5eb6b4c8a": {
+    "source": {
+      "name": "Zapiekany kalafior z kurczakiem i cheddarem",
+      "description": "Kremowy kalafior z kurczakiem pod zapieczonym cheddarem.",
+      "instructions": [
+        "Podgotuj różyczki kalafiora i odcedź. Pokrój kurczaka i obsmaż na części masła.",
+        "Z pozostałego masła, mąki i mleka ugotuj sos, dodaj połowę sera.",
+        "Ułóż kalafior i kurczaka w formie, polej sosem i posyp resztą sera. Piecz w 200°C do zrumienienia i pełnego ugotowania mięsa.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Chicken and cauliflower cheese bake",
+      "description":
+          "Creamy cauliflower and chicken under a golden Cheddar crust.",
+      "instructions": [
+        "Parboil and drain the cauliflower. Dice the chicken and brown it in some of the butter.",
+        "Make a sauce with the remaining butter, flour and milk and add half the cheese.",
+        "Arrange the cauliflower and chicken in a dish, pour over the sauce and add the remaining cheese. Bake at 200°C until golden and the chicken is cooked through.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "ec2642cc-5f6b-5b9d-bbcd-de9c3c12969f": {
+    "source": {
+      "name": "Schab pieczony ze śliwkami i pęczakiem",
+      "description":
+          "Pieczone śliwki nadają sokowi z mięsa słodko-kwaśny smak.",
+      "instructions": [
+        "Ugotuj pęczak. Obsmaż schab na oleju i przełóż do małej formy.",
+        "Dodaj cebulę w klinach oraz pozbawione pestek śliwki skropione octem. Piecz w 200°C do pełnego ugotowania schabu.",
+        "Odstaw mięso na chwilę, pokrój i podaj z kaszą, śliwkami i sokiem z formy.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Roast pork loin with plums and pearl barley",
+      "description": "Roast plums give the pan juices a sweet, tart finish.",
+      "instructions": [
+        "Cook the barley. Brown the pork in the oil and transfer to a small roasting dish.",
+        "Add onion wedges and stoned plums tossed with the vinegar. Roast at 200°C until the pork is cooked through.",
+        "Rest the pork briefly, slice and serve with the barley, plums and pan juices.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "26566f33-2b2c-51ed-a048-6f00fc51e034": {
+    "source": {
+      "name": "Strogonow z indyka i pieczarek",
+      "description":
+          "Paski indyka i pieczarki w kremowym sosie na kaszy gryczanej.",
+      "instructions": [
+        "Ugotuj kaszę. Obsmaż indyka na części oleju, przełóż na talerz.",
+        "Na reszcie oleju podsmaż cebulę i pieczarki, dodaj mięso, musztardę i trochę wody. Duś do pełnego ugotowania indyka.",
+        "Zdejmij z ognia, wmieszaj śmietanę i podaj z kaszą.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Turkey and mushroom stroganoff",
+      "description":
+          "Turkey and browned mushrooms in a creamy sauce over buckwheat.",
+      "instructions": [
+        "Cook the buckwheat. Brown the turkey in some of the oil and set aside.",
+        "Fry the onion and mushrooms in the remaining oil. Add the turkey, mustard and a splash of water. Simmer until the turkey is cooked through.",
+        "Take off the heat, stir in the soured cream and serve over the buckwheat.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "64fd429f-ebc3-51a4-99b5-76bcf6eb8a05": {
+    "source": {
+      "name": "Brytyjska zapiekanka z dorszem i groszkiem",
+      "description": "Dorsz z groszkiem w białym sosie pod rumianym purée.",
+      "instructions": [
+        "Ugotuj ziemniaki i rozgnieć z częścią mleka oraz masła.",
+        "Z reszty masła, mąki i mleka ugotuj sos. Dodaj pokrojonego dorsza i groszek, przełóż do formy.",
+        "Przykryj purée, przeciągnij wierzch widelcem i piecz w 200°C, aż się zrumieni, a ryba będzie ugotowana.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Cod and pea fish pie",
+      "description": "Cod and peas in a white sauce beneath golden mash.",
+      "instructions": [
+        "Boil the potatoes and mash with some of the milk and butter.",
+        "Make a sauce with the remaining butter, flour and milk. Add the diced cod and peas and transfer to an oven dish.",
+        "Cover with mash, roughen the top with a fork and bake at 200°C until golden and the fish is cooked through.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "ce206d4f-71fe-50cd-a185-a2ce5f02c65b": {
+    "source": {
+      "name": "Kieszonki francuskie z soczewicą i szpinakiem",
+      "description": "Chrupiące kieszonki z gęstym, lekko dymnym farszem.",
+      "instructions": [
+        "Ugotuj soczewicę i dokładnie odcedź. Podsmaż cebulę i szpinak na oleju, odparuj płyn. Dodaj soczewicę i paprykę, ostudź.",
+        "Pokrój ciasto na kwadraty. Nałóż farsz, złóż, zaciśnij brzegi i posmaruj jajkiem.",
+        "Piecz w 200°C, aż ciasto mocno się zrumieni, a farsz będzie gorący.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Puff pastry pockets with lentils and spinach",
+      "description": "Crisp pastry pockets with a thick, gently smoky filling.",
+      "instructions": [
+        "Cook the lentils and drain thoroughly. Fry the onion and spinach in oil and evaporate excess liquid. Add the lentils and paprika and cool.",
+        "Cut the pastry into squares, fill, fold, seal the edges and brush with beaten egg.",
+        "Bake at 200°C until the pastry is golden and the filling is piping hot.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "3de65259-32a2-5e7d-a1a5-ecbaac8888f5": {
+    "source": {
+      "name": "Kokosowy ryż z kukurydzą, limonką i tofu",
+      "description":
+          "Kokosowy ryż z kukurydzą i tofu pieczonym w wędzonej papryce.",
+      "instructions": [
+        "Osusz tofu, pokrój w kostkę, obtocz w oleju i papryce. Piecz w 210°C do zrumienienia.",
+        "Ugotuj ryż w mleku kokosowym z wodą. Pod koniec dodaj odsączoną kukurydzę.",
+        "Dopraw sokiem i skórką z limonki, podaj z tofu.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Coconut, lime and sweetcorn rice with tofu",
+      "description":
+          "Coconut rice with sweetcorn and smoked paprika baked tofu.",
+      "instructions": [
+        "Pat the tofu dry, cube it and toss in the oil and paprika. Roast at 210°C until golden.",
+        "Cook the rice in the coconut milk and water. Add the drained sweetcorn towards the end.",
+        "Finish with lime juice and zest and serve with the tofu.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "84b212f2-30a8-5a21-980d-88323a121ee2": {
+    "source": {
+      "name": "Zupa buraczana z porem i jogurtem",
+      "description":
+          "Lekka zupa z kawałkami buraków i pora oraz łyżką jogurtu.",
+      "instructions": [
+        "Pokrój buraki i ziemniaki w drobną kostkę. Zmiękcz pokrojony por na oleju.",
+        "Dodaj buraki i bulion. Gdy buraki zaczną mięknąć, dodaj ziemniaki i gotuj do miękkości.",
+        "Dopraw octem i dodaj po łyżce jogurtu do misek.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Beetroot and leek soup with yoghurt",
+      "description":
+          "A light soup with diced beetroot, leek and a spoonful of yoghurt.",
+      "instructions": [
+        "Finely dice the beetroot and potatoes. Soften the sliced leek in oil.",
+        "Add the beetroot and stock. Once the beetroot starts to soften, add the potatoes and simmer until tender.",
+        "Finish with vinegar and add a spoonful of yoghurt to each bowl.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "e2125477-06c1-5f80-b523-ce5a113da71f": {
+    "source": {
+      "name": "Grzanki z groszkiem, miętą i ricottą",
+      "description":
+          "Groszek rozgnieciony widelcem na grzankach z miętą i ricottą.",
+      "instructions": [
+        "Ugotuj groszek, odcedź i rozgnieć z oliwą, miętą i sokiem z cytryny.",
+        "Opiecz chleb, rozłóż pastę z groszku i dodaj po łyżce ricotty.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Crushed pea, mint and ricotta toast",
+      "description":
+          "Fork-crushed peas on rye toast with mint and soft ricotta.",
+      "instructions": [
+        "Cook and drain the peas. Crush with the oil, mint and a squeeze of lemon.",
+        "Toast the bread, spread with the crushed peas and add spoonfuls of ricotta.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "f5bfd3a3-9fab-59e0-8d4f-05d874a21f3d": {
+    "source": {
+      "name": "Placki z tartych batatów i fety",
+      "description":
+          "Chrupiące brzegi i miękki środek z batata oraz pokruszonej fety.",
+      "instructions": [
+        "Zetrzyj bataty, odciśnij nadmiar płynu i wymieszaj z jajkami, mąką oraz fetą.",
+        "Smaż cienkie placuszki na oleju, partiami, aż się zrumienią i bataty zmiękną. Podaj z jogurtem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Grated sweet potato and feta fritters",
+      "description":
+          "Crisp edges and a soft sweet potato centre with crumbled feta.",
+      "instructions": [
+        "Grate the sweet potatoes, squeeze out excess moisture and mix with the eggs, flour and feta.",
+        "Fry thin fritters in batches until golden and tender inside. Serve with yoghurt.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "e8888d25-0ba7-5caf-9078-266b797a5291": {
+    "source": {
+      "name": "Zupa z pieczonej papryki i pomidorów z żytnim chlebem",
+      "description":
+          "Gęsta pomidorowa z kawałkami chleba, które wchłaniają smak pieczonej papryki.",
+      "instructions": [
+        "Pokrój paprykę, skrop połową oliwy i piecz w 220°C, aż brzegi się zrumienią.",
+        "Na reszcie oliwy podsmaż czosnek, dodaj pomidory, paprykę i bulion. Gotuj, aż smaki się połączą.",
+        "Porwij chleb do garnka. Podgrzej, aż zmięknie, i dodaj bazylię.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Roast pepper and tomato bread soup",
+      "description":
+          "Thick tomato soup with bread that soaks up the roast pepper flavour.",
+      "instructions": [
+        "Slice the pepper, drizzle with half the oil and roast at 220°C until browned at the edges.",
+        "Fry the garlic in the remaining oil, add the tomatoes, pepper and stock and simmer.",
+        "Tear the bread into the pan, heat until softened and add the basil.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "bdb410bc-4c84-5770-877d-db00d3bb3c00": {
+    "source": {
+      "name": "Papryki nadziewane brokułem, komosą i cheddarem",
+      "description":
+          "Rumiane połówki papryki z brokułem i ciągnącym się cheddarem.",
+      "instructions": [
+        "Przekrój papryki wzdłuż i usuń nasiona. Skrop częścią oliwy i podpiecz w 200°C.",
+        "Ugotuj komosę. Drobno pokrój brokuł i cebulę, podsmaż na reszcie oliwy, wymieszaj z komosą i połową sera.",
+        "Napełnij połówki, posyp resztą cheddara i zapiekaj do zrumienienia.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Broccoli, quinoa and Cheddar stuffed peppers",
+      "description":
+          "Roast pepper halves with tender broccoli and melted Cheddar.",
+      "instructions": [
+        "Halve and deseed the peppers. Drizzle with some oil and soften in a 200°C oven.",
+        "Cook the quinoa. Finely chop the broccoli and onion, fry in the remaining oil and mix with the quinoa and half the cheese.",
+        "Fill the pepper halves, top with the remaining Cheddar and bake until browned.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "31133836-f83f-55aa-adf5-7001cc71576c": {
+    "source": {
+      "name": "Sałatka z pieczonego kalafiora i pęczaku",
+      "description":
+          "Ciepły pęczak z rumianym kalafiorem i cytrynowym jogurtem.",
+      "instructions": [
+        "Ugotuj pęczak i odcedź. Kalafior podziel na różyczki, wymieszaj z oliwą i piecz w 210°C do zrumienienia.",
+        "Połącz jogurt z sokiem z cytryny i odrobiną wody. Wymieszaj z kaszą i kalafiorem, dodaj posiekaną natkę.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Warm cauliflower and pearl barley salad",
+      "description":
+          "Warm pearl barley with golden cauliflower and lemon yoghurt.",
+      "instructions": [
+        "Cook and drain the barley. Break the cauliflower into florets, toss with oil and roast at 210°C until golden.",
+        "Mix the yoghurt with lemon juice and a little water. Toss with the barley and cauliflower and add chopped parsley.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "081f8329-0b11-5b63-a99f-6f30d09cd834": {
+    "source": {
+      "name": "Wrap z wędzonym łososiem i ogórkiem",
+      "description":
+          "Miękka tortilla z chrupiącym ogórkiem i cytrynowym jogurtem.",
+      "instructions": [
+        "Pokrój ogórek w cienkie słupki. Wymieszaj jogurt z odrobiną soku z cytryny i szczypiorkiem.",
+        "Rozsmaruj sos na tortillach, dodaj łososia i ogórek. Zawiń ciasno i przekrój ukośnie.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Smoked salmon and cucumber wrap",
+      "description": "A soft wrap with crisp cucumber and lemon yoghurt.",
+      "instructions": [
+        "Slice the cucumber into thin sticks. Mix the yoghurt with a squeeze of lemon and chives.",
+        "Spread the sauce on the wraps, add the salmon and cucumber, roll tightly and cut diagonally.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "299540e4-f02e-5744-aa0a-b3b0bc058cec": {
+    "source": {
+      "name": "Surówka z kapusty pekińskiej z jabłkiem i orzechami",
+      "description":
+          "Chrupiąca surówka w jogurtowym sosie, podawana z żytnimi grzankami.",
+      "instructions": [
+        "Cienko poszatkuj kapustę i pokrój jabłko w słupki. Podpraż orzechy i opiecz chleb.",
+        "Wymieszaj jogurt z octem i połącz z kapustą, jabłkiem oraz orzechami. Podaj z grzankami.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Chinese cabbage, apple and walnut slaw",
+      "description":
+          "Crunchy slaw in a yoghurt dressing, served with rye toast.",
+      "instructions": [
+        "Finely shred the cabbage and cut the apple into matchsticks. Toast the walnuts and the bread.",
+        "Mix the yoghurt with vinegar, toss with the cabbage, apple and nuts and serve with the toast.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "c7801cfe-42f9-5517-a73b-6d7d5f76c0e8": {
+    "source": {
+      "name": "Zapiekana polenta z pomidorami i szpinakiem",
+      "description":
+          "Miękka warstwa polenty pod zapiekanymi pomidorami i mozzarellą.",
+      "instructions": [
+        "Ugotuj polentę według opakowania. Na oliwie podsmaż czosnek i zwiędnij szpinak.",
+        "Rozprowadź polentę w formie, dodaj szpinak, plastry pomidorów i porwaną mozzarellę.",
+        "Piecz w 200°C, aż ser się roztopi, a wierzch zrumieni.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Baked tomato and spinach polenta",
+      "description": "Soft polenta beneath baked tomatoes and mozzarella.",
+      "instructions": [
+        "Cook the polenta according to the packet. Fry the garlic in oil and wilt the spinach.",
+        "Spread the polenta in a dish and layer over spinach, sliced tomatoes and torn mozzarella.",
+        "Bake at 200°C until the cheese melts and the top is golden.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "2f146e21-a8f4-516b-8623-657c4c728c03": {
+    "source": {
+      "name": "Grzanki z awokado i krewetkami",
+      "description":
+          "Krewetki z czosnkiem na kremowym awokado i chrupiącym chlebie.",
+      "instructions": [
+        "Rozmroź krewetki zgodnie z opakowaniem i osusz. Usmaż na oliwie z czosnkiem do pełnego ugotowania.",
+        "Rozgnieć miąższ awokado z sokiem z limonki. Rozsmaruj na opieczonym chlebie i ułóż na wierzchu krewetki.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Avocado and prawn rye toast",
+      "description": "Garlic prawns over creamy avocado and crisp rye bread.",
+      "instructions": [
+        "Defrost the prawns according to the packet and pat dry. Fry in oil with the garlic until cooked through.",
+        "Mash the avocado flesh with lime juice. Spread on toasted rye and top with the prawns.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "eb7c554f-8d37-56e2-9f70-072a3962d7f9": {
+    "source": {
+      "name": "Pieczone cebule nadziewane wieprzowiną i pieczarkami",
+      "description": "Miękkie połówki cebuli z rumianym farszem.",
+      "instructions": [
+        "Przekrój obrane cebule na połówki i podgotuj, aż warstwy zmiękną. Wyjmij i posiekaj środki.",
+        "Podsmaż na oleju wieprzowinę, środki cebuli, pieczarki i marchewkę. Dodaj sos sojowy.",
+        "Nałóż farsz do połówek i piecz w 200°C, aż cebule będą miękkie, a mięso w pełni ugotowane.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Baked onions stuffed with pork and mushrooms",
+      "description":
+          "Tender onion halves with a browned pork and mushroom filling.",
+      "instructions": [
+        "Halve the peeled onions and parboil until the layers soften. Scoop out and chop the centres.",
+        "Fry the pork, onion centres, mushrooms and carrots in the oil. Add the soy sauce.",
+        "Fill the onion halves and bake at 200°C until the onions are tender and the pork is cooked through.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "a3607a09-8c47-51a6-9ebd-89484fcfb107": {
+    "source": {
+      "name": "Pieczone krokiety ziemniaczane z kukurydzą i cheddarem",
+      "description":
+          "Złota panierka kryje miękkie wnętrze z ziemniaków, sera i kukurydzy.",
+      "instructions": [
+        "Ugotuj ziemniaki, odcedź, rozgnieć i ostudź. Wymieszaj z cheddarem oraz odsączoną kukurydzą.",
+        "Uformuj krótkie wałeczki, zanurz w jajku, obtocz w bułce tartej i skrop olejem.",
+        "Piecz w 210°C na blasze, obracając raz, aż panierka będzie złota, a środek gorący.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Baked potato croquettes with sweetcorn and Cheddar",
+      "description":
+          "A crisp crumb coating around soft potato, cheese and sweetcorn.",
+      "instructions": [
+        "Boil the potatoes, drain, mash and cool. Mix with the Cheddar and drained sweetcorn.",
+        "Shape into short logs, dip in egg, roll in breadcrumbs and drizzle with oil.",
+        "Bake on a tray at 210°C, turning once, until golden and piping hot.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "0d0811ca-e21a-52f2-bfb2-0dfaebdda659": {
+    "source": {
+      "name": "Komosa z fasolką szparagową i sosem tahini",
+      "description": "Sałatka z chrupką fasolką, papryką i cytrynowym tahini.",
+      "instructions": [
+        "Ugotuj komosę. Podgotuj pokrojoną fasolkę do miękkości, ale zostaw ją jędrną, i odcedź.",
+        "Wymieszaj tahini z oliwą, sokiem z cytryny i odrobiną wody. Połącz z komosą, fasolką i pokrojoną papryką.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Quinoa and green bean salad with tahini",
+      "description":
+          "A salad with crisp green beans, red pepper and lemon tahini.",
+      "instructions": [
+        "Cook the quinoa. Boil the cut green beans until just tender, then drain.",
+        "Whisk the tahini with oil, lemon juice and a splash of water. Toss with the quinoa, green beans and sliced pepper.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "c6f974c9-c3f7-5fd6-8091-a00a725832d8": {
+    "source": {
+      "name": "Sałatka z halloumi i pieczonymi śliwkami",
+      "description": "Słone halloumi, miękkie śliwki i świeży szpinak.",
+      "instructions": [
+        "Przekrój śliwki, usuń pestki i skrop oliwą oraz octem. Piecz w 200°C do miękkości.",
+        "Zrumień plastry halloumi i podpraż orzechy na suchej patelni. Ułóż na szpinaku ze śliwkami i sokiem z pieczenia.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Warm halloumi and roast plum salad",
+      "description": "Salty halloumi, soft roast plums and fresh spinach.",
+      "instructions": [
+        "Halve and stone the plums, drizzle with oil and vinegar and roast at 200°C until tender.",
+        "Brown the halloumi slices and toast the walnuts in a dry pan. Arrange on spinach with the plums and their juices.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "b450d9e5-7294-51f3-9694-a586534baf32": {
+    "source": {
+      "name": "Tofu w sezamie z groszkiem i marchewką",
+      "description":
+          "Chrupiące sezamowe tofu z rozgniecionym groszkiem i wstążkami marchewki.",
+      "instructions": [
+        "Osusz tofu, pokrój w prostokąty, obtocz w sosie sojowym i sezamie. Zrumień na części oleju.",
+        "Ugotuj groszek i zgnieć widelcem z sokiem z cytryny. Obieraczką zrób wstążki marchewki i krótko podsmaż na reszcie oleju.",
+        "Podaj tofu z groszkiem i marchewką.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Sesame tofu with crushed peas and carrots",
+      "description":
+          "Sesame-crusted tofu with crushed peas and carrot ribbons.",
+      "instructions": [
+        "Pat the tofu dry, cut into rectangles and coat in soy sauce and sesame seeds. Brown in some of the oil.",
+        "Boil the peas and crush with a fork and lemon juice. Peel the carrots into ribbons and quickly fry in the remaining oil.",
+        "Serve the tofu with the peas and carrots.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "dffad032-b3c4-50f1-b89e-7c52ed4a0705": {
+    "source": {
+      "name": "Chrupiące grzanki cynamonowe z dipem jogurtowym",
+      "description":
+          "Cienkie paski żytniego chleba do maczania w miodowym jogurcie.",
+      "instructions": [
+        "Pokrój chleb w paski, posmaruj roztopionym masłem i oprósz cynamonem.",
+        "Piecz w 180°C do chrupkości, obracając raz. Wymieszaj jogurt z miodem i podaj obok.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Cinnamon rye crisps with yoghurt dip",
+      "description": "Thin cinnamon rye strips for dipping into honey yoghurt.",
+      "instructions": [
+        "Cut the bread into strips, brush with melted butter and dust with cinnamon.",
+        "Bake at 180°C until crisp, turning once. Stir the honey into the yoghurt and serve alongside.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "dd7d7b29-9749-5979-99bc-2da784f72ab6": {
+    "source": {
+      "name": "Muffiny owsiane z jabłkiem i marchewką",
+      "description": "Miękkie muffiny z tartą marchewką i jabłkiem w cieście.",
+      "instructions": [
+        "Zetrzyj jabłko i marchew. Roztrzep jajka z mlekiem, olejem i miodem.",
+        "Wymieszaj z mąką i proszkiem, dodaj starte składniki. Rozłóż w formie i piecz w 180°C, aż patyczek wyjdzie bez surowego ciasta.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Apple and carrot oat muffins",
+      "description":
+          "Tender muffins with grated carrot and apple in the batter.",
+      "instructions": [
+        "Grate the apple and carrot. Whisk the eggs with milk, oil and honey.",
+        "Mix with the flour and baking powder and fold in the grated produce. Divide into a tin and bake at 180°C until a skewer comes out without wet batter.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "b4370a84-1e16-5049-bc34-c04d73745518": {
+    "source": {
+      "name": "Pucharek jogurtowy z pieczoną śliwką i czekoladą",
+      "description": "Warstwy jogurtu, miękkich śliwek i tartej czekolady.",
+      "instructions": [
+        "Usuń pestki ze śliwek, przekrój na połówki i skrop miodem. Piecz w 200°C, aż zmiękną, i lekko przestudź.",
+        "Ułóż w szklankach warstwy jogurtu, śliwek i startej czekolady. Polej sokiem z pieczenia.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Roast plum and dark chocolate yoghurt parfait",
+      "description":
+          "Layers of Greek yoghurt, soft roast plums and grated chocolate.",
+      "instructions": [
+        "Halve and stone the plums and drizzle with honey. Roast at 200°C until tender and cool slightly.",
+        "Layer the yoghurt, plums and grated chocolate in glasses. Spoon over the roasting juices.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "bc4c2531-1e35-5fcc-956f-9e37143e236f": {
+    "source": {
+      "name": "Cytrynowe ciasto z ricottą",
+      "description": "Wilgotne ciasto z ricottą i skórką cytrynową.",
+      "instructions": [
+        "Utrzyj miękkie masło z cukrem, dodaj jajka po jednym, a następnie ricottę, skórkę i trochę soku z cytryny.",
+        "Delikatnie wmieszaj mąkę i proszek. Przełóż do małej wyłożonej formy i piecz w 175°C, aż patyczek wyjdzie bez surowego ciasta.",
+        "Ostudź przed krojeniem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Lemon ricotta cake",
+      "description": "A moist ricotta cake with fresh lemon zest.",
+      "instructions": [
+        "Cream the softened butter and sugar, add the eggs one at a time, then stir in the ricotta, zest and a little lemon juice.",
+        "Gently fold in the flour and baking powder. Spoon into a small lined tin and bake at 175°C until a skewer comes out without wet batter.",
+        "Cool before slicing.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "d1b25d95-b08d-5928-b1b9-62bec0a86bb2": {
+    "source": {
+      "name": "Mrożone płatki jogurtowe z mango i migdałami",
+      "description":
+          "Cienka tafla jogurtu do przełamania na mrożone kawałki. Mrożenie: co najmniej 4 godziny.",
+      "instructions": [
+        "Wymieszaj jogurt z miodem i rozsmaruj cienko na papierze do pieczenia.",
+        "Posyp drobno pokrojonym mango i migdałami. Zamrażaj co najmniej 4 godziny, potem połam i podaj prosto z zamrażarki.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Frozen mango and almond yoghurt bark",
+      "description":
+          "A thin sheet of yoghurt to break into frozen shards. Freeze for at least 4 hours.",
+      "instructions": [
+        "Mix the yoghurt with honey and spread thinly over baking paper.",
+        "Scatter over diced mango and flaked almonds. Freeze for at least 4 hours, then break into shards and serve from the freezer.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "548f227b-6055-5e5b-976a-b0dee1e35a7c": {
+    "source": {
+      "name": "Cytrynowo-makowe ciasteczka owsiane",
+      "description":
+          "Maślane ciasteczka z wyraźną skórką cytrynową i ziarnami maku.",
+      "instructions": [
+        "Utrzyj masło z cukrem, dodaj jajko i startą skórkę. Wymieszaj z płatkami, mąką i makiem.",
+        "Nakładaj porcje na blachę i lekko spłaszcz. Piecz w 180°C do zrumienienia brzegów, ostudź na kratce.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Lemon and poppy seed oat cookies",
+      "description":
+          "Buttery oat cookies with lemon zest and tiny poppy seeds.",
+      "instructions": [
+        "Cream the butter and sugar, then beat in the egg and lemon zest. Mix in the oats, flour and poppy seeds.",
+        "Drop spoonfuls onto a tray and flatten slightly. Bake at 180°C until the edges are golden, then cool on a rack.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "acbd83dd-40fe-5956-9bd8-6f233ff6c7c1": {
+    "source": {
+      "name": "Clafoutis z gruszkami i malinami",
+      "description": "Miękkie owoce zapieczone w lekkim cieście naleśnikowym.",
+      "instructions": [
+        "Posmaruj płaską formę masłem. Ułóż cienkie plasterki gruszki i rozsyp maliny.",
+        "Roztrzep jajka z mlekiem, mąką i cukrem. Zalej owoce i piecz w 180°C, aż środek będzie ścięty, a brzegi złote.",
+        "Odstaw na kilka minut przed podaniem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Pear and raspberry clafoutis",
+      "description": "Tender fruit baked in a light, set pancake batter.",
+      "instructions": [
+        "Butter a shallow baking dish. Arrange thinly sliced pears and scatter over the raspberries.",
+        "Whisk the eggs, milk, flour and sugar. Pour over the fruit and bake at 180°C until set in the centre and golden at the edges.",
+        "Rest for a few minutes before serving.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "75d814b3-e806-5b93-be7d-c864ded372f3": {
+    "source": {
+      "name": "Czekoladowy pudding z polenty z gruszką",
+      "description":
+          "Kremowy deser z polenty, ciemnej czekolady i gruszki z patelni.",
+      "instructions": [
+        "Pokrój gruszki i zmiękcz na maśle z miodem.",
+        "Wsyp polentę do ciepłego mleka, mieszając. Gotuj do miękkości zgodnie z opakowaniem.",
+        "Zdejmij z ognia, wmieszaj posiekaną czekoladę i podaj z gruszkami.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Chocolate polenta pudding with pear",
+      "description": "Creamy polenta with dark chocolate and pan-cooked pears.",
+      "instructions": [
+        "Slice the pears and soften them in butter and honey.",
+        "Whisk the polenta into warm milk and cook until tender according to the packet.",
+        "Take off the heat, stir in the chopped chocolate and serve with the pears.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "7d4a2af4-0469-5739-a71f-df4c16050ea8": {
+    "source": {
+      "name": "Grillowany ananas z miętowym skyrem",
+      "description": "Ciepłe plastry ananasa z chłodnym skyrem i świeżą miętą.",
+      "instructions": [
+        "Pokrój obrany ananas na plastry, wytnij twardy środek. Zrumień z obu stron na mocno rozgrzanej patelni grillowej.",
+        "Wymieszaj skyr z posiekaną miętą i odrobiną soku z limonki. Podaj z ananasem skropionym miodem.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Griddled pineapple with mint skyr",
+      "description":
+          "Warm slices of pineapple with chilled skyr and fresh mint.",
+      "instructions": [
+        "Slice the peeled pineapple and remove the tough core. Brown on both sides in a hot griddle pan.",
+        "Mix the skyr with chopped mint and a squeeze of lime. Serve with the pineapple and a drizzle of honey.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
+  "5ce95505-535c-51ce-83a4-c0d78abccad5": {
+    "source": {
+      "name": "Pieczone babeczki ryżowe z kokosem i borówkami",
+      "description": "Małe pieczone porcje kokosowego ryżu z borówkami.",
+      "instructions": [
+        "Ugotuj ryż w mleku kokosowym i wodzie, ostudź. Wymieszaj z jajkami, cukrem i wiórkami.",
+        "Posmaruj wgłębienia formy masłem, rozłóż masę i wciśnij borówki. Piecz w 180°C, aż środek się zetnie.",
+        "Odstaw na chwilę przed wyjęciem z formy.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "en_GB": {
+      "name": "Baked blueberry and coconut rice cups",
+      "description": "Small baked portions of coconut rice with blueberries.",
+      "instructions": [
+        "Cook the rice in coconut milk and water and cool. Mix with the eggs, sugar and coconut.",
+        "Butter a muffin tin, divide the mixture between the holes and press in the blueberries. Bake at 180°C until set.",
+        "Let the cups rest before lifting them out.",
+      ],
+      "suggested_seasonings": [],
+    },
+  },
 };
 
 const systemIngredientText = <String, Map<String, String>>{
