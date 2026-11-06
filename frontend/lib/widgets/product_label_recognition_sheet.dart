@@ -447,7 +447,7 @@ class _ProductLabelRecognitionSheetState
                 ? Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.add_a_photo_outlined,
                       color: AppTheme.primaryColor,
                     ),

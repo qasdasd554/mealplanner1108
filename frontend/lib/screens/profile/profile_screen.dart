@@ -397,7 +397,7 @@ class ProfileScreen extends StatelessWidget {
                           horizontal: 16,
                           vertical: 8,
                         ),
-                        leading: const Icon(
+                        leading: Icon(
                           Icons.favorite_border,
                           color: AppTheme.primaryColor,
                         ),
@@ -672,10 +672,7 @@ class ProfileScreen extends StatelessWidget {
                       title: Text(store.name),
                       trailing:
                           auth.currentUser?.preferredStoreId == store.id
-                              ? const Icon(
-                                Icons.check,
-                                color: AppTheme.primaryColor,
-                              )
+                              ? Icon(Icons.check, color: AppTheme.primaryColor)
                               : null,
                       onTap: () async {
                         Navigator.pop(ctx);
@@ -727,10 +724,7 @@ class ProfileScreen extends StatelessWidget {
                       title: Text(_dietLabel(context, diet)),
                       trailing:
                           currentDiet == diet
-                              ? const Icon(
-                                Icons.check,
-                                color: AppTheme.primaryColor,
-                              )
+                              ? Icon(Icons.check, color: AppTheme.primaryColor)
                               : null,
                       onTap: () async {
                         Navigator.pop(ctx);
@@ -782,10 +776,7 @@ class ProfileScreen extends StatelessWidget {
                       title: Text(context.strings.profilePeople(size)),
                       trailing:
                           currentSize == size
-                              ? const Icon(
-                                Icons.check,
-                                color: AppTheme.primaryColor,
-                              )
+                              ? Icon(Icons.check, color: AppTheme.primaryColor)
                               : null,
                       onTap: () async {
                         Navigator.pop(ctx);

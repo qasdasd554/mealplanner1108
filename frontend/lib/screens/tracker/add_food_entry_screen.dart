@@ -402,9 +402,7 @@ class _PlanTabState extends State<_PlanTab> {
       return _withBarcodeButton(
         context,
         foodLogProvider,
-        const Center(
-          child: CircularProgressIndicator(color: AppTheme.primaryColor),
-        ),
+        Center(child: CircularProgressIndicator(color: AppTheme.primaryColor)),
       );
     }
 
@@ -503,7 +501,7 @@ class _PlanTabState extends State<_PlanTab> {
                   ),
                 ),
                 foodLogProvider.isLoading
-                    ? const SizedBox(
+                    ? SizedBox(
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(
@@ -512,7 +510,7 @@ class _PlanTabState extends State<_PlanTab> {
                       ),
                     )
                     : IconButton(
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.add_circle,
                         color: AppTheme.primaryColor,
                         size: 28,
@@ -745,7 +743,7 @@ class _RecipesTabState extends State<_RecipesTab> {
         Expanded(
           child:
               _loading
-                  ? const Center(
+                  ? Center(
                     child: CircularProgressIndicator(
                       color: AppTheme.primaryColor,
                     ),
@@ -812,7 +810,7 @@ class _RecipesTabState extends State<_RecipesTab> {
                                     ],
                                   ),
                                 ),
-                                const Icon(
+                                Icon(
                                   Icons.add_circle_outline,
                                   color: AppTheme.primaryColor,
                                 ),
@@ -1144,7 +1142,7 @@ class _ProductsTabState extends State<_ProductsTab> {
                     children: [
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.history,
                             size: 18,
                             color: AppTheme.primaryColor,

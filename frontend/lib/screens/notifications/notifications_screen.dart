@@ -232,7 +232,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       ),
       body:
           _isLoading
-              ? const Center(
+              ? Center(
                 child: CircularProgressIndicator(color: AppTheme.primaryColor),
               )
               : _error != null
@@ -294,7 +294,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                   ),
                                   width: 8,
                                   height: 8,
-                                  decoration: const BoxDecoration(
+                                  decoration: BoxDecoration(
                                     color: AppTheme.primaryColor,
                                     shape: BoxShape.circle,
                                   ),

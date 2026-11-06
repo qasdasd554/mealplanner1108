@@ -159,7 +159,7 @@ class IngredientMatchResultsScreen extends StatelessWidget {
                     if (match.isFullMatch)
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.check_circle,
                             size: 14,
                             color: AppTheme.primaryColor,
@@ -168,7 +168,7 @@ class IngredientMatchResultsScreen extends StatelessWidget {
                           Expanded(
                             child: Text(
                               context.strings.matchReady,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: AppTheme.primaryColor,
                                 fontWeight: FontWeight.w600,
                                 fontSize: 12,

@@ -1454,7 +1454,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
             children: [
               Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.check_circle,
                     color: AppTheme.primaryColor,
                     size: 28,

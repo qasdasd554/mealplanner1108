@@ -136,7 +136,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
         children: [
           const Positioned.fill(child: DecorativeCircles()),
           provider.isLoading
-              ? const Center(
+              ? Center(
                 child: CircularProgressIndicator(color: AppTheme.primaryColor),
               )
               : provider.error != null
@@ -175,8 +175,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
         onPressed: () {
           Navigator.pushNamed(context, '/tracker/add');
         },
-        backgroundColor: AppTheme.primaryColor,
-        child: const Icon(Icons.add, color: Colors.white),
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -220,7 +219,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         IconButton(
-          icon: const Icon(Icons.chevron_left, color: AppTheme.primaryColor),
+          icon: Icon(Icons.chevron_left, color: AppTheme.primaryColor),
           tooltip: context.strings.diaryPreviousDay,
           onPressed: _goToPreviousDay,
         ),
@@ -259,7 +258,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
           ),
         ),
         IconButton(
-          icon: const Icon(Icons.chevron_right, color: AppTheme.primaryColor),
+          icon: Icon(Icons.chevron_right, color: AppTheme.primaryColor),
           tooltip: context.strings.diaryNextDay,
           // Celowo NIE blokujemy nawigacji w przyszłość — użytkownik może
           // chcieć zaplanować/zapisać wpis z wyprzedzeniem.
@@ -351,7 +350,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                   context.strings.diaryActivityCalories(
                     burned.toInt().toString(),
                   ),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
                     color: AppTheme.primaryColor,
                     fontWeight: FontWeight.w600,
@@ -378,7 +377,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
             padding: const EdgeInsets.only(bottom: 6),
             child: Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.local_fire_department_outlined,
                   size: 18,
                   color: AppTheme.primaryColor,
@@ -395,7 +394,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                 ),
                 Text(
                   '+${a.kcalBurned} kcal',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
                     color: AppTheme.primaryColor,
@@ -1303,7 +1302,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                         '${totalCal.toInt()} kcal',
                         maxLines: 2,
                         textAlign: TextAlign.end,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: AppTheme.primaryColor,

@@ -612,7 +612,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                                                     ? strings
                                                         .shoppingPriceUnknown
                                                     : '${item.currencyCode == 'GBP' && (sub['price_is_estimated'] as bool? ?? true) ? '~' : ''}${formatMarketMoney((sub['price'] as num?)?.toDouble() ?? 0.0, currencyCode: item.currencyCode)}',
-                                                style: const TextStyle(
+                                                style: TextStyle(
                                                   color: AppTheme.primaryColor,
                                                   fontWeight: FontWeight.bold,
                                                 ),
@@ -743,12 +743,11 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
       // zachowanie jest spójne w całej aplikacji.
       floatingActionButton: FloatingActionButton(
         onPressed: shoppingListProvider.isLoading ? null : _openAddProductSheet,
-        backgroundColor: AppTheme.primaryColor,
         tooltip:
             list == null
                 ? context.strings.shoppingCreateAndAdd
                 : context.strings.shoppingAddProduct,
-        child: const Icon(Icons.add, color: Colors.white),
+        child: const Icon(Icons.add),
       ),
       body: PremiumOfferAfterResult(
         resultId: list?.id ?? 'no-list',
@@ -1122,6 +1121,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
         itemCount: provider.allLists.length,
         itemBuilder: (context, index) {
           final l = provider.allLists[index];
+          final onPrimary = Theme.of(context).colorScheme.onPrimary;
           // UWAGA: backend indeksuje listy po ID PLANU POSIŁKÓW, nie po
           // ShoppingList.id (patrz _get_shopping_list_or_404 w
           // backend/app/api/v1/shopping_lists.py) — stąd mealPlanId.
@@ -1169,7 +1169,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                           fontWeight: FontWeight.w600,
                           color:
                               isSelected
-                                  ? Colors.white.withOpacity(0.85)
+                                  ? onPrimary.withOpacity(0.85)
                                   : AppTheme.textSecondary,
                         ),
                       ),
@@ -1183,9 +1183,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
                               color:
-                                  isSelected
-                                      ? Colors.white
-                                      : AppTheme.textPrimary,
+                                  isSelected ? onPrimary : AppTheme.textPrimary,
                             ),
                           ),
                           const SizedBox(width: 6),
@@ -1196,7 +1194,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                             size: 13,
                             color:
                                 isSelected
-                                    ? Colors.white.withOpacity(0.9)
+                                    ? onPrimary.withOpacity(0.9)
                                     : AppTheme.textSecondary,
                           ),
                           const SizedBox(width: 2),
@@ -1206,7 +1204,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                               fontSize: 11,
                               color:
                                   isSelected
-                                      ? Colors.white.withOpacity(0.9)
+                                      ? onPrimary.withOpacity(0.9)
                                       : AppTheme.textSecondary,
                             ),
                           ),
@@ -1516,7 +1514,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
       leading:
           item.isFromPantry
-              ? const Icon(Icons.kitchen_outlined, color: AppTheme.primaryColor)
+              ? Icon(Icons.kitchen_outlined, color: AppTheme.primaryColor)
               : Checkbox(
                 value: item.isChecked,
                 activeColor: AppTheme.primaryColor,

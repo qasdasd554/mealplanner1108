@@ -2665,7 +2665,7 @@
   "releasePromptTitle": "Dostępna nowa wersja",
   "releasePromptRequired": "Ta wersja aplikacji nie jest już obsługiwana. Zaktualizuj ją, aby korzystać dalej.",
   "releasePromptStoreError": "Nie udało się otworzyć sklepu.",
-  "releasePromptChanges": "• Przycisk „Nowy plan” na ekranie Start ma teraz jaśniejszy, miętowy kolor.",
+  "releasePromptChanges": "• Cieplejsza zieleń na pasku kalorii, ikonach i przyciskach.\n• Wyśrodkowane skróty na ekranie Start i dopasowany przycisk „Dodaj przepis”.",
   "detailPlanPortionHelp": "Składniki przeliczono na {servings} porcji. Ilości wpisane w opisie przygotowania dotyczą bazowego przepisu ({baseServings} porcji).",
   "@detailPlanPortionHelp": {
     "placeholders": {

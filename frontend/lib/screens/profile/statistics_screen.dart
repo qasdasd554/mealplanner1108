@@ -261,7 +261,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               ),
               child: Column(
                 children: [
-                  const Icon(Icons.lock_outline, color: AppTheme.primaryColor),
+                  Icon(Icons.lock_outline, color: AppTheme.primaryColor),
                   const SizedBox(height: 6),
                   Text(
                     context.strings.statsPremiumTitle,

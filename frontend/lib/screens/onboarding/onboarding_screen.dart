@@ -347,7 +347,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             child: Center(
                               child: Text(
                                 store.name[0],
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                   color: AppTheme.primaryColor,
@@ -366,7 +366,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                           const SizedBox(width: 8),
                           if (isSelected)
-                            const Icon(
+                            Icon(
                               Icons.check_circle,
                               color: AppTheme.primaryColor,
                             ),
@@ -536,7 +536,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                         ),
                         if (isSelected)
-                          const Icon(
+                          Icon(
                             Icons.check_circle,
                             color: AppTheme.primaryColor,
                           ),
@@ -590,7 +590,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               // Liczba
               Text(
                 '$_householdSize',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 64,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.primaryColor,
@@ -628,7 +628,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       children: [
-        const Icon(
+        Icon(
           Icons.monitor_weight_outlined,
           size: 56,
           color: AppTheme.primaryColor,
@@ -686,7 +686,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 color: AppTheme.primaryColor.withOpacity(0.12),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.inventory_2_outlined,
                 size: 42,
                 color: AppTheme.primaryColor,
@@ -779,7 +779,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
       children: [
-        const Icon(
+        Icon(
           Icons.auto_awesome_outlined,
           size: 58,
           color: AppTheme.primaryColor,

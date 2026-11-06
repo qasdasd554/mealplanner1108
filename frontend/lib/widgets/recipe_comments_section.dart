@@ -353,7 +353,7 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
               Row(
                 children: [
                   IconButton(
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.add_photo_alternate_outlined,
                       color: AppTheme.primaryColor,
                     ),
@@ -396,7 +396,7 @@ class _RecipeCommentsSectionState extends State<RecipeCommentsSection> {
 
         // ── Lista komentarzy ────────────────────────────────────────
         if (_isLoading)
-          const Center(
+          Center(
             child: Padding(
               padding: EdgeInsets.all(16),
               child: CircularProgressIndicator(color: AppTheme.primaryColor),

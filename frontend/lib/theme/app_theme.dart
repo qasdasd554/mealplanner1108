@@ -5,8 +5,7 @@ import 'package:flutter/services.dart';
 ///
 /// `backgroundColor`, `surfaceColor`, `textPrimary`, `textSecondary` są
 /// gettterami (nie stałymi), bo ich wartość zależy od aktualnie wybranego
-/// trybu — patrz [ThemeProvider]. Kolory marki (`primaryColor` i inne)
-/// zostają stałymi, bo wyglądają dobrze w obu trybach.
+/// trybu — patrz [ThemeProvider]. Główna zieleń również zależy od trybu.
 class AppTheme {
   AppTheme._();
 
@@ -20,7 +19,6 @@ class AppTheme {
   static void setDark(bool value) => _isDark = value;
 
   // ── Kolory marki — takie same w obu trybach ─────────────────────
-  static const Color primaryColor = Color(0xFF10B981); // Emerald Green
   static const Color secondaryColor = Color(0xFF8B5CF6); // Violet
   static const Color accentColor = Color(0xFFF59E0B); // Amber
   static const Color errorColor = Color(0xFFEF4444);
@@ -32,7 +30,7 @@ class AppTheme {
   static const Color _darkOutline = Color(0xFF505A70);
   static const Color _darkTextPrimary = Color(0xFFF1F3F8);
   static const Color _darkTextSecondary = Color(0xFFBDC6D5);
-  static const Color _darkPrimary = Color(0xFF34D399);
+  static const Color _darkPrimary = Color(0xFF83C58F);
   static const Color _darkSecondary = Color(0xFFA78BFA);
   static const Color _darkAccent = Color(0xFFFBBF24);
 
@@ -41,7 +39,7 @@ class AppTheme {
   static const Color _lightSurface = Color(0xFFFFFFFF);
   static const Color _lightTextPrimary = Color(0xFF182226);
   static const Color _lightTextSecondary = Color(0xFF4C5864);
-  static const Color _lightPrimaryInk = Color(0xFF14664A);
+  static const Color _lightPrimaryInk = Color(0xFF297340);
   static const Color _lightOutline = Color(0xFFD9DFE8);
 
   static Color get backgroundColor =>
@@ -54,13 +52,14 @@ class AppTheme {
   static Color get controlFillColor =>
       _isDark ? _darkSurfaceRaised : _lightSurface;
   static Color get outlineColor => _isDark ? _darkOutline : _lightOutline;
+  static Color get primaryColor => actionPrimaryColor;
   static Color get actionPrimaryColor =>
       _isDark ? _darkPrimary : _lightPrimaryInk;
   static Color get actionSecondaryColor =>
       _isDark ? _darkSecondary : secondaryColor;
   static Color get actionAccentColor => _isDark ? _darkAccent : accentColor;
   static Color get primaryTintColor =>
-      _isDark ? _darkPrimary.withOpacity(0.18) : primaryColor.withOpacity(0.10);
+      actionPrimaryColor.withOpacity(_isDark ? 0.18 : 0.10);
   static Color get accentTintColor =>
       _isDark ? _darkAccent.withOpacity(0.18) : accentColor.withOpacity(0.10);
 

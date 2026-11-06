@@ -105,7 +105,7 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
                 ...existingLists.map(
                   (list) => ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: const Icon(
+                    leading: Icon(
                       Icons.shopping_cart_outlined,
                       color: AppTheme.primaryColor,
                     ),
@@ -276,7 +276,7 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _isBusy
-                  ? const SizedBox(
+                  ? SizedBox(
                     width: 16,
                     height: 16,
                     child: CircularProgressIndicator(

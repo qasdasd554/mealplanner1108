@@ -386,10 +386,7 @@ class _CatalogProductTile extends StatelessWidget {
               color: AppTheme.primaryColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
-              Icons.restaurant_menu,
-              color: AppTheme.primaryColor,
-            ),
+            child: Icon(Icons.restaurant_menu, color: AppTheme.primaryColor),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -707,7 +704,7 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
               : '${(regional ? sp.priceIsEstimated : sp.lastVerified == null) ? '~ ' : ''}'
                   '${formatMarketMoney(sp.price!, currencyCode: sp.currencyCode)}',
           textAlign: stackedPrice ? TextAlign.start : TextAlign.end,
-          style: const TextStyle(
+          style: TextStyle(
             color: AppTheme.primaryColor,
             fontWeight: FontWeight.bold,
             fontSize: 15,
@@ -746,7 +743,7 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
               color: AppTheme.primaryColor.withOpacity(0.1),
               borderRadius: const BorderRadius.all(Radius.circular(12)),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.shopping_basket_outlined,
               color: AppTheme.primaryColor,
             ),

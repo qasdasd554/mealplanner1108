@@ -240,7 +240,7 @@ class _RecipeLeaderboardScreenState extends State<RecipeLeaderboardScreen>
                           ? context.strings.leaderRecipeFew
                           : context.strings.leaderRecipeMany),
                 ),
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppTheme.primaryColor,
                   fontWeight: FontWeight.bold,
                 ),

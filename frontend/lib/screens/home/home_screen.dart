@@ -713,23 +713,23 @@ class HomeTab extends StatelessWidget {
                               context,
                               width: width,
                               compact: compact,
-                              title: context.strings.productDatabase,
-                              icon: Icons.storefront_outlined,
-                              onTap:
-                                  () => Navigator.of(
-                                    context,
-                                  ).pushNamed('/products'),
-                            ),
-                            _buildQuickActionCard(
-                              context,
-                              width: width,
-                              compact: compact,
                               title: context.strings.promotions,
                               icon: Icons.local_offer_outlined,
                               onTap:
                                   () => Navigator.of(
                                     context,
                                   ).pushNamed('/promotions'),
+                            ),
+                            _buildQuickActionCard(
+                              context,
+                              width: width,
+                              compact: compact,
+                              title: context.strings.productDatabase,
+                              icon: Icons.storefront_outlined,
+                              onTap:
+                                  () => Navigator.of(
+                                    context,
+                                  ).pushNamed('/products'),
                             ),
                             _buildQuickActionCard(
                               context,
@@ -946,7 +946,7 @@ class HomeTab extends StatelessWidget {
                   '${consumedKcal.round()} / ${targetKcal.round()} kcal',
                   maxLines: 2,
                   textAlign: TextAlign.end,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: AppTheme.primaryColor,
                   ),
@@ -1445,6 +1445,7 @@ class HomeTab extends StatelessWidget {
     final theme = Theme.of(context);
     final label = Text(
       title,
+      textAlign: compact ? TextAlign.center : TextAlign.start,
       style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
     );
     final symbol = Icon(icon, color: theme.colorScheme.primary, size: 22);
@@ -1465,9 +1466,12 @@ class HomeTab extends StatelessWidget {
                     constraints: const BoxConstraints(minHeight: 94),
                     child: Padding(
                       padding: const EdgeInsets.all(10),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [symbol, const SizedBox(height: 6), label],
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [symbol, const SizedBox(height: 6), label],
+                        ),
                       ),
                     ),
                   ),
@@ -1506,7 +1510,7 @@ class HomeTab extends StatelessWidget {
               Expanded(
                 child: Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.shopping_bag_outlined,
                       color: AppTheme.primaryColor,
                     ),
@@ -1536,7 +1540,7 @@ class HomeTab extends StatelessWidget {
                 ),
                 child: Text(
                   context.strings.planStatusLabel(plan.status).toUpperCase(),
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppTheme.primaryColor,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
@@ -1564,9 +1568,7 @@ class HomeTab extends StatelessWidget {
               value: progress,
               minHeight: 6,
               backgroundColor: AppTheme.backgroundColor,
-              valueColor: const AlwaysStoppedAnimation<Color>(
-                AppTheme.primaryColor,
-              ),
+              valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
             ),
           ),
           const SizedBox(height: 18),
@@ -1662,10 +1664,10 @@ class HomeTab extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Icon(
+          Icon(
             Icons.calendar_today_outlined,
             size: 48,
-            color: AppTheme.primaryColor,
+            color: Theme.of(context).colorScheme.primary,
           ),
           const SizedBox(height: 16),
           Text(

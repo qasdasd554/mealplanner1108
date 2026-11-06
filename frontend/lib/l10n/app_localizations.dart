@@ -7631,7 +7631,7 @@ abstract class AppLocalizations {
   /// No description provided for @releasePromptChanges.
   ///
   /// In pl, this message translates to:
-  /// **'• Przycisk „Nowy plan” na ekranie Start ma teraz jaśniejszy, miętowy kolor.'**
+  /// **'• Cieplejsza zieleń na pasku kalorii, ikonach i przyciskach.\n• Wyśrodkowane skróty na ekranie Start i dopasowany przycisk „Dodaj przepis”.'**
   String get releasePromptChanges;
 
   /// No description provided for @detailPlanPortionHelp.

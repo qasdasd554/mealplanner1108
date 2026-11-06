@@ -853,7 +853,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
               Expanded(
                 child:
                     _isSearching
-                        ? const Center(
+                        ? Center(
                           child: CircularProgressIndicator(
                             color: AppTheme.primaryColor,
                           ),

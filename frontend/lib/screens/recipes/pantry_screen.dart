@@ -269,7 +269,7 @@ class _PantryScreenState extends State<PantryScreen> {
                       return Card(
                         margin: const EdgeInsets.only(bottom: 8),
                         child: ListTile(
-                          leading: const Icon(
+                          leading: Icon(
                             Icons.check_circle,
                             color: AppTheme.primaryColor,
                           ),

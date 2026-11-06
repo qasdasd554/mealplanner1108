@@ -42,7 +42,8 @@ class _CirclePainter extends CustomPainter {
         Offset(-12 * scale, size.height - 44 * scale),
         127 * scale,
         paint
-          ..color = AppTheme.primaryColor.withValues(alpha: dark ? .15 : .12),
+          ..color = (dark ? const Color(0xFF83BCA8) : const Color(0xFF14664A))
+              .withValues(alpha: dark ? .15 : .12),
       )
       ..drawCircle(
         Offset(3 * scale, size.height * .40),

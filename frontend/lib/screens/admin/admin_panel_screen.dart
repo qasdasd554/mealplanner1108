@@ -988,7 +988,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
               onPressed: _isCheckingAiStatus ? null : _checkAiStatus,
               icon:
                   _isCheckingAiStatus
-                      ? const SizedBox(
+                      ? SizedBox(
                         width: 16,
                         height: 16,
                         child: CircularProgressIndicator(
@@ -1137,7 +1137,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             ),
             const SizedBox(height: 12),
             if (_isLoadingPending)
-              const Center(
+              Center(
                 child: Padding(
                   padding: EdgeInsets.all(24.0),
                   child: CircularProgressIndicator(
@@ -1242,7 +1242,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                             const SizedBox(width: 8),
                             Text(
                               '${promo.promoPrice.toStringAsFixed(2)} zł',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: AppTheme.primaryColor,
                                 fontWeight: FontWeight.bold,
                               ),

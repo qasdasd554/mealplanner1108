@@ -253,6 +253,9 @@ class _RecipesScreenState extends State<RecipesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final dark = theme.brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
         title: Text(context.strings.recipes),
@@ -467,7 +470,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                                             top: -4,
                                             child: Container(
                                               padding: const EdgeInsets.all(2),
-                                              decoration: const BoxDecoration(
+                                              decoration: BoxDecoration(
                                                 color: AppTheme.primaryColor,
                                                 shape: BoxShape.circle,
                                               ),
@@ -478,9 +481,9 @@ class _RecipesScreenState extends State<RecipesScreen> {
                                               child: Text(
                                                 '$_moreFiltersActiveCount',
                                                 textAlign: TextAlign.center,
-                                                style: const TextStyle(
+                                                style: TextStyle(
                                                   fontSize: 8,
-                                                  color: Colors.white,
+                                                  color: colors.onPrimary,
                                                 ),
                                               ),
                                             ),
@@ -578,6 +581,16 @@ class _RecipesScreenState extends State<RecipesScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddRecipeChoice(context),
+        backgroundColor: Color.alphaBlend(
+          colors.primary.withValues(alpha: dark ? .16 : .11),
+          colors.surface,
+        ),
+        foregroundColor: colors.primary,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: BorderSide(color: colors.primary.withValues(alpha: .28)),
+        ),
         icon: const Icon(Icons.add),
         label: Text(context.strings.addRecipe),
       ),

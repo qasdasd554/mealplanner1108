@@ -557,7 +557,7 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                     ),
                     child: Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.check_circle_outline,
                           color: AppTheme.primaryColor,
                         ),
@@ -759,7 +759,7 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                             ),
                             maxLines: 2,
                             softWrap: true,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
                               color: AppTheme.primaryColor,

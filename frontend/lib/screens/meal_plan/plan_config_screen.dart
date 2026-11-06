@@ -283,7 +283,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                           const SizedBox(height: 4),
                           Text(
                             formatMarketMoney(budget, currencyCode: currency),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
                               color: AppTheme.primaryColor,
@@ -495,7 +495,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                                             ),
                                             if (isSelected) ...[
                                               const SizedBox(height: 4),
-                                              const Icon(
+                                              Icon(
                                                 Icons.check_circle,
                                                 color: AppTheme.primaryColor,
                                                 size: 16,
@@ -822,7 +822,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                                 ? null
                                 : (value) =>
                                     setState(() => _includePantry = value),
-                        secondary: const Icon(
+                        secondary: Icon(
                           Icons.kitchen_outlined,
                           color: AppTheme.primaryColor,
                         ),
@@ -837,7 +837,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                       // Przycisk generowania
                       ListTile(
                         contentPadding: EdgeInsets.zero,
-                        leading: const Icon(
+                        leading: Icon(
                           Icons.favorite_border,
                           color: AppTheme.primaryColor,
                         ),
@@ -881,7 +881,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const CircularProgressIndicator(
+                          CircularProgressIndicator(
                             valueColor: AlwaysStoppedAnimation<Color>(
                               AppTheme.primaryColor,
                             ),

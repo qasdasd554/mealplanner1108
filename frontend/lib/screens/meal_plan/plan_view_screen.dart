@@ -577,7 +577,7 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
                                                           entry.mealSlot,
                                                         )
                                                         .toUpperCase(),
-                                                    style: const TextStyle(
+                                                    style: TextStyle(
                                                       color:
                                                           AppTheme.primaryColor,
                                                       fontSize: 10,
@@ -628,7 +628,7 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
                                             ),
                                             if (!plan.isArchived)
                                               IconButton(
-                                                icon: const Icon(
+                                                icon: Icon(
                                                   Icons.swap_horiz,
                                                   color: AppTheme.primaryColor,
                                                 ),

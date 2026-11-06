@@ -163,7 +163,7 @@ class _ProductNameAutocompleteFieldState
                 ];
                 return ListTile(
                   dense: true,
-                  leading: const Icon(
+                  leading: Icon(
                     Icons.inventory_2_outlined,
                     color: AppTheme.primaryColor,
                   ),

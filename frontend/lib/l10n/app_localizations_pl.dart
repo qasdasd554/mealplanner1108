@@ -4348,7 +4348,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• Przycisk „Nowy plan” na ekranie Start ma teraz jaśniejszy, miętowy kolor.';
+      '• Cieplejsza zieleń na pasku kalorii, ikonach i przyciskach.\n• Wyśrodkowane skróty na ekranie Start i dopasowany przycisk „Dodaj przepis”.';
 
   @override
   String detailPlanPortionHelp(int servings, int baseServings) {

@@ -780,10 +780,7 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
     Widget sampleProduct(String name, String nutrition) => Card(
       margin: EdgeInsets.zero,
       child: ListTile(
-        leading: const Icon(
-          Icons.check_circle_outline,
-          color: AppTheme.primaryColor,
-        ),
+        leading: Icon(Icons.check_circle_outline, color: AppTheme.primaryColor),
         title: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis),
         subtitle: Text(nutrition),
         trailing: const Icon(Icons.lock_outline),

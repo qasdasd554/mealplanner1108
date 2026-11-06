@@ -2570,7 +2570,7 @@
   "releasePromptTitle": "An update is available",
   "releasePromptRequired": "This version is no longer supported. Update the app to continue.",
   "releasePromptStoreError": "Could not open the app store.",
-  "releasePromptChanges": "• The New plan button on Home now has a lighter mint colour.",
+  "releasePromptChanges": "• A warmer green for the calorie bar, icons and buttons.\n• Centred shortcuts on Home and a matching Add a recipe button.",
   "detailPlanPortionHelp": "Ingredients are scaled to {servings} portions. Quantities written in the method refer to the original recipe ({baseServings} portions).",
   "@detailPlanPortionHelp": {
     "placeholders": {

@@ -81,7 +81,7 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
           Expanded(
             child:
                 promotionProvider.isLoading
-                    ? const Center(
+                    ? Center(
                       child: CircularProgressIndicator(
                         color: AppTheme.primaryColor,
                       ),

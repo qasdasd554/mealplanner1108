@@ -110,7 +110,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                             color: AppTheme.primaryColor.withOpacity(0.12),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.mark_email_read_outlined,
                             size: 48,
                             color: AppTheme.primaryColor,

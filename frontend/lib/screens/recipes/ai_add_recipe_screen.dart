@@ -402,7 +402,7 @@ class _AiAddRecipeScreenState extends State<AiAddRecipeScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const CircularProgressIndicator(color: AppTheme.primaryColor),
+            CircularProgressIndicator(color: AppTheme.primaryColor),
             const SizedBox(height: 24),
             Text(
               context.strings.aiRecipeAccepting,

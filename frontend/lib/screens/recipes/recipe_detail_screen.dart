@@ -540,7 +540,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                               ),
                               child: Text(
                                 tag,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: AppTheme.primaryColor,
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
@@ -803,7 +803,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                   ? '\n${context.strings.nutritionMissing}'
                                   : ''}',
                               textAlign: TextAlign.end,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: AppTheme.primaryColor,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -831,7 +831,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.lightbulb_outline,
                             color: AppTheme.primaryColor,
                             size: 22,
@@ -910,7 +910,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                               ),
                               child: Text(
                                 '$stepNumber',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: AppTheme.primaryColor,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13,

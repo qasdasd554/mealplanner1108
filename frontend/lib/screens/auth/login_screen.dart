@@ -270,7 +270,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             color: AppTheme.primaryColor.withOpacity(0.1),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.restaurant_menu,
                             size: 40,
                             color: AppTheme.primaryColor,
@@ -481,7 +481,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             children: [
                               TextSpan(
                                 text: context.strings.authRegister,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: AppTheme.primaryColor,
                                   fontWeight: FontWeight.bold,
                                 ),

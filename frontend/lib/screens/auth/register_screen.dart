@@ -357,7 +357,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       onTap: () => _openLegal(links.terms),
                                       child: Text(
                                         context.strings.authTerms,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 12,
                                           color: AppTheme.primaryColor,
                                           fontWeight: FontWeight.w600,
@@ -376,7 +376,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       onTap: () => _openLegal(links.privacy),
                                       child: Text(
                                         context.strings.authPrivacyPolicy,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 12,
                                           color: AppTheme.primaryColor,
                                           fontWeight: FontWeight.w600,
@@ -449,7 +449,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             children: [
                               TextSpan(
                                 text: context.strings.authSignIn,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: AppTheme.primaryColor,
                                   fontWeight: FontWeight.bold,
                                 ),

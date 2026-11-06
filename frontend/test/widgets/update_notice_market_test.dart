@@ -41,10 +41,14 @@ void main() {
             .widgetList<Text>(find.byType(Text))
             .map((value) => value.data ?? '')
             .firstWhere((value) => value.startsWith('•'));
-        expect(body.split('\n'), hasLength(1));
+        expect(body.split('\n'), hasLength(2));
         expect(
           body,
-          contains(english ? 'lighter mint colour' : 'miętowy kolor'),
+          contains(english ? 'A warmer green' : 'Cieplejsza zieleń'),
+        );
+        expect(
+          body,
+          contains(english ? 'Centred shortcuts' : 'Wyśrodkowane skróty'),
         );
         expect(tester.takeException(), isNull);
       },
