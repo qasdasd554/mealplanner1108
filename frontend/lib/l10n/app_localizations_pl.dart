@@ -4348,7 +4348,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• Wracają kolorowe koła w tle. Na ekranie głównym łatwiej przejdziesz do planowania i zakupów.\n• Odświeżyliśmy wygląd Przepisów i Premium.';
+      '• Przycisk „Nowy plan” na ekranie Start ma teraz jaśniejszy, miętowy kolor.';
 
   @override
   String detailPlanPortionHelp(int servings, int baseServings) {

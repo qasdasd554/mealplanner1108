@@ -7631,7 +7631,7 @@ abstract class AppLocalizations {
   /// No description provided for @releasePromptChanges.
   ///
   /// In pl, this message translates to:
-  /// **'• Wracają kolorowe koła w tle. Na ekranie głównym łatwiej przejdziesz do planowania i zakupów.\n• Odświeżyliśmy wygląd Przepisów i Premium.'**
+  /// **'• Przycisk „Nowy plan” na ekranie Start ma teraz jaśniejszy, miętowy kolor.'**
   String get releasePromptChanges;
 
   /// No description provided for @detailPlanPortionHelp.

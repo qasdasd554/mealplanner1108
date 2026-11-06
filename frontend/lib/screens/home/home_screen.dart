@@ -1383,9 +1383,17 @@ class HomeTab extends StatelessWidget {
 
   Widget _buildPlanAction(BuildContext context) {
     final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final dark = theme.brightness == Brightness.dark;
     return Material(
-      color: const Color(0xFF124638),
-      borderRadius: BorderRadius.circular(22),
+      color: Color.alphaBlend(
+        colors.primary.withValues(alpha: dark ? .16 : .11),
+        colors.surface,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(22),
+        side: BorderSide(color: colors.primary.withValues(alpha: .28)),
+      ),
       clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
@@ -1395,29 +1403,30 @@ class HomeTab extends StatelessWidget {
             child: DecoratedBox(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF32C895).withValues(alpha: .19),
+                color: colors.primary.withValues(alpha: .08),
               ),
               child: const SizedBox.square(dimension: 150),
             ),
           ),
           ListTile(
             contentPadding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-            leading: const Icon(
-              Icons.calendar_today_outlined,
-              color: Color(0xFFC2F8DB),
-            ),
+            leading: Icon(Icons.calendar_today_outlined, color: colors.primary),
             title: Text(
               context.strings.newPlan,
-              style: theme.textTheme.titleLarge?.copyWith(color: Colors.white),
+              style: theme.textTheme.titleLarge?.copyWith(
+                color: colors.onSurface,
+              ),
             ),
             subtitle: Padding(
               padding: const EdgeInsets.only(top: 3),
               child: Text(
                 context.strings.planMeals,
-                style: const TextStyle(color: Color(0xFFD5EEE4)),
+                style: TextStyle(
+                  color: colors.onSurface.withValues(alpha: .82),
+                ),
               ),
             ),
-            trailing: const Icon(Icons.arrow_forward, color: Colors.white),
+            trailing: Icon(Icons.arrow_forward, color: colors.primary),
             onTap: () => Navigator.of(context).pushNamed('/plan/config'),
           ),
         ],

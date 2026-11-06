@@ -4368,7 +4368,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• The coloured circles are back. Home has more compact shortcuts and a clearer meal planning card.\n• Recipes and Premium have a refreshed look.';
+      '• The New plan button on Home now has a lighter mint colour.';
 
   @override
   String detailPlanPortionHelp(int servings, int baseServings) {
@@ -9727,7 +9727,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get releasePromptChanges =>
-      '• The coloured circles are back. Home has more compact shortcuts and a clearer meal planning card.\n• Recipes and Premium have a refreshed look.';
+      '• The New plan button on Home now has a lighter mint colour.';
 
   @override
   String detailPlanPortionHelp(int servings, int baseServings) {
