@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_theme.dart';
+
 /// Mała, elegancka odznaka "Premium" — złota/bursztynowa plakietka
 /// z koroną, do umieszczania obok nazwy użytkownika wszędzie tam, gdzie
 /// warto pokazać status premium (profil, powitanie na ekranie głównym).
@@ -12,39 +14,25 @@ class PremiumBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ink = AppTheme.premiumInk(context);
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: fontSize * 0.7,
         vertical: fontSize * 0.25,
       ),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFF5C24D), Color(0xFFE0A62E)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppTheme.premiumSurface(context),
         borderRadius: BorderRadius.circular(fontSize),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFE0A62E).withOpacity(0.35),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-          ),
-        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.workspace_premium,
-            size: fontSize * 1.2,
-            color: Colors.white,
-          ),
+          Icon(Icons.workspace_premium, size: fontSize * 1.2, color: ink),
           SizedBox(width: fontSize * 0.3),
           Text(
             'Premium',
             style: TextStyle(
-              color: Colors.white,
+              color: ink,
               fontSize: fontSize,
               fontWeight: FontWeight.bold,
               letterSpacing: 0.2,

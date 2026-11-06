@@ -16,7 +16,6 @@ import '../../services/contextual_premium_offer_service.dart';
 import '../../services/recipe_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/recipe_photo.dart';
-import '../../widgets/decorative_circles.dart';
 
 class PlanViewScreen extends StatefulWidget {
   final MealPlan? archivedPlan;
@@ -411,7 +410,6 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
         offerContext: PremiumOfferContext.mealPlan,
         child: Stack(
           children: [
-            const DecorativeCircles(),
             SafeArea(
               // UWAGA (naprawa — ten sam błąd, co w plan_config_screen.dart):
               // dolny panel akcji ("Zmień parametry"/"Zatwierdź plan"/"Przejdź

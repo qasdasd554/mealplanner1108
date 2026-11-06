@@ -24,7 +24,6 @@ import '../recipes/pantry_screen.dart';
 import '../recipes/pantry_receipt_screen.dart';
 import '../recipes/ai_add_recipe_screen.dart';
 import '../batch_barcode_scanner_screen.dart';
-import '../../widgets/decorative_circles.dart';
 import '../shopping/shopping_list_screen.dart';
 import '../profile/profile_screen.dart';
 import '../profile/premium_screen.dart';
@@ -32,6 +31,7 @@ import '../tracker/calorie_tracker_screen.dart';
 import '../../data/cooking_tips.dart';
 import '../../services/app_review_service.dart';
 import '../../services/contextual_premium_offer_service.dart';
+import '../../models/premium_offer.dart';
 import '../../services/premium_offer_success_signal.dart';
 import '../../services/api_client.dart';
 import 'cooking_tips_screen.dart';
@@ -556,32 +556,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Jednolita plakietka każdej pozycji dolnej nawigacji. Stały rozmiar
-  /// zapobiega podskakiwaniu etykiet, a delikatne tło pokazuje bieżącą
-  /// sekcję bez zmiany neutralnego, szarego koloru ikon.
   Widget _buildNavIcon(IconData icon, {required bool active}) {
     final colors = Theme.of(context).colorScheme;
-    final iconColor =
-        Theme.of(context).bottomNavigationBarTheme.unselectedItemColor ??
-        colors.onSurfaceVariant;
-    final background = Color.alphaBlend(
-      colors.primary.withOpacity(
-        active
-            ? (Theme.of(context).brightness == Brightness.dark ? 0.20 : 0.13)
-            : (Theme.of(context).brightness == Brightness.dark ? 0.12 : 0.07),
-      ),
-      colors.surface,
-    );
-
     return Padding(
-      padding: const EdgeInsets.only(bottom: 2),
-      child: Container(
-        width: 34,
-        height: 34,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(color: background, shape: BoxShape.circle),
-        child: Icon(icon, size: 21, color: iconColor),
-      ),
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Icon(icon, size: 23, color: active ? colors.primary : null),
     );
   }
 }
@@ -651,7 +630,6 @@ class HomeTab extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
-          const DecorativeCircles(),
           SafeArea(
             child: RefreshIndicator(
               onRefresh: () async {
@@ -670,138 +648,113 @@ class HomeTab extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Powitanie
                     Row(
                       children: [
                         Image.asset(
                           'assets/branding/logo.png',
-                          width: 44,
-                          height: 44,
+                          width: 40,
+                          height: 40,
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // UWAGA (naprawa): wcześniej odznaka Premium
-                              // dzieliła jeden, wąski rząd z nickiem (obok
-                              // logo, dzwoneczka i awatara po drugiej stronie)
-                              // — przy dłuższym imieniu odznaka "wygryzała"
-                              // większość tekstu powitania, sprawiając wrażenie,
-                              // że nick jest przez nią zasłonięty. Teraz
-                              // powitanie ma pełną szerokość dla siebie, a
-                              // odznaka jest na osobnej linii pod spodem.
-                              Text(
-                                context.strings.homeGreeting(
-                                  user?.displayName ??
-                                      context.strings.homeUserFallback,
-                                ),
-                                style: Theme.of(context).textTheme.displaySmall
-                                    ?.copyWith(fontWeight: FontWeight.bold),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              if (user?.hasPremiumAccess ?? false) ...[
-                                const SizedBox(height: 4),
-                                const PremiumBadge(fontSize: 9),
-                              ],
-                              const SizedBox(height: 4),
-                              Text(
-                                context.strings.homeCookingToday,
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                            ],
+                          child: Text(
+                            MaterialLocalizations.of(
+                              context,
+                            ).formatFullDate(DateTime.now()),
+                            style: Theme.of(context).textTheme.bodyMedium,
                           ),
                         ),
-                        // Dzwoneczek powiadomień — z odznaką liczby
-                        // nieprzeczytanych. Na razie tylko wewnątrz aplikacji
-                        // (bez powiadomień systemowych/push, które wymagają
-                        // Firebase Cloud Messaging).
                         const NotificationBell(),
-                        const SizedBox(width: 4),
-                        // Szybki skrót do profilu
-                        GestureDetector(
-                          onTap:
+                        IconButton(
+                          tooltip: context.strings.profile,
+                          onPressed:
                               () => Navigator.of(context).pushNamed('/profile'),
-                          child: UserAvatar(
+                          icon: UserAvatar(
                             avatar: user?.avatar,
                             avatarPhotoBase64: user?.avatarPhotoBase64,
-                            size: 48,
+                            size: 36,
                           ),
                         ),
                       ],
-                    ).animate().fadeIn().slideY(begin: -0.1, end: 0),
-                    const SizedBox(height: 24),
-
-                    // Najczęstsze wejścia są pierwsze i mieszczą się w równej
-                    // siatce 2x2. Przepisy są już w dolnym menu, więc nie
-                    // dublujemy tutaj tego samego odnośnika.
+                    ),
+                    const SizedBox(height: 20),
                     Text(
-                      context.strings.homeQuickActions,
-                      style: Theme.of(context).textTheme.headlineMedium
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                      context.strings.homeGreeting(
+                        user?.displayName ?? context.strings.homeUserFallback,
+                      ),
+                      style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (user?.hasPremiumAccess ?? false) ...[
+                      const SizedBox(height: 8),
+                      const PremiumBadge(),
+                    ],
+                    const SizedBox(height: 16),
+                    _buildQuickActionCard(
+                      context,
+                      title: context.strings.newPlan,
+                      subtitle: context.strings.planMeals,
+                      icon: Icons.calendar_today_outlined,
+                      primary: true,
+                      onTap:
+                          () => Navigator.of(context).pushNamed('/plan/config'),
                     ),
                     const SizedBox(height: 12),
-                    GridView.count(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      // Nie ściskamy kafelków do jednego wiersza. Na węższych
-                      // telefonach i przy większym rozmiarze tekstu tytuły
-                      // (np. „Baza produktów”) mogą dzięki temu ułożyć się w
-                      // dwóch pełnych wierszach zamiast kończyć wielokropkiem.
-                      childAspectRatio:
-                          MediaQuery.sizeOf(context).width < 370 ? 1.55 : 1.75,
-                      children: [
-                        _buildQuickActionCard(
-                          context,
-                          title: context.strings.newPlan,
-                          subtitle: context.strings.planMeals,
-                          icon: Icons.calendar_today_outlined,
-                          color: AppTheme.primaryColor,
-                          onTap:
-                              () => Navigator.of(
-                                context,
-                              ).pushNamed('/plan/config'),
-                        ),
-                        _buildQuickActionCard(
-                          context,
-                          title: context.strings.productDatabase,
-                          subtitle: context.strings.checkPrices,
-                          icon: Icons.storefront_outlined,
-                          color: AppTheme.accentColor,
-                          onTap:
-                              () =>
-                                  Navigator.of(context).pushNamed('/products'),
-                        ),
-                        _buildQuickActionCard(
-                          context,
-                          title: context.strings.promotions,
-                          subtitle: context.strings.currentOffers,
-                          icon: Icons.local_offer_outlined,
-                          color: Colors.red,
-                          onTap:
-                              () => Navigator.of(
-                                context,
-                              ).pushNamed('/promotions'),
-                        ),
-                        _buildQuickActionCard(
-                          context,
-                          title: context.strings.pantry,
-                          subtitle: context.strings.whatYouHaveAtHome,
-                          icon: Icons.inventory_2_outlined,
-                          color: AppTheme.secondaryColor,
-                          onTap:
-                              () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const PantryScreen(),
+                    Material(
+                      color: AppTheme.surfaceColor,
+                      shape: RoundedRectangleBorder(
+                        side: BorderSide(color: AppTheme.outlineColor),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: Column(
+                        children: [
+                          _buildQuickActionCard(
+                            context,
+                            title: context.strings.productDatabase,
+                            subtitle: context.strings.checkPrices,
+                            icon: Icons.storefront_outlined,
+                            onTap:
+                                () => Navigator.of(
+                                  context,
+                                ).pushNamed('/products'),
+                          ),
+                          Divider(
+                            height: 1,
+                            indent: 48,
+                            color: AppTheme.outlineColor,
+                          ),
+                          _buildQuickActionCard(
+                            context,
+                            title: context.strings.promotions,
+                            subtitle: context.strings.currentOffers,
+                            icon: Icons.local_offer_outlined,
+                            onTap:
+                                () => Navigator.of(
+                                  context,
+                                ).pushNamed('/promotions'),
+                          ),
+                          Divider(
+                            height: 1,
+                            indent: 48,
+                            color: AppTheme.outlineColor,
+                          ),
+                          _buildQuickActionCard(
+                            context,
+                            title: context.strings.pantry,
+                            subtitle: context.strings.whatYouHaveAtHome,
+                            icon: Icons.inventory_2_outlined,
+                            onTap:
+                                () => Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const PantryScreen(),
+                                  ),
                                 ),
-                              ),
-                        ),
-                      ],
-                    ).animate().fadeIn(delay: 100.ms),
+                          ),
+                        ],
+                      ),
+                    ),
                     const _ContextualPremiumCard(),
                     const SizedBox(height: 24),
 
@@ -1236,22 +1189,15 @@ class HomeTab extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              AppTheme.secondaryColor.withOpacity(0.15),
-              AppTheme.primaryColor.withOpacity(0.08),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: AppTheme.surfaceColor,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
           children: [
-            const Icon(
+            Icon(
               Icons.lightbulb_outline,
-              color: AppTheme.secondaryColor,
-              size: 28,
+              color: AppTheme.textSecondary,
+              size: 20,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -1263,7 +1209,7 @@ class HomeTab extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: AppTheme.secondaryColor,
+                      color: AppTheme.textSecondary,
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -1384,7 +1330,7 @@ class HomeTab extends StatelessWidget {
   }
 
   Widget _buildContestBanner(BuildContext context) {
-    const gold = Color(0xFFE0A62E);
+    final gold = AppTheme.actionPrimaryColor;
     return InkWell(
       borderRadius: BorderRadius.circular(16),
       onTap:
@@ -1396,12 +1342,8 @@ class HomeTab extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            colors: [gold.withOpacity(0.18), gold.withOpacity(0.06)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          border: Border.all(color: gold.withOpacity(0.4)),
+          color: AppTheme.surfaceColor,
+          border: Border.all(color: AppTheme.outlineColor),
         ),
         child: Row(
           children: [
@@ -1411,7 +1353,7 @@ class HomeTab extends StatelessWidget {
                 color: gold.withOpacity(0.2),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.emoji_events, color: gold, size: 26),
+              child: Icon(Icons.emoji_events_outlined, color: gold, size: 20),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -1443,7 +1385,7 @@ class HomeTab extends StatelessWidget {
           ],
         ),
       ),
-    ).animate().fadeIn(delay: 80.ms);
+    );
   }
 
   Widget _buildQuickActionCard(
@@ -1451,65 +1393,33 @@ class HomeTab extends StatelessWidget {
     required String title,
     required String subtitle,
     required IconData icon,
-    required Color color,
     required VoidCallback onTap,
+    bool primary = false,
   }) {
-    // UWAGA (naprawa): przebudowane z pionowej karty (ikona nad tekstem)
-    // na poziomy, kompaktowy układ (ikona obok tekstu) — pasuje do
-    // nowej siatki 2x2 zamiast poprzedniej, szerokiej listy przewijanej
-    // w bok.
-    return GestureDetector(
+    final colors = Theme.of(context).colorScheme;
+    final foreground = primary ? colors.onPrimary : AppTheme.textPrimary;
+    final tile = ListTile(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceColor,
-          borderRadius: const BorderRadius.all(Radius.circular(14)),
-          border: Border.all(color: color.withOpacity(0.2), width: 1),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, color: color, size: 20),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                    maxLines: 2,
-                    softWrap: true,
-                    overflow: TextOverflow.fade,
-                  ),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: AppTheme.textSecondary,
-                    ),
-                    maxLines: 2,
-                    softWrap: true,
-                    overflow: TextOverflow.fade,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      leading: Icon(icon, color: foreground, size: 20),
+      title: Text(
+        title,
+        style: TextStyle(color: foreground, fontWeight: FontWeight.w600),
       ),
+      subtitle: Text(
+        subtitle,
+        style: TextStyle(color: primary ? foreground : AppTheme.textSecondary),
+      ),
+      trailing: Icon(Icons.chevron_right, color: foreground, size: 20),
     );
+    return primary
+        ? Material(
+          color: colors.primary,
+          borderRadius: BorderRadius.circular(16),
+          clipBehavior: Clip.antiAlias,
+          child: tile,
+        )
+        : tile;
   }
 
   Widget _buildActivePlanCard(
@@ -1771,7 +1681,7 @@ class _ContextualPremiumCardState extends State<_ContextualPremiumCard> {
 
     if (user.premiumPoints >= 2 && !_dismissed.contains('free_ai')) {
       key = 'free_ai';
-      icon = Icons.auto_awesome;
+      icon = Icons.menu_book_outlined;
       title = context.strings.homeAiPointsTitle;
       text = context.strings.homeAiPointsHint;
       action = context.strings.homeTryAction;
@@ -1786,9 +1696,14 @@ class _ContextualPremiumCardState extends State<_ContextualPremiumCard> {
       text = context.strings.homeBatchHint;
       action = context.strings.homeViewPremium;
       onTap =
-          () => Navigator.of(
-            context,
-          ).push(MaterialPageRoute(builder: (_) => const PremiumScreen()));
+          () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder:
+                  (_) => const PremiumScreen(
+                    offerContext: PremiumOfferContext.barcodeScanner,
+                  ),
+            ),
+          );
     } else if (plans.isNotEmpty && !_dismissed.contains('auto_week')) {
       key = 'auto_week';
       icon = Icons.auto_mode_outlined;
@@ -1796,9 +1711,14 @@ class _ContextualPremiumCardState extends State<_ContextualPremiumCard> {
       text = context.strings.homeAutoWeekHint;
       action = context.strings.homeCheckAction;
       onTap =
-          () => Navigator.of(
-            context,
-          ).push(MaterialPageRoute(builder: (_) => const PremiumScreen()));
+          () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder:
+                  (_) => const PremiumScreen(
+                    offerContext: PremiumOfferContext.mealPlan,
+                  ),
+            ),
+          );
     } else {
       return const SizedBox.shrink();
     }
@@ -1808,16 +1728,16 @@ class _ContextualPremiumCardState extends State<_ContextualPremiumCard> {
       child: Container(
         padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
         decoration: BoxDecoration(
-          color: AppTheme.secondaryColor.withOpacity(0.10),
+          color: AppTheme.surfaceColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppTheme.secondaryColor.withOpacity(0.24)),
+          border: Border.all(color: AppTheme.outlineColor),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
               padding: const EdgeInsets.only(top: 3),
-              child: Icon(icon, color: AppTheme.actionSecondaryColor),
+              child: Icon(icon, color: AppTheme.actionPrimaryColor),
             ),
             const SizedBox(width: 10),
             Expanded(

@@ -3500,8 +3500,11 @@ class AppLocalizationsPl extends AppLocalizations {
   String get premiumProductName => 'Meal Planner Premium';
 
   @override
+  String get premiumHeroTitle => 'Tydzień posiłków z głowy';
+
+  @override
   String get premiumHeroDescription =>
-      'Twój kolejny tydzień zaplanuje się sam. Wybierz, jak chcesz korzystać z Premium.';
+      'Zaplanuj posiłki, zrób zakupy i wróć do ulubionych przepisów.';
 
   @override
   String get premiumAutomaticWeekSubtitle =>
@@ -3683,7 +3686,7 @@ class AppLocalizationsPl extends AppLocalizations {
   String get premiumBuyDiscount => 'Kup z rabatem';
 
   @override
-  String get premiumContextRecipeEyebrow => 'PREMIUM DLA PRZEPISÓW';
+  String get premiumContextRecipeEyebrow => 'Premium dla przepisów';
 
   @override
   String get premiumContextRecipeTitle => 'Zamień inspirację w gotowy przepis';
@@ -3705,7 +3708,7 @@ class AppLocalizationsPl extends AppLocalizations {
       'Edycja AI: 1 pkt także w Premium';
 
   @override
-  String get premiumContextMealPlanEyebrow => 'PREMIUM DLA PLANOWANIA';
+  String get premiumContextMealPlanEyebrow => 'Premium dla planowania';
 
   @override
   String get premiumContextMealPlanTitle =>
@@ -3728,7 +3731,7 @@ class AppLocalizationsPl extends AppLocalizations {
       'Uwzględnianie preferencji składników';
 
   @override
-  String get premiumContextBarcodeEyebrow => 'PREMIUM DLA SKANOWANIA';
+  String get premiumContextBarcodeEyebrow => 'Premium dla skanowania';
 
   @override
   String get premiumContextBarcodeTitle =>
@@ -3751,7 +3754,7 @@ class AppLocalizationsPl extends AppLocalizations {
       'Wspólne dodanie do Dziennika, spiżarni lub katalogu';
 
   @override
-  String get premiumContextShoppingEyebrow => 'PREMIUM DLA ZAKUPÓW';
+  String get premiumContextShoppingEyebrow => 'Premium dla zakupów';
 
   @override
   String get premiumContextShoppingTitle => 'Twórz listy zakupów bez limitu';
@@ -3773,7 +3776,7 @@ class AppLocalizationsPl extends AppLocalizations {
       'Produkty ze spiżarni liczone za 0 zł';
 
   @override
-  String get premiumContextPantryEyebrow => 'PREMIUM DLA SPIŻARNI';
+  String get premiumContextPantryEyebrow => 'Premium dla spiżarni';
 
   @override
   String get premiumContextPantryTitle =>
@@ -3795,7 +3798,7 @@ class AppLocalizationsPl extends AppLocalizations {
   String get premiumContextPantryBenefitWaste => 'Mniej marnowania jedzenia';
 
   @override
-  String get premiumContextJournalEyebrow => 'PREMIUM DLA DZIENNIKA';
+  String get premiumContextJournalEyebrow => 'Premium dla dziennika';
 
   @override
   String get premiumContextJournalTitle =>
@@ -4345,7 +4348,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• 100 nowych przepisów w polskiej i brytyjskiej wersji aplikacji.\n• Każde nowe danie ma osobne zdjęcie.';
+      '• Odświeżyliśmy wygląd aplikacji, w tym ekran główny i katalog przepisów.\n• Na ekranie Premium łatwiej porównasz plany i sprawdzisz warunki okresu próbnego.';
 
   @override
   String detailPlanPortionHelp(int servings, int baseServings) {

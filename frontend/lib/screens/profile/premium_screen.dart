@@ -6,7 +6,6 @@ import 'package:flutter/foundation.dart';
 
 import 'dart:io' show Platform;
 
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -118,26 +117,52 @@ class _PremiumScreenState extends State<PremiumScreen> {
     return result;
   }
 
-  double _premiumHeaderExtent(BuildContext context, double width) {
-    final title = _premiumTextMetrics(
-      context,
-      context.strings.premiumProductName,
-      const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-      maxWidth: width,
+  Widget _buildOfferIntro(BuildContext context) {
+    final theme = Theme.of(context);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final showPhoto =
+            constraints.maxWidth >= 340 &&
+            MediaQuery.textScalerOf(context).scale(16) <= 20;
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    context.strings.premiumHeroTitle,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      height: 1.15,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    context.strings.premiumHeroDescription,
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                ],
+              ),
+            ),
+            if (showPhoto) ...[
+              const SizedBox(width: 16),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.asset(
+                  'assets/recipe_photos/new-63-roast-chicken-with-peaches-and-red-onion.jpg',
+                  width: 104,
+                  height: 112,
+                  fit: BoxFit.cover,
+                  excludeFromSemantics: true,
+                ),
+              ),
+            ],
+          ],
+        );
+      },
     );
-    final description = _premiumTextMetrics(
-      context,
-      context.strings.premiumHeroDescription,
-      const TextStyle(fontSize: 13, height: 1.35),
-      maxWidth: width - 56,
-    );
-    final contentHeight = 72 + 12 + title.height + 4 + description.height;
-    final topInset = MediaQuery.paddingOf(context).top;
-    // Preserve 250 exactly while the original content fits. Expanded text gets
-    // its natural height and breathing room; font size and copy are unchanged.
-    return contentHeight <= 250 + topInset
-        ? 250
-        : (contentHeight + 32 - topInset).ceilToDouble();
   }
 
   Widget _buildContextualOfferCard(BuildContext context) {
@@ -158,16 +183,9 @@ class _PremiumScreenState extends State<PremiumScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            const Color(0xFF6D28D9).withValues(alpha: 0.10),
-            const Color(0xFFE0A62E).withValues(alpha: 0.10),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: const Color(0xFF6D28D9).withValues(alpha: 0.22),
-        ),
+        color: AppTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.outlineColor),
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -193,20 +211,20 @@ class _PremiumScreenState extends State<PremiumScreen> {
                 ),
               ).minWidth;
           final stackBadge =
-              constraints.maxWidth < 42 + 12 + titleMinWidth + badgeWidth;
+              constraints.maxWidth < 36 + 12 + titleMinWidth + badgeWidth;
           final badge = Container(
             key: const ValueKey('premium-context-trial-badge'),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: const Color(0xFFFFE2A1),
-              borderRadius: BorderRadius.circular(999),
+              color: AppTheme.primaryTintColor,
+              borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
               _monthlyHasSevenDayTrial
                   ? context.strings.premiumTrialBadge(7)
                   : 'Premium',
               style: TextStyle(
-                color: Color(0xFF8A5A00),
+                color: AppTheme.actionPrimaryColor,
                 fontSize: 10,
                 fontWeight: FontWeight.w800,
               ),
@@ -218,24 +236,24 @@ class _PremiumScreenState extends State<PremiumScreen> {
               Row(
                 children: [
                   Container(
-                    width: 42,
-                    height: 42,
+                    width: 36,
+                    height: 36,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF6D28D9).withValues(alpha: 0.12),
+                      color: AppTheme.primaryTintColor,
                       borderRadius: BorderRadius.circular(13),
                     ),
                     child: Icon(
                       _contextIcon,
-                      color: const Color(0xFF6D28D9),
-                      size: 23,
+                      color: AppTheme.actionPrimaryColor,
+                      size: 20,
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       copy.eyebrow,
-                      style: const TextStyle(
-                        color: Color(0xFF6D28D9),
+                      style: TextStyle(
+                        color: AppTheme.actionPrimaryColor,
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.8,
@@ -250,7 +268,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                 copy.title,
                 key: const ValueKey('premium-context-title'),
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w600,
                   height: 1.15,
                 ),
               ),
@@ -274,10 +292,10 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(
-                        Icons.check_circle,
-                        size: 19,
-                        color: AppTheme.primaryColor,
+                      Icon(
+                        Icons.check,
+                        size: 18,
+                        color: AppTheme.actionPrimaryColor,
                       ),
                       const SizedBox(width: 9),
                       Expanded(
@@ -296,7 +314,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
               const SizedBox(height: 4),
               SizedBox(
                 width: double.infinity,
-                child: FilledButton.icon(
+                child: OutlinedButton(
                   onPressed: () {
                     final pricingContext = _pricingSectionKey.currentContext;
                     if (pricingContext != null) {
@@ -323,8 +341,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                       );
                     }
                   },
-                  icon: const Icon(Icons.workspace_premium_outlined),
-                  label: Text(
+                  child: Text(
                     _monthlyHasSevenDayTrial
                         ? context.strings.premiumCheckTrial
                         : widget.shoppingListLimit
@@ -992,17 +1009,17 @@ class _PremiumScreenState extends State<PremiumScreen> {
         decoration: BoxDecoration(
           color: AppTheme.surfaceColor,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppTheme.secondaryColor.withOpacity(0.15)),
+          border: Border.all(color: AppTheme.outlineColor),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: AppTheme.secondaryColor.withOpacity(0.12),
+                color: AppTheme.primaryTintColor,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: AppTheme.secondaryColor, size: 22),
+              child: Icon(icon, color: AppTheme.actionPrimaryColor, size: 20),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -1108,7 +1125,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
       description: context.strings.premiumUnlimitedPlansDescription,
     ),
     _PremiumFeature(
-      icon: Icons.auto_awesome,
+      icon: Icons.menu_book_outlined,
       title: context.strings.premiumAiRecipesTitle,
       description: context.strings.premiumAiRecipesDescription,
     ),
@@ -1126,37 +1143,27 @@ class _PremiumScreenState extends State<PremiumScreen> {
 
   Widget _buildFeatureRow(_PremiumFeature feature) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppTheme.secondaryColor.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(feature.icon, color: AppTheme.secondaryColor, size: 22),
-          ),
-          const SizedBox(width: 14),
+          Icon(feature.icon, color: AppTheme.actionPrimaryColor, size: 20),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   feature.title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                  ),
+                  style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 Text(
                   feature.description,
                   style: TextStyle(
                     color: AppTheme.textSecondary,
                     fontSize: 13,
-                    height: 1.3,
+                    height: 1.35,
                   ),
                 ),
               ],
@@ -1206,267 +1213,189 @@ class _PremiumScreenState extends State<PremiumScreen> {
         isGeneralOffer ? [features[1], features[2], features[4]] : features;
 
     return Scaffold(
-      body: LayoutBuilder(
-        builder:
-            (context, constraints) => CustomScrollView(
-              controller: _screenScrollController,
-              slivers: [
-                SliverAppBar(
-                  expandedHeight: _premiumHeaderExtent(
-                    context,
-                    constraints.maxWidth,
-                  ),
-                  pinned: true,
-                  iconTheme: const IconThemeData(color: Colors.white),
-                  flexibleSpace: FlexibleSpaceBar(
-                    background: Container(
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Color(0xFF6D28D9), Color(0xFFE0A62E)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                      ),
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.15),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.workspace_premium,
-                                color: Colors.white,
-                                size: 40,
-                              ),
-                            ).animate().scale(
-                              duration: 400.ms,
-                              curve: Curves.easeOutBack,
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              context.strings.premiumProductName,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ).animate().fadeIn(delay: 150.ms),
-                            const SizedBox(height: 4),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 28,
-                              ),
-                              child: Text(
-                                context.strings.premiumHeroDescription,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.85),
-                                  fontSize: 13,
-                                  height: 1.35,
-                                ),
-                              ),
-                            ).animate().fadeIn(delay: 250.ms),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                SliverPadding(
-                  padding: const EdgeInsets.all(20),
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate([
-                      if (!isPremium) ...[
-                        if (widget.offerContext != null) ...[
-                          _buildContextualOfferCard(context)
-                              .animate()
-                              .fadeIn(duration: 250.ms)
-                              .slideY(begin: 0.04, end: 0),
-                          const SizedBox(height: 22),
-                        ] else ...[
-                          ...primaryFeatures.map(_buildFeatureRow),
-                          const SizedBox(height: 8),
-                        ],
-                        _buildSubscriptionSection(context),
-                        const SizedBox(height: 26),
-                      ],
-                      // Skróty do FAKTYCZNYCH funkcji Premium — bezpośrednie
-                      // akcje, nie tylko opis. Dla kont bez Premium dotknięcie
-                      // prowadzi do tego samego miejsca, gdzie wbudowana
-                      // bramka Premium (już istniejąca w tych ekranach) sama
-                      // pokaże zachętę do zakupu we właściwym kontekście.
-                      _buildQuickAction(
-                        context,
-                        icon: Icons.auto_mode_outlined,
-                        title: context.strings.premiumAutomaticWeekTitle,
-                        subtitle: context.strings.premiumAutomaticWeekSubtitle,
-                        isPremium: isPremium,
-                        onTap: () {
-                          if (!isPremium) {
-                            ScaffoldMessenger.of(context)
-                              ..hideCurrentSnackBar()
-                              ..showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    context
-                                        .strings
-                                        .premiumAutomaticWeekRequired,
-                                  ),
-                                ),
-                              );
-                            return;
-                          }
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder:
-                                  (_) => const WeeklyPlanAutomationScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 10),
-                      _buildQuickAction(
-                        context,
-                        icon: Icons.auto_awesome,
-                        title: context.strings.premiumAiActionTitle,
-                        subtitle: context.strings.premiumAiActionSubtitle,
-                        isPremium: isPremium,
-                        pointsAlternativeCost: 2,
-                        onTap:
-                            () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const AiAddRecipeScreen(),
-                              ),
-                            ),
-                      ),
-                      const SizedBox(height: 10),
-                      _buildQuickAction(
-                        context,
-                        icon: Icons.qr_code_2,
-                        title: context.strings.premiumBatchActionTitle,
-                        subtitle: context.strings.premiumBatchActionSubtitle,
-                        isPremium: isPremium,
-                        onTap: () async {
-                          if (!isPremium) {
-                            await Navigator.of(context).push<void>(
-                              MaterialPageRoute(
-                                builder:
-                                    (_) => const BatchBarcodeScannerScreen(
-                                      previewOnly: true,
-                                    ),
-                              ),
-                            );
-                            return;
-                          }
-                          final completed = await Navigator.of(
-                            context,
-                          ).push<int>(
-                            MaterialPageRoute(
-                              builder: (_) => const BatchBarcodeScannerScreen(),
-                            ),
-                          );
-                          if (!context.mounted ||
-                              completed == null ||
-                              completed == 0)
-                            return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                context.strings.premiumBatchCompleted(
-                                  completed,
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 10),
-                      _buildQuickAction(
-                        context,
-                        icon: Icons.groups,
-                        title: context.strings.premiumPublishActionTitle,
-                        subtitle: context.strings.premiumPublishActionSubtitle,
-                        // Submission is available to every signed-in account;
-                        // publication still goes through the existing review.
-                        isPremium: true,
-                        onTap:
-                            () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder:
-                                    (_) => const RecipesScreen(
-                                      initialMyRecipesOnly: true,
-                                    ),
-                              ),
-                            ),
-                      ),
-                      const SizedBox(height: 10),
-                      _buildQuickAction(
-                        context,
-                        icon: Icons.shopping_cart,
-                        title: context.strings.premiumRecipeListsTitle,
-                        subtitle: context.strings.premiumRecipeListsSubtitle,
-                        isPremium: isPremium,
-                        onTap:
-                            () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const RecipesScreen(),
-                              ),
-                            ),
-                      ),
-                      const SizedBox(height: 10),
-                      _buildQuickAction(
-                        context,
-                        icon: Icons.kitchen_outlined,
-                        title: context.strings.premiumCookFromPantryTitle,
-                        subtitle: context.strings.premiumCookFromPantrySubtitle,
-                        isPremium: isPremium,
-                        onTap:
-                            () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder:
-                                    (_) => const IngredientMatchSelectScreen(),
-                              ),
-                            ),
-                      ),
-                      const SizedBox(height: 10),
-                      _buildQuickAction(
-                        context,
-                        icon: Icons.inventory_2_outlined,
-                        title: context.strings.premiumPantryActionTitle,
-                        subtitle: context.strings.premiumPantryActionSubtitle,
-                        // Spiżarnia jest dostępna dla WSZYSTKICH kont, nie tylko
-                        // Premium — celowo zawsze bez plakietki kłódki.
-                        isPremium: true,
-                        onTap:
-                            () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const PantryScreen(),
-                              ),
-                            ),
-                      ),
-                      const SizedBox(height: 28),
-                      ...remainingFeatures.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final feature = entry.value;
-                        return _buildFeatureRow(feature)
-                            .animate()
-                            .fadeIn(delay: (300 + index * 100).ms)
-                            .slideX(begin: 0.05, end: 0);
-                      }),
-                      const SizedBox(height: 12),
-                      if (isPremium) _buildSubscriptionSection(context),
-                      const SizedBox(height: 24),
-                      ..._buildPointsSection(context),
-                      const SizedBox(height: 12),
-                    ]),
-                  ),
-                ),
-              ],
+      body: CustomScrollView(
+        controller: _screenScrollController,
+        slivers: [
+          SliverAppBar(
+            title: Text(
+              context.strings.premiumProductName,
+              style: Theme.of(context).textTheme.titleLarge,
             ),
+            pinned: true,
+            centerTitle: false,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            surfaceTintColor: Colors.transparent,
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.all(20),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                if (!isPremium) ...[
+                  if (widget.offerContext != null) ...[
+                    _buildContextualOfferCard(context),
+                    const SizedBox(height: 20),
+                  ] else ...[
+                    _buildOfferIntro(context),
+                    const SizedBox(height: 20),
+                    ...primaryFeatures.map(_buildFeatureRow),
+                    const SizedBox(height: 8),
+                  ],
+                  _buildSubscriptionSection(context),
+                  const SizedBox(height: 26),
+                ],
+                // Skróty do FAKTYCZNYCH funkcji Premium — bezpośrednie
+                // akcje, nie tylko opis. Dla kont bez Premium dotknięcie
+                // prowadzi do tego samego miejsca, gdzie wbudowana
+                // bramka Premium (już istniejąca w tych ekranach) sama
+                // pokaże zachętę do zakupu we właściwym kontekście.
+                _buildQuickAction(
+                  context,
+                  icon: Icons.auto_mode_outlined,
+                  title: context.strings.premiumAutomaticWeekTitle,
+                  subtitle: context.strings.premiumAutomaticWeekSubtitle,
+                  isPremium: isPremium,
+                  onTap: () {
+                    if (!isPremium) {
+                      ScaffoldMessenger.of(context)
+                        ..hideCurrentSnackBar()
+                        ..showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              context.strings.premiumAutomaticWeekRequired,
+                            ),
+                          ),
+                        );
+                      return;
+                    }
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const WeeklyPlanAutomationScreen(),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 10),
+                _buildQuickAction(
+                  context,
+                  icon: Icons.menu_book_outlined,
+                  title: context.strings.premiumAiActionTitle,
+                  subtitle: context.strings.premiumAiActionSubtitle,
+                  isPremium: isPremium,
+                  pointsAlternativeCost: 2,
+                  onTap:
+                      () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const AiAddRecipeScreen(),
+                        ),
+                      ),
+                ),
+                const SizedBox(height: 10),
+                _buildQuickAction(
+                  context,
+                  icon: Icons.qr_code_2,
+                  title: context.strings.premiumBatchActionTitle,
+                  subtitle: context.strings.premiumBatchActionSubtitle,
+                  isPremium: isPremium,
+                  onTap: () async {
+                    if (!isPremium) {
+                      await Navigator.of(context).push<void>(
+                        MaterialPageRoute(
+                          builder:
+                              (_) => const BatchBarcodeScannerScreen(
+                                previewOnly: true,
+                              ),
+                        ),
+                      );
+                      return;
+                    }
+                    final completed = await Navigator.of(context).push<int>(
+                      MaterialPageRoute(
+                        builder: (_) => const BatchBarcodeScannerScreen(),
+                      ),
+                    );
+                    if (!context.mounted || completed == null || completed == 0)
+                      return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          context.strings.premiumBatchCompleted(completed),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 10),
+                _buildQuickAction(
+                  context,
+                  icon: Icons.groups,
+                  title: context.strings.premiumPublishActionTitle,
+                  subtitle: context.strings.premiumPublishActionSubtitle,
+                  // Submission is available to every signed-in account;
+                  // publication still goes through the existing review.
+                  isPremium: true,
+                  onTap:
+                      () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder:
+                              (_) => const RecipesScreen(
+                                initialMyRecipesOnly: true,
+                              ),
+                        ),
+                      ),
+                ),
+                const SizedBox(height: 10),
+                _buildQuickAction(
+                  context,
+                  icon: Icons.shopping_cart,
+                  title: context.strings.premiumRecipeListsTitle,
+                  subtitle: context.strings.premiumRecipeListsSubtitle,
+                  isPremium: isPremium,
+                  onTap:
+                      () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const RecipesScreen(),
+                        ),
+                      ),
+                ),
+                const SizedBox(height: 10),
+                _buildQuickAction(
+                  context,
+                  icon: Icons.kitchen_outlined,
+                  title: context.strings.premiumCookFromPantryTitle,
+                  subtitle: context.strings.premiumCookFromPantrySubtitle,
+                  isPremium: isPremium,
+                  onTap:
+                      () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const IngredientMatchSelectScreen(),
+                        ),
+                      ),
+                ),
+                const SizedBox(height: 10),
+                _buildQuickAction(
+                  context,
+                  icon: Icons.inventory_2_outlined,
+                  title: context.strings.premiumPantryActionTitle,
+                  subtitle: context.strings.premiumPantryActionSubtitle,
+                  // Spiżarnia jest dostępna dla WSZYSTKICH kont, nie tylko
+                  // Premium — celowo zawsze bez plakietki kłódki.
+                  isPremium: true,
+                  onTap:
+                      () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const PantryScreen()),
+                      ),
+                ),
+                const SizedBox(height: 28),
+                ...remainingFeatures.map(_buildFeatureRow),
+                const SizedBox(height: 12),
+                if (isPremium) _buildSubscriptionSection(context),
+                const SizedBox(height: 24),
+                ..._buildPointsSection(context),
+                const SizedBox(height: 12),
+              ]),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1567,7 +1496,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
               ),
             ],
           ),
-        ).animate().fadeIn(delay: 700.ms),
+        ),
       ];
     }
 
@@ -1613,7 +1542,6 @@ class _PremiumScreenState extends State<PremiumScreen> {
           context: context,
           title: context.strings.premiumMonthly,
           price: _billing.regularSubscriptionPrice(monthly),
-          period: '',
           trialLabel:
               _monthlyHasSevenDayTrial
                   ? context.strings.premiumMonthlyTrial(7)
@@ -1625,20 +1553,20 @@ class _PremiumScreenState extends State<PremiumScreen> {
                       : context.strings.premiumTrialDisclosureGoogle)
                   : null,
           highlight: false,
+          primaryAction: true,
           discountPercent:
               _activeOffers[kMonthlyProductId]?['discount_percent'] as int?,
           onTap:
               _isProcessingPurchase
                   ? null
                   : () => _useSubscriptionOffer(kMonthlyProductId),
-        ).animate().fadeIn(delay: 100.ms),
+        ),
       if (monthly != null) const SizedBox(height: 12),
       if (yearly != null)
         _buildPricingCard(
           context: context,
           title: context.strings.premiumYearly,
           price: _billing.regularSubscriptionPrice(yearly),
-          period: '',
           badge:
               _activeOffers.containsKey(kYearlyProductId) ||
                       annualSaving == null
@@ -1651,14 +1579,13 @@ class _PremiumScreenState extends State<PremiumScreen> {
               _isProcessingPurchase
                   ? null
                   : () => _useSubscriptionOffer(kYearlyProductId),
-        ).animate().fadeIn(delay: 150.ms),
+        ),
       if (weekly != null) ...[
         const SizedBox(height: 12),
         _buildPricingCard(
           context: context,
           title: context.strings.premiumWeekly,
           price: _billing.regularSubscriptionPrice(weekly),
-          period: '',
           highlight: false,
           discountPercent:
               _activeOffers[kWeeklyProductId]?['discount_percent'] as int?,
@@ -1666,7 +1593,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
               _isProcessingPurchase
                   ? null
                   : () => _useSubscriptionOffer(kWeeklyProductId),
-        ).animate().fadeIn(delay: 200.ms),
+        ),
       ],
       const SizedBox(height: 20),
     ];
@@ -1881,221 +1808,125 @@ class _PremiumScreenState extends State<PremiumScreen> {
     required BuildContext context,
     required String title,
     required String price,
-    required String period,
     String? trialLabel,
     String? trialDisclosure,
     String? badge,
     int? discountPercent,
     required bool highlight,
+    bool primaryAction = false,
     required VoidCallback? onTap,
   }) {
-    const annualInk = Color(0xFF3B2605);
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final annualSurface =
+        theme.brightness == Brightness.dark
+            ? const Color(0xFF2F2A1E)
+            : const Color(0xFFF4EFE1);
+    final offerPrice =
+        trialLabel != null
+            ? context.strings.premiumPriceAfterTrial(price)
+            : discountPercent == null
+            ? price
+            : Platform.isIOS
+            ? context.strings.premiumPriceBeforeCode(price)
+            : context.strings.premiumPromotionalPrice(price);
+    final label =
+        trialLabel != null
+            ? context.strings.premiumTryFree
+            : discountPercent == null
+            ? context.strings.premiumBuy
+            : Platform.isIOS
+            ? context.strings.premiumRedeemCode
+            : context.strings.premiumBuyDiscount;
+    final actionContent =
+        _isProcessingPurchase
+            ? const SizedBox.square(
+              dimension: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+            : Text(label, textAlign: TextAlign.center);
+
     return Container(
-      padding: const EdgeInsets.all(18),
+      key: highlight ? const ValueKey('premium-yearly-card') : null,
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        gradient:
-            highlight
-                ? const LinearGradient(
-                  colors: [Color(0xFFF5C24D), Color(0xFFE0A62E)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                )
-                : null,
-        color: highlight ? null : AppTheme.surfaceColor,
-        border:
-            highlight
-                ? null
-                : Border.all(color: AppTheme.textSecondary.withOpacity(0.15)),
-        boxShadow:
-            highlight
-                ? [
-                  BoxShadow(
-                    color: const Color(0xFFE0A62E).withOpacity(0.35),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-                : null,
+        borderRadius: BorderRadius.circular(16),
+        color: highlight ? annualSurface : colors.surface,
+        border: Border.all(color: AppTheme.outlineColor),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (badge != null)
-            Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.25),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                badge,
-                style: const TextStyle(
-                  color: annualInk,
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 4,
+            children: [
+              Text(
+                title,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: colors.onSurface,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-            ),
-          if (discountPercent != null)
+              if (badge != null)
+                Text(
+                  badge,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: AppTheme.actionPrimaryColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+            ],
+          ),
+          if (discountPercent != null) ...[
+            const SizedBox(height: 8),
             Align(
               alignment: Alignment.centerLeft,
               child: CampaignIcon(
-                icon: Icons.workspace_premium,
-                color: highlight ? annualInk : AppTheme.accentColor,
+                icon: Icons.workspace_premium_outlined,
+                color: AppTheme.actionPrimaryColor,
                 discountPercent: discountPercent,
               ),
             ),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final details = Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                      color: highlight ? annualInk : null,
-                    ),
-                  ),
-                  if (trialLabel != null) ...[
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.celebration_outlined,
-                            size: 16,
-                            color: AppTheme.primaryColor,
-                          ),
-                          const SizedBox(width: 6),
-                          Flexible(
-                            child: Text(
-                              trialLabel,
-                              style: TextStyle(
-                                color: AppTheme.primaryColor,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                  ],
-                  RichText(
-                    text: TextSpan(
-                      style: DefaultTextStyle.of(context).style,
-                      children: [
-                        TextSpan(
-                          text:
-                              trialLabel != null
-                                  ? context.strings.premiumPriceAfterTrial(
-                                    price,
-                                  )
-                                  : discountPercent == null
-                                  ? price
-                                  : Platform.isIOS
-                                  ? context.strings.premiumPriceBeforeCode(
-                                    price,
-                                  )
-                                  : context.strings.premiumPromotionalPrice(
-                                    price,
-                                  ),
-                          style: TextStyle(
-                            fontSize:
-                                trialLabel != null
-                                    ? 15
-                                    : discountPercent == null
-                                    ? 22
-                                    : 15,
-                            fontWeight: FontWeight.bold,
-                            color:
-                                highlight ? annualInk : AppTheme.primaryColor,
-                          ),
-                        ),
-                        if (period.isNotEmpty)
-                          TextSpan(
-                            text: ' $period',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color:
-                                  highlight
-                                      ? annualInk
-                                      : AppTheme.textSecondary,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              );
-              final buyButton = ElevatedButton(
-                onPressed: onTap,
-                style:
-                    highlight
-                        ? ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: annualInk,
-                          minimumSize: const Size(100, 44),
-                        )
-                        : ElevatedButton.styleFrom(
-                          minimumSize: const Size(100, 44),
-                        ),
-                child:
-                    _isProcessingPurchase
-                        ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                        : Text(
-                          trialLabel != null
-                              ? context.strings.premiumTryFree
-                              : discountPercent == null
-                              ? context.strings.premiumBuy
-                              : Platform.isIOS
-                              ? context.strings.premiumRedeemCode
-                              : context.strings.premiumBuyDiscount,
-                        ),
-              );
-              if (trialDisclosure != null || constraints.maxWidth < 350) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    details,
-                    const SizedBox(height: 12),
-                    buyButton,
-                    if (trialDisclosure != null) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        trialDisclosure,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
-                  ],
-                );
-              }
-              return Row(
-                children: [
-                  Expanded(child: details),
-                  const SizedBox(width: 8),
-                  buyButton,
-                ],
-              );
-            },
+          ],
+          const SizedBox(height: 8),
+          if (trialLabel != null) ...[
+            Text(
+              trialLabel,
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: AppTheme.actionPrimaryColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 4),
+          ],
+          Text(
+            offerPrice,
+            style:
+                trialLabel == null && discountPercent == null
+                    ? theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    )
+                    : theme.textTheme.bodyMedium,
           ),
+          const SizedBox(height: 12),
+          if (primaryAction)
+            ElevatedButton(onPressed: onTap, child: actionContent)
+          else
+            OutlinedButton(onPressed: onTap, child: actionContent),
+          if (trialDisclosure != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              trialDisclosure,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppTheme.textSecondary,
+                height: 1.35,
+              ),
+            ),
+          ],
         ],
       ),
     );

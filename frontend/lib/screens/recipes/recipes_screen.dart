@@ -7,7 +7,6 @@ import '../../config/constants.dart';
 import '../../services/recipe_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/recipe_photo.dart';
-import '../../widgets/decorative_circles.dart';
 import '../../widgets/recipe_favorite_button.dart';
 import '../../widgets/premium_feature_tag.dart';
 import 'recipe_leaderboard_screen.dart';
@@ -343,7 +342,6 @@ class _RecipesScreenState extends State<RecipesScreen> {
       ),
       body: Stack(
         children: [
-          const DecorativeCircles(),
           NestedScrollView(
             // UWAGA (naprawa): pasek filtrów przebudowany na SliverAppBar
             // (floating+snap) zamiast zwykłego Column — to standardowy
@@ -1082,15 +1080,15 @@ class _RecipesScreenState extends State<RecipesScreen> {
       child: Container(
         decoration: BoxDecoration(
           color: AppTheme.surfaceColor,
-          borderRadius: BorderRadius.all(Radius.circular(16)),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppTheme.outlineColor),
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Górna część z gradientem / placeholderem (Premium look)
             Expanded(
-              flex: 4,
+              flex: 5,
               child: Stack(
                 children: [
                   Positioned.fill(
@@ -1138,13 +1136,13 @@ class _RecipesScreenState extends State<RecipesScreen> {
                           vertical: 3,
                         ),
                         decoration: BoxDecoration(
-                          color: AppTheme.secondaryColor,
-                          borderRadius: BorderRadius.circular(8),
+                          color: AppTheme.surfaceColor,
+                          borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
                           context.strings.recipeNew,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: AppTheme.actionPrimaryColor,
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                           ),
@@ -1171,7 +1169,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                               .mealTypeLabel(recipe.mealType)
                               .toUpperCase(),
                           style: TextStyle(
-                            color: AppTheme.primaryColor.withOpacity(0.8),
+                            color: AppTheme.actionPrimaryColor,
                             fontSize: 9,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 1.0,

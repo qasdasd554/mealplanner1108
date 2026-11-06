@@ -31,9 +31,18 @@ Future<void> capturePremium(
   bool cropAtPricing = true,
 }) async {
   if (!const bool.fromEnvironment('UK_WRITE_UI_PROOF')) return;
+  final photo = find.byType(Image);
+  if (photo.evaluate().isNotEmpty) {
+    await tester.runAsync(() async {
+      await precacheImage(
+        tester.widget<Image>(photo.first).image,
+        tester.element(photo.first),
+      );
+    });
+    await tester.pumpAndSettle();
+  }
   final originalSize = tester.view.physicalSize;
-  // Capture only the header/context card. Raw RichText in the unrelated price
-  // section uses the engine's square test font, not a production font.
+  // For contextual offers, capture the card up to the pricing section.
   final monthly =
       find.text('Monthly').evaluate().isNotEmpty
           ? find.text('Monthly')
@@ -64,6 +73,7 @@ class _Billing extends BillingService {
   bool eligible = false;
   bool available = true;
   bool productsFail = false;
+  String currency = 'GBP';
   int buys = 0;
   int restores = 0;
   List<Future<bool>> pending = [];
@@ -76,11 +86,12 @@ class _Billing extends BillingService {
     if (productsFail) throw StateError('Synthetic product query failure');
     return ProductDetailsResponse(
       productDetails: [
-        fixtures.android(trial: 0, amount: 5000000),
+        fixtures.android(trial: 0, amount: 5000000, currency: currency),
         fixtures.android(
           id: kYearlyProductId,
           trial: 0,
           amount: 48000000,
+          currency: currency,
           period: 'P1Y',
         ),
       ],
@@ -132,6 +143,7 @@ Future<void> open(
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
+  billing.currency = english ? 'GBP' : 'PLN';
   final auth = AuthProvider(readToken: () async => null);
   addTearDown(auth.dispose);
   AppTheme.setDark(dark);
@@ -221,8 +233,15 @@ void main() {
         // and six descriptions before the first store price appeared.
         expect(monthly, findsOneWidget);
         expect(tester.getTopLeft(monthly).dy, lessThan(844));
-        expect(find.text(strings.premiumBatchActionTitle), findsNothing);
-        expect(find.text(strings.premiumPointsTitle), findsNothing);
+        for (final label in [
+          strings.premiumBatchActionTitle,
+          strings.premiumPointsTitle,
+        ]) {
+          final shortcut = find.text(label);
+          if (shortcut.evaluate().isNotEmpty) {
+            expect(tester.getTopLeft(shortcut).dy, greaterThan(844));
+          }
+        }
         expect(find.text(strings.premiumTryFree), findsOneWidget);
         expect(tester.takeException(), isNull);
         await capturePremium(
@@ -317,15 +336,14 @@ void main() {
       expect(find.text('Save 20%'), findsOneWidget);
       final yearlyLabel = tester.widget<Text>(find.text('Yearly'));
       final textLuminance = yearlyLabel.style!.color!.computeLuminance();
-      for (final background in [
-        const Color(0xFFF5C24D),
-        const Color(0xFFE0A62E),
-      ]) {
-        expect(
-          (background.computeLuminance() + .05) / (textLuminance + .05),
-          greaterThanOrEqualTo(4.5),
-        );
-      }
+      final yearlyCard = tester.widget<Container>(
+        find.byKey(const ValueKey('premium-yearly-card')),
+      );
+      final background = (yearlyCard.decoration! as BoxDecoration).color!;
+      expect(
+        (background.computeLuminance() + .05) / (textLuminance + .05),
+        greaterThanOrEqualTo(4.5),
+      );
       expect(find.text('Save 17%'), findsNothing);
       expect(billing.buys, 0);
       expect(tester.takeException(), isNull);
@@ -417,40 +435,34 @@ void main() {
     );
   }
   for (final english in [true, false]) {
-    testWidgets(
-      'ordinary Premium keeps the original header and an unobscured badge '
-      '(${english ? 'GB' : 'PL'})',
-      (tester) async {
-        await open(
-          tester,
-          _Billing()..eligible = true,
-          english: english,
-          branded: true,
-        );
-        expect(
-          tester.widget<SliverAppBar>(find.byType(SliverAppBar)).expandedHeight,
-          250,
-        );
-        final title = tester.getRect(
-          find.byKey(const ValueKey('premium-context-title')),
-        );
-        final badge = tester.getRect(
-          find.byKey(const ValueKey('premium-context-trial-badge')),
-        );
-        expect(badge.bottom <= title.top || badge.top >= title.bottom, isTrue);
-        expect(badge.right, lessThanOrEqualTo(390));
-        if (const bool.fromEnvironment('UK_WRITE_UI_PROOF')) {
-          // Arial proof reflects real glyph widths; Ahem deliberately uses
-          // oversized square glyphs and can correctly trigger the fallback.
-          expect(badge.bottom, lessThanOrEqualTo(title.top));
-        }
-        expect(tester.takeException(), isNull);
-        await capturePremium(
-          tester,
-          'premium-${english ? 'gb' : 'pl'}-390-100',
-        );
-      },
-    );
+    testWidgets('Premium uses a compact toolbar and an unobscured badge '
+        '(${english ? 'GB' : 'PL'})', (tester) async {
+      await open(
+        tester,
+        _Billing()..eligible = true,
+        english: english,
+        branded: true,
+      );
+      expect(
+        tester.widget<SliverAppBar>(find.byType(SliverAppBar)).expandedHeight,
+        isNull,
+      );
+      final title = tester.getRect(
+        find.byKey(const ValueKey('premium-context-title')),
+      );
+      final badge = tester.getRect(
+        find.byKey(const ValueKey('premium-context-trial-badge')),
+      );
+      expect(badge.bottom <= title.top || badge.top >= title.bottom, isTrue);
+      expect(badge.right, lessThanOrEqualTo(390));
+      if (const bool.fromEnvironment('UK_WRITE_UI_PROOF')) {
+        // Arial proof reflects real glyph widths; Ahem deliberately uses
+        // oversized square glyphs and can correctly trigger the fallback.
+        expect(badge.bottom, lessThanOrEqualTo(title.top));
+      }
+      expect(tester.takeException(), isNull);
+      await capturePremium(tester, 'premium-${english ? 'gb' : 'pl'}-390-100');
+    });
     for (final dark in [false, true]) {
       testWidgets('Premium reflows enlarged text without clipping '
           '(${english ? 'GB' : 'PL'}, ${dark ? 'dark' : 'light'})', (

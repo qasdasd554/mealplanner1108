@@ -3500,8 +3500,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get premiumProductName => 'Meal Planner Premium';
 
   @override
+  String get premiumHeroTitle => 'A week of meals sorted';
+
+  @override
   String get premiumHeroDescription =>
-      'Let your next week plan itself. Choose how you want to use Premium.';
+      'Plan your meals, do the shopping and keep your favourite recipes handy.';
 
   @override
   String get premiumAutomaticWeekSubtitle =>
@@ -3702,7 +3705,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get premiumBuyDiscount => 'Buy at the offer price';
 
   @override
-  String get premiumContextRecipeEyebrow => 'PREMIUM FOR RECIPES';
+  String get premiumContextRecipeEyebrow => 'Premium for recipes';
 
   @override
   String get premiumContextRecipeTitle => 'Turn an idea into a recipe';
@@ -3724,7 +3727,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'AI editing: 1 point, including with Premium';
 
   @override
-  String get premiumContextMealPlanEyebrow => 'PREMIUM FOR PLANNING';
+  String get premiumContextMealPlanEyebrow => 'Premium for planning';
 
   @override
   String get premiumContextMealPlanTitle =>
@@ -3746,7 +3749,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Ingredient preferences taken into account';
 
   @override
-  String get premiumContextBarcodeEyebrow => 'PREMIUM FOR SCANNING';
+  String get premiumContextBarcodeEyebrow => 'Premium for scanning';
 
   @override
   String get premiumContextBarcodeTitle => 'Scan your groceries in one go';
@@ -3767,7 +3770,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Add the batch to your Diary, pantry or catalogue';
 
   @override
-  String get premiumContextShoppingEyebrow => 'PREMIUM FOR SHOPPING';
+  String get premiumContextShoppingEyebrow => 'Premium for shopping';
 
   @override
   String get premiumContextShoppingTitle =>
@@ -3789,7 +3792,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Food from your pantry adds no shopping cost';
 
   @override
-  String get premiumContextPantryEyebrow => 'PREMIUM FOR YOUR PANTRY';
+  String get premiumContextPantryEyebrow => 'Premium for your pantry';
 
   @override
   String get premiumContextPantryTitle => 'Use the food you already have';
@@ -3809,7 +3812,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get premiumContextPantryBenefitWaste => 'Less food waste';
 
   @override
-  String get premiumContextJournalEyebrow => 'PREMIUM FOR YOUR DIARY';
+  String get premiumContextJournalEyebrow => 'Premium for your diary';
 
   @override
   String get premiumContextJournalTitle =>
@@ -4365,7 +4368,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• 100 new recipes for the UK and Poland.\n• Every new dish has its own photo.';
+      '• A refreshed look for the app, including the home screen and recipe catalogue.\n• The Premium screen makes it easier to compare plans and check the free trial terms.';
 
   @override
   String detailPlanPortionHelp(int servings, int baseServings) {
@@ -8856,8 +8859,11 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
   String get premiumProductName => 'Meal Planner Premium';
 
   @override
+  String get premiumHeroTitle => 'A week of meals sorted';
+
+  @override
   String get premiumHeroDescription =>
-      'Let your next week plan itself. Choose how you want to use Premium.';
+      'Plan your meals, do the shopping and keep your favourite recipes handy.';
 
   @override
   String get premiumAutomaticWeekSubtitle =>
@@ -9058,7 +9064,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
   String get premiumBuyDiscount => 'Buy at the offer price';
 
   @override
-  String get premiumContextRecipeEyebrow => 'PREMIUM FOR RECIPES';
+  String get premiumContextRecipeEyebrow => 'Premium for recipes';
 
   @override
   String get premiumContextRecipeTitle => 'Turn an idea into a recipe';
@@ -9080,7 +9086,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
       'AI editing: 1 point, including with Premium';
 
   @override
-  String get premiumContextMealPlanEyebrow => 'PREMIUM FOR PLANNING';
+  String get premiumContextMealPlanEyebrow => 'Premium for planning';
 
   @override
   String get premiumContextMealPlanTitle =>
@@ -9102,7 +9108,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
       'Ingredient preferences taken into account';
 
   @override
-  String get premiumContextBarcodeEyebrow => 'PREMIUM FOR SCANNING';
+  String get premiumContextBarcodeEyebrow => 'Premium for scanning';
 
   @override
   String get premiumContextBarcodeTitle => 'Scan your groceries in one go';
@@ -9123,7 +9129,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
       'Add the batch to your Diary, pantry or catalogue';
 
   @override
-  String get premiumContextShoppingEyebrow => 'PREMIUM FOR SHOPPING';
+  String get premiumContextShoppingEyebrow => 'Premium for shopping';
 
   @override
   String get premiumContextShoppingTitle =>
@@ -9145,7 +9151,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
       'Food from your pantry adds no shopping cost';
 
   @override
-  String get premiumContextPantryEyebrow => 'PREMIUM FOR YOUR PANTRY';
+  String get premiumContextPantryEyebrow => 'Premium for your pantry';
 
   @override
   String get premiumContextPantryTitle => 'Use the food you already have';
@@ -9165,7 +9171,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
   String get premiumContextPantryBenefitWaste => 'Less food waste';
 
   @override
-  String get premiumContextJournalEyebrow => 'PREMIUM FOR YOUR DIARY';
+  String get premiumContextJournalEyebrow => 'Premium for your diary';
 
   @override
   String get premiumContextJournalTitle =>
@@ -9721,7 +9727,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get releasePromptChanges =>
-      '• 100 new recipes for the UK and Poland.\n• Every new dish has its own photo.';
+      '• A refreshed look for the app, including the home screen and recipe catalogue.\n• The Premium screen makes it easier to compare plans and check the free trial terms.';
 
   @override
   String detailPlanPortionHelp(int servings, int baseServings) {

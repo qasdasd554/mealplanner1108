@@ -27,7 +27,6 @@ import '../../theme/app_theme.dart';
 import '../../widgets/premium_badge.dart';
 import '../tracker/calorie_calculator_screen.dart';
 import '../../widgets/premium_comparison_table.dart';
-import '../../widgets/decorative_circles.dart';
 import '../../widgets/user_avatar.dart';
 import '../../widgets/tiktok_icon.dart';
 import 'premium_screen.dart';
@@ -84,7 +83,6 @@ class ProfileScreen extends StatelessWidget {
       appBar: AppBar(title: Text(context.strings.profileTitle)),
       body: Stack(
         children: [
-          const DecorativeCircles(),
           SingleChildScrollView(
             padding: const EdgeInsets.all(24.0),
             child: Column(

@@ -24,7 +24,6 @@ import '../../utils/error_utils.dart';
 import '../../config/api_config.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/add_product_sheet.dart';
-import '../../widgets/decorative_circles.dart';
 import 'price_compare_screen.dart';
 import 'export_list_screen.dart';
 import 'pending_shares_screen.dart';
@@ -762,7 +761,6 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
         offerContext: PremiumOfferContext.shoppingList,
         child: Stack(
           children: [
-            const DecorativeCircles(),
             shoppingListProvider.isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : list == null

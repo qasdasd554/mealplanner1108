@@ -6200,10 +6200,16 @@ abstract class AppLocalizations {
   /// **'Meal Planner Premium'**
   String get premiumProductName;
 
+  /// No description provided for @premiumHeroTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Tydzień posiłków z głowy'**
+  String get premiumHeroTitle;
+
   /// No description provided for @premiumHeroDescription.
   ///
   /// In pl, this message translates to:
-  /// **'Twój kolejny tydzień zaplanuje się sam. Wybierz, jak chcesz korzystać z Premium.'**
+  /// **'Zaplanuj posiłki, zrób zakupy i wróć do ulubionych przepisów.'**
   String get premiumHeroDescription;
 
   /// No description provided for @premiumAutomaticWeekSubtitle.
@@ -6467,7 +6473,7 @@ abstract class AppLocalizations {
   /// No description provided for @premiumContextRecipeEyebrow.
   ///
   /// In pl, this message translates to:
-  /// **'PREMIUM DLA PRZEPISÓW'**
+  /// **'Premium dla przepisów'**
   String get premiumContextRecipeEyebrow;
 
   /// No description provided for @premiumContextRecipeTitle.
@@ -6503,7 +6509,7 @@ abstract class AppLocalizations {
   /// No description provided for @premiumContextMealPlanEyebrow.
   ///
   /// In pl, this message translates to:
-  /// **'PREMIUM DLA PLANOWANIA'**
+  /// **'Premium dla planowania'**
   String get premiumContextMealPlanEyebrow;
 
   /// No description provided for @premiumContextMealPlanTitle.
@@ -6539,7 +6545,7 @@ abstract class AppLocalizations {
   /// No description provided for @premiumContextBarcodeEyebrow.
   ///
   /// In pl, this message translates to:
-  /// **'PREMIUM DLA SKANOWANIA'**
+  /// **'Premium dla skanowania'**
   String get premiumContextBarcodeEyebrow;
 
   /// No description provided for @premiumContextBarcodeTitle.
@@ -6575,7 +6581,7 @@ abstract class AppLocalizations {
   /// No description provided for @premiumContextShoppingEyebrow.
   ///
   /// In pl, this message translates to:
-  /// **'PREMIUM DLA ZAKUPÓW'**
+  /// **'Premium dla zakupów'**
   String get premiumContextShoppingEyebrow;
 
   /// No description provided for @premiumContextShoppingTitle.
@@ -6611,7 +6617,7 @@ abstract class AppLocalizations {
   /// No description provided for @premiumContextPantryEyebrow.
   ///
   /// In pl, this message translates to:
-  /// **'PREMIUM DLA SPIŻARNI'**
+  /// **'Premium dla spiżarni'**
   String get premiumContextPantryEyebrow;
 
   /// No description provided for @premiumContextPantryTitle.
@@ -6647,7 +6653,7 @@ abstract class AppLocalizations {
   /// No description provided for @premiumContextJournalEyebrow.
   ///
   /// In pl, this message translates to:
-  /// **'PREMIUM DLA DZIENNIKA'**
+  /// **'Premium dla dziennika'**
   String get premiumContextJournalEyebrow;
 
   /// No description provided for @premiumContextJournalTitle.
@@ -7625,7 +7631,7 @@ abstract class AppLocalizations {
   /// No description provided for @releasePromptChanges.
   ///
   /// In pl, this message translates to:
-  /// **'• 100 nowych przepisów w polskiej i brytyjskiej wersji aplikacji.\n• Każde nowe danie ma osobne zdjęcie.'**
+  /// **'• Odświeżyliśmy wygląd aplikacji, w tym ekran główny i katalog przepisów.\n• Na ekranie Premium łatwiej porównasz plany i sprawdzisz warunki okresu próbnego.'**
   String get releasePromptChanges;
 
   /// No description provided for @detailPlanPortionHelp.

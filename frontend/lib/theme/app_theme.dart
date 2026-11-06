@@ -26,21 +26,23 @@ class AppTheme {
   static const Color errorColor = Color(0xFFEF4444);
 
   // ── Paleta ciemna ────────────────────────────────────────────────
-  static const Color _darkBackground = Color(0xFF0F0F1A);
-  static const Color _darkSurface = Color(0xFF1A1B2E);
-  static const Color _darkSurfaceRaised = Color(0xFF24263D);
-  static const Color _darkOutline = Color(0xFF526079);
-  static const Color _darkTextPrimary = Color(0xFFF8FAFC);
-  static const Color _darkTextSecondary = Color(0xFFB4C0D2);
+  static const Color _darkBackground = Color(0xFF171916);
+  static const Color _darkSurface = Color(0xFF20221E);
+  static const Color _darkSurfaceRaised = Color(0xFF292C26);
+  static const Color _darkOutline = Color(0xFF555C50);
+  static const Color _darkTextPrimary = Color(0xFFF2F2E9);
+  static const Color _darkTextSecondary = Color(0xFFBEC4B7);
   static const Color _darkPrimary = Color(0xFF34D399);
   static const Color _darkSecondary = Color(0xFFA78BFA);
   static const Color _darkAccent = Color(0xFFFBBF24);
 
   // ── Paleta jasna (nowy domyślny wygląd aplikacji) ───────────────
-  static const Color _lightBackground = Color(0xFFF7F8FA);
-  static const Color _lightSurface = Color(0xFFFFFFFF);
-  static const Color _lightTextPrimary = Color(0xFF16181D);
-  static const Color _lightTextSecondary = Color(0xFF6B7280);
+  static const Color _lightBackground = Color(0xFFF7F6F1);
+  static const Color _lightSurface = Color(0xFFFFFEFA);
+  static const Color _lightTextPrimary = Color(0xFF212820);
+  static const Color _lightTextSecondary = Color(0xFF555F54);
+  static const Color _lightPrimaryInk = Color(0xFF14664A);
+  static const Color _lightOutline = Color(0xFFD7DBD2);
 
   static Color get backgroundColor =>
       _isDark ? _darkBackground : _lightBackground;
@@ -51,9 +53,9 @@ class AppTheme {
       _isDark ? _darkTextSecondary : _lightTextSecondary;
   static Color get controlFillColor =>
       _isDark ? _darkSurfaceRaised : _lightSurface;
-  static Color get outlineColor =>
-      _isDark ? _darkOutline : const Color(0xFFD1D5DB);
-  static Color get actionPrimaryColor => _isDark ? _darkPrimary : primaryColor;
+  static Color get outlineColor => _isDark ? _darkOutline : _lightOutline;
+  static Color get actionPrimaryColor =>
+      _isDark ? _darkPrimary : _lightPrimaryInk;
   static Color get actionSecondaryColor =>
       _isDark ? _darkSecondary : secondaryColor;
   static Color get actionAccentColor => _isDark ? _darkAccent : accentColor;
@@ -61,6 +63,15 @@ class AppTheme {
       _isDark ? _darkPrimary.withOpacity(0.18) : primaryColor.withOpacity(0.10);
   static Color get accentTintColor =>
       _isDark ? _darkAccent.withOpacity(0.18) : accentColor.withOpacity(0.10);
+
+  static Color premiumInk(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? const Color(0xFFF0D8A4)
+          : const Color(0xFF684717);
+  static Color premiumSurface(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? const Color(0xFF382F1D)
+          : const Color(0xFFF2E8D3);
 
   static ThemeData get lightTheme => _buildTheme(Brightness.light);
   static ThemeData get darkTheme => _buildTheme(Brightness.dark);
@@ -71,11 +82,11 @@ class AppTheme {
     final surface = isDarkMode ? _darkSurface : _lightSurface;
     final txtPrimary = isDarkMode ? _darkTextPrimary : _lightTextPrimary;
     final txtSecondary = isDarkMode ? _darkTextSecondary : _lightTextSecondary;
-    final interactivePrimary = isDarkMode ? _darkPrimary : primaryColor;
+    final interactivePrimary = isDarkMode ? _darkPrimary : _lightPrimaryInk;
     final interactiveSecondary = isDarkMode ? _darkSecondary : secondaryColor;
     final interactiveAccent = isDarkMode ? _darkAccent : accentColor;
     final onPrimary = isDarkMode ? const Color(0xFF052E24) : Colors.white;
-    final outline = isDarkMode ? _darkOutline : const Color(0xFFD1D5DB);
+    final outline = isDarkMode ? _darkOutline : _lightOutline;
     final disabledBackground =
         isDarkMode ? const Color(0xFF293149) : const Color(0xFFE5E7EB);
     final disabledForeground =
@@ -157,13 +168,11 @@ class AppTheme {
       // Kafelki i karty
       cardTheme: CardThemeData(
         color: surface,
-        elevation: isDarkMode ? 0 : 1,
+        elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: const BorderRadius.all(Radius.circular(16)),
-          side: BorderSide(
-            color: isDarkMode ? outline.withOpacity(0.55) : Colors.transparent,
-          ),
+          side: BorderSide(color: outline),
         ),
       ),
 

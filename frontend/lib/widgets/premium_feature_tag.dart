@@ -23,31 +23,16 @@ class PremiumFeatureTag extends StatelessWidget {
         vertical: fontSize * 0.28,
       ),
       decoration: BoxDecoration(
-        color: AppTheme.accentTintColor,
-        border: Border.all(color: AppTheme.actionAccentColor.withOpacity(0.55)),
+        color: AppTheme.premiumSurface(context),
         borderRadius: BorderRadius.circular(fontSize),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.auto_awesome,
-            size: fontSize * 0.9,
-            color: AppTheme.actionAccentColor,
-          ),
-          SizedBox(width: fontSize * 0.3),
-          Flexible(
-            child: Text(
-              label,
-              style: TextStyle(
-                color: AppTheme.actionAccentColor,
-                fontSize: fontSize,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.35,
-              ),
-            ),
-          ),
-        ],
+      child: Text(
+        label,
+        style: TextStyle(
+          color: AppTheme.premiumInk(context),
+          fontSize: fontSize,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }

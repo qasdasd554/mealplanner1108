@@ -8,7 +8,6 @@ import 'package:intl/intl.dart';
 
 import '../../providers/food_log_provider.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/decorative_circles.dart';
 import '../../models/food_log.dart';
 import '../../providers/wellness_provider.dart';
 import '../../models/recipe.dart';
@@ -133,7 +132,6 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
       ),
       body: Stack(
         children: [
-          const DecorativeCircles(),
           provider.isLoading
               ? const Center(
                 child: CircularProgressIndicator(color: AppTheme.primaryColor),

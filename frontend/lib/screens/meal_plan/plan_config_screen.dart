@@ -14,7 +14,6 @@ import '../../models/store.dart';
 import '../../models/meal_plan.dart';
 import '../../config/constants.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/decorative_circles.dart';
 import '../profile/premium_screen.dart';
 import '../../utils/plan_defaults.dart';
 import '../../utils/market_money.dart';
@@ -401,7 +400,6 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
       appBar: AppBar(title: Text(context.strings.planNewTitle)),
       body: Stack(
         children: [
-          const DecorativeCircles(),
           SafeArea(
             // UWAGA (naprawa): po włączeniu trybu edge-to-edge (WindowCompat
             // w MainActivity.kt) treść może rysować się AŻ pod systemowym

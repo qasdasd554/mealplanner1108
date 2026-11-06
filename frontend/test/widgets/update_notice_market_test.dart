@@ -44,9 +44,12 @@ void main() {
         expect(body.split('\n'), hasLength(2));
         expect(
           body,
-          contains(english ? '100 new recipes' : '100 nowych przepisów'),
+          contains(english ? 'A refreshed look' : 'Odświeżyliśmy wygląd'),
         );
-        expect(body, contains(english ? 'its own photo' : 'osobne zdjęcie'));
+        expect(
+          body,
+          contains(english ? 'free trial terms' : 'warunki okresu próbnego'),
+        );
         expect(tester.takeException(), isNull);
       },
     );
