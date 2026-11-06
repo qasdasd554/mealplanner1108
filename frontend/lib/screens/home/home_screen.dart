@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+
+import '../../widgets/decorative_circles.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -287,7 +289,7 @@ class _HomeScreenState extends State<HomeScreen> {
           color:
               Theme.of(context).bottomNavigationBarTheme.backgroundColor ??
               Theme.of(context).colorScheme.surface,
-          elevation: 8,
+          shape: Border(top: BorderSide(color: AppTheme.outlineColor)),
           child: BottomNavigationBar(
             elevation: 0,
             // Sześć zakładek wymaga trybu 'fixed' — bez tego Flutter przechodzi
@@ -630,6 +632,7 @@ class HomeTab extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
+          const Positioned.fill(child: DecorativeCircles()),
           SafeArea(
             child: RefreshIndicator(
               onRefresh: () async {
@@ -691,69 +694,59 @@ class HomeTab extends StatelessWidget {
                       const PremiumBadge(),
                     ],
                     const SizedBox(height: 16),
-                    _buildQuickActionCard(
-                      context,
-                      title: context.strings.newPlan,
-                      subtitle: context.strings.planMeals,
-                      icon: Icons.calendar_today_outlined,
-                      primary: true,
-                      onTap:
-                          () => Navigator.of(context).pushNamed('/plan/config'),
-                    ),
+                    _buildPlanAction(context),
                     const SizedBox(height: 12),
-                    Material(
-                      color: AppTheme.surfaceColor,
-                      shape: RoundedRectangleBorder(
-                        side: BorderSide(color: AppTheme.outlineColor),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: Column(
-                        children: [
-                          _buildQuickActionCard(
-                            context,
-                            title: context.strings.productDatabase,
-                            subtitle: context.strings.checkPrices,
-                            icon: Icons.storefront_outlined,
-                            onTap:
-                                () => Navigator.of(
-                                  context,
-                                ).pushNamed('/products'),
-                          ),
-                          Divider(
-                            height: 1,
-                            indent: 48,
-                            color: AppTheme.outlineColor,
-                          ),
-                          _buildQuickActionCard(
-                            context,
-                            title: context.strings.promotions,
-                            subtitle: context.strings.currentOffers,
-                            icon: Icons.local_offer_outlined,
-                            onTap:
-                                () => Navigator.of(
-                                  context,
-                                ).pushNamed('/promotions'),
-                          ),
-                          Divider(
-                            height: 1,
-                            indent: 48,
-                            color: AppTheme.outlineColor,
-                          ),
-                          _buildQuickActionCard(
-                            context,
-                            title: context.strings.pantry,
-                            subtitle: context.strings.whatYouHaveAtHome,
-                            icon: Icons.inventory_2_outlined,
-                            onTap:
-                                () => Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => const PantryScreen(),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final compact =
+                            constraints.maxWidth >= 320 &&
+                            MediaQuery.textScalerOf(context).scale(16) <= 20;
+                        final width =
+                            compact
+                                ? (constraints.maxWidth - 16) / 3
+                                : constraints.maxWidth;
+                        return Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _buildQuickActionCard(
+                              context,
+                              width: width,
+                              compact: compact,
+                              title: context.strings.productDatabase,
+                              icon: Icons.storefront_outlined,
+                              onTap:
+                                  () => Navigator.of(
+                                    context,
+                                  ).pushNamed('/products'),
+                            ),
+                            _buildQuickActionCard(
+                              context,
+                              width: width,
+                              compact: compact,
+                              title: context.strings.promotions,
+                              icon: Icons.local_offer_outlined,
+                              onTap:
+                                  () => Navigator.of(
+                                    context,
+                                  ).pushNamed('/promotions'),
+                            ),
+                            _buildQuickActionCard(
+                              context,
+                              width: width,
+                              compact: compact,
+                              title: context.strings.pantry,
+                              icon: Icons.inventory_2_outlined,
+                              onTap:
+                                  () => Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => const PantryScreen(),
+                                    ),
                                   ),
-                                ),
-                          ),
-                        ],
-                      ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                     const _ContextualPremiumCard(),
                     const SizedBox(height: 24),
@@ -1388,38 +1381,96 @@ class HomeTab extends StatelessWidget {
     );
   }
 
+  Widget _buildPlanAction(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: const Color(0xFF124638),
+      borderRadius: BorderRadius.circular(22),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          Positioned(
+            right: -27,
+            top: -38,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF32C895).withValues(alpha: .19),
+              ),
+              child: const SizedBox.square(dimension: 150),
+            ),
+          ),
+          ListTile(
+            contentPadding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+            leading: const Icon(
+              Icons.calendar_today_outlined,
+              color: Color(0xFFC2F8DB),
+            ),
+            title: Text(
+              context.strings.newPlan,
+              style: theme.textTheme.titleLarge?.copyWith(color: Colors.white),
+            ),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 3),
+              child: Text(
+                context.strings.planMeals,
+                style: const TextStyle(color: Color(0xFFD5EEE4)),
+              ),
+            ),
+            trailing: const Icon(Icons.arrow_forward, color: Colors.white),
+            onTap: () => Navigator.of(context).pushNamed('/plan/config'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildQuickActionCard(
     BuildContext context, {
+    required double width,
+    required bool compact,
     required String title,
-    required String subtitle,
     required IconData icon,
     required VoidCallback onTap,
-    bool primary = false,
   }) {
-    final colors = Theme.of(context).colorScheme;
-    final foreground = primary ? colors.onPrimary : AppTheme.textPrimary;
-    final tile = ListTile(
-      onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      leading: Icon(icon, color: foreground, size: 20),
-      title: Text(
-        title,
-        style: TextStyle(color: foreground, fontWeight: FontWeight.w600),
-      ),
-      subtitle: Text(
-        subtitle,
-        style: TextStyle(color: primary ? foreground : AppTheme.textSecondary),
-      ),
-      trailing: Icon(Icons.chevron_right, color: foreground, size: 20),
+    final theme = Theme.of(context);
+    final label = Text(
+      title,
+      style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
     );
-    return primary
-        ? Material(
-          color: colors.primary,
+    final symbol = Icon(icon, color: theme.colorScheme.primary, size: 22);
+    return SizedBox(
+      width: width,
+      child: Material(
+        color: theme.colorScheme.surface,
+        shape: RoundedRectangleBorder(
+          side: BorderSide(color: AppTheme.outlineColor),
           borderRadius: BorderRadius.circular(16),
-          clipBehavior: Clip.antiAlias,
-          child: tile,
-        )
-        : tile;
+        ),
+        clipBehavior: Clip.antiAlias,
+        child:
+            compact
+                ? InkWell(
+                  onTap: onTap,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 94),
+                    child: Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [symbol, const SizedBox(height: 6), label],
+                      ),
+                    ),
+                  ),
+                )
+                : ListTile(
+                  leading: symbol,
+                  title: label,
+                  trailing: const Icon(Icons.chevron_right, size: 20),
+                  onTap: onTap,
+                ),
+      ),
+    );
   }
 
   Widget _buildActivePlanCard(

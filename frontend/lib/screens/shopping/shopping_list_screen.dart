@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../widgets/decorative_circles.dart';
 import '../../utils/national_price_reference.dart';
 import 'package:provider/provider.dart';
 import 'package:percent_indicator/percent_indicator.dart';
@@ -761,6 +763,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
         offerContext: PremiumOfferContext.shoppingList,
         child: Stack(
           children: [
+            const Positioned.fill(child: DecorativeCircles()),
             shoppingListProvider.isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : list == null

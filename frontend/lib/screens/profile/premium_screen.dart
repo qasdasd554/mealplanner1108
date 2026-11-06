@@ -124,42 +124,51 @@ class _PremiumScreenState extends State<PremiumScreen> {
         final showPhoto =
             constraints.maxWidth >= 340 &&
             MediaQuery.textScalerOf(context).scale(16) <= 20;
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    context.strings.premiumHeroTitle,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      height: 1.15,
+        final dark = theme.brightness == Brightness.dark;
+        final ink = dark ? const Color(0xFFF2EAFE) : const Color(0xFF302249);
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: dark ? const Color(0xFF332748) : const Color(0xFFF0E9FD),
+            borderRadius: BorderRadius.circular(22),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      context.strings.premiumHeroTitle,
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        color: ink,
+                        fontWeight: FontWeight.w700,
+                        height: 1.12,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    context.strings.premiumHeroDescription,
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                ],
-              ),
-            ),
-            if (showPhoto) ...[
-              const SizedBox(width: 16),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.asset(
-                  'assets/recipe_photos/new-63-roast-chicken-with-peaches-and-red-onion.jpg',
-                  width: 104,
-                  height: 112,
-                  fit: BoxFit.cover,
-                  excludeFromSemantics: true,
+                    const SizedBox(height: 7),
+                    Text(
+                      context.strings.premiumHeroDescription,
+                      style: theme.textTheme.bodyMedium?.copyWith(color: ink),
+                    ),
+                  ],
                 ),
               ),
+              if (showPhoto) ...[
+                const SizedBox(width: 12),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: Image.asset(
+                    'assets/recipe_photos/new-63-roast-chicken-with-peaches-and-red-onion.jpg',
+                    width: 92,
+                    height: 112,
+                    fit: BoxFit.cover,
+                    excludeFromSemantics: true,
+                  ),
+                ),
+              ],
             ],
-          ],
+          ),
         );
       },
     );

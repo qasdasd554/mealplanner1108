@@ -4368,7 +4368,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• A refreshed look for the app, including the home screen and recipe catalogue.\n• The Premium screen makes it easier to compare plans and check the free trial terms.';
+      '• The coloured circles are back. Home has more compact shortcuts and a clearer meal planning card.\n• Recipes and Premium have a refreshed look.';
 
   @override
   String detailPlanPortionHelp(int servings, int baseServings) {
@@ -9727,7 +9727,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get releasePromptChanges =>
-      '• A refreshed look for the app, including the home screen and recipe catalogue.\n• The Premium screen makes it easier to compare plans and check the free trial terms.';
+      '• The coloured circles are back. Home has more compact shortcuts and a clearer meal planning card.\n• Recipes and Premium have a refreshed look.';
 
   @override
   String detailPlanPortionHelp(int servings, int baseServings) {

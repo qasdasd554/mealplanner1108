@@ -42,13 +42,10 @@ void main() {
             .map((value) => value.data ?? '')
             .firstWhere((value) => value.startsWith('•'));
         expect(body.split('\n'), hasLength(2));
+        expect(body, contains(english ? 'coloured circles' : 'kolorowe koła'));
         expect(
           body,
-          contains(english ? 'A refreshed look' : 'Odświeżyliśmy wygląd'),
-        );
-        expect(
-          body,
-          contains(english ? 'free trial terms' : 'warunki okresu próbnego'),
+          contains(english ? 'Recipes and Premium' : 'Przepisów i Premium'),
         );
         expect(tester.takeException(), isNull);
       },

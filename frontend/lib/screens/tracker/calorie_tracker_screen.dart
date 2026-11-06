@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../widgets/decorative_circles.dart';
+
 import '../../l10n/market_locale.dart';
 import '../../l10n/catalog_labels.dart';
 import '../../l10n/measure_labels.dart';
@@ -132,6 +134,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
       ),
       body: Stack(
         children: [
+          const Positioned.fill(child: DecorativeCircles()),
           provider.isLoading
               ? const Center(
                 child: CircularProgressIndicator(color: AppTheme.primaryColor),

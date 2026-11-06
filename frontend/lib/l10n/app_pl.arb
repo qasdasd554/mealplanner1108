@@ -2665,7 +2665,7 @@
   "releasePromptTitle": "Dostępna nowa wersja",
   "releasePromptRequired": "Ta wersja aplikacji nie jest już obsługiwana. Zaktualizuj ją, aby korzystać dalej.",
   "releasePromptStoreError": "Nie udało się otworzyć sklepu.",
-  "releasePromptChanges": "• Odświeżyliśmy wygląd aplikacji, w tym ekran główny i katalog przepisów.\n• Na ekranie Premium łatwiej porównasz plany i sprawdzisz warunki okresu próbnego.",
+  "releasePromptChanges": "• Wracają kolorowe koła w tle. Na ekranie głównym łatwiej przejdziesz do planowania i zakupów.\n• Odświeżyliśmy wygląd Przepisów i Premium.",
   "detailPlanPortionHelp": "Składniki przeliczono na {servings} porcji. Ilości wpisane w opisie przygotowania dotyczą bazowego przepisu ({baseServings} porcji).",
   "@detailPlanPortionHelp": {
     "placeholders": {

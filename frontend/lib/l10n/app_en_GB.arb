@@ -2570,7 +2570,7 @@
   "releasePromptTitle": "An update is available",
   "releasePromptRequired": "This version is no longer supported. Update the app to continue.",
   "releasePromptStoreError": "Could not open the app store.",
-  "releasePromptChanges": "• A refreshed look for the app, including the home screen and recipe catalogue.\n• The Premium screen makes it easier to compare plans and check the free trial terms.",
+  "releasePromptChanges": "• The coloured circles are back. Home has more compact shortcuts and a clearer meal planning card.\n• Recipes and Premium have a refreshed look.",
   "detailPlanPortionHelp": "Ingredients are scaled to {servings} portions. Quantities written in the method refer to the original recipe ({baseServings} portions).",
   "@detailPlanPortionHelp": {
     "placeholders": {

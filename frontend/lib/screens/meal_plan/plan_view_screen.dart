@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+
+import '../../widgets/decorative_circles.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/catalog_labels.dart';
@@ -410,6 +412,7 @@ class _PlanViewScreenState extends State<PlanViewScreen> {
         offerContext: PremiumOfferContext.mealPlan,
         child: Stack(
           children: [
+            const Positioned.fill(child: DecorativeCircles()),
             SafeArea(
               // UWAGA (naprawa — ten sam błąd, co w plan_config_screen.dart):
               // dolny panel akcji ("Zmień parametry"/"Zatwierdź plan"/"Przejdź

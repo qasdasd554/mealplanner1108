@@ -7631,7 +7631,7 @@ abstract class AppLocalizations {
   /// No description provided for @releasePromptChanges.
   ///
   /// In pl, this message translates to:
-  /// **'• Odświeżyliśmy wygląd aplikacji, w tym ekran główny i katalog przepisów.\n• Na ekranie Premium łatwiej porównasz plany i sprawdzisz warunki okresu próbnego.'**
+  /// **'• Wracają kolorowe koła w tle. Na ekranie głównym łatwiej przejdziesz do planowania i zakupów.\n• Odświeżyliśmy wygląd Przepisów i Premium.'**
   String get releasePromptChanges;
 
   /// No description provided for @detailPlanPortionHelp.

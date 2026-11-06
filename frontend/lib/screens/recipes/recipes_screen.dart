@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+
+import '../../widgets/decorative_circles.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../models/recipe.dart';
 import '../../models/recipe_import_job.dart';
@@ -342,6 +344,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
       ),
       body: Stack(
         children: [
+          const Positioned.fill(child: DecorativeCircles()),
           NestedScrollView(
             // UWAGA (naprawa): pasek filtrów przebudowany na SliverAppBar
             // (floating+snap) zamiast zwykłego Column — to standardowy
@@ -1080,7 +1083,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
       child: Container(
         decoration: BoxDecoration(
           color: AppTheme.surfaceColor,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(color: AppTheme.outlineColor),
         ),
         clipBehavior: Clip.antiAlias,
@@ -1088,7 +1091,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              flex: 5,
+              flex: 6,
               child: Stack(
                 children: [
                   Positioned.fill(
@@ -1112,7 +1115,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                     right: 6,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.35),
+                        color: Colors.black.withValues(alpha: 0.58),
                         shape: BoxShape.circle,
                       ),
                       child: RecipeFavoriteButton(
@@ -1180,7 +1183,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
                           recipe.displayName(context),
                           style: Theme.of(
                             context,
-                          ).textTheme.titleLarge?.copyWith(fontSize: 14),
+                          ).textTheme.titleLarge?.copyWith(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),

@@ -26,23 +26,23 @@ class AppTheme {
   static const Color errorColor = Color(0xFFEF4444);
 
   // ── Paleta ciemna ────────────────────────────────────────────────
-  static const Color _darkBackground = Color(0xFF171916);
-  static const Color _darkSurface = Color(0xFF20221E);
-  static const Color _darkSurfaceRaised = Color(0xFF292C26);
-  static const Color _darkOutline = Color(0xFF555C50);
-  static const Color _darkTextPrimary = Color(0xFFF2F2E9);
-  static const Color _darkTextSecondary = Color(0xFFBEC4B7);
+  static const Color _darkBackground = Color(0xFF11141E);
+  static const Color _darkSurface = Color(0xFF1B202C);
+  static const Color _darkSurfaceRaised = Color(0xFF252B3A);
+  static const Color _darkOutline = Color(0xFF505A70);
+  static const Color _darkTextPrimary = Color(0xFFF1F3F8);
+  static const Color _darkTextSecondary = Color(0xFFBDC6D5);
   static const Color _darkPrimary = Color(0xFF34D399);
   static const Color _darkSecondary = Color(0xFFA78BFA);
   static const Color _darkAccent = Color(0xFFFBBF24);
 
   // ── Paleta jasna (nowy domyślny wygląd aplikacji) ───────────────
-  static const Color _lightBackground = Color(0xFFF7F6F1);
-  static const Color _lightSurface = Color(0xFFFFFEFA);
-  static const Color _lightTextPrimary = Color(0xFF212820);
-  static const Color _lightTextSecondary = Color(0xFF555F54);
+  static const Color _lightBackground = Color(0xFFF5F7FB);
+  static const Color _lightSurface = Color(0xFFFFFFFF);
+  static const Color _lightTextPrimary = Color(0xFF182226);
+  static const Color _lightTextSecondary = Color(0xFF4C5864);
   static const Color _lightPrimaryInk = Color(0xFF14664A);
-  static const Color _lightOutline = Color(0xFFD7DBD2);
+  static const Color _lightOutline = Color(0xFFD9DFE8);
 
   static Color get backgroundColor =>
       _isDark ? _darkBackground : _lightBackground;

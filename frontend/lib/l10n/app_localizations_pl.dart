@@ -4348,7 +4348,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• Odświeżyliśmy wygląd aplikacji, w tym ekran główny i katalog przepisów.\n• Na ekranie Premium łatwiej porównasz plany i sprawdzisz warunki okresu próbnego.';
+      '• Wracają kolorowe koła w tle. Na ekranie głównym łatwiej przejdziesz do planowania i zakupów.\n• Odświeżyliśmy wygląd Przepisów i Premium.';
 
   @override
   String detailPlanPortionHelp(int servings, int baseServings) {

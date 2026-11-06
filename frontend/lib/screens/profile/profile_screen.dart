@@ -9,6 +9,8 @@ import 'dart:io';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+
+import '../../widgets/decorative_circles.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -83,6 +85,7 @@ class ProfileScreen extends StatelessWidget {
       appBar: AppBar(title: Text(context.strings.profileTitle)),
       body: Stack(
         children: [
+          const Positioned.fill(child: DecorativeCircles()),
           SingleChildScrollView(
             padding: const EdgeInsets.all(24.0),
             child: Column(

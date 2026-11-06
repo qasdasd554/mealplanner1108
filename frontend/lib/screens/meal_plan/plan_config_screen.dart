@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../widgets/decorative_circles.dart';
 import '../../services/contextual_premium_offer_service.dart';
 import '../../models/premium_offer.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -400,6 +402,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
       appBar: AppBar(title: Text(context.strings.planNewTitle)),
       body: Stack(
         children: [
+          const Positioned.fill(child: DecorativeCircles()),
           SafeArea(
             // UWAGA (naprawa): po włączeniu trybu edge-to-edge (WindowCompat
             // w MainActivity.kt) treść może rysować się AŻ pod systemowym
