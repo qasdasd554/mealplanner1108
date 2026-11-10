@@ -503,14 +503,14 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
       if (!mounted || generation != _requestGeneration) return;
       final stores = context.read<StoreProvider>().stores;
       final store = stores.where((s) => s.id == storeId).firstOrNull;
-      // Legacy shop rows without explicit currency are PLN. A GB viewer must
-      // never turn them into GBP by merely changing the currency symbol.
+      // Legacy rows without explicit currency are PLN. Each shop's prices must
+      // match its own market currency.
       if (store == null ||
           list.any(
             (row) =>
                 row.storeId != storeId ||
                 row.currencyCode != store.currencyCode ||
-                !const {'PLN', 'GBP'}.contains(row.currencyCode) ||
+                !const {'PLN', 'GBP', 'EUR'}.contains(row.currencyCode) ||
                 (row.isGenericFood
                     ? !row.hasValidGenericReference
                     : row.price == null ||
@@ -656,19 +656,25 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
   Widget _buildProductTile(StoreProduct sp) {
     final product = sp.product;
     final regional = sp.currencyCode == 'GBP';
+    final hasGermanPack =
+        sp.currencyCode == 'EUR' &&
+        sp.packageQuantity != null &&
+        sp.packageQuantity!.isFinite &&
+        sp.packageQuantity! > 0 &&
+        const {'g', 'kg', 'ml', 'l', 'szt'}.contains(sp.packageUnit);
     final generic = sp.isGenericFood;
     // The canonical food's nutrition is not label evidence for a retailer SKU.
     final kcal =
         regional && !generic
             ? null
             : product?.nutritionPer100.knownValue('kcal');
-    final english = context.strings.localeName.startsWith('en');
+    final localized = !context.strings.localeName.startsWith('pl');
     final verifiedLabel =
         generic
             ? context.strings.productsGenericFood
             : regional && sp.priceIsEstimated
             ? context.strings.productsEstimatedPrice
-            : !english
+            : !localized
             ? storePriceVerificationLabel(sp)
             : sp.lastVerified == null
             ? context.strings.productsEstimatedPrice
@@ -682,7 +688,9 @@ class _StoreProductsTabState extends State<_StoreProductsTab> {
                 : ''
             : regional && sp.hasRegionalPackage
             ? '/ ${formatQuantity(sp.packageQuantity!, sp.packageUnit!)} ${sp.packageUnit!}'
-            : !english
+            : hasGermanPack
+            ? '/ ${formatQuantity(sp.packageQuantity!, sp.packageUnit!)} ${sp.packageUnit == 'szt' ? context.strings.measureName('szt') : sp.packageUnit!}'
+            : !localized
             ? storePriceQuantityLabel(product)
             : product == null ||
                 !product.defaultQuantity.isFinite ||

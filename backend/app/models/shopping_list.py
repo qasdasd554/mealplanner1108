@@ -87,6 +87,10 @@ class ShoppingListItem(Base):
         ForeignKey("store_products.id", ondelete="CASCADE"),
         nullable=True,
     )
+    # An unpriced catalogue ingredient can still be quoted in another shop.
+    catalogue_product_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("products.id", ondelete="SET NULL")
+    )
     # Dowolna pozycja wpisana z klawiatury, np. "papier toaletowy".
     # Dla pozycji katalogowych pole pozostaje puste i używany jest
     # store_product_id; dla tekstowych jest odwrotnie.

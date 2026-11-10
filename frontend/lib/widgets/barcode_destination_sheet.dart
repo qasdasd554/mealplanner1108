@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/lookup_market_context.dart';
 import '../l10n/market_locale.dart';
+import '../l10n/catalog_labels.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../screens/barcode_scanner_screen.dart';
@@ -266,11 +267,11 @@ String? _nutritionSummary(BuildContext context, BarcodeLookupResult? result) {
   final values = <String>[
     if (result.kcalPer100 != null) '${result.kcalPer100!.round()} kcal/$basis',
     if (result.proteinPer100 != null)
-      '${context.strings.localeName.startsWith('en') ? 'P' : 'B'} ${result.proteinPer100!.toStringAsFixed(1)} g',
+      '${context.strings.proteinAbbreviation} ${result.proteinPer100!.toStringAsFixed(1)} g',
     if (result.fatPer100 != null)
-      '${context.strings.localeName.startsWith('en') ? 'F' : 'T'} ${result.fatPer100!.toStringAsFixed(1)} g',
+      '${context.strings.fatAbbreviation} ${result.fatPer100!.toStringAsFixed(1)} g',
     if (result.carbsPer100 != null)
-      '${context.strings.localeName.startsWith('en') ? 'C' : 'W'} ${result.carbsPer100!.toStringAsFixed(1)} g',
+      '${context.strings.carbsAbbreviation} ${result.carbsPer100!.toStringAsFixed(1)} g',
   ];
   return values.isEmpty ? null : values.join(' · ');
 }

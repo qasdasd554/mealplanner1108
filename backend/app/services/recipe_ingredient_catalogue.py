@@ -212,7 +212,7 @@ async def resolve_recipe_ingredients(ingredients, catalogue, *, country, user_id
     usable = [product for product in catalogue if has_recipe_nutrition(product)
               and not looks_like_whole_meal(product.name)]
     by_name = {product.name.casefold(): product for product in usable}
-    if country == "GB":
+    if country in {"GB", "DE"}:
         from app.services.system_content_language import ingredient_display_name
         for product in usable:
             # Real exact catalogue names retain priority. Only an unchanged,
@@ -233,7 +233,7 @@ async def resolve_recipe_ingredients(ingredients, catalogue, *, country, user_id
         if product is None and key == "water":
             # Plain cooking water is a known zero-energy ingredient, not
             # an assumed package or a guessed branded food's nutrition.
-            product = _proposal("Water" if country == "GB" else "Woda", "ml",
+            product = _proposal({"GB": "Water", "DE": "Wasser"}.get(country, "Woda"), "ml",
                 {"kcal": 0, "protein": 0, "fat": 0, "carbs": 0}, country=country,
                 source={"provider": "plain_cooking_water", "allergens_checked": True})
         pairs.append((ingredient, product))

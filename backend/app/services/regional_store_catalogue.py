@@ -3,10 +3,10 @@
 from datetime import date
 from uuid import NAMESPACE_URL, uuid5
 
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import raiseload
 
-from app.models import Product, RegionalProductOffer
+from app.models import Product, RegionalProductOffer, StoreProduct
 from app.schemas.product import ProductResponse, StoreProductResponse
 from app.services.regional_offer_pricing import reviewed_uk_offer
 from app.services.uk_catalogue_import import canonical_base_unit
@@ -17,6 +17,48 @@ from app.services.system_content_language import (
     generic_system_ingredient_condition, ingredient_display_name,
 )
 from app.services.uk_ons_pricing import quote_national_requirement
+
+
+async def list_german_store_products(
+    db, store_id, offers, *, search, department_id, skip, limit, include_generic_foods,
+):
+    """Show actual shop rows first, then labelled German food references."""
+    order = english_system_name_order(Product, kind="ingredients", country_code="DE")
+    offers = offers.where(StoreProduct.withdrawn_at.is_(None))
+    found = (await db.execute(offers.order_by(order, Product.id).offset(skip).limit(limit))).scalars()
+    output = [
+        StoreProductResponse.model_validate(row).model_copy(update={
+            "currency_code": "EUR",
+            "product": product_for_market(row.product, country_code="DE"),
+        })
+        for row in found
+    ]
+    if not include_generic_foods or department_id is not None or len(output) == limit:
+        return output
+    total = (await db.execute(select(func.count()).select_from(offers.order_by(None).subquery()))).scalar_one()
+    generic = select(Product).options(raiseload(Product.allergens)).where(
+        generic_system_ingredient_condition(Product),
+        Product.id.not_in(select(StoreProduct.product_id).where(
+            StoreProduct.store_id == store_id, StoreProduct.is_available.is_(True),
+            StoreProduct.withdrawn_at.is_(None),
+        )),
+    )
+    if search:
+        generic = generic.where(or_(
+            Product.name.ilike(f"%{search}%"),
+            english_system_name_match(Product, search, kind="ingredients", country_code="DE"),
+        ))
+    generic = generic.order_by(order, Product.id).offset(max(0, skip - total)).limit(limit - len(output))
+    for product in (await db.execute(generic)).scalars():
+        output.append(StoreProductResponse(
+            id=uuid5(NAMESPACE_URL, f"generic-shop-food:{store_id}:{product.id}"),
+            store_id=store_id, product_id=product.id,
+            product=product_for_market(product, country_code="DE"),
+            currency_code="EUR", catalogue_kind="generic_food",
+            availability_scope="generic_food_reference", is_available=None,
+            price=None, price_basis="unknown",
+        ))
+    return output
 
 
 async def list_reviewed_store_products(db, store_id, *, skip: int, limit: int,

@@ -389,7 +389,7 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
           mealType: _mealType,
           date: DateTime.now(),
           packageLabel:
-              strings.localeName.startsWith('en')
+              !strings.localeName.startsWith('pl')
                   ? '1 ${strings.measurePack}'
                   : null,
         );
@@ -1174,11 +1174,11 @@ class _BatchBarcodeScannerScreenState extends State<BatchBarcodeScannerScreen> {
       if (result.kcalPer100 != null)
         '${_formatNutrition(result.kcalPer100!, 0)} kcal',
       if (result.proteinPer100 != null)
-        '${context.strings.localeName.startsWith('en') ? 'P' : 'B'} ${_formatMacro(result.proteinPer100!)} g',
+        '${context.strings.proteinAbbreviation} ${_formatMacro(result.proteinPer100!)} g',
       if (result.fatPer100 != null)
-        '${context.strings.localeName.startsWith('en') ? 'F' : 'T'} ${_formatMacro(result.fatPer100!)} g',
+        '${context.strings.fatAbbreviation} ${_formatMacro(result.fatPer100!)} g',
       if (result.carbsPer100 != null)
-        '${context.strings.localeName.startsWith('en') ? 'C' : 'W'} ${_formatMacro(result.carbsPer100!)} g',
+        '${context.strings.carbsAbbreviation} ${_formatMacro(result.carbsPer100!)} g',
     ];
     if (values.isEmpty) return null;
     final basis =
@@ -1204,7 +1204,7 @@ enum _BatchDestination {
 
   const _BatchDestination(this.label, this.icon);
   String localizedLabel(BuildContext context) =>
-      !context.strings.localeName.startsWith('en')
+      context.strings.localeName.startsWith('pl')
           ? label
           : switch (this) {
             pantry => context.strings.pantry,

@@ -12,7 +12,8 @@ Map<String, dynamic>? _matchingText(
   String locale, {
   bool details = false,
 }) {
-  if (!locale.startsWith('en') || recipe.createdByUserId != null) return null;
+  final language = _contentLocale(locale);
+  if (language == null || recipe.createdByUserId != null) return null;
   final entry = systemRecipeText[recipe.id];
   if (entry == null) return null;
   final source = entry['source'] as Map<String, dynamic>;
@@ -29,8 +30,14 @@ Map<String, dynamic>? _matchingText(
             (source['suggested_seasonings'] as List).cast<String>(),
           )))
     return null;
-  return entry['en_GB'] as Map<String, dynamic>;
+  return entry[language] as Map<String, dynamic>?;
 }
+
+String? _contentLocale(String locale) => switch (locale.split('_').first) {
+  'en' => 'en_GB',
+  'de' => 'de',
+  _ => null,
+};
 
 /// Display-only adapters. Canonical names, photo keys and save payloads stay
 /// untouched. Source identity/text guards exclude authored and edited content.
@@ -60,9 +67,12 @@ extension RecipeContentDisplay on Recipe {
 }
 
 String? ingredientNameForLanguage(String id, String? name, String locale) {
-  if (!locale.startsWith('en')) return name;
+  final language = _contentLocale(locale);
+  if (language == null) return name;
   final entry = systemIngredientText[id];
-  return entry != null && entry['source'] == name ? entry['en_GB'] : name;
+  return entry != null && entry['source'] == name
+      ? entry[language] ?? name
+      : name;
 }
 
 extension RecipeIngredientContentDisplay on RecipeIngredient {

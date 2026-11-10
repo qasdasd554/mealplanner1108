@@ -6,8 +6,8 @@ from fastapi import HTTPException
 from sqlalchemy import select
 
 from app.core.language import account_text
-from app.models import PantryItem, Store, StoreProduct
-from app.services.polish_list_prices import _amount, _base_quantity, _package_count
+from app.models import PantryItem, Product, Store, StoreProduct
+from app.services.polish_list_prices import _amount, _base_quantity, _package_count, offer_package
 from app.services.regional_requirements import MAX_STORED_QUANTITY, canonical_measure_code
 
 
@@ -39,7 +39,7 @@ def combined_amount(product, left, left_unit, right, right_unit):
 def item_price(product, offer, quantity, unit):
     """Unknown pack conversion is an unknown cost, never a single-pack price."""
     try:
-        count = _package_count(product, quantity, unit)
+        count = _package_count(product, quantity, unit, offer=offer)
         price = Decimal(str(offer.price)) * count
         if not price.is_finite() or not 0 <= price <= Decimal("99999999.99"):
             return None
@@ -62,11 +62,12 @@ async def complete_polish_items_to_pantry(db, shopping, user):
             try:
                 # A priced purchase represents complete packages, just as in GB.
                 # Without a reliable pack conversion, retain the stated amount.
-                packs = _package_count(product, item.required_quantity, item.unit)
+                packs = _package_count(product, item.required_quantity, item.unit, offer=item.store_product)
+                pack_size, pack_unit = offer_package(product, item.store_product)
             except (ValueError, ArithmeticError, TypeError):
                 pass
             else:
-                quantity, unit = product_amount(product, Decimal(str(product.default_quantity)) * packs, product.unit)
+                quantity, unit = product_amount(product, pack_size * packs, pack_unit)
             if product.id in purchases:
                 _, old, old_unit = purchases[product.id]
                 quantity, unit = combined_amount(product, old, old_unit, quantity, unit)
@@ -109,15 +110,28 @@ async def refresh_polish_items(db, shopping, store_id):
     for item, offer, quote in quoted:
         if item.is_checked or item.is_from_pantry:
             continue
-        if offer is not None and quote is not None:
-            item.store_product_id, item.store_product = offer.id, offer
-            item.department_id, item.department = offer.department_id, offer.department
-            item.estimated_price = Decimal(str(quote["price_in_store"]))
-        else:
-            item.department_id, item.department = None, None
-            item.estimated_price = None
+        apply_polish_item_quote(item, offer, quote, country_code=getattr(store, "country_code", "PL"))
     return (None if any(quote is None for _, _, quote in quoted) else
         sum((Decimal(str(quote["price_in_store"])) for _, _, quote in quoted), Decimal(0)))
+
+
+def apply_polish_item_quote(item, offer, quote, *, country_code):
+    if offer is not None and quote is not None:
+        item.store_product_id, item.store_product = offer.id, offer
+        item.department_id, item.department = offer.department_id, offer.department
+        item.estimated_price = Decimal(str(quote["price_in_store"]))
+        if country_code == "DE":
+            item.catalogue_product_id = None
+            item.custom_name = None
+        return
+
+    if country_code == "DE" and item.store_product is not None:
+        from app.services.system_content_language import ingredient_display_name
+        item.catalogue_product_id = item.store_product.product_id
+        item.custom_name = ingredient_display_name(item.store_product.product, country_code="DE")[:200]
+        item.store_product_id, item.store_product = None, None
+    item.department_id, item.department = None, None
+    item.estimated_price = None
 
 
 async def preserve_polish_purchases(db, old_items, new_items):
@@ -131,25 +145,35 @@ async def preserve_polish_purchases(db, old_items, new_items):
     offers = {row.id: row for row in (await db.execute(select(StoreProduct)
         .where(StoreProduct.id.in_(ids)).options(joinedload(StoreProduct.product)))).scalars().unique().all()} if ids else {}
 
-    def key(offer_id, name, quantity, unit):
+    fallback_ids = {item.catalogue_product_id for item in bought if item.catalogue_product_id is not None}
+    fallback_ids.update(row["catalogue_product_id"] for row in new_items if row.get("catalogue_product_id") is not None)
+    products = {product.id: product for product in (await db.execute(
+        select(Product).where(Product.id.in_(fallback_ids))
+    )).scalars().all()} if fallback_ids else {}
+
+    def key(offer_id, catalogue_product_id, name, quantity, unit):
         offer = offers.get(offer_id)
-        if offer is not None and offer.product is not None:
-            quantity, unit = product_amount(offer.product, quantity, unit)
-            return ("product", offer.product_id, quantity, unit)
+        product = offer.product if offer is not None else products.get(catalogue_product_id)
+        if product is not None:
+            quantity, unit = product_amount(product, quantity, unit)
+            return ("product", product.id, quantity, unit)
         return ("custom", (name or "").strip().casefold(), stored_amount(quantity), canonical_measure_code(unit))
 
     history = {}
     try:
         for row in bought:
-            history.setdefault(key(row.store_product_id, row.custom_name, row.required_quantity, row.unit), []).append(row)
+            identity = key(row.store_product_id, row.catalogue_product_id, row.custom_name, row.required_quantity, row.unit)
+            history.setdefault(identity, []).append(row)
         for data in new_items:
             if data.get("is_from_pantry"):
                 continue
-            matches = history.get(key(data.get("store_product_id"), data.get("custom_name"), data["required_quantity"], data["unit"]), [])
+            identity = key(data.get("store_product_id"), data.get("catalogue_product_id"), data.get("custom_name"),
+                           data["required_quantity"], data["unit"])
+            matches = history.get(identity, [])
             if matches:
                 row = matches.pop(0)
                 data.update({name: getattr(row, name) for name in (
-                    "store_product_id", "custom_name", "department_id", "required_quantity", "unit",
+                    "store_product_id", "catalogue_product_id", "custom_name", "department_id", "required_quantity", "unit",
                     "estimated_price", "substituted_for")})
                 data["is_checked"] = True
         if any(rows for rows in history.values()):

@@ -7,6 +7,7 @@ from uuid import UUID
 
 from sqlalchemy import and_, case, false, or_
 
+_LANGUAGES = {"GB": "en_GB", "DE": "de"}
 
 @lru_cache(maxsize=1)
 def _index():
@@ -14,12 +15,13 @@ def _index():
 
 
 def recipe_display_name(recipe, *, country_code: str = 'PL') -> str:
-    if country_code != 'GB' or getattr(recipe, 'created_by_user_id', object()) is not None:
+    language = _LANGUAGES.get(country_code)
+    if language is None or getattr(recipe, 'created_by_user_id', object()) is not None:
         return recipe.name
     row = _index()['recipes'].get(str(recipe.id))
     if row is None or row['source'] != recipe.name or row['description'] != recipe.description:
         return recipe.name
-    return row['en_GB']
+    return row[language]
 
 
 def is_system_ingredient(product) -> bool:
@@ -49,24 +51,26 @@ def ingredient_display_name(product, *, country_code: str = 'PL') -> str:
     This is only a language alias for the same product ID. It is not evidence
     of UK sale, a retailer offer, a pack weight or an ingredient substitution.
     """
-    if country_code != 'GB' or getattr(product, 'created_by_user_id', object()) is not None:
+    language = _LANGUAGES.get(country_code)
+    if language is None or getattr(product, 'created_by_user_id', object()) is not None:
         return product.name
     row = _index()['ingredients'].get(str(product.id))
     if row is None or row['source'] != product.name:
         return product.name
-    return row['en_GB']
+    return row[language]
 
 
-@lru_cache(maxsize=1)
-def _recipe_translations():
-    return json.loads((Path(__file__).resolve().parents[1] / 'data/system_recipes_en_GB.json').read_text(encoding='utf-8'))
+@lru_cache(maxsize=2)
+def _recipe_translations(language='en_GB'):
+    return json.loads((Path(__file__).resolve().parents[1] / f'data/system_recipes_{language}.json').read_text(encoding='utf-8'))
 
 
 def recipe_display_content(recipe, *, country_code: str = 'PL') -> dict:
     canonical = dict(name=recipe.name, description=recipe.description,
         instructions=list(recipe.instructions or []),
         suggested_seasonings=list(recipe.suggested_seasonings or []))
-    if country_code != 'GB' or recipe.created_by_user_id is not None:
+    language = _LANGUAGES.get(country_code)
+    if language is None or recipe.created_by_user_id is not None:
         return canonical
     row = _index()['recipes'].get(str(recipe.id))
     if row is None:
@@ -75,7 +79,7 @@ def recipe_display_content(recipe, *, country_code: str = 'PL') -> dict:
         ensure_ascii=False, separators=(',', ':')).encode()).hexdigest()
     if fingerprint != row['detail_sha256']:
         return canonical
-    translated = _recipe_translations().get(recipe.name)
+    translated = _recipe_translations(language).get(recipe.name)
     if translated is None:
         return canonical
     return dict(name=translated['name'], description=translated['description'],
@@ -83,13 +87,13 @@ def recipe_display_content(recipe, *, country_code: str = 'PL') -> dict:
         suggested_seasonings=list(translated['suggested_seasonings']))
 
 
-def english_system_name_match(model, term: str, *, kind: str):
+def english_system_name_match(model, term: str, *, kind: str, country_code: str = 'GB'):
     needle = term.strip().casefold()
     if not needle or kind not in {'recipes', 'ingredients'}:
         return false()
     matches = []
     for identity, row in _index()[kind].items():
-        if needle not in row['en_GB'].casefold():
+        if needle not in row[_LANGUAGES[country_code]].casefold():
             continue
         conditions = [model.id == UUID(identity), model.name == row['source'],
                       model.created_by_user_id.is_(None)]
@@ -99,23 +103,23 @@ def english_system_name_match(model, term: str, *, kind: str):
     return or_(*matches) if matches else false()
 
 
-def english_ingredient_name_in(model, names: set[str]):
+def english_ingredient_name_in(model, names: set[str], *, country_code: str = 'GB'):
     """Match an exact, reviewed GB ingredient label to its canonical identity."""
     matches = [
         and_(model.id == UUID(identity), model.name == row['source'])
         for identity, row in _index()['ingredients'].items()
-        if row['en_GB'].casefold() in names
+        if row[_LANGUAGES[country_code]].casefold() in names
     ]
     return and_(model.created_by_user_id.is_(None), or_(*matches)) if matches else false()
 
 
-@lru_cache(maxsize=4)
-def english_system_name_order(model, *, kind: str):
+@lru_cache(maxsize=8)
+def english_system_name_order(model, *, kind: str, country_code: str = 'GB'):
     clauses = []
     for identity, row in _index()[kind].items():
         conditions = [model.id == UUID(identity), model.name == row['source']]
         if kind == 'recipes':
             conditions.append(model.description == row['description'])
-        clauses.append((and_(*conditions), row['en_GB']))
+        clauses.append((and_(*conditions), row[_LANGUAGES[country_code]]))
     # Most growing-catalogue rows are authored: skip all seed checks for them.
     return case((model.created_by_user_id.is_(None), case(*clauses, else_=model.name)), else_=model.name)

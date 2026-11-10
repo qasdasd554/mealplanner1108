@@ -1,0 +1,28 @@
+{
+  "store_slug": "edeka",
+  "currency": "EUR",
+  "reviewed_on": "2026-11-10",
+  "offer_window": {"from": "2026-11-09", "to": "2026-11-14"},
+  "purpose": "dated public flyer estimates for isolated testing",
+  "sources": {
+    "flyer": "https://www.edeka.de/angebote/",
+    "bornheim_theo_flyer": "https://www.edeka.de/maerkte/071965/angebote/",
+    "thyrnau_buchbauer_flyer": "https://www.edeka.de/maerkte/036201/",
+    "permanent_price_reductions": "https://www.edeka.de/angebote/preissenkungen/"
+  },
+  "products": [
+    {"canonical": "Awokado", "unit": "szt", "quantity": "1", "price": "0.99", "brand": null, "source": "flyer", "retailer_variant": "Hass, single-item price"},
+    {"canonical": "Masło extra", "unit": "g", "quantity": "250", "price": "1.29", "brand": "MEGGLE", "source": "flyer", "retailer_variant": "Feine Butter"},
+    {"canonical": "Sałata lodowa", "unit": "szt", "quantity": "1", "price": "0.88", "brand": null, "source": "flyer"},
+    {"canonical": "Mandarynki", "unit": "g", "quantity": "750", "price": "1.99", "brand": null, "source": "flyer"},
+    {"canonical": "Chleb pszenny", "unit": "g", "quantity": "750", "price": "1.09", "brand": null, "source": "flyer", "price_basis": "published_average_regular_price", "retailer_variant": "Sandwich-Toast Weizen"},
+    {"canonical": "Łosoś wędzony", "unit": "g", "quantity": "200", "price": "4.29", "brand": null, "source": "flyer", "price_basis": "published_average_regular_price"},
+    {"canonical": "Jajka", "unit": "szt", "quantity": "18", "price": "3.99", "brand": null, "source": "bornheim_theo_flyer", "retailer_variant": "Frische Eier aus Bodenhaltung"},
+    {"canonical": "Oliwa z oliwek", "unit": "l", "quantity": "1", "price": "15.00", "brand": "Jordan", "source": "bornheim_theo_flyer", "retailer_variant": "Natives Olivenöl extra, Dose"},
+    {"canonical": "Ziemniaki", "unit": "g", "quantity": "650", "price": "1.29", "brand": null, "source": "bornheim_theo_flyer", "retailer_variant": "Bio-Kartoffeln Drillinge, festkochend"},
+    {"canonical": "Marchew", "unit": "kg", "quantity": "1", "price": "1.69", "brand": null, "source": "bornheim_theo_flyer", "retailer_variant": "Bio-Möhren, Beutel"},
+    {"canonical": "Pierś z kurczaka", "unit": "kg", "quantity": "1", "price": "8.99", "brand": null, "source": "bornheim_theo_flyer", "retailer_variant": "Hähnchenbrustfilet, XXL-Packung"},
+    {"canonical": "Mąka pszenna", "unit": "kg", "quantity": "1", "price": "0.99", "brand": "EDEKA Herzstücke", "source": "thyrnau_buchbauer_flyer", "retailer_variant": "Konditor-Weizenmehl Type 405"},
+    {"canonical": "Ser żółty gouda", "unit": "g", "quantity": "450", "price": "4.49", "brand": null, "source": "permanent_price_reductions", "price_basis": "published_unit_price_rounded_to_pack_price", "retailer_variant": "Mittelalter Gouda am Stück, 48% Fett i.Tr., 9.98 EUR/kg"}
+  ]
+}

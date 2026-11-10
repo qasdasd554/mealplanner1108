@@ -353,7 +353,7 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
           SnackBar(
             duration: const Duration(seconds: 3),
             content: Text(
-              context.strings.localeName.startsWith('en')
+              !context.strings.localeName.startsWith('pl')
                   ? context.strings.productFormLookupFailed
                   : friendlyError(e, strings: context.strings),
             ),
@@ -445,7 +445,7 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
           SnackBar(
             duration: const Duration(seconds: 3),
             content: Text(
-              context.strings.localeName.startsWith('en')
+              !context.strings.localeName.startsWith('pl')
                   ? context.strings.productFormRequestFailed
                   : friendlyError(e, strings: context.strings),
             ),
@@ -629,7 +629,11 @@ class _SubmitProductSheetState extends State<SubmitProductSheet> {
                     decoration: InputDecoration(
                       labelText: context.strings.productFormPrice,
                       errorMaxLines: 3,
-                      suffixText: _currency == 'GBP' ? '£' : 'zł',
+                      suffixText: switch (_currency) {
+                        'GBP' => '£',
+                        'EUR' => '€',
+                        _ => 'zł',
+                      },
                       border: const OutlineInputBorder(),
                     ),
                     validator: (v) {

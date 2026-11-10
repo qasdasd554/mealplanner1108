@@ -11,6 +11,7 @@ import base64
 import json
 import re
 
+from app.core.language import message_for_country
 from app.services.ai_recipe_import import AIRecipeImportError, _call_gemini
 
 
@@ -44,24 +45,21 @@ def _parse_label_json(raw_text: str, barcode: str, *, country_code: str = "PL") 
     try:
         payload = json.loads(cleaned)
     except json.JSONDecodeError as exc:
-        raise ProductLabelRecognitionError(
-            "The product data could not be read. Take clearer photos."
-            if country_code == "GB"
-            else "AI nie zwróciło prawidłowych danych produktu. Zrób wyraźniejsze zdjęcia."
-        ) from exc
+        raise ProductLabelRecognitionError(message_for_country(country_code,
+            "AI nie zwróciło prawidłowych danych produktu. Zrób wyraźniejsze zdjęcia.",
+            "The product data could not be read. Take clearer photos.",
+        )) from exc
     if not isinstance(payload, dict):
-        raise ProductLabelRecognitionError(
-            "The product label could not be read."
-            if country_code == "GB" else "Nie udało się odczytać etykiety produktu."
-        )
+        raise ProductLabelRecognitionError(message_for_country(country_code,
+            "Nie udało się odczytać etykiety produktu.", "The product label could not be read.",
+        ))
 
     name = str(payload.get("name") or "").strip()
     if len(name) < 2:
-        raise ProductLabelRecognitionError(
-            "The product name could not be read. Photograph the whole front of the pack."
-            if country_code == "GB"
-            else "Nie udało się odczytać nazwy. Zrób zdjęcie całego przodu opakowania."
-        )
+        raise ProductLabelRecognitionError(message_for_country(country_code,
+            "Nie udało się odczytać nazwy. Zrób zdjęcie całego przodu opakowania.",
+            "The product name could not be read. Photograph the whole front of the pack.",
+        ))
     brand = str(payload.get("brand") or "").strip() or None
     unit = str(payload.get("unit") or "g").strip().lower()
     if unit not in {"g", "ml"}:
@@ -143,6 +141,12 @@ The user interface is English (United Kingdom). Do not translate the
 product name or brand: preserve the visible label. Extract the same JSON
 keys and numeric units as above; never infer UK shop stock or prices.
 """
+    elif country_code == "DE":
+        prompt += """
+Die App-Sprache ist Deutsch (Deutschland). Übernimm Produktname und Marke wie
+auf der Verpackung. Behalte dieselben JSON-Schlüssel und Einheiten bei. Leite
+keine Preise oder Verfügbarkeit im Handel aus der Verpackung ab.
+"""
     parts = [
         {"text": prompt},
         {"text": "Zdjęcie 1 — przód opakowania:"},
@@ -167,9 +171,8 @@ keys and numeric units as above; never infer UK shop stock or prices.
             max_total_seconds=40,
         )
     except AIRecipeImportError as exc:
-        raise ProductLabelRecognitionError(
-            "Label recognition is temporarily unavailable. Please try again shortly."
-            if country_code == "GB"
-            else "Rozpoznawanie etykiety jest chwilowo niedostępne. Spróbuj ponownie za moment."
-        ) from exc
+        raise ProductLabelRecognitionError(message_for_country(country_code,
+            "Rozpoznawanie etykiety jest chwilowo niedostępne. Spróbuj ponownie za moment.",
+            "Label recognition is temporarily unavailable. Please try again shortly.",
+        )) from exc
     return _parse_label_json(raw, barcode, country_code=country_code)

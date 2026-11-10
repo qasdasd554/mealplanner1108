@@ -2,9 +2,19 @@ import 'app_localizations.dart';
 
 /// Display labels only. The Polish values remain the API/storage identifiers.
 extension CatalogLabels on AppLocalizations {
+  String get proteinAbbreviation => localeName.startsWith('pl') ? 'B' : 'P';
+
+  String get fatAbbreviation => localeName.startsWith('pl') ? 'T' : 'F';
+
+  String get carbsAbbreviation => switch (localeName.split('_').first) {
+    'de' => 'KH',
+    'en' => 'C',
+    _ => 'W',
+  };
+
   /// Diary headings and controls keep existing Polish capitalisation.
   String diaryMealTypeLabel(String value) {
-    if (!localeName.startsWith('en')) return value;
+    if (localeName.startsWith('pl')) return value;
     final label = mealTypeLabel(value);
     return label.isEmpty
         ? label
@@ -63,10 +73,13 @@ extension CatalogLabels on AppLocalizations {
     'łyżeczka' ||
     'łyżeczki' ||
     'łyżeczek' => priceCompareUnitTeaspoon,
-    'lyzka' ||
-    'łyżka' ||
-    'łyżki' ||
-    'łyżek' => localeName.startsWith('en') ? 'tbsp' : 'łyżka',
+    'lyzka' || 'łyżka' || 'łyżki' || 'łyżek' => switch (localeName
+        .split('_')
+        .first) {
+      'en' => 'tbsp',
+      'de' => 'EL',
+      _ => 'łyżka',
+    },
     'szklanka' => priceCompareUnitCup,
     _ => value,
   };

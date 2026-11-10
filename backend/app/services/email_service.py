@@ -44,7 +44,9 @@ async def _send_code_email(
         )
 
     name = escape(display_name) if display_name else None
-    if country_code == 'GB':
+    if country_code == 'DE':
+        greeting = f"Hallo {name}!" if name else 'Hallo!'
+    elif country_code == 'GB':
         greeting = f"Hi {name}!" if name else 'Hi!'
     else:
         greeting = f"Cześć {name}!" if name else "Cześć!"
@@ -99,6 +101,14 @@ async def send_verification_email(to_email: str, code: str, display_name: str | 
     chwilowa awaria Resend uniemożliwiałaby rejestrację w ogóle. Użytkownik
     może zawsze poprosić o ponowne wysłanie kodu (/auth/resend-code).
     """
+    if country_code == 'DE':
+        return await _send_code_email(
+            to_email, code, display_name,
+            subject="Dein Bestätigungscode – Meal Planner",
+            intro_line="Bestätige dein Konto mit diesem Code:",
+            footer_line="Der Code ist 15 Minuten gültig. Wenn du kein Konto erstellt hast, kannst du diese E-Mail ignorieren.",
+            country_code=country_code,
+        )
     await _send_code_email(
         to_email,
         code,
@@ -117,6 +127,14 @@ async def send_verification_email(to_email: str, code: str, display_name: str | 
 
 async def send_password_reset_email(to_email: str, code: str, display_name: str | None, *, country_code: str = 'PL') -> None:
     """Wysyła e-mail z kodem do zresetowania hasła."""
+    if country_code == 'DE':
+        return await _send_code_email(
+            to_email, code, display_name,
+            subject="Passwort zurücksetzen – Meal Planner",
+            intro_line="Verwende diesen Code, um dein Passwort zurückzusetzen:",
+            footer_line="Der Code ist 15 Minuten gültig. Wenn du die Änderung nicht angefordert hast, kannst du diese E-Mail ignorieren.",
+            country_code=country_code,
+        )
     await _send_code_email(
         to_email,
         code,

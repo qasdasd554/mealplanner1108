@@ -14,7 +14,7 @@ from app.db.session import Base
 
 class PurchaseCampaign(Base):
     __tablename__ = "purchase_campaigns"
-    __table_args__ = (CheckConstraint("country_code IN ('PL', 'GB')", name="ck_purchase_campaign_country"),)
+    __table_args__ = (CheckConstraint("country_code IN ('PL', 'GB', 'DE')", name="ck_purchase_campaign_country"),)
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(String(120), nullable=False)

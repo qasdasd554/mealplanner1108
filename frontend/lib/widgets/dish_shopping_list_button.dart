@@ -95,9 +95,11 @@ class _DishShoppingListButtonState extends State<DishShoppingListButton> {
                 Text(
                   context.strings.detailExistingLists(
                     existingLists.length,
-                    context.strings.localeName.startsWith('en')
-                        ? (existingLists.length == 1 ? 'list' : 'lists')
-                        : (existingLists.length == 1 ? 'listę' : 'listy'),
+                    switch (context.strings.localeName.split('_').first) {
+                      'de' => existingLists.length == 1 ? 'Liste' : 'Listen',
+                      'en' => existingLists.length == 1 ? 'list' : 'lists',
+                      _ => existingLists.length == 1 ? 'listę' : 'listy',
+                    },
                   ),
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
                 ),

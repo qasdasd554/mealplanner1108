@@ -55,6 +55,16 @@ def test_legacy_email_defaults_to_polish(sent):
     assert 'Cześć!' in sent[-1]['html']
 
 
+@pytest.mark.parametrize('kind', ['verification', 'password_reset'])
+def test_german_email_preserves_otp_recipient_and_expiry(sent, kind):
+    function = getattr(email_service, f'send_{kind}_email')
+    asyncio.run(function('synthetic@example.test', '123456', 'Anna', country_code='DE'))
+    payload = sent[-1]
+    assert payload['to'] == ['synthetic@example.test']
+    assert 'Hallo Anna!' in payload['html']
+    assert '123456' in payload['html'] and '15 Minuten' in payload['html']
+
+
 def test_display_name_cannot_inject_markup_into_code_email(sent):
     name = '<b>A & B</b>'
     asyncio.run(email_service.send_verification_email('synthetic@example.test', '123456', name))

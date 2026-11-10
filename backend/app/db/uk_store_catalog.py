@@ -116,9 +116,13 @@ async def seed_uk_stores(session: AsyncSession) -> None:
     creates only retailer navigation data, not product availability. Product
     mappings must be independently validated before the market is released.
     """
+    await seed_store_definitions(session, UK_STORES)
+
+
+async def seed_store_definitions(session: AsyncSession, definitions) -> None:
     from app.models.store import Store, StoreDepartment
 
-    for definition in UK_STORES:
+    for definition in definitions:
         store = await session.get(Store, definition.id)
         if store is None:
             store = Store(
@@ -140,7 +144,7 @@ async def seed_uk_stores(session: AsyncSession) -> None:
             store.country_code != definition.country_code
             or store.currency_code != definition.currency
         ):
-            raise ValueError("UK store identity belongs to a different market or currency")
+            raise ValueError("Store identity belongs to a different market or currency")
 
         for position, department_name in enumerate(definition.department_names):
             department_id = uuid5(definition.id, f"department:{department_name}")

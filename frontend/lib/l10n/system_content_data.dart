@@ -30,6 +30,20 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["fresh basil"],
     },
+    "de": {
+      "name": "Zucchini und Thunfischteigwaren",
+      "description":
+          "Leichte Pasta mit frischer Zucchini und Thunfisch in Olivenöl - ein schnelles Mittagessen für warme Tage.",
+      "instructions": [
+        "Kochen Sie den Penne (160 g) in gesalzenem Wasser gemäß den Packungsanweisungen und reservieren Sie ein halbes Glas Kochwasser.",
+        "Erhitzen Sie das Olivenöl (2 Esslöffel) in einer Bratpfanne und erweichen Sie die gehackte Zwiebel (0.5 Zwiebel) mit dem fein gehackten Knoblauch (2 Nelken).",
+        "Fügen Sie die gewürfelte Zucchiniette (1 Zucchiniette) hinzu und braten Sie für 6-8 Minuten bis weich und fügen Sie bei Bedarf Nudelwasser hinzu.",
+        "Saison mit Salz, Pfeffer und Oregano (0.5 Teelöffel).",
+        "Fügen Sie die entwässerte Pasta und den entwässerten Thunfisch (150 g) hinzu, rühren und erhitzen Sie kurz zusammen.",
+        "Servieren Sie mit geriebenem Parmesan (30 g).",
+      ],
+      "suggested_seasonings": ["Frisches Basilikum"],
+    },
   },
   "8ec98cc2-c2d7-5119-b7a9-df8819c14615": {
     "source": {
@@ -60,6 +74,20 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["fresh dill"],
     },
+    "de": {
+      "name": "Gebackener Kabeljau mit Erbsen",
+      "description":
+          "Mit Zitrone gebackener zarter Kabeljau, mit sanft gekochten Erbsen serviert.",
+      "instructions": [
+        "Den Ofen auf 200°C vorheizen.",
+        "Pat das Kabeljaufilet (400 g) trocken, würzen mit Salz und Pfeffer, und nieseln mit dem Saft einer Zitrone (1 Zitrone) und einem Esslöffel Olivenöl.",
+        "Legen Sie den Fisch in eine ofensichere Schale und backen Sie 15-18 Minuten, bis er mit einer Gabel abblättert.",
+        "Währenddessen dämpfen Sie die gefrorenen Erbsen (300 g) oder kochen Sie sie in etwas Wasser für 4-5 Minuten.",
+        "Mischen Sie die Erbsen mit einem Esslöffel Butter, fein gehacktem Knoblauch (1 Nelken) und gehacktem Dill.",
+        "Servieren Sie den Fisch mit den Erbsen, geträufelt mit dem restlichen Olivenöl.",
+      ],
+      "suggested_seasonings": ["frischer Dill"],
+    },
   },
   "d43fc8c6-643e-577b-9dbd-ce50b29dbdb7": {
     "source": {
@@ -87,6 +115,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["cinnamon"],
     },
+    "de": {
+      "name": "Süße Quarkpfannkuchen",
+      "description": "Fluffy Quark Pancakes - ein nahrhaftes, süßes Frühstück.",
+      "instructions": [
+        "Mash die semi-fat-Quark (250 g) mit einer Gabel in einer Schüssel.",
+        "Fügen Sie die Eier (2 Eier), Weizenmehl (60 g) und eine Prise Vanillezucker (4 g) hinzu und mischen Sie dann in einen glatten Teig.",
+        "Erhitzen Sie eine Bratpfanne mit etwas Butter (15 g) über eine mittlere Hitze.",
+        "Löffel in Portionen Teig und Braten für 2-3 Minuten auf jeder Seite bis golden.",
+        "Servieren Sie mit natürlichem Joghurt und Ihrer Lieblingsfrucht.",
+      ],
+      "suggested_seasonings": ["Zimt"],
+    },
   },
   "15a3b032-31b6-597e-8f84-83c7d4921cbf": {
     "source": {
@@ -112,6 +152,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Serve with a piece of crusty bread.",
       ],
       "suggested_seasonings": ["fresh mint"],
+    },
+    "de": {
+      "name": "Cremige Erbsensuppe",
+      "description": "Eine samtige Frühlingssuppe - schnell und leicht.",
+      "instructions": [
+        "Kochen Sie die gehackte Zwiebel (0.15 kg) in Olivenöl (1 Esslöffel) in einem Topf bis weich.",
+        "Fügen Sie die gefrorenen Erbsen (500 g) und Gemüsestock (700 ml) hinzu und kochen Sie dann für 10-12 Minuten.",
+        "Mischen Sie die Suppe bis glatt.",
+        "Saison mit Salz und Pfeffer, rühren in 18% Creme (100 ml) und Hitze ohne Sieden.",
+        "Servieren Sie mit einem Stück krustiges Brot.",
+      ],
+      "suggested_seasonings": ["frische Minze"],
     },
   },
   "470f567b-dd28-582a-b5b2-ea1b9654921f": {
@@ -143,6 +195,20 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["coriander"],
     },
+    "de": {
+      "name": "Hähnchen und Gemüse mit Reis gebraten",
+      "description":
+          "Eine schnelle Ein-Pfannen-Schale - Huhn und knuspriges Gemüse in Sojasauce.",
+      "instructions": [
+        "Kochen Sie den weißen Reis (0.15 kg) gemäß den Packungsanweisungen.",
+        "Schneiden Sie die Hühnerbrust (0.3 kg) in Streifen und würzen Sie sie mit Salz und Pfeffer.",
+        "Braten Sie das Huhn in heißem Rapsöl (2 Esslöffel) bis golden, dann auf einen Teller übertragen.",
+        "In derselben Pfanne wird das gefrorene Mischgemüse (400 g) mit fein geriebenem frischem Ingwer (10 g) für 5-6 Minuten gerührt.",
+        "Bringen Sie das Huhn in die Pfanne zurück, gießen Sie die Sojasauce (3 Esslöffel) ein, rühren und erhitzen Sie 2 Minuten.",
+        "Servieren Sie über den Reis.",
+      ],
+      "suggested_seasonings": ["Koriander"],
+    },
   },
   "6b0985d9-f511-58eb-b456-ec250d70db05": {
     "source": {
@@ -164,6 +230,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Drizzle with a teaspoon of honey before serving.",
       ],
       "suggested_seasonings": ["cinnamon"],
+    },
+    "de": {
+      "name": "Mandelmilchbrei mit Walnüssen",
+      "description": "Ein pflanzenbasiertes Frühstück mit knusprigen Nüssen.",
+      "instructions": [
+        "Legen Sie den Hafer (60 g) in eine Pfanne, gießen Sie über die Mandelmilch (250 ml) und kochen Sie über eine niedrige Hitze für 5-7 Minuten unter Rühren.",
+        "Von der Hitze entfernen und die gehackten Walnüsse (20 g) und geschnittene Banane (0.1 kg) hinzufügen.",
+        "Drizzle mit einem Teelöffel Honig vor dem Servieren.",
+      ],
+      "suggested_seasonings": ["Zimt"],
     },
   },
   "0fc49f78-13f5-59e1-a091-6cf3bb0f03c5": {
@@ -193,6 +269,19 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["smoked paprika"],
     },
+    "de": {
+      "name": "Leichter Huhnburger",
+      "description":
+          "Ein hausgemachter Burger mit gegrilltem Huhn anstelle von gebratenem Rindfleisch.",
+      "instructions": [
+        "Leicht glätten die Hühnerbrust (0.3 kg) und würzen mit Salz, Pfeffer und süßer Paprika (5 g).",
+        "Grillen oder Pfannenbraten in etwas Rapsöl (1 Esslöffel) für 4-5 Minuten auf jeder Seite.",
+        "Halbieren Sie die Kaiserrollen (2 Rollen) und stoßen Sie sie leicht in einer Bratpfanne an.",
+        "Belege die unteren Hälften mit Eisbergsalat (0,5 Kopf), einer Tomatenscheibe, dem Hähnchen und einer Scheibe Gouda (40 g).",
+        "Fügen Sie Senf hinzu, um mit den anderen Hälften der Rollen zu schmecken und zu bedecken.",
+      ],
+      "suggested_seasonings": ["geräucherte Paprika"],
+    },
   },
   "6e4a5e93-73e7-55d7-9539-829712eaa0bd": {
     "source": {
@@ -218,6 +307,19 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Tear the iceberg lettuce (1 lettuce) into pieces and arrange on a plate.",
         "Arrange the chicken and croutons over the lettuce and sprinkle with grated Parmesan (30 g).",
         "Drizzle with a little olive oil and the juice of a lemon (0.5 lemon).",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Hühnchen-Casar-Salat",
+      "description":
+          "Eine leichtere Version des klassischen Salats mit gegrilltem Huhn und Parmesan.",
+      "instructions": [
+        "Saison die Hühnerbrust (0.25 kg) mit Salz und Pfeffer, Pfanne in Olivenöl (1 Esslöffel) für 5-6 Minuten auf jeder Seite, dann in Streifen geschnitten.",
+        "Würfeln Sie das Weißbrot (80 g) und Toast in einer trockenen Bratpfanne, um Croutons zu machen.",
+        "Zupfe den Eisbergsalat (1 Kopf) in Stücke und richte ihn auf einem Teller an.",
+        "Ordnen Sie das Huhn und die Croutons über den Salat und streuen Sie mit geriebenem Parmesan (30 g).",
+        "Drizzle mit ein wenig Olivenöl und dem Saft einer Zitrone (0.5 Zitrone).",
       ],
       "suggested_seasonings": [],
     },
@@ -247,6 +349,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["cinnamon"],
     },
+    "de": {
+      "name": "Süßbananen-Omelett",
+      "description":
+          "Ein flauschiges Omelett ohne Zuckerzusatz, gesüßt mit reifer Banane.",
+      "instructions": [
+        "Schlagen Sie die Eier (2 Eier) mit einer Gabel, indem Sie ein wenig Vanillezucker (3 g) und Zimt hinzufügen.",
+        "Erhitzen Sie eine Bratpfanne mit Butter (10 g) über eine mittlere Hitze.",
+        "Gießen Sie die Eimischung ein und kochen Sie 2-3 Minuten, bis die Unterseite eingestellt ist.",
+        "Ordne die Bananenscheiben (0.12 kg) auf einer Hälfte an, falte das Omelett in zwei Hälften und koche für eine weitere Minute.",
+      ],
+      "suggested_seasonings": ["Zimt"],
+    },
   },
   "71e0cca1-ee92-5b5f-9500-cf6293071c84": {
     "source": {
@@ -270,6 +384,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Add a teaspoon of honey, stir and close the jar.",
         "Refrigerate overnight.",
         "In the morning, stir and top with strawberries (80 g) and blueberries (50 g).",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Übernachtung Hafer mit Chia und Obst",
+      "description":
+          "Bereiten Sie sich am Abend vor, genießen Sie am Morgen - kalten Hafer mit Chiasamen.",
+      "instructions": [
+        "Mischen Sie den Hafer (50 g), Chiasamen (15 g) und Mandelmilch (200 ml) in einem Glas.",
+        "Fügen Sie einen Teelöffel Honig hinzu, rühren und schließen Sie das Glas.",
+        "Kühlen Sie über Nacht.",
+        "Am Morgen rühren und oben mit Erdbeeren (80 g) und Heidelbeeren (50 g).",
       ],
       "suggested_seasonings": [],
     },
@@ -301,6 +427,19 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["fresh coriander"],
     },
+    "de": {
+      "name": "Geräucherter Lachs, Mango- und Avocado-Salat",
+      "description":
+          "Eine erfrischende Salatpaarung geräucherten Lachs mit süßer Mango.",
+      "instructions": [
+        "Zupfe den Eisbergsalat (1 Kopf) in Stücke und verteile ihn auf Tellern.",
+        "Schälen und würfeln Sie die Mango (1 Mango) und Avocado (1 Avocado).",
+        "Schneiden Sie den geräucherten Lachs (150 g) in Streifen.",
+        "Ordnen Sie die Mango, Avocado und Lachs über dem Salat.",
+        "Drizzle mit Limettensaft (1 Limette) und Olivenöl (1 Esslöffel), dann Saison mit Pfeffer.",
+      ],
+      "suggested_seasonings": ["Koriander, frisch"],
+    },
   },
   "fc97571c-29fe-5f11-bee8-2991bea1041e": {
     "source": {
@@ -329,6 +468,19 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["nutmeg"],
     },
+    "de": {
+      "name": "Pasta mit Brokkoli in einer cremefarbenen Sauce",
+      "description":
+          "Cremige Pasta mit Brokkoli und Parmesan - ein füllendes vegetarisches Mittagessen.",
+      "instructions": [
+        "Kochen Sie den Penne (180 g) in gesalzenem Wasser gemäß den Packungsanweisungen.",
+        "Schneiden Sie den Brokkoli (1 Brokkoli) in Blumen und Dampf für 5 Minuten.",
+        "Kochen Sie den fein gehackten Knoblauch (2 Nelken) in Butter (15 g) in einer Bratpfanne.",
+        "Fügen Sie die 30% Creme (150 ml) hinzu und erhitzen Sie unter Rühren, bis Sie leicht verdickt sind.",
+        "Fügen Sie die Pasta, Brokkoli und geriebenen Parmesan (40 g), rühren und würzen Sie mit Salz und Pfeffer.",
+      ],
+      "suggested_seasonings": ["Muskatnuss"],
+    },
   },
   "d790e41d-5ba4-5cae-96c6-332b6db6d5f0": {
     "source": {
@@ -352,6 +504,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Top with mozzarella slices (60 g) and chopped tomatoes (0.1 kg).",
       ],
       "suggested_seasonings": ["fresh basil"],
+    },
+    "de": {
+      "name": "Avocado und Mozzarella Toast",
+      "description": "Ein schnelles, füllendes Frühstück auf knusprigen Toast.",
+      "instructions": [
+        "Toast das Weißbrot (60 g) in einem Toaster oder einer trockenen Bratpfanne.",
+        "Mash die Avocado (1 Avocado) mit einer Gabel, Zugabe von Salz, Pfeffer und Zitronensaft (0.25 Zitrone).",
+        "Verbreiten Sie die Avocado-Mischung über den Toast.",
+        "Top mit Mozzarella-Scheiben (60 g) und gehackten Tomaten (0.1 kg).",
+      ],
+      "suggested_seasonings": ["Frisches Basilikum"],
     },
   },
   "c4e69873-de7b-5b4d-8a1e-0f344205a1c8": {
@@ -378,6 +541,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Serve the crunchy oats beside the eggs and tomatoes, seasoned with salt and pepper.",
       ],
       "suggested_seasonings": ["chives"],
+    },
+    "de": {
+      "name": "Genießbares Müsli mit Eiern und Tomaten",
+      "description":
+          "Ein ungewöhnliches, füllendes Frühstück - knuspriges Müsli mit einem herzhaften Twist.",
+      "instructions": [
+        "Toast den Hafer (50 g) in einer trockenen Bratpfanne mit ein wenig Rapsöl (1 Teelöffel) bis golden.",
+        "In einer separaten Pfanne braten Sie die Eier (2 Eier) mit etwas Butter (10 g).",
+        "Die Tomaten (0.1 kg) halbieren und kurz neben den Eiern braten.",
+        "Servieren Sie den knusprigen Hafer neben den Eiern und Tomaten, gewürzt mit Salz und Pfeffer.",
+      ],
+      "suggested_seasonings": ["Schnittlauch"],
     },
   },
   "91d0bfd3-aad3-5059-8a8a-260906fb40fa": {
@@ -406,6 +581,19 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["dill"],
     },
+    "de": {
+      "name": "Gedämpfter Kabeljau mit Gemüse und Kartoffeln",
+      "description":
+          "Ein leicht zu verdauliches gedämpftes Mittagessen - ohne Zusatz von Fett.",
+      "instructions": [
+        "Die Kartoffeln schälen und würfeln (0.4 kg), dann dampfen sie für 15 Minuten.",
+        "Saison das Kabeljaufilet (350 g) mit Salz und Pfeffer und Platz in einem Dampfer.",
+        "Fügen Sie das gefrorene Mischgemüse (300 g) zum Dampfer für die letzten 8 Minuten des Kochens hinzu.",
+        "Dampfen Sie den Fisch für 8-10 Minuten, bis er mit einer Gabel abblättert.",
+        "Servieren Sie den Fisch mit den Kartoffeln und Gemüse, berieselt mit Olivenöl (1 Esslöffel) und Zitronensaft.",
+      ],
+      "suggested_seasonings": ["Dill"],
+    },
   },
   "14597160-687f-594d-960e-2116302f62da": {
     "source": {
@@ -429,6 +617,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Top the slices with iceberg lettuce leaves (0.25 lettuce), cooked ham slices (60 g) and Gouda (30 g).",
         "Add sliced tomato (0.08 kg) and coarsely grated carrot (0.05 kg).",
         "Cover with another slice of bread and cut in half.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Sandwichs von Schinken, Käse und Kopfsalat",
+      "description":
+          "Klassische, füllende Sandwiches für ein schnelles Frühstück oder ein Lunchpaket.",
+      "instructions": [
+        "Schneiden Sie das Weißbrot (80 g).",
+        "Bedecke die Scheiben mit Eisbergsalatblättern (0.25 Salat), gekochten Schinkenscheiben (60 g) und Gouda (30 g).",
+        "In Scheiben geschnittene Tomaten (0.08 kg) und grob geriebene Karotten (0.05 kg).",
+        "Decken Sie mit einem anderen Stück Brot und in zwei Hälften geschnitten.",
       ],
       "suggested_seasonings": [],
     },
@@ -459,6 +659,19 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["dill"],
     },
+    "de": {
+      "name": "Pasta-Salat mit Brokkoli und geräuchertem Lachs",
+      "description":
+          "Eine Füllung Pasta Salat, ideal für die Einnahme zur Arbeit.",
+      "instructions": [
+        "Kochen Sie den Penne (160 g) in gesalzenem Wasser nach den Packungsanweisungen, dann abtropfen lassen und leicht abkühlen lassen.",
+        "Schneiden Sie den Brokkoli (1 Brokkoli) in kleine Blumen und Dampf für 4-5 Minuten.",
+        "Schneiden Sie den geräucherten Lachs (120 g) in Stücke.",
+        "Mischen Sie die Pasta mit Brokkoli und Lachs.",
+        "Drizzle mit Olivenöl (2 Esslöffel) und Zitronensaft (0.5 Zitrone), dann würzen Sie mit Salz und Pfeffer.",
+      ],
+      "suggested_seasonings": ["Dill"],
+    },
   },
   "769febda-8d71-53ea-bea6-98cad2722d73": {
     "source": {
@@ -486,6 +699,19 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["dried chilli", "coriander"],
     },
+    "de": {
+      "name": "Kichererbsensuppe",
+      "description":
+          "Eine wärmende, duftende Suppe in weniger als einer halben Stunde fertig.",
+      "instructions": [
+        "Kochen Sie die gehackten Zwiebeln (0.15 kg) und geriebenen Knoblauch (2 Nelken) in Rapsöl (1 Esslöffel) in einem Topf.",
+        "Zugabe des Currypulvers (15 g) und kurz Toast unter Rühren.",
+        "Gießen Sie in den Gemüsestock (600 ml) und Kokosmilch (400 ml), dann zum Kochen bringen.",
+        "Gib die abgetropften Kichererbsen (400 g) hinzu und lass alles 10 Minuten köcheln.",
+        "Saison mit Salz und Pfeffer, Hinzufügen von getrocknetem Chili für eine heißere Version.",
+      ],
+      "suggested_seasonings": ["getrocknete Chili", "Koriander"],
+    },
   },
   "755c9798-8791-594d-9f31-cac96d75f06b": {
     "source": {
@@ -503,6 +729,15 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       "instructions": [
         "Wash the apple (1 apple) and cut into wedges or slices.",
         "Serve with peanut butter (30 g) for dipping.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Apfel mit Erdnussbutter",
+      "description": "Ein schneller, nahrhafter süßer Snack.",
+      "instructions": [
+        "Waschen Sie den Apfel (1 Apfel) und schneiden Sie ihn in Keile oder Scheiben.",
+        "Servieren Sie mit Erdnussbutter (30 g) zum Tauchen.",
       ],
       "suggested_seasonings": [],
     },
@@ -526,6 +761,15 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["cumin", "smoked paprika"],
     },
+    "de": {
+      "name": "Karotten mit Hummus",
+      "description": "Crunchy Karotten in cremigem Hummus getaucht.",
+      "instructions": [
+        "Schälen Sie die Karotten (200 g) und schneiden Sie sie in Stöcke.",
+        "Servieren Sie mit Hummus (50 g) als Dip.",
+      ],
+      "suggested_seasonings": ["Kreuzkümmel", "geräucherte Paprika"],
+    },
   },
   "a9edc426-a80d-592b-af24-9eb3a2d0a790": {
     "source": {
@@ -545,6 +789,15 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Top with raspberries (50 g), fresh or thawed.",
       ],
       "suggested_seasonings": ["cinnamon", "vanilla"],
+    },
+    "de": {
+      "name": "Natürlicher Joghurt mit Himbeeren",
+      "description": "Ein leichter Proteinsnack.",
+      "instructions": [
+        "Löffel den natürlichen Joghurt (150 g) in eine Schüssel.",
+        "Top mit Himbeeren (50 g), frisch oder aufgetaut.",
+      ],
+      "suggested_seasonings": ["Zimt", "Vanille"],
     },
   },
   "c04c58c9-32e2-594d-adaf-f9257c3a5b32": {
@@ -570,6 +823,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["cinnamon", "vanilla"],
     },
+    "de": {
+      "name": "Mandelmilchbrei",
+      "description": "Brei aus pflanzlicher Milch und Bananen.",
+      "instructions": [
+        "Bringen Sie die Mandelmilch (200 ml) in einem kleinen Topf zum Kochen.",
+        "Fügen Sie den Hafer (50 g) hinzu und kochen Sie unter Rühren über eine niedrige Hitze für 5 Minuten.",
+        "Von der Hitze entfernen und für 2 Minuten lassen, um sich zu verdicken.",
+        "Schneiden Sie die Banane (1 Banane) und arrangieren Sie über den Brei.",
+      ],
+      "suggested_seasonings": ["Zimt", "Vanille"],
+    },
   },
   "41584c72-88f8-5675-b6a1-30bc402cf2b9": {
     "source": {
@@ -591,6 +855,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Drizzle with olive oil (20 ml) and toss gently just before serving.",
       ],
       "suggested_seasonings": ["oregano", "dried mint"],
+    },
+    "de": {
+      "name": "Griechischer Salat",
+      "description": "Ein klassischer Salat mit Feta und Oliven.",
+      "instructions": [
+        "Würfeln Sie die Tomaten (300 g) und die Gurke und schneiden Sie die Zwiebel (100 g) dünn ab.",
+        "Mischen Sie das Gemüse in einer Schüssel und fügen Sie die zerbröckelten Feta und Oliven (50 g) hinzu.",
+        "Drizzle mit Olivenöl (20 ml) und werfen Sie vorsichtig vor dem Servieren.",
+      ],
+      "suggested_seasonings": ["Oregano", "getrocknete Minze"],
     },
   },
   "f11a8950-5bf9-5ac2-b307-3121b9c3ef54": {
@@ -618,6 +892,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["chives", "sweet paprika"],
     },
+    "de": {
+      "name": "Mit Tomaten abgeriebene Eier",
+      "description": "Klassische Rührei mit reifen Tomaten, serviert mit Brot.",
+      "instructions": [
+        "Erhitzen Sie die Butter (20 g) in einer Bratpfanne über eine mittlere Hitze.",
+        "Die Tomaten (200 g) würfeln und für 2-3 Minuten braten.",
+        "Schlagen Sie die Eier (4 Eier), würzen Sie mit Salz (2 g) und Pfeffer, dann gießen Sie in die Pfanne.",
+        "Kochen, rühren, bis die Eier gerade eingestellt sind - nicht überkochen.",
+      ],
+      "suggested_seasonings": ["Schnittlauch", "Paprika, süß"],
+    },
   },
   "a6295184-163e-5dfd-a8f1-7636882062b7": {
     "source": {
@@ -640,6 +925,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Add vegetables of your choice and close the sandwiches.",
       ],
       "suggested_seasonings": ["chives", "mustard"],
+    },
+    "de": {
+      "name": "Sandwichs von Schinken und Käse",
+      "description":
+          "Einfache Frühstückssandwiches mit Schinken, Käse und Gemüse.",
+      "instructions": [
+        "Schneiden Sie das Brot (200 g).",
+        "Ordne die Schinkenscheiben (100 g) und Käse auf dem Brot an.",
+        "Fügen Sie Gemüse Ihrer Wahl hinzu und schließen Sie die Sandwiches.",
+      ],
+      "suggested_seasonings": ["Schnittlauch", "Senf"],
     },
   },
   "b4f0bb03-d708-5547-97bb-103de90dc1ec": {
@@ -666,6 +962,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Serve straight away, while warm.",
       ],
       "suggested_seasonings": ["cinnamon"],
+    },
+    "de": {
+      "name": "Brei mit Joghurt",
+      "description":
+          "Warmer Brei mit natürlichem Joghurt, ideal für ein nahrhaftes Frühstück.",
+      "instructions": [
+        "Bringen Sie die Milch (300 ml) zum Kochen in einem kleinen Topf und fügen Sie den Hafer (100 g) hinzu.",
+        "Kochen Sie über eine niedrige Hitze für etwa 5 Minuten, gelegentlich Rühren.",
+        "Entfernen Sie von der Hitze und rühren Sie in einem Löffel natürlichen Joghurts (150 g) für Cremigkeit.",
+        "Servieren Sie sofort, während Sie warm sind.",
+      ],
+      "suggested_seasonings": ["Zimt"],
     },
   },
   "46b868b2-2be7-567f-b2a2-b4bc1fae7cc1": {
@@ -702,6 +1010,23 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Serve with the drained potatoes and, if you like, your favourite slaw.",
       ],
       "suggested_seasonings": ["marjoram", "sweet paprika"],
+    },
+    "de": {
+      "name": "Gebrochenes Schweinefleisch mit Kartoffeln",
+      "description":
+          "Ein traditionelles polnisches Schweinefleischschnitzel, serviert mit Kartoffeln.",
+      "instructions": [
+        "Schälen Sie die Kartoffeln (500 g), halbieren Sie alle größeren, so dass sie gleichmäßig kochen, und legen Sie in einen Topf mit kaltem gesalzenem Wasser.",
+        "Bringen Sie zum Kochen und Kochen, abgedeckt, über eine mittlere Hitze für 15-20 Minuten, bis ein Messer leicht in die Mitte rutscht.",
+        "Währenddessen wird die Schweinelende (400 g) mit Klebefolie abgedeckt und mit einem Fleischhammer in Scheiben von etwa 1 cm Dicke abgeflacht; beide Seiten werden mit Salz (3 g) und Pfeffer gewürzt.",
+        "Stelle drei Teller bereit: einen mit Mehl, einen mit verquirlten Eiern (2 Stück) und einen mit Semmelbröseln.",
+        "Beschichten Sie jedes Kotelett in Mehl, schütteln Sie den Überschuss ab, dann Ei und schließlich Semmelbrösel, drücken Sie fest, so dass die Beschichtung haftet.",
+        "Erhitzen Sie das Öl in einer Bratpfanne, lassen Sie ein paar Semmelbrösel hinein, um zu überprüfen: Wenn sie sofort brutzeln, ist das Öl bereit.",
+        "Frittieren Sie die Koteletts für 3-4 Minuten auf jeder Seite bis goldbraun. Drehen Sie sich nicht zu früh oder die Beschichtung reißt.",
+        "Entleeren Sie die gekochten Schnitzel auf Küchenpapier, um überschüssiges Fett zu entfernen.",
+        "Servieren Sie mit den entwässerten Kartoffeln und, wenn Sie möchten, Ihrem Lieblingsslaw.",
+      ],
+      "suggested_seasonings": ["Marjoram", "Paprika, süß"],
     },
   },
   "7ee92d0e-17ec-51af-8150-9d1ae65c7da7": {
@@ -741,6 +1066,22 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["oregano", "chilli flakes", "nutmeg"],
     },
+    "de": {
+      "name": "Spaghetti Bolognese",
+      "description":
+          "Klassische Spaghetti mit einer bolognesischen Fleischsauce aus Tomatenpassata.",
+      "instructions": [
+        "Würfeln Sie die Zwiebel (150 g) fein und hacken Sie den Knoblauch (eine halbe Nelken).",
+        "Erhitzen Sie das Öl in einer Bratpfanne über eine mittlere Hitze, fügen Sie die Zwiebel und den Knoblauch hinzu und braten Sie für 3-4 Minuten, bis die Zwiebel weich und durchsichtig ist.",
+        "Fügen Sie das Hackfleisch (300 g) hinzu, brechen Sie es mit einer Gabel und braten Sie es für 6-8 Minuten, bis es gebräunt und nicht mehr rosa ist.",
+        "Gießen Sie die Tomate passata (250 g), würzen Sie mit Salz (3 g), Pfeffer und Basilikum (2 g) und rühren Sie gründlich.",
+        "Reduzieren Sie die Hitze, bedecken Sie und köcheln Sie die Soße für 15 Minuten, rühren Sie alle paar Minuten, um ein Festkleben zu verhindern.",
+        "Bringen Sie viel gesalzenes Wasser zum Kochen, fügen Sie die Pasta (250 g) hinzu und kochen Sie al dente nach dem Paket-Timing. Probieren Sie ein Stück vor dem Abtropfen.",
+        "Entleeren Sie die Pasta und reservieren Sie ein halbes Glas kochendes Wasser, falls die Sauce zu dick ist.",
+        "Kombinieren Sie die heiße Pasta und Sauce, rühren und servieren Sie sofort, vorzugsweise mit geriebenem Parmesan.",
+      ],
+      "suggested_seasonings": ["Oregano", "Chili-Flocken", "Muskatnuss"],
+    },
   },
   "59bec371-a592-5387-8388-af9822d28da9": {
     "source": {
@@ -768,6 +1109,19 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Mix with the cooked rice and serve.",
       ],
       "suggested_seasonings": ["sweet paprika", "turmeric", "curry powder"],
+    },
+    "de": {
+      "name": "Hähnchen mit Reis und Gemüse",
+      "description":
+          "Ein leichtes Mittagessen - gegrillte Hühnerbrust mit Reis und Gemüse.",
+      "instructions": [
+        "Würfeln Sie die Hühnerbrust (400 g) und würzen Sie sie mit Salz (3 g) und Pfeffer.",
+        "Kochen Sie den Reis (200 g) in gesalzenem Wasser nach den Packungsanweisungen.",
+        "Braten Sie das Huhn in Öl für etwa 6-8 Minuten bis zum Kochen.",
+        "Fügen Sie das gehackte Gemüse (Karotte (200 g) und Pfeffer) hinzu und braten Sie weitere 5 Minuten.",
+        "Mischen Sie mit dem gekochten Reis und servieren Sie.",
+      ],
+      "suggested_seasonings": ["Paprika, süß", "Kurkuma", "Currypulver"],
     },
   },
   "db344e04-3f19-5a6f-a246-b57588fc012f": {
@@ -805,6 +1159,23 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "sugar (to balance the acidity)",
       ],
     },
+    "de": {
+      "name": "Tomatensuppe mit Pasta",
+      "description":
+          "Hausgemachte Tomatensuppe mit Passata, serviert mit kleinen Nudelformen.",
+      "instructions": [
+        "Den Gemüsebrühe in einem Topf zum Kochen bringen.",
+        "Fügen Sie die Tomate passata (500 g) und gehackte Tomaten hinzu und bringen Sie dann zum Kochen zurück.",
+        "Saison mit Salz (5 g), Pfeffer und Basilikum, und kochen für 10 Minuten.",
+        "Kochen Sie die kleinen Nudelformen (150 g) separat nach den Packungsanweisungen.",
+        "Fügen Sie die Nudeln kurz vor dem Servieren mit etwas Creme (100 ml) hinzu, wenn Sie möchten.",
+      ],
+      "suggested_seasonings": [
+        "Frisches Basilikum",
+        "Oregano",
+        "Zucker (um den Säuregehalt auszugleichen)",
+      ],
+    },
   },
   "b7aef4b2-c6a5-5f65-b09a-35b5fdc51958": {
     "source": {
@@ -829,6 +1200,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Drizzle with olive oil (20 ml) and season with salt (2 g) and pepper.",
       ],
       "suggested_seasonings": ["dill", "lemon juice"],
+    },
+    "de": {
+      "name": "Salmonidensalat",
+      "description":
+          "Ein leichter Salat mit geräuchertem Lachs, Gurken und Tomaten.",
+      "instructions": [
+        "Verteile den Eisbergsalat (0,5 Kopf) als Unterlage auf einem Teller.",
+        "Würfeln Sie die Tomaten (200 g) und die Gurke und fügen Sie sie dem Salat hinzu.",
+        "Ordne die geräucherten Lachsscheiben (100 g) oben an.",
+        "Berieselen Sie mit Olivenöl (20 ml) und würzen Sie mit Salz (2 g) und Pfeffer.",
+      ],
+      "suggested_seasonings": ["Dill", "Zitronensaft"],
     },
   },
   "724873c2-9f8e-540b-b0d8-e174f9bfc567": {
@@ -855,6 +1238,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["vanilla", "lemon zest"],
     },
+    "de": {
+      "name": "Quarkgefüllte Pfannkuchen",
+      "description":
+          "Delikate Pfannkuchen, die mit Quark gefüllt und mit Butter hergestellt wurden.",
+      "instructions": [
+        "Mischen Sie das Mehl (150 g), Eier und Milch (250 ml) in einen glatten Pfannkuchenteig und würzen Sie mit einer Prise Salz (2 g).",
+        "Braten Sie dünne Pfannkuchen in einer heißen Pfanne mit etwas Butter für 1-2 Minuten auf jeder Seite.",
+        "Mash das Quark (250 g) mit ein wenig Zucker für die Füllung.",
+        "Verbreiten Sie die Füllung auf den Pfannkuchen, rollen Sie sie auf und servieren Sie.",
+      ],
+      "suggested_seasonings": ["Vanille", "Zitronenzeste"],
+    },
   },
   "c5ac116e-8f12-5012-87bb-5463dfc3bbc1": {
     "source": {
@@ -878,6 +1273,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Spread the avocado on the toast and top with the eggs.",
       ],
       "suggested_seasonings": ["chilli flakes", "smoked paprika"],
+    },
+    "de": {
+      "name": "Egg und Avocado Toast",
+      "description":
+          "Knuspriger Toast mit gebratenen Eiern und cremiger Avocado.",
+      "instructions": [
+        "Braten Sie die Brotscheiben (200 g) in einem Toaster oder einer trockenen Bratpfanne.",
+        "Mash die Avocado-Fleisch (1 Avocado) mit einer Gabel und Saison mit Salz (2 g), Pfeffer und Zitronensaft.",
+        "Frittieren Sie die Eier (2 Eier) in Butter.",
+        "Verbreiten Sie die Avocado auf dem Toast und oben mit den Eiern.",
+      ],
+      "suggested_seasonings": ["Chili-Flocken", "geräucherte Paprika"],
     },
   },
   "28fc4da5-422c-5382-8ada-5ef1baa38a2c": {
@@ -915,6 +1322,25 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["cumin", "smoked paprika", "chilli flakes"],
     },
+    "de": {
+      "name": "Shakshuka",
+      "description":
+          "Eier in einer würzigen Tomatensauce mit Pfeffer und Zwiebeln gekocht.",
+      "instructions": [
+        "Die Zwiebel (100 g) fein würfeln und den Knoblauch (2 Nelken) fein hacken.",
+        "Das Olivenöl (30 ml) wird in einer tiefen Bratpfanne mit Eiern erhitzt; die Zwiebel und der Knoblauch werden 3-4 Minuten lang gebraten, bis sie weich sind.",
+        "Würfeln Sie den Pfeffer, fügen Sie die Pfanne hinzu und braten Sie weitere 3-4 Minuten.",
+        "Gießen Sie in die gehackten Tomaten (400 g), Saison mit süßem Paprika, Salz und Pfeffer, und köcheln über eine mittlere Hitze für 10 Minuten, bis leicht verdickt.",
+        "Machen Sie 4 Brunnen in der Sauce mit einem Löffel und knacken Sie vorsichtig ein Ei in jedes (4 Eier insgesamt).",
+        "Bedecke die Pfanne und koche bei niedriger Hitze für 6-8 Minuten. Die Weißtöne sollten eingestellt sein und das Gelb etwas flüssig; koche länger, wenn du sie fester bevorzugst.",
+        "Servieren Sie sofort von der Pfanne, vorzugsweise mit frischem Brot zum Tauchen.",
+      ],
+      "suggested_seasonings": [
+        "Kreuzkümmel",
+        "geräucherte Paprika",
+        "Chili-Flocken",
+      ],
+    },
   },
   "398c64af-a143-5970-81ce-a7a658698267": {
     "source": {
@@ -949,6 +1375,24 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["chilli flakes", "roasted peanuts", "lime"],
     },
+    "de": {
+      "name": "Chicken Pad Thai",
+      "description":
+          "Klassische thailändische rührbratene Nudeln mit Huhn, Erdnüssen und Limette.",
+      "instructions": [
+        "Weichen Sie die Reisnudeln (200 g) in warmem Wasser nach den Packungsanweisungen, in der Regel 10-15 Minuten, bis weich, dann abtropfen.",
+        "Schneiden Sie das Huhn (300 g) in dünne Streifen.",
+        "Das Öl wird in einer großen Bratpfanne bei mittelhoher Hitze erhitzt, das Huhn für 5-6 Minuten rühren gelassen, bis es weiß ist; das größte Stück durchschneiden und auf einen Teller geben.",
+        "In der gleichen Pfanne braten Sie den Knoblauch und das Gemüse für 2-3 Minuten, bis sie leicht erweicht, aber immer noch knusprig sind.",
+        "Fügen Sie die getränkten Nudeln, gekochtes Huhn und Sojasauce (30 ml) hinzu, dann rühren Sie für 2-3 Minuten und rühren Sie ständig.",
+        "Servieren Sie sofort heiß, bestreut mit gerösteten Nüssen zum Knirschen.",
+      ],
+      "suggested_seasonings": [
+        "Chili-Flocken",
+        "geröstete Erdnüsse",
+        "Limette",
+      ],
+    },
   },
   "5b86bd7a-2211-5b46-afbe-5a577c6797a7": {
     "source": {
@@ -978,6 +1422,22 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Drizzle with olive oil (15 ml) and lemon juice, then season with salt and pepper.",
       ],
       "suggested_seasonings": ["cumin", "lime juice", "fresh coriander"],
+    },
+    "de": {
+      "name": "Quinoa und Avocado Bowl",
+      "description":
+          "Eine gesunde Schüssel mit Quinoa, frischer Avocado, Tomaten und Hummus.",
+      "instructions": [
+        "Kochen Sie die Quinoa (100 g) in gesalzenem Wasser nach den Packungsanweisungen und lassen Sie sie abkühlen.",
+        "Schneiden Sie die Avocado (1 Avocado) und Viertel der Tomaten.",
+        "Legen Sie die Quinoa in eine Schüssel und fügen Sie die Avocado, Tomaten und andere Toppings hinzu.",
+        "Drizzle mit Olivenöl (15 ml) und Zitronensaft, dann würzen Sie mit Salz und Pfeffer.",
+      ],
+      "suggested_seasonings": [
+        "Kreuzkümmel",
+        "Limettensaft",
+        "Koriander, frisch",
+      ],
     },
   },
   "77999fdc-bd24-501e-b186-fa3272960311": {
@@ -1012,6 +1472,21 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["thyme", "nutmeg"],
     },
+    "de": {
+      "name": "Wildpilz-Risotto",
+      "description": "Cremiges Risotto mit gemischten Wildpilzen und Parmesan.",
+      "instructions": [
+        "Die Zwiebel fein zerhacken (100 g); den Vorrat (1 Würfel) in einem Kochtopf mit heißem Wasser auflösen und eine geringe Hitze aufbewahren — Risotto braucht heißen Vorrat.",
+        "Schmelzen Sie die Butter in einer Bratpfanne, fügen Sie die Zwiebel hinzu und braten Sie für 3-4 Minuten bis weich.",
+        "Die in Scheiben geschnittenen Pilze (200 g) werden hinzugefügt und für 4-5 Minuten gebraten, bis sie erweicht sind und ihre freigesetzte Flüssigkeit verdampft ist.",
+        "Reis und Braten für 1-2 Minuten unter Rühren hinzufügen, bis die Ränder der Körner lichtdurchlässig werden.",
+        "Fügen Sie eine Pfanne mit heißem Stamm hinzu und rühren Sie bis zur Absorption, bevor Sie die nächste hinzufügen.",
+        "Fügen Sie den Vorrat in Chargen für etwa 18-20 Minuten hinzu und rühren Sie ständig, um die Stärke freizusetzen und eine cremige Textur zu erzeugen.",
+        "Überprüfen Sie den Reis gegen Ende: Er sollte zart sein, aber einen kleinen Biss in der Mitte (al dente) behalten.",
+        "Von der Hitze abziehen, mit Salz und Pfeffer würzen und in einem Löffel Butter (30 g) für Glanz und Cremigkeit rühren.",
+      ],
+      "suggested_seasonings": ["Thymian", "Muskatnuss"],
+    },
   },
   "7e2019e7-4d18-554b-867f-04227f3f6269": {
     "source": {
@@ -1036,6 +1511,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["cinnamon", "vanilla"],
     },
+    "de": {
+      "name": "Übernachtung Hafer mit Chia und Obst",
+      "description":
+          "Am Abend zubereiteter Hafer - bereit, morgens mit Obst zu essen.",
+      "instructions": [
+        "Mischen Sie den Hafer (80 g), Chiasamen (20 g) und Mandelmilch in einem Glas.",
+        "Gründlich rühren, abdecken und über Nacht kühlen.",
+        "Morgens wieder umrühren und mit frischen Früchten (Himbeeren und Banane (1 Banane)) auffüllen.",
+      ],
+      "suggested_seasonings": ["Zimt", "Vanille"],
+    },
   },
   "589e0c80-ba08-599b-ade4-3de652e05695": {
     "source": {
@@ -1059,6 +1545,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Spread the avocado on the toast and serve with the sliced eggs.",
       ],
       "suggested_seasonings": ["chilli flakes", "chives"],
+    },
+    "de": {
+      "name": "Hartgekochte Eier mit Avocado und Toast",
+      "description": "Ein nahrhaftes Proteinfrühstück mit cremiger Avocado.",
+      "instructions": [
+        "Siede die Eier (4 Eier) für etwa 9 Minuten nach dem Sieden, dann abkühlen und schälen.",
+        "Toast die Brotscheiben (100 g) in einem Toaster.",
+        "Mash die Avocado (1 Avocado) mit einer Gabel und Saison mit Salz (2 g).",
+        "Verbreiten Sie die Avocado auf dem Toast und dienen Sie mit den geschnittenen Eiern.",
+      ],
+      "suggested_seasonings": ["Chili-Flocken", "Schnittlauch"],
     },
   },
   "0c1d3e54-9b86-55c3-9a3c-0ac389bedb1d": {
@@ -1085,6 +1582,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["cinnamon", "vanilla"],
     },
+    "de": {
+      "name": "Hafer-Granola mit Honig und Nüssen",
+      "description":
+          "Hausgemachtes Müsli - knusprig, süß und großartig mit Joghurt.",
+      "instructions": [
+        "Den Ofen auf 160°C vorheizen.",
+        "Mischen Sie den Hafer (300 g), gehackte Nüsse, Honig und Öl (30 ml) in einer Schüssel.",
+        "Auf einer ausgekleideten Backschale ausstreichen und für 18-20 Minuten backen, auf halbem Weg durchrühren.",
+        "Ganz abkühlen lassen, damit es knusprig wird.",
+      ],
+      "suggested_seasonings": ["Zimt", "Vanille"],
+    },
   },
   "8db60146-69af-56fe-a294-c74025b4ee3b": {
     "source": {
@@ -1106,6 +1615,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Spread over the bread slices (120 g) and serve.",
       ],
       "suggested_seasonings": ["chives", "sweet paprika"],
+    },
+    "de": {
+      "name": "Sandwiches mit Eierspread",
+      "description": "Ein klassisches Eiersandwich, fertig in 10 Minuten.",
+      "instructions": [
+        "Sieden Sie die Eier (4 Eier), dann abkühlen und schälen.",
+        "Mash die Eier mit einer Gabel, fügen Sie die weichgemachte Butter (20 g) und Senf, und mischen.",
+        "Über die Brotscheiben verteilen (120 g) und dienen.",
+      ],
+      "suggested_seasonings": ["Schnittlauch", "Paprika, süß"],
     },
   },
   "59a5939a-627b-5d9e-bc3e-18295e79f567": {
@@ -1137,6 +1656,20 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["cinnamon", "vanilla"],
     },
+    "de": {
+      "name": "Pfannkuchen, gesüßt",
+      "description":
+          "Hirse Pfannkuchen - ein einfach zu verdauliches, glutenfreies Frühstück.",
+      "instructions": [
+        "Spülen Sie die Hirse (150 g) unter fließendem Wasser, um Bitterkeit zu entfernen, und legen Sie sie dann in einen Topf mit dem doppelten Wasservolumen.",
+        "Zum Kochen bringen, die Hitze reduzieren und, abgedeckt, für 12-15 Minuten kochen, bis das Wasser absorbiert ist und die Hirse weich ist.",
+        "Mischen Sie die gekühlte Hirse mit den Eiern, Milch (100 ml) und Zucker in einen glatten, dicken Teig.",
+        "Erhitzen Sie ein wenig Öl in einer Bratpfanne und Löffel in der Mischung, um kleine Pfannkuchen zu bilden.",
+        "Braten Sie für 2-3 Minuten auf einer Seite, bis die Kanten gesetzt und die Unterseite golden ist, dann drehen Sie sich mit einem Spatel.",
+        "Braten Sie noch einmal 2-3 Minuten bis zur Vergoldung auf beiden Seiten, servieren Sie warm mit Obst oder Honig.",
+      ],
+      "suggested_seasonings": ["Zimt", "Vanille"],
+    },
   },
   "c6653ad4-8642-58f3-b88f-3986697f985e": {
     "source": {
@@ -1161,6 +1694,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["chives", "oregano"],
     },
+    "de": {
+      "name": "Pflanzliches Omelett",
+      "description": "Ein flauschiges Omelett mit Pfeffer, Zwiebeln und Käse.",
+      "instructions": [
+        "Schlagen Sie die Eier (3 Eier) mit ein wenig Salz.",
+        "Braten Sie den gehackten Pfeffer (0.5 Pfeffer) und die Zwiebel in Butter für 3-4 Minuten.",
+        "Gießen Sie die Eier in die Pfanne und kochen, bedeckt, bei niedriger Hitze.",
+        "Wenn das Omelett fast eingestellt ist, streuen Sie mit Käse, falten Sie sich in zwei Hälften und entfernen Sie es von der Hitze.",
+      ],
+      "suggested_seasonings": ["Schnittlauch", "Oregano"],
+    },
   },
   "2c6f3f3b-948c-56d8-9e36-eebe5d3b4785": {
     "source": {
@@ -1182,6 +1726,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Top with the mango and flaked almonds (15 g).",
       ],
       "suggested_seasonings": ["cinnamon", "ground ginger"],
+    },
+    "de": {
+      "name": "Muesli mit Kokosmilch und Mango",
+      "description": "Ein exotisches, erfrischendes kaltes Frühstück.",
+      "instructions": [
+        "Würfeln Sie die Mango (1 Mango).",
+        "Mischen Sie den Hafer (60 g) mit Kokosmilch (80 ml) in einer Schüssel.",
+        "Top mit der Mango und Flockenmandeln (15 g).",
+      ],
+      "suggested_seasonings": ["Zimt", "gemahlener Ingwer"],
     },
   },
   "569057a6-85a0-5cd8-b8e3-eb4a63519ab7": {
@@ -1209,6 +1763,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["vanilla", "nutmeg"],
     },
+    "de": {
+      "name": "Cinnamon Französisch Toast",
+      "description":
+          "Ein süßes Wochenendfrühstück - draußen knusprig und innen weich.",
+      "instructions": [
+        "Beat die Eier (2 Eier) mit Milch (100 ml) und Zimt in einer flachen Schale.",
+        "Weichen Sie beide Seiten der Brotscheiben (150 g) kurz in die Mischung ein.",
+        "Braten Sie in Butter bis golden, für 2 Minuten auf jeder Seite.",
+        "Sofort servieren, mit Zucker bestreuen oder gewünschtenfalls mit Honig berieseln.",
+      ],
+      "suggested_seasonings": ["Vanille", "Muskatnuss"],
+    },
   },
   "c31d2370-9494-544c-aafc-93c4c8359d8b": {
     "source": {
@@ -1231,6 +1797,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["cinnamon"],
     },
+    "de": {
+      "name": "Bananen- und Erdbeer-Smoothieschale",
+      "description":
+          "Ein dicker Smoothie serviert in einer Schüssel mit knusprigen Toppings.",
+      "instructions": [
+        "Mischen Sie die gefrorene oder frische Banane (1 Banane), Erdbeeren (150 g) und Joghurt bis glatt.",
+        "Gießen Sie in eine Schüssel.",
+        "Oben mit Chiasamen (10 g) und zusätzlichen Fruchtstücken.",
+      ],
+      "suggested_seasonings": ["Zimt"],
+    },
   },
   "0f79b1e7-31c4-508f-abfd-25530b507ca2": {
     "source": {
@@ -1252,6 +1829,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Close the sandwich and serve.",
       ],
       "suggested_seasonings": ["cumin", "smoked paprika"],
+    },
+    "de": {
+      "name": "Hummus und Gemüsesandwich",
+      "description":
+          "Ein leichtes, pflanzliches Sandwich für ein schnelles Frühstück.",
+      "instructions": [
+        "Verbreiten Sie den Hummus (60 g) über die Brotscheiben.",
+        "Oben mit geschnittener Gurke (0.5 Gurke) und Pfeffer (0.3 Pfeffer).",
+        "Schließen Sie das Sandwich und servieren.",
+      ],
+      "suggested_seasonings": ["Kreuzkümmel", "geräucherte Paprika"],
     },
   },
   "4b99c3d3-abfe-570d-b484-6e2f6394363e": {
@@ -1276,6 +1864,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["cinnamon"],
     },
+    "de": {
+      "name": "Brei mit Erdnussbutter und Bananen",
+      "description": "Füllen Sie süßen Brei, um Ihren ganzen Morgen zu tanken.",
+      "instructions": [
+        "Bringen Sie die Milch (200 ml) zum Sieden, fügen Sie den Hafer hinzu und kochen Sie 5 Minuten unter Rühren.",
+        "Entfernen Sie aus der Hitze und rühren Sie die Erdnussbutter (20 g).",
+        "Top mit Bananenscheiben (1 Banane) und warm servieren.",
+      ],
+      "suggested_seasonings": ["Zimt"],
+    },
   },
   "9478a09e-09d6-56a9-abb2-2311261441b9": {
     "source": {
@@ -1299,6 +1897,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Sprinkle with basil (1 g) and serve immediately.",
       ],
       "suggested_seasonings": ["fresh oregano", "chilli flakes"],
+    },
+    "de": {
+      "name": "Gebratene Eier mit Tomaten und Basilikum",
+      "description":
+          "Ein einfaches, pan-gekochtes Frühstück – bereit in 10 Minuten.",
+      "instructions": [
+        "Erhitzen Sie die Butter (10 g) in einer Bratpfanne und braten Sie die gehackten Tomaten für 3 Minuten.",
+        "Crack die Eier (2 Eier) direkt in die Pfanne zwischen den Tomaten.",
+        "Kochen, abgedeckt, für 3-4 Minuten, bis Sie nach Ihren Wünschen eingestellt sind.",
+        "Streuen Sie mit Basilikum (1 g) und dienen Sie sofort.",
+      ],
+      "suggested_seasonings": ["frischer Oregano", "Chili-Flocken"],
     },
   },
   "77505aa1-2038-5bab-a7a1-37b357838f46": {
@@ -1330,6 +1940,20 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["cinnamon", "vanilla"],
     },
+    "de": {
+      "name": "Hirse Pancakes mit Früchten",
+      "description": "Dünne, glutenfreie Pfannkuchen aus Hirse.",
+      "instructions": [
+        "Spülen Sie die Hirse (100 g), kochen Sie in Wasser bis zum Tendern für etwa 12-15 Minuten, dann abtropfen und abkühlen.",
+        "Mischen Sie die gekühlte Hirse mit den Eiern (2 Eier) und Milch (150 ml) in einen glatten, laufenden Teig ohne Klumpen.",
+        "Erhitzen Sie eine Antihaftpfanne über eine mittlere Hitze und Fett leicht.",
+        "Gießen Sie in eine dünne Teigschicht und wirbeln Sie sofort die Pfanne, um die Basis gleichmäßig zu beschichten.",
+        "Braten Sie für 1-2 Minuten, bis die Kanten beginnen zu heben, drehen Sie sich mit einem Spatel und kochen Sie die andere Seite für eine weitere Minute.",
+        "Wiederholen Sie mit dem verbleibenden Teig und stapeln Sie die gekochten Pfannkuchen.",
+        "Servieren Sie mit gehackten Erdbeeren (100 g); Sie können die Pfannkuchen aufrollen.",
+      ],
+      "suggested_seasonings": ["Zimt", "Vanille"],
+    },
   },
   "ee2c3d1e-5379-5295-8d90-276113fd86d8": {
     "source": {
@@ -1354,6 +1978,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["chilli flakes", "nutmeg"],
     },
+    "de": {
+      "name": "Pasta mit Brokkoli und Parmesan",
+      "description":
+          "Einfache, cremige Pasta - ideal für ein schnelles Mittagessen.",
+      "instructions": [
+        "Kochen Sie die Pasta (250 g) in gesalzenem Wasser nach den Packungsanweisungen.",
+        "Schneiden Sie den Brokkoli (1 Brokkoli) in Blumen und kochen Sie in den letzten Minuten des Kochens in Pastawasser für 5 Minuten.",
+        "Entleeren Sie die Pasta und Brokkoli, dann kurz mit Olivenöl (20 ml) und zerkleinertem Knoblauch (2 Nelken) braten.",
+        "Streuen Sie mit geriebenem Parmesan (40 g) und servieren.",
+      ],
+      "suggested_seasonings": ["Chili-Flocken", "Muskatnuss"],
+    },
   },
   "a910ad86-f2df-5b47-91d0-98bc557d742d": {
     "source": {
@@ -1377,6 +2013,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Stir in the cream (100 ml) and season with salt and pepper.",
       ],
       "suggested_seasonings": ["nutmeg", "thyme"],
+    },
+    "de": {
+      "name": "Cremige Brokkoli-Suppe",
+      "description": "Eine samtige Suppe, fertig in einer halben Stunde.",
+      "instructions": [
+        "Braten Sie die Zwiebel (100 g) in einem Topf, dann fügen Sie die gehackten Kartoffeln (300 g) und Brokkoliblüten (1 Brokkoli).",
+        "Bedecken Sie mit Wasser und gelöstem Stamm, dann kochen Sie für 15-18 Minuten, bis das Gemüse zart ist.",
+        "Mischen Sie die Suppe bis glatt.",
+        "Rühren in der Creme (100 ml) und würzen Sie mit Salz und Pfeffer.",
+      ],
+      "suggested_seasonings": ["Muskatnuss", "Thymian"],
     },
   },
   "ca1f669e-e4b1-5684-b882-d908f0ada1bf": {
@@ -1404,6 +2051,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["nutmeg", "turmeric"],
     },
+    "de": {
+      "name": "Cremige Blumenkohlsuppe",
+      "description":
+          "Eine zarte, cremige Suppe - eine schöne Wahl für kältere Tage.",
+      "instructions": [
+        "Schneiden Sie den Blumenkohl (1 Blumenkohl) in Blumen und schälen und hacken Sie die Kartoffeln (200 g).",
+        "Kochen Sie das Gemüse auf Lager (2 Würfel) in Wasser gelöst für 18-20 Minuten bis zum Angebot.",
+        "Mischen Sie bis glatt und Saison mit Salz und Pfeffer.",
+        "Rühren Sie die Creme (100 ml) kurz vor dem Servieren.",
+      ],
+      "suggested_seasonings": ["Muskatnuss", "Kurkuma"],
+    },
   },
   "0f61c083-e864-519d-973f-7ce5808434b5": {
     "source": {
@@ -1428,6 +2087,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["thyme", "marjoram"],
     },
+    "de": {
+      "name": "Cremige Pilzsuppe",
+      "description": "Eine cremige Version der klassischen Pilzsuppe.",
+      "instructions": [
+        "Frittieren Sie die gehackten Zwiebeln (100 g) in Butter, fügen Sie die geschnittenen Pilze hinzu und braten Sie für 8 Minuten.",
+        "Gießen Sie in Lager (2 Würfel) in Wasser gelöst und kochen Sie für 10 Minuten.",
+        "Mischen Sie den größten Teil der Suppe und lassen Sie einige Pilzstücke für Textur.",
+        "Rühren in der Creme (100 ml) und würzen Sie mit Salz und Pfeffer.",
+      ],
+      "suggested_seasonings": ["Thymian", "Marjoram"],
+    },
   },
   "44edb02e-2868-5aad-a3cd-5f7f687a3345": {
     "source": {
@@ -1451,6 +2121,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Season with salt and pepper to taste.",
       ],
       "suggested_seasonings": ["bay leaf", "allspice", "lovage"],
+    },
+    "de": {
+      "name": "Gemüsesuppe mit Lauch",
+      "description": "Eine wärmende Gemüsesuppe aus Vorrat.",
+      "instructions": [
+        "Würfel Lauch, Karotten (200 g) und Kartoffeln.",
+        "Bedecken Sie das Gemüse mit Wasser und gelöstem Stamm (2 Würfel).",
+        "Simmer für 20-25 Minuten, bis das Gemüse zart ist.",
+        "Saison mit Salz und Pfeffer nach Geschmack.",
+      ],
+      "suggested_seasonings": ["Lorbeerblatt", "Piment", "Liebstöcke"],
     },
   },
   "d0b29f2a-2e29-5346-9add-80a00f261a2e": {
@@ -1488,6 +2169,24 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "fresh coriander",
         "chilli flakes",
         "ground ginger",
+      ],
+    },
+    "de": {
+      "name": "Chicken Curry mit Reis",
+      "description": "Ein duftendes Kokosmilch-Curry - mild und sättigend.",
+      "instructions": [
+        "Schneiden Sie das Huhn (500 g) in Würfel etwa 2 cm über, und fein würfeln die Zwiebel (100 g).",
+        "Erhitzen Sie das Öl in einer Bratpfanne, fügen Sie das Huhn und die Zwiebel hinzu und braten Sie für 6-8 Minuten unter Rühren, bis das Huhn auf allen Seiten gebräunt ist.",
+        "Das Currypulver (10 g) wird zugegeben und unter Rühren für 1 Minute gebraten, bis es stark duftet.",
+        "Gießen Sie in die Kokosmilch (400 ml), rühren, reduzieren Sie die Hitze und köcheln Sie für 15 Minuten, bis die Soße sich verdickt.",
+        "Währenddessen kochen Sie den Reis (250 g) gemäß den Packungsanweisungen.",
+        "Überprüfen Sie, ob das Huhn gekocht wird, indem Sie das größte Stück durchschneiden - es darf nicht rosa sein.",
+        "Servieren Sie das Curry über den Reis, heiß und sofort.",
+      ],
+      "suggested_seasonings": [
+        "Koriander, frisch",
+        "Chili-Flocken",
+        "gemahlener Ingwer",
       ],
     },
   },
@@ -1532,6 +2231,26 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "bay leaf",
       ],
     },
+    "de": {
+      "name": "Eintopf von Rindfleisch und Schweinefleisch",
+      "description": "Ein dicker, wärmender, langsam kochender Eintopf.",
+      "instructions": [
+        "Würfeln Sie die Zwiebel (200 g) und schneiden Sie das Fleisch in Stücke über 2-3 cm.",
+        "Erhitzen Sie das Öl in einem schweren Basistopf und braten Sie die Zwiebel für 3-4 Minuten bis weich.",
+        "Fügen Sie das Fleisch hinzu und braten Sie es für 5-7 Minuten, bis jedes Stück auf allen Seiten gebräunt ist, was dem Eintopf einen tieferen Geschmack verleiht.",
+        "Fügen Sie die süße Paprika (5 g) hinzu, rühren und braten Sie nur 1 Minute; Kochen länger kann es bitter machen.",
+        "Gießen Sie die Passata (300 g) und genug Wasser, um das Fleisch fast zu bedecken, dann bedecken Sie den Topf.",
+        "Reduzieren Sie die Hitze und kochen Sie für 25 Minuten. Das Fleisch sollte leicht mit einer Gabel auseinanderfallen; härtere Schnitte können mehr Zeit erfordern.",
+        "Getrennt werden die geschälten Kartoffeln (400 g) in gesalzenem Wasser für 15-20 Minuten bis zur Ausschreibung gekocht.",
+        "Servieren Sie den Eintopf mit den Kartoffeln und würzen Sie mit Salz und Pfeffer nach Geschmack.",
+      ],
+      "suggested_seasonings": [
+        "Paprika, süß",
+        "Kümmel",
+        "Marjoram",
+        "Lorbeerblatt",
+      ],
+    },
   },
   "b15211a9-db8a-50ce-963c-df2735cf92c3": {
     "source": {
@@ -1570,6 +2289,24 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "cinnamon (a pinch)",
       ],
     },
+    "de": {
+      "name": "Chilli con carne",
+      "description": "Eine würzige, Eintopfschale mit Bohnen füllen.",
+      "instructions": [
+        "Die Zwiebel (150 g) fein würfeln.",
+        "Erhitzen Sie das Öl in einem Topf und braten Sie die Zwiebel für 3 Minuten bis weich.",
+        "Fügen Sie das Hackfleisch (400 g) hinzu, brechen Sie es mit einem Spatel auf und braten Sie es für 6-7 Minuten, bis es gebräunt und nicht mehr rosa ist.",
+        "Fügen Sie die Chili und Kreuzkümmel (5 g), dann braten, Rühren, für 1 Minute, bis duftend.",
+        "Gießen Sie die gehackten Tomaten (400 g) und die Bohnen mit ihrer verzinnten Flüssigkeit, dann rühren Sie gründlich.",
+        "Reduzieren Sie die Hitze, decken Sie und kochen Sie für 20-25 Minuten, rühren Sie gelegentlich, um zu verhindern, dass Sie kleben.",
+        "Probieren und würzen Sie mit Salz, Pfeffer oder extra Chili wie gewünscht.",
+      ],
+      "suggested_seasonings": [
+        "Oregano",
+        "geräucherte Paprika",
+        "Zimt (eine Prise)",
+      ],
+    },
   },
   "e57a77c7-c21d-50d2-9ebb-4671f6feae62": {
     "source": {
@@ -1599,6 +2336,22 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Spoon the filling onto the tortillas with torn lettuce (0.2 lettuce) and roll up.",
       ],
       "suggested_seasonings": ["cumin", "chilli powder", "fresh coriander"],
+    },
+    "de": {
+      "name": "Tacos mit Putenfleisch",
+      "description":
+          "Ein mexikanischer Klassiker - knackige Tortillas mit einer würzigen Füllung.",
+      "instructions": [
+        "Schneiden Sie den Truthahn (400 g) in Streifen und braten Sie in Öl bis zum Kochen, etwa 8 Minuten.",
+        "Fügen Sie den gehackten Pfeffer (1 Pfeffer) und die Zwiebel hinzu und braten Sie weitere 5 Minuten.",
+        "Erwärmen Sie die Tortillas (6 Tortillas) in einer trockenen Bratpfanne.",
+        "Verteile die Füllung und den gezupften Salat (0,2 Kopf) auf den Tortillas und rolle sie auf.",
+      ],
+      "suggested_seasonings": [
+        "Kreuzkümmel",
+        "Chilipulver",
+        "Koriander, frisch",
+      ],
     },
   },
   "fbceebbf-fdac-5b0d-8a1e-0c5c148142f7": {
@@ -1630,6 +2383,22 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["cumin", "fresh coriander", "lime juice"],
     },
+    "de": {
+      "name": "Hähnchen-Burritoschale",
+      "description":
+          "Eine farbenfrohe Schüssel im mexikanischen Stil, die mit Füllzutaten gefüllt ist.",
+      "instructions": [
+        "Kochen Sie den Reis (150 g) gemäß der Packungsanweisung.",
+        "Würfeln Sie das Huhn (300 g) und braten Sie es in Öl bis zum Kochen.",
+        "Erhitzen Sie die Bohnen (200 g) und hacken Sie die Avocado (1 avocado) und Tomaten (150 g).",
+        "Ordne alle Zutaten in Schichten in einer Schüssel an.",
+      ],
+      "suggested_seasonings": [
+        "Kreuzkümmel",
+        "Koriander, frisch",
+        "Limettensaft",
+      ],
+    },
   },
   "932e2fa6-5646-5c79-ba66-a1944b8a2c41": {
     "source": {
@@ -1654,6 +2423,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Combine the sauce with the pasta and serve.",
       ],
       "suggested_seasonings": ["chilli flakes", "parsley"],
+    },
+    "de": {
+      "name": "Thunfisch und Tomatenteigwaren",
+      "description":
+          "Ein schnelles Mittagessen mit konservierten Zutaten - bereit in 20 Minuten.",
+      "instructions": [
+        "Kochen Sie die Pasta (200 g) in gesalzenem Wasser nach den Packungsanweisungen.",
+        "Frittieren Sie den zerkleinerten Knoblauch (2 Nelken) in Olivenöl (15 ml), fügen Sie die zerkleinerten Tomaten hinzu und kochen Sie für 8 Minuten.",
+        "Fügen Sie den abgelassenen Thunfisch (150 g) hinzu, rühren und erhitzen Sie 2 Minuten.",
+        "Kombinieren Sie die Sauce mit der Pasta und servieren Sie.",
+      ],
+      "suggested_seasonings": ["Chili-Flocken", "Petersilie"],
     },
   },
   "04b92d3c-bf59-5c71-b75c-5508dad1eee7": {
@@ -1680,6 +2461,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["smoked paprika", "lime juice"],
     },
+    "de": {
+      "name": "Hühnchen- und Avocadosalat",
+      "description":
+          "Ein füllender Mittagssalat, reich an Protein und gesunden Fetten.",
+      "instructions": [
+        "Saison das Huhn (300 g) mit Salz und Pfeffer, Pfanne frittiert für 8-10 Minuten, dann abkühlen und schneiden.",
+        "Reißen Sie den Salat (0.3 Salat), und hacken Sie die Tomaten (150 g) und Avocado.",
+        "Mischen Sie alle Zutaten in einer Schüssel.",
+        "Drizzle mit Olivenöl (15 ml) und dienen.",
+      ],
+      "suggested_seasonings": ["geräucherte Paprika", "Limettensaft"],
+    },
   },
   "b5075784-71ca-55c0-a06c-f40386a68c69": {
     "source": {
@@ -1704,6 +2497,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Drizzle with olive oil (20 ml) and season with salt and pepper.",
       ],
       "suggested_seasonings": ["oregano", "sumac"],
+    },
+    "de": {
+      "name": "Kichererbse und Feta-Salat",
+      "description":
+          "Ein proteinreicher, pflanzlicher Salat mit mediterranen Aromen.",
+      "instructions": [
+        "Die Kichererbsen (400 g) ablassen und spülen.",
+        "Chop die Gurke (1 Gurke) und Tomaten (200 g), und zerbröckeln die Feta.",
+        "Mischen Sie alle Zutaten in einer Schüssel.",
+        "Drizzle mit Olivenöl (20 ml) und Saison mit Salz und Pfeffer.",
+      ],
+      "suggested_seasonings": ["Oregano", "Sumpf"],
     },
   },
   "a7ec4a38-8952-52fe-8b33-1d2942092695": {
@@ -1739,6 +2544,22 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "chilli flakes",
       ],
     },
+    "de": {
+      "name": "Lentil dal im indischen Stil",
+      "description": "Eine wärmende, pflanzliche Eintopf-Curryschale.",
+      "instructions": [
+        "Braten Sie die Zwiebel (100 g) und Knoblauch (2 Nelken), fügen Sie das Currypulver hinzu und braten Sie für 1 Minute.",
+        "Fügen Sie die gespülten Linsen (250 g) und Wasser (ca. 600 ml) hinzu und köcheln Sie dann 15 Minuten.",
+        "Gießen Sie die Kokosmilch (200 ml) und kochen Sie weitere 5-8 Minuten, bis die Linsen weich sind.",
+        "Saison mit Salz zum Geschmack und servieren mit Reis.",
+      ],
+      "suggested_seasonings": [
+        "Bodenkoriander",
+        "Kurkuma",
+        "gemahlener Ingwer",
+        "Chili-Flocken",
+      ],
+    },
   },
   "15e96d38-09f4-511d-9a78-d184fffa6eed": {
     "source": {
@@ -1762,6 +2583,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Fry in oil for 4-5 minutes on each side until cooked.",
       ],
       "suggested_seasonings": ["marjoram", "sweet paprika"],
+    },
+    "de": {
+      "name": "Frikadellen aus Putenhack",
+      "description":
+          "Leichte Geflügelpastetchen, eine gute Alternative zu klassischen Fleischpastetchen.",
+      "instructions": [
+        "Zerkleinern oder fein hacken Sie den Truthahn (500 g), dann mischen Sie mit der Zwiebel (100 g), Ei und Semmelbrösel (40 g).",
+        "Saison mit Salz und Pfeffer und Form in Patties.",
+        "Frittieren Sie in Öl für 4-5 Minuten auf jeder Seite bis zum Kochen.",
+      ],
+      "suggested_seasonings": ["Marjoram", "Paprika, süß"],
     },
   },
   "2c624dee-4767-581b-a92f-2b9856a9eff7": {
@@ -1787,6 +2619,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["thyme", "rosemary", "smoked paprika"],
     },
+    "de": {
+      "name": "Brathähnchen mit Gemüse",
+      "description": "Ein Eintopf-Mittagessen direkt aus dem Ofen.",
+      "instructions": [
+        "Den Ofen auf 200°C vorheizen.",
+        "Schneiden Sie die Kartoffeln (500 g) und Karotten (300 g) in Stücke, dann werfen Sie mit Öl, Salz und Pfeffer.",
+        "Ordne das Gemüse und Huhn (600 g) auf einem Backtablett an, nizzle mit Olivenöl (30 ml) und Saison.",
+        "Backen Sie für 35-40 Minuten, bis das Huhn und Gemüse golden sind.",
+      ],
+      "suggested_seasonings": ["Thymian", "Rosmarin", "geräucherte Paprika"],
+    },
   },
   "53a5a6cd-e9ab-5f31-a5bf-822e66dc1e7b": {
     "source": {
@@ -1810,6 +2653,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Bake for 15-18 minutes until the fish is white and flakes easily with a fork.",
       ],
       "suggested_seasonings": ["dill", "thyme"],
+    },
+    "de": {
+      "name": "Mit Zitrone und Kräutern gebackener Kabeljau",
+      "description":
+          "Ein leichtes Fisch-Mittagessen - in einer halben Stunde fertig.",
+      "instructions": [
+        "Den Ofen auf 190°C vorheizen.",
+        "Legen Sie die Kabeljaufilets (400 g) auf ein Backtablett und nieseln Sie mit Olivenöl (15 ml) und Zitronensaft (1 Zitrone).",
+        "Streuen Sie mit Oregano (2 g), Salz und Pfeffer.",
+        "Backen Sie 15-18 Minuten, bis der Fisch weiß ist und mit einer Gabel leicht abblättert.",
+      ],
+      "suggested_seasonings": ["Dill", "Thymian"],
     },
   },
   "fc5ee50f-1091-5f4b-a80a-a28a3f1bf4de": {
@@ -1839,6 +2694,19 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["fresh coriander", "chilli flakes"],
     },
+    "de": {
+      "name": "Garnelencurry mit Reis",
+      "description": "Ein schnelles, duftendes Gericht im asiatischen Stil.",
+      "instructions": [
+        "Sind die Garnelen (250 g) gefroren, so sind sie vorher im Kühlschrank oder unter kaltem Wasser aufzutauen; sie dürfen nicht aus gefrorenem Wasser gekocht werden.",
+        "Kochen Sie den Reis (150 g) gemäß der Packungsanweisung.",
+        "Erhitzen Sie ein wenig Öl in einer Bratpfanne, fügen Sie das Currypulver (8 g) hinzu und braten Sie unter Rühren etwa 30-60 Sekunden bis zum Duft.",
+        "Gießen Sie in die Kokosmilch (200 ml), rühren Sie in das Gewürz und bringen Sie zum Kochen.",
+        "Fügen Sie die Garnelen hinzu und kochen Sie für 4-5 Minuten. Sie sind rosa, undurchsichtig und leicht gewellt bereit; längeres Kochen wird sie zäh machen.",
+        "Servieren Sie das Garnelen-Curry über den gekochten Reis.",
+      ],
+      "suggested_seasonings": ["Koriander, frisch", "Chili-Flocken"],
+    },
   },
   "783dba78-6154-5291-99ea-a5202445a6e9": {
     "source": {
@@ -1862,6 +2730,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Serve with cream or yoghurt.",
       ],
       "suggested_seasonings": ["nutmeg", "marjoram"],
+    },
+    "de": {
+      "name": "Kartoffelpfannkuchen",
+      "description": "Knackige Pfannkuchen, ein polnischer Klassiker.",
+      "instructions": [
+        "Reiben Sie die Kartoffeln (800 g) und Zwiebeln fein und drücken Sie dann überschüssiges Wasser aus.",
+        "Fügen Sie das Ei (1 Ei) und Mehl hinzu, würzen Sie mit Salz und mischen Sie es.",
+        "Braten Sie die Pfannkuchen in heißem Öl für 3-4 Minuten auf jeder Seite.",
+        "Servieren Sie mit Sahne oder Joghurt.",
+      ],
+      "suggested_seasonings": ["Muskatnuss", "Marjoram"],
     },
   },
   "a2c91d72-d3e9-59d8-b78f-db9b472481b6": {
@@ -1898,6 +2777,20 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["bay leaf", "allspice", "caraway", "marjoram"],
     },
+    "de": {
+      "name": "Schnelle Bigos",
+      "description":
+          "Eine vereinfachte Version von klassischen Bigos für ein Mittagessen an Wochentagen.",
+      "instructions": [
+        "Schneiden Sie die Wurst (300 g) etwa 1 cm dick und würfeln Sie die Zwiebel (150 g).",
+        "Erhitzen Sie einen schweren Kochtopf und braten Sie die Wurst und die Zwiebel zusammen für 5-6 Minuten, bis die Wurst leicht gebräunt ist.",
+        "Schredderte den Kohl (1 Kohl) in dünne Streifen.",
+        "Fügen Sie den Kohl mit den gehackten Tomaten (400 g) in den Topf und rühren Sie gründlich.",
+        "Decken und köcheln über einer niedrigen Hitze für 30-35 Minuten, gelegentlich rühren, um das Kohlkleben zu verhindern.",
+        "Saison mit Salz, Pfeffer und ein wenig süßer Paprika, Rühren und Geschmack vor dem Servieren.",
+      ],
+      "suggested_seasonings": ["Lorbeerblatt", "Piment", "Kümmel", "Marjoram"],
+    },
   },
   "efe248e8-006a-5550-8f37-50f052e6c3f2": {
     "source": {
@@ -1921,6 +2814,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Drizzle with melted butter (20 g) and serve.",
       ],
       "suggested_seasonings": ["vanilla", "cinnamon"],
+    },
+    "de": {
+      "name": "Lazy Quark Dumplings",
+      "description": "Quark Knödel - schneller als traditionelle Pierogi.",
+      "instructions": [
+        "Mash den Quark (500 g) mit den Eiern, fügen Sie das Mehl (150 g) und kneten Sie in einen einheitlichen Teig.",
+        "Form zu einem Stamm, in Stücke geschnitten und bilden Knödel.",
+        "Kochen Sie in kochendem Salzwasser, bis sie an die Oberfläche schwimmen, etwa 3-4 Minuten.",
+        "Drizzle mit geschmolzener Butter (20 g) und dienen.",
+      ],
+      "suggested_seasonings": ["Vanille", "Zimt"],
     },
   },
   "12b3ccac-44fe-5883-a726-dd3d51880f47": {
@@ -1952,6 +2856,21 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["marjoram", "caraway"],
     },
+    "de": {
+      "name": "Schweineschnitzel mit chinesischem Kohl",
+      "description":
+          "Eine Variation des klassischen Cutlet mit einem leichten Slaw.",
+      "instructions": [
+        "Die Schweinelende (600 g) wird mit Klebefolie bedeckt und mit einem Fleischhammer in Scheiben von etwa 1 cm Dicke abgeflacht; beide Seiten werden mit Salz und Pfeffer gewürzt.",
+        "Stelle drei Teller bereit: einen mit Mehl, einen mit verquirltem Ei (1 Stück) und einen mit Semmelbröseln.",
+        "Beschichten Sie jedes Kotelett in Mehl, dann Ei und schließlich Semmelbrösel und drücken Sie fest, so dass die Beschichtung haftet.",
+        "Erhitzen Sie das Öl in einer Bratpfanne und braten Sie die Koteletts für 3-4 Minuten auf jeder Seite, bis die Beschichtung golden und das Fleisch innen weiß ist.",
+        "Entleeren Sie die Schnitzel auf Küchenpapier.",
+        "Schneide den Chinakohl (1 Kopf) in feine Streifen. Beträufle ihn mit Olivenöl, salze ihn und mische alles.",
+        "Servieren Sie die Schnitzel mit dem chinesischen Kohlslaw.",
+      ],
+      "suggested_seasonings": ["Marjoram", "Kümmel"],
+    },
   },
   "fa0cc5d6-1e39-5db5-bdf0-5d4018f76149": {
     "source": {
@@ -1975,6 +2894,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Season with salt and pepper and serve immediately.",
       ],
       "suggested_seasonings": ["chilli flakes", "fresh basil"],
+    },
+    "de": {
+      "name": "Zucchini und Parmesan Pasta",
+      "description":
+          "Leichte, sommerliche Pasta - in einer Viertelstunde fertig.",
+      "instructions": [
+        "Kochen Sie die Pasta (200 g) in gesalzenem Wasser nach den Packungsanweisungen.",
+        "Schneiden Sie die Zucchini (2 Zucchini) in Halbmonde und braten Sie in Olivenöl (20 ml) mit Knoblauch für 6-8 Minuten.",
+        "Kombinieren Sie die Pasta mit den Zucchini und fügen Sie den geriebenen Parmesan (40 g) hinzu.",
+        "Saison mit Salz und Pfeffer und sofort dienen.",
+      ],
+      "suggested_seasonings": ["Chili-Flocken", "Frisches Basilikum"],
     },
   },
   "aada2940-9574-5b23-a23e-7030f7d2b021": {
@@ -2006,6 +2937,20 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["parsley", "chilli flakes"],
     },
+    "de": {
+      "name": "Garnelenrisotto",
+      "description": "Cremiges Meeresfrüchterisotto.",
+      "instructions": [
+        "Zerhacken Sie die Zwiebel (100 g).",
+        "Schmelzen Sie die Butter in einer Bratpfanne und braten Sie die Zwiebel für 3 Minuten bis weich.",
+        "Reis und Braten für 1-2 Minuten unter Rühren hinzufügen, bis die Ränder der Körner lichtdurchlässig werden.",
+        "Lösen Sie den Vorrat (2 Würfel) in einem Topf mit heißem Wasser und halten Sie eine niedrige Hitze.",
+        "Fügen Sie den heißen Stamm eine Pfanne auf einmal hinzu, rühren Sie ständig und warten Sie, bis jede Zugabe absorbiert wird, bevor Sie die nächste hinzufügen, für etwa 18 Minuten.",
+        "Für die letzten 4-5 Minuten Kochen, fügen Sie die Garnelen (200 g).",
+        "Entfernen Sie von der Hitze, würzen Sie mit Salz und Pfeffer und servieren Sie sofort, während Sie cremig sind.",
+      ],
+      "suggested_seasonings": ["Petersilie", "Chili-Flocken"],
+    },
   },
   "7760a7bf-c07f-56e8-b1e4-8c59b54fc225": {
     "source": {
@@ -2031,6 +2976,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["marjoram", "thyme"],
     },
+    "de": {
+      "name": "Buchweizen mit Pilzen und Zwiebeln",
+      "description":
+          "Ein füllendes vegetarisches Gericht im traditionellen polnischen Stil.",
+      "instructions": [
+        "Kochen Sie den Buchweizen (200 g) gemäß den Packungsanweisungen.",
+        "Frittieren Sie die Zwiebel in Öl (20 ml) bis durchsichtig, dann fügen Sie die geschnittenen Pilze (300 g) hinzu.",
+        "Braten Sie zusammen für 8-10 Minuten, bis die Pilze gebräunt sind.",
+        "Mischen Sie mit dem gekochten Buchweizen und Saison mit Salz und Pfeffer.",
+      ],
+      "suggested_seasonings": ["Marjoram", "Thymian"],
+    },
   },
   "5725b5c2-eaa5-5f7c-8c64-d4ca428bec52": {
     "source": {
@@ -2054,6 +3011,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Sprinkle with grated mozzarella and bake for 25-30 minutes until the cheese is golden.",
       ],
       "suggested_seasonings": ["oregano", "basil"],
+    },
+    "de": {
+      "name": "Zucchini und Cheese Bake",
+      "description": "Eine leichte Ofen-gebackene Gemüseschale.",
+      "instructions": [
+        "Den Ofen auf 190°C vorheizen.",
+        "Schneiden Sie die Zucchini (2 Zucchini) und Tomaten (200 g) und ordnen Sie dann abwechselnd Scheiben in einer ofensicheren Schale an.",
+        "Drizzle mit Olivenöl (15 ml) und Saison mit Salz, Oregano und Pfeffer.",
+        "Streuen Sie mit geriebenem Mozzarella und backen Sie 25-30 Minuten, bis der Käse golden ist.",
+      ],
+      "suggested_seasonings": ["Oregano", "Basilikum"],
     },
   },
   "1b91ab9f-7b8d-5caf-aac4-a8a73b6007b2": {
@@ -2086,6 +3054,24 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["oregano", "cinnamon (a pinch, Greek style)"],
     },
+    "de": {
+      "name": "Griechisch gebackene Auberginengine",
+      "description":
+          "Ein duftendes, pflanzliches Mittagessen mit mediterranen Aromen.",
+      "instructions": [
+        "Erhitzen Sie den Ofen auf 200 ° C, wenn möglich mit Ober- und Unterhitze ohne Ventilator.",
+        "Schneiden Sie die Auberginengine (1 Auberginengine) in Scheiben etwa 1 cm dick.",
+        "Ordnen Sie auf einem gefütterten Backtablett und nieseln Sie beide Seiten mit Olivenöl.",
+        "Backen Sie 15 Minuten, bis die Ränder leicht zu färben beginnen.",
+        "Entfernen Sie das Tablett, löffeln Sie die gehackten Tomaten (400 g) über die Scheiben und würzen Sie mit Oregano (3 g), Salz und Pfeffer.",
+        "Streuen Sie den zerbröckelten Feta (100 g) über die Spitze.",
+        "Backen Sie weitere 10 Minuten, bis der Feta golden ist und der Auberginengine weich ist, wenn er mit einer Gabel getestet wird.",
+      ],
+      "suggested_seasonings": [
+        "Oregano",
+        "Zimt (eine Prise, griechischer Stil)",
+      ],
+    },
   },
   "7149e822-7654-59c8-a8e3-81890685533f": {
     "source": {
@@ -2110,6 +3096,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["dill", "chives"],
     },
+    "de": {
+      "name": "Thunfisch und Eiersalat",
+      "description": "Ein leichtes, proteinreiches Abendessen in 15 Minuten.",
+      "instructions": [
+        "Koche die Eier (3 Stück) hart, lass sie abkühlen, schäle sie und schneide sie in Scheiben.",
+        "Reißen Sie den Salat (0.3 Salat) und hacken Sie die Tomaten (150 g).",
+        "Mischen Sie alle Zutaten mit dem abgelassenen Thunfisch (150 g).",
+        "Drizzle mit Olivenöl (15 ml) und Saison mit Salz und Pfeffer.",
+      ],
+      "suggested_seasonings": ["Dill", "Schnittlauch"],
+    },
   },
   "be56627e-b725-549a-812e-03e9e2f31e30": {
     "source": {
@@ -2133,6 +3130,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["fresh basil", "oregano"],
     },
+    "de": {
+      "name": "Caprese-Sandwiches",
+      "description":
+          "Ein italienischer Klassiker in einem Sandwich - Tomate, Mozzarella und Basilikum.",
+      "instructions": [
+        "Schneiden Sie das Brot (120 g), Mozzarella (125 g) und Tomaten (200 g).",
+        "Ordnen Sie abwechselnd Scheiben von Käse und Tomaten auf dem Brot.",
+        "Mit Olivenöl (15 ml) tropfen und mit Basilikum (1 g) und Salz streuen.",
+      ],
+      "suggested_seasonings": ["Frisches Basilikum", "Oregano"],
+    },
   },
   "1c821110-1d90-5e44-825b-bd77a2e6ba2e": {
     "source": {
@@ -2154,6 +3162,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Drizzle with olive oil (20 ml) and balsamic vinegar, then sprinkle with basil (2 g), salt and pepper.",
       ],
       "suggested_seasonings": ["fresh basil", "oregano"],
+    },
+    "de": {
+      "name": "Steinkohlensalat",
+      "description": "Ein einfacher, eleganter Salat für warme Abende.",
+      "instructions": [
+        "Schneiden Sie die Tomaten (300 g) und Mozzarella.",
+        "Ordnen Sie alternierende Scheiben auf einer Platte an.",
+        "Mit Olivenöl (20 ml) und Balsamico-Essig tropfen, dann mit Basilikum (2 g), Salz und Pfeffer streuen.",
+      ],
+      "suggested_seasonings": ["Frisches Basilikum", "Oregano"],
     },
   },
   "ec67eb34-af7b-50b4-88d3-6e8cdd2713b2": {
@@ -2177,6 +3195,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["sweet paprika"],
     },
+    "de": {
+      "name": "Süßkäse und Schnittomelett",
+      "description": "Ein einfaches, schnelles, herzhaftes Abendessen.",
+      "instructions": [
+        "Schlagen Sie die Eier (3 Eier) mit Salz und Pfeffer.",
+        "Erhitzen Sie die Butter (10 g) in einer Bratpfanne, gießen Sie die Eier ein und kochen Sie, bedeckt, bei niedriger Hitze.",
+        "Streuen Sie mit geriebenem Käse und falten Sie sich einmal in zwei Hälften.",
+      ],
+      "suggested_seasonings": ["Paprika, süß"],
+    },
   },
   "95b35fc0-3ab0-5e4d-9453-5f20724ea012": {
     "source": {
@@ -2198,6 +3226,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Top with slices of pepper (0.3 pepper) and cucumber.",
       ],
       "suggested_seasonings": ["cumin", "smoked paprika"],
+    },
+    "de": {
+      "name": "Hummus und Gemüsetoast",
+      "description":
+          "Ein leichtes, pflanzliches Abendessen in wenigen Minuten fertig.",
+      "instructions": [
+        "Toast die Brotscheiben (80 g).",
+        "Verbreitet mit Hummus (60 g).",
+        "Oben mit Scheiben von Pfeffer (0.3 Pfeffer) und Gurke.",
+      ],
+      "suggested_seasonings": ["Kreuzkümmel", "geräucherte Paprika"],
     },
   },
   "9c05677e-a735-56ab-a085-5507e041567e": {
@@ -2223,6 +3262,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["cumin", "fresh mint"],
     },
+    "de": {
+      "name": "Linsen- und Feta-Salat",
+      "description": "Ein füllender, pflanzlicher Abendessensalat.",
+      "instructions": [
+        "Kochen Sie die Linsen (150 g) in gesalzenem Wasser für etwa 10-12 Minuten, dann abtropfen und abkühlen.",
+        "Hacken Sie die Tomaten (200 g) und zerbröckeln Sie den Feta.",
+        "Mischen Sie alle Zutaten und Nieselregen mit Olivenöl (15 ml).",
+        "Saison mit Salz und Pfeffer nach Geschmack.",
+      ],
+      "suggested_seasonings": ["Kreuzkümmel", "frische Minze"],
+    },
   },
   "c4176f35-313b-5816-bc3c-cbae1148d14a": {
     "source": {
@@ -2246,6 +3296,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Roll up and serve.",
       ],
       "suggested_seasonings": ["smoked paprika", "cumin"],
+    },
+    "de": {
+      "name": "Hühner- und Gemüsehülle",
+      "description":
+          "Ein schnelles, zufriedenstellendes gewickeltes Abendessen.",
+      "instructions": [
+        "Schneiden Sie das Huhn (250 g) in Streifen und braten Sie es bis zum Kochen in Öl.",
+        "Erwärmen Sie die Tortillas (2 Tortillas) in einer trockenen Bratpfanne.",
+        "Legen Sie das Huhn, zerrissenen Salat (0.2 Salat) und Tomaten (100 g) auf eine Tortilla.",
+        "Roll up and serve.",
+      ],
+      "suggested_seasonings": ["geräucherte Paprika", "Kreuzkümmel"],
     },
   },
   "4aad26dc-491e-58a4-860d-169f97fa446c": {
@@ -2271,6 +3333,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["cumin", "chilli powder"],
     },
+    "de": {
+      "name": "Käsequesadilla",
+      "description": "Ein knuspriger mexikanischer Snack zum Abendessen.",
+      "instructions": [
+        "Streuen Sie eine Tortilla (2 Tortillas insgesamt) mit geriebenem Käse und gehacktem Pfeffer (0.5 Pfeffer).",
+        "Cover mit der zweiten Tortilla.",
+        "Kochen Sie in einer trockenen Bratpfanne für 2-3 Minuten auf jeder Seite, bis der Käse schmilzt.",
+        "Schneiden Sie in Viertel und dienen.",
+      ],
+      "suggested_seasonings": ["Kreuzkümmel", "Chilipulver"],
+    },
   },
   "42c2799a-a69e-5097-baa1-5e7c20a89279": {
     "source": {
@@ -2294,6 +3367,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Season with salt and pepper.",
       ],
       "suggested_seasonings": ["nutmeg", "thyme"],
+    },
+    "de": {
+      "name": "Cremiger Brokkoli und Käsesuppe",
+      "description": "Eine cremige, wärmende Suppe für den Abend.",
+      "instructions": [
+        "Kochen Sie den Brokkoli (1 Brokkoli) auf Lager bis zur Ausschreibung, etwa 15 Minuten.",
+        "Mischen bis glatt.",
+        "Rühren Sie den geriebenen Käse und Sahne (100 ml), dann erhitzen Sie, ohne zum Kochen zu bringen.",
+        "Saison mit Salz und Pfeffer.",
+      ],
+      "suggested_seasonings": ["Muskatnuss", "Thymian"],
     },
   },
   "6fa98cd6-f081-53aa-9a67-2ab63be67bc1": {
@@ -2319,6 +3403,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Spread over the bread slices (120 g) and serve.",
       ],
       "suggested_seasonings": ["cumin", "smoked paprika"],
+    },
+    "de": {
+      "name": "Sandwiches mit Kichererbsenspread",
+      "description":
+          "Eine pflanzenbasierte Sandwichaufstrich — Füllung und voller Faser.",
+      "instructions": [
+        "Die Kichererbsen (400 g) ablassen, dann mit einer Gabel oder Mischung mischen.",
+        "Fügen Sie das Olivenöl (20 ml) und zerkleinerten Knoblauch (eine Nelke) hinzu und mischen Sie es dann zu einem glatten Aufstrich.",
+        "Saison mit Salz und Pfeffer.",
+        "Über die Brotscheiben verteilen (120 g) und dienen.",
+      ],
+      "suggested_seasonings": ["Kreuzkümmel", "geräucherte Paprika"],
     },
   },
   "209c3bed-af69-52aa-9c6b-0f89d559c9dc": {
@@ -2348,6 +3444,20 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["oregano", "lemon juice"],
     },
+    "de": {
+      "name": "Griechischer Salat mit Garnelen",
+      "description":
+          "Eine füllende Meeresfrüchte-Version des griechischen Salats.",
+      "instructions": [
+        "Wenn die Garnelen eingefroren sind, tauen Sie sie vorher auf.",
+        "Erhitzen Sie ein wenig Öl in einer Bratpfanne und braten Sie die Garnelen für 3-4 Minuten, bis sie rosa und undurchsichtig sind.",
+        "Würfel die Tomaten (200 g) und Gurke.",
+        "Mischen Sie das gehackte Gemüse und gekühlte Garnelen in einer Schüssel.",
+        "Fügen Sie den zerbröckelten Feta und die Oliven (50 g) hinzu und werfen Sie dann sanft, damit Sie den Feta nicht zerquetschen.",
+        "Drizzle mit Olivenöl, saison mit Salz zu schmecken und sofort zu servieren.",
+      ],
+      "suggested_seasonings": ["Oregano", "Zitronensaft"],
+    },
   },
   "b64e7f9a-e56d-5afd-8d44-0a4f1f760fad": {
     "source": {
@@ -2370,6 +3480,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["nutmeg", "thyme"],
     },
+    "de": {
+      "name": "Cremige Lauchsuppe",
+      "description": "Eine zarte, elegante Suppe zum Abendessen.",
+      "instructions": [
+        "Hacken Sie den Lauch (2 Lauch) und die Kartoffeln (200 g), dann kochen Sie auf Lager für 18-20 Minuten bis zum Angebot.",
+        "Mischen bis glatt.",
+        "Rühren in der Creme (100 ml) und würzen Sie mit Salz und Pfeffer.",
+      ],
+      "suggested_seasonings": ["Muskatnuss", "Thymian"],
+    },
   },
   "d7cf84d9-38e4-58df-96fa-67797eadc6a9": {
     "source": {
@@ -2391,6 +3511,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Season with salt and pepper and spread over the toast.",
       ],
       "suggested_seasonings": ["sweet paprika"],
+    },
+    "de": {
+      "name": "Toast mit Eieraufstrich und Schnittlauch",
+      "description": "Ein klassischer Sandwich-Spread zum Abendessen.",
+      "instructions": [
+        "Sieden Sie die Eier (4 Eier), dann abkühlen und schälen.",
+        "Mash die Eier mit einer Gabel und die weichgemachte Butter (15 g).",
+        "Saison mit Salz und Pfeffer und über den Toast verteilt.",
+      ],
+      "suggested_seasonings": ["Paprika, süß"],
     },
   },
   "74104ff2-cd44-5a52-a85c-5745154a92d8": {
@@ -2416,6 +3546,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["smoked paprika", "lemon juice"],
     },
+    "de": {
+      "name": "Avocado und Eiersalat",
+      "description": "Ein cremiger, füllender Abendsalat.",
+      "instructions": [
+        "Hartkochen die Eier (3 Eier), dann abkühlen, schälen und vierteln.",
+        "Würfeln Sie die Avocado (1 Avocado) und zerreißen Sie den Salat (0.3 Salat).",
+        "Mischen Sie die Zutaten in einer Schüssel und Nieselregen mit Olivenöl (15 ml).",
+        "Saison mit Salz und Pfeffer.",
+      ],
+      "suggested_seasonings": ["geräucherte Paprika", "Zitronensaft"],
+    },
   },
   "8f6fb737-de3b-550b-b438-c8c2dd4d3963": {
     "source": {
@@ -2440,6 +3581,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["turmeric", "garlic granules"],
     },
+    "de": {
+      "name": "Gebackene Blumenkohlchips",
+      "description": "Eine knusprige, gesunde Alternative zu Chips.",
+      "instructions": [
+        "Den Ofen auf 200°C vorheizen.",
+        "Schneiden Sie den Blumenkohl (1 Blumenkohl) in kleine Blumenblüten.",
+        "Mit Olivenöl (20 ml), süßer Paprika (3 g) und Salz werfen.",
+        "Backen Sie für 18-20 Minuten, bis die Ränder golden sind.",
+      ],
+      "suggested_seasonings": ["Kurkuma", "Knoblauchgranulat"],
+    },
   },
   "95274b72-f88c-5d13-a6b9-2e30733ace6d": {
     "source": {
@@ -2463,6 +3615,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Refrigerate for at least 30 minutes before serving.",
       ],
       "suggested_seasonings": ["cinnamon", "vanilla"],
+    },
+    "de": {
+      "name": "Hafer- und Nussenergiekugeln",
+      "description": "Ein hausgemachter No-Bake Energy Snack.",
+      "instructions": [
+        "Mischen Sie den Hafer (150 g), Erdnussbutter (100 g) und Honig bis zur Einheit.",
+        "Fügen Sie die gehackten Nüsse hinzu und mischen Sie.",
+        "Form in kleine Bälle mit den Händen.",
+        "Kühlen Sie mindestens 30 Minuten vor dem Servieren.",
+      ],
+      "suggested_seasonings": ["Zimt", "Vanille"],
     },
   },
   "a2cdb279-14d7-5041-8c06-946e3792f1db": {
@@ -2496,6 +3659,21 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "chilli powder",
       ],
     },
+    "de": {
+      "name": "Knusprige Kichererbsen",
+      "description": "Ein knuspriger, gewürzter Snack statt Chips.",
+      "instructions": [
+        "Den Ofen auf 200°C vorheizen.",
+        "Entwässern Sie die Kichererbsen (400 g) und trocknen Sie mit Küchenpapier.",
+        "Mit Olivenöl (20 ml), Kreuzkümmel und Salz werfen.",
+        "Backen Sie für 20-25 Minuten, schütteln Sie das Tablett auf halbem Weg durch, bis knackig.",
+      ],
+      "suggested_seasonings": [
+        "geräucherte Paprika",
+        "Knoblauchgranulat",
+        "Chilipulver",
+      ],
+    },
   },
   "a4c78632-3bd4-586e-8e5e-8cd12bedb0b3": {
     "source": {
@@ -2517,6 +3695,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Pour into a glass and serve immediately.",
       ],
       "suggested_seasonings": ["cinnamon"],
+    },
+    "de": {
+      "name": "Mango und Bananen-Smoothie",
+      "description":
+          "Ein erfrischender Frucht-Smoothie für einen schnellen Snack.",
+      "instructions": [
+        "Chop die Mango und Banane (1 Banane).",
+        "Mischen Sie die Frucht mit Mandelmilch (200 ml), bis glatt.",
+        "Gießen Sie in ein Glas und dienen Sie sofort.",
+      ],
+      "suggested_seasonings": ["Zimt"],
     },
   },
   "6930a8b4-c3b7-5e95-919a-b65016203592": {
@@ -2540,6 +3729,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["cinnamon"],
     },
+    "de": {
+      "name": "Joghurt mit Müsli und Honig",
+      "description": "Ein einfacher, süßer Snack für jede Tageszeit.",
+      "instructions": [
+        "Löffel den Joghurt (150 g) in eine Schüssel.",
+        "Tränken Sie mit Hafer (30 g).",
+        "Drizzle mit Honig (15 g) und sofort dienen.",
+      ],
+      "suggested_seasonings": ["Zimt"],
+    },
   },
   "d99b4d0e-e07f-5f92-aee6-77dc687baa3a": {
     "source": {
@@ -2561,6 +3760,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Serve chilled, drizzled with honey if desired.",
       ],
       "suggested_seasonings": ["fresh mint", "lime juice"],
+    },
+    "de": {
+      "name": "Obstsalat",
+      "description": "Eine bunte Mischung aus frischen Früchten.",
+      "instructions": [
+        "Würfeln Sie die Mango (1 Mango), Erdbeeren (150 g) und Bananen.",
+        "Mischen Sie mit den Heidelbeeren (100 g) in einer Schüssel.",
+        "Gekühlt servieren, wenn gewünscht mit Honig beträufelt.",
+      ],
+      "suggested_seasonings": ["frische Minze", "Limettensaft"],
     },
   },
   "db84cd7b-5862-5580-93ee-7b5a709adcca": {
@@ -2592,6 +3801,22 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["fresh coriander", "chilli flakes", "cumin"],
     },
+    "de": {
+      "name": "Guacamole mit Gemüse",
+      "description":
+          "Ein cremiges mexikanisches Bad mit knusprigem Gemüse zum Tauchen.",
+      "instructions": [
+        "Mash das Avocado-Fleisch (2 Avocados) mit einer Gabel.",
+        "Zitronensaft (0.5 Zitrone) und fein gehackte Zwiebeln (50 g) hinzufügen und dann mischen.",
+        "Saison mit Salz und Pfeffer.",
+        "Servieren Sie mit Karottenstäbchen (200 g) zum Tauchen.",
+      ],
+      "suggested_seasonings": [
+        "Koriander, frisch",
+        "Chili-Flocken",
+        "Kreuzkümmel",
+      ],
+    },
   },
   "c863242f-75a0-5797-94f6-4d83699ff416": {
     "source": {
@@ -2622,6 +3847,21 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["cinnamon", "vanilla"],
     },
+    "de": {
+      "name": "Hafermuscheln",
+      "description":
+          "Hausgemachte Müsliriegel - großartig, um sie mitzunehmen.",
+      "instructions": [
+        "Den Ofen auf 170°C vorheizen und eine kleine Backdose mit Backpapier auskleiden.",
+        "Honig (80 g) und Erdnussbutter (60 g) sanft in einem kleinen Topf erhitzen, bis sie glatt und vereinigt sind; nicht zum Sieden bringen.",
+        "Entfernen Sie aus der Hitze, fügen Sie den Hafer (200 g) und Mandeln hinzu und mischen Sie gründlich.",
+        "Übertragen Sie die Mischung auf die Dose und drücken Sie fest mit der Hand oder der Rückseite eines Löffels, bis kompakt und gleichmäßig.",
+        "Backen Sie für 15-18 Minuten, bis die Ränder golden sind.",
+        "Die Stäbe werden mindestens 30 Minuten lang vollständig in der Dose abkühlen lassen.",
+        "Nur einmal völlig kühl, mit einem scharfen Messer in Bars geschnitten.",
+      ],
+      "suggested_seasonings": ["Zimt", "Vanille"],
+    },
   },
   "c880b76c-0d51-5ac6-b7e9-37e6e35430fe": {
     "source": {
@@ -2643,6 +3883,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Spread the avocado over the toast and top with sliced tomatoes (150 g).",
       ],
       "suggested_seasonings": ["black pepper", "chilli flakes"],
+    },
+    "de": {
+      "name": "Avocado und Tomatentoast",
+      "description":
+          "Einfacher, vollständig pflanzlicher Toast für ein schnelles Frühstück.",
+      "instructions": [
+        "Braten Sie die Weißbrotscheiben (100 g) in einem Toaster oder einer Trockenpfanne.",
+        "Mash die Avocado (1 Avocado) mit einer Gabel, Saison mit Salz und Nieselregen mit ein wenig Zitronensaft.",
+        "Verbreiten Sie die Avocado über den Toast und die Oberseite mit geschnittenen Tomaten (150 g).",
+      ],
+      "suggested_seasonings": ["Schwarzer Pfeffer", "Chili-Flocken"],
     },
   },
   "37537c67-3fc6-5cf2-861b-b0107ca86263": {
@@ -2670,6 +3921,19 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["coriander", "chilli"],
     },
+    "de": {
+      "name": "Kichererbse und Spinat-Curry",
+      "description":
+          "Ein wärmendes, vollständig pflanzliches Curry - füllend und schnell.",
+      "instructions": [
+        "Braten Sie die gehackte Zwiebel (100 g) in Rapsöl bis transluzent.",
+        "Fügen Sie das Currypulver (10 g) hinzu und frittieren Sie für 30 Sekunden bis zum Duften.",
+        "Gießen Sie in die Kokosmilch (200 ml), dann fügen Sie die Kichererbsen (400 g) und gefrorenen Spinat (200 g).",
+        "Simmern über eine niedrige Hitze für 12-15 Minuten, bis der Spinat aufgetaut hat und die Sauce hat sich leicht verdickt.",
+        "Saison mit Salz zum Geschmack.",
+      ],
+      "suggested_seasonings": ["Koriander", "Chili"],
+    },
   },
   "de804b96-24c5-5e16-a2bb-a3f76aaf8392": {
     "source": {
@@ -2694,6 +3958,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["cumin", "parsley"],
     },
+    "de": {
+      "name": "Kichererbse und Avocado-Salat",
+      "description":
+          "Ein füllender, vollständig pflanzlicher Salat zum Abendessen.",
+      "instructions": [
+        "Die Kichererbsen (400 g) ablassen und in eine Schüssel geben.",
+        "Fügen Sie die geschnittene Avocado (1 Avocado) und Tomaten (200 g) hinzu.",
+        "Drizzle mit Zitronensaft (1 Zitrone) und Olivenöl (20 g), dann würzen Sie mit Salz.",
+        "Werfen Sie sanft, damit Sie die Avocado nicht zerquetschen.",
+      ],
+      "suggested_seasonings": ["Kreuzkümmel", "Petersilie"],
+    },
   },
   "cf6c18c6-bfc3-5b80-b676-2f47dc2ac88f": {
     "source": {
@@ -2717,6 +3993,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Stir in the dried basil (2 g), then add the drained pasta to the sauce and mix.",
       ],
       "suggested_seasonings": ["fresh basil", "chilli flakes"],
+    },
+    "de": {
+      "name": "Tomaten- und Basilikum-Teigwaren",
+      "description": "Klassische, vollständig pflanzliche Pasta pomodoro.",
+      "instructions": [
+        "Kochen Sie den Penne (200 g) in gesalzenem Wasser gemäß den Packungsanweisungen.",
+        "Braten Sie den zerkleinerten Knoblauch (2 Nelken) in Olivenöl bis zum Duft.",
+        "Fügen Sie die zerkleinerten Tomaten (400 g) hinzu und kochen Sie über eine niedrige Hitze für 10-12 Minuten, bis sich die Sauce verdickt.",
+        "Rühren Sie im getrockneten Basilikum (2 g), fügen Sie dann die abgelassene Pasta zur Soße hinzu und mischen Sie sie.",
+      ],
+      "suggested_seasonings": ["Frisches Basilikum", "Chili-Flocken"],
     },
   },
   "fef808dd-f283-5b27-9c0a-52ecff35858f": {
@@ -2743,6 +4030,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["smoked paprika", "marjoram"],
     },
+    "de": {
+      "name": "Buchweizen mit Gemüse",
+      "description":
+          "Ein füllendes, vollständig pflanzliches Gericht mit Buchweizen und gebratenem Gemüse.",
+      "instructions": [
+        "Kochen Sie den Buchweizen (200 g) gemäß den Packungsanweisungen.",
+        "Frittieren Sie die gewürfelten Zucchini (1 Zucchini), Pfeffer (1 Pfeffer) und Zwiebeln (100 g) in Olivenöl.",
+        "Braten Sie für 8-10 Minuten, bis das Gemüse weich wird.",
+        "Mischen Sie mit dem gekochten Buchweizen und Saison mit Salz und Pfeffer.",
+      ],
+      "suggested_seasonings": ["geräucherte Paprika", "Marjoram"],
+    },
   },
   "644406b6-bee2-5da4-b050-1efd1ff1da18": {
     "source": {
@@ -2765,6 +4064,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["chilli flakes", "chives"],
     },
+    "de": {
+      "name": "Avocado mit gebratenen Eiern",
+      "description": "Ein kohlenhydratarmes Frühstück ohne Brot.",
+      "instructions": [
+        "Halbieren Sie die Avocado (1 Avocado) und entfernen Sie den Stein.",
+        "Erhitzen Sie die Butter (10 g) in einer Bratpfanne und braten Sie die Eier (2 Eier).",
+        "Legen Sie die Eier auf die Avocado-Hälften und Saison mit Salz und Pfeffer.",
+      ],
+      "suggested_seasonings": ["Chili-Flocken", "Schnittlauch"],
+    },
   },
   "8403654e-b581-58f0-a9b6-e1410e1f7b1f": {
     "source": {
@@ -2786,6 +4095,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Melt the butter (20 g) with the crushed garlic (2 cloves) and pour over the chicken and broccoli before serving.",
       ],
       "suggested_seasonings": ["thyme", "rosemary"],
+    },
+    "de": {
+      "name": "Hähnchen mit Kräuterbutter und Brokkoli",
+      "description": "Ein kohlenhydratarmes, proteinreiches Mittagessen.",
+      "instructions": [
+        "Die Hähnchenbrust (350 g) mit Salz und Pfeffer würzen, dann in Olivenöl auf beiden Seiten braten, bis golden und zart, etwa 6-7 Minuten pro Seite.",
+        "Dampf oder kochen Sie den Brokkoli (1 Brokkoli) für 5-6 Minuten.",
+        "Schmelzen Sie die Butter (20 g) mit dem zerkleinerten Knoblauch (2 Nelken) und gießen Sie über das Huhn und Brokkoli vor dem Servieren.",
+      ],
+      "suggested_seasonings": ["Thymian", "Rosmarin"],
     },
   },
   "9f1da5ac-f8f8-5411-a931-c62e85fee34d": {
@@ -2810,6 +4129,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["black pepper", "chives"],
     },
+    "de": {
+      "name": "Hartgekochte Eier",
+      "description": "Der einfachste proteinreiche, kohlenhydratarme Snack.",
+      "instructions": [
+        "Legen Sie die Eier (3 Eier) in einen kleinen Topf und decken Sie mit kaltem Wasser.",
+        "Bringen Sie zum Kochen, dann kochen Sie über eine niedrige Hitze für 8-9 Minuten.",
+        "Spülen Sie unter kaltem Wasser, schälen und würzen Sie vor dem Essen mit Salz.",
+      ],
+      "suggested_seasonings": ["Schwarzer Pfeffer", "Schnittlauch"],
+    },
   },
   "bd49465a-6329-5ae2-9d30-789658bb2b8e": {
     "source": {
@@ -2829,6 +4158,15 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Drizzle with olive oil (10 g) and serve.",
       ],
       "suggested_seasonings": ["oregano", "black pepper"],
+    },
+    "de": {
+      "name": "Oliven mit Feta",
+      "description": "Ein mediterraner, kohlenhydratarmer Snack.",
+      "instructions": [
+        "Mischen Sie die schwarzen Oliven (50 g) mit dem gewürfelten Feta (50 g).",
+        "Drizzle mit Olivenöl (10 g) und dienen.",
+      ],
+      "suggested_seasonings": ["Oregano", "Schwarzer Pfeffer"],
     },
   },
   "9ce542e4-202d-5772-ba43-0a43baff60d5": {
@@ -2850,6 +4188,15 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["nuts", "cinnamon"],
     },
+    "de": {
+      "name": "Quark mit Honig",
+      "description": "Ein einfacher, proteinreicher süßer Snack.",
+      "instructions": [
+        "Legen Sie den Halbfettquark (150 g) auf eine kleine Platte.",
+        "Drizzle mit Honig (20 g) und dienen.",
+      ],
+      "suggested_seasonings": ["Muttern", "Zimt"],
+    },
   },
   "762e2a80-f4a7-52f4-82a2-8b0db789bd90": {
     "source": {
@@ -2867,6 +4214,14 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Arrange the cooked ham slices (80 g) and Gouda (50 g) on a plate.",
       ],
       "suggested_seasonings": ["mustard", "cress"],
+    },
+    "de": {
+      "name": "Schinken mit Käse",
+      "description": "Ein schneller, proteinreicher Snack ohne Kochen.",
+      "instructions": [
+        "Ordne die gekochten Schinkenscheiben (80 g) und Gouda (50 g) auf einem Teller an.",
+      ],
+      "suggested_seasonings": ["Senf", "Kresse"],
     },
   },
   "e8e9eceb-ff92-54cc-96ce-2b92250af818": {
@@ -2888,6 +4243,15 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["honey", "cinnamon"],
     },
+    "de": {
+      "name": "Joghurt mit Nüssen",
+      "description": "Ein einfacher, proteinreicher Snack.",
+      "instructions": [
+        "Löffel den natürlichen Joghurt (200 g) in eine Schüssel.",
+        "Streuen Sie mit Walnüssen (20 g) und dienen.",
+      ],
+      "suggested_seasonings": ["Honig", "Zimt"],
+    },
   },
   "c736ce38-9ced-50a6-acbb-52c827c2094f": {
     "source": {
@@ -2907,6 +4271,15 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Drizzle with olive oil (10 g) and season with salt and pepper.",
       ],
       "suggested_seasonings": ["dill", "lemon"],
+    },
+    "de": {
+      "name": "Thunfisch- und Gurkensalat",
+      "description": "Ein leichter, proteinreicher Snack ohne Kochen.",
+      "instructions": [
+        "Den Thunfisch (100 g) ablassen und mit der Gurke (1 Gurke) mischen.",
+        "Drizzle mit Olivenöl (10 g) und Saison mit Salz und Pfeffer.",
+      ],
+      "suggested_seasonings": ["Dill", "Zitrone"],
     },
   },
   "ccf5dda8-d37d-5ec3-b06a-dca7d9b36702": {
@@ -2931,6 +4304,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Brush with the remaining glaze and cook for 2 more minutes. Check that the meat is fully cooked.",
       ],
       "suggested_seasonings": ["ginger", "chilli flakes"],
+    },
+    "de": {
+      "name": "Air Friteuse Mandarin Chicken Wings",
+      "description": "Juicy Flügel in einer Zitrus- und Tamariglasur.",
+      "instructions": [
+        "Drücken Sie die Mandarinen und kombinieren Sie den Saft mit Tamari, Honig und geriebenem Knoblauch.",
+        "Werfen Sie die Flügel mit der Hälfte der Glasur und ordnen Sie in einer einzigen Schicht im Korb an.",
+        "Kochen Sie für 24 Minuten bei 180 ° C, Drehen nach 12 Minuten.",
+        "Mit der restlichen Glasur bürsten und weitere 2 Minuten kochen.",
+      ],
+      "suggested_seasonings": ["Ingwer", "Chili-Flocken"],
     },
   },
   "289b9403-45b9-5819-8826-77a8ef18c9d3": {
@@ -2958,6 +4342,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["pepper", "ginger"],
     },
+    "de": {
+      "name": "Air Friteus teriyaki Lachs mit grünen Bohnen",
+      "description":
+          "Lachs und frische grüne Bohnen werden zusammen in einem Korb gekocht.",
+      "instructions": [
+        "Den Lachs mit Teriyaki-Sauce bürsten und die grünen Bohnen mit Olivenöl werfen.",
+        "Legen Sie die grünen Bohnen in den Korb und kochen Sie für 3 Minuten bei 190 ° C.",
+        "Fügen Sie den Lachs hinzu und kochen Sie alles weitere 8 Minuten, bis der Fisch mit einer Gabel leicht abblättert.",
+        "Streuen Sie mit Sesamsamen und dienen Sie mit Limette.",
+      ],
+      "suggested_seasonings": ["Pfeffer", "Ingwer"],
+    },
   },
   "f7773aa5-4ed9-548b-898e-bd1f08f83e3e": {
     "source": {
@@ -2981,6 +4377,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Serve with yoghurt mixed with lemon juice.",
       ],
       "suggested_seasonings": ["sweet paprika", "pepper"],
+    },
+    "de": {
+      "name": "Air Friteusenfischer",
+      "description":
+          "Hausgemachte Fischfinger in einer knackigen Panko-Beschichtung.",
+      "instructions": [
+        "Schneiden Sie den Kabeljau in dicke Streifen und trocknen Sie gründlich.",
+        "Beschichten Sie die Stücke in Mehl, geschlagenes Ei und dann Panko.",
+        "Spray mit Olivenöl und Kochen für 10-12 Minuten bei 190 ° C, Drehen auf halbem Weg durch.",
+        "Servieren Sie mit Joghurt gemischt mit Zitronensaft.",
+      ],
+      "suggested_seasonings": ["Paprika, süß", "Pfeffer"],
     },
   },
   "abea3214-ff82-599d-8445-51771f7078f9": {
@@ -3008,6 +4416,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["salt", "pepper"],
     },
+    "de": {
+      "name": "Kokosnussgarnelen",
+      "description":
+          "Garnelen in einer leichten Kokosnussbeschichtung mit süßer Chili-Sauce.",
+      "instructions": [
+        "Pat die Garnelen trocknen und tauchen in geschlagenes Ei.",
+        "Mischen Sie den Panko mit getrockneter Kokosnuss und beschichten Sie die Garnelen.",
+        "Arrangieren Sie ohne Überlappung und kochen Sie für 7-8 Minuten bei 190 ° C.",
+        "Servieren Sie sofort mit süßer Chili-Sauce und Limette.",
+      ],
+      "suggested_seasonings": ["Salz", "Pfeffer"],
+    },
   },
   "db842b56-5d1a-5605-b544-2423cec71a16": {
     "source": {
@@ -3031,6 +4451,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Rest for 5 minutes before slicing to keep the juices in the meat.",
       ],
       "suggested_seasonings": ["salt", "pepper"],
+    },
+    "de": {
+      "name": "Air Friteuse Schweinebrei mit Vollkornsenf",
+      "description": "Zartes Schweinefleisch mit Vollkornsenf und Salbei.",
+      "instructions": [
+        "Reiben Sie das Fleisch mit Senf, Olivenöl, gehacktem Salbei und Pfeffer.",
+        "Kochen Sie für 16-20 Minuten bei 190°C und drehen Sie sich auf halbem Weg durch.",
+        "Überprüfen Sie, ob das Fleisch an seiner dicksten Stelle gekocht wird.",
+        "Ruhen Sie sich für 5 Minuten vor dem Schneiden aus, um die Säfte im Fleisch zu halten.",
+      ],
+      "suggested_seasonings": ["Salz", "Pfeffer"],
     },
   },
   "403f1a1f-d8d4-5ab4-abe1-7c3c6e67791f": {
@@ -3057,6 +4488,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["cumin", "ground coriander"],
     },
+    "de": {
+      "name": "Puten-Kofta mit Minz-Skyr",
+      "description":
+          "Duftender magerer Truthahn Koftas mit einer kühlen Minzsauce.",
+      "instructions": [
+        "Mischen Sie das Fleisch mit gehackten Zwiebeln, Kreuzkümmel und der Hälfte der Minze.",
+        "Form in längliche Koftas und Kochen für 10-12 Minuten bei 190 ° C, einmal drehend.",
+        "Stellen Sie sicher, dass das Fleisch innen nicht roh ist.",
+        "Mischen Sie den Skyr mit der verbleibenden Minze und Zitronensaft, dann dienen als Sauce.",
+      ],
+      "suggested_seasonings": ["Kreuzkümmel", "Bodenkoriander"],
+    },
   },
   "d574e639-4ef4-566f-b6d8-e8c0c3e90bb9": {
     "source": {
@@ -3080,6 +4523,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Toss the tofu with the sauce and sprinkle with sesame seeds.",
       ],
       "suggested_seasonings": ["ginger", "chilli flakes"],
+    },
+    "de": {
+      "name": "Knuspriger Tofu in Orangensauce",
+      "description": "Tofu-Würfel mit Zitrussauce und Sesamsamen.",
+      "instructions": [
+        "Pat den Tofu trocken, Würfel und Mantel in Maismehl.",
+        "Kochen Sie für 12-14 Minuten bei 195°C und schütteln Sie den Korb auf halbem Weg durch.",
+        "Erhitzen Sie den Orangensaft mit Tamari, Honig und Ingwer, bis er leicht verdickt ist.",
+        "Werfen Sie den Tofu mit der Sauce und streuen Sie mit Sesamsamen.",
+      ],
+      "suggested_seasonings": ["Ingwer", "Chili-Flocken"],
     },
   },
   "e62e32b6-38fb-565f-b158-e7559a245e67": {
@@ -3106,6 +4560,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["cumin", "ground coriander"],
     },
+    "de": {
+      "name": "Air Fritteuse Falafel mit Tahini-Sauce",
+      "description": "Herby Kichererbsenkugeln ohne Frittieren.",
+      "instructions": [
+        "Die Kichererbsen und die Hülsenfrüchte werden in einem Mixer mit Zwiebeln, Knoblauch, Petersilie und Mehl abgelassen.",
+        "Form in kleine abgeflachte Bälle und bürsten leicht mit Olivenöl.",
+        "Kochen für 12-14 Minuten bei 190°C, Drehen nach 7 Minuten.",
+        "Verdünnen Sie den Tahini mit Zitronensaft und etwas Wasser.",
+      ],
+      "suggested_seasonings": ["Kreuzkümmel", "Bodenkoriander"],
+    },
   },
   "1abded16-336b-5ef7-98d0-cbdc29c7c1e4": {
     "source": {
@@ -3129,6 +4594,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Serve the cheese immediately with the dip.",
       ],
       "suggested_seasonings": ["pepper", "sumac"],
+    },
+    "de": {
+      "name": "Halloumi Pommes frites mit Granatapfel",
+      "description": "Crisp halloumi Sticks mit einem süßen und sauren Dip.",
+      "instructions": [
+        "Schneiden Sie die Halloumi in dicke Stäbchen und Mantel in Panko.",
+        "Kochen für 8-9 Minuten bei 190°C, Drehen nach 5 Minuten.",
+        "Den Joghurt mit Granatapfelmelasse und Minze mischen.",
+        "Servieren Sie den Käse sofort mit dem Dip.",
+      ],
+      "suggested_seasonings": ["Pfeffer", "Sumpf"],
     },
   },
   "2eeb4a5a-74e5-56f1-a001-1dcb104c2006": {
@@ -3154,6 +4630,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["basil", "oregano"],
     },
+    "de": {
+      "name": "Luftfritteuse Mozzarella arancini",
+      "description": "Reiskugeln mit Schmelzkäse und knuspriger Beschichtung.",
+      "instructions": [
+        "Kochen Sie den Arborio-Reis auf Lager und kühlen Sie vollständig ab.",
+        "Wickeln Sie ein Stück Mozzarella in eine Portion Reis und formen Sie es zu einem festen Ball.",
+        "Beschichten Sie die Bälle in Ei und Panko, dann besprühen Sie mit Olivenöl.",
+        "Kochen Sie für 10-12 Minuten bei 195 ° C und servieren Sie mit warmer Marinara-Sauce.",
+      ],
+      "suggested_seasonings": ["Basilikum", "Oregano"],
+    },
   },
   "1218b581-db34-5dc6-8a84-c533ac2441ff": {
     "source": {
@@ -3177,6 +4664,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Add basil and grated Parmesan.",
       ],
       "suggested_seasonings": ["pepper", "garlic granules"],
+    },
+    "de": {
+      "name": "Crispy Gnocchi mit pesto rosso",
+      "description":
+          "Goldene Gnocchi mit sonnengetrockneten Tomaten und frischem Basilikum.",
+      "instructions": [
+        "Werfen Sie die ungekochten Gnocchi mit Olivenöl.",
+        "Kochen Sie für 12-14 Minuten bei 195°C und schütteln Sie den Korb zweimal.",
+        "Mischen Sie die heißen Gnocchi mit Pesto Rosso und halbierten Tomaten.",
+        "Basilikum und geriebenes Parmesan hinzufügen.",
+      ],
+      "suggested_seasonings": ["Pfeffer", "Knoblauchgranulat"],
     },
   },
   "54c61382-dea6-5271-b0c5-6c291a58c9d1": {
@@ -3202,6 +4701,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["pepper", "nutmeg"],
     },
+    "de": {
+      "name": "Portobello-Pilze mit Spinat und Ricotta",
+      "description": "Große Pilzkappen mit einer cremigen, Kräuterfüllung.",
+      "instructions": [
+        "Entfernen Sie die Pilzstiele und klopfen Sie die Kappen trocken.",
+        "Mischen Sie die Ricotta mit Spinat, Knoblauch und Parmesan.",
+        "Füllen Sie die Kappen mit der Mischung und kochen Sie für 10-11 Minuten bei 185 °C.",
+        "Fügen Sie frisches Basilikum vor dem Servieren hinzu.",
+      ],
+      "suggested_seasonings": ["Pfeffer", "Muskatnuss"],
+    },
   },
   "63f1a2a7-e152-56eb-bfc3-d714cd15c8c2": {
     "source": {
@@ -3225,6 +4735,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Cook in batches for 8–10 minutes at 185°C until golden.",
       ],
       "suggested_seasonings": ["oregano", "basil"],
+    },
+    "de": {
+      "name": "Mini-Calzonen mit Salami und Gelbpfeffer",
+      "description":
+          "Kleine Teigtaschen mit einer geschmackvollen italienischen Füllung.",
+      "instructions": [
+        "Teilen Sie den Teig in acht Stücke und rollen Sie ihn in kleine Kreise.",
+        "Platzieren Sie Passata, Salami, Pfeffer und Mozzarella auf einer Hälfte jedes Kreises.",
+        "Falten Sie um und versiegeln Sie die Ränder fest mit einer Gabel.",
+        "Kochen Sie in Chargen für 8-10 Minuten bei 185°C bis golden.",
+      ],
+      "suggested_seasonings": ["Oregano", "Basilikum"],
     },
   },
   "1e1346b7-90d1-5379-9db1-6fa7fc49242e": {
@@ -3251,6 +4773,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["pepper", "garlic granules"],
     },
+    "de": {
+      "name": "Fritteusenkuchen und Pecorinofritteusen",
+      "description":
+          "Gemüsefritter mit einem charakteristischen Schafsmilchkäse.",
+      "instructions": [
+        "Reiben Sie die Zucchini, salzen Sie sie, lassen Sie 5 Minuten und drücken Sie sehr gründlich.",
+        "Kombinieren Sie mit dem Ei, Mehl, Pecorino und Schnittlauch.",
+        "Form in sechs flache Fritter auf Backpapier.",
+        "Kochen Sie für 12-14 Minuten bei 190 ° C und drehen Sie sich vorsichtig auf halbem Weg durch.",
+      ],
+      "suggested_seasonings": ["Pfeffer", "Knoblauchgranulat"],
+    },
   },
   "1af5b3b7-2180-5033-88cc-d4ba839d7d3d": {
     "source": {
@@ -3274,6 +4808,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Sprinkle with feta and coriander.",
       ],
       "suggested_seasonings": ["cumin", "pepper"],
+    },
+    "de": {
+      "name": "Hasselback-Süßkartoffeln mit Feta und Harissa",
+      "description":
+          "Süßkartoffeln in Scheiben geschnitten mit würziger Harissa und salzigem Feta.",
+      "instructions": [
+        "Schneiden Sie die Süßkartoffeln alle paar Millimeter, ohne den ganzen Weg durchzuschneiden.",
+        "Bürsten Sie mit Olivenöl mit Harissa gemischt und kochen Sie für 25-30 Minuten bei 180 ° C.",
+        "Überprüfen Sie, ob sie an der dicksten Stelle weich sind und kochen Sie bei Bedarf länger.",
+        "Streuen Sie mit Feta und Koriander.",
+      ],
+      "suggested_seasonings": ["Kreuzkümmel", "Pfeffer"],
     },
   },
   "656c2a92-cc06-577f-a251-35ff49f47eff": {
@@ -3299,6 +4845,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["salt", "pepper"],
     },
+    "de": {
+      "name": "Balsamico-Brüsselsprossen mit Pekannüssen",
+      "description": "Karamellisierte Rosenkohlsprossen mit knusprigen Nüssen.",
+      "instructions": [
+        "Die Rosenkohle halbieren und mit Olivenöl werfen.",
+        "Kochen Sie für 14-16 Minuten bei 190°C und schütteln Sie den Korb alle 5 Minuten.",
+        "Fügen Sie die Nüsse für die letzten 3 Minuten Kochen hinzu.",
+        "Werfen Sie das heiße Gemüse mit Balsamicoglasur.",
+      ],
+      "suggested_seasonings": ["Salz", "Pfeffer"],
+    },
   },
   "5d413b6c-3bde-542e-88de-9a559e8c31ca": {
     "source": {
@@ -3322,6 +4879,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Serve with hummus and lemon wedges.",
       ],
       "suggested_seasonings": ["za'atar", "salt"],
+    },
+    "de": {
+      "name": "Za'atar Karotten Pommes frites mit Hummus",
+      "description": "Karottenstäbchen mit einer aromatischen Kräutermischung.",
+      "instructions": [
+        "Schneiden Sie die Karotten in gleichmäßige Stöcke.",
+        "Mit Olivenöl, Maismehl und za'atar werfen.",
+        "Kochen Sie für 15-17 Minuten bei 195°C und schütteln Sie den Korb zweimal.",
+        "Servieren Sie mit Hummus und Zitronenkeile.",
+      ],
+      "suggested_seasonings": ["za'atar", "Salz"],
     },
   },
   "0bc945f9-8342-5d84-a3b0-972485b9c1f1": {
@@ -3348,6 +4916,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["oregano", "pepper"],
     },
+    "de": {
+      "name": "Pommes frites mit Marinara-Sauce",
+      "description": "Goldene Polenta-Stäbchen zum Tauchen in Tomatensauce.",
+      "instructions": [
+        "Kochen Sie die Polenta auf Lager, fügen Sie Parmesan hinzu und verteilen Sie sich auf eine Dicke von 2 cm.",
+        "Einmal abkühlen, in Stäbchen schneiden und mit Olivenöl bürsten.",
+        "Kochen für 14-16 Minuten bei 200°C, Drehen nach 8 Minuten.",
+        "Servieren Sie mit erwärmter Marinara-Sauce.",
+      ],
+      "suggested_seasonings": ["Oregano", "Pfeffer"],
+    },
   },
   "5de972f2-183c-5156-805f-746ce414b694": {
     "source": {
@@ -3372,6 +4951,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["garlic granules", "pepper"],
     },
+    "de": {
+      "name": "Broccoli und Cheddar-Bisse",
+      "description": "Goldener Brokkoli und Käsebisse mit weichen Zentren.",
+      "instructions": [
+        "Kurz blanch den Brokkoli, kühl und fein gehackt.",
+        "Kombinieren Sie mit Cheddar, Eiern und Semmelbrösel.",
+        "Gestalten Sie sich in kleine Bisse und ordnen Sie sich im Korb an.",
+        "Kochen Sie für 10-12 Minuten bei 190°C und drehen Sie sich einmal.",
+      ],
+      "suggested_seasonings": ["Knoblauchgranulat", "Pfeffer"],
+    },
   },
   "1a0e4f77-aced-56f9-b6c3-77d9892074c8": {
     "source": {
@@ -3393,6 +4983,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Spread with yoghurt, drizzle with lime juice and sprinkle with coriander.",
       ],
       "suggested_seasonings": ["smoked paprika", "salt"],
+    },
+    "de": {
+      "name": "Luftfritteuse rauchiger Mais mit Limette",
+      "description": "Mais auf dem Kolben mit Limette und rauchige Paprika.",
+      "instructions": [
+        "Bürsten Sie die Kolben mit Olivenöl und Staub mit geräucherter Paprika.",
+        "Kochen Sie für 12-13 Minuten bei 195°C und drehen Sie alle 4 Minuten.",
+        "Verbreiten Sie mit Joghurt, Nieselregen mit Limettensaft und streuen Sie mit Koriander.",
+      ],
+      "suggested_seasonings": ["geräucherte Paprika", "Salz"],
     },
   },
   "be2451d0-791c-5750-a44f-7b60f50740a9": {
@@ -3417,6 +5017,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Cook for 15–16 minutes at 175°C until the crumble is golden.",
       ],
       "suggested_seasonings": ["cinnamon", "vanilla"],
+    },
+    "de": {
+      "name": "Air Friteuse Apfel bröckelt",
+      "description": "Warme Äpfel unter Hafer und Nuss zerbröckeln.",
+      "instructions": [
+        "Hacken Sie die Äpfel und werfen Sie mit Zimt und Zitronensaft.",
+        "Übertragen Sie auf eine kleine Schüssel, die in den Korb passt.",
+        "Reiben Sie den Hafer, Mehl, Butter und Nüsse zusammen und verwenden Sie dann die Äpfel.",
+        "Kochen Sie für 15-16 Minuten bei 175°C, bis der Bröckel golden ist.",
+      ],
+      "suggested_seasonings": ["Zimt", "Vanille"],
     },
   },
   "6bfb9318-302b-5351-83fc-4cae424081b9": {
@@ -3443,6 +5054,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["thyme", "pepper"],
     },
+    "de": {
+      "name": "Birnen mit schimmelgereiftem Käse und Pekannüssen",
+      "description": "Backbirnen mit cremigem Käse und knusprigen Nüssen.",
+      "instructions": [
+        "Halbieren und Kernen der Birnen.",
+        "Die Mulden werden mit schimmelgereiftem Käse und zerkleinerten Nüssen gefüllt.",
+        "Kochen Sie für 8-10 Minuten bei 180°C, bis die Birnen weich werden.",
+        "Drizzle mit Honig kurz vor dem Servieren.",
+      ],
+      "suggested_seasonings": ["Thymian", "Pfeffer"],
+    },
   },
   "15e3ae67-96e9-56f4-b2ce-fb3ed3dd02df": {
     "source": {
@@ -3466,6 +5088,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Leave to cool, then chill before removing from the moulds.",
       ],
       "suggested_seasonings": ["vanilla", "cardamom"],
+    },
+    "de": {
+      "name": "Mini-Orange-Skyr-Käsekuchen",
+      "description": "Kleine Skyr Käsekuchen duftend mit frischer Orange.",
+      "instructions": [
+        "Mischen Sie den Skyr mit Ei, Vanillepuddingpulver, Honig und Orangenzeste.",
+        "Teilen Sie die Mischung auf vier Silikonformen.",
+        "Kochen Sie für 12-14 Minuten bei 160°C, bis die Zentren leicht federnd sind.",
+        "Man lässt abkühlen und kühlt dann ab, bevor man die Schimmel entformt.",
+      ],
+      "suggested_seasonings": ["Vanille", "Kardamom"],
     },
   },
   "e013e9f4-1519-51ef-9b75-2539ee4a4df7": {
@@ -3492,6 +5125,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": ["cinnamon", "vanilla"],
     },
+    "de": {
+      "name": "Air Friteus Bananen- und Kakaomuffins",
+      "description": "Feuchte Muffins gesüßt mit reifen Bananen und Datteln.",
+      "instructions": [
+        "Mash die Bananen und kombinieren mit dem Ei und fein gehackten Datteln.",
+        "Fügen Sie das Mehl, Kakao und Backpulver hinzu und rühren Sie nur bis zur Kombination.",
+        "Füllen Sie die Silikonformen zu zwei Dritteln.",
+        "Kochen Sie für 12-14 Minuten bei 165°C; überprüfen Sie mit einem Spieß vor dem Entfernen.",
+      ],
+      "suggested_seasonings": ["Zimt", "Vanille"],
+    },
   },
   "e5b69f8c-346f-5227-90a3-2433a7ea3708": {
     "source": {
@@ -3515,6 +5159,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Cook in batches for 10–12 minutes at 180°C until well browned.",
       ],
       "suggested_seasonings": ["vanilla", "cinnamon"],
+    },
+    "de": {
+      "name": "Umschlag von Pfirsichpuffgebäck",
+      "description": "Flockige Umsätze mit Pfirsichen, Mandeln und Vanille.",
+      "instructions": [
+        "Schneiden Sie das Gebäck in sechs Quadrate und würfeln Sie die Pfirsiche fein.",
+        "Legen Sie Obst und ein wenig Mandelmehl auf jedes Stück.",
+        "Falten Sie diagonal, drücken Sie die Kanten fest und bürsten Sie mit Ei.",
+        "Kochen Sie in Chargen für 10-12 Minuten bei 180 ° C, bis gut gebräunt.",
+      ],
+      "suggested_seasonings": ["Vanille", "Zimt"],
     },
   },
   "9b700d52-311a-564a-86b2-3598e27ef50c": {
@@ -3542,6 +5197,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Weißtruthühner-, Kürbis- und Gerstensalat",
+      "description":
+          "Ein Herbstgericht: warmer Truthahn, Kürbis und Gerstensalat. Angepasst an Centrum Respo. Nährwerte sind Schätzungen.",
+      "instructions": [
+        "Die Gerste nach dem Packstück kochen, den Kürbis entkernen und dann den Truthahn in Stücke schneiden.",
+        "Kürbis und Truthahn mit Olivenöl, geräuchertem Paprika, Knoblauchpulver, Kreuzkümmel, Salz und Pfeffer werfen; Rösten bei 200°C für 18–20 Minuten; prüfen, ob der Truthahn vollständig gekocht ist.",
+        "Erdnussbutter, Sojasauce, Zitronensaft, Honig und Wasser mischen und die Sonnenblumenkerne in einer trockenen Pfanne rösten.",
+        "Gerste, Kürbis und Truthahn in einer Schüssel anordnen und mit Dressing, Samen und gehackter Petersilie abschließen.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "b355be88-0b8b-5874-a582-d81cc84574cc": {
     "source": {
@@ -3563,6 +5230,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Grate the carrot into a saucepan with the oats, raisins, cinnamon, ginger and cloves.",
         "Add the milk and simmer for 8–10 minutes, stirring. Add a splash of water if needed.",
         "Stir in the erythritol. Transfer to a bowl, allow to cool slightly, then add the skyr and chopped walnuts.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Karottenkuchenbrei mit Walnüssen",
+      "description":
+          "Ein Herbstgericht: Karottenkuchenbrei mit Walnüssen. Angepasst an Centrum Respo. Nährwerte sind Schätzungen.",
+      "instructions": [
+        "Die Karotte mit Hafer, Rosinen, Zimt, Ingwer und Nelken in einen Topf reiben.",
+        "Die Milch wird hinzugegeben und unter Rühren für 8–10 Minuten geköchelt. Bei Bedarf ein Spritzer Wasser hinzufügen.",
+        "Im Erythrit rühren, in eine Schüssel geben, leicht abkühlen lassen, dann Skyr und gehackte Walnüsse hinzufügen.",
       ],
       "suggested_seasonings": [],
     },
@@ -3592,6 +5270,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Quinoa mit Rindfleisch und Kürbis",
+      "description":
+          "Ein Herbstgericht: Quinoa mit Rindfleisch und Kürbis, angepasst an Centrum Respo, Nährwerte sind Schätzungen.",
+      "instructions": [
+        "Die Quinoa wird nach dem Packstück gekocht, Zwiebel, Knoblauch, Kürbis und Rindfilet gepflückt.",
+        "Die Zwiebel im Olivenöl erweichen, den Knoblauch hinzufügen, dann das Rindfleisch bräunen, Kürbis, Paprika und Oregano rühren.",
+        "Gießen Sie die Passata und den zubereiteten Vorrat ein, köcheln Sie 10–12 Minuten, bis der Kürbis und das Rindfleisch zart sind; würzen Sie mit Salz und Pfeffer.",
+        "Servieren Sie mit der Quinoa und Petersilie.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "36a1771f-37dd-51bd-964c-fc71e1f5e32b": {
     "source": {
@@ -3615,6 +5305,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Soften the onion and garlic in the olive oil. Add the pumpkin and pepper, fry briefly, then add the prepared stock and dried seasonings.",
         "Simmer until the pumpkin is soft, then blend carefully. Fully cook the turkey mince in a separate pan, breaking up any lumps.",
         "Add the turkey, beans and sweetcorn to the soup and simmer for 5–10 minutes. Serve with the tortilla chips, chilli and coriander.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Mexikanische Kürbis- und Zuckermaissuppe",
+      "description":
+          "Ein Herbstgericht: mexikanischer Kürbis- und Zuckermaissuppe, angepasst an Centrum Respo, Nährwerte sind Schätzungen.",
+      "instructions": [
+        "Hacken Sie die Zwiebel und den Knoblauch, würfeln Sie den Kürbis und den Pfeffer und entleeren Sie die Bohnen und den Zuckermais.",
+        "Zwiebel und Knoblauch im Olivenöl erweichen, Kürbis und Pfeffer hinzufügen, kurz braten, dann den zubereiteten Stamm und die getrockneten Würzstoffe hinzufügen.",
+        "Kochen, bis der Kürbis weich ist, dann mischen Sie vorsichtig. Kochen Sie das Putenhackfleisch vollständig in einer separaten Pfanne und brechen Sie alle Klumpen auf.",
+        "Pute, Bohnen und Zuckermais zur Suppe geben und für 5–10 Minuten kochen, mit den Tortillachips, Chili und Koriander servieren.",
       ],
       "suggested_seasonings": [],
     },
@@ -3644,6 +5346,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Rind- und Kürbiseintopf ungarischen Stils",
+      "description":
+          "Ein Herbstgericht: Ungarischer Rindfleisch- und Kürbiseintopf. Angepasst an Centrum Respo. Nährwerte sind Schätzungen.",
+      "instructions": [
+        "Rind, Zwiebel, Karotte, Pfeffer und Kürbis würfeln, den Knoblauch hacken.",
+        "Das Rindfleisch im Olivenöl bräunen und beiseite legen, in derselben Pfanne Zwiebel, Knoblauch, Karotte und Pfeffer braten.",
+        "Das Rindfleisch mit Tomatenmark, Würzstoffen und zubereitetem Vorrat in die Pfanne geben, für 20–25 Minuten köcheln, dann den Kürbis hinzufügen und für weitere 10–15 Minuten bis zur Ausschreibung kochen.",
+        "Streuen Sie mit Petersilie und dienen Sie mit dem Brot.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "b30efc57-5371-50a2-9656-bc34009f569d": {
     "source": {
@@ -3667,6 +5381,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Soften the onion and garlic in half the olive oil and briefly toast the barley. Add the warm prepared stock gradually, stirring until the barley is tender.",
         "Stir in the beetroot purée, vinegar, salt and pepper. Fully cook the pork mince in the remaining oil, breaking it into small pieces.",
         "Divide the barley and pork between bowls. Add the diced beetroot, parsley and toasted pumpkin seeds.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Schweine- und Rübenperlengerste",
+      "description":
+          "Ein Herbstgericht: Schweinefleisch und Rote-Bete-Perlengerste. Angepasst an Centrum Respo. Nährwerte sind Schätzungen.",
+      "instructions": [
+        "Die Rote Bete wird bis zum Zarten gekocht, die Hälfte gemischt und der Rest würfelt, Zwiebel und Knoblauch gehäckselt.",
+        "Zwiebel und Knoblauch in der Hälfte des Olivenöls erweichen und kurz auf die Gerste anstoßen; den warmen, zubereiteten Stamm nach und nach unter Rühren bis zur Zartheit der Gerste hinzufügen.",
+        "Rote-Bete-Püree, Essig, Salz und Pfeffer rühren, das Schweinefleisch mit dem verbleibenden Öl vollständig kochen und in kleine Stücke zerlegen.",
+        "Gerste und Schweinefleisch zwischen Schüsseln aufteilen und gewürfelte Rote Rübe, Petersilie und geröstete Kürbissamen hinzufügen.",
       ],
       "suggested_seasonings": [],
     },
@@ -3696,6 +5422,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Pilze und Spinat-Gnocchi",
+      "description":
+          "Ein Herbstgericht: Pilze und Spinat-Gnocchi. Angepasst an Centrum Respo. Nährwerte sind Schätzwerte.",
+      "instructions": [
+        "Die Gnocchi werden nach dem Packstück gekocht, die Pilze in Scheiben geschnitten und Zwiebel, Knoblauch und Petersilie gehackt.",
+        "Die Zwiebel im Olivenöl erweichen, die Pilze hinzufügen und braten, bis ihre Flüssigkeit verdunstet ist, und dann den Knoblauch hinzufügen.",
+        "Den Spinat zugeben; einmal verwelkt, den größten Teil des Parmesans, des Salzes und des Pfeffers einrühren.",
+        "Die Gnocchi werden in die Soße geworfen und erhitzt, mit dem Rest Käse und Petersilie beendet.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "37c3c655-791a-5c62-b6fa-cf097144190f": {
     "source": {
@@ -3722,6 +5460,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Eintopfige karamellisierte Zwiebelteigwaren",
+      "description":
+          "Ein Herbstgericht: Eintopfkaramellisierte Zwiebelnteigwaren, angepasst an Centrum Respo. Nährwerte sind Schätzungen.",
+      "instructions": [
+        "Schneiden Sie die Zwiebeln dünn und erweichen Sie sie im bedeckten Olivenöl für 10 Minuten.",
+        "Entdecke, füge den Honig hinzu und koche über eine niedrige Hitze für 10-15 Minuten, oft rührend.",
+        "Trockene Teigwaren, zubereiteter Vorrat, Rahm und Würzstoffe werden hinzugefügt, bis die Teigwaren zart sind 12–15 Minuten lang köcheln und erforderlichenfalls mit Wasser versetzt.",
+        "Rühren Sie in der Mozzarella und dienen einmal geschmolzen.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "2ef8f0f3-7982-5c09-83c1-db96d1f75394": {
     "source": {
@@ -3743,6 +5493,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Mash the quark and mix with the yoghurt and honey.",
         "Dice the apple and cook in the butter with the erythritol. Once soft, add the cinnamon and allow to cool slightly.",
         "Warm both sides of the tortilla in a dry pan. Fill with the quark mixture and apple, fold and serve straight away.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Knuspriger Apfel und Quark Wrap",
+      "description":
+          "Ein Herbstgericht: knuspriger Apfel und Quarkpackung. Angepasst an Centrum Respo. Nährwerte sind Schätzwerte.",
+      "instructions": [
+        "Mash den Quark und mischen mit dem Joghurt und Honig.",
+        "Den Apfel würfeln und in der Butter mit dem Erythrit kochen, einmal weich den Zimt hinzufügen und leicht abkühlen lassen.",
+        "Erwärmen Sie beide Seiten der Tortilla in einer trockenen Pfanne, füllen Sie die Quarkmischung und den Apfel, falten Sie sie und servieren Sie sie sofort.",
       ],
       "suggested_seasonings": [],
     },
@@ -3772,6 +5533,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Rosenkohlsprossen, Halloumi und Gerste",
+      "description":
+          "Ein Herbstgericht: Rosenkohlsprossen, Halloumi und Gerste. Angepasst an Centrum Respo. Nährwerte sind Schätzungen.",
+      "instructions": [
+        "Gerste nach dem Packstück kochen, die Rosenkohlsprossen schneiden und halbieren.",
+        "Die Sprossen werden in dem abgedeckten Olivenöl 5 Minuten lang gebraten, dann offengelegt und bis zum Zarten gekocht.",
+        "Schneiden Sie die Halloumi und braun auf beiden Seiten in einer trockenen Pfanne.",
+        "Senf und Ahornsirup mischen, die Gerste mit Sprossen, Halloumi und Dressing servieren.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "50721369-9817-5ce7-b319-dfe8bdcd8b27": {
     "source": {
@@ -3793,6 +5566,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Dice half the apple and simmer with a splash of water, the erythritol and half the cinnamon until soft. Cool.",
         "Mix the oats with the milk, pudding and apple compote. Cover and refrigerate for at least 6 hours.",
         "Chop and toast the walnuts. Top the oats with the remaining apple, walnuts and cinnamon.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Apfel und Walnuss Nachthafer",
+      "description":
+          "Ein Herbstgericht: Apfel und Walnuss über Nacht Hafer. Angepasst an Centrum Respo. Nährwerte sind Schätzungen.",
+      "instructions": [
+        "Den halben Apfel würfeln und mit einem Spritzer Wasser, dem Erythrit und dem halben Zimt köcheln, bis er weich ist.",
+        "Den Hafer mit Milch, Pudding und Apfelkompott mischen, mindestens 6 Stunden abdecken und abkühlen.",
+        "Die Walnüsse werden geerntet und geröstet, der Hafer mit den übrigen Äpfeln, Walnüssen und Zimt aufgefüllt.",
       ],
       "suggested_seasonings": [],
     },
@@ -3822,6 +5606,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Linsen-, Puten- und Kürbissalat",
+      "description":
+          "Ein Herbstgericht: Linsen-, Truthahn- und Kürbisssalat. Angepasst an Centrum Respo. Nährwerte sind Schätzungen.",
+      "instructions": [
+        "Den Kürbis würfeln und mit der Hälfte des Olivenöls, Thymian, Rosmarin, etwas Paprika, Salz und Pfeffer werfen.",
+        "Röste den Kürbis bei 200 °C für 25–30 Minuten. Schneide die Pute in dünne Scheiben, würze sie mit Knoblauchpulver und dem restlichen Paprikapulver und gare sie in einer beschichteten Pfanne vollständig durch.",
+        "Das restliche Öl wird mit Orangensaft, Senf und Honig gemischt.",
+        "Linsen, Kürbis, Truthahn, Grünkohl, Feta und Preiselbeeren kombinieren, Dressing und Kürbissamen hinzufügen und dann in Portionen teilen.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "945e4350-48f8-5015-b686-6d1393c38b70": {
     "source": {
@@ -3845,6 +5641,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Add the remaining vegetables, fry briefly, then add the tomatoes and seasonings. Simmer until the pumpkin is tender, adding water if needed.",
         "Make wells in the sauce and crack in the eggs. Cover and cook gently until the eggs are set to your liking.",
         "Scatter with parsley and serve with the bread.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Kürbis-Shakshuka",
+      "description":
+          "Ein Herbstgericht: Kürbis shakshuka. Angepasst von Centrum Respo. Nährwerte sind Schätzungen.",
+      "instructions": [
+        "Kürbis, Zwiebeln und Pfeffer würfeln und den Knoblauch hacken. Zwiebeln im Olivenöl erweichen.",
+        "Das restliche Gemüse wird hinzugefügt, kurz gebraten und dann die Tomaten und Würzstoffe hinzugefügt, bis der Kürbis zart ist, und gegebenenfalls Wasser hinzugefügt.",
+        "Machen Sie Brunnen in der Sauce und Riss in den Eiern. Bedecken und kochen Sie sanft, bis die Eier nach Ihren Wünschen eingestellt sind.",
+        "Streuen Sie mit Petersilie und dienen Sie mit dem Brot.",
       ],
       "suggested_seasonings": [],
     },
@@ -3874,6 +5682,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Türkische Eier mit gebratenem Kürbis",
+      "description":
+          "Ein Herbstgericht: Türkische Eier mit gebratenem Kürbis. Angepasst an Centrum Respo. Nährwerte sind Schätzungen.",
+      "instructions": [
+        "Schneiden Sie den Kürbis und das Fell mit dem Öl, süßem und geräuchertem Paprika, Kreuzkümmel, Knoblauchpulver und etwas Salz. Rösten bei 200 ° C Ventilator für 25-30 Minuten.",
+        "Mischen Sie den Joghurt mit dem frischen Knoblauch und Zitronensaft.",
+        "Wasser und Essig zu einem sanften Essig bringen, Eier und Wilderer vorsichtig in die Eier schieben, bis die Weißen untergehen; mit einem geschlitzten Löffel herausheben.",
+        "Legen Sie die Eier über Joghurt und Kürbis an. Fügen Sie den Dill, die Kürbissamen, die heiße Paprika und das restliche Salz hinzu. Servieren Sie mit dem Brot.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "35692976-4234-5ac4-8938-d5b7ca81e24e": {
     "source": {
@@ -3897,6 +5717,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Beat the eggs with the milk and flour. Add the salt, pepper and thyme.",
         "Pour the mixture over the mushrooms and cook over a low heat until set. Cover briefly towards the end if needed.",
         "Serve with the bread and chives.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Chanterelle Pilz-Omelette",
+      "description":
+          "Ein Herbstgericht: Chanterelle-Pilz-Omelette, angepasst an Centrum Respo, Nährwertangaben sind Schätzungen.",
+      "instructions": [
+        "Die Chanterellen sind zu reinigen und zu trocknen, wobei die großen zu zerschneiden sind; das Olivenöl wird bis zur Zartheit gebraten und ihre Flüssigkeit ist verdunstet.",
+        "Die Eier mit Milch und Mehl schlagen, Salz, Pfeffer und Thymian hinzufügen.",
+        "Die Mischung über die Pilze gießen und bei schwacher Hitze bis zum Setzen kochen und gegebenenfalls gegen Ende kurz abdecken.",
+        "Servieren Sie mit dem Brot und Schnittlauch.",
       ],
       "suggested_seasonings": [],
     },
@@ -3926,6 +5758,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Veganes Sauerkraut und Sojasuppe",
+      "description":
+          "Ein Herbstgericht: veganes Sauerkraut und Sojasuppe. Angepasst von Centrum Respo. Nährwerte sind Schätzungen.",
+      "instructions": [
+        "Weiche die Sojaschnetzel nach Packungsanweisung in heißem Wasser ein, lass sie abtropfen und mische sie mit Sojasoße. Verteile sie auf einem Blech und backe sie bei 180 °C etwa 10 Minuten.",
+        "Zwiebeln fällen, Kartoffeln, Karotten und Petersilienwurzeln würfeln und das Gemüse mit Olivenöl frittieren.",
+        "Der zubereitete Vorrat, Lorbeerblätter, Allspice, Kreuzkümmel, Marjoram und Paprika werden hinzugefügt, bis die Kartoffeln zart sind, dann wird das gehackte Sauerkraut und das Tomatenmark hinzugefügt.",
+        "Für weitere 10–15 Minuten köcheln. Entfernen Sie die ganzen Lorbeerblätter und das Piment, fügen Sie die Sojagranulat, Salz und Pfeffer hinzu und teilen Sie sich in Portionen.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "c7919335-c298-5c0f-b191-ef0edb5a088d": {
     "source": {
@@ -3947,6 +5791,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Cook and cool the millet. Cut the pumpkin, season with salt and cinnamon, and drizzle with the oil.",
         "Roast the pumpkin at 200°C for 20–25 minutes until tender. Cook the chicken through in simmering water, then dice.",
         "Mix the yoghurt, lemon juice, dill and pepper. Toss the millet, pumpkin, chicken and rocket with the dressing.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Hühner-, Kürbis- und Hirsesalat",
+      "description":
+          "Ein Herbstgericht: Hühner-, Kürbis- und Hirsesalat. Angepasst von Centrum Respo. Nährwerte sind Schätzungen.",
+      "instructions": [
+        "Kochen und kühlen Sie die Hirse. Schneiden Sie den Kürbis, würzen Sie mit Salz und Zimt und nieseln Sie mit dem Öl.",
+        "Röste den Kürbis bei 200 °C für 20–25 Minuten, bis er weich ist. Gare das Hähnchen in leicht köchelndem Wasser vollständig durch und schneide es in Würfel.",
+        "Joghurt, Zitronensaft, Dill und Pfeffer mischen, Hirse, Kürbis, Huhn und Rucola mit dem Dressing werfen.",
       ],
       "suggested_seasonings": [],
     },
@@ -3974,6 +5829,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Lachs mit Rote-Bete-Hirse",
+      "description":
+          "Ein Herbstgericht: Lachs mit Rote-Bete-Hirse. Angepasst von Centrum Respo. Nährwerte sind Schätzungen.",
+      "instructions": [
+        "Zitronensaft, Sojasauce, Honig und Chili mischen, den Lachs umhüllen und ca. 30 Minuten im Kühlschrank marinieren.",
+        "Die Hirse wird gekocht, die Rote Rübe wird gekocht, bis sie zart ist, und sie wird gerieben, dann wird das Öl mit Hirse, Salz und Pfeffer erhitzt.",
+        "Kochen Sie den Lachs in seiner Marinade durch, bringen Sie die Sauce zum Kochen, servieren Sie über die Hirse und beenden Sie mit Petersilie.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "f090d431-ff4a-5590-9b8b-76769341d8bd": {
     "source": {
@@ -3995,6 +5861,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Dice the pumpkin and beetroot. Roast on a lined tray at 200°C fan for 25–30 minutes until tender.",
         "Cook the quinoa. Season the steak with salt and pepper, cook to your liking, rest briefly and slice.",
         "Mix the olive oil, balsamic vinegar, mustard and honey. Combine the quinoa, vegetables, rocket and cashews with the steak and dressing.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Steak, Rote Rübe und Kürbissalat",
+      "description":
+          "Ein Herbstgericht: Steak, Rote Bete und Kürbissalat. Angepasst an Centrum Respo. Nährwerte sind Schätzungen.",
+      "instructions": [
+        "Kürbis und Rote Bete würfeln; auf einem ausgekleideten Tablett bei 200°C Ventilator für 25–30 Minuten bis zur Ausschreibung rösten.",
+        "Kochen Sie die Quinoa. würzen Sie das Steak mit Salz und Pfeffer, kochen Sie nach Ihren Wünschen, ruhen Sie sich kurz aus und schneiden Sie es ab.",
+        "Olivenöl, Balsamico-Essig, Senf und Honig mischen, Quinoa, Gemüse, Rocket und Cashew mit Steak und Dressing kombinieren.",
       ],
       "suggested_seasonings": [],
     },
@@ -4024,6 +5901,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Kürbis-Mikrowellenbecherkuchen",
+      "description":
+          "Ein Herbstgericht: Kürbismikrowellenbecherkuchen. Angepasst von Centrum Respo. Nährwerte sind Schätzungen.",
+      "instructions": [
+        "In einer mikrowellensicheren Schüssel mischen Sie das Kürbispüree, Ei, geschmolzene Butter und den größten Teil des Erythrits.",
+        "Das Hafermehl, Backpulver, Ingwer und die Hälfte des Zimts werden hinzugefügt.",
+        "Mikrowelle in der Höhe für etwa 5–6 Minuten. Überprüfen Sie das Zentrum mit einem Spieß und kochen Sie bei Bedarf länger; die Schüssel ist heiß.",
+        "Die Mascarpone wird mit dem verbleibenden Erythrit vermischt, der leicht abgekühlte Kuchen mit Löffel überzogen und mit dem verbleibenden Zimt bestreut.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "79b825e5-3e3d-5932-bd34-0d3208129770": {
     "source": {
@@ -4047,6 +5936,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Fold in the flour mixed with the baking powder, stirring only until combined.",
         "Cook small pancakes in a pan brushed with the oil, turning once and checking that the centres are cooked.",
         "Serve with the sliced apple, honey and cinnamon.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Kürbispfannkuchen mit Apfel",
+      "description":
+          "Ein Herbstgericht: Kürbispfannkuchen mit Apfel. Angepasst von Centrum Respo. Nährwerte sind Schätzungen.",
+      "instructions": [
+        "Reiben Sie den Kürbis und mischen Sie ihn mit Joghurt, Eiern und Xylit.",
+        "Das mit dem Backpulver vermischte Mehl wird unter Rühren nur bis zur Vereinigung gefaltet.",
+        "Kochen Sie kleine Pfannkuchen in einer mit dem Öl gebürsteten Pfanne, drehen Sie sich einmal und überprüfen Sie, ob die Zentren gekocht sind.",
+        "Servieren Sie mit dem geschnittenen Apfel, Honig und Zimt.",
       ],
       "suggested_seasonings": [],
     },
@@ -4074,6 +5975,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Kürbis und Ananas-Curry",
+      "description":
+          "Ein Herbstgericht: Kürbis und Ananas-Curry. Angepasst an Centrum Respo. Nährwerte sind Schätzungen.",
+      "instructions": [
+        "Den Reis kochen, Kürbis, Zwiebeln, Knoblauch, Tomaten und Ananas hacken und die Kichererbsen abtropfen lassen.",
+        "Zwiebeln, Knoblauch und Kürbis in Olivenöl frittieren, Tomaten, Ananas, Kichererbsen und Currypulver hinzufügen.",
+        "Gießen Sie die Kokosmilch ein und köcheln Sie für 15–20 Minuten, bis der Kürbis zart ist, fügen Sie Salz, Pfeffer und Koriander hinzu und servieren Sie mit dem Reis.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "2b0fb78b-b794-57a9-a6e0-4c17a8a2bbc1": {
     "source": {
@@ -4095,6 +6007,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Cut the deseeded pumpkin and roast at 200°C for 25–30 minutes until soft. Cool.",
         "Drain the chickpeas, reserving some liquid. Blend with the pumpkin, tahini, garlic, lemon juice, cumin and sesame oil.",
         "Season with salt and pepper and loosen with the reserved liquid or water as needed. Divide into servings with the bread and cucumber.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Gerösteter Kürbishummus",
+      "description":
+          "Ein Herbstgericht: gerösteter Kürbis Hummus. Angepasst von Centrum Respo. Nährwerte sind Schätzungen.",
+      "instructions": [
+        "Der entkernte Kürbis wird geschnitten und bei 200°C für 25–30 Minuten geröstet, bis er weich ist.",
+        "Die Kichererbsen werden entwässert, wobei etwas Flüssigkeit aufbewahrt wird; mit Kürbis, Tahini, Knoblauch, Zitronensaft, Kreuzkümmel und Sesamöl mischen.",
+        "Mit Salz und Pfeffer würzen und bei Bedarf mit der reservierten Flüssigkeit oder dem Wasser lockern, in Portionen mit Brot und Gurke aufteilen.",
       ],
       "suggested_seasonings": [],
     },
@@ -4124,6 +6047,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Kürbis und Feta Pasta",
+      "description":
+          "Ein Herbstgericht: Kürbis und Feta-Pasta, angepasst an Centrum Respo, Nährwerte sind Schätzungen.",
+      "instructions": [
+        "Pasta kochen, Kürbis, Zwiebeln und Knoblauch hacken, Kürbis kurz kochen und abtropfen lassen.",
+        "Zwiebel und Knoblauch im Öl erweichen, dann den Kürbis und den vorbereiteten Vorrat hinzufügen und köcheln, bis der Kürbis zart ist.",
+        "Von der Hitze entfernen, die saure Sahne hinzufügen und vorsichtig mischen.",
+        "Teigwaren mit Soße werfen, zerbröckelten Feta und Kürbissamen hinzufügen.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "ea0ec67e-7890-52fd-a76b-cd02e200ffeb": {
     "source": {
@@ -4147,6 +6082,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Boil and drain the potatoes, then mash with the milk, butter and remaining salt.",
         "Clean and slice the mushrooms. Brown the pork in the oil, add the mushrooms and let their liquid evaporate, then add the prepared stock. Simmer until the pork and mushrooms are tender.",
         "Mix the soured cream with a little hot sauce, return it to the pan and heat gently with the thyme and remaining pepper. Serve with the mash, gherkins and parsley.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Schweinehals mit Pilzen und Maische",
+      "description":
+          "Ein Herbstgericht: Schweinehals mit Pilzen und Maische. Angepasst an Centrum Respo. Nährwerte sind Schätzungen.",
+      "instructions": [
+        "Schneiden Sie das Schweinefleisch, würzen Sie mit dem Knoblauch und etwas Salz und Pfeffer und kühlen Sie für etwa 30 Minuten.",
+        "Kochen und entleeren Sie die Kartoffeln, dann mischen Sie mit der Milch, Butter und Restsalz.",
+        "Die Pilze reinigen und schneiden, das Schweinefleisch im Öl bräunen, die Pilze hinzufügen und ihre Flüssigkeit verdunsten lassen, dann den vorbereiteten Vorrat hinzufügen, bis das Schweinefleisch und die Pilze zart sind.",
+        "Mischen Sie die saure Sahne mit etwas heißer Soße, geben Sie sie in die Pfanne zurück und erhitzen Sie sie vorsichtig mit dem Thymian und dem verbleibenden Pfeffer. Servieren Sie mit der Maische, den Gurken und der Petersilie.",
       ],
       "suggested_seasonings": [],
     },
@@ -4174,6 +6121,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Pflaumen- und dunkler Schokoladenbrei",
+      "description":
+          "Ein Herbstgericht: Pflaumen- und dunkler Schokoladenbrei. Angepasst an Centrum Respo. Nährwerte sind Schätzungen.",
+      "instructions": [
+        "Kochen Sie den Hafer in der Milch bis weich, dann lassen Sie leicht abkühlen.",
+        "Rühren im Skyr, Kakao und Erythrit.",
+        "Hacken Sie die Pflaumen und Schokolade, streuen über den Brei und dienen.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "cd1aa157-812f-5573-a308-c3e22ac5c659": {
     "source": {
@@ -4195,6 +6153,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Cook the pasta and preheat the oven to 180°C.",
         "Place the Camembert, tomatoes and garlic in a baking dish. Add the olive oil, salt and pepper.",
         "Bake for 15–20 minutes until the cheese melts and the tomatoes soften. Toss with the pasta and drizzle with the honey.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Camembert und Tomatenteigwaren",
+      "description":
+          "Ein Herbstgericht: Kammbert- und Tomatenteigwaren, angepasst an Centrum Respo, Nährwertangaben sind Schätzungen.",
+      "instructions": [
+        "Kochen Sie die Pasta und erhitzen Sie den Ofen auf 180 ° C.",
+        "Camembert, Tomaten und Knoblauch in eine Backschale geben und Olivenöl, Salz und Pfeffer hinzufügen.",
+        "Backen Sie 15–20 Minuten, bis der Käse schmilzt und die Tomaten weich werden.",
       ],
       "suggested_seasonings": [],
     },
@@ -4222,6 +6191,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Hühner, Rote Rüben und Kürbisschale",
+      "description":
+          "Ein Herbstgericht: Hühnchen, Rote Rübe und Kürbisschale, angepasst an Centrum Respo, Nährwerte sind Schätzungen.",
+      "instructions": [
+        "Gerste kochen, Kürbis und Rote Bete hacken, mit etwas Salz und Pfeffer würzen und bei 200°C etwa 40 Minuten lang bis zum Trocknen braten.",
+        "Würzen Sie das Huhn mit den Kräutern und Rest Salz und Pfeffer. Dampf bis vollständig gekocht.",
+        "Mischen Sie das Öl, Zitronensaft und gehackte Petersilie. Ordnen Sie die Gerste, Gemüse und geschnittenes Huhn in einer Schüssel und fügen Sie das Dressing hinzu.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "39deca0e-c511-52e6-bf3e-453b8dfccdf6": {
     "source": {
@@ -4243,6 +6223,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Preheat the oven to 180°C. Grease a 20 × 20 cm baking dish with the oil.",
         "Mix the oats with the baking powder, cinnamon, ginger and salt. Separately beat the eggs with the milk, maple syrup and vanilla.",
         "Combine both mixtures and fold in the diced pears. Transfer to the dish and bake for about 35 minutes until set. Divide into servings.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Gebackener Birnen- und Ingwerhafer",
+      "description":
+          "Ein Herbstgericht: gebackene Birne und Ingwerhafer. Angepasst an Centrum Respo. Nährwerte sind Schätzungen.",
+      "instructions": [
+        "Der Ofen wird auf 180°C vorgewärmt. Eine 20 × 20 cm große Backschale wird mit dem Öl gefettet.",
+        "Den Hafer mit Backpulver, Zimt, Ingwer und Salz mischen, die Eier separat mit Milch, Ahornsirup und Vanille schlagen.",
+        "Die beiden Mischungen werden vereinigt und die Birnen werden gewürfelt, in die Schale gegeben und ca. 35 Minuten bis zum Setzen gebacken, in Portionen geteilt.",
       ],
       "suggested_seasonings": [],
     },
@@ -4270,6 +6261,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Apfelpuffgebäck Dreiecke",
+      "description":
+          "Ein Herbstgericht: Apfelpuffgebäck Dreiecke. Angepasst von Centrum Respo. Nährwerte sind Schätzungen.",
+      "instructions": [
+        "Die Äpfel werden mit Xylitol, Zimt und Zitronensaft vermischt und der Ofen auf 200°C vorgewärmt.",
+        "Das Gebäck ausrollen und in Quadrate schneiden, die Füllung hinzufügen, in Dreiecke falten und die Ränder fest versiegeln.",
+        "Auf einem gefütterten Tablett anordnen, mit geschlagenem Ei bürsten und für 15–20 Minuten bis Gold backen.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "d14fb04d-5be6-5778-81f6-486647aa069d": {
     "source": {
@@ -4287,6 +6289,15 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       "instructions": [
         "Toast the flaked almonds in a dry pan and toast the bread.",
         "Spread the ricotta on the toast, add the raspberries and scatter over the almonds.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Roggentoast mit Ricotta und Himbeeren",
+      "description": "Cremige Ricotta und frische Himbeeren auf warmem Toast.",
+      "instructions": [
+        "Toast die Flockenmandeln in einer trockenen Pfanne und Toast das Brot.",
+        "Verbreiten Sie die Ricotta auf dem Toast, fügen Sie die Himbeeren hinzu und streuen Sie über die Mandeln.",
       ],
       "suggested_seasonings": [],
     },
@@ -4312,6 +6323,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Spinat- und Cheddar-Eiermuffins",
+      "description": "Kleine herzhafte Muffins für ein Frühstück unterwegs.",
+      "instructions": [
+        "Erhitzen Sie den Ofen auf 180 ° C. Den Spinat in einer Pfanne abkühlen und hacken.",
+        "Schlagen Sie die Eier mit der Milch und rühren Sie den Spinat und geriebenen Cheddar.",
+        "Öl 4 Muffin-Löcher, teilen Sie die Mischung zwischen ihnen und backen Sie für 16-18 Minuten bis zum Set.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "88334e76-4ed6-55b3-bb4a-b9f5e7a14e05": {
     "source": {
@@ -4329,6 +6350,15 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       "instructions": [
         "Rinse the quinoa, add the milk and simmer gently for 15–18 minutes, stirring towards the end.",
         "Toast the coconut in a dry pan. Top the cooked quinoa with the blueberries, honey and coconut.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Blaubeer- und Kokosfrühstücksquinoa",
+      "description": "Cremig warme Quinoa mit gerösteter Kokosnuss.",
+      "instructions": [
+        "Spülen Sie die Quinoa, fügen Sie die Milch hinzu und kochen Sie sanft für 15-18 Minuten und rühren Sie gegen Ende.",
+        "Toast die Kokosnuss in einer trockenen Pfanne, Top die gekochte Quinoa mit den Blaubeeren, Honig und Kokosnuss.",
       ],
       "suggested_seasonings": [],
     },
@@ -4355,6 +6385,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Roggentoast mit weißen Bohnen und Pilzen",
+      "description": "Crunchy Toast mit cremigen Bohnen und gebräunten Pilzen.",
+      "instructions": [
+        "Schneiden Sie die Pilze und braten Sie die Hälfte des Öls bis golden.",
+        "Spülen Sie die abgelassenen Bohnen, warm mit dem verbleibenden Öl und Knoblauch, dann Maische.",
+        "Toast das Brot, verteilt mit den Bohnen und top mit den Pilzen.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "0bf1caae-bd99-50e1-a7a1-0747ec7d3e84": {
     "source": {
@@ -4372,6 +6412,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       "instructions": [
         "Dice the sweet potatoes and chop the onion. Fry in the oil with the paprika for 12–15 minutes until tender.",
         "Stir in the spinach. Once wilted, make wells, crack in the eggs and cover until the whites are set.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Süßkartoffel und Spinat Frühstück Haschisch",
+      "description":
+          "Goldene Süßkartoffelwürfel und Eier in einer Pfanne gekocht.",
+      "instructions": [
+        "Süßkartoffeln Würfeln und Zwiebeln hacken, mit der Paprika für 12–15 Minuten bis zur Ausschreibung mit dem Öl frittieren.",
+        "Der Spinat wird gerührt; nach der Verwelkung werden Brunnen hergestellt, die Eier werden geknackt und bis zum Einsetzen der Weißen abgedeckt.",
       ],
       "suggested_seasonings": [],
     },
@@ -4394,6 +6444,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       "instructions": [
         "Mix the chia with the coconut milk and yoghurt. Stir again after 10 minutes.",
         "Divide between bowls and chill for at least 4 hours. Top with diced mango just before serving.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Coconut Chia Pudding mit Mango",
+      "description":
+          "Ein Make-Ahead-Frühstück mit reifer Mango, mindestens 4 Stunden Chill.",
+      "instructions": [
+        "Mischen Sie die Chia mit der Kokosmilch und dem Joghurt und rühren Sie nach 10 Minuten noch einmal.",
+        "Teilen Sie zwischen den Schüsseln und kühlen Sie mindestens 4 Stunden. Top mit gewürfelter Mango kurz vor dem Servieren.",
       ],
       "suggested_seasonings": [],
     },
@@ -4421,6 +6481,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Buchweizen und geriebene Apfelkuchen",
+      "description":
+          "Tender Pfannkuchen mit geriebenem Apfel in den Teig gefaltet.",
+      "instructions": [
+        "Pfeifen Sie Ei, Milch, Mehl und Backpulver, reiben Sie den Apfel und falten Sie ihn in den Teig.",
+        "Lassen Sie Löffel in eine geölte Bratpfanne fallen und kochen Sie auf beiden Seiten, bis Sie durchgekocht sind.",
+        "Diene mit dem Joghurt.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "50ee91f8-642e-5e63-987b-71e0dd2f69ca": {
     "source": {
@@ -4441,6 +6512,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Boil the thinly sliced potatoes until tender, drain and layer in an oiled oven dish.",
         "Beat the eggs with the milk, add pieces of salmon and chopped chives, then pour over the potatoes.",
         "Bake at 190°C for 15–18 minutes until the centre is set.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Räucherlachs und Kartoffelfrittata",
+      "description":
+          "Ofengebackene Eier mit zarten Kartoffeln und geräuchertem Lachs.",
+      "instructions": [
+        "Die in dünnen Scheiben geschnittenen Kartoffeln werden kühl gekocht, abgelassen und in einer geölten Ofenschale geschichtet.",
+        "Schlagen Sie die Eier mit der Milch, fügen Sie Lachsstücke und gehackten Schnittlauch hinzu und gießen Sie dann über die Kartoffeln.",
+        "Backen Sie bei 190 ° C für 15-18 Minuten, bis das Zentrum eingestellt ist.",
       ],
       "suggested_seasonings": [],
     },
@@ -4466,6 +6548,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Quinoa mit Himbeeren und Erdnussbutter über Nacht",
+      "description":
+          "Gekühlte Quinoa mit Himbeeren, die mit Gabel zerkleinert wurden, über Nacht kühl.",
+      "instructions": [
+        "Die Quinoa wird gespült und entsprechend der Packung in Wasser gekocht.",
+        "Die Erdnussbutter wird in den Joghurt eingerührt, dann die Quinoa und die zerkleinerten Himbeeren zugegeben, über Nacht abgedeckt und gekühlt.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "766ff235-910b-56ab-875e-b24fd1866ccc": {
     "source": {
@@ -4485,6 +6577,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Cut the pears into wedges and fry in half the butter until tender.",
         "Beat the eggs with the milk and dip the bread in the mixture. Fry in the remaining butter until golden and set.",
         "Serve with the pears and yoghurt.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Rye French Toast mit Birnen",
+      "description":
+          "Wholemeal Französisch Toast mit weichen Pfanne gekocht Birnen.",
+      "instructions": [
+        "Schneiden Sie die Birnen in Keile und braten Sie die Hälfte der Butter bis zum Zart.",
+        "Die Eier mit der Milch schlagen und das Brot in die Mischung tauchen, die restliche Butter einfrieren, bis sie golden und gesetzt ist.",
+        "Servieren Sie mit den Birnen und Joghurt.",
       ],
       "suggested_seasonings": [],
     },
@@ -4510,6 +6613,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Lachs, Kartoffeln und Brokkoli-Traybake",
+      "description":
+          "Ein komplettes Abendessen aus einem Tablett, fertig mit Zitrone.",
+      "instructions": [
+        "Schneiden Sie die Kartoffeln in Keile, werfen Sie die Hälfte des Öls und braten Sie für 18 Minuten bei 210 ° C.",
+        "Fügen Sie die Brokkoli-Blüten und Lachs hinzu, nieseln Sie mit dem verbleibenden Öl und braten Sie 12–14 Minuten, bis der Fisch undurchsichtig ist und leicht abblättert.",
+        "Servieren Sie mit Zitronenkeilen.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "ce73246d-dba6-5921-8aad-e5ab85a51e85": {
     "source": {
@@ -4530,6 +6644,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Cook the rice. Halve and deseed the peppers and roast for 12 minutes at 200°C.",
         "Fry the onion and turkey in the oil. When the turkey is no longer pink, stir in the tomatoes and rice.",
         "Fill the peppers and bake for another 12–15 minutes until piping hot in the centre and the turkey is cooked through.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Paprika mit Pute und Reis",
+      "description": "Pfefferhälften mit Tomaten-, Reis- und Truthahnfüllung.",
+      "instructions": [
+        "Der Reis wird gekocht, die Paprika halbiert und entkernt und für 12 Minuten bei 200°C gebraten.",
+        "Frittieren Sie die Zwiebel und den Truthahn im Öl; wenn der Truthahn nicht mehr rosa ist, rühren Sie die Tomaten und den Reis ein.",
+        "Füllen Sie die Paprika und backen Sie weitere 12-15 Minuten, bis die Pfeife in der Mitte heiß ist und der Truthahn durchgekocht wird.",
       ],
       "suggested_seasonings": [],
     },
@@ -4557,6 +6681,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Schweinelachs mit Äpfeln und einer Apfelessigglasur",
+      "description":
+          "Braten Schweinelenden und weichen Äpfeln mit einer spritzigen Pfanne Glasur.",
+      "instructions": [
+        "Das Schweinefleisch wird von allen Seiten in das Öl eingefüllt, in einen Ofen von 200°C überführt und durchgekocht.",
+        "In derselben Pfanne die Zwiebel und die Apfelkeile in Butter braten, den Apfelessig und ein Spritzer Wasser hinzufügen, die Pfanne abkratzen und kurz kochen, um zu reduzieren.",
+        "Rest das gekochte Schweinefleisch für ein paar Minuten, Scheibe und dienen mit den Äpfeln und Glasur.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "4cc0f98d-3620-5bbb-996a-075cee3ab328": {
     "source": {
@@ -4579,6 +6714,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Eintopf aus Weißen Bohnen",
+      "description":
+          "Flockiger Kabeljau köchelte in einer klobigen Bohne und Tomateneintopf.",
+      "instructions": [
+        "Zwiebeln und Knoblauch im Öl erweichen, Tomaten und abgelassene Bohnen hinzufügen und für 12 Minuten kochen.",
+        "Eingebettet in die Kabeljau-Portionen, bedecken und kochen sanft für 8-10 Minuten, bis opak und flockig.",
+        "Beenden Sie mit gehackter Petersilie.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "93fa1485-f325-53ba-a725-3e271186962a": {
     "source": {
@@ -4598,6 +6744,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Cook the quinoa. Defrost the prawns according to the packet and pat dry.",
         "Fry the courgette in oil. Add the chopped garlic and prawns and cook until the prawns are opaque and cooked through.",
         "Toss with the quinoa and lime juice.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Garnelen-, Zucchini- und Limettenquinoa",
+      "description":
+          "Quinoa mit gebräuntem Zucchini und einem Spritzer Limettensaft.",
+      "instructions": [
+        "Die Quinoa wird gekocht, die Garnelen je nach Packung aufgetaut und getrocknet.",
+        "Frittieren Sie die Zucchini mit Öl, fügen Sie den gehackten Knoblauch und die Garnelen hinzu und kochen Sie, bis die Garnelen undurchsichtig sind und durchgegart werden.",
+        "Werfen Sie mit der Quinoa und Limettensaft.",
       ],
       "suggested_seasonings": [],
     },
@@ -4624,6 +6781,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Pute-Fleischbällchen mit cremiger Polenta",
+      "description":
+          "Tomate-braised Fleischbällchen serviert über weicher Polenta.",
+      "instructions": [
+        "Mischen Sie den Truthahn mit den Semmelbrösel und Oregano, Form in Fleischbällchen und braun in etwas von dem Öl.",
+        "Die Zwiebel in dem verbleibenden Öl erweichen, dann die Tomaten und Fleischbällchen hinzufügen und bis zum Kochen durchköcheln.",
+        "Kochen Sie die Polenta bis weich nach dem Paket und löffeln Sie die Fleischbällchen und Soße darüber.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "980683f9-ad98-54c8-8c3e-612e29087423": {
     "source": {
@@ -4644,6 +6812,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Brown the beef in batches in the oil. Add onion and carrot and pour in water halfway up the meat.",
         "Cover and braise gently for about 75–90 minutes until tender. Brown the mushrooms separately and stir them in towards the end.",
         "Cook the barley and serve with the beef.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Gerstete Rind-, Pilz- und Gerstenschale",
+      "description":
+          "Perlgerste mit zartem geschmortem Rindfleisch und gebräunten Pilzen.",
+      "instructions": [
+        "Das Rindfleisch wird in Ölpartien gebräunt, Zwiebeln und Karotten hinzugefügt und das Fleisch auf halbem Weg in Wasser eingefüllt.",
+        "Etwa 75–90 Minuten lang bis zur Zartheit behutsam bedecken und schmieren, die Pilze separat bräunen und gegen Ende einrühren.",
+        "Kochen Sie die Gerste und servieren Sie mit dem Rindfleisch.",
       ],
       "suggested_seasonings": [],
     },
@@ -4670,6 +6849,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Auberginen- und Linsenkuchen",
+      "description":
+          "Geröstete Auberginengine mit Linsen geschichtet und mit Cheddar gekrönt.",
+      "instructions": [
+        "Schneiden Sie die Aubergine, bürsten Sie mit etwas Öl und braten Sie für 15 Minuten bei 210 ° C.",
+        "Die Zwiebel wird mit dem verbleibenden Öl weich gemacht, die gespülten Linsen, Tomaten und Wasser hinzugefügt und köchelt, bis das Öl zart ist.",
+        "Schicht in einer Ofenschale, mit Cheddar streuen und bis zur Bräunung backen.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "d0162b56-1f62-53a7-a551-cbf8cd74745d": {
     "source": {
@@ -4692,6 +6882,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Schwarzbohnen und Süßkartoffel-Chilli",
+      "description": "Dicker Gemüse-Chili mit einem Löffel kühlen Joghurts.",
+      "instructions": [
+        "Weichen Sie die Zwiebel in Öl auf, rühren Sie dann die geräucherten Paprika, Chili und gewürfelten Süßkartoffeln ein.",
+        "Die Tomaten und etwas Wasser werden hinzugefügt, bis sie zart sind und die letzten 5 Minuten lang die abgelassenen Bohnen hinzugeben.",
+        "Servieren Sie mit Joghurt.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "a1efd1f4-3fbe-5b3f-980c-b8ecebb8e359": {
     "source": {
@@ -4711,6 +6911,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Soften the onion in oil, add the rice and stir for a minute.",
         "Add hot stock a ladle at a time, stirring until the rice is tender with a little bite. Add the peas towards the end.",
         "Take off the heat and stir in the ricotta, lemon zest and a squeeze of juice.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Zitrone, Erbse und Ricotta-Risotto",
+      "description": "Weiches, cremiges Risotto mit Erbsen und Zitronenzeste.",
+      "instructions": [
+        "Weichen Sie die Zwiebel in Öl, fügen Sie den Reis hinzu und rühren Sie eine Minute.",
+        "Heisser Stamm wird jeweils eine Pfanne hinzugefügt, wobei so lange gerührt wird, bis der Reis mit etwas Biss zart ist, und die Erbsen gegen Ende hinzugefügt.",
+        "Nehmen Sie die Hitze ab und rühren Sie die Ricotta, Zitronenzeste und einen Saftquetsch.",
       ],
       "suggested_seasonings": [],
     },
@@ -4738,6 +6948,18 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name":
+          "Hähnchen- und Lauchkuchen mit in Scheiben geschnittenem Kartoffelbelag",
+      "description":
+          "Cremiges Huhn und Lauch unter einem golden geschnittenen Kartoffel-Topping.",
+      "instructions": [
+        "Die Kartoffeln werden dünn geschnitten und für 5 Minuten gekocht.",
+        "Den Lauch und das gewürfelte Huhn in der Butter frittieren, das Mehl rühren, die Milch hinzufügen und bis zur Eindickung rühren.",
+        "In eine Ofenschale überführen, mit den Kartoffeln oben und bei 200 ° C bis zum Gold backen und das Huhn wird durchgekocht.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "4722fce6-86fe-5f8b-b0a1-83b472472e26": {
     "source": {
@@ -4758,6 +6980,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Cook the rice. Soften the onion in the oil, then add the tomatoes and coconut milk.",
         "Add the cut beans and simmer until almost tender. Add large pieces of salmon and simmer until opaque and cooked through.",
         "Serve with the rice.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Kokos- und Tomatenlachs-Eintopf mit grünen Bohnen",
+      "description":
+          "Zarter Lachs in einer sanften Kokosnuss- und Tomatensauce.",
+      "instructions": [
+        "Kochen Sie den Reis. Weichen Sie die Zwiebel in dem Öl, dann fügen Sie die Tomaten und Kokosmilch.",
+        "Die geschnittenen Bohnen werden hinzugefügt, bis sie fast zart sind, große Lachsstücke hinzugefügt und bis zur Trübung gekocht.",
+        "Servieren Sie mit dem Reis.",
       ],
       "suggested_seasonings": [],
     },
@@ -4785,6 +7018,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Jackenkartoffeln mit Pilzen und Cheddar",
+      "description":
+          "Knusprige Kartoffelhäute, gebräunte Pilze und geschmolzener Cheddar.",
+      "instructions": [
+        "Pfropfen Sie die geschrubbten Kartoffeln und backen Sie bei 210 ° C bis zur Ausschreibung, normalerweise 45 bis 55 Minuten.",
+        "Braten Sie die Pilze in der Butter, teilen Sie die Kartoffeln, füllen Sie sie mit den Pilzen und Cheddar und kehren Sie in den Ofen zurück, bis sie geschmolzen sind.",
+        "Beenden Sie mit Joghurt und Schnittlauch.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "3eb50a5b-07d5-537a-bab4-3a9d29fc89f1": {
     "source": {
@@ -4806,6 +7050,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Parboil the rice for 6 minutes and drain. Blanch 6 large cabbage leaves and trim the thick ribs.",
         "Mix the pork with the rice, chopped onion, ginger and half the soy sauce. Divide between the leaves and tuck in the sides.",
         "Place seam side down, pour in the stock and remaining soy sauce and simmer, covered, for about 25–30 minutes until the pork and rice are cooked through.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Ingwerschweine und Reiskohlrollen",
+      "description":
+          "Zarte chinesische Kohlbrötchen, geschmiert mit Ingwer und Soja.",
+      "instructions": [
+        "Parboil den Reis für 6 Minuten und Abtropfen, Blanch 6 große Kohlblätter und Schnitt die dicken Rippen.",
+        "Mischen Sie das Schweinefleisch mit dem Reis, gehackten Zwiebeln, Ingwer und der Hälfte der Sojasauce. Teilen Sie zwischen den Blättern und den Seiten.",
+        "Legen Sie die Nahtseite nach unten, gießen Sie in den Vorrat und verbleiben Sie Sojasauce und kochen Sie, bedeckt, für etwa 25-30 Minuten, bis das Schweinefleisch und der Reis durchgekocht sind.",
       ],
       "suggested_seasonings": [],
     },
@@ -4832,6 +7087,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Nudelauflauf mit Pute und Brokkoli",
+      "description":
+          "Vollweizenteigwaren mit cremigen Mittel- und Knackenrändern.",
+      "instructions": [
+        "Parboil die Teigwaren, die Brokkoli-Blüten für die letzten 3 Minuten hinzufügen.",
+        "Machen Sie eine glatte Soße mit Butter, Mehl und Milch, dann rühren Sie in der Hälfte des Cheddar.",
+        "Kombinieren Sie in einem Backgericht, oben mit dem Rest des Käses und backen Sie bei 200 ° C, bis gebräunt und der Truthahn durch gekocht wird.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "a6fc5712-7043-546f-9885-fafacf587b15": {
     "source": {
@@ -4849,6 +7115,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       "instructions": [
         "Fry the onion and carrot in the oil, then stir in the smoked paprika.",
         "Add the rinsed lentils, tomatoes and stock. Simmer until the lentils break down. Crush some of the carrot if you prefer a thicker soup.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Rauchrote Linsen- und Tomatensuppe",
+      "description":
+          "Eine dicke rote Linsensuppe mit einem sanften rauchigen Geschmack.",
+      "instructions": [
+        "Braten Sie die Zwiebel und Karotten in das Öl, dann rühren Sie in der geräucherten Paprika.",
+        "Fügen Sie die gespülten Linsen, Tomaten und Vorrat hinzu. Simmern, bis die Linsen zusammenbrechen. Zerkleinern Sie etwas von der Karotte, wenn Sie eine dickere Suppe bevorzugen.",
       ],
       "suggested_seasonings": [],
     },
@@ -4874,6 +7150,15 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Zuckermais, Porree und Kartoffelbrühe",
+      "description": "Eine cremige Suppe mit Kartoffel- und Zuckermaiskernen.",
+      "instructions": [
+        "Den in Scheiben geschnittenen Lauch in der Butter erweichen, gewürfelte Kartoffeln und Vorratskartoffeln hinzufügen und bis zur Ausschreibung kochen.",
+        "Fügen Sie den entwässerten Zuckermais und Milch hinzu. Zerkleinern Sie einige der Kartoffeln, um die Suppe einzudicken und durchzuhitzen.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "98732973-8f15-5d50-9c56-6199dcc84746": {
     "source": {
@@ -4895,6 +7180,15 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Tomaten-, Spinat- und Weißbohnenpfanne",
+      "description": "Tomatenbohnen mit Roggentoast für die Sauce.",
+      "instructions": [
+        "Kurz den Knoblauch im Öl braten, die Tomaten hinzufügen und für 10 Minuten kochen.",
+        "Abgelassene Bohnen und Spinat werden hinzugefügt und gekocht, bis der Spinat welkt und die Bohnen heiß sind.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "d0a8469c-8d77-5b8f-8753-7d56e1918665": {
     "source": {
@@ -4912,6 +7206,15 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       "instructions": [
         "Defrost the prawns as directed on the packet, pat dry and fry in oil. Add the peas and heat briefly.",
         "Pour in the eggs beaten with milk and chives. Bake in the ovenproof pan at 190°C until the eggs are set and the prawns are cooked through.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Garnelen und Erbsenfrittata",
+      "description": "Eine herzhafte Frittata mit Erbsen und Schnittlauch.",
+      "instructions": [
+        "Auftauen der Garnelen, wie auf der Packung angegeben, trocknen und in Öl braten; Erbsen hinzufügen und kurz erhitzen.",
+        "Mit Milch und Schnittlauch geschlagene Eier werden in die Ofenpfanne bei 190°C gebacken, bis die Eier gesetzt und die Garnelen durchgekocht sind.",
       ],
       "suggested_seasonings": [],
     },
@@ -4939,6 +7242,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Halloumi und gebratener Pfeffer",
+      "description":
+          "Eine warme Hülle mit goldenem Halloumi und süßem Röstpaprika.",
+      "instructions": [
+        "Die Paprika in Scheiben schneiden, mit Öl tropfen und bei 220°C bis zum Trocknen braten.",
+        "Frittieren Sie die Halloumi-Scheiben in einer trockenen Pfanne. Rühren Sie ein wenig Zitronensaft in den Joghurt.",
+        "Verbreiten Sie den Joghurt über die warmen Tortillas, fügen Sie Spinat, Paprika und Halloumi hinzu und rollen Sie fest.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "cdb73d19-4e9b-59b4-af91-bd7e48f5c513": {
     "source": {
@@ -4958,6 +7272,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       "instructions": [
         "Boil the potato chunks, drain and cool slightly.",
         "Mix the yoghurt with the mustard. Toss with the potatoes, thin apple slices, pieces of salmon and chives.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Geräucherter Lachs, Apfel- und Kartoffelsalat",
+      "description":
+          "Crunchy Apfel hebt einen cremigen geräucherten Lachs und Kartoffelsalat.",
+      "instructions": [
+        "Die Kartoffelbrocken kochen, abtropfen lassen und leicht abkühlen.",
+        "Der Joghurt wird mit dem Senf vermischt, mit Kartoffeln, dünnen Apfelscheiben, Lachsstücken und Schnittlauch geworfen.",
       ],
       "suggested_seasonings": [],
     },
@@ -4984,6 +7308,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Rote Rüben, Orangen und Walnusssalat",
+      "description":
+          "Rote Rüben mit saftigen Orangen und gerösteten Walnüssen.",
+      "instructions": [
+        "Die Rote Rübe wird geschält, in Keile geschnitten und bei 200°C mit der Hälfte des Öls geröstet, bis sie zart ist.",
+        "260 g geschälte Orange werden in Segmente eingewogen und die Walnüsse in einer trockenen Pfanne geröstet.",
+        "Arrangieren Sie über Spinat und kleiden Sie sich mit dem verbleibenden Öl und Essig.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "a207d0e1-ca22-510c-b9ed-9a64c31518b5": {
     "source": {
@@ -5007,6 +7342,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Zitronen-, Weißbohnen- und Spinatteigwaren",
+      "description":
+          "Eine leichte Zitronen- und Olivenölsauce überzieht die Pasta und Bohnen.",
+      "instructions": [
+        "Kochen Sie die Pasta und sparen Sie ein wenig von dem kochenden Wasser.",
+        "Frittieren Sie kurz den Knoblauch im Öl, fügen Sie dann die abgelassenen Bohnen, Spinat und einen Spritzer Pastawasser hinzu.",
+        "Werfen Sie mit der Pasta, Zitronenzeste und Saft nach Geschmack.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "2f6cb847-d95d-575d-ac70-b6814ded0620": {
     "source": {
@@ -5025,6 +7371,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       "instructions": [
         "Cook and drain the rice well. Beat the eggs, fry into a thin omelette and slice.",
         "Stir-fry the thin pork strips in the remaining oil until cooked through. Add the peas, rice, omelette and soy sauce and toss until hot.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Schweinefleisch, Erbsen und gebratener Reis",
+      "description":
+          "Gebratener Reis mit dünnen Streifen von Schweinefleisch, Erbsen und kleinen Eierbändern.",
+      "instructions": [
+        "Den Reis gut kochen und abtropfen lassen, die Eier schlagen, in ein dünnes Omelett braten und in Scheiben schneiden.",
+        "Die dünnen Schweinefleischstreifen in dem verbleibenden Öl bis zum Kochen rühren, Erbsen, Reis, Omelett und Sojasauce hinzufügen und bis zur Hitze werfen.",
       ],
       "suggested_seasonings": [],
     },
@@ -5052,6 +7408,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Geriebene Polenta mit Kirschtomaten und Feta",
+      "description":
+          "Goldene Polentascheiben mit blasigen Tomaten und zerbröckeltem Feta; die Polenta vor dem Rastern absetzen lassen.",
+      "instructions": [
+        "Kochen Sie die Polenta entsprechend dem Paket, verteilen Sie sie in einer flachen Schale und lassen Sie sie zum Setzen.",
+        "Ein Teil des Öls wird in Scheiben geschnitten und gerostet; die Tomaten werden in dem verbleibenden Öl so lange gebraten, bis sich die Schalen spalten.",
+        "Top die Polenta mit den Tomaten, Feta und Basilikum.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "7065de21-54be-53c0-ae81-5df31e65ce8d": {
     "source": {
@@ -5073,6 +7440,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Break the cauliflower into florets and pat the drained chickpeas dry.",
         "Toss with the oil and smoked paprika, spread out on a tray and roast at 210°C until golden.",
         "Mix the tahini with lemon juice and water and drizzle over the roast vegetables.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Gerösteter Blumenkohl und Kichererbsen mit Tahini",
+      "description":
+          "Blumenkohl und Kichererbsen mit Zitronen- und Sesamdressing.",
+      "instructions": [
+        "Brechen Sie den Blumenkohl in Blumen und klopfen Sie die entwässerten Kichererbsen trocken.",
+        "Werfen Sie mit dem Öl und geräucherter Paprika, verteilen Sie sich auf einem Tablett und braten Sie bei 210 ° C bis golden.",
+        "Mischen Sie den Tahini mit Zitronensaft und Wasser und Nieselregen über das gebratene Gemüse.",
       ],
       "suggested_seasonings": [],
     },
@@ -5098,6 +7476,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Hühner-, Grünbohnen- und Senfkartoffelsalat",
+      "description":
+          "Ein warmer Kartoffelsalat mit grünen Bohnen und Vollkornsenf.",
+      "instructions": [
+        "Kartoffeln und Bohnen werden bis zur Zartform gekocht, das Huhn in Scheiben geschnitten und in etwas Öl gebraten, bis es durchgekocht ist.",
+        "Pfeifen Sie den Senf, verbleibendes Öl und Zitronensaft, werfen Sie Gemüse und Huhn.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "276e6455-ebd8-5d3c-9f52-13c0e93d29b1": {
     "source": {
@@ -5120,6 +7508,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Teigwaren mit Erbsensoße und geröstetem Brokkoli",
+      "description": "Glatte Erbsensoße mit knusprigem geröstetem Brokkoli.",
+      "instructions": [
+        "Werfen Sie die Blumen mit dem Öl und braten Sie bei 210°C für 18-22 Minuten. Kochen Sie die Pasta und sparen Sie ein wenig Wasser.",
+        "Kochen Sie die Erbsen und mischen Sie sich mit dem Joghurt, einer Zitrone und etwas Pastawasser.",
+        "Werfen Sie die Pasta mit der Sauce und oben mit dem Brokkoli.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "c2289f85-159b-5e46-88f7-cd404007131f": {
     "source": {
@@ -5139,6 +7537,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       "instructions": [
         "Mash the drained beans with the mustard. Sandwich the beans and cheese between the bread slices.",
         "Butter the outside and toast in a pan on both sides until golden and the cheese melts.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "White Bean und Cheddar Toastie",
+      "description":
+          "Ein geröstetes Sandwich mit pürierten Bohnen, Senf und geschmolzenem Cheddar.",
+      "instructions": [
+        "Die abgelassenen Bohnen werden mit dem Senf gemischt, die Bohnen und der Käse werden zwischen den Brotscheiben eingeklemmt.",
+        "Butter die Außenseite und Toast in einer Pfanne auf beiden Seiten, bis golden und der Käse schmilzt.",
       ],
       "suggested_seasonings": [],
     },
@@ -5166,6 +7574,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Truthühner- und Kopfsalatbecher",
+      "description":
+          "Knusprige Salatblätter, gefüllt mit warmem Truthahn und Kohl.",
+      "instructions": [
+        "Die großen Salatblätter trennen und waschen, den Kohl zerkleinern und Karotten und Ingwer reiben.",
+        "Braten Sie den Truthahn im Öl, fügen Sie dann Kohl, Karotte, Ingwer und Sojasauce hinzu. Kochen Sie den Truthahn durch.",
+        "Löffel die Füllung in den Salat kurz vor dem Essen.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "0949bb02-422a-5a98-84f6-14686a0919ac": {
     "source": {
@@ -5183,6 +7602,15 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       "instructions": [
         "If the dates are firm, soak in hot water for a few minutes and drain.",
         "Blend with the cocoa, peanut butter and half the coconut. Roll into 12 balls, coat with the remaining coconut and chill.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Kakao, Datteln und Kokosnussbisse",
+      "description": "Kleine Kakaobisse gesüßt mit Datteln.",
+      "instructions": [
+        "Wenn die Daten fest sind, einweichen in heißem Wasser für ein paar Minuten und abtropfen.",
+        "Mischung mit Kakao, Erdnussbutter und halber Kokosnuss, in 12 Bälle rollen, mit der restlichen Kokosnuss überziehen und abkühlen.",
       ],
       "suggested_seasonings": [],
     },
@@ -5208,6 +7636,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Gebackene Ricotta mit gebratenen Pflaumen",
+      "description":
+          "Warm gebackene Ricotta mit gebratenen Pflaumen und deren Säften.",
+      "instructions": [
+        "Mischen Sie die Ricotta, Ei, Mandelmehl und die Hälfte des Honigs und teilen Sie zwischen zwei Ramekins.",
+        "Halbieren und steinigen Sie die Pflaumen, legen Sie sie neben den Ramekins auf ein Tablett und nieseln Sie mit dem restlichen Honig.",
+        "Backen bei 180°C, bis das Ricotta fixiert ist und die Pflaumen weich sind.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "46c5abf2-582c-54ef-908d-427e33c825c0": {
     "source": {
@@ -5225,6 +7664,15 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       "instructions": [
         "Mix the cocoa with a little yoghurt until smooth, then stir in the remaining yoghurt and honey.",
         "Spoon into glasses and top with diced pear and chopped walnuts.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Kakaojoghurt mit Birne und Walnüssen",
+      "description": "Dicker Kakaojoghurt mit saftiger Birne und Walnüssen.",
+      "instructions": [
+        "Mischen Sie den Kakao mit etwas Joghurt, bis er glatt ist, und rühren Sie dann den restlichen Joghurt und Honig ein.",
+        "Löffel in Gläser und Oberteil mit gewürfelter Birne und gehackten Walnüssen.",
       ],
       "suggested_seasonings": [],
     },
@@ -5252,6 +7700,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Vanille-Reispudding mit gebratenen Pfirsichen",
+      "description":
+          "Cremiger Reispudding mit warmen, leicht karamellisierten Pfirsichen gekrönt.",
+      "instructions": [
+        "Die Pfirsiche werden in Keile geschnitten und mit Honig und Butter geworfen; geröstet bei 200°C für 15–18 Minuten bis zur Ausschreibung.",
+        "Den Reis sanft in der Milch köcheln, oft rühren, den Vanillezucker einrühren, wenn der Reis weich ist.",
+        "Löffel in Schüsseln und oben mit den Pfirsichen und ihren Röstsäften.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "2fe018e0-05a0-57d2-aad2-30186e003f9c": {
     "source": {
@@ -5272,6 +7731,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Cream the softened butter and sugar and beat in the eggs one at a time.",
         "Stir in the polenta, almond flour and baking powder, then gently fold in the raspberries.",
         "Spoon into a small lined tin and bake at 175°C for 30–35 minutes, until a skewer comes out without wet batter.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Raspberry polenta Kuchen",
+      "description":
+          "Ein feuchter, leicht körniger Kuchen mit scharfen Himbeeren.",
+      "instructions": [
+        "Creme die erweichte Butter und Zucker und schlag in den Eiern eins nach dem anderen.",
+        "Rühren in der Polenta, Mandelmehl und Backpulver, dann sanft in den Himbeeren falten.",
+        "Löffel in eine kleine ausgekleidete Dose und backen bei 175 ° C für 30 - 35 Minuten, bis ein Spieß ohne nassen Teig herauskommt.",
       ],
       "suggested_seasonings": [],
     },
@@ -5297,6 +7767,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Schokolade ricotta mousse mit Himbeeren",
+      "description":
+          "Eine dicke Schokoladencreme mit frischen Himbeeren. Chill vor dem Servieren.",
+      "instructions": [
+        "Schmelzen Sie die Schokolade über eine Pfanne mit heißem Wasser und kühlen Sie leicht ab.",
+        "Mischen Sie die Ricotta mit der Milch und dann mit der Schokolade. Löffel in Geschirr, Chill und oben mit Himbeeren.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "36cc9a0c-02f0-523a-af8a-c573e0ae0e9d": {
     "source": {
@@ -5317,6 +7797,15 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Birnen- und Kakaohaferfelder",
+      "description": "Weiche Haferquadrate mit Kakao und Birnenstücken.",
+      "instructions": [
+        "Pfeifen Sie die Eier mit Milch und Honig, dann rühren Sie den Hafer, Kakao und Backpulver ein.",
+        "In die gewürfelte Birne einfalten, in einer kleinen Dose ausstreichen und bis zum Abbinden bei 180°C backen, vor dem Schneiden abkühlen.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "c692adaf-b671-5d8a-a9b2-fc6058ef5cf6": {
     "source": {
@@ -5334,6 +7823,15 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       "instructions": [
         "Halve and stone the plums, drizzle with honey and roast at 190°C until soft.",
         "Crumble the bread and fry in butter until crisp. Serve the plums with yoghurt and the crumbs.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Röstpflaumen mit Roggenkrumen",
+      "description": "Ofengeröstete Pflaumen mit gerösteten Roggenkrümeln.",
+      "instructions": [
+        "Die Pflaumen halbieren und steinigen, mit Honig nieseln und bei 190°C bis weich braten.",
+        "Das Brot zerkleinern und in Butter braten, bis es knusprig ist, die Pflaumen mit Joghurt und den Krümeln servieren.",
       ],
       "suggested_seasonings": [],
     },
@@ -5361,6 +7859,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Gebackene Quinoa und Apfelkustern mit Walnüssen",
+      "description":
+          "Zarte Äpfel und gekochte Quinoa in einem weichen Vanillekustall.",
+      "instructions": [
+        "Die Quinoa in Wasser kochen, abtropfen lassen und leicht abkühlen.",
+        "Die Eier mit Milch und Vanillezucker schlagen, Äpfel und Quinoa in eine Butterschale legen und über den Pudding gießen.",
+        "Backen bei 180°C bis zum Setzen des Zentrums und mit grob gehackten gerösteten Walnüssen servieren.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "9d26834c-93d0-5d33-869c-96efee1b8456": {
     "source": {
@@ -5383,6 +7892,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Skyr mit zerkleinerten Heidelbeeren und gerösteter Kokosnuss",
+      "description":
+          "Zerkleinerte Blaubeeren wirbelten durch gekühlten Skyr mit gerösteter Kokosnuss.",
+      "instructions": [
+        "Toast die Kokosnuss in einer trockenen Pfanne und kippen auf einen Teller.",
+        "Zerkleinern Sie die Hälfte der Heidelbeeren mit einer Gabel und wirbeln Sie durch den Skyr, oben mit den restlichen Beeren, Honig und Kokosnuss.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "1cc22196-60ef-51b3-b186-67a3545bb3fd": {
     "source": {
@@ -5400,6 +7919,15 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       "instructions": [
         "Cook the buckwheat according to the packet.",
         "Fry the apple wedges in butter until tender. Serve over the warm buckwheat with ricotta and honey.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Buchweizen mit Äpfeln und Ricotta",
+      "description": "Warmer Buchweizen mit weichen, pan-gekochten Äpfeln.",
+      "instructions": [
+        "Kochen Sie den Buchweizen gemäß der Packung.",
+        "Die Apfelkeile werden in Butter bis zum Zartgebäck gebraten, und der warme Buchweizen wird mit Ricotta und Honig serviert.",
       ],
       "suggested_seasonings": [],
     },
@@ -5424,6 +7952,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Brei mit gebratenen Pfirsichen und Mandeln",
+      "description":
+          "Warmer Brei mit braunen Pfirsichen und knusprigen Mandeln.",
+      "instructions": [
+        "Schneiden Sie die Pfirsiche, Niesseln mit Honig und Rösten bei 200 ° C bis weich.",
+        "Den Hafer in der Milch unter Rühren kochen, mit Pfirsichen und gerösteten Mandeln servieren.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "cc2742b0-3ee4-5a01-b574-1d5b0f27d449": {
     "source": {
@@ -5441,6 +7979,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       "instructions": [
         "Dice and boil the beetroot until tender. Hard-boil the eggs in a separate pan.",
         "Blend the drained beetroot with the yoghurt. Spread over the toast and add sliced eggs and chives.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Roggen-Toast mit Rote-Bete-Spread und Ei",
+      "description":
+          "Rosa Rote Beete mit geschnittenem Ei auf knusprigem Roggen.",
+      "instructions": [
+        "Die Rüben werden Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel Würfel",
+        "Die entwässerte Rote Rübe mit dem Joghurt vermischen, über den Toast verteilen und in Scheiben geschnittene Eier und Schnittlauch hinzufügen.",
       ],
       "suggested_seasonings": [],
     },
@@ -5464,6 +8012,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Zuckermais und Cheddar-Pfannkuchen",
+      "description":
+          "Geschmackvolle Pfannkuchen mit Zuckermaiskernen in jedem Bissen.",
+      "instructions": [
+        "Eier, Milch und Mehl pfeifen, Zuckermais und geriebener Käse einrühren.",
+        "Gebratene kleine Pfannkuchen im Öl bis golden und auf beiden Seiten durchgekocht.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "6a629651-5f35-5816-9870-f38428e797e8": {
     "source": {
@@ -5482,6 +8040,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       "instructions": [
         "Rinse the millet in a sieve with hot water. Simmer gently in the milk until tender.",
         "Mix the cocoa into a spoonful of hot porridge, stir it back in with the honey and serve with raspberries.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Kakaohirse mit Himbeeren",
+      "description":
+          "Dicker Hirsebrei mit dunklem Kakao und frischen Himbeeren.",
+      "instructions": [
+        "Die Hirse wird in einem Sieb mit heißem Wasser gespült und in der Milch vorsichtig bis zur Zartheit köchelt.",
+        "Mischen Sie den Kakao in einen Löffel heißen Brei, rühren Sie ihn wieder mit dem Honig und dienen Sie mit Himbeeren.",
       ],
       "suggested_seasonings": [],
     },
@@ -5507,6 +8075,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Gebackene Eier mit Pilzen in Ramekins",
+      "description":
+          "Goldene Pilze unter gebackenen Eiern, mit Toast zum Tauchen.",
+      "instructions": [
+        "Frittieren Sie die Pilze in Butter, lassen Sie die Flüssigkeit verdampfen und rühren Sie die Creme ein.",
+        "Zwischen den Ramekins teilen, in den Eiern knacken und bei 180°C backen, bis die Weißen fixiert sind.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "6178be2b-e0ec-5b0e-a36b-083ccf11ca70": {
     "source": {
@@ -5524,6 +8102,15 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       "instructions": [
         "Toast the oats and chopped hazelnuts in a dry pan. Stir in the honey, spread on a plate and cool.",
         "Dice the pear and spoon over the skyr. Scatter over the granola just before serving.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Skyr mit Birne und Herdgranula",
+      "description": "Gekühlter Skyr mit Birne und schnell geröstetem Müsli.",
+      "instructions": [
+        "Hafer und Haselnüsse werden in einer trockenen Pfanne gebraten, im Honig gerührt, auf einem Teller ausgebreitet und abgekühlt.",
+        "Die Birne und den Löffel über den Skyr würfeln und kurz vor dem Servieren über das Müsli streuen.",
       ],
       "suggested_seasonings": [],
     },
@@ -5547,6 +8134,15 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Bananen-, Dattel- und Hafer-Shake",
+      "description": "Ein dicker Frühstücks-Shake mit Datteln gesüßt.",
+      "instructions": [
+        "Stein die Datteln, kurz in warmem Wasser einweichen und abfließen lassen.",
+        "Mischen Sie mit Bananen, Hafer und kalter Milch. Lassen Sie es kurz stehen, wenn Sie einen dickeren Shake bevorzugen.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "e41f2666-fe20-5d6e-a6a9-9cd9a563f02a": {
     "source": {
@@ -5564,6 +8160,15 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       "instructions": [
         "Wilt the spinach in half the butter. Add beaten eggs and stir over low heat.",
         "Fold in crumbled feta and the remaining butter towards the end. Serve with toasted rye.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Spinat und Feta Rührei",
+      "description": "Weiche Rührei mit Taschen von Feta und Roggen Toast.",
+      "instructions": [
+        "Den Spinat in der Hälfte der Butter hämmern, geschlagene Eier hinzufügen und bei schwacher Hitze rühren.",
+        "Gefaltet in zerbröckeltem Feta und der restlichen Butter gegen Ende; mit geröstetem Roggen servieren.",
       ],
       "suggested_seasonings": [],
     },
@@ -5587,6 +8192,15 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Ricotta und Mango Crêpes",
+      "description": "Dünne Crêpes mit cremigem Ricotta und reifer Mango.",
+      "instructions": [
+        "Milch, Mehl und Ei pfeifen, dünne Crêpes in einer leicht geölten Pfanne kochen.",
+        "Verbreiten Sie mit Ricotta, oben mit gewürfelter Mango und Falte.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "5995629c-7021-5d37-9721-9648e82d5e30": {
     "source": {
@@ -5607,6 +8221,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Cook the barley. Fry the onion and strips of pork in the oil.",
         "Add the sliced pepper, paprika and a splash of water. Simmer until the vegetables are tender and the pork is cooked through.",
         "Stir a little hot sauce into the soured cream, then stir it into the pan off the heat. Serve with the barley.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Schweinegeschnetzeltes mit roter Paprika",
+      "description":
+          "Schweinestreifen in einer cremigen Paprika-Sauce, serviert mit Perlgerste.",
+      "instructions": [
+        "Gerste kochen, Zwiebeln und Schweinefleischstreifen im Öl frittieren.",
+        "In Scheiben geschnittener Pfeffer, Paprika und ein Spritzer Wasser werden hinzugefügt, bis das Gemüse zart ist und das Schweinefleisch durchgekocht ist.",
+        "Rühren Sie ein wenig heiße Soße in die Sauerrahm, dann rühren Sie es in die Pfanne von der Hitze. Servieren Sie mit der Gerste.",
       ],
       "suggested_seasonings": [],
     },
@@ -5634,6 +8259,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Kabeljau mit Weichpolenta und Röstpaprika",
+      "description":
+          "Pfannenbratener Kabeljau über weicher Polenta mit süßem Röstpaprika.",
+      "instructions": [
+        "Die Paprika in Scheiben schneiden, mit der Hälfte des Öls nieseln und bei 210°C bis zum Trocknen braten.",
+        "Den Kabeljau mit dem verbleibenden Öl bis zur Trübung und Flocke kochen.",
+        "Legen Sie die Fische und Paprika über der Polenta an. Fügen Sie Petersilie und eine Zitrone hinzu.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "ff7b60ce-588c-54b7-8133-70ea70df6a7a": {
     "source": {
@@ -5653,6 +8289,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       "instructions": [
         "Cook the barley. Cut the peaches and onion into wedges and arrange on a tray with the chicken. Drizzle with oil and vinegar.",
         "Roast at 200°C until the chicken is cooked through. Slice and serve with the barley and pan juices.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Brathähnchen mit Pfirsichen und roten Zwiebeln",
+      "description":
+          "Pfirsiche und rote Zwiebeln braten mit dem Huhn, um eine leichte Pfannensauce zu machen.",
+      "instructions": [
+        "Gerste kochen, Pfirsiche und Zwiebeln in Keile schneiden und mit dem Huhn auf einem Tablett arrangieren, Öl und Essig trinken.",
+        "Rösten bei 200°C, bis das Huhn durchgekocht ist, in Scheiben schneiden und mit Gerste und Pfannensäften servieren.",
       ],
       "suggested_seasonings": [],
     },
@@ -5680,6 +8326,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Pute und Apfelfleisch",
+      "description":
+          "Saftiges Truthahnfleisch mit geriebenem Apfel, in dicken Scheiben serviert.",
+      "instructions": [
+        "Apfel reiben und überschüssigen Saft auspressen, mit Truthahn, Semmelbrösel und Eiern mischen.",
+        "Zu einem kleinen Laib formen, mit Öl niesen und bei 190°C bis zum Kochen backen, vor dem Aufschneiden ausruhen.",
+        "Kochen Sie die Kartoffeln und grünen Bohnen und dienen Sie mit dem Fleischloaf.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "809ce8e7-b6f7-522b-a28e-7a57a515baa9": {
     "source": {
@@ -5701,6 +8358,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Cook the rice. Brush the aubergine slices with half the oil and roast at 210°C until browned.",
         "Fry the onion and pork and beef mince in the remaining oil. Add tomatoes and oregano and simmer until thickened.",
         "Layer the rice, sauce and aubergine in a dish. Bake at 190°C until piping hot in the centre and the mince is cooked through.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Schweine- und Rindfleisch-Reiskuchen mit Auberginengine",
+      "description":
+          "Geschichteter Reis, gerösteter Auberginengin und eine herzhafte Fleischsauce.",
+      "instructions": [
+        "Den Reis kochen, die Auberginenscheiben mit der Hälfte des Öls bürsten und bei 210°C bis zur Bräunung braten.",
+        "Die Zwiebeln und die Hackfleisch- und Rindfleischzerkleinerung mit dem verbleibenden Öl frittieren, Tomaten und Oregano hinzufügen und bis zur Eindickung kochen.",
+        "Reis, Soße und Auberginen/Melanzani in eine Schale lagern, bei 190°C bis zur heißen Rohrleitung in der Mitte backen und das Hackfleisch durchkochen.",
       ],
       "suggested_seasonings": [],
     },
@@ -5727,6 +8395,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Lachs- und Kartoffelfischkuchen",
+      "description":
+          "Goldene Fischkuchen mit Lachsflocken und einem Zitronenjoghurt-Dip.",
+      "instructions": [
+        "Kochen und entleeren Sie die Kartoffeln, dann lassen Sie sie Dampf trocknen und Maische. Backen Sie den Lachs bei 190 ° C bis zum Kochen und flocken Sie ihn.",
+        "Mischen Sie den Lachs mit der Kartoffel und dem Ei, formen Sie es mit Semmelbrösel und braten Sie es auf beiden Seiten, bis es durchgekocht ist.",
+        "Zitronensaft in den Joghurt rühren und mit den Fischkuchen servieren.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "f69cc90a-5c7d-5a9f-8e9b-9c7a8cc03909": {
     "source": {
@@ -5747,6 +8426,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Cook the lentils and drain well. Grate the carrot and fry with the onion in some of the oil.",
         "Mix with the lentils and oats, shape into patties and brush with the remaining oil. Bake at 200°C until golden, turning halfway.",
         "Mix the tahini with lemon juice and water. Serve with the patties.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Rote Linsen- und Karottenpastetchen mit Tahini",
+      "description":
+          "Gebackene Linsenpastetchen mit einem weichen Zentrum und Zitronen-Tahini-Dressing.",
+      "instructions": [
+        "Kochen Sie die Linsen und lassen Sie sie gut ablaufen, reiben Sie die Möhre und braten Sie sie mit der Zwiebel in etwas Öl.",
+        "Mit den Linsen und Hafer mischen, zu Pasteten formen und mit dem restlichen Öl bürsten, bei 200°C bis zum Goldbacken backen und sich auf halbem Weg drehen.",
+        "Mischen Sie den Tahini mit Zitronensaft und Wasser. Servieren Sie mit den Patties.",
       ],
       "suggested_seasonings": [],
     },
@@ -5774,6 +8464,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Porree, Spinat und Ricotta Lasagne",
+      "description":
+          "Weicher Lauch und Ricotta in einer Lasagne mit einer goldenen Käseplatte.",
+      "instructions": [
+        "Den in Scheiben geschnittenen Lauch in einem Teil der Butter erweichen, den Spinat hinzufügen und überschüssige Flüssigkeit verdunsten lassen.",
+        "Mit der restlichen Butter, Mehl und Milch wird eine Soße zubereitet, die Füllung und die Soße mit den Blättern überschichtet und anschließend dem Paket für das Vorkochen gefolgt.",
+        "Streuen Sie über den Cheddar und backen Sie bei 190 ° C, bis die Pasta zart ist.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "46c1ba95-079a-5de9-9892-30a27d16760b": {
     "source": {
@@ -5793,6 +8494,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Defrost the prawns as directed on the packet. Cook and drain the orzo.",
         "Fry the garlic in oil, add the tomatoes and reduce. Add the prawns and cook until opaque and cooked through.",
         "Toss with the orzo and torn basil.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Tomatenorzo mit Garnelen",
+      "description":
+          "Kleine Pastaformen in einer dicken Tomatensauce mit Garnelen.",
+      "instructions": [
+        "Auftauen der Garnelen, wie auf der Packung angegeben, Kochen und Ablassen des Orzos.",
+        "Frittieren Sie den Knoblauch in Öl, fügen Sie die Tomaten hinzu und reduzieren Sie die Garnelen und kochen Sie bis zur Trübung und kochen Sie durch.",
+        "Werfen Sie mit dem Orzo und dem gerissenen Basilikum.",
       ],
       "suggested_seasonings": [],
     },
@@ -5819,6 +8531,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Hühner- und Blumenkohlkäsebackkuchen",
+      "description":
+          "Creme Blumenkohl und Huhn unter einer goldenen Cheddar-Kruste.",
+      "instructions": [
+        "Parboil und entleeren Sie den Blumenkohl. Würfeln Sie das Huhn und bräunen Sie es in etwas Butter.",
+        "Machen Sie eine Sauce mit der restlichen Butter, Mehl und Milch und fügen Sie die Hälfte des Käses hinzu.",
+        "Blumenkohl und Huhn in einer Schale anordnen, über die Soße gießen und den verbleibenden Käse hinzufügen, bei 200°C backen, bis golden ist, und das Huhn durchgekocht wird.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "ec2642cc-5f6b-5b9d-bbcd-de9c3c12969f": {
     "source": {
@@ -5839,6 +8562,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Cook the barley. Brown the pork in the oil and transfer to a small roasting dish.",
         "Add onion wedges and stoned plums tossed with the vinegar. Roast at 200°C until the pork is cooked through.",
         "Rest the pork briefly, slice and serve with the barley, plums and pan juices.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Schweinestränge mit Pflaumen und Perlgerste",
+      "description":
+          "Röstpflaumen geben den Pfannensäften ein süßes, herbes Finish.",
+      "instructions": [
+        "Die Gerste kochen, das Schweinefleisch im Öl bräunen und in eine kleine Röstschale geben.",
+        "Zwiebelkeile und Steinpflaumen, die mit Essig geworfen werden, werden hinzugefügt und bei 200°C gebraten, bis das Schweinefleisch durchgekocht ist.",
+        "Das Schweinefleisch kurz ausruhen, in Scheiben schneiden und mit Gerste, Pflaumen und Pfannensäften servieren.",
       ],
       "suggested_seasonings": [],
     },
@@ -5866,6 +8600,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Puten-Stroganoff mit Pilzen",
+      "description":
+          "Pute und gebräunte Pilze in einer cremigen Soße über Buchweizen.",
+      "instructions": [
+        "Kochen Sie den Buchweizen. Braunen Sie den Truthahn in etwas Öl und legen Sie ihn beiseite.",
+        "Die Zwiebel und die Pilze werden mit dem restlichen Öl gebraten, der Truthahn, der Senf und ein Spritzer Wasser werden hinzugefügt, bis der Truthahn durchgekocht ist.",
+        "Nehmen Sie die Hitze ab, rühren Sie die Sauerrahm ein und servieren Sie über den Buchweizen.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "64fd429f-ebc3-51a4-99b5-76bcf6eb8a05": {
     "source": {
@@ -5888,6 +8633,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Kabeljau- und Erbsenkuchen",
+      "description":
+          "Kabeljau und Erbsen in weißer Soße unter goldener Maische.",
+      "instructions": [
+        "Kochen Sie die Kartoffeln und Maische mit etwas Milch und Butter.",
+        "Mit der verbleibenden Butter, Mehl und Milch wird eine Soße zubereitet, Kabeljau und Erbsen in Scheiben gegossen und in eine Ofenschale gegeben.",
+        "Decken Sie mit Maische ab, rauhen Sie die Spitze mit einer Gabel und backen Sie bei 200 ° C bis Gold und der Fisch wird durchgekocht.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "ce206d4f-71fe-50cd-a185-a2ce5f02c65b": {
     "source": {
@@ -5907,6 +8663,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Cook the lentils and drain thoroughly. Fry the onion and spinach in oil and evaporate excess liquid. Add the lentils and paprika and cool.",
         "Cut the pastry into squares, fill, fold, seal the edges and brush with beaten egg.",
         "Bake at 200°C until the pastry is golden and the filling is piping hot.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Pflaumenteigtaschen mit Linsen und Spinat",
+      "description":
+          "Knusprige Gebäcktaschen mit dicker, sanft rauchiger Füllung.",
+      "instructions": [
+        "Die Linsen kochen und gründlich abtropfen lassen, Zwiebeln und Spinat in Öl frittieren und überschüssige Flüssigkeit eindampfen, Linsen und Paprika hinzufügen und abkühlen.",
+        "Schneiden Sie das Gebäck in Quadrate, füllen, falten, versiegeln Sie die Ränder und bürsten Sie mit geschlagenem Ei.",
+        "Backen Sie bei 200 ° C, bis das Gebäck golden ist und die Füllung heiß ist.",
       ],
       "suggested_seasonings": [],
     },
@@ -5934,6 +8701,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Kokos-, Limette- und Zuckermaisreis mit Tofu",
+      "description":
+          "Kokosreis mit Zuckermais und geräuchertem Paprika gebackenem Tofu.",
+      "instructions": [
+        "Den Tofu trocknen, würfeln und das Öl und die Paprika einwerfen, bei 210°C braten bis golden.",
+        "Kochen Sie den Reis in der Kokosmilch und dem Wasser und fügen Sie gegen Ende den entwässerten Zuckermais hinzu.",
+        "Beenden Sie mit Limettensaft und Zest und servieren Sie mit dem Tofu.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "84b212f2-30a8-5a21-980d-88323a121ee2": {
     "source": {
@@ -5955,6 +8733,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Finely dice the beetroot and potatoes. Soften the sliced leek in oil.",
         "Add the beetroot and stock. Once the beetroot starts to soften, add the potatoes and simmer until tender.",
         "Finish with vinegar and add a spoonful of yoghurt to each bowl.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Rüben- und Lauchsuppe mit Joghurt",
+      "description":
+          "Eine leichte Suppe mit gewürfelter Beete, Lauch und einem Löffel Joghurt.",
+      "instructions": [
+        "Rote Rüben und Kartoffeln fein würfeln, den in Scheiben geschnittenen Lauch in Öl erweichen.",
+        "Rote Rübe und Stamm hinzugeben; wenn die Rote Rübe zu erweichen beginnt, die Kartoffeln hinzufügen und bis zum Kochen kochen.",
+        "Beenden Sie mit Essig und fügen Sie jeder Schüssel einen Löffel Joghurt hinzu.",
       ],
       "suggested_seasonings": [],
     },
@@ -5980,6 +8769,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Erbse, Minze und Ricotta-Toast",
+      "description":
+          "Gabelerbsen auf Roggentoast mit Minze und weichem Ricotta.",
+      "instructions": [
+        "Die Erbsen kochen und abtropfen lassen, mit Öl, Minze und einer Zitrone zerquetschen.",
+        "Toast das Brot, mit den zerkleinerten Erbsen verteilt und fügen Sie Löffel Ricotta hinzu.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "f5bfd3a3-9fab-59e0-8d4f-05d874a21f3d": {
     "source": {
@@ -5999,6 +8798,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       "instructions": [
         "Grate the sweet potatoes, squeeze out excess moisture and mix with the eggs, flour and feta.",
         "Fry thin fritters in batches until golden and tender inside. Serve with yoghurt.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Geriebene Süßkartoffeln und Feta-Fritte",
+      "description":
+          "Knusprige Ränder und ein weiches Süßkartoffelzentrum mit zerbröckeltem Feta.",
+      "instructions": [
+        "Die Süßkartoffeln reiben, überschüssige Feuchtigkeit auspressen und mit den Eiern, Mehl und Feta mischen.",
+        "Gebratene dünne Frittetchen in Chargen, bis sie golden und zart innen sind; mit Joghurt servieren",
       ],
       "suggested_seasonings": [],
     },
@@ -6026,6 +8835,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Röstpaprika und Tomatenbrotsuppe",
+      "description":
+          "Dicke Tomatensuppe mit Brot, das den Geschmack von gebratenem Pfeffer aufsaugt.",
+      "instructions": [
+        "Schneiden Sie den Pfeffer, Nieselregen mit der Hälfte des Öls und Rösten bei 220 ° C, bis an den Rändern gebräunt.",
+        "Frittieren Sie den Knoblauch in das restliche Öl, fügen Sie die Tomaten, Pfeffer und Lager und kochen.",
+        "Reißen Sie das Brot in die Pfanne, erhitzen Sie, bis es erweicht ist, und fügen Sie das Basilikum hinzu.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "bdb410bc-4c84-5770-877d-db00d3bb3c00": {
     "source": {
@@ -6047,6 +8867,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Halve and deseed the peppers. Drizzle with some oil and soften in a 200°C oven.",
         "Cook the quinoa. Finely chop the broccoli and onion, fry in the remaining oil and mix with the quinoa and half the cheese.",
         "Fill the pepper halves, top with the remaining Cheddar and bake until browned.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Broccoli, Quinoa und Cheddar gefüllte Paprika",
+      "description":
+          "Pfefferhälften mit zartem Brokkoli und geschmolzenem Cheddar.",
+      "instructions": [
+        "Halbiere und entkerne die Paprika. Beträufle sie mit etwas Öl und backe sie bei 200 °C, bis sie weich ist.",
+        "Die Quinoa wird gekocht, Brokkoli und Zwiebeln fein gehackt, das restliche Öl gebraten und mit der Quinoa und der Hälfte des Käses gemischt.",
+        "Füllen Sie die Pfefferhälften, oben mit dem restlichen Cheddar und backen, bis gebräunt.",
       ],
       "suggested_seasonings": [],
     },
@@ -6072,6 +8903,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Warmer Blumenkohl- und Perlgerstensalat",
+      "description":
+          "Warme Perlengerste mit goldenem Blumenkohl und Zitronenjoghurt.",
+      "instructions": [
+        "Koche die Gerste und gieße sie ab. Teile den Blumenkohl in Röschen, vermenge ihn mit Öl und röste ihn bei 210 °C, bis er goldbraun ist.",
+        "Mischen Sie den Joghurt mit Zitronensaft und etwas Wasser, werfen Sie Gerste und Blumenkohl und fügen Sie gehackte Petersilie hinzu.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "081f8329-0b11-5b63-a99f-6f30d09cd834": {
     "source": {
@@ -6090,6 +8931,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       "instructions": [
         "Slice the cucumber into thin sticks. Mix the yoghurt with a squeeze of lemon and chives.",
         "Spread the sauce on the wraps, add the salmon and cucumber, roll tightly and cut diagonally.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Räucherlachs und Gurkenhülle",
+      "description":
+          "Eine weiche Verpackung mit knuspriger Gurke und Zitronenjoghurt.",
+      "instructions": [
+        "Die Gurke in dünne Stäbchen schneiden und den Joghurt mit einer Zitrone und Schnittlauch quetschen.",
+        "Verbreiten Sie die Sauce auf den Packungen, fügen Sie den Lachs und die Gurke hinzu, rollen Sie fest und schneiden Sie diagonal.",
       ],
       "suggested_seasonings": [],
     },
@@ -6112,6 +8963,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       "instructions": [
         "Finely shred the cabbage and cut the apple into matchsticks. Toast the walnuts and the bread.",
         "Mix the yoghurt with vinegar, toss with the cabbage, apple and nuts and serve with the toast.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Chinesischer Kohl, Apfel- und Walnusskraut",
+      "description":
+          "Crunchy Slaw in einem Joghurt-Dressing, serviert mit Roggen-Toast.",
+      "instructions": [
+        "Schreddern Sie den Kohl fein und schneiden Sie den Apfel in Streichhölzer, braten Sie die Walnüsse und das Brot.",
+        "Mischen Sie den Joghurt mit Essig, werfen Sie mit Kohl, Apfel und Nüssen und dienen Sie mit dem Toast.",
       ],
       "suggested_seasonings": [],
     },
@@ -6138,6 +8999,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Gebackene Tomaten und Spinat-Polenta",
+      "description": "Weiche Polenta unter gebackenen Tomaten und Mozzarella.",
+      "instructions": [
+        "Kochen Sie die Polenta nach dem Paket, frittieren Sie den Knoblauch in Öl und welken Sie den Spinat.",
+        "Verbreiten Sie die Polenta in einer Schale und Schicht über Spinat, geschnittene Tomaten und zerrissene Mozzarella.",
+        "Backen Sie bei 200 ° C, bis der Käse schmilzt und die Oberseite golden ist.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "2f146e21-a8f4-516b-8623-657c4c728c03": {
     "source": {
@@ -6156,6 +9027,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       "instructions": [
         "Defrost the prawns according to the packet and pat dry. Fry in oil with the garlic until cooked through.",
         "Mash the avocado flesh with lime juice. Spread on toasted rye and top with the prawns.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Avocado und Garnelenroggentoast",
+      "description":
+          "Knoblauchgarnelen über cremige Avocado und knuspriges Roggenbrot.",
+      "instructions": [
+        "Die Garnelen werden je nach Packung aufgetaut und getrocknet; mit dem Knoblauch wird in Öl geröstet, bis sie durchgekocht sind.",
+        "Das Avocadofleisch mit Limettensaft mischen, auf gerösteten Roggen verteilen und die Garnelen auffüllen.",
       ],
       "suggested_seasonings": [],
     },
@@ -6179,6 +9060,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Halve the peeled onions and parboil until the layers soften. Scoop out and chop the centres.",
         "Fry the pork, onion centres, mushrooms and carrots in the oil. Add the soy sauce.",
         "Fill the onion halves and bake at 200°C until the onions are tender and the pork is cooked through.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Gebackene Zwiebeln, gefüllt mit Schweinefleisch und Pilzen",
+      "description":
+          "Zarte Zwiebelhälften mit einer gebräunten Schweinefleisch- und Pilzfüllung.",
+      "instructions": [
+        "Die geschälten Zwiebeln und das Parboil werden halbiert, bis sich die Schichten erweichen, die Zentren ausgestochen und gehackt.",
+        "Schweinefleisch, Zwiebeln, Pilze und Karotten im Öl frittieren und Sojasauce hinzufügen.",
+        "Füllen Sie die Zwiebelhälften und backen Sie bei 200 ° C, bis die Zwiebeln zart sind und das Schweinefleisch durchgekocht wird.",
       ],
       "suggested_seasonings": [],
     },
@@ -6206,6 +9098,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Gebackene Kartoffel-Kroketten mit Zuckermais und Cheddar",
+      "description":
+          "Eine knusprige Krümelbeschichtung um Weichkartoffel, Käse und Zuckermais.",
+      "instructions": [
+        "Kartoffeln kochen, abtropfen lassen, mischen und abkühlen, mit Cheddar und abgetropftem Zuckermais mischen.",
+        "Form in kurze Stämme, tauchen Sie in Eier, rollen Sie in Semmelbrösel und Nieselregen mit Öl.",
+        "Backen Sie auf einem Tablett bei 210 ° C, einmal drehen, bis golden und rohrig heiß.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "0d0811ca-e21a-52f2-bfb2-0dfaebdda659": {
     "source": {
@@ -6227,6 +9130,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Quinoa und grüner Bohnensalat mit Tahini",
+      "description":
+          "Ein Salat mit knusprigen grünen Bohnen, rotem Pfeffer und Zitronentahini.",
+      "instructions": [
+        "Kochen Sie die Quinoa, kochen Sie die geschnittenen grünen Bohnen, bis sie nur zart sind, und lassen Sie sie abtropfen.",
+        "Flüstern Sie den Tahini mit Öl, Zitronensaft und einem Spritzer Wasser, werfen Sie Quinoa, grüne Bohnen und geschnittenen Pfeffer.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "c6f974c9-c3f7-5fd6-8091-a00a725832d8": {
     "source": {
@@ -6244,6 +9157,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       "instructions": [
         "Halve and stone the plums, drizzle with oil and vinegar and roast at 200°C until tender.",
         "Brown the halloumi slices and toast the walnuts in a dry pan. Arrange on spinach with the plums and their juices.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Warme Halloumi und gebratener Pflaumensalat",
+      "description":
+          "Salzige Halloumi, weiche Röstpflaumen und frischer Spinat.",
+      "instructions": [
+        "Die Pflaumen halbieren und steinigen, mit Öl und Essig tropfen und bei 200°C bis zur Zartheit braten.",
+        "Die Halloumi-Scheiben werden gebräunt und auf die Walnüsse in einer trockenen Pfanne geröstet, mit den Pflaumen und ihren Säften auf Spinat auftragen.",
       ],
       "suggested_seasonings": [],
     },
@@ -6271,6 +9194,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Sesam-Tofu mit zerkleinerten Erbsen und Karotten",
+      "description":
+          "Sesam-verkrusteter Tofu mit zerkleinerten Erbsen und Karottenbändern.",
+      "instructions": [
+        "Den Tofu trocknen, in Rechtecke schneiden und in Sojasauce und Sesamsamen kleiden. Braun in etwas Öl.",
+        "Die Erbsen werden gekocht und mit einer Gabel und Zitronensaft zerkleinert, die Karotten in Bänder geschält und das restliche Öl schnell eingebraten.",
+        "Servieren Sie den Tofu mit Erbsen und Karotten.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "dffad032-b3c4-50f1-b89e-7c52ed4a0705": {
     "source": {
@@ -6289,6 +9223,15 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       "instructions": [
         "Cut the bread into strips, brush with melted butter and dust with cinnamon.",
         "Bake at 180°C until crisp, turning once. Stir the honey into the yoghurt and serve alongside.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Zimtroggenchips mit Joghurtdip",
+      "description": "Dünne Zimtroggenstreifen zum Eintauchen in Honigjoghurt.",
+      "instructions": [
+        "Schneiden Sie das Brot in Streifen, bürsten mit geschmolzener Butter und Staub mit Zimt.",
+        "Backen bei 180°C bis knusprig, einmal drehen, den Honig in den Joghurt rühren und nebenbei servieren.",
       ],
       "suggested_seasonings": [],
     },
@@ -6313,6 +9256,15 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Apfel- und Karottenhafermuffins",
+      "description": "Tender Muffins mit geriebener Karotte und Apfel im Teig.",
+      "instructions": [
+        "Apfel und Karotte reiben, Eier mit Milch, Öl und Honig pfeifen.",
+        "Mit Mehl und Backpulver mischen und die geriebenen Erzeugnisse falten, in eine Dose teilen und bei 180°C backen, bis ein Spieß ohne nassen Teig herauskommt.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "b4370a84-1e16-5049-bc34-c04d73745518": {
     "source": {
@@ -6331,6 +9283,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       "instructions": [
         "Halve and stone the plums and drizzle with honey. Roast at 200°C until tender and cool slightly.",
         "Layer the yoghurt, plums and grated chocolate in glasses. Spoon over the roasting juices.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Röstpflaumen und dunkler Schokoladenjoghurt parfait",
+      "description":
+          "Schichten aus griechischem Joghurt, weichen Röstpflaumen und geriebener Schokolade.",
+      "instructions": [
+        "Die Pflaumen halbieren und steinigen und mit Honig nieseln; bei 200°C bis zur Zartheit rösten und leicht abkühlen.",
+        "Joghurt, Pflaumen und geriebene Schokolade werden in Gläser überschichtet und die Röstsäfte mit einem Löffel überzogen.",
       ],
       "suggested_seasonings": [],
     },
@@ -6356,6 +9318,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Zitronenricotta-Kuchen",
+      "description": "Ein feuchter Ricotta-Kuchen mit frischer Zitronenzeste.",
+      "instructions": [
+        "Creme die erweichte Butter und Zucker, fügen Sie die Eier eins nach dem anderen hinzu, dann rühren Sie die Ricotta, Zest und ein wenig Zitronensaft ein.",
+        "Das Mehl und das Backpulver sanft falten, Löffel in eine kleine ausgekleidete Dose falten und bei 175°C backen, bis ein Spieß ohne nassen Teig herauskommt.",
+        "Kühlen vor dem Schneiden.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "d1b25d95-b08d-5928-b1b9-62bec0a86bb2": {
     "source": {
@@ -6375,6 +9347,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       "instructions": [
         "Mix the yoghurt with honey and spread thinly over baking paper.",
         "Scatter over diced mango and flaked almonds. Freeze for at least 4 hours, then break into shards and serve from the freezer.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Mango- und Mandeljoghurtrinde, gefroren",
+      "description":
+          "Ein dünnes Joghurtblatt, das in gefrorene Scherben zerfällt; mindestens 4 Stunden einfrieren.",
+      "instructions": [
+        "Mischen Sie den Joghurt mit Honig und verteilen Sie ihn dünn über Backpapier.",
+        "Zerstreuen Sie gewürfelte Mangos und Flockenmandeln, frieren Sie mindestens 4 Stunden ein, brechen Sie dann in Scherben und servieren Sie aus dem Gefrierschrank.",
       ],
       "suggested_seasonings": [],
     },
@@ -6400,6 +9382,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Haferkekse aus Zitronen- und Mohnsamen",
+      "description":
+          "Buttery Hafer Kekse mit Zitronenzeste und winzige Mohnsamen.",
+      "instructions": [
+        "Butter und Zucker räuchern, dann in Eiern und Zitronenschalen schlagen, Hafer, Mehl und Mohnsamen einmischen.",
+        "Löffel auf ein Tablett fallen lassen und leicht abflachen. Bei 180°C backen, bis die Ränder golden sind, und dann auf einem Rack abkühlen.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "acbd83dd-40fe-5956-9bd8-6f233ff6c7c1": {
     "source": {
@@ -6419,6 +9411,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
         "Butter a shallow baking dish. Arrange thinly sliced pears and scatter over the raspberries.",
         "Whisk the eggs, milk, flour and sugar. Pour over the fruit and bake at 180°C until set in the centre and golden at the edges.",
         "Rest for a few minutes before serving.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Birnen- und Himbeerklafoutis",
+      "description":
+          "In einem leichten, eingestellten Pfannkuchenteig gebackene zarte Frucht.",
+      "instructions": [
+        "Butter eine flache Backschale; dünn geschnittene Birnen anordnen und über die Himbeeren streuen.",
+        "Eier, Milch, Mehl und Zucker pfeifen, über die Früchte gießen und bei 180°C backen, bis sie in der Mitte stehen und an den Rändern golden sind.",
+        "Ruhen Sie sich einige Minuten aus, bevor Sie dienen.",
       ],
       "suggested_seasonings": [],
     },
@@ -6445,6 +9448,17 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Schokoladenpolentapudding mit Birne",
+      "description":
+          "Cremige Polenta mit dunkler Schokolade und pan-kochten Birnen.",
+      "instructions": [
+        "Schneiden Sie die Birnen und erweichen Sie sie in Butter und Honig.",
+        "Pfeifen Sie die Polenta in warme Milch und kochen Sie bis zum Tender gemäß der Packung.",
+        "Nehmen Sie die Hitze ab, rühren Sie die gehackte Schokolade ein und servieren Sie mit den Birnen.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
   "7d4a2af4-0469-5739-a71f-df4c16050ea8": {
     "source": {
@@ -6463,6 +9477,16 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       "instructions": [
         "Slice the peeled pineapple and remove the tough core. Brown on both sides in a hot griddle pan.",
         "Mix the skyr with chopped mint and a squeeze of lime. Serve with the pineapple and a drizzle of honey.",
+      ],
+      "suggested_seasonings": [],
+    },
+    "de": {
+      "name": "Ananas mit Minze-Skyr",
+      "description":
+          "Warme Ananasscheiben mit gekühltem Skyr und frischer Minze.",
+      "instructions": [
+        "Die geschälte Ananas in Scheiben schneiden und den zähen Kern entfernen.",
+        "Mischen Sie den Skyr mit gehackter Minze und einer Portion Limettensaft, servieren Sie mit der Ananas und einem Nieselregen Honig.",
       ],
       "suggested_seasonings": [],
     },
@@ -6488,1645 +9512,2113 @@ const systemRecipeText = <String, Map<String, dynamic>>{
       ],
       "suggested_seasonings": [],
     },
+    "de": {
+      "name": "Gebackene Becher von Blaubeeren und Kokosnussreis",
+      "description": "Kleine gebackene Portionen Kokosnussreis mit Blaubeeren.",
+      "instructions": [
+        "Den Reis in Kokosmilch und Wasser kochen und abkühlen, mit Eiern, Zucker und Kokosnuss mischen.",
+        "Buttern Sie eine Muffin-Dose, teilen Sie die Mischung zwischen den Löchern und drücken Sie die Blaubeeren ein. Backen Sie bis zur Fixierung bei 180°C.",
+        "Lassen Sie die Becher ruhen, bevor Sie sie herausheben.",
+      ],
+      "suggested_seasonings": [],
+    },
   },
 };
 
 const systemIngredientText = <String, Map<String, String>>{
-  "aec00b99-e507-546a-8033-c9d7c1bab4ac": {"source": "Agar", "en_GB": "Agar"},
-  "a5845b5e-e5e7-5852-b6a7-d52f47c0a1fc": {"source": "Ajvar", "en_GB": "Ajvar"},
+  "aec00b99-e507-546a-8033-c9d7c1bab4ac": {
+    "source": "Agar",
+    "en_GB": "Agar",
+    "de": "Agar",
+  },
+  "a5845b5e-e5e7-5852-b6a7-d52f47c0a1fc": {
+    "source": "Ajvar",
+    "en_GB": "Ajvar",
+    "de": "Ajvar",
+  },
   "c91245d5-cc8f-56b6-8122-3aed97a3ccf1": {
     "source": "Ananas",
     "en_GB": "Pineapple",
+    "de": "Ananas",
   },
   "9d582e37-891b-5446-87f6-fff8f891df14": {
     "source": "Anchois w oliwie",
     "en_GB": "Anchovies in olive oil",
+    "de": "Sardellen in Olivenöl",
   },
   "39325c5c-7ac4-5893-a341-82ee736a9977": {
     "source": "Anyż gwiazdkowy",
     "en_GB": "Star anise",
+    "de": "Sternanis",
   },
   "d3d3b56f-77ee-592f-b9c4-78168dc2764b": {
     "source": "Arbuz",
     "en_GB": "Watermelon",
+    "de": "Wassermelone",
   },
   "c16683e3-c5bb-508b-b17d-ecfea391c805": {
     "source": "Awokado",
     "en_GB": "Avocado",
+    "de": "Avocado",
   },
   "f8ece7f3-9cd6-5290-a9fa-698c0eaa3ece": {
     "source": "Bakłażan",
     "en_GB": "Aubergine",
+    "de": "Auberginen",
   },
   "08b69a35-1fa2-5573-947d-16401e84f895": {
     "source": "Banan",
     "en_GB": "Banana",
+    "de": "Bananen",
   },
   "006ae069-31ed-52c6-8ec3-fd2b46db4450": {
     "source": "Bataty",
     "en_GB": "Sweet potatoes",
+    "de": "Süßkartoffeln",
   },
   "e512f47e-1f43-532c-9f47-988523face15": {
     "source": "Bazylia suszona",
     "en_GB": "Dried basil",
+    "de": "Basilikum, getrocknet",
   },
   "f0c7bb76-5a57-5d47-88b8-30bf637a21d8": {
     "source": "Bazylia świeża",
     "en_GB": "Fresh basil",
+    "de": "Frisches Basilikum",
   },
   "dfbd1460-45bc-5668-9f47-bf6894fcd36a": {
     "source": "Biszkopty",
     "en_GB": "Sponge fingers",
+    "de": "Löffelbiskuits",
   },
   "81bdef7e-181f-50fb-8085-42407bb549a6": {
     "source": "Boczek wędzony",
     "en_GB": "Smoked bacon",
+    "de": "Geräucherter Speck",
   },
   "c5d65d64-51e9-5ffc-98d6-17d6cb6f037a": {
     "source": "Borówki",
     "en_GB": "Blueberries",
+    "de": "Blaubeeren",
   },
   "5dbca956-7b18-52e8-a5b4-b282a589a80b": {
     "source": "Brokuł",
     "en_GB": "Broccoli",
+    "de": "Brokkoli",
   },
   "cdf51d65-efb6-5ba3-827d-ea59af592dd1": {
     "source": "Brukselka",
     "en_GB": "Brussels sprouts",
+    "de": "Rosenkohl",
   },
   "bef47689-1424-55a7-8495-5cbff4a760ca": {
     "source": "Brzoskwinie",
     "en_GB": "Peaches",
+    "de": "Pfirsiche",
   },
   "4bdde9b2-4ac9-59bd-84bb-68f02b97428f": {
     "source": "Budyń waniliowy",
     "en_GB": "Vanilla pudding powder",
+    "de": "Vanillepuddingpulver",
   },
   "8026e022-8a4f-5354-8243-3f93624097d8": {
     "source": "Bulion drobiowy",
     "en_GB": "Chicken stock",
+    "de": "Geflügelbrühe",
   },
   "4b8872d8-77cb-59b1-a3e5-efd19ef098ef": {
     "source": "Bulion grzybowy",
     "en_GB": "Mushroom stock",
+    "de": "Pilzbrühe",
   },
   "13805734-9c35-5020-b845-9db6001abede": {
     "source": "Bulion warzywny",
     "en_GB": "Vegetable stock",
+    "de": "Gemüsebrühe",
   },
   "2858df96-a1b2-5708-be0b-316bd19d111c": {
     "source": "Bulion warzywny gotowy",
     "en_GB": "Prepared vegetable stock",
+    "de": "Gebrauchsfertige Gemüsebrühe",
   },
   "4d0876fb-5965-57b9-ba00-c6ce01f5b42f": {
     "source": "Bulion wołowy",
     "en_GB": "Beef stock",
+    "de": "Rinderbrühe",
   },
   "c9fdcc16-d071-5960-92a5-3974d7af0181": {
     "source": "Buraczki konserwowe",
     "en_GB": "Preserved beetroot",
+    "de": "Konservierte Rote Bete",
   },
   "08b4b8c8-127f-53e9-84cf-a248bf2f6a00": {
     "source": "Buraki",
     "en_GB": "Beetroot",
+    "de": "Rote Bete",
   },
   "8cead591-3372-51a0-a2c5-04ed487eca0d": {
     "source": "Burrata",
     "en_GB": "Burrata",
+    "de": "Burrata",
   },
   "3b6c357a-3dc8-5695-b875-746a53d751ec": {
     "source": "Bułka kajzerka",
     "en_GB": "Kaiser roll",
+    "de": "Kaiserbrötchen",
   },
   "41179e0a-be10-5fd3-8e0a-7485df45c8d5": {
     "source": "Bułka tarta",
     "en_GB": "Breadcrumbs",
+    "de": "Semmelbrösel",
   },
   "c15376d5-34e3-50d2-94fa-a9f0a4f8a304": {
     "source": "Bułka tarta panko",
     "en_GB": "Panko breadcrumbs",
+    "de": "Panko-Paniermehl",
   },
   "8016280f-9856-524e-836b-9191400bc9ac": {
     "source": "Cebula",
     "en_GB": "Onion",
+    "de": "Zwiebeln",
   },
   "d34809d1-e2c1-5d66-9e45-d4a038227d43": {
     "source": "Cebula czerwona",
     "en_GB": "Red onion",
+    "de": "Rote Zwiebel",
   },
   "dc03210f-a6cb-5f2d-9aec-195e95761eb5": {
     "source": "Chili suszone",
     "en_GB": "Dried chilli",
+    "de": "Chili, getrocknet",
   },
   "4b1d00fd-d2e9-509b-9f9f-624daa0df295": {
     "source": "Chipsy kokosowe",
     "en_GB": "Coconut flakes",
+    "de": "Kokoschips",
   },
   "79303edd-d9f3-5c43-b145-466720e00afe": {
     "source": "Chleb pszenny",
     "en_GB": "White bread",
+    "de": "Weißbrot",
   },
   "4aa11c73-1bef-5e0c-9662-1b987e1bfa0a": {
     "source": "Chleb żytni razowy",
     "en_GB": "Wholemeal rye bread",
+    "de": "Vollkornroggenbrot",
   },
   "ee4a63e3-a830-53ca-bb6b-86884681fcd5": {
     "source": "Chorizo",
     "en_GB": "Chorizo",
+    "de": "Chorizo",
   },
   "1abd539d-fca5-5421-b235-22a10f22740b": {
     "source": "Chrzan tarty",
     "en_GB": "Grated horseradish",
+    "de": "Meerrettich, gerieben",
   },
   "ad56a7c9-8016-5f29-a534-52e151621587": {
     "source": "Ciasto filo",
     "en_GB": "Filo pastry",
+    "de": "Filoteig",
   },
   "76e199e0-af54-5c6e-88a1-4075145f565b": {
     "source": "Ciasto francuskie",
     "en_GB": "Puff pastry",
+    "de": "Blätterteig",
   },
   "83d43234-da51-547a-b5c6-a30959b3ecbf": {
     "source": "Ciasto na pizzę",
     "en_GB": "Pizza dough",
+    "de": "Pizzateig",
   },
   "4cb8727d-35b2-5752-bdcd-9ffcf9d854fa": {
     "source": "Ciecierzyca konserwowa",
     "en_GB": "Tinned chickpeas",
+    "de": "Kichererbsen in Dosen",
   },
   "e6708afa-ad59-55e1-9bf2-3349e5f4ef53": {
     "source": "Ciecierzyca sucha",
     "en_GB": "Dried chickpeas",
+    "de": "Kichererbsen, getrocknet",
   },
   "8f1a4823-cd20-575a-abc0-7e8150f25415": {
     "source": "Cukier",
     "en_GB": "Sugar",
+    "de": "Zucker",
   },
   "41a147de-893e-57cf-995d-d26c2fb24732": {
     "source": "Cukier puder",
     "en_GB": "Icing sugar",
+    "de": "Puderzucker",
   },
   "b5499a43-27c0-55f6-9366-34a60e5dbe48": {
     "source": "Cukier trzcinowy",
     "en_GB": "Cane sugar",
+    "de": "Rohrzucker",
   },
   "f0f7e238-3cc7-5691-9aef-a3ec55f20df2": {
     "source": "Cukinia",
     "en_GB": "Courgette",
+    "de": "Zucchini",
   },
   "675c07f4-816d-5db5-88cb-7e8f38cb1f7e": {
     "source": "Curry w proszku",
     "en_GB": "Curry powder",
+    "de": "Currypulver",
   },
   "a01008dc-3676-549a-8858-3a7191d461a4": {
     "source": "Cynamon",
     "en_GB": "Cinnamon",
+    "de": "Zimt",
   },
   "b73663a0-6f3a-5f63-af1e-39031f7ce03c": {
     "source": "Cynamon cejloński",
     "en_GB": "Ceylon cinnamon",
+    "de": "Ceylon-Zimt",
   },
   "30dee60b-6773-5005-8e2e-5edf08048648": {
     "source": "Cytryna",
     "en_GB": "Lemon",
+    "de": "Zitrone",
   },
   "9869e450-0484-5b83-a50f-659be8c63996": {
     "source": "Czarnuszka",
     "en_GB": "Nigella seeds",
+    "de": "Schwarzkümmel",
   },
   "28b435e8-5e61-5a55-9871-e48b21d1702a": {
     "source": "Czekolada gorzka",
     "en_GB": "Dark chocolate",
+    "de": "Dunkle Schokolade",
   },
   "c9c8f2ae-5ff6-5442-aa6d-902154e32fe8": {
     "source": "Czereśnie",
     "en_GB": "Sweet cherries",
+    "de": "Süßkirschen",
   },
   "27407a17-4c81-5419-bcf7-f6536c0a6265": {
     "source": "Czosnek",
     "en_GB": "Garlic",
+    "de": "Knoblauch",
   },
   "1af89b3b-897d-5ed9-bd4c-3c16253d6076": {
     "source": "Czosnek granulowany",
     "en_GB": "Garlic granules",
+    "de": "Knoblauchgranulat",
   },
   "9534e124-536c-52ec-8c6f-0700f37eb5d1": {
     "source": "Daktyle suszone",
     "en_GB": "Dried dates",
+    "de": "Getrocknete Datteln",
   },
   "e9e2a3a5-a49e-5145-8584-4ecf66a698b5": {
     "source": "Dorsz filet",
     "en_GB": "Cod fillet",
+    "de": "Kabeljaufilets",
   },
   "b694eed9-c7b0-58e3-9c05-3cad3afe494b": {
     "source": "Drożdże instant",
     "en_GB": "Instant yeast",
+    "de": "Instant-Hefe",
   },
   "4801c2d9-daba-56a2-8139-07afd8eb6986": {
     "source": "Drożdże świeże",
     "en_GB": "Fresh yeast",
+    "de": "Frischhefe",
   },
   "428aaf2e-99c7-5da6-a9dd-74a40758e98c": {
     "source": "Dynia hokkaido",
     "en_GB": "Hokkaido squash",
+    "de": "Hokkaido-Kürbis",
   },
   "caa4f282-bda3-50ff-bb7a-b1a6081d2513": {
     "source": "Edamame mrożone",
     "en_GB": "Frozen edamame",
+    "de": "Tiefgekühlte Edamame",
   },
   "e307396e-2efb-5598-b70c-e95ad51228df": {
     "source": "Ekstrakt waniliowy",
     "en_GB": "Vanilla extract",
+    "de": "Vanilleextrakt",
   },
   "a9cf3799-6168-5391-b02a-873135da7bd1": {
     "source": "Erytrytol",
     "en_GB": "Erythritol",
+    "de": "Erythrit",
   },
   "e9c1d091-75f2-5deb-a7c2-9a7affcc19f2": {
     "source": "Estragon suszony",
     "en_GB": "Dried tarragon",
+    "de": "Getrockneter Estragon",
   },
   "5f4de0d0-4048-5305-9ee7-b8efb2fd3b2a": {
     "source": "Estragon świeży",
     "en_GB": "Fresh tarragon",
+    "de": "Frischer Estragon",
   },
   "348b2ef7-917a-56f7-a4f7-b472addb2c33": {
     "source": "Fasola biała konserwowa",
     "en_GB": "Tinned white beans",
+    "de": "Weiße Bohnen in Dosen",
   },
   "a607b3cc-1fea-57f5-81c3-09095e199500": {
     "source": "Fasola biała sucha",
     "en_GB": "Dried white beans",
+    "de": "Weiße Bohnen, getrocknet",
   },
   "0a320c60-3f2e-5016-8285-33da94e3fc20": {
     "source": "Fasola cannellini",
     "en_GB": "Cannellini beans",
+    "de": "Cannellini-Bohnen",
   },
   "54c9ec0d-8059-5ea1-ae1d-7b1fc0a9d36f": {
     "source": "Fasola czarna konserwowa",
     "en_GB": "Tinned black beans",
+    "de": "Schwarze Bohnen aus der Dose",
   },
   "74bed579-20b6-5ad1-9cdd-c2e669ce07e0": {
     "source": "Fasola czerwona konserwowa",
     "en_GB": "Tinned red kidney beans",
+    "de": "Rote Bohnen in Dosen",
   },
   "719de6b0-9d5f-57aa-ad8d-fe45b1062c0d": {
     "source": "Fasola czerwona sucha",
     "en_GB": "Dried red kidney beans",
+    "de": "Getrocknete rote Bohnen",
   },
   "298f104b-0b1b-568b-abcd-2cb0bc3fe0ce": {
     "source": "Fasola konserwowa",
     "en_GB": "Tinned beans",
+    "de": "Bohnen in Dosen",
   },
   "77753d62-61c2-5a10-a25b-cfa7e442dc1d": {
     "source": "Fasola mung sucha",
     "en_GB": "Dried mung beans",
+    "de": "Getrocknete Mungbohnen",
   },
   "8a65b4bc-a60b-5edf-bf6d-d1b4f380bca4": {
     "source": "Fasola szparagowa świeża",
     "en_GB": "Fresh green beans",
+    "de": "Frische grüne Bohnen",
   },
   "aac57a76-e3f2-5b08-8848-603ae671c70f": {
     "source": "Fasolka szparagowa mrożona",
     "en_GB": "Frozen green beans",
+    "de": "Gefrorene grüne Bohnen",
   },
   "9f6cca1c-47b2-554a-8e8e-4b5b12ef3aa9": {
     "source": "Filet z indyka",
     "en_GB": "Turkey fillet",
+    "de": "Putenbrustfilet",
   },
   "743c2ec7-b2bc-5029-9814-c00660667f20": {
     "source": "Fond drobiowy",
     "en_GB": "Concentrated chicken stock",
+    "de": "Geflügelfond",
   },
   "96560581-1856-588c-a6b1-f731dd0834b9": {
     "source": "Garam masala",
     "en_GB": "Garam masala",
+    "de": "Garam masala",
   },
   "fc55826e-1490-5b9e-990a-3df9ba592467": {
     "source": "Gałka muszkatołowa",
     "en_GB": "Nutmeg",
+    "de": "Muskatnuss",
   },
   "7313d41d-289d-554f-86b7-6176382c7fa9": {
     "source": "Gnocchi ziemniaczane",
     "en_GB": "Potato gnocchi",
+    "de": "Kartoffelgnocchi",
   },
   "b25066fb-b6de-5838-a8e3-4b7b7ce36088": {
     "source": "Goździki mielone",
     "en_GB": "Ground cloves",
+    "de": "Gemahlene Nelken",
   },
   "9cb417ec-fcb5-5712-a5db-607e62f993c8": {
     "source": "Granat",
     "en_GB": "Pomegranate",
+    "de": "Granatapfel",
   },
   "f5a66c18-f5f2-5d07-a53f-3170c3da1eb7": {
     "source": "Granulat sojowy suchy",
     "en_GB": "Dried soya mince",
+    "de": "Getrocknetes Sojagranulat",
   },
   "4e2553dc-db1a-5644-813d-f0b6287e41b3": {
     "source": "Grejpfrut",
     "en_GB": "Grapefruit",
+    "de": "Grapefruit",
   },
   "1cf61449-e2b2-5f52-8280-3ebc7b0dc45b": {
     "source": "Groch łuskany",
     "en_GB": "Split peas",
+    "de": "Schälerbsen",
   },
   "8c52348b-aa3e-5355-9ef3-3f87df4a50d0": {
     "source": "Groszek cukrowy",
     "en_GB": "Mangetout",
+    "de": "Zuckerschoten",
   },
   "98508e45-5cc8-58bd-9720-489cf18805ed": {
     "source": "Groszek konserwowy",
     "en_GB": "Tinned peas",
+    "de": "Erbsen in Dosen",
   },
   "07c1b746-4b1d-52a5-9771-900327cc9634": {
     "source": "Groszek zielony mrożony",
     "en_GB": "Frozen peas",
+    "de": "Erbsen, gefroren",
   },
   "805773f9-38b7-50fb-87e6-b79f8753b4df": {
     "source": "Gruszki",
     "en_GB": "Pears",
+    "de": "Birnen",
   },
   "7d37cb55-71f7-58d2-a3a6-361ba3ff91c7": {
     "source": "Grzyby leśne świeże",
     "en_GB": "Fresh wild mushrooms",
+    "de": "Frische Wildpilze",
   },
   "7e4fd315-9468-5c31-9c56-e30626b7da13": {
     "source": "Harissa",
     "en_GB": "Harissa",
+    "de": "Harissa",
   },
   "8eb0bcb5-a820-5e92-bb62-ac9694d9c8ff": {
     "source": "Herbatniki maślane",
     "en_GB": "Butter biscuits",
+    "de": "Butterkekse",
   },
   "3d031750-0b97-55ac-bb4f-023971a20541": {
     "source": "Hummus",
     "en_GB": "Hummus",
+    "de": "Hummus",
   },
   "06cec7dc-2d83-526b-be1a-8dd2aa2fc749": {
     "source": "Imbir mielony",
     "en_GB": "Ground ginger",
+    "de": "Gemahlener Ingwer",
   },
   "5e63d88b-366c-571e-a8ac-583a5609debc": {
     "source": "Imbir świeży",
     "en_GB": "Fresh ginger",
+    "de": "Frischer Ingwer",
   },
   "c6445274-3365-546f-8729-7fc51b76dc18": {
     "source": "Jabłka",
     "en_GB": "Apples",
+    "de": "Äpfel",
   },
-  "cef85b7e-cf1f-5b02-84f1-64f55209ac8c": {"source": "Jajka", "en_GB": "Eggs"},
+  "cef85b7e-cf1f-5b02-84f1-64f55209ac8c": {
+    "source": "Jajka",
+    "en_GB": "Eggs",
+    "de": "Eier",
+  },
   "109f91f6-2a5f-55ee-afdc-859fc57f6919": {
     "source": "Jajka przepiórcze",
     "en_GB": "Quail eggs",
+    "de": "Wachteleier",
   },
   "43a701da-2ab6-53e0-aecc-7269c1ce48ac": {
     "source": "Jalapeño konserwowe",
     "en_GB": "Pickled jalapeños",
+    "de": "Eingelegte Jalapeños",
   },
-  "193e2511-ee61-579e-9a34-6db12246998b": {"source": "Jarmuż", "en_GB": "Kale"},
+  "193e2511-ee61-579e-9a34-6db12246998b": {
+    "source": "Jarmuż",
+    "en_GB": "Kale",
+    "de": "Grünkohl",
+  },
   "1eaf9d50-cedd-5eb9-bb82-34669e0d7229": {
     "source": "Jeżyny",
     "en_GB": "Blackberries",
+    "de": "Brombeeren",
   },
   "a15726ee-ab67-5765-b280-a027dbd0f9e5": {
     "source": "Jogurt grecki",
     "en_GB": "Greek yoghurt",
+    "de": "Griechischer Joghurt",
   },
   "f2a7162e-61db-569f-8245-f6bcd9dfe123": {
     "source": "Jogurt kokosowy",
     "en_GB": "Coconut yoghurt",
+    "de": "Kokosjoghurt",
   },
   "0a92f321-13ee-5a51-a017-8f42c35e1963": {
     "source": "Jogurt naturalny",
     "en_GB": "Natural yoghurt",
+    "de": "Naturjoghurt",
   },
   "2399cb86-fccb-549d-914f-d9bb9ba501ab": {
     "source": "Kakao ciemne",
     "en_GB": "Dark cocoa powder",
+    "de": "dunkles Kakaopulver",
   },
   "658f8a4c-093e-5729-8396-00977820c25d": {
     "source": "Kaki",
     "en_GB": "Persimmon",
+    "de": "Persimon",
   },
   "59d76661-f88d-52c7-b385-0a36aeda506f": {
     "source": "Kalafior",
     "en_GB": "Cauliflower",
+    "de": "Blumenkohl",
   },
   "78375eb0-31c4-5dd9-bdf3-a2b83fffe14b": {
     "source": "Kalarepa",
     "en_GB": "Kohlrabi",
+    "de": "Kohlrabi",
   },
   "d4839c0e-4532-5619-a53d-6c71b2dc8303": {
     "source": "Kapary",
     "en_GB": "Capers",
+    "de": "Kapern",
   },
   "d88be8c3-76dd-53a6-b9d3-3cf7996407be": {
     "source": "Kapusta biała",
     "en_GB": "White cabbage",
+    "de": "Weißkohl",
   },
   "4c0ca62c-1fd8-54fb-9bc9-31476c859058": {
     "source": "Kapusta czerwona",
     "en_GB": "Red cabbage",
+    "de": "Rotkohl",
   },
   "1dccc55b-0ae9-55ca-857e-66b95ba178d6": {
     "source": "Kapusta kiszona",
     "en_GB": "Sauerkraut",
+    "de": "Sauerkraut",
   },
   "d4633375-8ff5-564f-b541-64d3c80f6539": {
     "source": "Kapusta pekińska",
     "en_GB": "Chinese cabbage",
+    "de": "Chinakohl",
   },
   "f26c2623-c07d-5d77-985d-6ee2092bc422": {
     "source": "Karczochy konserwowe",
     "en_GB": "Tinned artichokes",
+    "de": "Artischocken in Dosen",
   },
   "166188ce-c385-56f6-a945-00fa4e89536b": {
     "source": "Kardamon mielony",
     "en_GB": "Ground cardamom",
+    "de": "Gemahlener Kardamom",
   },
   "e244a3cc-2264-5da7-84f7-9c1663d79664": {
     "source": "Karkówka wieprzowa",
     "en_GB": "Pork collar",
+    "de": "Schweinenacken",
   },
   "38541c57-7704-5608-ad62-81ecddeeaf31": {
     "source": "Kasza bulgur",
     "en_GB": "Bulgur wheat",
+    "de": "Bulgur",
   },
   "f37b3f71-90d9-5b3b-9133-4bd49617e107": {
     "source": "Kasza gryczana",
     "en_GB": "Buckwheat groats",
+    "de": "Buchweizengrütze",
   },
   "8483d7fb-165a-5f56-b3b3-8b88537fbfa8": {
     "source": "Kasza jaglana",
     "en_GB": "Millet",
+    "de": "Hirse",
   },
   "7ab0ee29-de7a-5310-b907-320595782e19": {
     "source": "Kasza jęczmienna",
     "en_GB": "Barley groats",
+    "de": "Gerstengrütze",
   },
   "8d2bfc47-63f1-5489-8d63-9d653da395f2": {
     "source": "Kasza manna",
     "en_GB": "Semolina",
+    "de": "Weizengrieß",
   },
   "538e5191-64e0-5815-a189-e5cd655d8f2b": {
     "source": "Kasza owsiana",
     "en_GB": "Oat groats",
+    "de": "Hafergrütze",
   },
   "4d1c3653-26b4-5fb3-a6c8-9bf0dbe70cf3": {
     "source": "Kasza pęczak",
     "en_GB": "Pearl barley",
+    "de": "Perlengerste",
   },
-  "54d45cb2-09d4-5433-9145-900e8d8835b3": {"source": "Kefir", "en_GB": "Kefir"},
+  "54d45cb2-09d4-5433-9145-900e8d8835b3": {
+    "source": "Kefir",
+    "en_GB": "Kefir",
+    "de": "Kefir",
+  },
   "fbfff798-d34f-5238-b685-0426f3d06636": {
     "source": "Ketchup",
     "en_GB": "Ketchup",
+    "de": "Ketchup",
   },
   "e83e16ff-d606-5844-93bc-006dd0f7e1e6": {
     "source": "Kiełbasa śląska",
     "en_GB": "Silesian sausage",
+    "de": "Schlesische Wurst",
   },
   "95ec2c9e-a10a-5ce7-88ba-3b0ee05dddb3": {
     "source": "Kiełki brokuła",
     "en_GB": "Broccoli sprouts",
+    "de": "Broccoli-Sprossen",
   },
   "66cc2fb0-b3e6-573a-95c6-b44a4fde100f": {
     "source": "Kiełki fasoli mung",
     "en_GB": "Mung bean sprouts",
+    "de": "Mungbohnensprossen",
   },
   "1ac2e93b-be1a-5a18-a1ae-3efc58eee563": {
     "source": "Kimchi",
     "en_GB": "Kimchi",
+    "de": "Kimchi",
   },
   "7ff10de8-bfe0-52d4-807f-9adf73ec9a03": {
     "source": "Kiwi",
     "en_GB": "Kiwi fruit",
+    "de": "Kiwi-Frucht",
   },
   "e5da791a-5cd2-5395-bdfc-df1314fab283": {
     "source": "Kmin rzymski",
     "en_GB": "Cumin",
+    "de": "Kreuzkümmel",
   },
   "e561168b-290d-5ab4-9c27-21949d9eadb4": {
     "source": "Kolendra mielona",
     "en_GB": "Ground coriander",
+    "de": "Gemahlener Koriander",
   },
   "a816a3b8-7ea7-5924-811e-bde6a75e0c9f": {
     "source": "Kolendra świeża",
     "en_GB": "Fresh coriander",
+    "de": "Frischer Koriander",
   },
   "0ed74a5d-1eb8-5f17-8ca6-9830ae4f36bb": {
     "source": "Koncentrat pomidorowy",
     "en_GB": "Tomato purée",
+    "de": "Tomatenmark",
   },
   "270533a7-5f2b-515d-a911-bc1ad7494150": {
     "source": "Koper włoski",
     "en_GB": "Fennel",
+    "de": "Fenchel",
   },
   "891b2a54-59a0-57b7-9e3c-1f5802e72953": {
     "source": "Koperek świeży",
     "en_GB": "Fresh dill",
+    "de": "Frischer Dill",
   },
   "87182f44-6205-5f1c-a7d7-584bb94c166d": {
     "source": "Kozieradka mielona",
     "en_GB": "Ground fenugreek",
+    "de": "Gemahlener Bockshornklee",
   },
   "5b75bdf4-0bce-5d6e-a839-10a7c45d1f11": {
     "source": "Krem balsamiczny",
     "en_GB": "Balsamic glaze",
+    "de": "Balsamicoglasur",
   },
   "8e19950e-3d13-5144-910e-3c00ed28175e": {
     "source": "Krewetki mrożone",
     "en_GB": "Frozen prawns",
+    "de": "Garnelen, gefroren",
   },
   "1bbf5ee3-982c-5752-aba6-0311e0f78dac": {
     "source": "Ksylitol",
     "en_GB": "Xylitol",
+    "de": "Xylitol",
   },
   "e32f58bd-c5ce-5da5-b51f-ade7514e2dcc": {
     "source": "Kukurydza kolba",
     "en_GB": "Corn on the cob",
+    "de": "Maiskolben",
   },
   "69e2130a-c1c1-5425-9433-1812951874eb": {
     "source": "Kukurydza konserwowa",
     "en_GB": "Tinned sweetcorn",
+    "de": "Zuckermais in Dosen",
   },
   "88e0e374-fa91-5c17-8148-ce79b6e53e0b": {
     "source": "Kukurydza mrożona",
     "en_GB": "Frozen sweetcorn",
+    "de": "Zuckermais, gefroren",
   },
   "1d42c011-6895-55bf-81d9-82bf3d50e449": {
     "source": "Kurki świeże",
     "en_GB": "Fresh chanterelle mushrooms",
+    "de": "Frische Pfifferlinge",
   },
   "58a17ff6-6079-5477-9650-893ed9cd32ff": {
     "source": "Kurkuma mielona",
     "en_GB": "Ground turmeric",
+    "de": "Gemahlene Kurkuma",
   },
   "4656a15a-c027-52e9-983d-7cf5f20c082e": {
     "source": "Kuskus",
     "en_GB": "Couscous",
+    "de": "Couscous",
   },
   "4af939c2-2d1d-521c-806c-45d4479a6601": {
     "source": "Kuskus perłowy",
     "en_GB": "Pearl couscous",
+    "de": "Perlcouscous",
   },
   "b2a734b3-dd6b-5e34-9ff4-d2baa769bbb6": {
     "source": "Limonka",
     "en_GB": "Lime",
+    "de": "Limette",
   },
   "4990b371-3cb7-53e5-94ab-be4b9c20e68f": {
     "source": "Liść laurowy",
     "en_GB": "Bay leaf",
+    "de": "Lorbeerblatt",
   },
   "6443ea51-2fa5-5798-b759-fa6efdb88822": {
     "source": "Majeranek suszony",
     "en_GB": "Dried marjoram",
+    "de": "Getrockneter Majoran",
   },
   "750e7a30-665c-5d30-92e8-21fcb014cd4b": {
     "source": "Majonez",
     "en_GB": "Mayonnaise",
+    "de": "Mayonnaise",
   },
   "6d07cd99-16d9-596e-b2ca-272bcc29a765": {
     "source": "Mak niebieski",
     "en_GB": "Blue poppy seeds",
+    "de": "Blaumohnsamen",
   },
   "7f62385b-4f44-5bb6-9732-8e097c9b7d72": {
     "source": "Makaron fusilli",
     "en_GB": "Fusilli",
+    "de": "Fusilli",
   },
   "7dda22b2-f2fa-5a29-9164-397f7e04e3ec": {
     "source": "Makaron lasagne",
     "en_GB": "Lasagne sheets",
+    "de": "Lasagneblätter",
   },
   "6becc94f-b918-562e-9697-1f84406eee1c": {
     "source": "Makaron orzo",
     "en_GB": "Orzo",
+    "de": "Orzo",
   },
   "8cca272d-414c-5e8f-a044-0ddef8f5e2b3": {
     "source": "Makaron penne",
     "en_GB": "Penne pasta",
+    "de": "Penne",
   },
   "e842e0c1-866f-5e26-b300-e0bd24e8eba0": {
     "source": "Makaron pełnoziarnisty",
     "en_GB": "Wholewheat pasta",
+    "de": "Vollkornnudeln",
   },
   "6eb3a4e3-936e-56f0-9b08-0ca6edcd0d1b": {
     "source": "Makaron ryżowy",
     "en_GB": "Rice noodles",
+    "de": "Reisnudeln",
   },
   "1f44b6d1-3a42-5dad-99ae-f9f27347833e": {
     "source": "Makaron soba",
     "en_GB": "Soba noodles",
+    "de": "Soba-Nudeln",
   },
   "60c72ce2-3963-5420-8f90-736cd14f1d65": {
     "source": "Makaron spaghetti",
     "en_GB": "Spaghetti",
+    "de": "Spaghetti",
   },
   "cc6e9350-7ebc-513b-9ff4-7be1687fe7b4": {
     "source": "Makaron tagliatelle",
     "en_GB": "Tagliatelle",
+    "de": "Tagliatelle",
   },
   "54b8e840-637f-51a0-98ec-3e2d0f2835cf": {
     "source": "Makaron udon",
     "en_GB": "Udon noodles",
+    "de": "Udonnudeln",
   },
   "6ccb0b45-379b-56d0-994a-3747b918e8ff": {
     "source": "Makaron vermicelli",
     "en_GB": "Vermicelli",
+    "de": "Vermicelli",
   },
   "45d0d4e9-9421-536a-8aed-5e098f3da663": {
     "source": "Makrela wędzona",
     "en_GB": "Smoked mackerel",
+    "de": "Geräucherte Makrelen",
   },
   "40b525b7-8f25-58b4-96dd-f25045a6a762": {
     "source": "Maliny",
     "en_GB": "Raspberries",
+    "de": "Himbeeren",
   },
   "784cc01f-0915-5aeb-95ed-b982a9ac94bc": {
     "source": "Mandarynki",
     "en_GB": "Mandarins",
+    "de": "Mandarinen",
   },
-  "a2c8cd35-9259-5548-bdbb-1657f9b80ebf": {"source": "Mango", "en_GB": "Mango"},
+  "a2c8cd35-9259-5548-bdbb-1657f9b80ebf": {
+    "source": "Mango",
+    "en_GB": "Mango",
+    "de": "Mango",
+  },
   "2b63a301-61b6-5736-a444-7929f35e1c23": {
     "source": "Marchew",
     "en_GB": "Carrot",
+    "de": "Karotte",
   },
   "e3732d34-3708-5c71-8686-306eba838d6e": {
     "source": "Mascarpone",
     "en_GB": "Mascarpone",
+    "de": "Mascarpone",
   },
   "89bf7d5e-1cf8-5b33-8c78-1e68a240569e": {
     "source": "Masło extra",
     "en_GB": "Butter",
+    "de": "Butter",
   },
   "40b8ace7-0d0d-5cf4-a048-a0a45bec04b0": {
     "source": "Masło klarowane ghee",
     "en_GB": "Ghee",
+    "de": "Ghee",
   },
   "ce838162-6aca-53ad-9025-7ef8f8f9af8c": {
     "source": "Masło orzechowe",
     "en_GB": "Peanut butter",
+    "de": "Erdnussbutter",
   },
   "201102b1-25f1-5b31-9150-c7f72ab8202e": {
     "source": "Małże mrożone",
     "en_GB": "Frozen mussels",
+    "de": "Miesmuscheln, gefroren",
   },
   "240d082f-fbd2-5555-a95e-62c3041c2d86": {
     "source": "Maślanka naturalna",
     "en_GB": "Plain buttermilk",
+    "de": "Naturbuttermilch",
   },
   "4c37b4e4-89c6-598d-8e68-4f97e32f8bef": {
     "source": "Melasa z granatu",
     "en_GB": "Pomegranate molasses",
+    "de": "Granatapfelmelasse",
   },
-  "1cf51fdb-5177-51b9-ba51-34b4d1a603bd": {"source": "Melon", "en_GB": "Melon"},
+  "1cf51fdb-5177-51b9-ba51-34b4d1a603bd": {
+    "source": "Melon",
+    "en_GB": "Melon",
+    "de": "Melone",
+  },
   "c2ddd14e-92b2-5bea-ad20-eccaef23d7ed": {
     "source": "Mielone wieprzowo-wołowe",
     "en_GB": "Pork and beef mince",
+    "de": "Gemischtes Hackfleisch (Schwein und Rind)",
   },
   "e809f0b5-5d6f-5879-8b10-6f31e0bf32c7": {
     "source": "Migdały płatki",
     "en_GB": "Flaked almonds",
+    "de": "Mandelblättchen",
   },
   "fe9e404c-d4df-593d-96f7-577697ec8993": {
     "source": "Mintaj filet",
     "en_GB": "Alaska pollock fillet",
+    "de": "Alaska-Seelachsfilet",
   },
-  "ac9eed06-8edc-5fa2-8b4d-36441bc191b7": {"source": "Mirin", "en_GB": "Mirin"},
-  "c09e2f7d-8a14-56f9-8e07-947cc5c291c9": {"source": "Miód", "en_GB": "Honey"},
+  "ac9eed06-8edc-5fa2-8b4d-36441bc191b7": {
+    "source": "Mirin",
+    "en_GB": "Mirin",
+    "de": "Mirin",
+  },
+  "c09e2f7d-8a14-56f9-8e07-947cc5c291c9": {
+    "source": "Miód",
+    "en_GB": "Honey",
+    "de": "Honig",
+  },
   "b172e08b-c8e1-5ab9-bccc-52888c5fcaf9": {
     "source": "Mięso mielone z indyka",
     "en_GB": "Turkey mince",
+    "de": "Putenhackfleisch",
   },
   "aa6b1af3-fd64-58a6-9935-411376422787": {
     "source": "Mięta świeża",
     "en_GB": "Fresh mint",
+    "de": "Frische Minze",
   },
   "ef95fef3-2373-5994-87f2-ca734b42720f": {
     "source": "Mleczko kokosowe light",
     "en_GB": "Light coconut milk",
+    "de": "Leichte Kokosmilch",
   },
   "ab0670ae-58b4-5c0c-9819-528f7120eb45": {
     "source": "Mleko 1,5%",
     "en_GB": "Milk, 1.5% fat",
+    "de": "Milch, 1.5% Fett",
   },
   "527c542c-dae3-52d1-b75f-d7a4e76204a3": {
     "source": "Mleko 2%",
     "en_GB": "Milk (2% fat)",
+    "de": "Milch (2% Fett)",
   },
   "24aa3ae7-d730-5b2d-8239-24c1c4e7bb15": {
     "source": "Mleko bez laktozy",
     "en_GB": "Lactose-free milk",
+    "de": "Laktosefreie Milch",
   },
   "edbd1a0f-8c09-53fe-833b-cfb8b35334da": {
     "source": "Mleko kokosowe",
     "en_GB": "Coconut milk",
+    "de": "Kokosmilch",
   },
   "f2ea1440-040b-54ea-a232-002dd7bb164f": {
     "source": "Mleko kozie",
     "en_GB": "Goat's milk",
+    "de": "Ziegenmilch",
   },
   "5c64ab06-cb48-5942-a888-ff8fe96cb9a1": {
     "source": "Mleko migdałowe",
     "en_GB": "Almond milk",
+    "de": "Mandelmilch",
   },
   "b3153a90-bcd6-59f3-8dbd-e104477ae90d": {
     "source": "Mleko skondensowane słodzone",
     "en_GB": "Sweetened condensed milk",
+    "de": "Gesüßte Kondensmilch",
   },
   "224e542d-be2b-53f8-a60e-42e9bcc61c31": {
     "source": "Morele",
     "en_GB": "Apricots",
+    "de": "Aprikosen",
   },
   "12b190bd-d639-579c-83ae-1903e3c67614": {
     "source": "Morele suszone",
     "en_GB": "Dried apricots",
+    "de": "Aprikosen, getrocknet",
   },
   "89107566-b0b3-5d34-b069-9d203076e3d7": {
     "source": "Morszczuk filet",
     "en_GB": "Hake fillet",
+    "de": "Seehechtfilets",
   },
   "18fb3018-050e-56bc-8c2f-055cf005cb91": {
     "source": "Mozzarella",
     "en_GB": "Mozzarella",
+    "de": "Mozzarella",
   },
   "8dda96f3-6fb6-5c71-8473-b226ef9d108f": {
     "source": "Mozzarella light",
     "en_GB": "Light mozzarella",
+    "de": "Leichter Mozzarella",
   },
   "10e29658-6504-5aa0-aabd-4835ddb1391e": {
     "source": "Mrożone warzywa mieszanka",
     "en_GB": "Frozen mixed vegetables",
+    "de": "Gefrorenes Gemüsegemisch",
   },
   "05ed527d-4a43-52b4-9750-0fb7386e5668": {
     "source": "Mrożony szpinak",
     "en_GB": "Frozen spinach",
+    "de": "gefrorener Spinat",
   },
   "0380e406-3ce7-5b8c-8e18-bc7c1c061cec": {
     "source": "Mus jabłkowy",
     "en_GB": "Apple purée",
+    "de": "Apfelmark",
   },
   "c9627249-6da5-54b5-8a66-8bbf277ceb61": {
     "source": "Musztarda",
     "en_GB": "Mustard",
+    "de": "Senf",
   },
   "bf7f2688-b75d-55fc-948b-5384732202dc": {
     "source": "Musztarda dijon",
     "en_GB": "Dijon mustard",
+    "de": "Dijon-Senf",
   },
   "0778400e-cfac-5c05-9373-a9a784d2f1c3": {
     "source": "Musztarda francuska",
     "en_GB": "Wholegrain mustard",
+    "de": "Körniger Senf",
   },
   "e2bdaaaf-1f3c-5213-befb-79fb2436accd": {
     "source": "Mąka gryczana",
     "en_GB": "Buckwheat flour",
+    "de": "Buchweizenmehl",
   },
   "d525f2f0-edb1-5aa5-b96a-972b2995d01c": {
     "source": "Mąka kokosowa",
     "en_GB": "Coconut flour",
+    "de": "Kokosmehl",
   },
   "c88ec559-93eb-5da4-81ba-6b894d6d7bbb": {
     "source": "Mąka kukurydziana",
     "en_GB": "Maize flour",
+    "de": "Maismehl",
   },
   "5b36cc6d-05d2-5cfa-ba57-dfe6aff5c3ea": {
     "source": "Mąka migdałowa",
     "en_GB": "Almond flour",
+    "de": "Mandelmehl",
   },
   "cebacef0-1c4f-5abe-a5fa-720a067654ca": {
     "source": "Mąka orkiszowa",
     "en_GB": "Spelt flour",
+    "de": "Dinkelmehl",
   },
   "73e80006-f52a-591b-af5b-424e76bc4a20": {
     "source": "Mąka owsiana",
     "en_GB": "Oat flour",
+    "de": "Hafermehl",
   },
   "fda48b0e-7fc4-5175-80ff-3ac0503f22c1": {
     "source": "Mąka pszenna",
     "en_GB": "Wheat flour",
+    "de": "Weizenmehl",
   },
   "719b3711-b148-50f8-b637-a5f33a4c0524": {
     "source": "Mąka pszenna pełnoziarnista",
     "en_GB": "Wholemeal wheat flour",
+    "de": "Weizenvollkornmehl",
   },
   "0f368975-3574-5a00-9de3-d294f91e936a": {
     "source": "Mąka tempura",
     "en_GB": "Tempura flour",
+    "de": "Tempuramehl",
   },
   "99a3b772-42a7-5162-9a66-15d725a05b72": {
     "source": "Mąka z ciecierzycy",
     "en_GB": "Chickpea flour",
+    "de": "Kichererbsenmehl",
   },
   "e2a586f2-c9d0-51fe-ab6a-0f6faa5acdff": {
     "source": "Mąka ziemniaczana",
     "en_GB": "Potato starch",
+    "de": "Kartoffelstärke",
   },
   "c6183d12-91d8-5d85-8e79-9a55ee76fa88": {
     "source": "Mąka żytnia",
     "en_GB": "Rye flour",
+    "de": "Roggenmehl",
   },
   "8ed6f515-6348-59ac-838c-49b117d6c26a": {
     "source": "Nachosy naturalne",
     "en_GB": "Plain tortilla chips",
+    "de": "Einfache Tortilla-Chips",
   },
   "f31db480-7a95-53eb-b320-25068281cf56": {
     "source": "Nasiona chia",
     "en_GB": "Chia seeds",
+    "de": "Chiasamen",
   },
   "0b293d5b-aea5-5af1-86d1-3a559132e1eb": {
     "source": "Nasiona kopru włoskiego",
     "en_GB": "Fennel seeds",
+    "de": "Fenchelsamen",
   },
   "5f7d29fd-59af-5579-bd4d-eae3fd2847d5": {
     "source": "Natka pietruszki",
     "en_GB": "Parsley",
+    "de": "Petersilie",
   },
   "64f1d155-d245-5294-90e4-f5e20b7c42fa": {
     "source": "Nektarynki",
     "en_GB": "Nectarines",
+    "de": "Nektarinen",
   },
   "ec5a5f94-ac34-5223-9ff1-1ae9e72d6851": {
     "source": "Ocet balsamiczny",
     "en_GB": "Balsamic vinegar",
+    "de": "Balsamico-Essig",
   },
   "c1cc19a4-202c-514d-88a3-7e9c124634f3": {
     "source": "Ocet jabłkowy",
     "en_GB": "Cider vinegar",
+    "de": "Apfelessig",
   },
   "aa078bef-7839-539d-b736-c612a284a71e": {
     "source": "Ocet ryżowy",
     "en_GB": "Rice vinegar",
+    "de": "Reisessig",
   },
   "9456e63a-ab89-51f9-8a95-eaa290eb559b": {
     "source": "Ocet spirytusowy",
     "en_GB": "Distilled vinegar",
+    "de": "Destillierter Essig",
   },
   "106194ca-8052-5ef8-9634-62ba3ea7d503": {
     "source": "Ocet winny czerwony",
     "en_GB": "Red wine vinegar",
+    "de": "Rotweinessig",
   },
   "f069ad9f-c14b-58ae-b4b8-9b01ce8e318c": {
     "source": "Ogórek",
     "en_GB": "Cucumber",
+    "de": "Gurken",
   },
   "82b42103-ac01-5377-a4c3-ca69d2d3a7cd": {
     "source": "Ogórki kiszone",
     "en_GB": "Fermented gherkins",
+    "de": "Fermentierte Gurken",
   },
   "98aab66d-d80c-5938-a140-229705674f6a": {
     "source": "Ogórki konserwowe",
     "en_GB": "Pickled gherkins",
+    "de": "Eingelegte Gurken",
   },
   "bc031d92-b687-50de-afb7-5c6f33ba539e": {
     "source": "Olej rzepakowy",
     "en_GB": "Rapeseed oil",
+    "de": "Rapsöl",
   },
   "c5e6ec52-0878-5b82-a8ad-bd0db8e2a31a": {
     "source": "Olej sezamowy",
     "en_GB": "Sesame oil",
+    "de": "Sesamöl",
   },
   "1e48a2c5-d5e9-52f8-a158-c6dc4fd0162e": {
     "source": "Olej słonecznikowy",
     "en_GB": "Sunflower oil",
+    "de": "Sonnenblumenöl",
   },
   "4faa4e87-088e-5393-a242-49ebebbd24bf": {
     "source": "Oliwa z oliwek",
     "en_GB": "Olive oil",
+    "de": "Olivenöl",
   },
   "20eb9d33-1702-5327-8408-746c0281c62b": {
     "source": "Oliwki czarne",
     "en_GB": "Black olives",
+    "de": "Schwarze Oliven",
   },
   "3601140b-627a-5d09-ba5d-4e3306b380d5": {
     "source": "Oliwki kalamata",
     "en_GB": "Kalamata olives",
+    "de": "Kalamataoliven",
   },
   "f83c4324-e329-58d2-9652-13a60f59ef90": {
     "source": "Oregano",
     "en_GB": "Oregano",
+    "de": "Oregano",
   },
   "7e778235-85d4-5e09-80a2-544ea531a2ee": {
     "source": "Orzechy laskowe",
     "en_GB": "Hazelnuts",
+    "de": "Haselnüsse",
   },
   "3dfd1c18-a8e5-5167-9632-5d8ef198cf4b": {
     "source": "Orzechy nerkowca",
     "en_GB": "Cashews",
+    "de": "Cashewkerne",
   },
   "fb74868d-706b-5edd-a9e3-6842d1640bf2": {
     "source": "Orzechy pekan",
     "en_GB": "Pecans",
+    "de": "Pekannüsse",
   },
   "e201df78-d8c1-5300-abc6-f529f5c8ad35": {
     "source": "Orzechy włoskie",
     "en_GB": "Walnuts",
+    "de": "Walnüsse",
   },
   "73ee2527-0354-5521-9786-2c8d8aecfac3": {
     "source": "Orzeszki piniowe",
     "en_GB": "Pine nuts",
+    "de": "Pinienkerne",
   },
   "53789ca8-d350-584c-9a8f-aba95615be19": {
     "source": "Orzeszki ziemne",
     "en_GB": "Peanuts",
+    "de": "Erdnüsse",
   },
   "0fc1201c-1a27-5289-874a-74ce80435d7a": {
     "source": "Owoce leśne mrożone",
     "en_GB": "Frozen forest fruits",
+    "de": "Gefrorene Waldfrüchte",
   },
   "9ca1673a-16bc-5312-9e21-6098d7c64af0": {
     "source": "Pak choi",
     "en_GB": "Pak choi",
+    "de": "Pak choi",
   },
   "02682b35-4187-5a13-b52e-5f8b92947c07": {
     "source": "Papryczka chili świeża",
     "en_GB": "Fresh chilli pepper",
+    "de": "Frische Chilischote",
   },
   "69061f34-df52-51c1-bdb0-2cbdef1f0496": {
     "source": "Papryka czerwona",
     "en_GB": "Red pepper",
+    "de": "Rote Paprika",
   },
   "e59795ce-e655-5ec5-89ba-0a99ebceabe1": {
     "source": "Papryka ostra",
     "en_GB": "Hot paprika",
+    "de": "Scharfes Paprikapulver",
   },
   "bc8b8a68-7ba1-5432-a615-4b267189984e": {
     "source": "Papryka pieczona konserwowa",
     "en_GB": "Preserved roasted peppers",
+    "de": "Haltbar gemachte geröstete Paprika",
   },
   "8bbaa226-1e25-50d0-9f28-3adf6dec4f70": {
     "source": "Papryka słodka",
     "en_GB": "Sweet paprika",
+    "de": "Edelsüßes Paprikapulver",
   },
   "b7afa336-04d5-5d24-beea-b4d90c17573d": {
     "source": "Papryka wędzona",
     "en_GB": "Smoked paprika",
+    "de": "Geräuchertes Paprikapulver",
   },
   "d027c39b-3cbb-5e77-bd35-33c24962203e": {
     "source": "Papryka zielona",
     "en_GB": "Green pepper",
+    "de": "Grüne Paprika",
   },
   "9fe2a947-e967-5c88-9b85-24f50f991e88": {
     "source": "Papryka żółta",
     "en_GB": "Yellow pepper",
+    "de": "Gelbe Paprika",
   },
   "286f114f-e30e-5165-ac42-b039a8c03714": {
     "source": "Parmezan",
     "en_GB": "Parmesan",
+    "de": "Parmesan",
   },
   "a977d3c1-d044-5146-ad5b-5dcb284980aa": {
     "source": "Passata pomidorowa",
     "en_GB": "Tomato passata",
+    "de": "Passierte Tomaten",
   },
   "127bd0f1-c906-5808-b25e-bbe901394d74": {
     "source": "Pasta curry czerwona",
     "en_GB": "Red curry paste",
+    "de": "Rote Currypaste",
   },
   "fc152695-12a6-5753-aede-6733e3f324c4": {
     "source": "Pasta curry zielona",
     "en_GB": "Green curry paste",
+    "de": "Grüne Currypaste",
   },
   "8e40eaa9-cce7-533f-b8af-a152985b38bd": {
     "source": "Pasta gochujang",
     "en_GB": "Gochujang paste",
+    "de": "Gochujang-Paste",
   },
   "408a3309-6017-5004-8329-285bfb258b23": {
     "source": "Pasta miso",
     "en_GB": "Miso paste",
+    "de": "Misopaste",
   },
   "a67de4f0-e65b-58af-9de1-ebc883a956b3": {
     "source": "Pasta tamaryndowa",
     "en_GB": "Tamarind paste",
+    "de": "Tamarindenpaste",
   },
   "82cbb088-ad1b-5a5a-8a1a-37bd2fa448b4": {
     "source": "Pasta z czosnku i imbiru",
     "en_GB": "Garlic and ginger paste",
+    "de": "Knoblauch und Ingwerpaste",
   },
   "9dd89a61-397f-5a7f-9b27-4816bd831c9d": {
     "source": "Pasta z trawy cytrynowej",
     "en_GB": "Lemongrass paste",
+    "de": "Zitronengraspaste",
   },
   "426d8a35-35cb-5c6b-8013-0856def0653a": {
     "source": "Pestki dyni",
     "en_GB": "Pumpkin seeds",
+    "de": "Kürbiskerne",
   },
   "96097d9d-c7fb-58ec-9f53-1fcea17eb817": {
     "source": "Pestki słonecznika",
     "en_GB": "Sunflower seeds",
+    "de": "Sonnenblumenkerne",
   },
   "d547166c-dc20-5183-8848-b0604ad365d9": {
     "source": "Pesto pistacjowe",
     "en_GB": "Pistachio pesto",
+    "de": "Pistazienpesto",
   },
   "89402425-b3fb-5923-9165-4de8f48fa06c": {
     "source": "Pesto rosso",
     "en_GB": "Pesto rosso",
+    "de": "Pesto rosso",
   },
   "3b32ff6f-fdb7-5cf2-9b98-bf63829d95e5": {
     "source": "Pesto zielone",
     "en_GB": "Green pesto",
+    "de": "Grünes Pesto",
   },
   "6a1ab3fe-08b9-533d-85c6-fd9bd37808a0": {
     "source": "Pieczarki",
     "en_GB": "Button mushrooms",
+    "de": "Champignons",
   },
   "c414452a-060c-5dd6-ae36-a0e69b5350b9": {
     "source": "Pieczarki portobello",
     "en_GB": "Portobello mushrooms",
+    "de": "Portobello-Pilze",
   },
   "c11cc4fe-f4dc-5500-ba5f-179225f27915": {
     "source": "Pieprz czarny mielony",
     "en_GB": "Ground black pepper",
+    "de": "Gemahlener schwarzer Pfeffer",
   },
   "5f898104-6437-50ac-8857-74b5fd3b9354": {
     "source": "Pierś z kaczki",
     "en_GB": "Duck breast",
+    "de": "Entenbrust",
   },
   "1cbd3dae-3a1e-5cd0-9667-d711fdaa72a4": {
     "source": "Pierś z kurczaka",
     "en_GB": "Chicken breast",
+    "de": "Hähnchenbrust",
   },
   "765ad139-39b6-56fa-8033-51950b539551": {
     "source": "Pietruszka korzeń",
     "en_GB": "Parsley root",
+    "de": "Petersilienwurzel",
   },
   "d94da171-308b-567c-85a8-f77de15edbdf": {
     "source": "Pistacje",
     "en_GB": "Pistachios",
+    "de": "Pistazien",
   },
   "e90f7515-b551-5732-8e3d-6abc2ecf86da": {
     "source": "Podudzia z kurczaka",
     "en_GB": "Chicken drumsticks",
+    "de": "Hähnchenunterkeulen",
   },
   "84bac1cc-308a-5655-bd00-b44e2197f14c": {
     "source": "Polenta",
     "en_GB": "Polenta",
+    "de": "Polenta",
   },
   "3d9f9190-06d6-57d3-be02-dc91a71025fa": {
     "source": "Polędwica wołowa",
     "en_GB": "Beef fillet",
+    "de": "Rinderfilet",
   },
   "87a4bb58-b963-57b1-a02b-7a261b547a31": {
     "source": "Polędwiczka wieprzowa",
     "en_GB": "Pork tenderloin",
+    "de": "Schweinefilet",
   },
   "12b58fc7-a1eb-52cc-a941-52c67962ef89": {
     "source": "Polędwiczki z kurczaka",
     "en_GB": "Chicken mini fillets",
+    "de": "Hähncheninnenfilets",
   },
   "02baa653-fe01-5c1d-9741-d500894d7850": {
     "source": "Pomarańcze",
     "en_GB": "Oranges",
+    "de": "Orangen",
   },
   "16992b07-2016-5743-b482-daad7c3650a3": {
     "source": "Pomidorki koktajlowe",
     "en_GB": "Cherry tomatoes",
+    "de": "Kirschtomaten",
   },
   "b9f4f095-5fe5-52e4-9d98-2ac43d67f43c": {
     "source": "Pomidory",
     "en_GB": "Tomatoes",
+    "de": "Tomaten",
   },
   "a469945a-f5f0-5162-8bab-aba4223ecdb1": {
     "source": "Pomidory całe pelati",
     "en_GB": "Tinned whole peeled tomatoes",
+    "de": "Ganze geschälte Tomaten in Dosen",
   },
   "452f123c-6535-5ebb-bb11-f9ebfc5d26a7": {
     "source": "Pomidory krojone",
     "en_GB": "Chopped tomatoes",
+    "de": "Stückige Tomaten",
   },
   "2d33ecfc-ee3f-5617-86d3-a9ee8c0a61e2": {
     "source": "Pomidory krojone z bazylią",
     "en_GB": "Chopped tomatoes with basil",
+    "de": "Gehackte Tomaten mit Basilikum",
   },
-  "abdda4f3-3045-56cd-9a49-55dc548a50b1": {"source": "Por", "en_GB": "Leek"},
+  "abdda4f3-3045-56cd-9a49-55dc548a50b1": {
+    "source": "Por",
+    "en_GB": "Leek",
+    "de": "Porree",
+  },
   "76d2fe81-dbfe-57c0-86d0-17657e5f531e": {
     "source": "Porzeczki czarne mrożone",
     "en_GB": "Frozen blackcurrants",
+    "de": "Schwarze Johannisbeeren, gefroren",
   },
   "6205b10f-ceaf-5484-b1dc-43a49bcb6a23": {
     "source": "Proszek do pieczenia",
     "en_GB": "Baking powder",
+    "de": "Backpulver",
   },
   "3992f3ec-d1fa-5232-bdbf-78029d5d7260": {
     "source": "Przecier pomidorowy",
     "en_GB": "Strained tomatoes",
+    "de": "Passierte Tomaten",
   },
   "5845ff62-8f64-5dff-83dc-c4f4df86cbeb": {
     "source": "Przyprawa pięć smaków",
     "en_GB": "Chinese five-spice",
+    "de": "Fünf-Gewürze-Pulver",
   },
   "e9286b24-452f-575f-864d-70f234dd9c81": {
     "source": "Pstrąg filet",
     "en_GB": "Trout fillet",
+    "de": "Forellenfilets",
   },
   "7fcc830a-da7b-556d-ab70-9da324801321": {
     "source": "Pudding proteinowy waniliowy",
     "en_GB": "Vanilla protein pudding",
+    "de": "Vanilleproteinpudding",
   },
   "2d3cf360-ab2c-536e-b79a-72be8f5d7138": {
     "source": "Puree z dyni",
     "en_GB": "Pumpkin purée",
+    "de": "Kürbispüree",
   },
   "a95c2923-2f00-55ce-97d9-ad5a6789157c": {
     "source": "Płatki chili",
     "en_GB": "Chilli flakes",
+    "de": "Chili-Flocken",
   },
   "ac5e5f77-48e8-531b-88da-4abc534dd4c1": {
     "source": "Płatki drożdżowe nieaktywne",
     "en_GB": "Nutritional yeast flakes",
+    "de": "Hefeflocken",
   },
   "6d0f40a0-3015-501c-8ac6-2b21d574b340": {
     "source": "Płatki jaglane błyskawiczne",
     "en_GB": "Instant millet flakes",
+    "de": "Instant-Hirseflocken",
   },
   "b03860cc-e305-58d6-8785-be28ee68aff5": {
     "source": "Płatki kukurydziane",
     "en_GB": "Corn flakes",
+    "de": "Maisflocken",
   },
   "c65508d5-139b-5f92-9850-1507938eb5e5": {
     "source": "Płatki owsiane",
     "en_GB": "Oats",
+    "de": "Haferflocken",
   },
   "ad0bd90e-cc2a-5e87-8b08-935f676b4c11": {
     "source": "Płatki ryżowe",
     "en_GB": "Rice flakes",
+    "de": "Reisflocken",
   },
   "f4dfd92a-ac3f-5e2f-91ee-5734991fb25d": {
     "source": "Quinoa",
     "en_GB": "Quinoa",
+    "de": "Quinoa",
   },
   "9a3684a5-b6e6-5fcd-8664-c74af599cedf": {
     "source": "Ras el hanout",
     "en_GB": "Ras el hanout",
+    "de": "Ras el hanout",
   },
   "68a18a15-2953-5330-bf99-850238a78bf6": {
     "source": "Ricotta",
     "en_GB": "Ricotta",
+    "de": "Ricotta",
   },
   "a8452f8f-a8ec-5ff3-b3ff-a3df15a0456f": {
     "source": "Rodzynki",
     "en_GB": "Raisins",
+    "de": "Rosinen",
   },
   "6bff42d7-183a-5acf-9991-241f2fffa609": {
     "source": "Rostbef wołowy",
     "en_GB": "Beef sirloin",
+    "de": "Roastbeef",
   },
   "984b22f4-34d5-58c6-bffd-f6ce76a65595": {
     "source": "Roszponka",
     "en_GB": "Lamb's lettuce",
+    "de": "Feldsalat",
   },
   "84c02416-faae-558d-9cad-4ff1de418da9": {
     "source": "Rozmaryn suszony",
     "en_GB": "Dried rosemary",
+    "de": "Rosmarin, getrocknet",
   },
   "b24066f4-a491-59db-a352-8a905a0536fd": {
     "source": "Rukola",
     "en_GB": "Rocket",
+    "de": "Rucola",
   },
   "b43bb415-b571-530c-b035-8e0657346795": {
     "source": "Ryż arborio",
     "en_GB": "Arborio rice",
+    "de": "Arborio-Reis",
   },
   "1e808e82-2ef4-5cc0-9407-36c602f87f0c": {
     "source": "Ryż basmati",
     "en_GB": "Basmati rice",
+    "de": "Basmati-Reis",
   },
   "79f74590-432c-5394-a626-7bbb48d66151": {
     "source": "Ryż biały",
     "en_GB": "White rice",
+    "de": "Weißer Reis",
   },
   "5ff09faf-a43d-5b8f-95ed-df9f4c55a0bd": {
     "source": "Ryż brązowy",
     "en_GB": "Brown rice",
+    "de": "Brauner Reis",
   },
   "95cd72b6-c6e6-5ca6-bc5e-871e22f0596b": {
     "source": "Ryż dziki",
     "en_GB": "Wild rice",
+    "de": "Wildreis",
   },
   "f8b989c3-9151-50fd-a8a4-76ec1ec744af": {
     "source": "Ryż jaśminowy",
     "en_GB": "Jasmine rice",
+    "de": "Jasmin-Reis",
   },
   "1a8973bb-4b6a-55bc-9a31-8db9a6ae214d": {
     "source": "Rzepa",
     "en_GB": "Turnip",
+    "de": "Speiserübe",
   },
   "2359b192-fc87-51a1-9c49-d8ca9678c09d": {
     "source": "Rzodkiewka",
     "en_GB": "Radish",
+    "de": "Radieschen",
   },
   "53b5c258-d3ef-5fb7-9f90-ba323d5c61ac": {
     "source": "Salami",
     "en_GB": "Salami",
+    "de": "Salami",
   },
   "25fa192c-056f-5723-a3f5-45e96291c92b": {
     "source": "Salsa pomidorowa",
     "en_GB": "Tomato salsa",
+    "de": "Tomatensalsa",
   },
   "4aeea7c9-0515-5194-ac15-f1587570f615": {
     "source": "Sambal oelek",
     "en_GB": "Sambal oelek",
+    "de": "Sambal oelek",
   },
   "79ab950f-e88f-50e3-8207-829b73723cb6": {
     "source": "Sardynki w oliwie",
     "en_GB": "Sardines in olive oil",
+    "de": "Sardinen in Olivenöl",
   },
   "2a5a08dd-4d85-51b0-96d5-b73d222628d5": {
     "source": "Sałata lodowa",
     "en_GB": "Iceberg lettuce",
+    "de": "Eisbergsalat",
   },
   "7bdc0382-a8e6-5751-8364-8eddc150dcda": {
     "source": "Sałata masłowa",
     "en_GB": "Butterhead lettuce",
+    "de": "Butterkopfsalat",
   },
   "75d3f1a2-6359-57e7-9d43-344297c73f16": {
     "source": "Sałata rzymska",
     "en_GB": "Cos lettuce",
+    "de": "Römersalat",
   },
   "5ff518f4-4815-59a0-a789-46b88a3ee950": {
     "source": "Schab wieprzowy",
     "en_GB": "Pork loin",
+    "de": "Schweinerücken",
   },
   "20a93ab6-bc9d-5e76-a4e6-0690339ff03e": {
     "source": "Seler korzeniowy",
     "en_GB": "Celeriac",
+    "de": "Knollensellerie",
   },
   "4f345dd2-25f7-5055-ae9c-57afcf548648": {
     "source": "Seler naciowy",
     "en_GB": "Celery",
+    "de": "Stangensellerie",
   },
   "7013b035-9882-5c1b-8240-af4afa7b8d3e": {
     "source": "Ser brie",
     "en_GB": "Brie",
+    "de": "Brie",
   },
   "a5edc9eb-536a-5f68-87cb-d6f726593eea": {
     "source": "Ser camembert",
     "en_GB": "Camembert",
+    "de": "Camembert",
   },
   "1118681b-c432-58d1-8603-7721f1f17976": {
     "source": "Ser cheddar",
     "en_GB": "Cheddar cheese",
+    "de": "Cheddar-Käse",
   },
   "64de81eb-fd41-5f64-9ad4-e7a6c5c09552": {
     "source": "Ser feta",
     "en_GB": "Feta cheese",
+    "de": "Feta-Käse",
   },
   "c885022c-b670-549d-8398-e7ded474d96d": {
     "source": "Ser grana padano",
     "en_GB": "Grana Padano",
+    "de": "Grana Padano",
   },
   "a4ab49a4-01f8-5358-bc5d-725b999e67c4": {
     "source": "Ser halloumi",
     "en_GB": "Halloumi cheese",
+    "de": "Halloumi-Käse",
   },
   "1a24a691-9b0e-5869-a43e-443a9aac9091": {
     "source": "Ser kozi",
     "en_GB": "Goat's cheese",
+    "de": "Ziegenkäse",
   },
   "de08c0db-a5f0-5d7c-9a69-d49fd1f02214": {
     "source": "Ser paneer",
     "en_GB": "Paneer",
+    "de": "Paneer",
   },
   "4f51405e-d34a-5940-8225-1cdaa0854bf6": {
     "source": "Ser pecorino",
     "en_GB": "Pecorino cheese",
+    "de": "Pecorino-Käse",
   },
   "1f4bf8ee-5693-5ec6-a2b6-3f37fb7dde96": {
     "source": "Ser pleśniowy",
     "en_GB": "Mould-ripened cheese",
+    "de": "Blauschimmelkäse",
   },
   "de2db00e-c150-5d39-bb5f-d7980497c970": {
     "source": "Ser provolone",
     "en_GB": "Provolone",
+    "de": "Provolone",
   },
   "1379c501-e084-5772-b324-a62ea5ef13f7": {
     "source": "Ser żółty gouda",
     "en_GB": "Gouda cheese",
+    "de": "Gouda-Käse",
   },
   "58760cb4-439e-56e5-bfa8-5bdaa51631f2": {
     "source": "Serek wiejski",
     "en_GB": "Cottage cheese",
+    "de": "Hüttenkäse",
   },
   "8be1f23b-68e9-500b-bec5-409212186f94": {
     "source": "Serek śmietankowy",
     "en_GB": "Cream cheese",
+    "de": "Rahmkäse",
   },
   "6fe463ab-c457-5de9-875f-6f6c5ec5b597": {
     "source": "Sezam",
     "en_GB": "Sesame seeds",
+    "de": "Sesamsamen",
   },
   "34490aff-e115-5112-8984-ee517fcae1de": {
     "source": "Siemię lniane",
     "en_GB": "Linseed",
+    "de": "Leinsamen",
   },
   "ab8c9119-6813-57df-b103-ce395472bb40": {
     "source": "Skrobia kukurydziana",
     "en_GB": "Cornflour",
+    "de": "Maisstärke",
   },
   "8d4286c0-164e-5f8d-85bc-514c399113f3": {
     "source": "Skrzydełka z kurczaka",
     "en_GB": "Chicken wings",
+    "de": "Hähnchenflügel",
   },
   "a3500370-78c0-5902-93bf-a13843723fa7": {
     "source": "Skyr naturalny",
     "en_GB": "Natural skyr",
+    "de": "Natur-Skyr",
   },
   "bf585f66-89bc-5b0e-8dfa-26afb2feba1b": {
     "source": "Skyr waniliowy",
     "en_GB": "Vanilla skyr",
+    "de": "Vanille-Skyr",
   },
   "c2b07d09-07f1-554b-bde0-3ea97cb284fe": {
     "source": "Soczewica czarna beluga",
     "en_GB": "Black beluga lentils",
+    "de": "Schwarze Beluga-Linsen",
   },
   "d868c1c5-407c-5b80-a294-da71bfca97ca": {
     "source": "Soczewica czerwona",
     "en_GB": "Red lentils",
+    "de": "Rote Linsen",
   },
   "aa46d755-b9ae-5d46-8096-63f62257c86f": {
     "source": "Soczewica konserwowa",
     "en_GB": "Tinned lentils",
+    "de": "Linsen in Dosen",
   },
   "d1c5da9e-868f-5caa-adb7-d63c35e3c511": {
     "source": "Soczewica zielona",
     "en_GB": "Green lentils",
+    "de": "Grüne Linsen",
   },
   "e1360634-fd9d-5aef-8581-a9eedd11e908": {
     "source": "Soda oczyszczona",
     "en_GB": "Bicarbonate of soda",
+    "de": "Natron",
   },
   "67cee078-5167-5a2b-a529-300fbfd841b0": {
     "source": "Sok pomarańczowy",
     "en_GB": "Orange juice",
+    "de": "Orangensaft",
   },
   "587c3cf5-2f09-5675-a727-7421c5400a6f": {
     "source": "Sok z cytryny",
     "en_GB": "Lemon juice",
+    "de": "Zitronensaft",
   },
   "a2f134aa-d760-54ec-a95f-1d3db0580ea7": {
     "source": "Sos Worcestershire",
     "en_GB": "Worcestershire sauce",
+    "de": "Worcestershire-Sauce",
   },
   "616581d7-01aa-521e-97c5-01db131891d9": {
     "source": "Sos barbecue",
     "en_GB": "Barbecue sauce",
+    "de": "Barbecue-Sauce",
   },
   "63baa45e-5fba-53d8-b631-afd51a8710b6": {
     "source": "Sos butter chicken",
     "en_GB": "Butter chicken sauce",
+    "de": "Butterhühnersoße",
   },
   "73b5aca1-4efd-5306-92c2-1e17069cdcf8": {
     "source": "Sos chipotle",
     "en_GB": "Chipotle sauce",
+    "de": "Chipotlesauce",
   },
   "d3993dec-27c3-545c-b56f-69c3150e5c8f": {
     "source": "Sos curry mango",
     "en_GB": "Mango curry sauce",
+    "de": "Mango-Curry-Sauce",
   },
   "fedb2f73-cc52-5518-8601-ffb93a6eb001": {
     "source": "Sos czosnkowy",
     "en_GB": "Garlic sauce",
+    "de": "Knoblauchsoße",
   },
   "264345ec-5b3d-5567-a5b8-ba83ee06414e": {
     "source": "Sos hoisin",
     "en_GB": "Hoisin sauce",
+    "de": "Hoisin-Sauce",
   },
   "55b6346b-6647-5715-bb32-68c1ca875dd2": {
     "source": "Sos marinara",
     "en_GB": "Marinara sauce",
+    "de": "Marinara-Sauce",
   },
   "ca03e698-f6f1-5aba-8038-454d7c3c8210": {
     "source": "Sos ostrygowy",
     "en_GB": "Oyster sauce",
+    "de": "Austernsauce",
   },
   "14bf2137-3d42-542b-8ed1-409051ce2a64": {
     "source": "Sos ponzu",
     "en_GB": "Ponzu sauce",
+    "de": "Ponzusoße",
   },
   "479cf5ab-9338-5a6d-aaa9-798243cbe2bc": {
     "source": "Sos rybny",
     "en_GB": "Fish sauce",
+    "de": "Fischsoße",
   },
   "00316a81-bfd2-5697-ba96-348d7f8d9542": {
     "source": "Sos sojowy",
     "en_GB": "Soy sauce",
+    "de": "Sojabohnensauce",
   },
   "a6b89894-db98-50d2-bb0e-2999ff27b87b": {
     "source": "Sos sriracha",
     "en_GB": "Sriracha sauce",
+    "de": "Sriracha-Sauce",
   },
   "dff0d997-b999-5e9f-9533-d1b71cdbf5a4": {
     "source": "Sos sweet chili",
     "en_GB": "Sweet chilli sauce",
+    "de": "Süße Chilisoße",
   },
   "ec845ae2-6d70-5469-b6fb-bda207482882": {
     "source": "Sos tamari",
     "en_GB": "Tamari sauce",
+    "de": "Tamarisoße",
   },
   "a90eeba6-8042-5b20-8d35-3f09e6f75b0a": {
     "source": "Sos teriyaki",
     "en_GB": "Teriyaki sauce",
+    "de": "Teriyaki-Sauce",
   },
   "2e0426a2-8b84-51e6-aeb3-1c805b4adf4c": {
     "source": "Sos tikka masala",
     "en_GB": "Tikka masala sauce",
+    "de": "Tikka masala Soße",
   },
   "891d8fd5-69fd-5c59-acdf-416e805bd057": {
     "source": "Stek wołowy",
     "en_GB": "Beef steak",
+    "de": "Rindersteak",
   },
-  "1c1647d3-0456-5aff-acaa-91bd29c6388f": {"source": "Sumak", "en_GB": "Sumac"},
+  "1c1647d3-0456-5aff-acaa-91bd29c6388f": {
+    "source": "Sumak",
+    "en_GB": "Sumac",
+    "de": "Sumach",
+  },
   "06014eb7-a4b2-5d16-8d00-a581f5f9c136": {
     "source": "Suszone pomidory",
     "en_GB": "Sun-dried tomatoes",
+    "de": "Sonnengetrocknete Tomaten",
   },
   "d1844cba-b20c-5b6c-bf2b-857ebc9fe1bb": {
     "source": "Syrop klonowy",
     "en_GB": "Maple syrup",
+    "de": "Ahornsirup",
   },
   "7ac019d7-ef09-58aa-b982-a9223e67c91e": {
     "source": "Syrop z agawy",
     "en_GB": "Agave syrup",
+    "de": "Agavesirup",
   },
   "2dd0e42d-acdc-5dc9-876e-bf82ccca480c": {
     "source": "Szafran",
     "en_GB": "Saffron",
+    "de": "Safran",
   },
   "3dabcb5d-1558-512a-b696-983b53af14e1": {
     "source": "Szalotka",
     "en_GB": "Shallot",
+    "de": "Schalotten",
   },
   "3eb7e5af-302b-5e67-83f5-478fdefd3c98": {
     "source": "Szałwia świeża",
     "en_GB": "Fresh sage",
+    "de": "Frischer Salbei",
   },
   "72bfc3c3-682b-5653-b9b9-31666bc033f0": {
     "source": "Szczypiorek",
     "en_GB": "Chives",
+    "de": "Schnittlauch",
   },
   "5b696058-9d68-55ba-ae02-c7812a6e512f": {
     "source": "Szparagi",
     "en_GB": "Asparagus",
+    "de": "Spargel",
   },
   "4224428e-c42d-52e6-bcc2-cf347516f4d8": {
     "source": "Szpinak świeży",
     "en_GB": "Fresh spinach",
+    "de": "Frischer Spinat",
   },
   "ffb83174-d780-5f4f-9e5f-797798a5fd1a": {
     "source": "Szynka konserwowa",
     "en_GB": "Cooked ham",
+    "de": "Gekochter Schinken",
   },
   "a5f2bd0a-23ba-5e7c-b229-a4a52d531dfe": {
     "source": "Szynka prosciutto",
     "en_GB": "Prosciutto",
+    "de": "Prosciutto",
   },
-  "26709c55-eb1d-524c-a760-0aca767bd924": {"source": "Sól", "en_GB": "Salt"},
+  "26709c55-eb1d-524c-a760-0aca767bd924": {
+    "source": "Sól",
+    "en_GB": "Salt",
+    "de": "Salz",
+  },
   "e5d569de-0f8b-51a7-aba7-71cd6b0780c7": {
     "source": "Tahini",
     "en_GB": "Tahini",
+    "de": "Tahini",
   },
   "3359d5b2-02ac-5402-bba6-66e345c92530": {
     "source": "Tofu naturalne",
     "en_GB": "Plain tofu",
+    "de": "Naturtofu",
   },
   "3ffce77e-1042-578b-abda-1bc36220ea10": {
     "source": "Topinambur",
     "en_GB": "Jerusalem artichoke",
+    "de": "Topinambur",
   },
   "39c98e08-ad9a-57ad-a067-a10ee29c8938": {
     "source": "Tortellini z serem",
     "en_GB": "Cheese tortellini",
+    "de": "Käse-Tortellini",
   },
   "24a71f37-d418-58c7-b2d4-189457cb5609": {
     "source": "Tortilla kukurydziana",
     "en_GB": "Corn tortilla",
+    "de": "Maistortilla",
   },
   "0ed95ad1-3cf0-5eb6-8701-0a22fc5f9d26": {
     "source": "Tortilla pełnoziarnista",
     "en_GB": "Wholemeal tortilla wrap",
+    "de": "Vollkorn-Tortilla-Wrap",
   },
   "fa285d67-f8b9-5035-b15a-9d0714b489a6": {
     "source": "Tortilla pszenna",
     "en_GB": "Wheat tortilla",
+    "de": "Weizentortilla",
   },
   "bbbef588-d23e-52f9-972b-323d063acba2": {
     "source": "Truskawki",
     "en_GB": "Strawberries",
+    "de": "Erdbeeren",
   },
   "e5ff756e-2516-5ba4-a58a-19a937dc82a9": {
     "source": "Tuńczyk w sosie własnym",
     "en_GB": "Tuna in its own juice",
+    "de": "Thunfisch im eigenen Saft",
   },
   "54905985-9bcd-5d5a-b7a3-f95800c32a6b": {
     "source": "Twaróg półtłusty",
     "en_GB": "Semi-fat quark",
+    "de": "Quark (Halbfettstufe)",
   },
   "4933aada-c016-5a3f-8858-476ec19307c0": {
     "source": "Tymianek suszony",
     "en_GB": "Dried thyme",
+    "de": "Getrockneter Thymian",
   },
   "79aefca0-630b-5720-a0ed-0e754b2c40cd": {
     "source": "Udka z kurczaka",
     "en_GB": "Chicken legs",
+    "de": "Hähnchenschenkel",
   },
   "cd057aed-fc15-5aa9-b243-9e4e48ce3100": {
     "source": "Udziec z indyka",
     "en_GB": "Turkey thigh",
+    "de": "Putenoberkeule",
   },
   "8c4b0ebc-5c13-52e2-9176-2743d513fcc1": {
     "source": "Wanilia (cukier waniliowy)",
     "en_GB": "Vanilla sugar",
+    "de": "Vanillezucker",
   },
   "8366a2e6-f0fe-5da9-a2c7-c50baa6256de": {
     "source": "Wieprzowina mielona",
     "en_GB": "Pork mince",
+    "de": "Schweinehackfleisch",
   },
   "9018f03b-c249-5372-a8d8-39794168bb16": {
     "source": "Winogrona ciemne",
     "en_GB": "Dark grapes",
+    "de": "Dunkle Trauben",
   },
   "c4b3c988-187a-51a7-9264-4669b890ac72": {
     "source": "Winogrona jasne",
     "en_GB": "Green grapes",
+    "de": "Grüne Weintrauben",
   },
   "a79271a0-2af5-5e74-a5b1-62dc085e8ee4": {
     "source": "Wiórki kokosowe",
     "en_GB": "Desiccated coconut",
+    "de": "Kokosraspeln",
   },
-  "e3f77274-e941-5808-b9c7-da6a82084f79": {"source": "Woda", "en_GB": "Water"},
+  "e3f77274-e941-5808-b9c7-da6a82084f79": {
+    "source": "Woda",
+    "en_GB": "Water",
+    "de": "Wasser",
+  },
   "27fa4303-fab9-5778-a2a2-4d1af33a5111": {
     "source": "Wołowina mielona",
     "en_GB": "Beef mince",
+    "de": "Rinderhackfleisch",
   },
   "f2267444-b715-5f8f-95a3-b4e53d6a8fea": {
     "source": "Wołowina na gulasz",
     "en_GB": "Stewing beef",
+    "de": "Rindergulasch",
   },
   "91deeec4-fb11-5064-9ed0-d421c097fcba": {
     "source": "Za'atar",
     "en_GB": "Za'atar",
+    "de": "Za'atar",
   },
   "2ae1eacf-6999-55d7-9d32-167f3445ec78": {
     "source": "Ziele angielskie",
     "en_GB": "Allspice",
+    "de": "Piment",
   },
   "90b0cc09-9eb2-5ee1-a7cf-b0fee19e0744": {
     "source": "Ziemniaki",
     "en_GB": "Potatoes",
+    "de": "Kartoffeln",
   },
   "4be7f650-b5ed-5140-9208-ca36f38b73df": {
     "source": "Zioła prowansalskie",
     "en_GB": "Herbes de Provence",
+    "de": "Herbes de Provence",
   },
   "0c4b99ff-9dc6-5c51-a267-62b73c0af1e8": {
     "source": "Łosoś filet",
     "en_GB": "Salmon fillet",
+    "de": "Lachsfilets",
   },
   "0afb1396-74ed-59f2-948e-34828cf3747a": {
     "source": "Łosoś wędzony",
     "en_GB": "Smoked salmon",
+    "de": "Räucherlachs",
   },
   "b8d7c40f-5c5b-544b-bd2d-e12101ac696a": {
     "source": "Śliwki",
     "en_GB": "Plums",
+    "de": "Pflaumen",
   },
   "37dd70ec-dd00-5c3d-9406-5b2ce43fe5ac": {
     "source": "Śliwki suszone",
     "en_GB": "Prunes",
+    "de": "Trockenpflaumen",
   },
   "1236a1ec-be3e-5f7c-ba7e-15605d5f13bc": {
     "source": "Śmietana 12%",
     "en_GB": "Soured cream, 12% fat",
+    "de": "Sauerrahm, 12% Fett",
   },
   "d2099836-9015-530e-91b7-ab21724c0aa6": {
     "source": "Śmietana 18%",
     "en_GB": "Soured cream (18% fat)",
+    "de": "Sauerrahm (18% Fett)",
   },
   "6c2d972e-16cd-55a4-9d52-b851d2446ca7": {
     "source": "Śmietana 30%",
     "en_GB": "Cream (30% fat)",
+    "de": "Schlagsahne (30% Fett)",
   },
   "40108d5c-52e4-58ea-95cc-3f14d80324c4": {
     "source": "Śmietanka 12%",
     "en_GB": "Cooking cream, 12% fat",
+    "de": "Kochsahne, 12% Fett",
   },
   "82285426-ecfa-53b5-8ff9-d3d8e3176927": {
     "source": "Śmietanka kokosowa",
     "en_GB": "Coconut cream",
+    "de": "Kokoscreme",
   },
   "c93a3815-32b8-521e-bcf5-69a5d05cb633": {
     "source": "Żeberka wieprzowe",
     "en_GB": "Pork ribs",
+    "de": "Schweinerippchen",
   },
   "e16b97ea-1fe7-5e45-8145-57401722abb8": {
     "source": "Żelatyna",
     "en_GB": "Gelatine",
+    "de": "Gelatine",
   },
   "0a455ea6-4594-5013-8fef-d15e4f546b9e": {
     "source": "Żurawina mrożona",
     "en_GB": "Frozen cranberries",
+    "de": "Gefrorene Cranberries",
   },
   "a9fe7a14-d43b-5a11-bf29-6fd9f9a0dfa1": {
     "source": "Żurawina suszona",
     "en_GB": "Dried cranberries",
+    "de": "Getrocknete Cranberrys",
   },
 };

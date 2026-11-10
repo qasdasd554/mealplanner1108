@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:smart_meal_planner/l10n/app_localizations.dart';
+import 'package:smart_meal_planner/l10n/market_locale.dart';
 import 'package:smart_meal_planner/models/product.dart';
 import 'package:smart_meal_planner/models/store.dart';
 import 'package:smart_meal_planner/providers/auth_provider.dart';
@@ -15,6 +16,7 @@ import 'package:smart_meal_planner/screens/products/products_screen.dart';
 import 'package:smart_meal_planner/services/api_client.dart';
 import 'package:smart_meal_planner/services/product_search_service.dart';
 import 'package:smart_meal_planner/services/store_service.dart';
+import 'package:smart_meal_planner/utils/market_money.dart';
 import '../../helpers/product_form_render.dart';
 
 Product _product({bool missing = false}) => Product(
@@ -36,7 +38,7 @@ class _Stores extends StoreProvider {
       id: 'shop',
       name: 'Shop',
       countryCode: country,
-      currencyCode: country == 'GB' ? 'GBP' : 'PLN',
+      currencyCode: currencyForAccountCountry(country),
       createdAt: DateTime.utc(2026),
       updatedAt: null,
     ),
@@ -63,8 +65,12 @@ class _Shop extends StoreService {
       isAvailable: true,
       product: _product(),
       nameEn: reviewed && currency == 'GBP' ? 'British rice 750g' : null,
-      packageQuantity: reviewed && currency == 'GBP' ? 750 : null,
-      packageUnit: reviewed && currency == 'GBP' ? 'g' : null,
+      packageQuantity:
+          reviewed && currency == 'GBP'
+              ? 750
+              : (currency == 'EUR' ? 250 : null),
+      packageUnit:
+          (reviewed && currency == 'GBP') || currency == 'EUR' ? 'g' : null,
       priceIsEstimated: estimated,
       lastVerified: estimated ? null : DateTime.utc(2026, 10, 20),
       availabilityScope:
@@ -75,7 +81,8 @@ class _Shop extends StoreService {
 
 class _GenericShop extends StoreService {
   final bool estimated;
-  _GenericShop({this.estimated = false});
+  final String country;
+  _GenericShop({this.estimated = false, this.country = 'GB'});
   @override
   Future<List<StoreProduct>> getAllStoreProducts(
     String storeId, {
@@ -87,9 +94,9 @@ class _GenericShop extends StoreService {
       'store_id': storeId,
       'product_id': 'rice',
       'price': estimated ? 0.25 : null,
-      'currency_code': 'GBP',
+      'currency_code': currencyForAccountCountry(country),
       'is_available': null,
-      'name_en': 'Brown rice',
+      if (country == 'GB') 'name_en': 'Brown rice',
       'catalogue_kind': 'generic_food',
       'availability_scope': 'generic_food_reference',
       'price_basis': estimated ? 'national_quantity_reference' : 'unknown',
@@ -105,7 +112,7 @@ class _GenericShop extends StoreService {
               : null,
       'product': {
         'id': 'rice',
-        'name': 'Brown rice',
+        'name': country == 'DE' ? 'Vollkornreis' : 'Brown rice',
         'unit': 'g',
         'nutrition_per_100': {'kcal': 300},
       },
@@ -180,10 +187,7 @@ Future<_Catalogue> _open(
       ],
       child: MaterialApp(
         theme: productFormTheme(false),
-        locale:
-            country == 'GB'
-                ? const Locale('en', 'GB')
-                : const Locale('pl', 'PL'),
+        locale: localeForMarket(accountCountry: country),
         supportedLocales: AppLocalizations.supportedLocales,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         builder:
@@ -213,6 +217,33 @@ Future<_Catalogue> _open(
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(loadProductFormFonts);
+  testWidgets('German catalogue accepts a EUR reference with unknown price', (
+    tester,
+  ) async {
+    await _open(
+      tester,
+      country: 'DE',
+      shop: _GenericShop(country: 'DE'),
+      narrow: true,
+      scale: 1.5,
+    );
+    expect(find.text('Vollkornreis'), findsOneWidget);
+    final strings = stringsForAccountCountry('DE');
+    expect(find.text(strings.productsPriceUnavailable), findsOneWidget);
+    expect(find.textContaining('0,00'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('German shop shows the local pack and formats the EUR price', (
+    tester,
+  ) async {
+    await _open(tester, country: 'DE', currency: 'EUR');
+    expect(find.textContaining(RegExp(r'2,50\s*€')), findsOneWidget);
+    expect(find.text('/ 250 g'), findsOneWidget);
+    expect(find.text('/ 100 g'), findsNothing);
+    expect(find.textContaining('zł'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
   testWidgets(
     'generic English food has nutrients but no invented price or package',
     (tester) async {

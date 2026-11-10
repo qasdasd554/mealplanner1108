@@ -1,0 +1,26 @@
+{
+  "store_slug": "rewe",
+  "currency": "EUR",
+  "reviewed_on": "2026-11-10",
+  "offer_window": {"from": "2026-11-09", "to": "2026-11-15"},
+  "purpose": "dated public flyer estimates for isolated testing",
+  "sources": {
+    "flyer": "https://www.rewe.de/angebote/nationale-angebote/",
+    "produce": "https://www.rewe.de/angebote/nationale-angebote/obst-und-gemuese/",
+    "chilled": "https://www.rewe.de/angebote/nationale-angebote/kuehlung/",
+    "cooking": "https://www.rewe.de/angebote/nationale-angebote/kochen-und-backen/",
+    "fresh": "https://www.rewe.de/angebote/nationale-angebote/schnell-und-einfach/"
+  },
+  "products": [
+    {"canonical": "Ser cheddar", "unit": "g", "quantity": "150", "price": "1.59", "brand": "KERRYGOLD", "source": "flyer", "retailer_variant": "Cheddar gerieben"},
+    {"canonical": "Fasola czerwona konserwowa", "unit": "g", "quantity": "250", "price": "1.11", "brand": "BONDUELLE", "source": "flyer", "quantity_basis": "drained"},
+    {"canonical": "Kukurydza konserwowa", "unit": "g", "quantity": "285", "price": "1.11", "brand": "BONDUELLE", "source": "flyer", "quantity_basis": "drained"},
+    {"canonical": "Pieczarki", "unit": "g", "quantity": "250", "price": "1.69", "brand": null, "source": "produce", "retailer_variant": "Braune Champignons"},
+    {"canonical": "Jabłka", "unit": "kg", "quantity": "2", "price": "2.79", "brand": null, "source": "produce"},
+    {"canonical": "Kiwi", "unit": "szt", "quantity": "1", "price": "0.59", "brand": "ZESPRI", "source": "produce", "retailer_variant": "SunGold"},
+    {"canonical": "Pomarańcze", "unit": "kg", "quantity": "1.5", "price": "2.99", "brand": null, "source": "produce"},
+    {"canonical": "Masło klarowane ghee", "unit": "g", "quantity": "250", "price": "2.49", "brand": "KERRYGOLD", "source": "chilled"},
+    {"canonical": "Olej słonecznikowy", "unit": "ml", "quantity": "750", "price": "2.22", "brand": "THOMY", "source": "cooking"},
+    {"canonical": "Roszponka", "unit": "g", "quantity": "100", "price": "1.79", "brand": "FLORETTE", "source": "fresh"}
+  ]
+}

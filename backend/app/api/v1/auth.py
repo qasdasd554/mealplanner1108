@@ -16,7 +16,7 @@ from google.oauth2 import id_token as google_id_token
 
 from app.core.config import settings
 from app.core.markets import account_country, registration_country, signup_country
-from app.core.language import account_text
+from app.core.language import account_text, message_for_country
 from app.services.apple_sign_in import AppleSignInError, verify_apple_identity_token
 from app.services.turnstile import verify_turnstile_token
 
@@ -58,7 +58,7 @@ logger = logging.getLogger(__name__)
 
 def _request_text(body: dict, polish: str, english: str) -> str:
     """Pre-authentication UI hint only; never changes an existing account market."""
-    return english if registration_country(body.get("device_region")) == "GB" else polish
+    return message_for_country(registration_country(body.get("device_region")), polish, english)
 
 
 async def _verify_captcha(body: dict, request: Request) -> None:
@@ -69,8 +69,10 @@ async def _verify_captcha(body: dict, request: Request) -> None:
             "Potwierdź, że nie jesteś robotem.": "Please confirm that you are not a robot.",
             "Weryfikacja nie powiodła się. Spróbuj ponownie.": "Verification failed. Please try again.",
         }.get(exc.detail) if isinstance(exc.detail, str) else None
-        if translated and registration_country(body.get("device_region")) == "GB":
-            raise HTTPException(status_code=exc.status_code, detail=translated, headers=exc.headers) from exc
+        if translated and registration_country(body.get("device_region")) != "PL":
+            raise HTTPException(status_code=exc.status_code,
+                                detail=_request_text(body, exc.detail, translated),
+                                headers=exc.headers) from exc
         raise
 
 

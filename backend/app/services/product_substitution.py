@@ -548,16 +548,21 @@ class ProductSubstitutionService:
                 selected.serving_quantity, selected.measure_options)
         except (ValueError, TypeError) as exc:
             raise ProductUnavailableException(product_id=substitute_product_id, store_id=store_id) from exc
-        pack_quantity = float(selected.default_quantity or 0)
-        if (not math.isfinite(native_quantity) or native_quantity <= 0
-                or not math.isfinite(pack_quantity) or pack_quantity <= 0):
+        if not math.isfinite(native_quantity) or native_quantity <= 0:
             raise ValueError("The product quantity cannot be converted safely")
-        cost = Decimal(str(substitute_sp.price)) * math.ceil(native_quantity / pack_quantity)
         stored_quantity, stored_unit = Decimal(str(round(native_quantity, 3))), selected.unit
         if stored_quantity == 0 and original.unit != "szt":
             stored_quantity = Decimal(str(round(amount, 3)))
             stored_unit = canonical_base_unit(selected)
-        if (not cost.is_finite() or not 0 <= cost <= Decimal("99999999.99")
+        if getattr(substitute_sp, "package_quantity", None) is not None or getattr(substitute_sp, "package_unit", None) is not None:
+            from app.services.polish_shopping_amounts import item_price
+            cost = item_price(selected, substitute_sp, stored_quantity, stored_unit)
+        else:
+            pack_quantity = float(selected.default_quantity or 0)
+            if not math.isfinite(pack_quantity) or pack_quantity <= 0:
+                raise ValueError("The product quantity cannot be converted safely")
+            cost = Decimal(str(substitute_sp.price)) * math.ceil(native_quantity / pack_quantity)
+        if (cost is None or not cost.is_finite() or not 0 <= cost <= Decimal("99999999.99")
                 or not Decimal(0) < stored_quantity <= Decimal("9999999.999")):
             raise ValueError("The product quantity or cost exceeds the supported range")
 

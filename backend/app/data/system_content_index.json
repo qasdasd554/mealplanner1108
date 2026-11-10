@@ -4,3281 +4,3967 @@
       "source": "Makaron z cukinią i tuńczykiem",
       "description": "Lekki makaron ze świeżą cukinią i tuńczykiem w oliwie. szybki obiad na ciepłe dni.",
       "en_GB": "Courgette and tuna pasta",
+      "de": "Zucchini und Thunfischteigwaren",
       "detail_sha256": "ed97404840cd5bc9517f0eeecb3b75f9f637fc1358bb8d1f41b98aaa5ede1b4b"
     },
     "8ec98cc2-c2d7-5119-b7a9-df8819c14615": {
       "source": "Pieczony dorsz z zielonym groszkiem",
       "description": "Delikatny dorsz pieczony z cytryną, podawany z lekko duszonym groszkiem.",
       "en_GB": "Baked cod with peas",
+      "de": "Gebackener Kabeljau mit Erbsen",
       "detail_sha256": "a72188a2582288635158ea01f319525270396704b392381de0b2ec6f2f234567"
     },
     "d43fc8c6-643e-577b-9dbd-ce50b29dbdb7": {
       "source": "Placki z twarogiem na słodko",
       "description": "Puszyste placki na bazie twarogu. pożywne, słodkie śniadanie.",
       "en_GB": "Sweet quark pancakes",
+      "de": "Süße Quarkpfannkuchen",
       "detail_sha256": "2e8dab6dc212d667305151b3798ada7c7ccbb09e75b4f944e321dc02f9759dd9"
     },
     "15a3b032-31b6-597e-8f84-83c7d4921cbf": {
       "source": "Zupa krem z zielonego groszku",
       "description": "Aksamitna, wiosenna zupa krem. szybka i lekka.",
       "en_GB": "Creamy pea soup",
+      "de": "Cremige Erbsensuppe",
       "detail_sha256": "3bd0d3c06999cfde93bc37f948a31101b6d4e43221118f9949e45672de047d88"
     },
     "470f567b-dd28-582a-b5b2-ea1b9654921f": {
       "source": "Stir-fry ryżowy z kurczakiem i warzywami",
       "description": "Szybkie danie z jednej patelni. kurczak i chrupiące warzywa w sosie sojowym.",
       "en_GB": "Chicken and vegetable stir-fry with rice",
+      "de": "Hähnchen und Gemüse mit Reis gebraten",
       "detail_sha256": "282d2ad120dd672a5cb6035245e4694ea81f9e2b52c5ea59bbad6339cd9e91d3"
     },
     "6b0985d9-f511-58eb-b456-ec250d70db05": {
       "source": "Owsianka z orzechami włoskimi na mleku migdałowym",
       "description": "Sycące, roślinne śniadanie z chrupiącymi orzechami.",
       "en_GB": "Almond milk porridge with walnuts",
+      "de": "Mandelmilchbrei mit Walnüssen",
       "detail_sha256": "82e045e7b07e5f1b553382ae75088e72a152c95a999b8366cd492b7260fc64ad"
     },
     "0fc49f78-13f5-59e1-a091-6cf3bb0f03c5": {
       "source": "Fit burger z kurczaka",
       "description": "Domowy burger z grillowanym kurczakiem zamiast smażonej wołowiny.",
       "en_GB": "Lighter chicken burger",
+      "de": "Leichter Huhnburger",
       "detail_sha256": "87f291197025e7b2df4ff3a4439d3e23900f1ad6b3323cc31d3cc07a46d5e35e"
     },
     "6e4a5e93-73e7-55d7-9539-829712eaa0bd": {
       "source": "Sałatka cezar z kurczakiem",
       "description": "Klasyczna sałatka z grillowanym kurczakiem i parmezanem, w lżejszej wersji.",
       "en_GB": "Chicken Caesar salad",
+      "de": "Hühnchen-Casar-Salat",
       "detail_sha256": "a76280d1b836a19dcb03049a1e60502239cd1ce62505b5fc8dece10662b6f5c0"
     },
     "d99b1027-c471-5b6c-bb66-b2eb6cc9ea95": {
       "source": "Omlet bananowy na słodko",
       "description": "Puszysty omlet bez dodatku cukru, słodzony dojrzałym bananem.",
       "en_GB": "Sweet banana omelette",
+      "de": "Süßbananen-Omelett",
       "detail_sha256": "73ab734fdcf4758c0abc4faef89e610273c7a61e6e7929ff022724bca1f9cc3c"
     },
     "71e0cca1-ee92-5b5f-9500-cf6293071c84": {
       "source": "Owsianka na noc z chia i owocami",
       "description": "Przygotowana wieczorem, gotowa rano. owsianka na zimno z nasionami chia.",
       "en_GB": "Overnight oats with chia and fruit",
+      "de": "Übernachtung Hafer mit Chia und Obst",
       "detail_sha256": "899b785a308dfc5a225e10488bea59caa5abcd75dc40215cb96b9964498018fd"
     },
     "f209a2d7-b1b6-50c0-9d77-f845f29a6d06": {
       "source": "Sałatka z wędzonym łososiem, mango i awokado",
       "description": "Orzeźwiająca sałatka łącząca wędzonego łososia ze słodyczą mango.",
       "en_GB": "Smoked salmon, mango and avocado salad",
+      "de": "Geräucherter Lachs, Mango- und Avocado-Salat",
       "detail_sha256": "f0bce2ae8db5fd9acf60a902bcb7150c67b2e992c154a475bfb74dafa88f1528"
     },
     "fc97571c-29fe-5f11-bee8-2991bea1041e": {
       "source": "Makaron z brokułem w sosie śmietanowym",
       "description": "Kremowy makaron z brokułem i parmezanem. sycący wegetariański obiad.",
       "en_GB": "Pasta with broccoli in a cream sauce",
+      "de": "Pasta mit Brokkoli in einer cremefarbenen Sauce",
       "detail_sha256": "60427d32ef585e1e41933a39b4afac53143e9125b2ba9afbd800744a3fcbf2c8"
     },
     "d790e41d-5ba4-5cae-96c6-332b6db6d5f0": {
       "source": "Tost z awokado i mozzarellą",
       "description": "Szybkie, sycące śniadanie na chrupiącym pieczywie.",
       "en_GB": "Avocado and mozzarella toast",
+      "de": "Avocado und Mozzarella Toast",
       "detail_sha256": "46f87c9130035b2c83e811faacebeb2a44d5a8733395b3f9017951031e2f3963"
     },
     "c4e69873-de7b-5b4d-8a1e-0f344205a1c8": {
       "source": "Granola na słono z jajkiem i pomidorkami",
       "description": "Nietypowe, sycące śniadanie. chrupiąca granola w wytrawnej wersji.",
       "en_GB": "Savoury granola with eggs and tomatoes",
+      "de": "Genießbares Müsli mit Eiern und Tomaten",
       "detail_sha256": "f219f58850bfdeef6a75cae541bf1e4ad620fa3319663b510601990d8dece1db"
     },
     "91d0bfd3-aad3-5059-8a8a-260906fb40fa": {
       "source": "Dorsz na parze z warzywami i ziemniakami",
       "description": "Lekkostrawny obiad gotowany na parze. bez dodatku tłuszczu.",
       "en_GB": "Steamed cod with vegetables and potatoes",
+      "de": "Gedämpfter Kabeljau mit Gemüse und Kartoffeln",
       "detail_sha256": "eb8e22f482f8be6e3bced36421bc3c5cf6cdf324aa24c2de4d5a1f185b82d84f"
     },
     "14597160-687f-594d-960e-2116302f62da": {
       "source": "Kanapki z szynką, serem i sałatą",
       "description": "Klasyczne, sycące kanapki na szybkie śniadanie lub lunch do pracy.",
       "en_GB": "Ham, cheese and lettuce sandwiches",
+      "de": "Sandwichs von Schinken, Käse und Kopfsalat",
       "detail_sha256": "8cfca23f499a6ebd562ef31db59b8565a54f5b46895e75d8828770a16f99ff9f"
     },
     "ed3dfc6e-8763-52ab-9ffb-55905bbeec3a": {
       "source": "Sałatka z makaronem, brokułem i wędzonym łososiem",
       "description": "Sycąca sałatka makaronowa idealna do zabrania ze sobą do pracy.",
       "en_GB": "Pasta salad with broccoli and smoked salmon",
+      "de": "Pasta-Salat mit Brokkoli und geräuchertem Lachs",
       "detail_sha256": "6ec836f61b5ebce237d204dfb5a90567311d35bb1b42045b98f8f22760b6e36a"
     },
     "769febda-8d71-53ea-bea6-98cad2722d73": {
       "source": "Szybka zupa curry z ciecierzycą",
       "description": "Rozgrzewająca, aromatyczna zupa gotowa w niecałe pół godziny.",
       "en_GB": "Quick curried chickpea soup",
+      "de": "Kichererbsensuppe",
       "detail_sha256": "a5368318e9081868030b5340da7dd3c7f20aad3880aaa4f40970e90de61332e0"
     },
     "755c9798-8791-594d-9f31-cac96d75f06b": {
       "source": "Jabłko z masłem orzechowym",
       "description": "Szybka i pożywna przekąska na słodko.",
       "en_GB": "Apple with peanut butter",
+      "de": "Apfel mit Erdnussbutter",
       "detail_sha256": "adf6c7349d3af2f79a2b2d428add1ddaa39be6f88f116aa993c892bf512a6550"
     },
     "1ddef48c-c6e3-5098-9f0e-03647a431400": {
       "source": "Marchewki z hummusem",
       "description": "Chrupiące marchewki maczane w kremowym hummusie.",
       "en_GB": "Carrots with hummus",
+      "de": "Karotten mit Hummus",
       "detail_sha256": "fa5022ba92a344cc32dc90c4a640bcf90900efcfec1f44db197fe921a5d2bd69"
     },
     "a9edc426-a80d-592b-af24-9eb3a2d0a790": {
       "source": "Jogurt naturalny z malinami",
       "description": "Lekka przekąska białkowa.",
       "en_GB": "Natural yoghurt with raspberries",
+      "de": "Natürlicher Joghurt mit Himbeeren",
       "detail_sha256": "376cff805d2336c8043584adb4f542e777a46df1fa2f21e5adb4a66abee16857"
     },
     "c04c58c9-32e2-594d-adaf-f9257c3a5b32": {
       "source": "Owsianka na mleku migdałowym",
       "description": "Owsianka na mleku roślinnym z bananem.",
       "en_GB": "Almond milk porridge",
+      "de": "Mandelmilchbrei",
       "detail_sha256": "45a9efe32c0a07511e56d03464537dee1413f1549daa1735f947606d1ba339fc"
     },
     "41584c72-88f8-5675-b6a1-30bc402cf2b9": {
       "source": "Sałatka grecka",
       "description": "Klasyczna sałatka z fetą i oliwkami.",
       "en_GB": "Greek salad",
+      "de": "Griechischer Salat",
       "detail_sha256": "34111006741d8a791c85a9b60ead6e5c62dfabd77f1778ceb539d5c5d66b9a32"
     },
     "f11a8950-5bf9-5ac2-b307-3121b9c3ef54": {
       "source": "Jajecznica z pomidorami",
       "description": "Klasyczna jajecznica z dojrzałymi pomidorami, podawana z pieczywem.",
       "en_GB": "Scrambled eggs with tomatoes",
+      "de": "Mit Tomaten abgeriebene Eier",
       "detail_sha256": "1b7e6dc952d64820177509d0159eb1728969105c120f75aa05c5c50c14c2fe15"
     },
     "a6295184-163e-5dfd-a8f1-7636882062b7": {
       "source": "Kanapki z szynką i serem",
       "description": "Proste kanapki na śniadanie z szynką, serem i warzywami.",
       "en_GB": "Ham and cheese sandwiches",
+      "de": "Sandwichs von Schinken und Käse",
       "detail_sha256": "1df5c5b33a2ba245697057cf59095725e8ccd155d8c08341c7a1b52f30735988"
     },
     "b4f0bb03-d708-5547-97bb-103de90dc1ec": {
       "source": "Owsianka z jogurtem",
       "description": "Ciepła owsianka z jogurtem naturalnym, idealna na pożywne śniadanie.",
       "en_GB": "Porridge with yoghurt",
+      "de": "Brei mit Joghurt",
       "detail_sha256": "b1de00d138e6f5390a240c18103840f0d5d837c6f1f424d875d4fbab77538e1d"
     },
     "46b868b2-2be7-567f-b2a2-b4bc1fae7cc1": {
       "source": "Kotlet schabowy z ziemniakami",
       "description": "Tradycyjny polski kotlet schabowy w panierce, podawany z ziemniakami.",
       "en_GB": "Breaded pork cutlet with potatoes",
+      "de": "Gebrochenes Schweinefleisch mit Kartoffeln",
       "detail_sha256": "1073883962e39cd49d9ea2a9325f511f9ecb616ffd766349abc1f3fef1a9b0ca"
     },
     "7ee92d0e-17ec-51af-8150-9d1ae65c7da7": {
       "source": "Spaghetti bolognese",
       "description": "Klasyczne spaghetti z mięsnym sosem bolońskim na passacie pomidorowej.",
       "en_GB": "Spaghetti Bolognese",
+      "de": "Spaghetti Bolognese",
       "detail_sha256": "7f2ea2f478fb9832d6199b163304498fc2826686e3c53b424ea3dfdeeb405d95"
     },
     "59bec371-a592-5387-8388-af9822d28da9": {
       "source": "Kurczak z ryżem i warzywami",
       "description": "Lekki obiad. grillowana pierś z kurczaka z ryżem i warzywami.",
       "en_GB": "Chicken with rice and vegetables",
+      "de": "Hähnchen mit Reis und Gemüse",
       "detail_sha256": "4107fb76f0fca00f464940208ada48d3ce2f4aa4593fd157977e9f85e2435528"
     },
     "db344e04-3f19-5a6f-a246-b57588fc012f": {
       "source": "Zupa pomidorowa z makaronem",
       "description": "Domowa zupa pomidorowa na passacie, podawana z drobnym makaronem.",
       "en_GB": "Tomato soup with pasta",
+      "de": "Tomatensuppe mit Pasta",
       "detail_sha256": "4190b9064cccc17fec7a21d386e4d5add797882aa89aaa4050995eb04a177269"
     },
     "b7aef4b2-c6a5-5f65-b09a-35b5fdc51958": {
       "source": "Sałatka z łososiem",
       "description": "Lekka sałatka z wędzonym łososiem, ogórkiem i pomidorami.",
       "en_GB": "Salmon salad",
+      "de": "Salmonidensalat",
       "detail_sha256": "4ebaf506c95d62a5a972c22c9f73cd3c03c676286c168b86d8d5e7a75e8ecb64"
     },
     "724873c2-9f8e-540b-b0d8-e174f9bfc567": {
       "source": "Naleśniki z serem",
       "description": "Delikatne naleśniki nadziewane twarogiem z masłem.",
       "en_GB": "Quark-filled pancakes",
+      "de": "Quarkgefüllte Pfannkuchen",
       "detail_sha256": "efc8db858c6bb475a0887f53eece21f56e29532e4643a71854dacd95b306c3c4"
     },
     "c5ac116e-8f12-5012-87bb-5463dfc3bbc1": {
       "source": "Tosty z jajkiem i awokado",
       "description": "Chrupiące tosty z jajkiem sadzonym i kremowym awokado.",
       "en_GB": "Egg and avocado toast",
+      "de": "Egg und Avocado Toast",
       "detail_sha256": "b29b9d3176058954bb0fcbc1fbd10d227595bfa7b514334b74038b3d5c119364"
     },
     "28fc4da5-422c-5382-8ada-5ef1baa38a2c": {
       "source": "Shakshuka",
       "description": "Jajka gotowane w pikantnym sosie pomidorowym z papryką i cebulą.",
       "en_GB": "Shakshuka",
+      "de": "Shakshuka",
       "detail_sha256": "18686e9a4377b793ee0b099380ac683de0e488d226d9b355ef22c79e5ee0cbd2"
     },
     "398c64af-a143-5970-81ce-a7a658698267": {
       "source": "Pad Thai z kurczakiem",
       "description": "Klasyczny tajski makaron smażony z kurczakiem, orzeszkami i limonką.",
       "en_GB": "Chicken Pad Thai",
+      "de": "Chicken Pad Thai",
       "detail_sha256": "54a9a047aefcffa44bd69700f0730137d0946dbe59ab9647bb3fdc26a2c3f0fa"
     },
     "5b86bd7a-2211-5b46-afbe-5a577c6797a7": {
       "source": "Bowl z quinoa i awokado",
       "description": "Zdrowa miska z quinoa, świeżym awokado, pomidorkami i hummusem.",
       "en_GB": "Quinoa and avocado bowl",
+      "de": "Quinoa und Avocado Bowl",
       "detail_sha256": "d92c93db57a05df10f0400804f1448cd6efa267eb2b5bb3c1f526bb4a3f50fe3"
     },
     "77999fdc-bd24-501e-b186-fa3272960311": {
       "source": "Risotto z grzybami leśnymi",
       "description": "Kremowe risotto z mieszanką grzybów leśnych i parmezanem.",
       "en_GB": "Wild mushroom risotto",
+      "de": "Wildpilz-Risotto",
       "detail_sha256": "08734a7439762cbab82c6f4daa6b4cc0ef58af8379c95c16adf475c448ccff41"
     },
     "7e2019e7-4d18-554b-867f-04227f3f6269": {
       "source": "Overnight oats z chia i owocami",
       "description": "Owsianka przygotowana wieczorem. rano gotowa do jedzenia z owocami.",
       "en_GB": "Overnight oats with chia and fruit",
+      "de": "Übernachtung Hafer mit Chia und Obst",
       "detail_sha256": "f857cf5a79142fffb831583984670eaa95391d2395e95743f97e67ed8599c06e"
     },
     "589e0c80-ba08-599b-ade4-3de652e05695": {
       "source": "Jajka na twardo z awokado i tostem",
       "description": "Pożywne śniadanie białkowe z kremowym awokado.",
       "en_GB": "Hard-boiled eggs with avocado and toast",
+      "de": "Hartgekochte Eier mit Avocado und Toast",
       "detail_sha256": "278aa425d097723ab47a8e202dc6fb32429eec9848922399db6062dd996debf6"
     },
     "0c1d3e54-9b86-55c3-9a3c-0ac389bedb1d": {
       "source": "Granola owsiana z miodem i orzechami",
       "description": "Domowa granola. chrupiąca, słodka, świetna z jogurtem.",
       "en_GB": "Oat granola with honey and nuts",
+      "de": "Hafer-Granola mit Honig und Nüssen",
       "detail_sha256": "273bbe0499c6d0f92d749198d37acd6679713c04ca800580f4a7e7e1b1961f0f"
     },
     "8db60146-69af-56fe-a294-c74025b4ee3b": {
       "source": "Kanapki z pastą jajeczną",
       "description": "Klasyczna pasta jajeczna na kanapki, gotowa w 10 minut.",
       "en_GB": "Egg spread sandwiches",
+      "de": "Sandwiches mit Eierspread",
       "detail_sha256": "a12d3d92d85f6921851e94937e09e1b6eface5fd2bfd89ad2b0d57973c90318d"
     },
     "59a5939a-627b-5d9e-bc3e-18295e79f567": {
       "source": "Placki jaglane na słodko",
       "description": "Placuszki z kaszy jaglanej. lekkostrawne śniadanie bez glutenu.",
       "en_GB": "Sweet millet pancakes",
+      "de": "Pfannkuchen, gesüßt",
       "detail_sha256": "fe51886c0831cd5aed48a5c79c4c3ab1752bba1e3ca281c05b45d88a17ca5542"
     },
     "c6653ad4-8642-58f3-b88f-3986697f985e": {
       "source": "Omlet z warzywami",
       "description": "Puszysty omlet z papryką, cebulą i serem.",
       "en_GB": "Vegetable omelette",
+      "de": "Pflanzliches Omelett",
       "detail_sha256": "de23d6daa9d472135a65cc3d98d8b3550b772c89a0621a47715c84033c20b04c"
     },
     "2c6f3f3b-948c-56d8-9e36-eebe5d3b4785": {
       "source": "Musli z mlekiem kokosowym i mango",
       "description": "Egzotyczne, orzeźwiające śniadanie na zimno.",
       "en_GB": "Muesli with coconut milk and mango",
+      "de": "Muesli mit Kokosmilch und Mango",
       "detail_sha256": "e2e7015163d415d60a0a1e421836edeb4ce8bd496801fe096a6bb229bc3c0568"
     },
     "569057a6-85a0-5cd8-b8e3-eb4a63519ab7": {
       "source": "Tost francuski z cynamonem",
       "description": "Słodkie śniadanie na weekend. chrupiący na zewnątrz, miękki w środku.",
       "en_GB": "Cinnamon French toast",
+      "de": "Cinnamon Französisch Toast",
       "detail_sha256": "258bb91a933989f0290d8b4b74afa54625713cda666f5a2f6ce00b25d7a34d9d"
     },
     "c31d2370-9494-544c-aafc-93c4c8359d8b": {
       "source": "Smoothie bowl bananowo-truskawkowe",
       "description": "Gęste smoothie w misce, podane z dodatkami do chrupania.",
       "en_GB": "Banana and strawberry smoothie bowl",
+      "de": "Bananen- und Erdbeer-Smoothieschale",
       "detail_sha256": "61e18f50c804bfff6f8d59a7f0833511b162262b5f33cac378cab3b574e8517f"
     },
     "0f79b1e7-31c4-508f-abfd-25530b507ca2": {
       "source": "Kanapka z hummusem i warzywami",
       "description": "Lekka, roślinna kanapka na szybkie śniadanie.",
       "en_GB": "Hummus and vegetable sandwich",
+      "de": "Hummus und Gemüsesandwich",
       "detail_sha256": "1cfe5f24c7dd70204f106f9617183e1304fabd8a72091a70fc814655d260e407"
     },
     "4b99c3d3-abfe-570d-b484-6e2f6394363e": {
       "source": "Owsianka z masłem orzechowym i bananem",
       "description": "Sycąca owsianka na słodko, pełna energii na cały poranek.",
       "en_GB": "Porridge with peanut butter and banana",
+      "de": "Brei mit Erdnussbutter und Bananen",
       "detail_sha256": "64571d6ba99f51f02299d960de7e1771428f8d31b5aa51e4b284ea36a6ff29ec"
     },
     "9478a09e-09d6-56a9-abb2-2311261441b9": {
       "source": "Jajka sadzone z pomidorami i bazylią",
       "description": "Proste śniadanie na patelni. gotowe w 10 minut.",
       "en_GB": "Fried eggs with tomatoes and basil",
+      "de": "Gebratene Eier mit Tomaten und Basilikum",
       "detail_sha256": "8258bf532cde049064efc65b420d05e7d9a6bf56208783272b3cd9fa6045d10d"
     },
     "77505aa1-2038-5bab-a7a1-37b357838f46": {
       "source": "Naleśniki jaglane z owocami",
       "description": "Cienkie naleśniki bez glutenu, na bazie kaszy jaglanej.",
       "en_GB": "Millet pancakes with fruit",
+      "de": "Hirse Pancakes mit Früchten",
       "detail_sha256": "55815ead68dc60a6711fec66e5958182a83e351f17d67eeb3f840cc5a05f4a32"
     },
     "ee2c3d1e-5379-5295-8d90-276113fd86d8": {
       "source": "Makaron z brokułami i parmezanem",
       "description": "Prosty, kremowy makaron. idealny na szybki obiad.",
       "en_GB": "Pasta with broccoli and Parmesan",
+      "de": "Pasta mit Brokkoli und Parmesan",
       "detail_sha256": "cbd54243aa2c0b04d2b9c1cef44c296fd71a2a1f5eecde1b8f89d959978c3d34"
     },
     "a910ad86-f2df-5b47-91d0-98bc557d742d": {
       "source": "Krem z brokułów",
       "description": "Aksamitna zupa krem, gotowa w pół godziny.",
       "en_GB": "Creamy broccoli soup",
+      "de": "Cremige Brokkoli-Suppe",
       "detail_sha256": "6045fc5aed93863798360a2086a0a004ef329abcfe9ced6140423b60c42dbb1b"
     },
     "ca1f669e-e4b1-5684-b882-d908f0ada1bf": {
       "source": "Krem z kalafiora",
       "description": "Delikatna, kremowa zupa. świetna baza na chłodniejsze dni.",
       "en_GB": "Creamy cauliflower soup",
+      "de": "Cremige Blumenkohlsuppe",
       "detail_sha256": "60afa66e52913d93e477a444721a75e25eee9d1cfbe75dfa54a8baeea164d6bb"
     },
     "0f61c083-e864-519d-973f-7ce5808434b5": {
       "source": "Zupa krem z pieczarek",
       "description": "Klasyczna zupa pieczarkowa w wersji kremowej.",
       "en_GB": "Creamy mushroom soup",
+      "de": "Cremige Pilzsuppe",
       "detail_sha256": "d0c9b06fe3e1f86bec692bf8548c25970905200f87e2c2bf9ed11c7b6aec85a5"
     },
     "44edb02e-2868-5aad-a3cd-5f7f687a3345": {
       "source": "Zupa jarzynowa z porem",
       "description": "Rozgrzewająca zupa warzywna na bulionie.",
       "en_GB": "Vegetable soup with leek",
+      "de": "Gemüsesuppe mit Lauch",
       "detail_sha256": "b1eb5b41ee557d82a3533944bca9022e3ccade57a5d0371c93d6c6487e59c90c"
     },
     "d0b29f2a-2e29-5346-9add-80a00f261a2e": {
       "source": "Kurczak curry z ryżem",
       "description": "Aromatyczne curry z mlekiem kokosowym. łagodne i sycące.",
       "en_GB": "Chicken curry with rice",
+      "de": "Chicken Curry mit Reis",
       "detail_sha256": "19afb94a7874b2557f602d8339c63a61e929ac184e2da072d7e9f0252fa09aad"
     },
     "d2c365e5-eb1b-51d3-9d87-40ed496f9f2a": {
       "source": "Gulasz wołowo-wieprzowy",
       "description": "Gęsty, rozgrzewający gulasz duszony powoli.",
       "en_GB": "Beef and pork stew",
+      "de": "Eintopf von Rindfleisch und Schweinefleisch",
       "detail_sha256": "d2f11af1a60fa767edd91edb90d171740583685f94a99d36117d0e0441463b4c"
     },
     "b15211a9-db8a-50ce-963c-df2735cf92c3": {
       "source": "Chili con carne",
       "description": "Pikantne, sycące danie jednogarnkowe z fasolą.",
       "en_GB": "Chilli con carne",
+      "de": "Chilli con carne",
       "detail_sha256": "b3e2be75ea5e0983fd85995ad93f71392fa1b496999209d9dccdcbd3b61fd508"
     },
     "e57a77c7-c21d-50d2-9ebb-4671f6feae62": {
       "source": "Tacos z indykiem",
       "description": "Meksykański klasyk. chrupiące tortille z pikantnym nadzieniem.",
       "en_GB": "Turkey tacos",
+      "de": "Tacos mit Putenfleisch",
       "detail_sha256": "88dce478e12c502ddc7ee8ffb6551b4feeac8798f72cbe515190f042cfc2c010"
     },
     "fbceebbf-fdac-5b0d-8a1e-0c5c148142f7": {
       "source": "Burrito bowl z kurczakiem",
       "description": "Kolorowa miska w stylu meksykańskim, pełna sycących składników.",
       "en_GB": "Chicken burrito bowl",
+      "de": "Hähnchen-Burritoschale",
       "detail_sha256": "09d6cae6985cc9e5202190738ed53738553e92ef5d69575b941c8b38b6760bff"
     },
     "932e2fa6-5646-5c79-ba66-a1944b8a2c41": {
       "source": "Makaron z tuńczykiem i pomidorami",
       "description": "Szybki obiad z puszki. gotowy w 20 minut.",
       "en_GB": "Tuna and tomato pasta",
+      "de": "Thunfisch und Tomatenteigwaren",
       "detail_sha256": "ac79ddb87241e44990b244ea6b35af7b302bf960c1f4c5cc081144c91b38d1e1"
     },
     "04b92d3c-bf59-5c71-b75c-5508dad1eee7": {
       "source": "Sałatka z kurczakiem i awokado",
       "description": "Sycąca sałatka obiadowa, bogata w białko i zdrowe tłuszcze.",
       "en_GB": "Chicken and avocado salad",
+      "de": "Hühnchen- und Avocadosalat",
       "detail_sha256": "af7dc286d6da7605ca6b3e5aea1877210dbe765ac32eb8b62422a33d361bf4dc"
     },
     "b5075784-71ca-55c0-a06c-f40386a68c69": {
       "source": "Sałatka z ciecierzycą i fetą",
       "description": "Roślinna sałatka pełna białka, śródziemnomorski klimat.",
       "en_GB": "Chickpea and feta salad",
+      "de": "Kichererbse und Feta-Salat",
       "detail_sha256": "edd82615902f9f6d35809db4a33c2bccf38b9d31cca7b90e61269780d9a44fa4"
     },
     "a7ec4a38-8952-52fe-8b33-1d2942092695": {
       "source": "Soczewica po indyjsku (dal)",
       "description": "Rozgrzewające, roślinne danie jednogarnkowe z curry.",
       "en_GB": "Indian-style lentil dal",
+      "de": "Lentil dal im indischen Stil",
       "detail_sha256": "b6a6025df46084e1248f3e59d6e422b34a7da3596a1cb0b5ded7651e9e6c8a11"
     },
     "15e96d38-09f4-511d-9a78-d184fffa6eed": {
       "source": "Kotlety mielone z indyka",
       "description": "Lekkie kotlety z drobiu, dobra alternatywa dla klasycznych mielonych.",
       "en_GB": "Turkey mince patties",
+      "de": "Frikadellen aus Putenhack",
       "detail_sha256": "7905f2a725eeecd3ebbe6a00474ba59260f6f2bb81d4f4f57a7136975f530439"
     },
     "2c624dee-4767-581b-a92f-2b9856a9eff7": {
       "source": "Kurczak pieczony z warzywami",
       "description": "Jednogarnkowy obiad prosto z piekarnika.",
       "en_GB": "Roast chicken with vegetables",
+      "de": "Brathähnchen mit Gemüse",
       "detail_sha256": "95097785bdc66e72f62f4bf1f5e07c062c213fcaf33c7a8d83134509d7bc6029"
     },
     "53a5a6cd-e9ab-5f31-a5bf-822e66dc1e7b": {
       "source": "Dorsz pieczony z cytryną i ziołami",
       "description": "Lekki obiad rybny. gotowy w pół godziny.",
       "en_GB": "Cod baked with lemon and herbs",
+      "de": "Mit Zitrone und Kräutern gebackener Kabeljau",
       "detail_sha256": "a6b9458435147abc0ae0175ceda68a0598a09374775ced73df56da773cd02e0e"
     },
     "fc5ee50f-1091-5f4b-a80a-a28a3f1bf4de": {
       "source": "Krewetki curry z ryżem",
       "description": "Szybkie, aromatyczne danie w azjatyckim stylu.",
       "en_GB": "Prawn curry with rice",
+      "de": "Garnelencurry mit Reis",
       "detail_sha256": "d841d626c530c1af9cead4118bd4f5c30e2d27b576e724fffe0b232007245e69"
     },
     "783dba78-6154-5291-99ea-a5202445a6e9": {
       "source": "Placki ziemniaczane",
       "description": "Chrupiące placki, klasyka polskiej kuchni.",
       "en_GB": "Potato pancakes",
+      "de": "Kartoffelpfannkuchen",
       "detail_sha256": "f28be7c8fd2b5bdd6b35339c5516b2ccc56125a4c21076293e1162b87080cfb1"
     },
     "a2c91d72-d3e9-59d8-b78f-db9b472481b6": {
       "source": "Bigos szybki",
       "description": "Uproszczona wersja klasycznego bigosu na obiad w tydzień.",
       "en_GB": "Quick bigos",
+      "de": "Schnelle Bigos",
       "detail_sha256": "fccb50edb77661ccbbc09c525f620dec6d2bff2c12f1fd4a77d51ca6e1b34e84"
     },
     "efe248e8-006a-5550-8f37-50f052e6c3f2": {
       "source": "Pierogi leniwe",
       "description": "Twarogowe kluski. szybsze niż tradycyjne pierogi.",
       "en_GB": "Lazy quark dumplings",
+      "de": "Lazy Quark Dumplings",
       "detail_sha256": "be661b05a30ff9d5387aa7da671661c0a770f426982e230133d92939f6c7c06c"
     },
     "12b3ccac-44fe-5883-a726-dd3d51880f47": {
       "source": "Kotlety schabowe z kapustą pekińską",
       "description": "Wariacja klasycznego kotleta z lekką surówką.",
       "en_GB": "Pork cutlets with Chinese cabbage",
+      "de": "Schweineschnitzel mit chinesischem Kohl",
       "detail_sha256": "4739b9938f850d04aaf3a1bbd35995ca68bab37256e36c5ca6beec570cb7115f"
     },
     "fa0cc5d6-1e39-5db5-bdf0-5d4018f76149": {
       "source": "Makaron z cukinią i parmezanem",
       "description": "Lekki, letni makaron. gotowy w kwadrans.",
       "en_GB": "Courgette and Parmesan pasta",
+      "de": "Zucchini und Parmesan Pasta",
       "detail_sha256": "82b459993cb81feee8e7842ca24d9284b6ca839231fd2ee55ff794a8c3d2b373"
     },
     "aada2940-9574-5b23-a23e-7030f7d2b021": {
       "source": "Risotto z krewetkami",
       "description": "Kremowe risotto z owocami morza.",
       "en_GB": "Prawn risotto",
+      "de": "Garnelenrisotto",
       "detail_sha256": "184659575567ff3b52ef96854a7c090a24d96d002378b3848080a28fb3285bd5"
     },
     "7760a7bf-c07f-56e8-b1e4-8c59b54fc225": {
       "source": "Kasza gryczana z pieczarkami i cebulą",
       "description": "Sycące, wegetariańskie danie w tradycyjnym, polskim stylu.",
       "en_GB": "Buckwheat with mushrooms and onion",
+      "de": "Buchweizen mit Pilzen und Zwiebeln",
       "detail_sha256": "df8421b0d1adb32902bb310158dfb9d5b223ae2257229ae8b1efa1c708252c13"
     },
     "5725b5c2-eaa5-5f7c-8c64-d4ca428bec52": {
       "source": "Zapiekanka z cukinii i sera",
       "description": "Lekka zapiekanka warzywna z piekarnika.",
       "en_GB": "Courgette and cheese bake",
+      "de": "Zucchini und Cheese Bake",
       "detail_sha256": "299ec6a9af6a7041276d4088686ddd31d999774dc5ac2bb4705c783210672851"
     },
     "1b91ab9f-7b8d-5caf-aac4-a8a73b6007b2": {
       "source": "Bakłażan zapiekany po grecku",
       "description": "Aromatyczny, roślinny obiad w śródziemnomorskim stylu.",
       "en_GB": "Greek-style baked aubergine",
+      "de": "Griechisch gebackene Auberginengine",
       "detail_sha256": "8f26a663c06bf6be71493f9c248c530f12fb0987d2083539de42a538d0fadd6e"
     },
     "7149e822-7654-59c8-a8e3-81890685533f": {
       "source": "Sałatka z tuńczykiem i jajkiem",
       "description": "Lekka, białkowa kolacja gotowa w 15 minut.",
       "en_GB": "Tuna and egg salad",
+      "de": "Thunfisch und Eiersalat",
       "detail_sha256": "ca34de98a055c68372a00074f288edd0fcedb8c85cc7c23b7cd2f3509c12c464"
     },
     "be56627e-b725-549a-812e-03e9e2f31e30": {
       "source": "Kanapki caprese",
       "description": "Włoska klasyka na kanapce. pomidor, mozzarella, bazylia.",
       "en_GB": "Caprese sandwiches",
+      "de": "Caprese-Sandwiches",
       "detail_sha256": "65181bc5d2c1e0f2ad97467cd685cb9493211f9f2992bb9e796afd98fa9e17e5"
     },
     "1c821110-1d90-5e44-825b-bd77a2e6ba2e": {
       "source": "Sałatka caprese",
       "description": "Prosta, elegancka sałatka na ciepłe wieczory.",
       "en_GB": "Caprese salad",
+      "de": "Steinkohlensalat",
       "detail_sha256": "7c0b5d3a1f098ff8b37c3920c4516a657ddeafed887129c7fca833f4d0d6bcb2"
     },
     "ec67eb34-af7b-50b4-88d3-6e8cdd2713b2": {
       "source": "Omlet na słono z serem i szczypiorkiem",
       "description": "Prosta, szybka kolacja na słono.",
       "en_GB": "Savoury cheese and chive omelette",
+      "de": "Süßkäse und Schnittomelett",
       "detail_sha256": "dae576acb3773fc088b1a44feece955357f2f5563ef9db7c386b302ecc1e67ca"
     },
     "95b35fc0-3ab0-5e4d-9453-5f20724ea012": {
       "source": "Tost z hummusem i warzywami",
       "description": "Roślinna, lekka kolacja gotowa w kilka minut.",
       "en_GB": "Hummus and vegetable toast",
+      "de": "Hummus und Gemüsetoast",
       "detail_sha256": "525afa736d3ba6ce9f2e4f0a5eb403749ea938460e6e9d54dd2c0520928517a3"
     },
     "9c05677e-a735-56ab-a085-5507e041567e": {
       "source": "Sałatka z soczewicy i fety",
       "description": "Sycąca, roślinna sałatka na kolację.",
       "en_GB": "Lentil and feta salad",
+      "de": "Linsen- und Feta-Salat",
       "detail_sha256": "50d7b1d8cf21b4d10600ce2a04a6ef9ff5ef5aac7f99e32a6a8d969392ab57fb"
     },
     "c4176f35-313b-5816-bc3c-cbae1148d14a": {
       "source": "Wrap z kurczakiem i warzywami",
       "description": "Zawijana kolacja. szybka i syta.",
       "en_GB": "Chicken and vegetable wrap",
+      "de": "Hühner- und Gemüsehülle",
       "detail_sha256": "40955cbc0fd062fedcf1ad3dca3c6be3d3e1ffbba7201a3d887d9bdc2c43fa17"
     },
     "4aad26dc-491e-58a4-860d-169f97fa446c": {
       "source": "Quesadilla z serem",
       "description": "Chrupiąca, meksykańska przekąska na kolację.",
       "en_GB": "Cheese quesadilla",
+      "de": "Käsequesadilla",
       "detail_sha256": "10eff40b602aa7e4b9ed27ba9b29a64dd238ba7dfe4c9e2f20b819b381916d0b"
     },
     "42c2799a-a69e-5097-baa1-5e7c20a89279": {
       "source": "Zupa krem z brokuła i sera",
       "description": "Kremowa, rozgrzewająca zupa na wieczór.",
       "en_GB": "Creamy broccoli and cheese soup",
+      "de": "Cremiger Brokkoli und Käsesuppe",
       "detail_sha256": "0f8bb4ccd666039cc0c4b7b057937c5d19d79da07820791f3f7ffd6ef5e1c20c"
     },
     "6fa98cd6-f081-53aa-9a67-2ab63be67bc1": {
       "source": "Kanapki z pastą z ciecierzycy",
       "description": "Roślinna pasta kanapkowa. sycąca i pełna błonnika.",
       "en_GB": "Chickpea spread sandwiches",
+      "de": "Sandwiches mit Kichererbsenspread",
       "detail_sha256": "40354e3532615bbd82425fd7bea41890247a413ad86af5e7e51c2fb63b758bba"
     },
     "209c3bed-af69-52aa-9c6b-0f89d559c9dc": {
       "source": "Sałatka grecka z krewetkami",
       "description": "Sycąca wersja sałatki greckiej z owocami morza.",
       "en_GB": "Greek salad with prawns",
+      "de": "Griechischer Salat mit Garnelen",
       "detail_sha256": "d4760b36eb84f793e19a9b405e55e06f1829c47b06ec99e8411f938fbbc8b3fe"
     },
     "b64e7f9a-e56d-5afd-8d44-0a4f1f760fad": {
       "source": "Zupa krem porowa",
       "description": "Delikatna, elegancka zupa na kolację.",
       "en_GB": "Creamy leek soup",
+      "de": "Cremige Lauchsuppe",
       "detail_sha256": "6ab3aea4933a185a7399ab9ae1376490acf4dcc095c807d5ea9755efb86f4f78"
     },
     "d7cf84d9-38e4-58df-96fa-67797eadc6a9": {
       "source": "Tosty z pastą jajeczną i szczypiorkiem",
       "description": "Klasyczna kanapkowa pasta na kolację.",
       "en_GB": "Toast with egg spread and chives",
+      "de": "Toast mit Eieraufstrich und Schnittlauch",
       "detail_sha256": "305579b785ea19954968fb45fd235ea92f2d858fcf141531ddd33c321e19d3d0"
     },
     "74104ff2-cd44-5a52-a85c-5745154a92d8": {
       "source": "Sałatka z awokado i jajkiem",
       "description": "Kremowa, sycąca sałatka wieczorna.",
       "en_GB": "Avocado and egg salad",
+      "de": "Avocado und Eiersalat",
       "detail_sha256": "5665585dea11973377089a00befe56211e02332a9798e8d604ab5978bd680337"
     },
     "8f6fb737-de3b-550b-b438-c8c2dd4d3963": {
       "source": "Pieczone chipsy z kalafiora",
       "description": "Chrupiąca, zdrowa alternatywa dla chipsów.",
       "en_GB": "Baked cauliflower crisps",
+      "de": "Gebackene Blumenkohlchips",
       "detail_sha256": "7b503cdce3987dc6c46248518827c06d7671c45e89c2034901c039db685d38ef"
     },
     "95274b72-f88c-5d13-a6b9-2e30733ace6d": {
       "source": "Kulki mocy owsiano-orzechowe",
       "description": "Domowa przekąska energetyczna bez pieczenia.",
       "en_GB": "Oat and nut energy balls",
+      "de": "Hafer- und Nussenergiekugeln",
       "detail_sha256": "7caf51034315aeb0bfeb158353d1ea51b35001dd94bbccb4e0f2dce602e7714d"
     },
     "a2cdb279-14d7-5041-8c06-946e3792f1db": {
       "source": "Pieczona chrupiąca ciecierzyca",
       "description": "Chrupiąca, przyprawiona przekąska zamiast chipsów.",
       "en_GB": "Crispy roast chickpeas",
+      "de": "Knusprige Kichererbsen",
       "detail_sha256": "f964241278fc6a62ee65628022afea1244e0176450407e53546e71fda4aa4134"
     },
     "a4c78632-3bd4-586e-8e5e-8cd12bedb0b3": {
       "source": "Smoothie mango-bananowe",
       "description": "Orzeźwiające, owocowe smoothie na szybką przekąskę.",
       "en_GB": "Mango and banana smoothie",
+      "de": "Mango und Bananen-Smoothie",
       "detail_sha256": "6041ec9b879dd0b10829d43de1908729ee01ca4cba4924166e3525d8435c5470"
     },
     "6930a8b4-c3b7-5e95-919a-b65016203592": {
       "source": "Jogurt z granolą i miodem",
       "description": "Prosta, słodka przekąska na każdą porę dnia.",
       "en_GB": "Yoghurt with granola and honey",
+      "de": "Joghurt mit Müsli und Honig",
       "detail_sha256": "bd84f0229bf238ac8c30d3d303131f118efc4c32b473f00d2328f7e845d791d3"
     },
     "d99b4d0e-e07f-5f92-aee6-77dc687baa3a": {
       "source": "Sałatka owocowa",
       "description": "Kolorowa mieszanka świeżych owoców.",
       "en_GB": "Fruit salad",
+      "de": "Obstsalat",
       "detail_sha256": "66b54ae734d32b2fb3ae8644e4b761a81440c84df0fc4f6da252f61d955d71c5"
     },
     "db84cd7b-5862-5580-93ee-7b5a709adcca": {
       "source": "Guacamole z warzywami",
       "description": "Kremowy, meksykański dip z chrupiącymi warzywami do maczania.",
       "en_GB": "Guacamole with vegetables",
+      "de": "Guacamole mit Gemüse",
       "detail_sha256": "ca6d0fbf96de408623c42ec889e530108f62d573dbafd1859e53cb06a23eef8e"
     },
     "c863242f-75a0-5797-94f6-4d83699ff416": {
       "source": "Musli batoniki owsiane",
       "description": "Domowe batoniki zbożowe. świetne na wynos.",
       "en_GB": "Oat muesli bars",
+      "de": "Hafermuscheln",
       "detail_sha256": "e6aa0156f9462413e4290fc77ff29f298f45c6196a19d4d189be01343cfc697c"
     },
     "c880b76c-0d51-5ac6-b7e9-37e6e35430fe": {
       "source": "Tost z awokado i pomidorem",
       "description": "Prosty, w pełni roślinny tost. szybkie śniadanie.",
       "en_GB": "Avocado and tomato toast",
+      "de": "Avocado und Tomatentoast",
       "detail_sha256": "3d3a1441305a675e0a3d45953bad7d1ec6d1d0449a0bcd73d1982f68c0be6f20"
     },
     "37537c67-3fc6-5cf2-861b-b0107ca86263": {
       "source": "Curry z ciecierzycą i szpinakiem",
       "description": "Rozgrzewające, w pełni roślinne curry. sycące i szybkie.",
       "en_GB": "Chickpea and spinach curry",
+      "de": "Kichererbse und Spinat-Curry",
       "detail_sha256": "a6e97b908b7ddc8b0c3b835177a89682cb2a7787be0c325bb2c279238bc82143"
     },
     "de804b96-24c5-5e16-a2bb-a3f76aaf8392": {
       "source": "Sałatka z ciecierzycą i awokado",
       "description": "Sycąca, w pełni roślinna sałatka na kolację.",
       "en_GB": "Chickpea and avocado salad",
+      "de": "Kichererbse und Avocado-Salat",
       "detail_sha256": "4c7497c17b7f6e8071705ecc20ffde25ec8f8a0dc062f5fdabc9da111b75e9bb"
     },
     "cf6c18c6-bfc3-5b80-b676-2f47dc2ac88f": {
       "source": "Makaron z pomidorami i bazylią",
       "description": "Klasyczny, w pełni roślinny makaron pomodoro.",
       "en_GB": "Tomato and basil pasta",
+      "de": "Tomaten- und Basilikum-Teigwaren",
       "detail_sha256": "da73c4509b8156f5d7640f7de2b4838545660ca4d2af3c300f70a78acb95000d"
     },
     "fef808dd-f283-5b27-9c0a-52ecff35858f": {
       "source": "Kasza gryczana z warzywami",
       "description": "Sycąca, w pełni roślinna kasza z warzywami na patelni.",
       "en_GB": "Buckwheat with vegetables",
+      "de": "Buchweizen mit Gemüse",
       "detail_sha256": "506ca16dc42a93192cc0a76ef726b7604349a65eddaa2c954911edfba6fb354b"
     },
     "644406b6-bee2-5da4-b050-1efd1ff1da18": {
       "source": "Awokado z jajkiem sadzonym",
       "description": "Niskowęglowodanowe śniadanie bez pieczywa.",
       "en_GB": "Avocado with fried eggs",
+      "de": "Avocado mit gebratenen Eiern",
       "detail_sha256": "98d85db91262c773aa27c8c04131effbe3e32474205112b010dff56034d68d97"
     },
     "8403654e-b581-58f0-a9b6-e1410e1f7b1f": {
       "source": "Kurczak z masłem ziołowym i brokułem",
       "description": "Niskowęglowodanowy, wysokobiałkowy obiad.",
       "en_GB": "Chicken with herb butter and broccoli",
+      "de": "Hähnchen mit Kräuterbutter und Brokkoli",
       "detail_sha256": "ec6c225b4dd90c71aff751a2e2494eaad795e1144f181f115713e1c841714e45"
     },
     "9f1da5ac-f8f8-5411-a931-c62e85fee34d": {
       "source": "Jajka na twardo",
       "description": "Najprostsza, wysokobiałkowa przekąska niskowęglowodanowa.",
       "en_GB": "Hard-boiled eggs",
+      "de": "Hartgekochte Eier",
       "detail_sha256": "dc08306606906929d17549e5d50cb814b26fde9b67e48186735e4f82a75f998d"
     },
     "bd49465a-6329-5ae2-9d30-789658bb2b8e": {
       "source": "Oliwki z serem feta",
       "description": "Śródziemnomorska, niskowęglowodanowa przekąska.",
       "en_GB": "Olives with feta",
+      "de": "Oliven mit Feta",
       "detail_sha256": "22cc10330b6dede94eaa19b8f0ee2b466989b9b2dbadd70832baca2e367c9da8"
     },
     "9ce542e4-202d-5772-ba43-0a43baff60d5": {
       "source": "Twaróg z miodem",
       "description": "Prosta, wysokobiałkowa przekąska na słodko.",
       "en_GB": "Quark with honey",
+      "de": "Quark mit Honig",
       "detail_sha256": "3a821ee1b4af316e5379c51bdf617719b6db5558c5844d43551b7fba58b535c9"
     },
     "762e2a80-f4a7-52f4-82a2-8b0db789bd90": {
       "source": "Szynka z serem",
       "description": "Szybka, wysokobiałkowa przekąska bez gotowania.",
       "en_GB": "Ham with cheese",
+      "de": "Schinken mit Käse",
       "detail_sha256": "acae7ef06f3b71a39da7eeb1388a6c1fc1fa1fc6a077d3ad884ff585a7e1d161"
     },
     "e8e9eceb-ff92-54cc-96ce-2b92250af818": {
       "source": "Jogurt z orzechami",
       "description": "Prosta, wysokobiałkowa przekąska.",
       "en_GB": "Yoghurt with nuts",
+      "de": "Joghurt mit Nüssen",
       "detail_sha256": "f75e47f1903cd7dd581d504730dbb4b8ab67ccece4545edcc1492e671f43fdbc"
     },
     "c736ce38-9ced-50a6-acbb-52c827c2094f": {
       "source": "Sałatka z tuńczyka i ogórkiem",
       "description": "Lekka, wysokobiałkowa przekąska bez gotowania.",
       "en_GB": "Tuna and cucumber salad",
+      "de": "Thunfisch- und Gurkensalat",
       "detail_sha256": "b69bad8fe1f2024c8c50bfd8ec85755cc6a2c7f9771a1dee3ef672ec59b5dc49"
     },
     "ccf5dda8-d37d-5ec3-b06a-dca7d9b36702": {
       "source": "Mandarynkowe skrzydełka z airfryera",
       "description": "Soczyste skrzydełka w cytrusowej glazurze z tamari.",
       "en_GB": "Air fryer mandarin chicken wings",
+      "de": "Air Friteuse Mandarin Chicken Wings",
       "detail_sha256": "5e5bbd8097f5a8b7adc5fef33b7e37f0898e29192bb0a84be3db7e9cde15d0a9"
     },
     "289b9403-45b9-5819-8826-77a8ef18c9d3": {
       "source": "Łosoś teriyaki z fasolką z airfryera",
       "description": "Łosoś i świeża fasolka przygotowane razem w jednym koszu.",
       "en_GB": "Air fryer teriyaki salmon with green beans",
+      "de": "Air Friteus teriyaki Lachs mit grünen Bohnen",
       "detail_sha256": "b90cbd5cfb41cd41b1da27df9b67d27723e8afb258cac534a27b005ba12105d4"
     },
     "f7773aa5-4ed9-548b-898e-bd1f08f83e3e": {
       "source": "Paluszki z dorsza w panko z airfryera",
       "description": "Domowe paluszki rybne z chrupiącą panierką panko.",
       "en_GB": "Air fryer panko cod fingers",
+      "de": "Air Friteusenfischer",
       "detail_sha256": "1d28157a0e3657e81f8bf6430ce442524d7f59049d5b9dfb2aa75d93b5efbbb4"
     },
     "abea3214-ff82-599d-8445-51771f7078f9": {
       "source": "Krewetki kokosowe z airfryera",
       "description": "Krewetki w lekkiej panierce kokosowej z sosem sweet chili.",
       "en_GB": "Air fryer coconut prawns",
+      "de": "Kokosnussgarnelen",
       "detail_sha256": "a16cc1e2739b5405d15c781b3a90d5784602d7fb40985e66e8dd2e8236999dfc"
     },
     "db842b56-5d1a-5605-b544-2423cec71a16": {
       "source": "Polędwiczka w musztardzie francuskiej z airfryera",
       "description": "Delikatna wieprzowina z ziarnistą musztardą i szałwią.",
       "en_GB": "Air fryer pork tenderloin with wholegrain mustard",
+      "de": "Air Friteuse Schweinebrei mit Vollkornsenf",
       "detail_sha256": "16d464e5a9b74d275a45b23c6b097bb2cea0a1b34d8228d6c3f318725a81e3c8"
     },
     "403f1a1f-d8d4-5ab4-abe1-7c3c6e67791f": {
       "source": "Kofty z indyka z miętowym skyrem",
       "description": "Aromatyczne kofty z chudego indyka i chłodny sos miętowy.",
       "en_GB": "Turkey koftas with mint skyr",
+      "de": "Puten-Kofta mit Minz-Skyr",
       "detail_sha256": "5ca0ad2316ba9af921ecd3ad047715824eb5547469e423c1d336775e836c10aa"
     },
     "d574e639-4ef4-566f-b6d8-e8c0c3e90bb9": {
       "source": "Chrupiące tofu w sosie pomarańczowym",
       "description": "Kostki tofu z cytrusowym sosem i sezamem.",
       "en_GB": "Crispy tofu in orange sauce",
+      "de": "Knuspriger Tofu in Orangensauce",
       "detail_sha256": "1de445d1a92964cdc1628ee7b67fe0b540d105566f1bbc3553368f1faa102511"
     },
     "e62e32b6-38fb-565f-b158-e7559a245e67": {
       "source": "Falafel z airfryera z sosem tahini",
       "description": "Ziołowe kulki z ciecierzycy bez smażenia w głębokim tłuszczu.",
       "en_GB": "Air fryer falafel with tahini sauce",
+      "de": "Air Fritteuse Falafel mit Tahini-Sauce",
       "detail_sha256": "3e84d83f04b3525c60a50e20d9df252eba597ecd56ff84ad4db487441e7b7c7f"
     },
     "1abded16-336b-5ef7-98d0-cbdc29c7c1e4": {
       "source": "Frytki z halloumi z dipem granatowym",
       "description": "Chrupiące słupki halloumi z kwaśno-słodkim dipem.",
       "en_GB": "Halloumi fries with pomegranate dip",
+      "de": "Halloumi Pommes frites mit Granatapfel",
       "detail_sha256": "25ea691239e51d1b645c055ec9503baa50260692e5fcca7b6268616e6646d457"
     },
     "2eeb4a5a-74e5-56f1-a001-1dcb104c2006": {
       "source": "Arancini z mozzarellą z airfryera",
       "description": "Kulki ryżowe z ciągnącym serem i chrupiącą panierką.",
       "en_GB": "Air fryer mozzarella arancini",
+      "de": "Luftfritteuse Mozzarella arancini",
       "detail_sha256": "eb657ff61bcb8666b847366893964a58dcfeeaaf4f350b47f9e25b384ad8c1d6"
     },
     "1218b581-db34-5dc6-8a84-c533ac2441ff": {
       "source": "Chrupiące gnocchi z pesto rosso",
       "description": "Złociste gnocchi z suszonym pomidorem i świeżą bazylią.",
       "en_GB": "Crispy gnocchi with pesto rosso",
+      "de": "Crispy Gnocchi mit pesto rosso",
       "detail_sha256": "29ac3f26c1f7bdb86f2095c643cd4070eb79cd18db6e18cfd4470095be77213b"
     },
     "54c61382-dea6-5271-b0c5-6c291a58c9d1": {
       "source": "Portobello ze szpinakiem i ricottą",
       "description": "Duże kapelusze pieczarek z kremowym, ziołowym farszem.",
       "en_GB": "Portobello mushrooms with spinach and ricotta",
+      "de": "Portobello-Pilze mit Spinat und Ricotta",
       "detail_sha256": "873a9ae918e4518a7eabb28e364ab4121386a9675a78ed5025df6e8426a690fd"
     },
     "63f1a2a7-e152-56eb-bfc3-d714cd15c8c2": {
       "source": "Mini calzone z salami i żółtą papryką",
       "description": "Małe kieszonki z ciasta z wyrazistym włoskim nadzieniem.",
       "en_GB": "Mini calzones with salami and yellow pepper",
+      "de": "Mini-Calzonen mit Salami und Gelbpfeffer",
       "detail_sha256": "e357bad9f0cf45d603742026bd9be19f7ada1773ecb0fbc7a9ceaae007748432"
     },
     "1e1346b7-90d1-5379-9db1-6fa7fc49242e": {
       "source": "Placki z cukinii i pecorino z airfryera",
       "description": "Warzywne placki z wyrazistym owczym serem.",
       "en_GB": "Air fryer courgette and pecorino fritters",
+      "de": "Fritteusenkuchen und Pecorinofritteusen",
       "detail_sha256": "68da96ddda527966071dc7f1b90d89052d4a1f695b43ebd5d904a89a243fbcec"
     },
     "1af5b3b7-2180-5033-88cc-d4ba839d7d3d": {
       "source": "Bataty hasselback z fetą i harissą",
       "description": "Nacinane bataty z pikantną harissą i słoną fetą.",
       "en_GB": "Hasselback sweet potatoes with feta and harissa",
+      "de": "Hasselback-Süßkartoffeln mit Feta und Harissa",
       "detail_sha256": "1363a9f12d61edf4560ff71a6be349ca1aa863580bef14bd2097ded1df9805bc"
     },
     "656c2a92-cc06-577f-a251-35ff49f47eff": {
       "source": "Brukselka balsamiczna z orzechami pekan",
       "description": "Skarmelizowana brukselka z chrupiącymi orzechami.",
       "en_GB": "Balsamic Brussels sprouts with pecans",
+      "de": "Balsamico-Brüsselsprossen mit Pekannüssen",
       "detail_sha256": "c8d63e2d080ed5eb83944e450267db4fd5ab2693033c75053f9f1337ee4f07cd"
     },
     "5d413b6c-3bde-542e-88de-9a559e8c31ca": {
       "source": "Marchewkowe frytki zaatar z hummusem",
       "description": "Pieczone słupki marchewki z aromatyczną mieszanką ziół.",
       "en_GB": "Za'atar carrot fries with hummus",
+      "de": "Za'atar Karotten Pommes frites mit Hummus",
       "detail_sha256": "6113b8cbe87938b0efdaa7334addb98ed3074bc56a99ec334568d43ea3cd8b8a"
     },
     "0bc945f9-8342-5d84-a3b0-972485b9c1f1": {
       "source": "Frytki z polenty z sosem marinara",
       "description": "Złociste paluszki polenty do maczania w sosie pomidorowym.",
       "en_GB": "Polenta fries with marinara sauce",
+      "de": "Pommes frites mit Marinara-Sauce",
       "detail_sha256": "bb61d9f981760837806fd794bfd785e748ba715d6b01ae353f4fc297e858bbd4"
     },
     "5de972f2-183c-5156-805f-746ce414b694": {
       "source": "Brokułowe kąski z cheddarem",
       "description": "Miękkie w środku, rumiane kąski z brokułu i sera.",
       "en_GB": "Broccoli and Cheddar bites",
+      "de": "Broccoli und Cheddar-Bisse",
       "detail_sha256": "26b68520bd6226c28c2c1283d91054a6f104f0d0a1a8830c55930ca49fd5998e"
     },
     "1a0e4f77-aced-56f9-b6c3-77d9892074c8": {
       "source": "Wędzona kukurydza z limonką z airfryera",
       "description": "Kolby kukurydzy z limonką i dymnym aromatem papryki.",
       "en_GB": "Air fryer smoky corn with lime",
+      "de": "Luftfritteuse rauchiger Mais mit Limette",
       "detail_sha256": "14d4a4152d1801efae103c93d67d5b1f8b46dff0777d3e967ccc4ca465b124f6"
     },
     "be2451d0-791c-5750-a44f-7b60f50740a9": {
       "source": "Jabłkowe crumble z airfryera",
       "description": "Ciepłe jabłka pod kruszonką z płatków i orzechów.",
       "en_GB": "Air fryer apple crumble",
+      "de": "Air Friteuse Apfel bröckelt",
       "detail_sha256": "dba66fcc0a06dd9ad2492cbbee2ec1d2acd44132294ed8ed0704ce0b5c7de758"
     },
     "6bfb9318-302b-5351-83fc-4cae424081b9": {
       "source": "Gruszki z serem pleśniowym i pekanami",
       "description": "Pieczone gruszki z kremowym serem i chrupiącymi orzechami.",
       "en_GB": "Pears with mould-ripened cheese and pecans",
+      "de": "Birnen mit schimmelgereiftem Käse und Pekannüssen",
       "detail_sha256": "86245224d2c9ff3e5be363e1e2af439a1b197d96fdb494fd7414fac7bf07de1d"
     },
     "15e3ae67-96e9-56f4-b2ce-fb3ed3dd02df": {
       "source": "Pomarańczowe serniczki ze skyru",
       "description": "Małe serniczki ze skyru pachnące świeżą pomarańczą.",
       "en_GB": "Mini orange skyr cheesecakes",
+      "de": "Mini-Orange-Skyr-Käsekuchen",
       "detail_sha256": "2edd2ec846f1e8826257096711b51e61d6438d2e8e07d381a5bd209c7aebc7dc"
     },
     "e013e9f4-1519-51ef-9b75-2539ee4a4df7": {
       "source": "Bananowo-kakaowe muffinki z airfryera",
       "description": "Wilgotne muffinki słodzone dojrzałym bananem i daktylami.",
       "en_GB": "Air fryer banana and cocoa muffins",
+      "de": "Air Friteus Bananen- und Kakaomuffins",
       "detail_sha256": "8163b304485ca29191b37ecaed2ca14d2d0666bd00aea1bbc33f1e8532879021"
     },
     "e5b69f8c-346f-5227-90a3-2433a7ea3708": {
       "source": "Brzoskwiniowe rożki z ciasta francuskiego",
       "description": "Kruche rożki z brzoskwinią, migdałami i wanilią.",
       "en_GB": "Peach puff pastry turnovers",
+      "de": "Umschlag von Pfirsichpuffgebäck",
       "detail_sha256": "29f301374cfc479ae84f10d278901827463b6e5b807f02e7de69eb7bc0af9026"
     },
     "9b700d52-311a-564a-86b2-3598e27ef50c": {
       "source": "Sałatka z indykiem, dynią i pęczakiem",
       "description": "Jesienna propozycja: sałatka z indykiem, dynią i pęczakiem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
       "en_GB": "Warm turkey, pumpkin and barley salad",
+      "de": "Weißtruthühner-, Kürbis- und Gerstensalat",
       "detail_sha256": "1780bd3dad6135712dafdabe5cbec3ea574cc1fe88af39f8b8db9cda2da8494e"
     },
     "b355be88-0b8b-5874-a582-d81cc84574cc": {
       "source": "Owsianka marchewkowa z orzechami",
       "description": "Jesienna propozycja: owsianka marchewkowa z orzechami. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
       "en_GB": "Carrot cake porridge with walnuts",
+      "de": "Karottenkuchenbrei mit Walnüssen",
       "detail_sha256": "9ef6ee6c1a3da86df9648238ffbfcecb7d74901f889a9529fe4bccae2b8d18c5"
     },
     "2b5a96c1-cb41-5b2a-982e-7555734d91e5": {
       "source": "Quinoa z wołowiną i dynią",
       "description": "Jesienna propozycja: quinoa z wołowiną i dynią. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
       "en_GB": "Quinoa with beef and pumpkin",
+      "de": "Quinoa mit Rindfleisch und Kürbis",
       "detail_sha256": "d7ce0197471c632bd6e1748c03ec5d7d329cc0c49b6ff666486028a58bdfd6d8"
     },
     "36a1771f-37dd-51bd-964c-fc71e1f5e32b": {
       "source": "Meksykańska zupa z dynią i kukurydzą",
       "description": "Jesienna propozycja: meksykańska zupa z dynią i kukurydzą. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
       "en_GB": "Mexican pumpkin and sweetcorn soup",
+      "de": "Mexikanische Kürbis- und Zuckermaissuppe",
       "detail_sha256": "1e7d5d26d97ea76b11149bd95cddecaa2c2e901507a815f6a408d4b37ef66b2e"
     },
     "cbb746b3-22c3-54d7-aaff-fc99dab74f0a": {
       "source": "Gulasz wołowy z dynią",
       "description": "Jesienna propozycja: gulasz wołowy z dynią. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
       "en_GB": "Hungarian-style beef and pumpkin stew",
+      "de": "Rind- und Kürbiseintopf ungarischen Stils",
       "detail_sha256": "6413c69ae96e8c7be7f79f64bc2d691216628ec0d3cdfb064ef849f3032a78a4"
     },
     "b30efc57-5371-50a2-9656-bc34009f569d": {
       "source": "Pęczotto z wieprzowiną i burakami",
       "description": "Jesienna propozycja: pęczotto z wieprzowiną i burakami. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
       "en_GB": "Pork and beetroot pearl barley",
+      "de": "Schweine- und Rübenperlengerste",
       "detail_sha256": "1f6353abe2d4ab35d44be2848c25559bcda1103ba1e15a7ab5f7c77e0573852c"
     },
     "fd6c889c-f491-5aec-b77f-8c56d3fa4c89": {
       "source": "Gnocchi z pieczarkami i szpinakiem",
       "description": "Jesienna propozycja: gnocchi z pieczarkami i szpinakiem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
       "en_GB": "Mushroom and spinach gnocchi",
+      "de": "Pilze und Spinat-Gnocchi",
       "detail_sha256": "edb5bdb4643381c841f1499b0a8e1ef738bcfcacefb36893a065bff5b7f3d1cb"
     },
     "37c3c655-791a-5c62-b6fa-cf097144190f": {
       "source": "Makaron z karmelizowaną cebulą",
       "description": "Jesienna propozycja: makaron z karmelizowaną cebulą. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
       "en_GB": "One-pot caramelised onion pasta",
+      "de": "Eintopfige karamellisierte Zwiebelteigwaren",
       "detail_sha256": "034e5bb6e55e35210346908e768186505a2c613dd1208517fb436d7171d5dba2"
     },
     "2ef8f0f3-7982-5c09-83c1-db96d1f75394": {
       "source": "Chrupiący wrap z jabłkiem i twarogiem",
       "description": "Jesienna propozycja: chrupiący wrap z jabłkiem i twarogiem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
       "en_GB": "Crispy apple and quark wrap",
+      "de": "Knuspriger Apfel und Quark Wrap",
       "detail_sha256": "3d78bb0b981501a8b57b110dc3bcbc9ce2cf325e3063b720d54e4e699ad97679"
     },
     "fbb810be-1029-5b2c-a7c2-b99eccf90347": {
       "source": "Brukselka z halloumi i pęczakiem",
       "description": "Jesienna propozycja: brukselka z halloumi i pęczakiem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
       "en_GB": "Brussels sprouts, halloumi and barley",
+      "de": "Rosenkohlsprossen, Halloumi und Gerste",
       "detail_sha256": "8146209e65931074177e76664dce764e71296f94f26cdd4dd57e42a45df0eeff"
     },
     "50721369-9817-5ce7-b319-dfe8bdcd8b27": {
       "source": "Nocna owsianka z jabłkiem i orzechami",
       "description": "Jesienna propozycja: nocna owsianka z jabłkiem i orzechami. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
       "en_GB": "Apple and walnut overnight oats",
+      "de": "Apfel und Walnuss Nachthafer",
       "detail_sha256": "64b5563a5ed6baadbc58b905659302ccf040a3c21a6d5da862c9e4e8e57b5631"
     },
     "2cc18937-637d-57e7-be67-7f022cc67338": {
       "source": "Sałatka z soczewicą, indykiem i dynią",
       "description": "Jesienna propozycja: sałatka z soczewicą, indykiem i dynią. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
       "en_GB": "Lentil, turkey and pumpkin salad",
+      "de": "Linsen-, Puten- und Kürbissalat",
       "detail_sha256": "404045e24b98d9d30d00446f5cf0201a7a793e5a6eaba0796a1499f9e03634d0"
     },
     "945e4350-48f8-5015-b686-6d1393c38b70": {
       "source": "Szakszuka z dynią",
       "description": "Jesienna propozycja: szakszuka z dynią. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
       "en_GB": "Pumpkin shakshuka",
+      "de": "Kürbis-Shakshuka",
       "detail_sha256": "ca57c62a8219223dfbba4f49de9fcb3fa75ee23dac3627cc0a3270e7711bd681"
     },
     "233aaca5-4850-5d1c-8436-6d01278d678e": {
       "source": "Jajka po turecku z pieczoną dynią",
       "description": "Jesienna propozycja: jajka po turecku z pieczoną dynią. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
       "en_GB": "Turkish-style eggs with roast pumpkin",
+      "de": "Türkische Eier mit gebratenem Kürbis",
       "detail_sha256": "2c6bb6be4614fc779e65554a772dfb42243a591f3497cf2e198e4e4a70154a2c"
     },
     "35692976-4234-5ac4-8938-d5b7ca81e24e": {
       "source": "Omlet z kurkami",
       "description": "Jesienna propozycja: omlet z kurkami. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
       "en_GB": "Chanterelle mushroom omelette",
+      "de": "Chanterelle Pilz-Omelette",
       "detail_sha256": "5628b3f07ac69e4321e58fb9bf0fdb9c2274e05b84ecc8a033ecf311a7a01e00"
     },
     "a5b6d1af-52f9-5533-8557-c741eea9e057": {
       "source": "Kapuśniak z granulatem sojowym",
       "description": "Jesienna propozycja: kapuśniak z granulatem sojowym. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
       "en_GB": "Vegan sauerkraut and soya soup",
+      "de": "Veganes Sauerkraut und Sojasuppe",
       "detail_sha256": "1d69f54550983f339e6baea128d0bf23d6bff62c343ed0358501899c8bbb87f5"
     },
     "c7919335-c298-5c0f-b191-ef0edb5a088d": {
       "source": "Sałatka z kurczakiem, dynią i kaszą jaglaną",
       "description": "Jesienna propozycja: sałatka z kurczakiem, dynią i kaszą jaglaną. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
       "en_GB": "Chicken, pumpkin and millet salad",
+      "de": "Hühner-, Kürbis- und Hirsesalat",
       "detail_sha256": "424c659e98a14f83b2fcc4b2b0179a741a94801c25afc5b8242f9a6674ed2dbe"
     },
     "21243f19-ece1-530c-9ee3-82f9847838e3": {
       "source": "Łosoś z buraczaną kaszą jaglaną",
       "description": "Jesienna propozycja: łosoś z buraczaną kaszą jaglaną. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
       "en_GB": "Salmon with beetroot millet",
+      "de": "Lachs mit Rote-Bete-Hirse",
       "detail_sha256": "522bfa9054ef9cda255e9c71bf1a97dd6ab554f0ddf0de09e0cd41dbc8eecfad"
     },
     "f090d431-ff4a-5590-9b8b-76769341d8bd": {
       "source": "Sałatka ze stekiem, burakiem i dynią",
       "description": "Jesienna propozycja: sałatka ze stekiem, burakiem i dynią. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
       "en_GB": "Steak, beetroot and pumpkin salad",
+      "de": "Steak, Rote Rübe und Kürbissalat",
       "detail_sha256": "835a22fd1c26e205de3ac4f2a84c0907a79aa95c1f77151ca5334c0a7e700639"
     },
     "b5eb24b8-5a09-50f8-830f-88bc0b63349e": {
       "source": "Ciasto dyniowe z mikrofalówki",
       "description": "Jesienna propozycja: ciasto dyniowe z mikrofalówki. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
       "en_GB": "Pumpkin microwave mug cake",
+      "de": "Kürbis-Mikrowellenbecherkuchen",
       "detail_sha256": "3e3ec3ba4df4d9dafcdfcee675382fb86b245dcb451744bc2ba4fe3bcd10e10c"
     },
     "79b825e5-3e3d-5932-bd34-0d3208129770": {
       "source": "Placki dyniowe z jabłkiem",
       "description": "Jesienna propozycja: placki dyniowe z jabłkiem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
       "en_GB": "Pumpkin pancakes with apple",
+      "de": "Kürbispfannkuchen mit Apfel",
       "detail_sha256": "3b257fc269cc7e034951f322f0f99629a5754c24462c1346270993ac5fc57ff9"
     },
     "e759d6c1-ae45-51e5-a021-ddf58bd4db56": {
       "source": "Curry dyniowe z ananasem",
       "description": "Jesienna propozycja: curry dyniowe z ananasem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
       "en_GB": "Pumpkin and pineapple curry",
+      "de": "Kürbis und Ananas-Curry",
       "detail_sha256": "499ecc553ac8df8531fdfaf4c942825ee12631fbe9ee188632869434045a9b7c"
     },
     "2b0fb78b-b794-57a9-a6e0-4c17a8a2bbc1": {
       "source": "Hummus dyniowy",
       "description": "Jesienna propozycja: hummus dyniowy. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
       "en_GB": "Roasted pumpkin hummus",
+      "de": "Gerösteter Kürbishummus",
       "detail_sha256": "46bc98cff2df5f5ec41a46f5d4c583c0a300207508a4fb97897fc7e8427e0325"
     },
     "70fed98b-db31-526d-a966-b97e18173874": {
       "source": "Makaron z dynią i fetą",
       "description": "Jesienna propozycja: makaron z dynią i fetą. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
       "en_GB": "Pumpkin and feta pasta",
+      "de": "Kürbis und Feta Pasta",
       "detail_sha256": "4fe989e905789710cd79958166ac5ef8bbff6607d7fda515bf75d756a7b8b900"
     },
     "ea0ec67e-7890-52fd-a76b-cd02e200ffeb": {
       "source": "Karkówka w sosie grzybowym z puree",
       "description": "Jesienna propozycja: karkówka w sosie grzybowym z puree. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
       "en_GB": "Pork neck with mushrooms and mash",
+      "de": "Schweinehals mit Pilzen und Maische",
       "detail_sha256": "3de694b88ac6c5085fef279fc9a425f9d282f04d71298a85696eda95a7afcb0e"
     },
     "a377828e-e85e-5b9d-8ba8-aac69a970910": {
       "source": "Owsianka z suszonymi śliwkami i czekoladą",
       "description": "Jesienna propozycja: owsianka z suszonymi śliwkami i czekoladą. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
       "en_GB": "Prune and dark chocolate porridge",
+      "de": "Pflaumen- und dunkler Schokoladenbrei",
       "detail_sha256": "d67de77209626f543852535e862ca11a903c5dc4ebb1c7d67cc4f4ce7da7d6eb"
     },
     "cd1aa157-812f-5573-a308-c3e22ac5c659": {
       "source": "Makaron z camembertem i pomidorami",
       "description": "Jesienna propozycja: makaron z camembertem i pomidorami. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
       "en_GB": "Camembert and tomato pasta",
+      "de": "Camembert und Tomatenteigwaren",
       "detail_sha256": "da4e57a8dcc24824388d82ec6d329360ec80dffdb99b0f1538678f07097a8644"
     },
     "d9415115-542e-59b5-be00-de60463a9c92": {
       "source": "Bowl z kurczakiem, burakiem i dynią",
       "description": "Jesienna propozycja: bowl z kurczakiem, burakiem i dynią. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
       "en_GB": "Chicken, beetroot and pumpkin bowl",
+      "de": "Hühner, Rote Rüben und Kürbisschale",
       "detail_sha256": "7e31624f1f622561b12036693f3d5b291677d17f3bca0ae3346a995371a35a97"
     },
     "39deca0e-c511-52e6-bf3e-453b8dfccdf6": {
       "source": "Pieczona owsianka z gruszkami i imbirem",
       "description": "Jesienna propozycja: pieczona owsianka z gruszkami i imbirem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
       "en_GB": "Baked pear and ginger oats",
+      "de": "Gebackener Birnen- und Ingwerhafer",
       "detail_sha256": "2cf972c93850e8bf959b3ad5473e440aff108e26c794dd442006385a380ec922"
     },
     "6d725cc0-e7c1-58f9-94c4-1240c9bcb453": {
       "source": "Francuskie trójkąty z jabłkiem",
       "description": "Jesienna propozycja: francuskie trójkąty z jabłkiem. Opracowanie na podstawie Centrum Respo. Wartości odżywcze są orientacyjne.",
       "en_GB": "Apple puff pastry triangles",
+      "de": "Apfelpuffgebäck Dreiecke",
       "detail_sha256": "58add62220bb6d258cd2843bffb6363ac087478a866612cd1a78eae0cb926a76"
     },
     "d14fb04d-5be6-5778-81f6-486647aa069d": {
       "source": "Tosty żytnie z ricottą i malinami",
       "description": "Ricotta i świeże maliny na ciepłej grzance.",
       "en_GB": "Rye toast with ricotta and raspberries",
+      "de": "Roggentoast mit Ricotta und Himbeeren",
       "detail_sha256": "81f9ff8f5f0a945e646f6f5afa0ca9daf000ed76c9f4126034b8b675b3ccff74"
     },
     "f4852628-3e1d-55cd-abb6-d6a4c972a611": {
       "source": "Muffiny jajeczne ze szpinakiem i cheddarem",
       "description": "Małe wytrawne muffiny, które można zabrać na wynos.",
       "en_GB": "Spinach and Cheddar egg muffins",
+      "de": "Spinat- und Cheddar-Eiermuffins",
       "detail_sha256": "94d7c9a7b4fe30b36eb57cc29fe7251929abfd63109aaeadb794326fc57adf8a"
     },
     "88334e76-4ed6-55b3-bb4a-b9f5e7a14e05": {
       "source": "Komosa na mleku z borówkami i kokosem",
       "description": "Kremowa komosa na ciepło z podprażonym kokosem.",
       "en_GB": "Blueberry and coconut breakfast quinoa",
+      "de": "Blaubeer- und Kokosfrühstücksquinoa",
       "detail_sha256": "b7d092088a3a38d3a59b7147713a32aad2ad9e05c167dba270605ba2b3acb747"
     },
     "d401e1df-068e-5159-b7d6-77796b49972b": {
       "source": "Grzanki z pastą fasolową i pieczarkami",
       "description": "Chrupiące grzanki z kremową fasolą i rumianymi pieczarkami.",
       "en_GB": "Rye toast with white beans and mushrooms",
+      "de": "Roggentoast mit weißen Bohnen und Pilzen",
       "detail_sha256": "f9abda5af8dfccf9991a0f3260cff5d6ef0172852dec5cf6cb7b97aac3164ac8"
     },
     "0bf1caae-bd99-50e1-a7a1-0747ec7d3e84": {
       "source": "Patelnia z batatem, szpinakiem i jajkami",
       "description": "Rumiane kostki batata z jajkami z jednej patelni.",
       "en_GB": "Sweet potato and spinach breakfast hash",
+      "de": "Süßkartoffel und Spinat Frühstück Haschisch",
       "detail_sha256": "df245d51360b7ea3590a6f656786450fd963a4d483c0b2a6b6d13d0b802a1353"
     },
     "0f6c539c-5a88-5705-bb4a-c159df5fa83f": {
       "source": "Kokosowy pudding chia z mango",
       "description": "Śniadanie do przygotowania wieczorem, z dojrzałym mango. Schładzanie: co najmniej 4 godziny.",
       "en_GB": "Coconut chia pudding with mango",
+      "de": "Coconut Chia Pudding mit Mango",
       "detail_sha256": "f34952f41908d90b64fa067feb3004733696866e16daf867d557c59989bcea39"
     },
     "f958f8a9-85c9-5b24-aada-a9977f17b24a": {
       "source": "Placuszki gryczane z tartym jabłkiem",
       "description": "Miękkie placuszki, w których jabłko trafia prosto do ciasta.",
       "en_GB": "Buckwheat and grated apple pancakes",
+      "de": "Buchweizen und geriebene Apfelkuchen",
       "detail_sha256": "cafaa6b8bfa181f0a68a6e9d2ceb4abbdeff2f15337f494d1ce1bb602f2c1626"
     },
     "50ee91f8-642e-5e63-987b-71e0dd2f69ca": {
       "source": "Frittata ziemniaczana z wędzonym łososiem",
       "description": "Zapiekany omlet z miękkimi ziemniakami i wędzonym łososiem.",
       "en_GB": "Smoked salmon and potato frittata",
+      "de": "Räucherlachs und Kartoffelfrittata",
       "detail_sha256": "60092c3eec72e73c61976f28b4eb84aa5d8630866178c437ad9294d66a19a6d9"
     },
     "cf2f2dff-8f02-5ec0-a0d6-a9107826761c": {
       "source": "Nocna komosa z malinami i masłem orzechowym",
       "description": "Komosa na zimno z malinami rozgniecionymi widelcem. Schładzanie: przez noc.",
       "en_GB": "Overnight quinoa with raspberries and peanut butter",
+      "de": "Quinoa mit Himbeeren und Erdnussbutter über Nacht",
       "detail_sha256": "9de8390dbaf2af7cf310e2655aa19154fee91dbb46a559cdcf487c534715b95d"
     },
     "766ff235-910b-56ab-875e-b24fd1866ccc": {
       "source": "Tosty francuskie z żytniego chleba z gruszką",
       "description": "Pełnoziarniste tosty z miękką gruszką z patelni.",
       "en_GB": "Rye French toast with pears",
+      "de": "Rye French Toast mit Birnen",
       "detail_sha256": "7366a623ecacbd95a8c442faa234237859e599d35d58dc9c3653cd043393e086"
     },
     "fe81f2f2-5b97-5dc6-9ac7-af31929228ec": {
       "source": "Łosoś z pieczonymi ziemniakami i brokułem",
       "description": "Cały obiad z jednej blachy z cytryną do skropienia.",
       "en_GB": "Salmon, potato and broccoli traybake",
+      "de": "Lachs, Kartoffeln und Brokkoli-Traybake",
       "detail_sha256": "1dca4e24789f5df4cddecf619c161a5787bef632bd72226d5f266cf8a399a2fb"
     },
     "ce73246d-dba6-5921-8aad-e5ab85a51e85": {
       "source": "Papryki nadziewane indykiem i ryżem",
       "description": "Pieczone połówki papryki z pomidorowym farszem.",
       "en_GB": "Turkey and rice stuffed peppers",
+      "de": "Paprika mit Pute und Reis",
       "detail_sha256": "114f8e524fe307e289465001d9ea9220fc6d821e4f3fce7e2cff4877953cd441"
     },
     "d089a624-5b2c-5181-b83d-1f6d9cbb7ec1": {
       "source": "Polędwiczka z jabłkami w sosie cydrowym",
       "description": "Pieczona polędwiczka i miękkie jabłka w lekko kwaśnym sosie z patelni.",
       "en_GB": "Pork tenderloin with apples and a cider vinegar glaze",
+      "de": "Schweinelachs mit Äpfeln und einer Apfelessigglasur",
       "detail_sha256": "50e80c763a872c9421b71ddfc059a30bbaa703c977161c256e3d211768eb0e77"
     },
     "4cc0f98d-3620-5bbb-996a-075cee3ab328": {
       "source": "Dorsz w pomidorowej potrawce z białą fasolą",
       "description": "Dorsz duszony w gęstej potrawce z fasoli i pomidorów.",
       "en_GB": "Cod and white bean tomato stew",
+      "de": "Eintopf aus Weißen Bohnen",
       "detail_sha256": "68518f4706a5b5629959c80a5b5840df1058ad201a8a0318663a60fc10d0703d"
     },
     "93fa1485-f325-53ba-a725-3e271186962a": {
       "source": "Komosa z krewetkami, cukinią i limonką",
       "description": "Komosa z rumianą cukinią i świeżą limonką.",
       "en_GB": "Prawn, courgette and lime quinoa",
+      "de": "Garnelen-, Zucchini- und Limettenquinoa",
       "detail_sha256": "e54a204a44d052623cd592c2e4d7dde9bfb6779b70f8e6b1b558b303ff87e5cd"
     },
     "04a9d01f-2bf2-5deb-9747-5737690110ff": {
       "source": "Pulpeciki z indyka na kremowej polencie",
       "description": "Pulpeciki w sosie pomidorowym podane na miękkiej polencie.",
       "en_GB": "Turkey meatballs with creamy polenta",
+      "de": "Pute-Fleischbällchen mit cremiger Polenta",
       "detail_sha256": "cac43fc79198e47d25ff1bfe43e91e5cdbd60331c6eae61632cf51c1acaed97e"
     },
     "980683f9-ad98-54c8-8c3e-612e29087423": {
       "source": "Pęczak z duszoną wołowiną i pieczarkami",
       "description": "Pęczak z miękką wołowiną i zrumienionymi pieczarkami.",
       "en_GB": "Braised beef, mushroom and barley bowl",
+      "de": "Gerstete Rind-, Pilz- und Gerstenschale",
       "detail_sha256": "829c4423774deaaf04e33eac8e46b62b5961f68047507afdb69ebe443d0ec871"
     },
     "a45c90ce-e665-51f1-b928-8de2ed36724a": {
       "source": "Zapiekanka z bakłażana i czerwonej soczewicy",
       "description": "Warstwy pieczonego bakłażana i soczewicy pod cheddarem.",
       "en_GB": "Aubergine and red lentil bake",
+      "de": "Auberginen- und Linsenkuchen",
       "detail_sha256": "c138285f92728320e41fdea5275aa460b4fcfdd1e9b17e862c948f8356ee3f27"
     },
     "d0162b56-1f62-53a7-a551-cbf8cd74745d": {
       "source": "Chili z czarnej fasoli i batatów",
       "description": "Gęste warzywne chili z łyżką chłodnego jogurtu.",
       "en_GB": "Black bean and sweet potato chilli",
+      "de": "Schwarzbohnen und Süßkartoffel-Chilli",
       "detail_sha256": "e522f779c7921758e959ff10347d908a211ed78947b9c570f6b3705cfaba43b1"
     },
     "a1efd1f4-3fbe-5b3f-980c-b8ecebb8e359": {
       "source": "Cytrynowe risotto z groszkiem i ricottą",
       "description": "Kremowe risotto z zielonym groszkiem i skórką cytrynową.",
       "en_GB": "Lemon, pea and ricotta risotto",
+      "de": "Zitrone, Erbse und Ricotta-Risotto",
       "detail_sha256": "1aa185e4e11b46e9b9cbf48262ca7aa9538ab95ff7d7af66f6c76110879d2dc6"
     },
     "7e354371-5417-5bdc-ad52-af7cc723d547": {
       "source": "Zapiekanka z kurczakiem i porem pod ziemniakami",
       "description": "Kremowe nadzienie z pora i kurczaka pod rumianymi plasterkami ziemniaków.",
       "en_GB": "Chicken and leek pie with a sliced potato topping",
+      "de": "Hähnchen- und Lauchkuchen mit in Scheiben geschnittenem Kartoffelbelag",
       "detail_sha256": "59f79f22ec9d75177b6de5a2067375a053411b7ccbeaa10af60295c69f942be2"
     },
     "4722fce6-86fe-5f8b-b0a1-83b472472e26": {
       "source": "Łosoś duszony w kokosowych pomidorach z fasolką",
       "description": "Delikatny łosoś w pomidorach złagodzonych mlekiem kokosowym.",
       "en_GB": "Coconut and tomato salmon stew with green beans",
+      "de": "Kokos- und Tomatenlachs-Eintopf mit grünen Bohnen",
       "detail_sha256": "af3f8373d6bd65462e62221328282a30c9c7fffe6a038812a7a3b4f2edfc3c1b"
     },
     "a8ebd7f7-c731-5180-aa9d-5036e611e7ff": {
       "source": "Pieczone ziemniaki z pieczarkami i cheddarem",
       "description": "Chrupiąca skórka, rumiane pieczarki i roztopiony cheddar.",
       "en_GB": "Jacket potatoes with mushrooms and Cheddar",
+      "de": "Jackenkartoffeln mit Pilzen und Cheddar",
       "detail_sha256": "204c43d2cb6d3fed65998b1e347ede2659a3a60352bfc3d7f4e6898348755d69"
     },
     "3eb50a5b-07d5-537a-bab4-3a9d29fc89f1": {
       "source": "Gołąbki z kapusty pekińskiej z wieprzowiną i imbirem",
       "description": "Delikatne gołąbki z kapusty pekińskiej duszone z sosem sojowym.",
       "en_GB": "Ginger pork and rice cabbage rolls",
+      "de": "Ingwerschweine und Reiskohlrollen",
       "detail_sha256": "a1f7893ae09bbf02c905e90002cb3a7e0d0b6121e0ead81bfd6ca85a9bc6be07"
     },
     "e5ea11bc-0eba-5f08-b17e-1595d2231f4d": {
       "source": "Makaron zapiekany z indykiem i brokułem",
       "description": "Pełnoziarnisty makaron z miękkim środkiem i chrupiącymi brzegami.",
       "en_GB": "Turkey and broccoli pasta bake",
+      "de": "Nudelauflauf mit Pute und Brokkoli",
       "detail_sha256": "631e4c4ae9966a74d2da9b1922f804fcbd782c273e27ac75d493d75c50a06a4f"
     },
     "a6fc5712-7043-546f-9885-fafacf587b15": {
       "source": "Zupa z czerwonej soczewicy i wędzonej papryki",
       "description": "Gęsta zupa z czerwonej soczewicy o lekko dymnym smaku.",
       "en_GB": "Smoky red lentil and tomato soup",
+      "de": "Rauchrote Linsen- und Tomatensuppe",
       "detail_sha256": "3d1ec0aaa2205c6bacec782945e989dc99d779745cf81d3d11b7a2c1667ec684"
     },
     "e23edb06-f57c-5dc9-8a41-a4af0008b495": {
       "source": "Kremowa zupa z kukurydzą, porem i ziemniakami",
       "description": "Zupa z wyraźnymi kawałkami ziemniaków i słodką kukurydzą.",
       "en_GB": "Sweetcorn, leek and potato chowder",
+      "de": "Zuckermais, Porree und Kartoffelbrühe",
       "detail_sha256": "4c7306a348f0a7e83aa95646564f66c011d13d9ee9a786fc92951e3b696d6ff9"
     },
     "98732973-8f15-5d50-9c56-6199dcc84746": {
       "source": "Biała fasola w pomidorach ze szpinakiem",
       "description": "Pomidorowa fasola z patelni i żytnie grzanki do zbierania sosu.",
       "en_GB": "Tomato, spinach and white bean skillet",
+      "de": "Tomaten-, Spinat- und Weißbohnenpfanne",
       "detail_sha256": "924e50892fd3c7875bc281b6c4ea872d6d98fb0c1d6ff6692b336562353e4be1"
     },
     "d0a8469c-8d77-5b8f-8753-7d56e1918665": {
       "source": "Frittata z krewetkami i zielonym groszkiem",
       "description": "Wytrawna frittata z groszkiem i szczypiorkiem.",
       "en_GB": "Prawn and pea frittata",
+      "de": "Garnelen und Erbsenfrittata",
       "detail_sha256": "34c2a36c1fc353a8bf5926a6877d6a7087aa75ebc01baa4f8d43bc162ca1976d"
     },
     "5a8fdad8-b6e0-5f68-9215-e1e0d99967bc": {
       "source": "Wrap z halloumi i pieczoną papryką",
       "description": "Ciepła tortilla z rumianym halloumi i słodką pieczoną papryką.",
       "en_GB": "Halloumi and roast pepper wrap",
+      "de": "Halloumi und gebratener Pfeffer",
       "detail_sha256": "8963be53077b2563f231f27997776a2ae73eb9e60520a8cf49a870899f7120c1"
     },
     "cdb73d19-4e9b-59b4-af91-bd7e48f5c513": {
       "source": "Sałatka ziemniaczana z wędzonym łososiem i jabłkiem",
       "description": "Jabłko dodaje chrupkości ziemniakom i wędzonemu łososiowi.",
       "en_GB": "Smoked salmon, apple and potato salad",
+      "de": "Geräucherter Lachs, Apfel- und Kartoffelsalat",
       "detail_sha256": "1662a53269f9a9c0cc59e6475547d6aa354522428a76268192f4aa927aa16f54"
     },
     "2ec2b462-bc96-5770-9196-af3a5b9ea8e2": {
       "source": "Sałatka z pieczonych buraków, pomarańczy i orzechów",
       "description": "Pieczone buraki z soczystą pomarańczą i orzechami włoskimi.",
       "en_GB": "Roast beetroot, orange and walnut salad",
+      "de": "Rote Rüben, Orangen und Walnusssalat",
       "detail_sha256": "7774cc5060629c4771ede0afc8897e1f9eed55209b326975ba109d9a10f6c983"
     },
     "a207d0e1-ca22-510c-b9ed-9a64c31518b5": {
       "source": "Cytrynowy makaron z białą fasolą i szpinakiem",
       "description": "Lekki sos z oliwy i cytryny oblepia makaron oraz fasolę.",
       "en_GB": "Lemon, white bean and spinach pasta",
+      "de": "Zitronen-, Weißbohnen- und Spinatteigwaren",
       "detail_sha256": "b8623354a55e389d1a457f8b4b6804570c313dd1dda41943723576340ed345a5"
     },
     "2f6cb847-d95d-575d-ac70-b6814ded0620": {
       "source": "Smażony ryż z wieprzowiną, groszkiem i jajkiem",
       "description": "Ryż z paskami schabu, groszkiem i kawałkami jajka.",
       "en_GB": "Pork, pea and egg fried rice",
+      "de": "Schweinefleisch, Erbsen und gebratener Reis",
       "detail_sha256": "0a7ff54b92ae4adfa565ce3b73e542c88cbd1224b9b63914acaf16529b3351a4"
     },
     "4579e1db-6d6d-54da-b11c-e6f7855fd536": {
       "source": "Grillowana polenta z pomidorkami i fetą",
       "description": "Rumiane plastry polenty z popękanymi pomidorkami i fetą. Przed grillowaniem odstaw polentę do stężenia.",
       "en_GB": "Griddled polenta with cherry tomatoes and feta",
+      "de": "Geriebene Polenta mit Kirschtomaten und Feta",
       "detail_sha256": "c6616a5f8ae51a8fc82eba2db62958fc9a776065d8f70fa2d8e6061393e3b61a"
     },
     "7065de21-54be-53c0-ae81-5df31e65ce8d": {
       "source": "Pieczony kalafior z ciecierzycą i tahini",
       "description": "Rumiane różyczki i ciecierzyca z cytrynowym sosem sezamowym.",
       "en_GB": "Roasted cauliflower and chickpeas with tahini",
+      "de": "Gerösteter Blumenkohl und Kichererbsen mit Tahini",
       "detail_sha256": "478d32bcba04e33fb3a65454e4fabdb72c8dee06ad0538d0e9feecce46b33048"
     },
     "4fb0ff2c-2ef4-5c58-b443-1cf91a7cae55": {
       "source": "Sałatka z kurczakiem, fasolką i musztardą",
       "description": "Ciepła sałatka ziemniaczana z fasolką i ziarnistą musztardą.",
       "en_GB": "Chicken, green bean and mustard potato salad",
+      "de": "Hühner-, Grünbohnen- und Senfkartoffelsalat",
       "detail_sha256": "29be51fc0b48482e1cf64062091d02e79e0ceacc72b9e3ea65845e3f4e70bceb"
     },
     "276e6455-ebd8-5d3c-9f52-13c0e93d29b1": {
       "source": "Makaron w sosie z groszku z pieczonym brokułem",
       "description": "Gładki sos z groszku i rumiane różyczki brokułu.",
       "en_GB": "Pasta with pea sauce and roasted broccoli",
+      "de": "Teigwaren mit Erbsensoße und geröstetem Brokkoli",
       "detail_sha256": "f4ebb63b49f3c37442e84526f927454eb95052b8239b52c1446d54f7aa54b421"
     },
     "c2289f85-159b-5e46-88f7-cd404007131f": {
       "source": "Tosty z białą fasolą i roztopionym cheddarem",
       "description": "Opiekana kanapka z kremową fasolą, musztardą i cheddarem.",
       "en_GB": "White bean and Cheddar toastie",
+      "de": "White Bean und Cheddar Toastie",
       "detail_sha256": "95d9706fc2bc6cf3ac35c28d121fba953f5c337b5e36cda864291a9c1d082db3"
     },
     "7c3aeab4-f336-5fd3-b81e-7a7882871004": {
       "source": "Łódeczki z sałaty z indykiem i kapustą",
       "description": "Chrupiące liście sałaty napełnione ciepłym farszem z indyka.",
       "en_GB": "Turkey and cabbage lettuce cups",
+      "de": "Truthühner- und Kopfsalatbecher",
       "detail_sha256": "f222409d0d2f4ecb3cd0647b84658f843c423e5287018b2da6d4b9746e63b592"
     },
     "0949bb02-422a-5a98-84f6-14686a0919ac": {
       "source": "Kakaowe kulki z daktyli i kokosa",
       "description": "Małe kakaowe kulki słodzone daktylami.",
       "en_GB": "Cocoa, date and coconut bites",
+      "de": "Kakao, Datteln und Kokosnussbisse",
       "detail_sha256": "20473b8845892dd348a055ad748dc70d42bae271b9981199978ce890ea4867af"
     },
     "416ba64b-5bd8-501b-93e5-1f886ee79ba0": {
       "source": "Pieczona ricotta ze śliwkami",
       "description": "Ciepła ricotta z pieczonymi śliwkami i ich sokiem.",
       "en_GB": "Baked ricotta with roast plums",
+      "de": "Gebackene Ricotta mit gebratenen Pflaumen",
       "detail_sha256": "847e5393e384a9ff332f54cf68f961df0447708823991af5720095c0648f936e"
     },
     "46c5abf2-582c-54ef-908d-427e33c825c0": {
       "source": "Jogurt kakaowy z gruszką i orzechami",
       "description": "Gęsty jogurt o smaku kakao z soczystą gruszką.",
       "en_GB": "Cocoa yoghurt with pear and walnuts",
+      "de": "Kakaojoghurt mit Birne und Walnüssen",
       "detail_sha256": "9f33abea3aeacecac11f7c7e3eade21ff8a3e2d391567fd7be1253c5693060a0"
     },
     "aa5e0689-766a-5889-8793-acc870d9a1c8": {
       "source": "Waniliowy ryż na mleku z pieczonymi brzoskwiniami",
       "description": "Mleczny ryż z ciepłymi, lekko skarmelizowanymi brzoskwiniami.",
       "en_GB": "Vanilla rice pudding with roast peaches",
+      "de": "Vanille-Reispudding mit gebratenen Pfirsichen",
       "detail_sha256": "8e729a328b2abb5c49bd0367a7da36239a8d5de4a9fb9957731dbbea0672404f"
     },
     "2fe018e0-05a0-57d2-aad2-30186e003f9c": {
       "source": "Ciasto z polenty i malin",
       "description": "Wilgotne ciasto z wyczuwalną polentą i kwaskowatymi malinami.",
       "en_GB": "Raspberry polenta cake",
+      "de": "Raspberry polenta Kuchen",
       "detail_sha256": "1e993a968a2b6a71a2f6d032d74f2514c9b89701369b660ebd35e4ed8a74511c"
     },
     "bd2610a9-ead1-5b06-aded-fbfcb741cff3": {
       "source": "Czekoladowy krem z ricotty i malin",
       "description": "Gęsty czekoladowy krem z odrobiną świeżych malin. Przed podaniem schłodź krem.",
       "en_GB": "Chocolate ricotta mousse with raspberries",
+      "de": "Schokolade ricotta mousse mit Himbeeren",
       "detail_sha256": "9f3301ce269baaef44727744c70f2c3227e373a64c713256f6ef4cae8606ec42"
     },
     "36cc9a0c-02f0-523a-af8a-c573e0ae0e9d": {
       "source": "Owsiane kostki kakaowe z gruszką",
       "description": "Miękkie kostki z owsa, kakao i kawałków gruszki.",
       "en_GB": "Pear and cocoa oat squares",
+      "de": "Birnen- und Kakaohaferfelder",
       "detail_sha256": "6aba75f4b7ac7c4dfd5b8a3c8502a6fe7eb6d949ba26a831993247fdbbc9d0d9"
     },
     "c692adaf-b671-5d8a-a9b2-fc6058ef5cf6": {
       "source": "Pieczone śliwki z chrupiącą żytnią posypką",
       "description": "Śliwki z piekarnika posypane rumianymi okruchami chleba.",
       "en_GB": "Roast plums with rye crumbs",
+      "de": "Röstpflaumen mit Roggenkrumen",
       "detail_sha256": "79c923400f71953e974b3ce442d073d65d9f28842946151245d32899ea9a57cb"
     },
     "259027e2-1ac8-52d8-8876-de861926607e": {
       "source": "Zapiekany budyń z komosy z jabłkami i orzechami",
       "description": "Miękkie jabłka i ugotowana komosa zapieczone w mlecznej masie jajecznej.",
       "en_GB": "Baked quinoa and apple custard with walnuts",
+      "de": "Gebackene Quinoa und Apfelkustern mit Walnüssen",
       "detail_sha256": "9afaaeeb0053a720665c43acfe5e99e6e3a72aad570e2f629f79f54e9241fa9e"
     },
     "9d26834c-93d0-5d33-869c-96efee1b8456": {
       "source": "Skyr z rozgniecionymi borówkami i kokosem",
       "description": "Rozgniecione borówki mieszają się z chłodnym skyrem i prażonym kokosem.",
       "en_GB": "Skyr with crushed blueberries and toasted coconut",
+      "de": "Skyr mit zerkleinerten Heidelbeeren und gerösteter Kokosnuss",
       "detail_sha256": "d1a6f92bc88775ef3e5cc060bab939bbb2b9693c455572f27f4764187460ccd7"
     },
     "1cc22196-60ef-51b3-b186-67a3545bb3fd": {
       "source": "Kasza gryczana na słodko z jabłkami i ricottą",
       "description": "Gryczane śniadanie z miękkimi jabłkami z patelni.",
       "en_GB": "Sweet buckwheat with apples and ricotta",
+      "de": "Buchweizen mit Äpfeln und Ricotta",
       "detail_sha256": "26cc831a0210509d8db4db1cf1c6eb244c2a437ac64b9ac628a095c9223dbf91"
     },
     "69871bea-eead-5d84-8843-062b18f8c418": {
       "source": "Owsianka z pieczoną brzoskwinią i migdałami",
       "description": "Ciepła owsianka z zarumienionymi brzoskwiniami i chrupiącymi migdałami.",
       "en_GB": "Porridge with roast peaches and almonds",
+      "de": "Brei mit gebratenen Pfirsichen und Mandeln",
       "detail_sha256": "0f62a9916ae04498e6ebc9a45a942b4959618ab61c3741f8b45a800c0fb3d7f8"
     },
     "cc2742b0-3ee4-5a01-b574-1d5b0f27d449": {
       "source": "Grzanki żytnie z pastą buraczaną i jajkiem",
       "description": "Różowa pasta z buraka z jajkiem na chrupiącej kromce.",
       "en_GB": "Rye toast with beetroot spread and egg",
+      "de": "Roggen-Toast mit Rote-Bete-Spread und Ei",
       "detail_sha256": "d3349750c5fbcad5461ed985244cf98285e1e01247a4dce3b4a82f2d17933354"
     },
     "e9685a51-c79c-5202-b933-b15a7495d034": {
       "source": "Placuszki z kukurydzy i cheddara",
       "description": "Wytrawne placuszki z chrupiącymi ziarnami kukurydzy.",
       "en_GB": "Sweetcorn and Cheddar pancakes",
+      "de": "Zuckermais und Cheddar-Pfannkuchen",
       "detail_sha256": "1a065589ec4270176e27ff591dcc9575a25a49d42d13730b31e6d1fce4b3bbef"
     },
     "6a629651-5f35-5816-9870-f38428e797e8": {
       "source": "Jaglanka kakaowa z malinami",
       "description": "Gęsta jaglanka z gorzkim kakao i świeżymi malinami.",
       "en_GB": "Cocoa millet porridge with raspberries",
+      "de": "Kakaohirse mit Himbeeren",
       "detail_sha256": "bc363863c705e1903367e6f634550217dea037d140353a57287aec109d1538aa"
     },
     "a28fd15c-0251-5933-bf32-958889dc0486": {
       "source": "Jajka zapiekane z pieczarkami w kokilkach",
       "description": "Rumiane pieczarki pod zapieczonym jajkiem z grzanką do maczania.",
       "en_GB": "Baked eggs with mushrooms in ramekins",
+      "de": "Gebackene Eier mit Pilzen in Ramekins",
       "detail_sha256": "4407dea6e3b9afd4065c9f7344e3179a83ed9747114e0272110f484abfc9eadd"
     },
     "6178be2b-e0ec-5b0e-a36b-083ccf11ca70": {
       "source": "Skyr z gruszką i granolą z patelni",
       "description": "Chłodny skyr z gruszką i granolą prażoną na patelni.",
       "en_GB": "Skyr with pear and stovetop granola",
+      "de": "Skyr mit Birne und Herdgranula",
       "detail_sha256": "3edd6b8fed2bb39a9e652215b36f5431c0f6a616a2cb2915192ef799406bbf19"
     },
     "2999d077-6c30-5b28-a037-3875e28943c5": {
       "source": "Koktajl bananowy z daktylami i płatkami",
       "description": "Gęsty koktajl śniadaniowy słodzony daktylami.",
       "en_GB": "Banana, date and oat shake",
+      "de": "Bananen-, Dattel- und Hafer-Shake",
       "detail_sha256": "b0d29e02ed3f5f9e7835ac5fac602d8fc821f6b381e6d2d540a2756eaece19bc"
     },
     "e41f2666-fe20-5d6e-a6a9-9cd9a563f02a": {
       "source": "Jajecznica ze szpinakiem i fetą",
       "description": "Miękka jajecznica z kawałkami fety i żytnimi grzankami.",
       "en_GB": "Spinach and feta scrambled eggs",
+      "de": "Spinat und Feta Rührei",
       "detail_sha256": "f2f8011b003063611d5301c4017f41fe7e5363dd286a1d86fbb8ae363b2091ca"
     },
     "09c05257-67a6-55ed-b236-762982f3a4fd": {
       "source": "Cienkie naleśniki z ricottą i mango",
       "description": "Cienkie naleśniki z kremową ricottą i dojrzałym mango.",
       "en_GB": "Ricotta and mango crêpes",
+      "de": "Ricotta und Mango Crêpes",
       "detail_sha256": "f6ad9640bbccf12ec51d988514d8d247420f0979fa712a072ff9a359c1b9052b"
     },
     "5995629c-7021-5d37-9721-9648e82d5e30": {
       "source": "Paprykarz ze schabu z czerwoną papryką",
       "description": "Paski schabu w śmietanowym sosie paprykowym z pęczakiem.",
       "en_GB": "Pork and red pepper paprikash",
+      "de": "Schweinegeschnetzeltes mit roter Paprika",
       "detail_sha256": "3f99279823947ae7fd44806f01d0f089a164a077593e507d6c4c09614e636eca"
     },
     "bd9a4d14-88d1-539d-a5da-02f492854661": {
       "source": "Dorsz na polencie z pieczoną papryką",
       "description": "Smażony dorsz na miękkiej polencie ze słodką pieczoną papryką.",
       "en_GB": "Cod with soft polenta and roast peppers",
+      "de": "Kabeljau mit Weichpolenta und Röstpaprika",
       "detail_sha256": "77f80ceff92739d7cfd46178a9979601fbe7971aa01b72c47062cbdec21cde6a"
     },
     "ff7b60ce-588c-54b7-8133-70ea70df6a7a": {
       "source": "Kurczak pieczony z brzoskwinią i czerwoną cebulą",
       "description": "Brzoskwinie i cebula pieką się razem z kurczakiem, tworząc lekki sos.",
       "en_GB": "Roast chicken with peaches and red onion",
+      "de": "Brathähnchen mit Pfirsichen und roten Zwiebeln",
       "detail_sha256": "708fdc6f38b8eb1fd3bddaffe24cbd18d46540b7bb7ee71eabc8287d0ce3bc9d"
     },
     "43d7ebc6-3549-5d3c-bedb-5c214adb80e9": {
       "source": "Pieczeń z indyka i tartego jabłka",
       "description": "Soczysta pieczeń z jabłkiem, podawana w grubych plastrach.",
       "en_GB": "Turkey and apple meatloaf",
+      "de": "Pute und Apfelfleisch",
       "detail_sha256": "5cf37159c3727401050f1d15775949b98991d3df76c1a4b97a799d93ec15f726"
     },
     "809ce8e7-b6f7-522b-a28e-7a57a515baa9": {
       "source": "Zapiekanka ryżowa z mięsem mielonym i bakłażanem",
       "description": "Warstwowa zapiekanka z ryżem, pieczonym bakłażanem i mięsnym sosem.",
       "en_GB": "Pork and beef rice bake with aubergine",
+      "de": "Schweine- und Rindfleisch-Reiskuchen mit Auberginengine",
       "detail_sha256": "993d2eb5b5d484fe82a36b3907f1aed3501ea534f9278cb4faf4d23ae4b0c3f2"
     },
     "5a8381f7-a06d-503b-9e7a-0f3e246f57d2": {
       "source": "Kotlety ziemniaczane z łososiem",
       "description": "Złote kotlety z kawałkami łososia i sosem cytrynowym.",
       "en_GB": "Salmon and potato fishcakes",
+      "de": "Lachs- und Kartoffelfischkuchen",
       "detail_sha256": "26a309e96e2eac6519da405357b00727223851ea569a974a583b80f77c1b3c71"
     },
     "f69cc90a-5c7d-5a9f-8e9b-9c7a8cc03909": {
       "source": "Kotlety z czerwonej soczewicy i marchewki",
       "description": "Pieczone kotlety z miękkim środkiem i cytrynowym tahini.",
       "en_GB": "Red lentil and carrot patties with tahini",
+      "de": "Rote Linsen- und Karottenpastetchen mit Tahini",
       "detail_sha256": "ed2e94474c679ee6bf5e77bea05bac990e13da857b1d9dc6e388e94a2b51afea"
     },
     "e5e01a43-a26e-54ae-af55-20b4caf310ec": {
       "source": "Lasagne z porem, szpinakiem i ricottą",
       "description": "Warstwy miękkiego pora i ricotty pod rumianą serową skórką.",
       "en_GB": "Leek, spinach and ricotta lasagne",
+      "de": "Porree, Spinat und Ricotta Lasagne",
       "detail_sha256": "ec8488d9912ff3bc47a936cddefd5e3dba14bc62a9ffaad7b486ff7e2a7e3963"
     },
     "46c1ba95-079a-5de9-9892-30a27d16760b": {
       "source": "Orzo w pomidorach z krewetkami",
       "description": "Drobny makaron w gęstym sosie pomidorowym z krewetkami.",
       "en_GB": "Tomato orzo with prawns",
+      "de": "Tomatenorzo mit Garnelen",
       "detail_sha256": "b416908a96b213227f05ce282d0f51d89d8030d8c88702586516e47e183b8628"
     },
     "b022c82d-928e-577f-86cc-3da5eb6b4c8a": {
       "source": "Zapiekany kalafior z kurczakiem i cheddarem",
       "description": "Kremowy kalafior z kurczakiem pod zapieczonym cheddarem.",
       "en_GB": "Chicken and cauliflower cheese bake",
+      "de": "Hühner- und Blumenkohlkäsebackkuchen",
       "detail_sha256": "ad81a65c0405d2b6443ac16f8411fb9a54a8a4a95720f0320a436460556eb66b"
     },
     "ec2642cc-5f6b-5b9d-bbcd-de9c3c12969f": {
       "source": "Schab pieczony ze śliwkami i pęczakiem",
       "description": "Pieczone śliwki nadają sokowi z mięsa słodko-kwaśny smak.",
       "en_GB": "Roast pork loin with plums and pearl barley",
+      "de": "Schweinestränge mit Pflaumen und Perlgerste",
       "detail_sha256": "7a927a9cf7efe6e947aa0947ce54491d5851e30ae525222359bce5611603ed47"
     },
     "26566f33-2b2c-51ed-a048-6f00fc51e034": {
       "source": "Strogonow z indyka i pieczarek",
       "description": "Paski indyka i pieczarki w kremowym sosie na kaszy gryczanej.",
       "en_GB": "Turkey and mushroom stroganoff",
+      "de": "Puten-Stroganoff mit Pilzen",
       "detail_sha256": "965cd900eed5322c57c57db5619f8b3dd444e24970df1bdc0445ed8f27cb8ff7"
     },
     "64fd429f-ebc3-51a4-99b5-76bcf6eb8a05": {
       "source": "Brytyjska zapiekanka z dorszem i groszkiem",
       "description": "Dorsz z groszkiem w białym sosie pod rumianym purée.",
       "en_GB": "Cod and pea fish pie",
+      "de": "Kabeljau- und Erbsenkuchen",
       "detail_sha256": "f1eb41159b627cf870ba5988220f35e9792135665b53e6802f0bed21becf0ff0"
     },
     "ce206d4f-71fe-50cd-a185-a2ce5f02c65b": {
       "source": "Kieszonki francuskie z soczewicą i szpinakiem",
       "description": "Chrupiące kieszonki z gęstym, lekko dymnym farszem.",
       "en_GB": "Puff pastry pockets with lentils and spinach",
+      "de": "Pflaumenteigtaschen mit Linsen und Spinat",
       "detail_sha256": "4c3b84d446762a6a1db37247eb0295e2f1ff72c6b844e5768e8b06e5a63ae50e"
     },
     "3de65259-32a2-5e7d-a1a5-ecbaac8888f5": {
       "source": "Kokosowy ryż z kukurydzą, limonką i tofu",
       "description": "Kokosowy ryż z kukurydzą i tofu pieczonym w wędzonej papryce.",
       "en_GB": "Coconut, lime and sweetcorn rice with tofu",
+      "de": "Kokos-, Limette- und Zuckermaisreis mit Tofu",
       "detail_sha256": "0fea8b27ba1f642fe419c6b897068073967491b8294c60a0a76435cacf9cf112"
     },
     "84b212f2-30a8-5a21-980d-88323a121ee2": {
       "source": "Zupa buraczana z porem i jogurtem",
       "description": "Lekka zupa z kawałkami buraków i pora oraz łyżką jogurtu.",
       "en_GB": "Beetroot and leek soup with yoghurt",
+      "de": "Rüben- und Lauchsuppe mit Joghurt",
       "detail_sha256": "9c83e68a62e5362c3d94f0939948079bc9948e0a32a1d10159ef06522e79d669"
     },
     "e2125477-06c1-5f80-b523-ce5a113da71f": {
       "source": "Grzanki z groszkiem, miętą i ricottą",
       "description": "Groszek rozgnieciony widelcem na grzankach z miętą i ricottą.",
       "en_GB": "Crushed pea, mint and ricotta toast",
+      "de": "Erbse, Minze und Ricotta-Toast",
       "detail_sha256": "d6bccce68c2d85eb7ba75ec05d8c7186bf7807d5975a5a62dc882eddacef5d3f"
     },
     "f5bfd3a3-9fab-59e0-8d4f-05d874a21f3d": {
       "source": "Placki z tartych batatów i fety",
       "description": "Chrupiące brzegi i miękki środek z batata oraz pokruszonej fety.",
       "en_GB": "Grated sweet potato and feta fritters",
+      "de": "Geriebene Süßkartoffeln und Feta-Fritte",
       "detail_sha256": "71c11b30382a767f9a2473f71d42591c3245c01fc58be251fd91a030919738f9"
     },
     "e8888d25-0ba7-5caf-9078-266b797a5291": {
       "source": "Zupa z pieczonej papryki i pomidorów z żytnim chlebem",
       "description": "Gęsta pomidorowa z kawałkami chleba, które wchłaniają smak pieczonej papryki.",
       "en_GB": "Roast pepper and tomato bread soup",
+      "de": "Röstpaprika und Tomatenbrotsuppe",
       "detail_sha256": "0cb2bb78a6839b8f97531e6ef335cce31f5703c929368d74f559a14567bec094"
     },
     "bdb410bc-4c84-5770-877d-db00d3bb3c00": {
       "source": "Papryki nadziewane brokułem, komosą i cheddarem",
       "description": "Rumiane połówki papryki z brokułem i ciągnącym się cheddarem.",
       "en_GB": "Broccoli, quinoa and Cheddar stuffed peppers",
+      "de": "Broccoli, Quinoa und Cheddar gefüllte Paprika",
       "detail_sha256": "ef7a017248a25389323db499337e4cf219d9428739cee4ed48b4951bdaad5691"
     },
     "31133836-f83f-55aa-adf5-7001cc71576c": {
       "source": "Sałatka z pieczonego kalafiora i pęczaku",
       "description": "Ciepły pęczak z rumianym kalafiorem i cytrynowym jogurtem.",
       "en_GB": "Warm cauliflower and pearl barley salad",
+      "de": "Warmer Blumenkohl- und Perlgerstensalat",
       "detail_sha256": "7c30f18ba0207bf13f3faa3fdb0d1dd3ab28ac7dddd98642b60f2f80c4e6f1d8"
     },
     "081f8329-0b11-5b63-a99f-6f30d09cd834": {
       "source": "Wrap z wędzonym łososiem i ogórkiem",
       "description": "Miękka tortilla z chrupiącym ogórkiem i cytrynowym jogurtem.",
       "en_GB": "Smoked salmon and cucumber wrap",
+      "de": "Räucherlachs und Gurkenhülle",
       "detail_sha256": "5c317ac8830a3f4c16911715661640446d247d60898632b9ae9802121eeb1158"
     },
     "299540e4-f02e-5744-aa0a-b3b0bc058cec": {
       "source": "Surówka z kapusty pekińskiej z jabłkiem i orzechami",
       "description": "Chrupiąca surówka w jogurtowym sosie, podawana z żytnimi grzankami.",
       "en_GB": "Chinese cabbage, apple and walnut slaw",
+      "de": "Chinesischer Kohl, Apfel- und Walnusskraut",
       "detail_sha256": "75bd65c0eabd8ae2c50c32c6c1ebd78851a22679114ff15be3a72d71db7abe26"
     },
     "c7801cfe-42f9-5517-a73b-6d7d5f76c0e8": {
       "source": "Zapiekana polenta z pomidorami i szpinakiem",
       "description": "Miękka warstwa polenty pod zapiekanymi pomidorami i mozzarellą.",
       "en_GB": "Baked tomato and spinach polenta",
+      "de": "Gebackene Tomaten und Spinat-Polenta",
       "detail_sha256": "9156087f838dbb304600d8930b30e8af7b7c77d634f7dd4f26abe6724c07ff30"
     },
     "2f146e21-a8f4-516b-8623-657c4c728c03": {
       "source": "Grzanki z awokado i krewetkami",
       "description": "Krewetki z czosnkiem na kremowym awokado i chrupiącym chlebie.",
       "en_GB": "Avocado and prawn rye toast",
+      "de": "Avocado und Garnelenroggentoast",
       "detail_sha256": "c6129f84a48aae044e3b8be7fddd72317c529e82a69b4126f0b4652381e1e3c7"
     },
     "eb7c554f-8d37-56e2-9f70-072a3962d7f9": {
       "source": "Pieczone cebule nadziewane wieprzowiną i pieczarkami",
       "description": "Miękkie połówki cebuli z rumianym farszem.",
       "en_GB": "Baked onions stuffed with pork and mushrooms",
+      "de": "Gebackene Zwiebeln, gefüllt mit Schweinefleisch und Pilzen",
       "detail_sha256": "4ce877326b6edfbac52349f5a443a42639afcb500949d184ef4e7456fd1b1490"
     },
     "a3607a09-8c47-51a6-9ebd-89484fcfb107": {
       "source": "Pieczone krokiety ziemniaczane z kukurydzą i cheddarem",
       "description": "Złota panierka kryje miękkie wnętrze z ziemniaków, sera i kukurydzy.",
       "en_GB": "Baked potato croquettes with sweetcorn and Cheddar",
+      "de": "Gebackene Kartoffel-Kroketten mit Zuckermais und Cheddar",
       "detail_sha256": "d485d86ffa49912be09bee90a7cb38e1a134e404fb7b157fec76c59a3ff4c285"
     },
     "0d0811ca-e21a-52f2-bfb2-0dfaebdda659": {
       "source": "Komosa z fasolką szparagową i sosem tahini",
       "description": "Sałatka z chrupką fasolką, papryką i cytrynowym tahini.",
       "en_GB": "Quinoa and green bean salad with tahini",
+      "de": "Quinoa und grüner Bohnensalat mit Tahini",
       "detail_sha256": "c7c789b8fe347a11e796aafc351b91045431a7c79fcbccf9676b9197687e29fd"
     },
     "c6f974c9-c3f7-5fd6-8091-a00a725832d8": {
       "source": "Sałatka z halloumi i pieczonymi śliwkami",
       "description": "Słone halloumi, miękkie śliwki i świeży szpinak.",
       "en_GB": "Warm halloumi and roast plum salad",
+      "de": "Warme Halloumi und gebratener Pflaumensalat",
       "detail_sha256": "4218d227c225f0fc54348269423b1e468cf8a13f896638027de56dda0ba7490b"
     },
     "b450d9e5-7294-51f3-9694-a586534baf32": {
       "source": "Tofu w sezamie z groszkiem i marchewką",
       "description": "Chrupiące sezamowe tofu z rozgniecionym groszkiem i wstążkami marchewki.",
       "en_GB": "Sesame tofu with crushed peas and carrots",
+      "de": "Sesam-Tofu mit zerkleinerten Erbsen und Karotten",
       "detail_sha256": "012a81844e104b8c12d17e41865219b53d11562a9062d7dbec7edaacee0cdb16"
     },
     "dffad032-b3c4-50f1-b89e-7c52ed4a0705": {
       "source": "Chrupiące grzanki cynamonowe z dipem jogurtowym",
       "description": "Cienkie paski żytniego chleba do maczania w miodowym jogurcie.",
       "en_GB": "Cinnamon rye crisps with yoghurt dip",
+      "de": "Zimtroggenchips mit Joghurtdip",
       "detail_sha256": "a95a438f2cf29e223808e917347d2f9823aa162d3923e731d6771cdf07da198f"
     },
     "dd7d7b29-9749-5979-99bc-2da784f72ab6": {
       "source": "Muffiny owsiane z jabłkiem i marchewką",
       "description": "Miękkie muffiny z tartą marchewką i jabłkiem w cieście.",
       "en_GB": "Apple and carrot oat muffins",
+      "de": "Apfel- und Karottenhafermuffins",
       "detail_sha256": "e258d239d9bcd02988926be3b0991787494b2811d0f48ed7ae56b0178317e286"
     },
     "b4370a84-1e16-5049-bc34-c04d73745518": {
       "source": "Pucharek jogurtowy z pieczoną śliwką i czekoladą",
       "description": "Warstwy jogurtu, miękkich śliwek i tartej czekolady.",
       "en_GB": "Roast plum and dark chocolate yoghurt parfait",
+      "de": "Röstpflaumen und dunkler Schokoladenjoghurt parfait",
       "detail_sha256": "69c63fd05e7a77ab584bb9cbe4bcc83bd72e26dbb5281789d083de4009e432bb"
     },
     "bc4c2531-1e35-5fcc-956f-9e37143e236f": {
       "source": "Cytrynowe ciasto z ricottą",
       "description": "Wilgotne ciasto z ricottą i skórką cytrynową.",
       "en_GB": "Lemon ricotta cake",
+      "de": "Zitronenricotta-Kuchen",
       "detail_sha256": "22b0001883c0c50eebdfd10792b2a8d54842550b4ec7a516eb44cd5e17c906e1"
     },
     "d1b25d95-b08d-5928-b1b9-62bec0a86bb2": {
       "source": "Mrożone płatki jogurtowe z mango i migdałami",
       "description": "Cienka tafla jogurtu do przełamania na mrożone kawałki. Mrożenie: co najmniej 4 godziny.",
       "en_GB": "Frozen mango and almond yoghurt bark",
+      "de": "Mango- und Mandeljoghurtrinde, gefroren",
       "detail_sha256": "c40b8b438a48e9e78c946ab19a4b59a308793fe415cf6a814ee9f18f90f72648"
     },
     "548f227b-6055-5e5b-976a-b0dee1e35a7c": {
       "source": "Cytrynowo-makowe ciasteczka owsiane",
       "description": "Maślane ciasteczka z wyraźną skórką cytrynową i ziarnami maku.",
       "en_GB": "Lemon and poppy seed oat cookies",
+      "de": "Haferkekse aus Zitronen- und Mohnsamen",
       "detail_sha256": "c249c1116b35148ed9c4804c82294c4e7b135e4a9a255913a9f7c08ed379e9fd"
     },
     "acbd83dd-40fe-5956-9bd8-6f233ff6c7c1": {
       "source": "Clafoutis z gruszkami i malinami",
       "description": "Miękkie owoce zapieczone w lekkim cieście naleśnikowym.",
       "en_GB": "Pear and raspberry clafoutis",
+      "de": "Birnen- und Himbeerklafoutis",
       "detail_sha256": "a0844b4de3b2d613ec8a44d9539067a92e121257416b9bb2eac74ebc44af6c45"
     },
     "75d814b3-e806-5b93-be7d-c864ded372f3": {
       "source": "Czekoladowy pudding z polenty z gruszką",
       "description": "Kremowy deser z polenty, ciemnej czekolady i gruszki z patelni.",
       "en_GB": "Chocolate polenta pudding with pear",
+      "de": "Schokoladenpolentapudding mit Birne",
       "detail_sha256": "d27cecba4f9e8106082ee54d679949a181f0698a789bf2f4a42b22724ff288dc"
     },
     "7d4a2af4-0469-5739-a71f-df4c16050ea8": {
       "source": "Grillowany ananas z miętowym skyrem",
       "description": "Ciepłe plastry ananasa z chłodnym skyrem i świeżą miętą.",
       "en_GB": "Griddled pineapple with mint skyr",
+      "de": "Ananas mit Minze-Skyr",
       "detail_sha256": "85e58d6bc4953507292b975d0551f9666c86b1f9235660ff78ef3e283d793a63"
     },
     "5ce95505-535c-51ce-83a4-c0d78abccad5": {
       "source": "Pieczone babeczki ryżowe z kokosem i borówkami",
       "description": "Małe pieczone porcje kokosowego ryżu z borówkami.",
       "en_GB": "Baked blueberry and coconut rice cups",
+      "de": "Gebackene Becher von Blaubeeren und Kokosnussreis",
       "detail_sha256": "6883a0a280e164c92fcc74da20f28b6368cb688c55134b55ca0f33121a31d5e4"
     }
   },
   "ingredients": {
     "aec00b99-e507-546a-8033-c9d7c1bab4ac": {
       "source": "Agar",
-      "en_GB": "Agar"
+      "en_GB": "Agar",
+      "de": "Agar"
     },
     "a5845b5e-e5e7-5852-b6a7-d52f47c0a1fc": {
       "source": "Ajvar",
-      "en_GB": "Ajvar"
+      "en_GB": "Ajvar",
+      "de": "Ajvar"
     },
     "c91245d5-cc8f-56b6-8122-3aed97a3ccf1": {
       "source": "Ananas",
-      "en_GB": "Pineapple"
+      "en_GB": "Pineapple",
+      "de": "Ananas"
     },
     "9d582e37-891b-5446-87f6-fff8f891df14": {
       "source": "Anchois w oliwie",
-      "en_GB": "Anchovies in olive oil"
+      "en_GB": "Anchovies in olive oil",
+      "de": "Sardellen in Olivenöl"
     },
     "39325c5c-7ac4-5893-a341-82ee736a9977": {
       "source": "Anyż gwiazdkowy",
-      "en_GB": "Star anise"
+      "en_GB": "Star anise",
+      "de": "Sternanis"
     },
     "d3d3b56f-77ee-592f-b9c4-78168dc2764b": {
       "source": "Arbuz",
-      "en_GB": "Watermelon"
+      "en_GB": "Watermelon",
+      "de": "Wassermelone"
     },
     "c16683e3-c5bb-508b-b17d-ecfea391c805": {
       "source": "Awokado",
-      "en_GB": "Avocado"
+      "en_GB": "Avocado",
+      "de": "Avocado"
     },
     "f8ece7f3-9cd6-5290-a9fa-698c0eaa3ece": {
       "source": "Bakłażan",
-      "en_GB": "Aubergine"
+      "en_GB": "Aubergine",
+      "de": "Auberginen"
     },
     "08b69a35-1fa2-5573-947d-16401e84f895": {
       "source": "Banan",
-      "en_GB": "Banana"
+      "en_GB": "Banana",
+      "de": "Bananen"
     },
     "006ae069-31ed-52c6-8ec3-fd2b46db4450": {
       "source": "Bataty",
-      "en_GB": "Sweet potatoes"
+      "en_GB": "Sweet potatoes",
+      "de": "Süßkartoffeln"
     },
     "e512f47e-1f43-532c-9f47-988523face15": {
       "source": "Bazylia suszona",
-      "en_GB": "Dried basil"
+      "en_GB": "Dried basil",
+      "de": "Basilikum, getrocknet"
     },
     "f0c7bb76-5a57-5d47-88b8-30bf637a21d8": {
       "source": "Bazylia świeża",
-      "en_GB": "Fresh basil"
+      "en_GB": "Fresh basil",
+      "de": "Frisches Basilikum"
     },
     "dfbd1460-45bc-5668-9f47-bf6894fcd36a": {
       "source": "Biszkopty",
-      "en_GB": "Sponge fingers"
+      "en_GB": "Sponge fingers",
+      "de": "Löffelbiskuits"
     },
     "81bdef7e-181f-50fb-8085-42407bb549a6": {
       "source": "Boczek wędzony",
-      "en_GB": "Smoked bacon"
+      "en_GB": "Smoked bacon",
+      "de": "Geräucherter Speck"
     },
     "c5d65d64-51e9-5ffc-98d6-17d6cb6f037a": {
       "source": "Borówki",
-      "en_GB": "Blueberries"
+      "en_GB": "Blueberries",
+      "de": "Blaubeeren"
     },
     "5dbca956-7b18-52e8-a5b4-b282a589a80b": {
       "source": "Brokuł",
-      "en_GB": "Broccoli"
+      "en_GB": "Broccoli",
+      "de": "Brokkoli"
     },
     "cdf51d65-efb6-5ba3-827d-ea59af592dd1": {
       "source": "Brukselka",
-      "en_GB": "Brussels sprouts"
+      "en_GB": "Brussels sprouts",
+      "de": "Rosenkohl"
     },
     "bef47689-1424-55a7-8495-5cbff4a760ca": {
       "source": "Brzoskwinie",
-      "en_GB": "Peaches"
+      "en_GB": "Peaches",
+      "de": "Pfirsiche"
     },
     "4bdde9b2-4ac9-59bd-84bb-68f02b97428f": {
       "source": "Budyń waniliowy",
-      "en_GB": "Vanilla pudding powder"
+      "en_GB": "Vanilla pudding powder",
+      "de": "Vanillepuddingpulver"
     },
     "8026e022-8a4f-5354-8243-3f93624097d8": {
       "source": "Bulion drobiowy",
-      "en_GB": "Chicken stock"
+      "en_GB": "Chicken stock",
+      "de": "Geflügelbrühe"
     },
     "4b8872d8-77cb-59b1-a3e5-efd19ef098ef": {
       "source": "Bulion grzybowy",
-      "en_GB": "Mushroom stock"
+      "en_GB": "Mushroom stock",
+      "de": "Pilzbrühe"
     },
     "13805734-9c35-5020-b845-9db6001abede": {
       "source": "Bulion warzywny",
-      "en_GB": "Vegetable stock"
+      "en_GB": "Vegetable stock",
+      "de": "Gemüsebrühe"
     },
     "2858df96-a1b2-5708-be0b-316bd19d111c": {
       "source": "Bulion warzywny gotowy",
-      "en_GB": "Prepared vegetable stock"
+      "en_GB": "Prepared vegetable stock",
+      "de": "Gebrauchsfertige Gemüsebrühe"
     },
     "4d0876fb-5965-57b9-ba00-c6ce01f5b42f": {
       "source": "Bulion wołowy",
-      "en_GB": "Beef stock"
+      "en_GB": "Beef stock",
+      "de": "Rinderbrühe"
     },
     "c9fdcc16-d071-5960-92a5-3974d7af0181": {
       "source": "Buraczki konserwowe",
-      "en_GB": "Preserved beetroot"
+      "en_GB": "Preserved beetroot",
+      "de": "Konservierte Rote Bete"
     },
     "08b4b8c8-127f-53e9-84cf-a248bf2f6a00": {
       "source": "Buraki",
-      "en_GB": "Beetroot"
+      "en_GB": "Beetroot",
+      "de": "Rote Bete"
     },
     "8cead591-3372-51a0-a2c5-04ed487eca0d": {
       "source": "Burrata",
-      "en_GB": "Burrata"
+      "en_GB": "Burrata",
+      "de": "Burrata"
     },
     "3b6c357a-3dc8-5695-b875-746a53d751ec": {
       "source": "Bułka kajzerka",
-      "en_GB": "Kaiser roll"
+      "en_GB": "Kaiser roll",
+      "de": "Kaiserbrötchen"
     },
     "41179e0a-be10-5fd3-8e0a-7485df45c8d5": {
       "source": "Bułka tarta",
-      "en_GB": "Breadcrumbs"
+      "en_GB": "Breadcrumbs",
+      "de": "Semmelbrösel"
     },
     "c15376d5-34e3-50d2-94fa-a9f0a4f8a304": {
       "source": "Bułka tarta panko",
-      "en_GB": "Panko breadcrumbs"
+      "en_GB": "Panko breadcrumbs",
+      "de": "Panko-Paniermehl"
     },
     "8016280f-9856-524e-836b-9191400bc9ac": {
       "source": "Cebula",
-      "en_GB": "Onion"
+      "en_GB": "Onion",
+      "de": "Zwiebeln"
     },
     "d34809d1-e2c1-5d66-9e45-d4a038227d43": {
       "source": "Cebula czerwona",
-      "en_GB": "Red onion"
+      "en_GB": "Red onion",
+      "de": "Rote Zwiebel"
     },
     "dc03210f-a6cb-5f2d-9aec-195e95761eb5": {
       "source": "Chili suszone",
-      "en_GB": "Dried chilli"
+      "en_GB": "Dried chilli",
+      "de": "Chili, getrocknet"
     },
     "4b1d00fd-d2e9-509b-9f9f-624daa0df295": {
       "source": "Chipsy kokosowe",
-      "en_GB": "Coconut flakes"
+      "en_GB": "Coconut flakes",
+      "de": "Kokoschips"
     },
     "79303edd-d9f3-5c43-b145-466720e00afe": {
       "source": "Chleb pszenny",
-      "en_GB": "White bread"
+      "en_GB": "White bread",
+      "de": "Weißbrot"
     },
     "4aa11c73-1bef-5e0c-9662-1b987e1bfa0a": {
       "source": "Chleb żytni razowy",
-      "en_GB": "Wholemeal rye bread"
+      "en_GB": "Wholemeal rye bread",
+      "de": "Vollkornroggenbrot"
     },
     "ee4a63e3-a830-53ca-bb6b-86884681fcd5": {
       "source": "Chorizo",
-      "en_GB": "Chorizo"
+      "en_GB": "Chorizo",
+      "de": "Chorizo"
     },
     "1abd539d-fca5-5421-b235-22a10f22740b": {
       "source": "Chrzan tarty",
-      "en_GB": "Grated horseradish"
+      "en_GB": "Grated horseradish",
+      "de": "Meerrettich, gerieben"
     },
     "ad56a7c9-8016-5f29-a534-52e151621587": {
       "source": "Ciasto filo",
-      "en_GB": "Filo pastry"
+      "en_GB": "Filo pastry",
+      "de": "Filoteig"
     },
     "76e199e0-af54-5c6e-88a1-4075145f565b": {
       "source": "Ciasto francuskie",
-      "en_GB": "Puff pastry"
+      "en_GB": "Puff pastry",
+      "de": "Blätterteig"
     },
     "83d43234-da51-547a-b5c6-a30959b3ecbf": {
       "source": "Ciasto na pizzę",
-      "en_GB": "Pizza dough"
+      "en_GB": "Pizza dough",
+      "de": "Pizzateig"
     },
     "4cb8727d-35b2-5752-bdcd-9ffcf9d854fa": {
       "source": "Ciecierzyca konserwowa",
-      "en_GB": "Tinned chickpeas"
+      "en_GB": "Tinned chickpeas",
+      "de": "Kichererbsen in Dosen"
     },
     "e6708afa-ad59-55e1-9bf2-3349e5f4ef53": {
       "source": "Ciecierzyca sucha",
-      "en_GB": "Dried chickpeas"
+      "en_GB": "Dried chickpeas",
+      "de": "Kichererbsen, getrocknet"
     },
     "8f1a4823-cd20-575a-abc0-7e8150f25415": {
       "source": "Cukier",
-      "en_GB": "Sugar"
+      "en_GB": "Sugar",
+      "de": "Zucker"
     },
     "41a147de-893e-57cf-995d-d26c2fb24732": {
       "source": "Cukier puder",
-      "en_GB": "Icing sugar"
+      "en_GB": "Icing sugar",
+      "de": "Puderzucker"
     },
     "b5499a43-27c0-55f6-9366-34a60e5dbe48": {
       "source": "Cukier trzcinowy",
-      "en_GB": "Cane sugar"
+      "en_GB": "Cane sugar",
+      "de": "Rohrzucker"
     },
     "f0f7e238-3cc7-5691-9aef-a3ec55f20df2": {
       "source": "Cukinia",
-      "en_GB": "Courgette"
+      "en_GB": "Courgette",
+      "de": "Zucchini"
     },
     "675c07f4-816d-5db5-88cb-7e8f38cb1f7e": {
       "source": "Curry w proszku",
-      "en_GB": "Curry powder"
+      "en_GB": "Curry powder",
+      "de": "Currypulver"
     },
     "a01008dc-3676-549a-8858-3a7191d461a4": {
       "source": "Cynamon",
-      "en_GB": "Cinnamon"
+      "en_GB": "Cinnamon",
+      "de": "Zimt"
     },
     "b73663a0-6f3a-5f63-af1e-39031f7ce03c": {
       "source": "Cynamon cejloński",
-      "en_GB": "Ceylon cinnamon"
+      "en_GB": "Ceylon cinnamon",
+      "de": "Ceylon-Zimt"
     },
     "30dee60b-6773-5005-8e2e-5edf08048648": {
       "source": "Cytryna",
-      "en_GB": "Lemon"
+      "en_GB": "Lemon",
+      "de": "Zitrone"
     },
     "9869e450-0484-5b83-a50f-659be8c63996": {
       "source": "Czarnuszka",
-      "en_GB": "Nigella seeds"
+      "en_GB": "Nigella seeds",
+      "de": "Schwarzkümmel"
     },
     "28b435e8-5e61-5a55-9871-e48b21d1702a": {
       "source": "Czekolada gorzka",
-      "en_GB": "Dark chocolate"
+      "en_GB": "Dark chocolate",
+      "de": "Dunkle Schokolade"
     },
     "c9c8f2ae-5ff6-5442-aa6d-902154e32fe8": {
       "source": "Czereśnie",
-      "en_GB": "Sweet cherries"
+      "en_GB": "Sweet cherries",
+      "de": "Süßkirschen"
     },
     "27407a17-4c81-5419-bcf7-f6536c0a6265": {
       "source": "Czosnek",
-      "en_GB": "Garlic"
+      "en_GB": "Garlic",
+      "de": "Knoblauch"
     },
     "1af89b3b-897d-5ed9-bd4c-3c16253d6076": {
       "source": "Czosnek granulowany",
-      "en_GB": "Garlic granules"
+      "en_GB": "Garlic granules",
+      "de": "Knoblauchgranulat"
     },
     "9534e124-536c-52ec-8c6f-0700f37eb5d1": {
       "source": "Daktyle suszone",
-      "en_GB": "Dried dates"
+      "en_GB": "Dried dates",
+      "de": "Getrocknete Datteln"
     },
     "e9e2a3a5-a49e-5145-8584-4ecf66a698b5": {
       "source": "Dorsz filet",
-      "en_GB": "Cod fillet"
+      "en_GB": "Cod fillet",
+      "de": "Kabeljaufilets"
     },
     "b694eed9-c7b0-58e3-9c05-3cad3afe494b": {
       "source": "Drożdże instant",
-      "en_GB": "Instant yeast"
+      "en_GB": "Instant yeast",
+      "de": "Instant-Hefe"
     },
     "4801c2d9-daba-56a2-8139-07afd8eb6986": {
       "source": "Drożdże świeże",
-      "en_GB": "Fresh yeast"
+      "en_GB": "Fresh yeast",
+      "de": "Frischhefe"
     },
     "428aaf2e-99c7-5da6-a9dd-74a40758e98c": {
       "source": "Dynia hokkaido",
-      "en_GB": "Hokkaido squash"
+      "en_GB": "Hokkaido squash",
+      "de": "Hokkaido-Kürbis"
     },
     "caa4f282-bda3-50ff-bb7a-b1a6081d2513": {
       "source": "Edamame mrożone",
-      "en_GB": "Frozen edamame"
+      "en_GB": "Frozen edamame",
+      "de": "Tiefgekühlte Edamame"
     },
     "e307396e-2efb-5598-b70c-e95ad51228df": {
       "source": "Ekstrakt waniliowy",
-      "en_GB": "Vanilla extract"
+      "en_GB": "Vanilla extract",
+      "de": "Vanilleextrakt"
     },
     "a9cf3799-6168-5391-b02a-873135da7bd1": {
       "source": "Erytrytol",
-      "en_GB": "Erythritol"
+      "en_GB": "Erythritol",
+      "de": "Erythrit"
     },
     "e9c1d091-75f2-5deb-a7c2-9a7affcc19f2": {
       "source": "Estragon suszony",
-      "en_GB": "Dried tarragon"
+      "en_GB": "Dried tarragon",
+      "de": "Getrockneter Estragon"
     },
     "5f4de0d0-4048-5305-9ee7-b8efb2fd3b2a": {
       "source": "Estragon świeży",
-      "en_GB": "Fresh tarragon"
+      "en_GB": "Fresh tarragon",
+      "de": "Frischer Estragon"
     },
     "348b2ef7-917a-56f7-a4f7-b472addb2c33": {
       "source": "Fasola biała konserwowa",
-      "en_GB": "Tinned white beans"
+      "en_GB": "Tinned white beans",
+      "de": "Weiße Bohnen in Dosen"
     },
     "a607b3cc-1fea-57f5-81c3-09095e199500": {
       "source": "Fasola biała sucha",
-      "en_GB": "Dried white beans"
+      "en_GB": "Dried white beans",
+      "de": "Weiße Bohnen, getrocknet"
     },
     "0a320c60-3f2e-5016-8285-33da94e3fc20": {
       "source": "Fasola cannellini",
-      "en_GB": "Cannellini beans"
+      "en_GB": "Cannellini beans",
+      "de": "Cannellini-Bohnen"
     },
     "54c9ec0d-8059-5ea1-ae1d-7b1fc0a9d36f": {
       "source": "Fasola czarna konserwowa",
-      "en_GB": "Tinned black beans"
+      "en_GB": "Tinned black beans",
+      "de": "Schwarze Bohnen aus der Dose"
     },
     "74bed579-20b6-5ad1-9cdd-c2e669ce07e0": {
       "source": "Fasola czerwona konserwowa",
-      "en_GB": "Tinned red kidney beans"
+      "en_GB": "Tinned red kidney beans",
+      "de": "Rote Bohnen in Dosen"
     },
     "719de6b0-9d5f-57aa-ad8d-fe45b1062c0d": {
       "source": "Fasola czerwona sucha",
-      "en_GB": "Dried red kidney beans"
+      "en_GB": "Dried red kidney beans",
+      "de": "Getrocknete rote Bohnen"
     },
     "298f104b-0b1b-568b-abcd-2cb0bc3fe0ce": {
       "source": "Fasola konserwowa",
-      "en_GB": "Tinned beans"
+      "en_GB": "Tinned beans",
+      "de": "Bohnen in Dosen"
     },
     "77753d62-61c2-5a10-a25b-cfa7e442dc1d": {
       "source": "Fasola mung sucha",
-      "en_GB": "Dried mung beans"
+      "en_GB": "Dried mung beans",
+      "de": "Getrocknete Mungbohnen"
     },
     "8a65b4bc-a60b-5edf-bf6d-d1b4f380bca4": {
       "source": "Fasola szparagowa świeża",
-      "en_GB": "Fresh green beans"
+      "en_GB": "Fresh green beans",
+      "de": "Frische grüne Bohnen"
     },
     "aac57a76-e3f2-5b08-8848-603ae671c70f": {
       "source": "Fasolka szparagowa mrożona",
-      "en_GB": "Frozen green beans"
+      "en_GB": "Frozen green beans",
+      "de": "Gefrorene grüne Bohnen"
     },
     "9f6cca1c-47b2-554a-8e8e-4b5b12ef3aa9": {
       "source": "Filet z indyka",
-      "en_GB": "Turkey fillet"
+      "en_GB": "Turkey fillet",
+      "de": "Putenbrustfilet"
     },
     "743c2ec7-b2bc-5029-9814-c00660667f20": {
       "source": "Fond drobiowy",
-      "en_GB": "Concentrated chicken stock"
+      "en_GB": "Concentrated chicken stock",
+      "de": "Geflügelfond"
     },
     "96560581-1856-588c-a6b1-f731dd0834b9": {
       "source": "Garam masala",
-      "en_GB": "Garam masala"
+      "en_GB": "Garam masala",
+      "de": "Garam masala"
     },
     "fc55826e-1490-5b9e-990a-3df9ba592467": {
       "source": "Gałka muszkatołowa",
-      "en_GB": "Nutmeg"
+      "en_GB": "Nutmeg",
+      "de": "Muskatnuss"
     },
     "7313d41d-289d-554f-86b7-6176382c7fa9": {
       "source": "Gnocchi ziemniaczane",
-      "en_GB": "Potato gnocchi"
+      "en_GB": "Potato gnocchi",
+      "de": "Kartoffelgnocchi"
     },
     "b25066fb-b6de-5838-a8e3-4b7b7ce36088": {
       "source": "Goździki mielone",
-      "en_GB": "Ground cloves"
+      "en_GB": "Ground cloves",
+      "de": "Gemahlene Nelken"
     },
     "9cb417ec-fcb5-5712-a5db-607e62f993c8": {
       "source": "Granat",
-      "en_GB": "Pomegranate"
+      "en_GB": "Pomegranate",
+      "de": "Granatapfel"
     },
     "f5a66c18-f5f2-5d07-a53f-3170c3da1eb7": {
       "source": "Granulat sojowy suchy",
-      "en_GB": "Dried soya mince"
+      "en_GB": "Dried soya mince",
+      "de": "Getrocknetes Sojagranulat"
     },
     "4e2553dc-db1a-5644-813d-f0b6287e41b3": {
       "source": "Grejpfrut",
-      "en_GB": "Grapefruit"
+      "en_GB": "Grapefruit",
+      "de": "Grapefruit"
     },
     "1cf61449-e2b2-5f52-8280-3ebc7b0dc45b": {
       "source": "Groch łuskany",
-      "en_GB": "Split peas"
+      "en_GB": "Split peas",
+      "de": "Schälerbsen"
     },
     "8c52348b-aa3e-5355-9ef3-3f87df4a50d0": {
       "source": "Groszek cukrowy",
-      "en_GB": "Mangetout"
+      "en_GB": "Mangetout",
+      "de": "Zuckerschoten"
     },
     "98508e45-5cc8-58bd-9720-489cf18805ed": {
       "source": "Groszek konserwowy",
-      "en_GB": "Tinned peas"
+      "en_GB": "Tinned peas",
+      "de": "Erbsen in Dosen"
     },
     "07c1b746-4b1d-52a5-9771-900327cc9634": {
       "source": "Groszek zielony mrożony",
-      "en_GB": "Frozen peas"
+      "en_GB": "Frozen peas",
+      "de": "Erbsen, gefroren"
     },
     "805773f9-38b7-50fb-87e6-b79f8753b4df": {
       "source": "Gruszki",
-      "en_GB": "Pears"
+      "en_GB": "Pears",
+      "de": "Birnen"
     },
     "7d37cb55-71f7-58d2-a3a6-361ba3ff91c7": {
       "source": "Grzyby leśne świeże",
-      "en_GB": "Fresh wild mushrooms"
+      "en_GB": "Fresh wild mushrooms",
+      "de": "Frische Wildpilze"
     },
     "7e4fd315-9468-5c31-9c56-e30626b7da13": {
       "source": "Harissa",
-      "en_GB": "Harissa"
+      "en_GB": "Harissa",
+      "de": "Harissa"
     },
     "8eb0bcb5-a820-5e92-bb62-ac9694d9c8ff": {
       "source": "Herbatniki maślane",
-      "en_GB": "Butter biscuits"
+      "en_GB": "Butter biscuits",
+      "de": "Butterkekse"
     },
     "3d031750-0b97-55ac-bb4f-023971a20541": {
       "source": "Hummus",
-      "en_GB": "Hummus"
+      "en_GB": "Hummus",
+      "de": "Hummus"
     },
     "06cec7dc-2d83-526b-be1a-8dd2aa2fc749": {
       "source": "Imbir mielony",
-      "en_GB": "Ground ginger"
+      "en_GB": "Ground ginger",
+      "de": "Gemahlener Ingwer"
     },
     "5e63d88b-366c-571e-a8ac-583a5609debc": {
       "source": "Imbir świeży",
-      "en_GB": "Fresh ginger"
+      "en_GB": "Fresh ginger",
+      "de": "Frischer Ingwer"
     },
     "c6445274-3365-546f-8729-7fc51b76dc18": {
       "source": "Jabłka",
-      "en_GB": "Apples"
+      "en_GB": "Apples",
+      "de": "Äpfel"
     },
     "cef85b7e-cf1f-5b02-84f1-64f55209ac8c": {
       "source": "Jajka",
-      "en_GB": "Eggs"
+      "en_GB": "Eggs",
+      "de": "Eier"
     },
     "109f91f6-2a5f-55ee-afdc-859fc57f6919": {
       "source": "Jajka przepiórcze",
-      "en_GB": "Quail eggs"
+      "en_GB": "Quail eggs",
+      "de": "Wachteleier"
     },
     "43a701da-2ab6-53e0-aecc-7269c1ce48ac": {
       "source": "Jalapeño konserwowe",
-      "en_GB": "Pickled jalapeños"
+      "en_GB": "Pickled jalapeños",
+      "de": "Eingelegte Jalapeños"
     },
     "193e2511-ee61-579e-9a34-6db12246998b": {
       "source": "Jarmuż",
-      "en_GB": "Kale"
+      "en_GB": "Kale",
+      "de": "Grünkohl"
     },
     "1eaf9d50-cedd-5eb9-bb82-34669e0d7229": {
       "source": "Jeżyny",
-      "en_GB": "Blackberries"
+      "en_GB": "Blackberries",
+      "de": "Brombeeren"
     },
     "a15726ee-ab67-5765-b280-a027dbd0f9e5": {
       "source": "Jogurt grecki",
-      "en_GB": "Greek yoghurt"
+      "en_GB": "Greek yoghurt",
+      "de": "Griechischer Joghurt"
     },
     "f2a7162e-61db-569f-8245-f6bcd9dfe123": {
       "source": "Jogurt kokosowy",
-      "en_GB": "Coconut yoghurt"
+      "en_GB": "Coconut yoghurt",
+      "de": "Kokosjoghurt"
     },
     "0a92f321-13ee-5a51-a017-8f42c35e1963": {
       "source": "Jogurt naturalny",
-      "en_GB": "Natural yoghurt"
+      "en_GB": "Natural yoghurt",
+      "de": "Naturjoghurt"
     },
     "2399cb86-fccb-549d-914f-d9bb9ba501ab": {
       "source": "Kakao ciemne",
-      "en_GB": "Dark cocoa powder"
+      "en_GB": "Dark cocoa powder",
+      "de": "dunkles Kakaopulver"
     },
     "658f8a4c-093e-5729-8396-00977820c25d": {
       "source": "Kaki",
-      "en_GB": "Persimmon"
+      "en_GB": "Persimmon",
+      "de": "Persimon"
     },
     "59d76661-f88d-52c7-b385-0a36aeda506f": {
       "source": "Kalafior",
-      "en_GB": "Cauliflower"
+      "en_GB": "Cauliflower",
+      "de": "Blumenkohl"
     },
     "78375eb0-31c4-5dd9-bdf3-a2b83fffe14b": {
       "source": "Kalarepa",
-      "en_GB": "Kohlrabi"
+      "en_GB": "Kohlrabi",
+      "de": "Kohlrabi"
     },
     "d4839c0e-4532-5619-a53d-6c71b2dc8303": {
       "source": "Kapary",
-      "en_GB": "Capers"
+      "en_GB": "Capers",
+      "de": "Kapern"
     },
     "d88be8c3-76dd-53a6-b9d3-3cf7996407be": {
       "source": "Kapusta biała",
-      "en_GB": "White cabbage"
+      "en_GB": "White cabbage",
+      "de": "Weißkohl"
     },
     "4c0ca62c-1fd8-54fb-9bc9-31476c859058": {
       "source": "Kapusta czerwona",
-      "en_GB": "Red cabbage"
+      "en_GB": "Red cabbage",
+      "de": "Rotkohl"
     },
     "1dccc55b-0ae9-55ca-857e-66b95ba178d6": {
       "source": "Kapusta kiszona",
-      "en_GB": "Sauerkraut"
+      "en_GB": "Sauerkraut",
+      "de": "Sauerkraut"
     },
     "d4633375-8ff5-564f-b541-64d3c80f6539": {
       "source": "Kapusta pekińska",
-      "en_GB": "Chinese cabbage"
+      "en_GB": "Chinese cabbage",
+      "de": "Chinakohl"
     },
     "f26c2623-c07d-5d77-985d-6ee2092bc422": {
       "source": "Karczochy konserwowe",
-      "en_GB": "Tinned artichokes"
+      "en_GB": "Tinned artichokes",
+      "de": "Artischocken in Dosen"
     },
     "166188ce-c385-56f6-a945-00fa4e89536b": {
       "source": "Kardamon mielony",
-      "en_GB": "Ground cardamom"
+      "en_GB": "Ground cardamom",
+      "de": "Gemahlener Kardamom"
     },
     "e244a3cc-2264-5da7-84f7-9c1663d79664": {
       "source": "Karkówka wieprzowa",
-      "en_GB": "Pork collar"
+      "en_GB": "Pork collar",
+      "de": "Schweinenacken"
     },
     "38541c57-7704-5608-ad62-81ecddeeaf31": {
       "source": "Kasza bulgur",
-      "en_GB": "Bulgur wheat"
+      "en_GB": "Bulgur wheat",
+      "de": "Bulgur"
     },
     "f37b3f71-90d9-5b3b-9133-4bd49617e107": {
       "source": "Kasza gryczana",
-      "en_GB": "Buckwheat groats"
+      "en_GB": "Buckwheat groats",
+      "de": "Buchweizengrütze"
     },
     "8483d7fb-165a-5f56-b3b3-8b88537fbfa8": {
       "source": "Kasza jaglana",
-      "en_GB": "Millet"
+      "en_GB": "Millet",
+      "de": "Hirse"
     },
     "7ab0ee29-de7a-5310-b907-320595782e19": {
       "source": "Kasza jęczmienna",
-      "en_GB": "Barley groats"
+      "en_GB": "Barley groats",
+      "de": "Gerstengrütze"
     },
     "8d2bfc47-63f1-5489-8d63-9d653da395f2": {
       "source": "Kasza manna",
-      "en_GB": "Semolina"
+      "en_GB": "Semolina",
+      "de": "Weizengrieß"
     },
     "538e5191-64e0-5815-a189-e5cd655d8f2b": {
       "source": "Kasza owsiana",
-      "en_GB": "Oat groats"
+      "en_GB": "Oat groats",
+      "de": "Hafergrütze"
     },
     "4d1c3653-26b4-5fb3-a6c8-9bf0dbe70cf3": {
       "source": "Kasza pęczak",
-      "en_GB": "Pearl barley"
+      "en_GB": "Pearl barley",
+      "de": "Perlengerste"
     },
     "54d45cb2-09d4-5433-9145-900e8d8835b3": {
       "source": "Kefir",
-      "en_GB": "Kefir"
+      "en_GB": "Kefir",
+      "de": "Kefir"
     },
     "fbfff798-d34f-5238-b685-0426f3d06636": {
       "source": "Ketchup",
-      "en_GB": "Ketchup"
+      "en_GB": "Ketchup",
+      "de": "Ketchup"
     },
     "e83e16ff-d606-5844-93bc-006dd0f7e1e6": {
       "source": "Kiełbasa śląska",
-      "en_GB": "Silesian sausage"
+      "en_GB": "Silesian sausage",
+      "de": "Schlesische Wurst"
     },
     "95ec2c9e-a10a-5ce7-88ba-3b0ee05dddb3": {
       "source": "Kiełki brokuła",
-      "en_GB": "Broccoli sprouts"
+      "en_GB": "Broccoli sprouts",
+      "de": "Broccoli-Sprossen"
     },
     "66cc2fb0-b3e6-573a-95c6-b44a4fde100f": {
       "source": "Kiełki fasoli mung",
-      "en_GB": "Mung bean sprouts"
+      "en_GB": "Mung bean sprouts",
+      "de": "Mungbohnensprossen"
     },
     "1ac2e93b-be1a-5a18-a1ae-3efc58eee563": {
       "source": "Kimchi",
-      "en_GB": "Kimchi"
+      "en_GB": "Kimchi",
+      "de": "Kimchi"
     },
     "7ff10de8-bfe0-52d4-807f-9adf73ec9a03": {
       "source": "Kiwi",
-      "en_GB": "Kiwi fruit"
+      "en_GB": "Kiwi fruit",
+      "de": "Kiwi-Frucht"
     },
     "e5da791a-5cd2-5395-bdfc-df1314fab283": {
       "source": "Kmin rzymski",
-      "en_GB": "Cumin"
+      "en_GB": "Cumin",
+      "de": "Kreuzkümmel"
     },
     "e561168b-290d-5ab4-9c27-21949d9eadb4": {
       "source": "Kolendra mielona",
-      "en_GB": "Ground coriander"
+      "en_GB": "Ground coriander",
+      "de": "Gemahlener Koriander"
     },
     "a816a3b8-7ea7-5924-811e-bde6a75e0c9f": {
       "source": "Kolendra świeża",
-      "en_GB": "Fresh coriander"
+      "en_GB": "Fresh coriander",
+      "de": "Frischer Koriander"
     },
     "0ed74a5d-1eb8-5f17-8ca6-9830ae4f36bb": {
       "source": "Koncentrat pomidorowy",
-      "en_GB": "Tomato purée"
+      "en_GB": "Tomato purée",
+      "de": "Tomatenmark"
     },
     "270533a7-5f2b-515d-a911-bc1ad7494150": {
       "source": "Koper włoski",
-      "en_GB": "Fennel"
+      "en_GB": "Fennel",
+      "de": "Fenchel"
     },
     "891b2a54-59a0-57b7-9e3c-1f5802e72953": {
       "source": "Koperek świeży",
-      "en_GB": "Fresh dill"
+      "en_GB": "Fresh dill",
+      "de": "Frischer Dill"
     },
     "87182f44-6205-5f1c-a7d7-584bb94c166d": {
       "source": "Kozieradka mielona",
-      "en_GB": "Ground fenugreek"
+      "en_GB": "Ground fenugreek",
+      "de": "Gemahlener Bockshornklee"
     },
     "5b75bdf4-0bce-5d6e-a839-10a7c45d1f11": {
       "source": "Krem balsamiczny",
-      "en_GB": "Balsamic glaze"
+      "en_GB": "Balsamic glaze",
+      "de": "Balsamicoglasur"
     },
     "8e19950e-3d13-5144-910e-3c00ed28175e": {
       "source": "Krewetki mrożone",
-      "en_GB": "Frozen prawns"
+      "en_GB": "Frozen prawns",
+      "de": "Garnelen, gefroren"
     },
     "1bbf5ee3-982c-5752-aba6-0311e0f78dac": {
       "source": "Ksylitol",
-      "en_GB": "Xylitol"
+      "en_GB": "Xylitol",
+      "de": "Xylitol"
     },
     "e32f58bd-c5ce-5da5-b51f-ade7514e2dcc": {
       "source": "Kukurydza kolba",
-      "en_GB": "Corn on the cob"
+      "en_GB": "Corn on the cob",
+      "de": "Maiskolben"
     },
     "69e2130a-c1c1-5425-9433-1812951874eb": {
       "source": "Kukurydza konserwowa",
-      "en_GB": "Tinned sweetcorn"
+      "en_GB": "Tinned sweetcorn",
+      "de": "Zuckermais in Dosen"
     },
     "88e0e374-fa91-5c17-8148-ce79b6e53e0b": {
       "source": "Kukurydza mrożona",
-      "en_GB": "Frozen sweetcorn"
+      "en_GB": "Frozen sweetcorn",
+      "de": "Zuckermais, gefroren"
     },
     "1d42c011-6895-55bf-81d9-82bf3d50e449": {
       "source": "Kurki świeże",
-      "en_GB": "Fresh chanterelle mushrooms"
+      "en_GB": "Fresh chanterelle mushrooms",
+      "de": "Frische Pfifferlinge"
     },
     "58a17ff6-6079-5477-9650-893ed9cd32ff": {
       "source": "Kurkuma mielona",
-      "en_GB": "Ground turmeric"
+      "en_GB": "Ground turmeric",
+      "de": "Gemahlene Kurkuma"
     },
     "4656a15a-c027-52e9-983d-7cf5f20c082e": {
       "source": "Kuskus",
-      "en_GB": "Couscous"
+      "en_GB": "Couscous",
+      "de": "Couscous"
     },
     "4af939c2-2d1d-521c-806c-45d4479a6601": {
       "source": "Kuskus perłowy",
-      "en_GB": "Pearl couscous"
+      "en_GB": "Pearl couscous",
+      "de": "Perlcouscous"
     },
     "b2a734b3-dd6b-5e34-9ff4-d2baa769bbb6": {
       "source": "Limonka",
-      "en_GB": "Lime"
+      "en_GB": "Lime",
+      "de": "Limette"
     },
     "4990b371-3cb7-53e5-94ab-be4b9c20e68f": {
       "source": "Liść laurowy",
-      "en_GB": "Bay leaf"
+      "en_GB": "Bay leaf",
+      "de": "Lorbeerblatt"
     },
     "6443ea51-2fa5-5798-b759-fa6efdb88822": {
       "source": "Majeranek suszony",
-      "en_GB": "Dried marjoram"
+      "en_GB": "Dried marjoram",
+      "de": "Getrockneter Majoran"
     },
     "750e7a30-665c-5d30-92e8-21fcb014cd4b": {
       "source": "Majonez",
-      "en_GB": "Mayonnaise"
+      "en_GB": "Mayonnaise",
+      "de": "Mayonnaise"
     },
     "6d07cd99-16d9-596e-b2ca-272bcc29a765": {
       "source": "Mak niebieski",
-      "en_GB": "Blue poppy seeds"
+      "en_GB": "Blue poppy seeds",
+      "de": "Blaumohnsamen"
     },
     "7f62385b-4f44-5bb6-9732-8e097c9b7d72": {
       "source": "Makaron fusilli",
-      "en_GB": "Fusilli"
+      "en_GB": "Fusilli",
+      "de": "Fusilli"
     },
     "7dda22b2-f2fa-5a29-9164-397f7e04e3ec": {
       "source": "Makaron lasagne",
-      "en_GB": "Lasagne sheets"
+      "en_GB": "Lasagne sheets",
+      "de": "Lasagneblätter"
     },
     "6becc94f-b918-562e-9697-1f84406eee1c": {
       "source": "Makaron orzo",
-      "en_GB": "Orzo"
+      "en_GB": "Orzo",
+      "de": "Orzo"
     },
     "8cca272d-414c-5e8f-a044-0ddef8f5e2b3": {
       "source": "Makaron penne",
-      "en_GB": "Penne pasta"
+      "en_GB": "Penne pasta",
+      "de": "Penne"
     },
     "e842e0c1-866f-5e26-b300-e0bd24e8eba0": {
       "source": "Makaron pełnoziarnisty",
-      "en_GB": "Wholewheat pasta"
+      "en_GB": "Wholewheat pasta",
+      "de": "Vollkornnudeln"
     },
     "6eb3a4e3-936e-56f0-9b08-0ca6edcd0d1b": {
       "source": "Makaron ryżowy",
-      "en_GB": "Rice noodles"
+      "en_GB": "Rice noodles",
+      "de": "Reisnudeln"
     },
     "1f44b6d1-3a42-5dad-99ae-f9f27347833e": {
       "source": "Makaron soba",
-      "en_GB": "Soba noodles"
+      "en_GB": "Soba noodles",
+      "de": "Soba-Nudeln"
     },
     "60c72ce2-3963-5420-8f90-736cd14f1d65": {
       "source": "Makaron spaghetti",
-      "en_GB": "Spaghetti"
+      "en_GB": "Spaghetti",
+      "de": "Spaghetti"
     },
     "cc6e9350-7ebc-513b-9ff4-7be1687fe7b4": {
       "source": "Makaron tagliatelle",
-      "en_GB": "Tagliatelle"
+      "en_GB": "Tagliatelle",
+      "de": "Tagliatelle"
     },
     "54b8e840-637f-51a0-98ec-3e2d0f2835cf": {
       "source": "Makaron udon",
-      "en_GB": "Udon noodles"
+      "en_GB": "Udon noodles",
+      "de": "Udonnudeln"
     },
     "6ccb0b45-379b-56d0-994a-3747b918e8ff": {
       "source": "Makaron vermicelli",
-      "en_GB": "Vermicelli"
+      "en_GB": "Vermicelli",
+      "de": "Vermicelli"
     },
     "45d0d4e9-9421-536a-8aed-5e098f3da663": {
       "source": "Makrela wędzona",
-      "en_GB": "Smoked mackerel"
+      "en_GB": "Smoked mackerel",
+      "de": "Geräucherte Makrelen"
     },
     "40b525b7-8f25-58b4-96dd-f25045a6a762": {
       "source": "Maliny",
-      "en_GB": "Raspberries"
+      "en_GB": "Raspberries",
+      "de": "Himbeeren"
     },
     "784cc01f-0915-5aeb-95ed-b982a9ac94bc": {
       "source": "Mandarynki",
-      "en_GB": "Mandarins"
+      "en_GB": "Mandarins",
+      "de": "Mandarinen"
     },
     "a2c8cd35-9259-5548-bdbb-1657f9b80ebf": {
       "source": "Mango",
-      "en_GB": "Mango"
+      "en_GB": "Mango",
+      "de": "Mango"
     },
     "2b63a301-61b6-5736-a444-7929f35e1c23": {
       "source": "Marchew",
-      "en_GB": "Carrot"
+      "en_GB": "Carrot",
+      "de": "Karotte"
     },
     "e3732d34-3708-5c71-8686-306eba838d6e": {
       "source": "Mascarpone",
-      "en_GB": "Mascarpone"
+      "en_GB": "Mascarpone",
+      "de": "Mascarpone"
     },
     "89bf7d5e-1cf8-5b33-8c78-1e68a240569e": {
       "source": "Masło extra",
-      "en_GB": "Butter"
+      "en_GB": "Butter",
+      "de": "Butter"
     },
     "40b8ace7-0d0d-5cf4-a048-a0a45bec04b0": {
       "source": "Masło klarowane ghee",
-      "en_GB": "Ghee"
+      "en_GB": "Ghee",
+      "de": "Ghee"
     },
     "ce838162-6aca-53ad-9025-7ef8f8f9af8c": {
       "source": "Masło orzechowe",
-      "en_GB": "Peanut butter"
+      "en_GB": "Peanut butter",
+      "de": "Erdnussbutter"
     },
     "201102b1-25f1-5b31-9150-c7f72ab8202e": {
       "source": "Małże mrożone",
-      "en_GB": "Frozen mussels"
+      "en_GB": "Frozen mussels",
+      "de": "Miesmuscheln, gefroren"
     },
     "240d082f-fbd2-5555-a95e-62c3041c2d86": {
       "source": "Maślanka naturalna",
-      "en_GB": "Plain buttermilk"
+      "en_GB": "Plain buttermilk",
+      "de": "Naturbuttermilch"
     },
     "4c37b4e4-89c6-598d-8e68-4f97e32f8bef": {
       "source": "Melasa z granatu",
-      "en_GB": "Pomegranate molasses"
+      "en_GB": "Pomegranate molasses",
+      "de": "Granatapfelmelasse"
     },
     "1cf51fdb-5177-51b9-ba51-34b4d1a603bd": {
       "source": "Melon",
-      "en_GB": "Melon"
+      "en_GB": "Melon",
+      "de": "Melone"
     },
     "c2ddd14e-92b2-5bea-ad20-eccaef23d7ed": {
       "source": "Mielone wieprzowo-wołowe",
-      "en_GB": "Pork and beef mince"
+      "en_GB": "Pork and beef mince",
+      "de": "Gemischtes Hackfleisch (Schwein und Rind)"
     },
     "e809f0b5-5d6f-5879-8b10-6f31e0bf32c7": {
       "source": "Migdały płatki",
-      "en_GB": "Flaked almonds"
+      "en_GB": "Flaked almonds",
+      "de": "Mandelblättchen"
     },
     "fe9e404c-d4df-593d-96f7-577697ec8993": {
       "source": "Mintaj filet",
-      "en_GB": "Alaska pollock fillet"
+      "en_GB": "Alaska pollock fillet",
+      "de": "Alaska-Seelachsfilet"
     },
     "ac9eed06-8edc-5fa2-8b4d-36441bc191b7": {
       "source": "Mirin",
-      "en_GB": "Mirin"
+      "en_GB": "Mirin",
+      "de": "Mirin"
     },
     "c09e2f7d-8a14-56f9-8e07-947cc5c291c9": {
       "source": "Miód",
-      "en_GB": "Honey"
+      "en_GB": "Honey",
+      "de": "Honig"
     },
     "b172e08b-c8e1-5ab9-bccc-52888c5fcaf9": {
       "source": "Mięso mielone z indyka",
-      "en_GB": "Turkey mince"
+      "en_GB": "Turkey mince",
+      "de": "Putenhackfleisch"
     },
     "aa6b1af3-fd64-58a6-9935-411376422787": {
       "source": "Mięta świeża",
-      "en_GB": "Fresh mint"
+      "en_GB": "Fresh mint",
+      "de": "Frische Minze"
     },
     "ef95fef3-2373-5994-87f2-ca734b42720f": {
       "source": "Mleczko kokosowe light",
-      "en_GB": "Light coconut milk"
+      "en_GB": "Light coconut milk",
+      "de": "Leichte Kokosmilch"
     },
     "ab0670ae-58b4-5c0c-9819-528f7120eb45": {
       "source": "Mleko 1,5%",
-      "en_GB": "Milk, 1.5% fat"
+      "en_GB": "Milk, 1.5% fat",
+      "de": "Milch, 1.5% Fett"
     },
     "527c542c-dae3-52d1-b75f-d7a4e76204a3": {
       "source": "Mleko 2%",
-      "en_GB": "Milk (2% fat)"
+      "en_GB": "Milk (2% fat)",
+      "de": "Milch (2% Fett)"
     },
     "24aa3ae7-d730-5b2d-8239-24c1c4e7bb15": {
       "source": "Mleko bez laktozy",
-      "en_GB": "Lactose-free milk"
+      "en_GB": "Lactose-free milk",
+      "de": "Laktosefreie Milch"
     },
     "edbd1a0f-8c09-53fe-833b-cfb8b35334da": {
       "source": "Mleko kokosowe",
-      "en_GB": "Coconut milk"
+      "en_GB": "Coconut milk",
+      "de": "Kokosmilch"
     },
     "f2ea1440-040b-54ea-a232-002dd7bb164f": {
       "source": "Mleko kozie",
-      "en_GB": "Goat's milk"
+      "en_GB": "Goat's milk",
+      "de": "Ziegenmilch"
     },
     "5c64ab06-cb48-5942-a888-ff8fe96cb9a1": {
       "source": "Mleko migdałowe",
-      "en_GB": "Almond milk"
+      "en_GB": "Almond milk",
+      "de": "Mandelmilch"
     },
     "b3153a90-bcd6-59f3-8dbd-e104477ae90d": {
       "source": "Mleko skondensowane słodzone",
-      "en_GB": "Sweetened condensed milk"
+      "en_GB": "Sweetened condensed milk",
+      "de": "Gesüßte Kondensmilch"
     },
     "224e542d-be2b-53f8-a60e-42e9bcc61c31": {
       "source": "Morele",
-      "en_GB": "Apricots"
+      "en_GB": "Apricots",
+      "de": "Aprikosen"
     },
     "12b190bd-d639-579c-83ae-1903e3c67614": {
       "source": "Morele suszone",
-      "en_GB": "Dried apricots"
+      "en_GB": "Dried apricots",
+      "de": "Aprikosen, getrocknet"
     },
     "89107566-b0b3-5d34-b069-9d203076e3d7": {
       "source": "Morszczuk filet",
-      "en_GB": "Hake fillet"
+      "en_GB": "Hake fillet",
+      "de": "Seehechtfilets"
     },
     "18fb3018-050e-56bc-8c2f-055cf005cb91": {
       "source": "Mozzarella",
-      "en_GB": "Mozzarella"
+      "en_GB": "Mozzarella",
+      "de": "Mozzarella"
     },
     "8dda96f3-6fb6-5c71-8473-b226ef9d108f": {
       "source": "Mozzarella light",
-      "en_GB": "Light mozzarella"
+      "en_GB": "Light mozzarella",
+      "de": "Leichter Mozzarella"
     },
     "10e29658-6504-5aa0-aabd-4835ddb1391e": {
       "source": "Mrożone warzywa mieszanka",
-      "en_GB": "Frozen mixed vegetables"
+      "en_GB": "Frozen mixed vegetables",
+      "de": "Gefrorenes Gemüsegemisch"
     },
     "05ed527d-4a43-52b4-9750-0fb7386e5668": {
       "source": "Mrożony szpinak",
-      "en_GB": "Frozen spinach"
+      "en_GB": "Frozen spinach",
+      "de": "gefrorener Spinat"
     },
     "0380e406-3ce7-5b8c-8e18-bc7c1c061cec": {
       "source": "Mus jabłkowy",
-      "en_GB": "Apple purée"
+      "en_GB": "Apple purée",
+      "de": "Apfelmark"
     },
     "c9627249-6da5-54b5-8a66-8bbf277ceb61": {
       "source": "Musztarda",
-      "en_GB": "Mustard"
+      "en_GB": "Mustard",
+      "de": "Senf"
     },
     "bf7f2688-b75d-55fc-948b-5384732202dc": {
       "source": "Musztarda dijon",
-      "en_GB": "Dijon mustard"
+      "en_GB": "Dijon mustard",
+      "de": "Dijon-Senf"
     },
     "0778400e-cfac-5c05-9373-a9a784d2f1c3": {
       "source": "Musztarda francuska",
-      "en_GB": "Wholegrain mustard"
+      "en_GB": "Wholegrain mustard",
+      "de": "Körniger Senf"
     },
     "e2bdaaaf-1f3c-5213-befb-79fb2436accd": {
       "source": "Mąka gryczana",
-      "en_GB": "Buckwheat flour"
+      "en_GB": "Buckwheat flour",
+      "de": "Buchweizenmehl"
     },
     "d525f2f0-edb1-5aa5-b96a-972b2995d01c": {
       "source": "Mąka kokosowa",
-      "en_GB": "Coconut flour"
+      "en_GB": "Coconut flour",
+      "de": "Kokosmehl"
     },
     "c88ec559-93eb-5da4-81ba-6b894d6d7bbb": {
       "source": "Mąka kukurydziana",
-      "en_GB": "Maize flour"
+      "en_GB": "Maize flour",
+      "de": "Maismehl"
     },
     "5b36cc6d-05d2-5cfa-ba57-dfe6aff5c3ea": {
       "source": "Mąka migdałowa",
-      "en_GB": "Almond flour"
+      "en_GB": "Almond flour",
+      "de": "Mandelmehl"
     },
     "cebacef0-1c4f-5abe-a5fa-720a067654ca": {
       "source": "Mąka orkiszowa",
-      "en_GB": "Spelt flour"
+      "en_GB": "Spelt flour",
+      "de": "Dinkelmehl"
     },
     "73e80006-f52a-591b-af5b-424e76bc4a20": {
       "source": "Mąka owsiana",
-      "en_GB": "Oat flour"
+      "en_GB": "Oat flour",
+      "de": "Hafermehl"
     },
     "fda48b0e-7fc4-5175-80ff-3ac0503f22c1": {
       "source": "Mąka pszenna",
-      "en_GB": "Wheat flour"
+      "en_GB": "Wheat flour",
+      "de": "Weizenmehl"
     },
     "719b3711-b148-50f8-b637-a5f33a4c0524": {
       "source": "Mąka pszenna pełnoziarnista",
-      "en_GB": "Wholemeal wheat flour"
+      "en_GB": "Wholemeal wheat flour",
+      "de": "Weizenvollkornmehl"
     },
     "0f368975-3574-5a00-9de3-d294f91e936a": {
       "source": "Mąka tempura",
-      "en_GB": "Tempura flour"
+      "en_GB": "Tempura flour",
+      "de": "Tempuramehl"
     },
     "99a3b772-42a7-5162-9a66-15d725a05b72": {
       "source": "Mąka z ciecierzycy",
-      "en_GB": "Chickpea flour"
+      "en_GB": "Chickpea flour",
+      "de": "Kichererbsenmehl"
     },
     "e2a586f2-c9d0-51fe-ab6a-0f6faa5acdff": {
       "source": "Mąka ziemniaczana",
-      "en_GB": "Potato starch"
+      "en_GB": "Potato starch",
+      "de": "Kartoffelstärke"
     },
     "c6183d12-91d8-5d85-8e79-9a55ee76fa88": {
       "source": "Mąka żytnia",
-      "en_GB": "Rye flour"
+      "en_GB": "Rye flour",
+      "de": "Roggenmehl"
     },
     "8ed6f515-6348-59ac-838c-49b117d6c26a": {
       "source": "Nachosy naturalne",
-      "en_GB": "Plain tortilla chips"
+      "en_GB": "Plain tortilla chips",
+      "de": "Einfache Tortilla-Chips"
     },
     "f31db480-7a95-53eb-b320-25068281cf56": {
       "source": "Nasiona chia",
-      "en_GB": "Chia seeds"
+      "en_GB": "Chia seeds",
+      "de": "Chiasamen"
     },
     "0b293d5b-aea5-5af1-86d1-3a559132e1eb": {
       "source": "Nasiona kopru włoskiego",
-      "en_GB": "Fennel seeds"
+      "en_GB": "Fennel seeds",
+      "de": "Fenchelsamen"
     },
     "5f7d29fd-59af-5579-bd4d-eae3fd2847d5": {
       "source": "Natka pietruszki",
-      "en_GB": "Parsley"
+      "en_GB": "Parsley",
+      "de": "Petersilie"
     },
     "64f1d155-d245-5294-90e4-f5e20b7c42fa": {
       "source": "Nektarynki",
-      "en_GB": "Nectarines"
+      "en_GB": "Nectarines",
+      "de": "Nektarinen"
     },
     "ec5a5f94-ac34-5223-9ff1-1ae9e72d6851": {
       "source": "Ocet balsamiczny",
-      "en_GB": "Balsamic vinegar"
+      "en_GB": "Balsamic vinegar",
+      "de": "Balsamico-Essig"
     },
     "c1cc19a4-202c-514d-88a3-7e9c124634f3": {
       "source": "Ocet jabłkowy",
-      "en_GB": "Cider vinegar"
+      "en_GB": "Cider vinegar",
+      "de": "Apfelessig"
     },
     "aa078bef-7839-539d-b736-c612a284a71e": {
       "source": "Ocet ryżowy",
-      "en_GB": "Rice vinegar"
+      "en_GB": "Rice vinegar",
+      "de": "Reisessig"
     },
     "9456e63a-ab89-51f9-8a95-eaa290eb559b": {
       "source": "Ocet spirytusowy",
-      "en_GB": "Distilled vinegar"
+      "en_GB": "Distilled vinegar",
+      "de": "Destillierter Essig"
     },
     "106194ca-8052-5ef8-9634-62ba3ea7d503": {
       "source": "Ocet winny czerwony",
-      "en_GB": "Red wine vinegar"
+      "en_GB": "Red wine vinegar",
+      "de": "Rotweinessig"
     },
     "f069ad9f-c14b-58ae-b4b8-9b01ce8e318c": {
       "source": "Ogórek",
-      "en_GB": "Cucumber"
+      "en_GB": "Cucumber",
+      "de": "Gurken"
     },
     "82b42103-ac01-5377-a4c3-ca69d2d3a7cd": {
       "source": "Ogórki kiszone",
-      "en_GB": "Fermented gherkins"
+      "en_GB": "Fermented gherkins",
+      "de": "Fermentierte Gurken"
     },
     "98aab66d-d80c-5938-a140-229705674f6a": {
       "source": "Ogórki konserwowe",
-      "en_GB": "Pickled gherkins"
+      "en_GB": "Pickled gherkins",
+      "de": "Eingelegte Gurken"
     },
     "bc031d92-b687-50de-afb7-5c6f33ba539e": {
       "source": "Olej rzepakowy",
-      "en_GB": "Rapeseed oil"
+      "en_GB": "Rapeseed oil",
+      "de": "Rapsöl"
     },
     "c5e6ec52-0878-5b82-a8ad-bd0db8e2a31a": {
       "source": "Olej sezamowy",
-      "en_GB": "Sesame oil"
+      "en_GB": "Sesame oil",
+      "de": "Sesamöl"
     },
     "1e48a2c5-d5e9-52f8-a158-c6dc4fd0162e": {
       "source": "Olej słonecznikowy",
-      "en_GB": "Sunflower oil"
+      "en_GB": "Sunflower oil",
+      "de": "Sonnenblumenöl"
     },
     "4faa4e87-088e-5393-a242-49ebebbd24bf": {
       "source": "Oliwa z oliwek",
-      "en_GB": "Olive oil"
+      "en_GB": "Olive oil",
+      "de": "Olivenöl"
     },
     "20eb9d33-1702-5327-8408-746c0281c62b": {
       "source": "Oliwki czarne",
-      "en_GB": "Black olives"
+      "en_GB": "Black olives",
+      "de": "Schwarze Oliven"
     },
     "3601140b-627a-5d09-ba5d-4e3306b380d5": {
       "source": "Oliwki kalamata",
-      "en_GB": "Kalamata olives"
+      "en_GB": "Kalamata olives",
+      "de": "Kalamataoliven"
     },
     "f83c4324-e329-58d2-9652-13a60f59ef90": {
       "source": "Oregano",
-      "en_GB": "Oregano"
+      "en_GB": "Oregano",
+      "de": "Oregano"
     },
     "7e778235-85d4-5e09-80a2-544ea531a2ee": {
       "source": "Orzechy laskowe",
-      "en_GB": "Hazelnuts"
+      "en_GB": "Hazelnuts",
+      "de": "Haselnüsse"
     },
     "3dfd1c18-a8e5-5167-9632-5d8ef198cf4b": {
       "source": "Orzechy nerkowca",
-      "en_GB": "Cashews"
+      "en_GB": "Cashews",
+      "de": "Cashewkerne"
     },
     "fb74868d-706b-5edd-a9e3-6842d1640bf2": {
       "source": "Orzechy pekan",
-      "en_GB": "Pecans"
+      "en_GB": "Pecans",
+      "de": "Pekannüsse"
     },
     "e201df78-d8c1-5300-abc6-f529f5c8ad35": {
       "source": "Orzechy włoskie",
-      "en_GB": "Walnuts"
+      "en_GB": "Walnuts",
+      "de": "Walnüsse"
     },
     "73ee2527-0354-5521-9786-2c8d8aecfac3": {
       "source": "Orzeszki piniowe",
-      "en_GB": "Pine nuts"
+      "en_GB": "Pine nuts",
+      "de": "Pinienkerne"
     },
     "53789ca8-d350-584c-9a8f-aba95615be19": {
       "source": "Orzeszki ziemne",
-      "en_GB": "Peanuts"
+      "en_GB": "Peanuts",
+      "de": "Erdnüsse"
     },
     "0fc1201c-1a27-5289-874a-74ce80435d7a": {
       "source": "Owoce leśne mrożone",
-      "en_GB": "Frozen forest fruits"
+      "en_GB": "Frozen forest fruits",
+      "de": "Gefrorene Waldfrüchte"
     },
     "9ca1673a-16bc-5312-9e21-6098d7c64af0": {
       "source": "Pak choi",
-      "en_GB": "Pak choi"
+      "en_GB": "Pak choi",
+      "de": "Pak choi"
     },
     "02682b35-4187-5a13-b52e-5f8b92947c07": {
       "source": "Papryczka chili świeża",
-      "en_GB": "Fresh chilli pepper"
+      "en_GB": "Fresh chilli pepper",
+      "de": "Frische Chilischote"
     },
     "69061f34-df52-51c1-bdb0-2cbdef1f0496": {
       "source": "Papryka czerwona",
-      "en_GB": "Red pepper"
+      "en_GB": "Red pepper",
+      "de": "Rote Paprika"
     },
     "e59795ce-e655-5ec5-89ba-0a99ebceabe1": {
       "source": "Papryka ostra",
-      "en_GB": "Hot paprika"
+      "en_GB": "Hot paprika",
+      "de": "Scharfes Paprikapulver"
     },
     "bc8b8a68-7ba1-5432-a615-4b267189984e": {
       "source": "Papryka pieczona konserwowa",
-      "en_GB": "Preserved roasted peppers"
+      "en_GB": "Preserved roasted peppers",
+      "de": "Haltbar gemachte geröstete Paprika"
     },
     "8bbaa226-1e25-50d0-9f28-3adf6dec4f70": {
       "source": "Papryka słodka",
-      "en_GB": "Sweet paprika"
+      "en_GB": "Sweet paprika",
+      "de": "Edelsüßes Paprikapulver"
     },
     "b7afa336-04d5-5d24-beea-b4d90c17573d": {
       "source": "Papryka wędzona",
-      "en_GB": "Smoked paprika"
+      "en_GB": "Smoked paprika",
+      "de": "Geräuchertes Paprikapulver"
     },
     "d027c39b-3cbb-5e77-bd35-33c24962203e": {
       "source": "Papryka zielona",
-      "en_GB": "Green pepper"
+      "en_GB": "Green pepper",
+      "de": "Grüne Paprika"
     },
     "9fe2a947-e967-5c88-9b85-24f50f991e88": {
       "source": "Papryka żółta",
-      "en_GB": "Yellow pepper"
+      "en_GB": "Yellow pepper",
+      "de": "Gelbe Paprika"
     },
     "286f114f-e30e-5165-ac42-b039a8c03714": {
       "source": "Parmezan",
-      "en_GB": "Parmesan"
+      "en_GB": "Parmesan",
+      "de": "Parmesan"
     },
     "a977d3c1-d044-5146-ad5b-5dcb284980aa": {
       "source": "Passata pomidorowa",
-      "en_GB": "Tomato passata"
+      "en_GB": "Tomato passata",
+      "de": "Passierte Tomaten"
     },
     "127bd0f1-c906-5808-b25e-bbe901394d74": {
       "source": "Pasta curry czerwona",
-      "en_GB": "Red curry paste"
+      "en_GB": "Red curry paste",
+      "de": "Rote Currypaste"
     },
     "fc152695-12a6-5753-aede-6733e3f324c4": {
       "source": "Pasta curry zielona",
-      "en_GB": "Green curry paste"
+      "en_GB": "Green curry paste",
+      "de": "Grüne Currypaste"
     },
     "8e40eaa9-cce7-533f-b8af-a152985b38bd": {
       "source": "Pasta gochujang",
-      "en_GB": "Gochujang paste"
+      "en_GB": "Gochujang paste",
+      "de": "Gochujang-Paste"
     },
     "408a3309-6017-5004-8329-285bfb258b23": {
       "source": "Pasta miso",
-      "en_GB": "Miso paste"
+      "en_GB": "Miso paste",
+      "de": "Misopaste"
     },
     "a67de4f0-e65b-58af-9de1-ebc883a956b3": {
       "source": "Pasta tamaryndowa",
-      "en_GB": "Tamarind paste"
+      "en_GB": "Tamarind paste",
+      "de": "Tamarindenpaste"
     },
     "82cbb088-ad1b-5a5a-8a1a-37bd2fa448b4": {
       "source": "Pasta z czosnku i imbiru",
-      "en_GB": "Garlic and ginger paste"
+      "en_GB": "Garlic and ginger paste",
+      "de": "Knoblauch und Ingwerpaste"
     },
     "9dd89a61-397f-5a7f-9b27-4816bd831c9d": {
       "source": "Pasta z trawy cytrynowej",
-      "en_GB": "Lemongrass paste"
+      "en_GB": "Lemongrass paste",
+      "de": "Zitronengraspaste"
     },
     "426d8a35-35cb-5c6b-8013-0856def0653a": {
       "source": "Pestki dyni",
-      "en_GB": "Pumpkin seeds"
+      "en_GB": "Pumpkin seeds",
+      "de": "Kürbiskerne"
     },
     "96097d9d-c7fb-58ec-9f53-1fcea17eb817": {
       "source": "Pestki słonecznika",
-      "en_GB": "Sunflower seeds"
+      "en_GB": "Sunflower seeds",
+      "de": "Sonnenblumenkerne"
     },
     "d547166c-dc20-5183-8848-b0604ad365d9": {
       "source": "Pesto pistacjowe",
-      "en_GB": "Pistachio pesto"
+      "en_GB": "Pistachio pesto",
+      "de": "Pistazienpesto"
     },
     "89402425-b3fb-5923-9165-4de8f48fa06c": {
       "source": "Pesto rosso",
-      "en_GB": "Pesto rosso"
+      "en_GB": "Pesto rosso",
+      "de": "Pesto rosso"
     },
     "3b32ff6f-fdb7-5cf2-9b98-bf63829d95e5": {
       "source": "Pesto zielone",
-      "en_GB": "Green pesto"
+      "en_GB": "Green pesto",
+      "de": "Grünes Pesto"
     },
     "6a1ab3fe-08b9-533d-85c6-fd9bd37808a0": {
       "source": "Pieczarki",
-      "en_GB": "Button mushrooms"
+      "en_GB": "Button mushrooms",
+      "de": "Champignons"
     },
     "c414452a-060c-5dd6-ae36-a0e69b5350b9": {
       "source": "Pieczarki portobello",
-      "en_GB": "Portobello mushrooms"
+      "en_GB": "Portobello mushrooms",
+      "de": "Portobello-Pilze"
     },
     "c11cc4fe-f4dc-5500-ba5f-179225f27915": {
       "source": "Pieprz czarny mielony",
-      "en_GB": "Ground black pepper"
+      "en_GB": "Ground black pepper",
+      "de": "Gemahlener schwarzer Pfeffer"
     },
     "5f898104-6437-50ac-8857-74b5fd3b9354": {
       "source": "Pierś z kaczki",
-      "en_GB": "Duck breast"
+      "en_GB": "Duck breast",
+      "de": "Entenbrust"
     },
     "1cbd3dae-3a1e-5cd0-9667-d711fdaa72a4": {
       "source": "Pierś z kurczaka",
-      "en_GB": "Chicken breast"
+      "en_GB": "Chicken breast",
+      "de": "Hähnchenbrust"
     },
     "765ad139-39b6-56fa-8033-51950b539551": {
       "source": "Pietruszka korzeń",
-      "en_GB": "Parsley root"
+      "en_GB": "Parsley root",
+      "de": "Petersilienwurzel"
     },
     "d94da171-308b-567c-85a8-f77de15edbdf": {
       "source": "Pistacje",
-      "en_GB": "Pistachios"
+      "en_GB": "Pistachios",
+      "de": "Pistazien"
     },
     "e90f7515-b551-5732-8e3d-6abc2ecf86da": {
       "source": "Podudzia z kurczaka",
-      "en_GB": "Chicken drumsticks"
+      "en_GB": "Chicken drumsticks",
+      "de": "Hähnchenunterkeulen"
     },
     "84bac1cc-308a-5655-bd00-b44e2197f14c": {
       "source": "Polenta",
-      "en_GB": "Polenta"
+      "en_GB": "Polenta",
+      "de": "Polenta"
     },
     "3d9f9190-06d6-57d3-be02-dc91a71025fa": {
       "source": "Polędwica wołowa",
-      "en_GB": "Beef fillet"
+      "en_GB": "Beef fillet",
+      "de": "Rinderfilet"
     },
     "87a4bb58-b963-57b1-a02b-7a261b547a31": {
       "source": "Polędwiczka wieprzowa",
-      "en_GB": "Pork tenderloin"
+      "en_GB": "Pork tenderloin",
+      "de": "Schweinefilet"
     },
     "12b58fc7-a1eb-52cc-a941-52c67962ef89": {
       "source": "Polędwiczki z kurczaka",
-      "en_GB": "Chicken mini fillets"
+      "en_GB": "Chicken mini fillets",
+      "de": "Hähncheninnenfilets"
     },
     "02baa653-fe01-5c1d-9741-d500894d7850": {
       "source": "Pomarańcze",
-      "en_GB": "Oranges"
+      "en_GB": "Oranges",
+      "de": "Orangen"
     },
     "16992b07-2016-5743-b482-daad7c3650a3": {
       "source": "Pomidorki koktajlowe",
-      "en_GB": "Cherry tomatoes"
+      "en_GB": "Cherry tomatoes",
+      "de": "Kirschtomaten"
     },
     "b9f4f095-5fe5-52e4-9d98-2ac43d67f43c": {
       "source": "Pomidory",
-      "en_GB": "Tomatoes"
+      "en_GB": "Tomatoes",
+      "de": "Tomaten"
     },
     "a469945a-f5f0-5162-8bab-aba4223ecdb1": {
       "source": "Pomidory całe pelati",
-      "en_GB": "Tinned whole peeled tomatoes"
+      "en_GB": "Tinned whole peeled tomatoes",
+      "de": "Ganze geschälte Tomaten in Dosen"
     },
     "452f123c-6535-5ebb-bb11-f9ebfc5d26a7": {
       "source": "Pomidory krojone",
-      "en_GB": "Chopped tomatoes"
+      "en_GB": "Chopped tomatoes",
+      "de": "Stückige Tomaten"
     },
     "2d33ecfc-ee3f-5617-86d3-a9ee8c0a61e2": {
       "source": "Pomidory krojone z bazylią",
-      "en_GB": "Chopped tomatoes with basil"
+      "en_GB": "Chopped tomatoes with basil",
+      "de": "Gehackte Tomaten mit Basilikum"
     },
     "abdda4f3-3045-56cd-9a49-55dc548a50b1": {
       "source": "Por",
-      "en_GB": "Leek"
+      "en_GB": "Leek",
+      "de": "Porree"
     },
     "76d2fe81-dbfe-57c0-86d0-17657e5f531e": {
       "source": "Porzeczki czarne mrożone",
-      "en_GB": "Frozen blackcurrants"
+      "en_GB": "Frozen blackcurrants",
+      "de": "Schwarze Johannisbeeren, gefroren"
     },
     "6205b10f-ceaf-5484-b1dc-43a49bcb6a23": {
       "source": "Proszek do pieczenia",
-      "en_GB": "Baking powder"
+      "en_GB": "Baking powder",
+      "de": "Backpulver"
     },
     "3992f3ec-d1fa-5232-bdbf-78029d5d7260": {
       "source": "Przecier pomidorowy",
-      "en_GB": "Strained tomatoes"
+      "en_GB": "Strained tomatoes",
+      "de": "Passierte Tomaten"
     },
     "5845ff62-8f64-5dff-83dc-c4f4df86cbeb": {
       "source": "Przyprawa pięć smaków",
-      "en_GB": "Chinese five-spice"
+      "en_GB": "Chinese five-spice",
+      "de": "Fünf-Gewürze-Pulver"
     },
     "e9286b24-452f-575f-864d-70f234dd9c81": {
       "source": "Pstrąg filet",
-      "en_GB": "Trout fillet"
+      "en_GB": "Trout fillet",
+      "de": "Forellenfilets"
     },
     "7fcc830a-da7b-556d-ab70-9da324801321": {
       "source": "Pudding proteinowy waniliowy",
-      "en_GB": "Vanilla protein pudding"
+      "en_GB": "Vanilla protein pudding",
+      "de": "Vanilleproteinpudding"
     },
     "2d3cf360-ab2c-536e-b79a-72be8f5d7138": {
       "source": "Puree z dyni",
-      "en_GB": "Pumpkin purée"
+      "en_GB": "Pumpkin purée",
+      "de": "Kürbispüree"
     },
     "a95c2923-2f00-55ce-97d9-ad5a6789157c": {
       "source": "Płatki chili",
-      "en_GB": "Chilli flakes"
+      "en_GB": "Chilli flakes",
+      "de": "Chili-Flocken"
     },
     "ac5e5f77-48e8-531b-88da-4abc534dd4c1": {
       "source": "Płatki drożdżowe nieaktywne",
-      "en_GB": "Nutritional yeast flakes"
+      "en_GB": "Nutritional yeast flakes",
+      "de": "Hefeflocken"
     },
     "6d0f40a0-3015-501c-8ac6-2b21d574b340": {
       "source": "Płatki jaglane błyskawiczne",
-      "en_GB": "Instant millet flakes"
+      "en_GB": "Instant millet flakes",
+      "de": "Instant-Hirseflocken"
     },
     "b03860cc-e305-58d6-8785-be28ee68aff5": {
       "source": "Płatki kukurydziane",
-      "en_GB": "Corn flakes"
+      "en_GB": "Corn flakes",
+      "de": "Maisflocken"
     },
     "c65508d5-139b-5f92-9850-1507938eb5e5": {
       "source": "Płatki owsiane",
-      "en_GB": "Oats"
+      "en_GB": "Oats",
+      "de": "Haferflocken"
     },
     "ad0bd90e-cc2a-5e87-8b08-935f676b4c11": {
       "source": "Płatki ryżowe",
-      "en_GB": "Rice flakes"
+      "en_GB": "Rice flakes",
+      "de": "Reisflocken"
     },
     "f4dfd92a-ac3f-5e2f-91ee-5734991fb25d": {
       "source": "Quinoa",
-      "en_GB": "Quinoa"
+      "en_GB": "Quinoa",
+      "de": "Quinoa"
     },
     "9a3684a5-b6e6-5fcd-8664-c74af599cedf": {
       "source": "Ras el hanout",
-      "en_GB": "Ras el hanout"
+      "en_GB": "Ras el hanout",
+      "de": "Ras el hanout"
     },
     "68a18a15-2953-5330-bf99-850238a78bf6": {
       "source": "Ricotta",
-      "en_GB": "Ricotta"
+      "en_GB": "Ricotta",
+      "de": "Ricotta"
     },
     "a8452f8f-a8ec-5ff3-b3ff-a3df15a0456f": {
       "source": "Rodzynki",
-      "en_GB": "Raisins"
+      "en_GB": "Raisins",
+      "de": "Rosinen"
     },
     "6bff42d7-183a-5acf-9991-241f2fffa609": {
       "source": "Rostbef wołowy",
-      "en_GB": "Beef sirloin"
+      "en_GB": "Beef sirloin",
+      "de": "Roastbeef"
     },
     "984b22f4-34d5-58c6-bffd-f6ce76a65595": {
       "source": "Roszponka",
-      "en_GB": "Lamb's lettuce"
+      "en_GB": "Lamb's lettuce",
+      "de": "Feldsalat"
     },
     "84c02416-faae-558d-9cad-4ff1de418da9": {
       "source": "Rozmaryn suszony",
-      "en_GB": "Dried rosemary"
+      "en_GB": "Dried rosemary",
+      "de": "Rosmarin, getrocknet"
     },
     "b24066f4-a491-59db-a352-8a905a0536fd": {
       "source": "Rukola",
-      "en_GB": "Rocket"
+      "en_GB": "Rocket",
+      "de": "Rucola"
     },
     "b43bb415-b571-530c-b035-8e0657346795": {
       "source": "Ryż arborio",
-      "en_GB": "Arborio rice"
+      "en_GB": "Arborio rice",
+      "de": "Arborio-Reis"
     },
     "1e808e82-2ef4-5cc0-9407-36c602f87f0c": {
       "source": "Ryż basmati",
-      "en_GB": "Basmati rice"
+      "en_GB": "Basmati rice",
+      "de": "Basmati-Reis"
     },
     "79f74590-432c-5394-a626-7bbb48d66151": {
       "source": "Ryż biały",
-      "en_GB": "White rice"
+      "en_GB": "White rice",
+      "de": "Weißer Reis"
     },
     "5ff09faf-a43d-5b8f-95ed-df9f4c55a0bd": {
       "source": "Ryż brązowy",
-      "en_GB": "Brown rice"
+      "en_GB": "Brown rice",
+      "de": "Brauner Reis"
     },
     "95cd72b6-c6e6-5ca6-bc5e-871e22f0596b": {
       "source": "Ryż dziki",
-      "en_GB": "Wild rice"
+      "en_GB": "Wild rice",
+      "de": "Wildreis"
     },
     "f8b989c3-9151-50fd-a8a4-76ec1ec744af": {
       "source": "Ryż jaśminowy",
-      "en_GB": "Jasmine rice"
+      "en_GB": "Jasmine rice",
+      "de": "Jasmin-Reis"
     },
     "1a8973bb-4b6a-55bc-9a31-8db9a6ae214d": {
       "source": "Rzepa",
-      "en_GB": "Turnip"
+      "en_GB": "Turnip",
+      "de": "Speiserübe"
     },
     "2359b192-fc87-51a1-9c49-d8ca9678c09d": {
       "source": "Rzodkiewka",
-      "en_GB": "Radish"
+      "en_GB": "Radish",
+      "de": "Radieschen"
     },
     "53b5c258-d3ef-5fb7-9f90-ba323d5c61ac": {
       "source": "Salami",
-      "en_GB": "Salami"
+      "en_GB": "Salami",
+      "de": "Salami"
     },
     "25fa192c-056f-5723-a3f5-45e96291c92b": {
       "source": "Salsa pomidorowa",
-      "en_GB": "Tomato salsa"
+      "en_GB": "Tomato salsa",
+      "de": "Tomatensalsa"
     },
     "4aeea7c9-0515-5194-ac15-f1587570f615": {
       "source": "Sambal oelek",
-      "en_GB": "Sambal oelek"
+      "en_GB": "Sambal oelek",
+      "de": "Sambal oelek"
     },
     "79ab950f-e88f-50e3-8207-829b73723cb6": {
       "source": "Sardynki w oliwie",
-      "en_GB": "Sardines in olive oil"
+      "en_GB": "Sardines in olive oil",
+      "de": "Sardinen in Olivenöl"
     },
     "2a5a08dd-4d85-51b0-96d5-b73d222628d5": {
       "source": "Sałata lodowa",
-      "en_GB": "Iceberg lettuce"
+      "en_GB": "Iceberg lettuce",
+      "de": "Eisbergsalat"
     },
     "7bdc0382-a8e6-5751-8364-8eddc150dcda": {
       "source": "Sałata masłowa",
-      "en_GB": "Butterhead lettuce"
+      "en_GB": "Butterhead lettuce",
+      "de": "Butterkopfsalat"
     },
     "75d3f1a2-6359-57e7-9d43-344297c73f16": {
       "source": "Sałata rzymska",
-      "en_GB": "Cos lettuce"
+      "en_GB": "Cos lettuce",
+      "de": "Römersalat"
     },
     "5ff518f4-4815-59a0-a789-46b88a3ee950": {
       "source": "Schab wieprzowy",
-      "en_GB": "Pork loin"
+      "en_GB": "Pork loin",
+      "de": "Schweinerücken"
     },
     "20a93ab6-bc9d-5e76-a4e6-0690339ff03e": {
       "source": "Seler korzeniowy",
-      "en_GB": "Celeriac"
+      "en_GB": "Celeriac",
+      "de": "Knollensellerie"
     },
     "4f345dd2-25f7-5055-ae9c-57afcf548648": {
       "source": "Seler naciowy",
-      "en_GB": "Celery"
+      "en_GB": "Celery",
+      "de": "Stangensellerie"
     },
     "7013b035-9882-5c1b-8240-af4afa7b8d3e": {
       "source": "Ser brie",
-      "en_GB": "Brie"
+      "en_GB": "Brie",
+      "de": "Brie"
     },
     "a5edc9eb-536a-5f68-87cb-d6f726593eea": {
       "source": "Ser camembert",
-      "en_GB": "Camembert"
+      "en_GB": "Camembert",
+      "de": "Camembert"
     },
     "1118681b-c432-58d1-8603-7721f1f17976": {
       "source": "Ser cheddar",
-      "en_GB": "Cheddar cheese"
+      "en_GB": "Cheddar cheese",
+      "de": "Cheddar-Käse"
     },
     "64de81eb-fd41-5f64-9ad4-e7a6c5c09552": {
       "source": "Ser feta",
-      "en_GB": "Feta cheese"
+      "en_GB": "Feta cheese",
+      "de": "Feta-Käse"
     },
     "c885022c-b670-549d-8398-e7ded474d96d": {
       "source": "Ser grana padano",
-      "en_GB": "Grana Padano"
+      "en_GB": "Grana Padano",
+      "de": "Grana Padano"
     },
     "a4ab49a4-01f8-5358-bc5d-725b999e67c4": {
       "source": "Ser halloumi",
-      "en_GB": "Halloumi cheese"
+      "en_GB": "Halloumi cheese",
+      "de": "Halloumi-Käse"
     },
     "1a24a691-9b0e-5869-a43e-443a9aac9091": {
       "source": "Ser kozi",
-      "en_GB": "Goat's cheese"
+      "en_GB": "Goat's cheese",
+      "de": "Ziegenkäse"
     },
     "de08c0db-a5f0-5d7c-9a69-d49fd1f02214": {
       "source": "Ser paneer",
-      "en_GB": "Paneer"
+      "en_GB": "Paneer",
+      "de": "Paneer"
     },
     "4f51405e-d34a-5940-8225-1cdaa0854bf6": {
       "source": "Ser pecorino",
-      "en_GB": "Pecorino cheese"
+      "en_GB": "Pecorino cheese",
+      "de": "Pecorino-Käse"
     },
     "1f4bf8ee-5693-5ec6-a2b6-3f37fb7dde96": {
       "source": "Ser pleśniowy",
-      "en_GB": "Mould-ripened cheese"
+      "en_GB": "Mould-ripened cheese",
+      "de": "Blauschimmelkäse"
     },
     "de2db00e-c150-5d39-bb5f-d7980497c970": {
       "source": "Ser provolone",
-      "en_GB": "Provolone"
+      "en_GB": "Provolone",
+      "de": "Provolone"
     },
     "1379c501-e084-5772-b324-a62ea5ef13f7": {
       "source": "Ser żółty gouda",
-      "en_GB": "Gouda cheese"
+      "en_GB": "Gouda cheese",
+      "de": "Gouda-Käse"
     },
     "58760cb4-439e-56e5-bfa8-5bdaa51631f2": {
       "source": "Serek wiejski",
-      "en_GB": "Cottage cheese"
+      "en_GB": "Cottage cheese",
+      "de": "Hüttenkäse"
     },
     "8be1f23b-68e9-500b-bec5-409212186f94": {
       "source": "Serek śmietankowy",
-      "en_GB": "Cream cheese"
+      "en_GB": "Cream cheese",
+      "de": "Rahmkäse"
     },
     "6fe463ab-c457-5de9-875f-6f6c5ec5b597": {
       "source": "Sezam",
-      "en_GB": "Sesame seeds"
+      "en_GB": "Sesame seeds",
+      "de": "Sesamsamen"
     },
     "34490aff-e115-5112-8984-ee517fcae1de": {
       "source": "Siemię lniane",
-      "en_GB": "Linseed"
+      "en_GB": "Linseed",
+      "de": "Leinsamen"
     },
     "ab8c9119-6813-57df-b103-ce395472bb40": {
       "source": "Skrobia kukurydziana",
-      "en_GB": "Cornflour"
+      "en_GB": "Cornflour",
+      "de": "Maisstärke"
     },
     "8d4286c0-164e-5f8d-85bc-514c399113f3": {
       "source": "Skrzydełka z kurczaka",
-      "en_GB": "Chicken wings"
+      "en_GB": "Chicken wings",
+      "de": "Hähnchenflügel"
     },
     "a3500370-78c0-5902-93bf-a13843723fa7": {
       "source": "Skyr naturalny",
-      "en_GB": "Natural skyr"
+      "en_GB": "Natural skyr",
+      "de": "Natur-Skyr"
     },
     "bf585f66-89bc-5b0e-8dfa-26afb2feba1b": {
       "source": "Skyr waniliowy",
-      "en_GB": "Vanilla skyr"
+      "en_GB": "Vanilla skyr",
+      "de": "Vanille-Skyr"
     },
     "c2b07d09-07f1-554b-bde0-3ea97cb284fe": {
       "source": "Soczewica czarna beluga",
-      "en_GB": "Black beluga lentils"
+      "en_GB": "Black beluga lentils",
+      "de": "Schwarze Beluga-Linsen"
     },
     "d868c1c5-407c-5b80-a294-da71bfca97ca": {
       "source": "Soczewica czerwona",
-      "en_GB": "Red lentils"
+      "en_GB": "Red lentils",
+      "de": "Rote Linsen"
     },
     "aa46d755-b9ae-5d46-8096-63f62257c86f": {
       "source": "Soczewica konserwowa",
-      "en_GB": "Tinned lentils"
+      "en_GB": "Tinned lentils",
+      "de": "Linsen in Dosen"
     },
     "d1c5da9e-868f-5caa-adb7-d63c35e3c511": {
       "source": "Soczewica zielona",
-      "en_GB": "Green lentils"
+      "en_GB": "Green lentils",
+      "de": "Grüne Linsen"
     },
     "e1360634-fd9d-5aef-8581-a9eedd11e908": {
       "source": "Soda oczyszczona",
-      "en_GB": "Bicarbonate of soda"
+      "en_GB": "Bicarbonate of soda",
+      "de": "Natron"
     },
     "67cee078-5167-5a2b-a529-300fbfd841b0": {
       "source": "Sok pomarańczowy",
-      "en_GB": "Orange juice"
+      "en_GB": "Orange juice",
+      "de": "Orangensaft"
     },
     "587c3cf5-2f09-5675-a727-7421c5400a6f": {
       "source": "Sok z cytryny",
-      "en_GB": "Lemon juice"
+      "en_GB": "Lemon juice",
+      "de": "Zitronensaft"
     },
     "a2f134aa-d760-54ec-a95f-1d3db0580ea7": {
       "source": "Sos Worcestershire",
-      "en_GB": "Worcestershire sauce"
+      "en_GB": "Worcestershire sauce",
+      "de": "Worcestershire-Sauce"
     },
     "616581d7-01aa-521e-97c5-01db131891d9": {
       "source": "Sos barbecue",
-      "en_GB": "Barbecue sauce"
+      "en_GB": "Barbecue sauce",
+      "de": "Barbecue-Sauce"
     },
     "63baa45e-5fba-53d8-b631-afd51a8710b6": {
       "source": "Sos butter chicken",
-      "en_GB": "Butter chicken sauce"
+      "en_GB": "Butter chicken sauce",
+      "de": "Butterhühnersoße"
     },
     "73b5aca1-4efd-5306-92c2-1e17069cdcf8": {
       "source": "Sos chipotle",
-      "en_GB": "Chipotle sauce"
+      "en_GB": "Chipotle sauce",
+      "de": "Chipotlesauce"
     },
     "d3993dec-27c3-545c-b56f-69c3150e5c8f": {
       "source": "Sos curry mango",
-      "en_GB": "Mango curry sauce"
+      "en_GB": "Mango curry sauce",
+      "de": "Mango-Curry-Sauce"
     },
     "fedb2f73-cc52-5518-8601-ffb93a6eb001": {
       "source": "Sos czosnkowy",
-      "en_GB": "Garlic sauce"
+      "en_GB": "Garlic sauce",
+      "de": "Knoblauchsoße"
     },
     "264345ec-5b3d-5567-a5b8-ba83ee06414e": {
       "source": "Sos hoisin",
-      "en_GB": "Hoisin sauce"
+      "en_GB": "Hoisin sauce",
+      "de": "Hoisin-Sauce"
     },
     "55b6346b-6647-5715-bb32-68c1ca875dd2": {
       "source": "Sos marinara",
-      "en_GB": "Marinara sauce"
+      "en_GB": "Marinara sauce",
+      "de": "Marinara-Sauce"
     },
     "ca03e698-f6f1-5aba-8038-454d7c3c8210": {
       "source": "Sos ostrygowy",
-      "en_GB": "Oyster sauce"
+      "en_GB": "Oyster sauce",
+      "de": "Austernsauce"
     },
     "14bf2137-3d42-542b-8ed1-409051ce2a64": {
       "source": "Sos ponzu",
-      "en_GB": "Ponzu sauce"
+      "en_GB": "Ponzu sauce",
+      "de": "Ponzusoße"
     },
     "479cf5ab-9338-5a6d-aaa9-798243cbe2bc": {
       "source": "Sos rybny",
-      "en_GB": "Fish sauce"
+      "en_GB": "Fish sauce",
+      "de": "Fischsoße"
     },
     "00316a81-bfd2-5697-ba96-348d7f8d9542": {
       "source": "Sos sojowy",
-      "en_GB": "Soy sauce"
+      "en_GB": "Soy sauce",
+      "de": "Sojabohnensauce"
     },
     "a6b89894-db98-50d2-bb0e-2999ff27b87b": {
       "source": "Sos sriracha",
-      "en_GB": "Sriracha sauce"
+      "en_GB": "Sriracha sauce",
+      "de": "Sriracha-Sauce"
     },
     "dff0d997-b999-5e9f-9533-d1b71cdbf5a4": {
       "source": "Sos sweet chili",
-      "en_GB": "Sweet chilli sauce"
+      "en_GB": "Sweet chilli sauce",
+      "de": "Süße Chilisoße"
     },
     "ec845ae2-6d70-5469-b6fb-bda207482882": {
       "source": "Sos tamari",
-      "en_GB": "Tamari sauce"
+      "en_GB": "Tamari sauce",
+      "de": "Tamarisoße"
     },
     "a90eeba6-8042-5b20-8d35-3f09e6f75b0a": {
       "source": "Sos teriyaki",
-      "en_GB": "Teriyaki sauce"
+      "en_GB": "Teriyaki sauce",
+      "de": "Teriyaki-Sauce"
     },
     "2e0426a2-8b84-51e6-aeb3-1c805b4adf4c": {
       "source": "Sos tikka masala",
-      "en_GB": "Tikka masala sauce"
+      "en_GB": "Tikka masala sauce",
+      "de": "Tikka masala Soße"
     },
     "891d8fd5-69fd-5c59-acdf-416e805bd057": {
       "source": "Stek wołowy",
-      "en_GB": "Beef steak"
+      "en_GB": "Beef steak",
+      "de": "Rindersteak"
     },
     "1c1647d3-0456-5aff-acaa-91bd29c6388f": {
       "source": "Sumak",
-      "en_GB": "Sumac"
+      "en_GB": "Sumac",
+      "de": "Sumach"
     },
     "06014eb7-a4b2-5d16-8d00-a581f5f9c136": {
       "source": "Suszone pomidory",
-      "en_GB": "Sun-dried tomatoes"
+      "en_GB": "Sun-dried tomatoes",
+      "de": "Sonnengetrocknete Tomaten"
     },
     "d1844cba-b20c-5b6c-bf2b-857ebc9fe1bb": {
       "source": "Syrop klonowy",
-      "en_GB": "Maple syrup"
+      "en_GB": "Maple syrup",
+      "de": "Ahornsirup"
     },
     "7ac019d7-ef09-58aa-b982-a9223e67c91e": {
       "source": "Syrop z agawy",
-      "en_GB": "Agave syrup"
+      "en_GB": "Agave syrup",
+      "de": "Agavesirup"
     },
     "2dd0e42d-acdc-5dc9-876e-bf82ccca480c": {
       "source": "Szafran",
-      "en_GB": "Saffron"
+      "en_GB": "Saffron",
+      "de": "Safran"
     },
     "3dabcb5d-1558-512a-b696-983b53af14e1": {
       "source": "Szalotka",
-      "en_GB": "Shallot"
+      "en_GB": "Shallot",
+      "de": "Schalotten"
     },
     "3eb7e5af-302b-5e67-83f5-478fdefd3c98": {
       "source": "Szałwia świeża",
-      "en_GB": "Fresh sage"
+      "en_GB": "Fresh sage",
+      "de": "Frischer Salbei"
     },
     "72bfc3c3-682b-5653-b9b9-31666bc033f0": {
       "source": "Szczypiorek",
-      "en_GB": "Chives"
+      "en_GB": "Chives",
+      "de": "Schnittlauch"
     },
     "5b696058-9d68-55ba-ae02-c7812a6e512f": {
       "source": "Szparagi",
-      "en_GB": "Asparagus"
+      "en_GB": "Asparagus",
+      "de": "Spargel"
     },
     "4224428e-c42d-52e6-bcc2-cf347516f4d8": {
       "source": "Szpinak świeży",
-      "en_GB": "Fresh spinach"
+      "en_GB": "Fresh spinach",
+      "de": "Frischer Spinat"
     },
     "ffb83174-d780-5f4f-9e5f-797798a5fd1a": {
       "source": "Szynka konserwowa",
-      "en_GB": "Cooked ham"
+      "en_GB": "Cooked ham",
+      "de": "Gekochter Schinken"
     },
     "a5f2bd0a-23ba-5e7c-b229-a4a52d531dfe": {
       "source": "Szynka prosciutto",
-      "en_GB": "Prosciutto"
+      "en_GB": "Prosciutto",
+      "de": "Prosciutto"
     },
     "26709c55-eb1d-524c-a760-0aca767bd924": {
       "source": "Sól",
-      "en_GB": "Salt"
+      "en_GB": "Salt",
+      "de": "Salz"
     },
     "e5d569de-0f8b-51a7-aba7-71cd6b0780c7": {
       "source": "Tahini",
-      "en_GB": "Tahini"
+      "en_GB": "Tahini",
+      "de": "Tahini"
     },
     "3359d5b2-02ac-5402-bba6-66e345c92530": {
       "source": "Tofu naturalne",
-      "en_GB": "Plain tofu"
+      "en_GB": "Plain tofu",
+      "de": "Naturtofu"
     },
     "3ffce77e-1042-578b-abda-1bc36220ea10": {
       "source": "Topinambur",
-      "en_GB": "Jerusalem artichoke"
+      "en_GB": "Jerusalem artichoke",
+      "de": "Topinambur"
     },
     "39c98e08-ad9a-57ad-a067-a10ee29c8938": {
       "source": "Tortellini z serem",
-      "en_GB": "Cheese tortellini"
+      "en_GB": "Cheese tortellini",
+      "de": "Käse-Tortellini"
     },
     "24a71f37-d418-58c7-b2d4-189457cb5609": {
       "source": "Tortilla kukurydziana",
-      "en_GB": "Corn tortilla"
+      "en_GB": "Corn tortilla",
+      "de": "Maistortilla"
     },
     "0ed95ad1-3cf0-5eb6-8701-0a22fc5f9d26": {
       "source": "Tortilla pełnoziarnista",
-      "en_GB": "Wholemeal tortilla wrap"
+      "en_GB": "Wholemeal tortilla wrap",
+      "de": "Vollkorn-Tortilla-Wrap"
     },
     "fa285d67-f8b9-5035-b15a-9d0714b489a6": {
       "source": "Tortilla pszenna",
-      "en_GB": "Wheat tortilla"
+      "en_GB": "Wheat tortilla",
+      "de": "Weizentortilla"
     },
     "bbbef588-d23e-52f9-972b-323d063acba2": {
       "source": "Truskawki",
-      "en_GB": "Strawberries"
+      "en_GB": "Strawberries",
+      "de": "Erdbeeren"
     },
     "e5ff756e-2516-5ba4-a58a-19a937dc82a9": {
       "source": "Tuńczyk w sosie własnym",
-      "en_GB": "Tuna in its own juice"
+      "en_GB": "Tuna in its own juice",
+      "de": "Thunfisch im eigenen Saft"
     },
     "54905985-9bcd-5d5a-b7a3-f95800c32a6b": {
       "source": "Twaróg półtłusty",
-      "en_GB": "Semi-fat quark"
+      "en_GB": "Semi-fat quark",
+      "de": "Quark (Halbfettstufe)"
     },
     "4933aada-c016-5a3f-8858-476ec19307c0": {
       "source": "Tymianek suszony",
-      "en_GB": "Dried thyme"
+      "en_GB": "Dried thyme",
+      "de": "Getrockneter Thymian"
     },
     "79aefca0-630b-5720-a0ed-0e754b2c40cd": {
       "source": "Udka z kurczaka",
-      "en_GB": "Chicken legs"
+      "en_GB": "Chicken legs",
+      "de": "Hähnchenschenkel"
     },
     "cd057aed-fc15-5aa9-b243-9e4e48ce3100": {
       "source": "Udziec z indyka",
-      "en_GB": "Turkey thigh"
+      "en_GB": "Turkey thigh",
+      "de": "Putenoberkeule"
     },
     "8c4b0ebc-5c13-52e2-9176-2743d513fcc1": {
       "source": "Wanilia (cukier waniliowy)",
-      "en_GB": "Vanilla sugar"
+      "en_GB": "Vanilla sugar",
+      "de": "Vanillezucker"
     },
     "8366a2e6-f0fe-5da9-a2c7-c50baa6256de": {
       "source": "Wieprzowina mielona",
-      "en_GB": "Pork mince"
+      "en_GB": "Pork mince",
+      "de": "Schweinehackfleisch"
     },
     "9018f03b-c249-5372-a8d8-39794168bb16": {
       "source": "Winogrona ciemne",
-      "en_GB": "Dark grapes"
+      "en_GB": "Dark grapes",
+      "de": "Dunkle Trauben"
     },
     "c4b3c988-187a-51a7-9264-4669b890ac72": {
       "source": "Winogrona jasne",
-      "en_GB": "Green grapes"
+      "en_GB": "Green grapes",
+      "de": "Grüne Weintrauben"
     },
     "a79271a0-2af5-5e74-a5b1-62dc085e8ee4": {
       "source": "Wiórki kokosowe",
-      "en_GB": "Desiccated coconut"
+      "en_GB": "Desiccated coconut",
+      "de": "Kokosraspeln"
     },
     "e3f77274-e941-5808-b9c7-da6a82084f79": {
       "source": "Woda",
-      "en_GB": "Water"
+      "en_GB": "Water",
+      "de": "Wasser"
     },
     "27fa4303-fab9-5778-a2a2-4d1af33a5111": {
       "source": "Wołowina mielona",
-      "en_GB": "Beef mince"
+      "en_GB": "Beef mince",
+      "de": "Rinderhackfleisch"
     },
     "f2267444-b715-5f8f-95a3-b4e53d6a8fea": {
       "source": "Wołowina na gulasz",
-      "en_GB": "Stewing beef"
+      "en_GB": "Stewing beef",
+      "de": "Rindergulasch"
     },
     "91deeec4-fb11-5064-9ed0-d421c097fcba": {
       "source": "Za'atar",
-      "en_GB": "Za'atar"
+      "en_GB": "Za'atar",
+      "de": "Za'atar"
     },
     "2ae1eacf-6999-55d7-9d32-167f3445ec78": {
       "source": "Ziele angielskie",
-      "en_GB": "Allspice"
+      "en_GB": "Allspice",
+      "de": "Piment"
     },
     "90b0cc09-9eb2-5ee1-a7cf-b0fee19e0744": {
       "source": "Ziemniaki",
-      "en_GB": "Potatoes"
+      "en_GB": "Potatoes",
+      "de": "Kartoffeln"
     },
     "4be7f650-b5ed-5140-9208-ca36f38b73df": {
       "source": "Zioła prowansalskie",
-      "en_GB": "Herbes de Provence"
+      "en_GB": "Herbes de Provence",
+      "de": "Herbes de Provence"
     },
     "0c4b99ff-9dc6-5c51-a267-62b73c0af1e8": {
       "source": "Łosoś filet",
-      "en_GB": "Salmon fillet"
+      "en_GB": "Salmon fillet",
+      "de": "Lachsfilets"
     },
     "0afb1396-74ed-59f2-948e-34828cf3747a": {
       "source": "Łosoś wędzony",
-      "en_GB": "Smoked salmon"
+      "en_GB": "Smoked salmon",
+      "de": "Räucherlachs"
     },
     "b8d7c40f-5c5b-544b-bd2d-e12101ac696a": {
       "source": "Śliwki",
-      "en_GB": "Plums"
+      "en_GB": "Plums",
+      "de": "Pflaumen"
     },
     "37dd70ec-dd00-5c3d-9406-5b2ce43fe5ac": {
       "source": "Śliwki suszone",
-      "en_GB": "Prunes"
+      "en_GB": "Prunes",
+      "de": "Trockenpflaumen"
     },
     "1236a1ec-be3e-5f7c-ba7e-15605d5f13bc": {
       "source": "Śmietana 12%",
-      "en_GB": "Soured cream, 12% fat"
+      "en_GB": "Soured cream, 12% fat",
+      "de": "Sauerrahm, 12% Fett"
     },
     "d2099836-9015-530e-91b7-ab21724c0aa6": {
       "source": "Śmietana 18%",
-      "en_GB": "Soured cream (18% fat)"
+      "en_GB": "Soured cream (18% fat)",
+      "de": "Sauerrahm (18% Fett)"
     },
     "6c2d972e-16cd-55a4-9d52-b851d2446ca7": {
       "source": "Śmietana 30%",
-      "en_GB": "Cream (30% fat)"
+      "en_GB": "Cream (30% fat)",
+      "de": "Schlagsahne (30% Fett)"
     },
     "40108d5c-52e4-58ea-95cc-3f14d80324c4": {
       "source": "Śmietanka 12%",
-      "en_GB": "Cooking cream, 12% fat"
+      "en_GB": "Cooking cream, 12% fat",
+      "de": "Kochsahne, 12% Fett"
     },
     "82285426-ecfa-53b5-8ff9-d3d8e3176927": {
       "source": "Śmietanka kokosowa",
-      "en_GB": "Coconut cream"
+      "en_GB": "Coconut cream",
+      "de": "Kokoscreme"
     },
     "c93a3815-32b8-521e-bcf5-69a5d05cb633": {
       "source": "Żeberka wieprzowe",
-      "en_GB": "Pork ribs"
+      "en_GB": "Pork ribs",
+      "de": "Schweinerippchen"
     },
     "e16b97ea-1fe7-5e45-8145-57401722abb8": {
       "source": "Żelatyna",
-      "en_GB": "Gelatine"
+      "en_GB": "Gelatine",
+      "de": "Gelatine"
     },
     "0a455ea6-4594-5013-8fef-d15e4f546b9e": {
       "source": "Żurawina mrożona",
-      "en_GB": "Frozen cranberries"
+      "en_GB": "Frozen cranberries",
+      "de": "Gefrorene Cranberries"
     },
     "a9fe7a14-d43b-5a11-bf29-6fd9f9a0dfa1": {
       "source": "Żurawina suszona",
-      "en_GB": "Dried cranberries"
+      "en_GB": "Dried cranberries",
+      "de": "Getrocknete Cranberrys"
     }
   }
 }

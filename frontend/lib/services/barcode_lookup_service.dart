@@ -86,17 +86,23 @@ class BarcodeLookupService {
     String barcode,
     String country,
   ) async {
+    final (offCountry, offLanguage) = switch (country) {
+      'GB' => ('uk', 'en'),
+      'DE' => ('de', 'de'),
+      _ => ('pl', 'pl'),
+    };
+    final query = {'cc': offCountry, 'lc': offLanguage, 'fields': _fields};
     final urls = [
-      Uri.https('world.openfoodfacts.org', '/api/v3/product/$barcode.json', {
-        'cc': country == 'GB' ? 'uk' : 'pl',
-        'lc': country == 'GB' ? 'en' : 'pl',
-        'fields': _fields,
-      }),
-      Uri.https('world.openfoodfacts.org', '/api/v2/product/$barcode.json', {
-        'cc': country == 'GB' ? 'uk' : 'pl',
-        'lc': country == 'GB' ? 'en' : 'pl',
-        'fields': _fields,
-      }),
+      Uri.https(
+        'world.openfoodfacts.org',
+        '/api/v3/product/$barcode.json',
+        query,
+      ),
+      Uri.https(
+        'world.openfoodfacts.org',
+        '/api/v2/product/$barcode.json',
+        query,
+      ),
     ];
 
     // Światowe API zawiera cały katalog żywności OFF. Nie wysyłamy
@@ -222,11 +228,11 @@ class BarcodeLookupService {
   static BarcodeLookupResult _forMarket(
     BarcodeLookupResult value,
     String country,
-  ) => country == 'GB' ? value.withoutPriceEstimates() : value;
+  ) => country == 'PL' ? value : value.withoutPriceEstimates();
 
   static const _fields =
-      'code,product_name_pl,product_name,product_name_en,'
-      'generic_name_pl,generic_name,generic_name_en,'
+      'code,product_name_pl,product_name,product_name_en,product_name_de,'
+      'generic_name_pl,generic_name,generic_name_en,generic_name_de,'
       'abbreviated_product_name,brands,nutriments,nutrition_data_per,categories_tags,'
       'quantity,product_quantity,product_quantity_unit,serving_quantity,'
       'serving_quantity_unit';
@@ -327,29 +333,35 @@ BarcodeLookupResult? barcodeResultFromOpenFoodFacts(
   Map<String, dynamic> product, {
   String countryCode = 'PL',
 }) {
-  final british = normalizeAccountCountry(countryCode) == 'GB';
-  final name = _firstText(
-    product,
-    british
-        ? const [
-          'product_name_en',
-          'product_name',
-          'abbreviated_product_name',
-          'generic_name_en',
-          'generic_name',
-          'product_name_pl',
-          'generic_name_pl',
-        ]
-        : const [
-          'product_name_pl',
-          'product_name',
-          'product_name_en',
-          'abbreviated_product_name',
-          'generic_name_pl',
-          'generic_name',
-          'generic_name_en',
-        ],
-  );
+  final country = normalizeAccountCountry(countryCode);
+  final name = _firstText(product, switch (country) {
+    'DE' => const [
+      'product_name_de',
+      'generic_name_de',
+      'product_name',
+      'product_name_en',
+      'abbreviated_product_name',
+      'generic_name',
+    ],
+    'GB' => const [
+      'product_name_en',
+      'product_name',
+      'abbreviated_product_name',
+      'generic_name_en',
+      'generic_name',
+      'product_name_pl',
+      'generic_name_pl',
+    ],
+    _ => const [
+      'product_name_pl',
+      'product_name',
+      'product_name_en',
+      'abbreviated_product_name',
+      'generic_name_pl',
+      'generic_name',
+      'generic_name_en',
+    ],
+  });
   if (name == null) return null;
 
   final nutriments =
@@ -397,8 +409,8 @@ BarcodeLookupResult? barcodeResultFromOpenFoodFacts(
       'carbohydrates_100g',
       if (rawPer100) 'carbohydrates',
     ]),
-    priceMin: british ? null : _fixedPriceRange(product).$1,
-    priceMax: british ? null : _fixedPriceRange(product).$2,
+    priceMin: country == 'PL' ? _fixedPriceRange(product).$1 : null,
+    priceMax: country == 'PL' ? _fixedPriceRange(product).$2 : null,
     // Skan oznacza całe opakowanie. `serving_quantity` to często tylko
     // sugerowana porcja (np. 30 g produktu w paczce 300 g), dlatego pełna
     // gramatura musi mieć pierwszeństwo.

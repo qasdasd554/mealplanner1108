@@ -3,7 +3,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Query
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -152,8 +152,19 @@ async def list_store_products(
     if department_id is not None:
         query = query.where(StoreProduct.department_id == department_id)
 
-    if search:
+    if search and country == "DE":
+        from app.services.system_content_language import english_system_name_match
+        query = query.where(or_(Product.name.ilike(f"%{search}%"),
+            english_system_name_match(Product, search, kind="ingredients", country_code="DE")))
+    elif search:
         query = query.where(Product.name.ilike(f"%{search}%"))
+
+    if country == "DE":
+        from app.services.regional_store_catalogue import list_german_store_products
+        return await list_german_store_products(
+            db, store_id, query, search=search, department_id=department_id,
+            skip=skip, limit=limit, include_generic_foods=include_generic_foods,
+        )
 
     query = query.order_by(Product.name).offset(skip).limit(limit)
 

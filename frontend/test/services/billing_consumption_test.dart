@@ -12,6 +12,18 @@ class _Store extends InAppPurchasePlatform {
   bool? autoConsumed;
   bool acceptsPurchase = true;
   int acknowledgements = 0;
+  final catalogueQueries = <Set<String>>[];
+  @override
+  Future<ProductDetailsResponse> queryProductDetails(
+    Set<String> identifiers,
+  ) async {
+    catalogueQueries.add(identifiers);
+    return ProductDetailsResponse(
+      productDetails: [],
+      notFoundIDs: identifiers.toList(),
+    );
+  }
+
   @override
   Future<void> completePurchase(PurchaseDetails purchase) async {
     acknowledgements++;
@@ -56,6 +68,26 @@ void main() {
     BillingService();
     debugDefaultTargetPlatformOverride = null;
   });
+  test(
+    'requests all existing subscriptions and point packs together',
+    () async {
+      final original = InAppPurchasePlatform.instance;
+      final store = _Store();
+      InAppPurchasePlatform.instance = store;
+      addTearDown(() => InAppPurchasePlatform.instance = original);
+      await BillingService().queryCatalogue();
+      expect(store.catalogueQueries, [
+        {
+          'premium_weekly_v2',
+          'premium_monthly',
+          'premium_yearly',
+          'points_10',
+          'points_20',
+          'points_50',
+        },
+      ]);
+    },
+  );
   for (final response in [
     BillingResponse.ok,
     BillingResponse.itemNotOwned,

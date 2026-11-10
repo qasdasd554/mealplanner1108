@@ -1270,12 +1270,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
       children:
           existingTypes.map((type) {
             final items = groupedLogs[type]!;
-            final translated = context.strings.mealTypeLabel(type);
-            final displayType =
-                context.strings.localeName.startsWith('en') &&
-                        translated.isNotEmpty
-                    ? '${translated[0].toUpperCase()}${translated.substring(1)}'
-                    : type;
+            final displayType = context.strings.diaryMealTypeLabel(type);
             double totalCal = items.fold(0, (sum, item) => sum + item.calories);
 
             return Padding(
@@ -1347,7 +1342,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
   }
 
   String _entryAmountLabel(FoodLogEntry item) {
-    if (context.strings.localeName.startsWith('en')) {
+    if (!context.strings.localeName.startsWith('pl')) {
       final amount = item.amountValue ?? item.servings;
       final unit =
           item.amountUnit ??
@@ -1509,7 +1504,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                   Row(
                     children: [
                       Text(
-                        '${context.strings.localeName.startsWith('en') ? 'P' : 'B'}:${item.protein.toInt()}',
+                        '${context.strings.proteinAbbreviation}:${item.protein.toInt()}',
                         style: const TextStyle(
                           fontSize: 12,
                           color: AppTheme.accentColor,
@@ -1517,7 +1512,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        '${context.strings.localeName.startsWith('en') ? 'C' : 'W'}:${item.carbs.toInt()}',
+                        '${context.strings.carbsAbbreviation}:${item.carbs.toInt()}',
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.orange,
@@ -1525,7 +1520,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        '${context.strings.localeName.startsWith('en') ? 'F' : 'T'}:${item.fat.toInt()}',
+                        '${context.strings.fatAbbreviation}:${item.fat.toInt()}',
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.redAccent,

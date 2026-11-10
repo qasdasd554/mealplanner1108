@@ -1391,7 +1391,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
       list.isFullyChecked
           ? context.strings.shoppingEverythingBought
           : list.hasUnknownPrices
-          ? list.currencyCode == 'GBP' && list.remainingPrice == 0
+          ? list.currencyCode != 'PLN' && list.remainingPrice == 0
               ? context.strings.shoppingPriceUnknown
               : context.strings.shoppingUnknownRemaining(
                 formatMarketMoney(
@@ -1500,7 +1500,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     final priceLabel =
         item.estimatedPrice == null
             ? null
-            : '${item.currencyCode == 'GBP' && item.priceIsEstimated ? '~' : ''}${formatMarketMoney(item.estimatedPrice!, currencyCode: item.currencyCode)}';
+            : '${item.currencyCode != 'PLN' && item.priceIsEstimated ? '~' : ''}${formatMarketMoney(item.estimatedPrice!, currencyCode: item.currencyCode)}';
     // Odznaka promocji — sprawdzana z już wczytanej listy promocji
     // (patrz _loadData), bez dodatkowego zapytania sieciowego na każdą pozycję.
     final promotion =

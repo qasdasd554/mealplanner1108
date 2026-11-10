@@ -22,8 +22,13 @@ class CookingTip {
 enum IconIndex { pasta, vegetable, meat, baking, storage, general }
 
 /// Presentation locale is selected by the immutable account market upstream.
-List<CookingTip> cookingTipsFor(String localeName) =>
-    localeName.startsWith('en') ? kCookingTipsEn : kCookingTips;
+List<CookingTip> cookingTipsFor(String localeName) => switch (localeName
+    .split('_')
+    .first) {
+  'en' => kCookingTipsEn,
+  'de' => kCookingTipsDe,
+  _ => kCookingTips,
+};
 
 /// Preserve the existing day-of-year rotation exactly, including local dates.
 int cookingTipIndexForDate(DateTime date) =>
@@ -392,6 +397,189 @@ const List<CookingTip> kCookingTipsEn = [
     title: "Strawberries with a twist of pepper",
     tip:
         "Try a little freshly ground black pepper on a few sliced strawberries. Start with a small amount and see whether you enjoy the contrasting flavours. Pepper does not remove sugar from the fruit.",
+    icon: IconIndex.general,
+  ),
+];
+
+const List<CookingTip> kCookingTipsDe = [
+  CookingTip(
+    title: "Nudelwasser aufheben",
+    tip:
+        "Heb vor dem Abgießen der Nudeln ein halbes Glas Kochwasser auf. Die Stärke darin hilft, die Soße an den Nudeln zu binden.",
+    icon: IconIndex.pasta,
+  ),
+  CookingTip(
+    title: "Salz gibt Geschmack",
+    tip:
+        "Salze das Wasser für Nudeln oder Kartoffeln nach Rezept und rühre um, bis sich das Salz auflöst. Es würzt das Essen. Die übliche Menge lässt Wasser kaum schneller kochen.",
+    icon: IconIndex.pasta,
+  ),
+  CookingTip(
+    title: "Gekühlte Zwiebeln schneiden",
+    tip:
+        "Leg die Zwiebel vor dem Schneiden für 15–20 Minuten in den Kühlschrank. Die Kälte kann dafür sorgen, dass weniger reizende Stoffe freigesetzt werden.",
+    icon: IconIndex.vegetable,
+  ),
+  CookingTip(
+    title: "Avocado frisch halten",
+    tip:
+        "Beträufle die Schnittfläche mit Zitronen- oder Limettensaft. Die Säure verlangsamt die Oxidation, sodass die Avocado länger grün bleibt.",
+    icon: IconIndex.vegetable,
+  ),
+  CookingTip(
+    title: "Reis vorher abspülen",
+    tip:
+        "Spüle den Reis mit kaltem Wasser ab, bis das Wasser klar bleibt. Das entfernt überschüssige Stärke, sodass die Körner weniger aneinanderkleben.",
+    icon: IconIndex.general,
+  ),
+  CookingTip(
+    title: "Fleisch erst kurz vor dem Garen vorbereiten",
+    tip:
+        "Lass rohes Fleisch bis zur Vorbereitung im Kühlschrank. Gleich dicke Stücke garen gleichmäßiger. Sie brauchen vorher keine Zimmertemperatur anzunehmen.",
+    icon: IconIndex.meat,
+  ),
+  CookingTip(
+    title: "Gekochte Eier leichter schälen",
+    tip:
+        "Leg hart gekochte Eier direkt nach dem Kochen für ein paar Minuten in kaltes Wasser. Durch das Abkühlen kann sich die Schale leichter vom Eiweiß lösen.",
+    icon: IconIndex.general,
+  ),
+  CookingTip(
+    title: "Kräuter wie einen Blumenstrauß lagern",
+    tip:
+        "Stell Petersilie oder Dill mit etwas Wasser in ein Glas und bewahre sie im Kühlschrank auf. So können sie länger frisch bleiben als in einer Plastiktüte.",
+    icon: IconIndex.storage,
+  ),
+  CookingTip(
+    title: "Mehr Saft aus Zitronen und Limetten",
+    tip:
+        "Rolle die Frucht vor dem Auspressen mit leichtem Druck unter deiner Handfläche über die Arbeitsplatte. So lässt sich mehr Saft gewinnen.",
+    icon: IconIndex.general,
+  ),
+  CookingTip(
+    title: "In kleinen Mengen anbraten",
+    tip:
+        "Zu viele Zutaten auf einmal kühlen die Pfanne ab. Gemüse oder Fleisch kann im eigenen Saft dünsten. Brate es portionsweise an.",
+    icon: IconIndex.meat,
+  ),
+  CookingTip(
+    title: "Küchenmesser scharf halten",
+    tip:
+        "Ein stumpfes Messer erfordert mehr Kraft und rutscht leichter ab. Halte das Messer scharf und schneide vorsichtig auf einem stabilen Brett.",
+    icon: IconIndex.general,
+  ),
+  CookingTip(
+    title: "Kräuter in Olivenöl einfrieren",
+    tip:
+        "Gib gehackte Kräuter mit Olivenöl in eine Eiswürfelform und friere sie ein. Die Würfel eignen sich in den nächsten Wochen als Basis für Soßen und Eintöpfe.",
+    icon: IconIndex.storage,
+  ),
+  CookingTip(
+    title: "Brot wieder knusprig machen",
+    tip:
+        "Besprenkle trockenes Brot oder Brötchen mit etwas Wasser und wärme es ein paar Minuten im Ofen auf. Die Krume wird weicher und die Kruste wieder knusprig.",
+    icon: IconIndex.baking,
+  ),
+  CookingTip(
+    title: "Versalzene Soße retten",
+    tip:
+        "Gib nach und nach ungesalzene Brühe, Wasser oder andere passende ungesalzene Zutaten hinzu und schmecke zwischendurch ab. Eine Kartoffel nimmt Flüssigkeit samt Salz auf und ist daher kein verlässliches Mittel gegen zu viel Salz.",
+    icon: IconIndex.general,
+  ),
+  CookingTip(
+    title: "Säure in der Marinade",
+    tip:
+        "Etwas Zitronensaft, Essig oder Joghurt in der Marinade kann Fleisch zarter machen. Halte dich bei Menge und Dauer ans Rezept.",
+    icon: IconIndex.meat,
+  ),
+  CookingTip(
+    title: "Pfanne richtig vorheizen",
+    tip:
+        "Wie du eine Pfanne vorheizt, hängt vom Material ab. Beachte bei beschichteten Pfannen die Herstellerangaben und überhitze sie nicht leer. Lass Bratfett nicht rauchen.",
+    icon: IconIndex.meat,
+  ),
+  CookingTip(
+    title: "Kartoffeln und Zwiebeln getrennt lagern",
+    tip:
+        "Bewahre Kartoffeln und Zwiebeln getrennt an geeigneten kühlen, dunklen Orten auf. Zusammen können sie schneller keimen und verderben.",
+    icon: IconIndex.storage,
+  ),
+  CookingTip(
+    title: "Grünes Gemüse behält seine Farbe",
+    tip:
+        "Koche Brokkoli oder grüne Bohnen kurz in sprudelndem Salzwasser und kühle das Gemüse danach zügig mit kaltem Wasser ab. Das stoppt den Garvorgang und hilft, die Farbe zu erhalten.",
+    icon: IconIndex.vegetable,
+  ),
+  CookingTip(
+    title: "Honig leichter vom Löffel lösen",
+    tip:
+        "Bestreiche den Löffel vor dem Abmessen mit einem Hauch Öl. Dann gleitet der Honig leichter vom Löffel.",
+    icon: IconIndex.general,
+  ),
+  CookingTip(
+    title: "Weinreste zum Kochen aufheben",
+    tip:
+        "Friere übrig gebliebenen Wein in einer Eiswürfelform ein. Die Würfel kannst du später in Soßen und Eintöpfe geben.",
+    icon: IconIndex.storage,
+  ),
+  CookingTip(
+    title: "Überkochen im Topf vermeiden",
+    tip:
+        "Ein Kochlöffel quer über dem Topf verhindert das Überkochen nicht zuverlässig. Verwende einen ausreichend großen Topf, reduziere nach dem Aufkochen die Hitze und behalte den Inhalt im Blick.",
+    icon: IconIndex.general,
+  ),
+  CookingTip(
+    title: "Polnischen Frischkäse im Salat probieren",
+    tip:
+        "Zerbrösele frischen Twaróg oder schneide ihn in kleine Stücke und gib ihn in den Salat. Er schmeckt anders als Mozzarella und hat eine andere Konsistenz. Abspülen ist überflüssig.",
+    icon: IconIndex.general,
+  ),
+  CookingTip(
+    title: "Käse vor dem Reiben kühlen",
+    tip:
+        "Leg Hartkäse vor dem Reiben eine halbe Stunde ins Gefrierfach. Fester Käse lässt sich leichter reiben und bleibt weniger an der Reibe hängen.",
+    icon: IconIndex.storage,
+  ),
+  CookingTip(
+    title: "Saure Sahne in die Suppe rühren",
+    tip:
+        "Rühre zuerst ein paar Löffel warme Suppe unter die saure Sahne und gib die Mischung dann nach und nach in den Topf. Reduziere die Hitze und lass die Suppe danach nicht mehr sprudelnd kochen.",
+    icon: IconIndex.general,
+  ),
+  CookingTip(
+    title: "Eigelb gleichmäßig in die Suppe rühren",
+    tip:
+        "Wenn das Rezept Eigelb vorsieht, verrühre es mit etwas Flüssigkeit und gib es nach und nach in die warme Suppe. Verwende pasteurisierte Eier für Gerichte, die nicht vollständig durchgegart werden. Heiße Suppe allein erhitzt ein rohes Ei nicht zuverlässig.",
+    icon: IconIndex.general,
+  ),
+  CookingTip(
+    title: "Leicht welken Salat auffrischen",
+    tip:
+        "Leg leicht welke, noch frische Blätter kurz in sauberes, kühles Wasser und trockne sie gut ab. Mehl brauchst du dafür nicht. Schimmelige oder verdorbene Blätter gehören entsorgt.",
+    icon: IconIndex.vegetable,
+  ),
+  CookingTip(
+    title: "Ein festsitzendes Glas öffnen",
+    tip:
+        "Trockne Deckel und Hände ab. Ein Gummihandschuh, eine rutschfeste Unterlage oder ein Glasöffner geben dir mehr Halt. Schlag das Glas nicht auf die Arbeitsplatte, da es reißen oder splittern kann.",
+    icon: IconIndex.general,
+  ),
+  CookingTip(
+    title: "Butter für Mürbeteig reiben",
+    tip:
+        "Reibe kalte Butter grob, statt sie in Stücke zu schneiden. So vermischt sie sich für den Mürbeteig schneller und gleichmäßiger mit dem Mehl.",
+    icon: IconIndex.baking,
+  ),
+  CookingTip(
+    title: "Kleine Butterstücke werden schneller weich",
+    tip:
+        "Schneide kalte Butter in Würfel oder dünne Scheiben und verteile sie auf einem Teller. Kleine Stücke werden von selbst schneller weich.",
+    icon: IconIndex.baking,
+  ),
+  CookingTip(
+    title: "Erdbeeren mit einer Prise Pfeffer",
+    tip:
+        "Streu eine kleine Menge frisch gemahlenen schwarzen Pfeffer auf ein paar geschnittene Erdbeeren und probiere, ob dir der Kontrast schmeckt.",
     icon: IconIndex.general,
   ),
 ];

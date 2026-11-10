@@ -17,6 +17,7 @@ import 'package:smart_meal_planner/screens/shopping/dish_shopping_list_screen.da
 import 'package:smart_meal_planner/screens/shopping/shopping_list_screen.dart';
 import 'package:smart_meal_planner/services/api_client.dart';
 import 'package:smart_meal_planner/theme/app_theme.dart';
+import 'package:smart_meal_planner/utils/market_money.dart';
 
 var _proofFont = 'Roboto';
 
@@ -57,7 +58,7 @@ ShoppingList _list(String country, {bool priced = true, bool eggs = false}) =>
       'meal_plan_id': 'plan-1',
       'store_id': 'store-1',
       'store_name': 'Tesco',
-      'currency_code': country == 'GB' ? 'GBP' : 'PLN',
+      'currency_code': currencyForAccountCountry(country),
       'total_estimated_price': priced ? 1.8 : null,
       'has_unpriced_items': !priced,
       'created_at': '2026-10-16T10:00:00Z',
@@ -73,7 +74,7 @@ ShoppingList _list(String country, {bool priced = true, bool eggs = false}) =>
             if (eggs) 'display_quantity_is_approximate': true,
             'unit': 'g',
             'estimated_price': priced ? 1.8 : null,
-            'currency_code': country == 'GB' ? 'GBP' : 'PLN',
+            'currency_code': currencyForAccountCountry(country),
             'quote_status': priced ? 'quoted' : 'unpriced',
             'price_is_estimated': true,
             'package_quantity': priced ? 500 : null,
@@ -125,7 +126,11 @@ class _Promotions extends PromotionProvider {
 }
 
 Widget _app(String country, Widget child) => MaterialApp(
-  locale: country == 'GB' ? const Locale('en', 'GB') : const Locale('pl', 'PL'),
+  locale: switch (country) {
+    'GB' => const Locale('en', 'GB'),
+    'DE' => const Locale('de', 'DE'),
+    _ => const Locale('pl', 'PL'),
+  },
   supportedLocales: AppLocalizations.supportedLocales,
   localizationsDelegates: AppLocalizations.localizationsDelegates,
   theme: const bool.fromEnvironment('UK_WRITE_UI_PROOF') ? _proofTheme() : null,
@@ -379,6 +384,35 @@ void main() {
       await tester.pumpWidget(const SizedBox());
     },
   );
+
+  for (final priced in [true, false]) {
+    testWidgets(
+      'German dish list distinguishes estimates and missing prices ($priced)',
+      (tester) async {
+        tester.view.physicalSize = const Size(320, 1000);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await tester.pumpWidget(
+          _app(
+            'DE',
+            DishShoppingListScreen(shoppingList: _list('DE', priced: priced)),
+          ),
+        );
+        await tester.pumpAndSettle();
+        if (priced) {
+          expect(
+            find.text('~${formatMarketMoney(1.8, currencyCode: 'EUR')}'),
+            findsOneWidget,
+          );
+        } else {
+          expect(find.text('Preis nicht verfügbar'), findsNWidgets(2));
+          expect(find.textContaining('0,00'), findsNothing);
+        }
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
 
   for (final country in ['PL', 'GB']) {
     testWidgets('piece display keeps base weight unchanged for $country', (

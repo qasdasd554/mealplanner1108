@@ -76,32 +76,55 @@ class _Billing extends BillingService {
   String currency = 'GBP';
   int buys = 0;
   int restores = 0;
+  String? purchasedPointsId;
+  int catalogueQueries = 0;
+  Future<bool>? pendingAvailability;
+  Future<ProductDetailsResponse>? pendingCatalogue;
+  Future<void>? pendingRestore;
+  bool includePoints = false;
+  bool includeSubscriptions = true;
   List<Future<bool>> pending = [];
   @override
   Stream<List<PurchaseDetails>> get purchaseStream => const Stream.empty();
   @override
-  Future<bool> isAvailable() async => available;
+  Future<bool> isAvailable() => pendingAvailability ?? Future.value(available);
   @override
-  Future<ProductDetailsResponse> queryProducts() async {
+  Future<ProductDetailsResponse> queryCatalogue() async {
+    catalogueQueries++;
+    if (pendingCatalogue != null) return pendingCatalogue!;
     if (productsFail) throw StateError('Synthetic product query failure');
     return ProductDetailsResponse(
       productDetails: [
-        fixtures.android(trial: 0, amount: 5000000, currency: currency),
-        fixtures.android(
-          id: kYearlyProductId,
-          trial: 0,
-          amount: 48000000,
-          currency: currency,
-          period: 'P1Y',
-        ),
+        if (includeSubscriptions) ...[
+          fixtures.android(
+            trial: 0,
+            amount: currency == 'PLN' ? 24990000 : 5000000,
+            currency: currency,
+            priceLabel: currency == 'PLN' ? '24,99 zł' : null,
+          ),
+          fixtures.android(
+            id: kYearlyProductId,
+            trial: 0,
+            amount: currency == 'PLN' ? 239990000 : 48000000,
+            currency: currency,
+            period: 'P1Y',
+            priceLabel: currency == 'PLN' ? '239,99 zł' : null,
+          ),
+        ],
+        if (includePoints)
+          ProductDetails(
+            id: kPoints10ProductId,
+            title: '10 points',
+            description: '',
+            price: currency == 'PLN' ? '8,99 zł' : '£1.99',
+            rawPrice: currency == 'PLN' ? 8.99 : 1.99,
+            currencyCode: currency,
+          ),
       ],
       notFoundIDs: [],
     );
   }
 
-  @override
-  Future<ProductDetailsResponse> queryPointsProducts() async =>
-      ProductDetailsResponse(productDetails: [], notFoundIDs: []);
   @override
   Future<bool> hasSevenDayFreeTrial(ProductDetails product) =>
       pending.isEmpty ? Future.value(eligible) : pending.removeAt(0);
@@ -111,8 +134,14 @@ class _Billing extends BillingService {
   }
 
   @override
+  Future<void> buyPoints(ProductDetails product) async {
+    purchasedPointsId = product.id;
+  }
+
+  @override
   Future<void> restorePurchases() async {
     restores++;
+    await pendingRestore;
   }
 }
 
@@ -137,6 +166,9 @@ Future<void> open(
   _Api? api,
   bool shoppingListLimit = false,
   bool generalOffer = false,
+  PremiumOfferContext offerContext = PremiumOfferContext.recipe,
+  bool fullscreen = false,
+  bool settle = true,
 }) async {
   tester.view.physicalSize =
       viewport ?? (narrow ? const Size(320, 740) : const Size(390, 844));
@@ -164,6 +196,20 @@ Future<void> open(
             ),
           )
           : baseTheme;
+  final screen = RepaintBoundary(
+    key: _proofKey,
+    child: PremiumScreen(
+      billing: billing,
+      client: api ?? _Api(),
+      offerContext:
+          generalOffer
+              ? null
+              : shoppingListLimit
+              ? PremiumOfferContext.shoppingList
+              : offerContext,
+      shoppingListLimit: shoppingListLimit,
+    ),
+  );
   await tester.pumpWidget(
     ChangeNotifierProvider<AuthProvider>.value(
       value: auth,
@@ -179,24 +225,24 @@ Future<void> open(
               ),
               child: child!,
             ),
-        home: RepaintBoundary(
-          key: _proofKey,
-          child: PremiumScreen(
-            billing: billing,
-            client: api ?? _Api(),
-            offerContext:
-                generalOffer
-                    ? null
-                    : shoppingListLimit
-                    ? PremiumOfferContext.shoppingList
-                    : PremiumOfferContext.recipe,
-            shoppingListLimit: shoppingListLimit,
-          ),
-        ),
+        home: fullscreen ? null : screen,
+        routes: fullscreen ? {'/': (_) => const SizedBox.expand()} : const {},
+        onGenerateInitialRoutes:
+            fullscreen
+                ? (_) => [
+                  MaterialPageRoute<void>(
+                    builder: (_) => const SizedBox.expand(),
+                  ),
+                  MaterialPageRoute<void>(
+                    fullscreenDialog: true,
+                    builder: (_) => screen,
+                  ),
+                ]
+                : null,
       ),
     ),
   );
-  await tester.pumpAndSettle();
+  if (settle) await tester.pumpAndSettle();
 }
 
 Future<void> pricing(WidgetTester tester, String monthly) async {
@@ -214,6 +260,201 @@ void main() {
     await loadProductFormFonts();
   });
   setUp(() => SharedPreferences.setMockInitialValues({}));
+  testWidgets('a stalled catalogue can be retried from a recipe offer', (
+    tester,
+  ) async {
+    final stalled = Completer<ProductDetailsResponse>();
+    final billing = _Billing()..pendingCatalogue = stalled.future;
+    await open(tester, billing, english: false, settle: false);
+    final strings = AppLocalizations.of(
+      tester.element(find.byType(PremiumScreen)),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 20));
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    await tester.ensureVisible(find.text(strings.premiumSeePlans));
+    await tester.tap(find.text(strings.premiumSeePlans));
+    await tester.pumpAndSettle();
+    final retry = find.byKey(const ValueKey('premium-plans-retry'));
+    expect(retry.hitTestable(), findsOneWidget);
+    billing
+      ..pendingCatalogue = null
+      ..includePoints = true;
+    await tester.tap(retry);
+    await tester.pumpAndSettle();
+    await pricing(tester, strings.premiumMonthly);
+    await tester.scrollUntilVisible(find.text('8,99 zł'), 250);
+    expect(find.text('8,99 zł'), findsOneWidget);
+    stalled.complete(
+      ProductDetailsResponse(productDetails: [], notFoundIDs: []),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('8,99 zł'), findsOneWidget);
+    expect(billing.catalogueQueries, 2);
+  });
+
+  testWidgets('a stalled store connection can be retried from points', (
+    tester,
+  ) async {
+    final stalled = Completer<bool>();
+    final billing = _Billing()..pendingAvailability = stalled.future;
+    await open(tester, billing, settle: false);
+    await tester.pump(const Duration(seconds: 8));
+    await tester.pumpAndSettle();
+    final retry = find.byKey(const ValueKey('premium-points-retry'));
+    await tester.scrollUntilVisible(retry, 250);
+    expect(billing.catalogueQueries, 0);
+    billing
+      ..pendingAvailability = null
+      ..includePoints = true
+      ..includeSubscriptions = false;
+    await tester.tap(retry);
+    await tester.pumpAndSettle();
+    expect(find.text('£1.99'), findsOneWidget);
+    final strings = AppLocalizations.of(
+      tester.element(find.byType(PremiumScreen)),
+    );
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, 500));
+    await tester.pumpAndSettle();
+    expect(
+      find.text(strings.premiumSubscriptionPricesUnavailable),
+      findsOneWidget,
+    );
+    stalled.complete(true);
+    await tester.pumpAndSettle();
+    expect(billing.catalogueQueries, 1);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Premium tab retries missing prices on foreground return', (
+    tester,
+  ) async {
+    final binding = tester.binding;
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    final stalled = Completer<ProductDetailsResponse>();
+    final billing = _Billing()..pendingCatalogue = stalled.future;
+    await open(
+      tester,
+      billing,
+      generalOffer: true,
+      english: false,
+      settle: false,
+    );
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 8));
+    await tester.pumpAndSettle();
+    final retry = find.byKey(const ValueKey('premium-plans-retry'));
+    expect(retry, findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(billing.catalogueQueries, 1);
+
+    billing
+      ..pendingCatalogue = null
+      ..includePoints = true;
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+    await pricing(tester, 'Miesięcznie');
+    expect(find.text('24,99 zł', findRichText: true), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('8,99 zł'), 250);
+    expect(find.text('8,99 zł'), findsOneWidget);
+    expect(billing.catalogueQueries, 2);
+    stalled.complete(
+      ProductDetailsResponse(productDetails: [], notFoundIDs: []),
+    );
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a stalled restore releases the button and allows retry', (
+    tester,
+  ) async {
+    final stalled = Completer<void>();
+    final billing = _Billing()..pendingRestore = stalled.future;
+    await open(tester, billing, generalOffer: true);
+    final strings = AppLocalizations.of(
+      tester.element(find.byType(PremiumScreen)),
+    );
+    final restore = find.widgetWithText(
+      TextButton,
+      strings.premiumRestorePurchases,
+    );
+    await tester.scrollUntilVisible(restore, 250);
+    await tester.pumpAndSettle();
+    expect(restore.hitTestable(), findsOneWidget);
+    await tester.tap(restore);
+    await tester.pump();
+    expect(tester.widget<TextButton>(restore).onPressed, isNull);
+    await tester.pump(const Duration(seconds: 8));
+    await tester.pumpAndSettle();
+    expect(tester.widget<TextButton>(restore).onPressed, isNotNull);
+    billing.pendingRestore = null;
+    await tester.tap(restore);
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
+    expect(billing.restores, 2);
+    expect(find.text(strings.premiumRestoreEmpty), findsOneWidget);
+    stalled.complete();
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+  });
+
+  for (final offer in PremiumOfferContext.values) {
+    testWidgets('offer $offer opens live plan and point sections', (
+      tester,
+    ) async {
+      final billing = _Billing()..includePoints = true;
+      await open(
+        tester,
+        billing,
+        offerContext: offer,
+        english: false,
+        branded: true,
+        fullscreen: true,
+        viewport: const Size(414, 980),
+      );
+      final strings = AppLocalizations.of(
+        tester.element(find.byType(PremiumScreen)),
+      );
+      if (offer == PremiumOfferContext.recipe) {
+        await capturePremium(
+          tester,
+          'premium-recipe-notice-pl',
+          cropAtPricing: false,
+        );
+      }
+      final seePlans = find.text(strings.premiumSeePlans);
+      await tester.ensureVisible(seePlans);
+      await tester.tap(seePlans);
+      await tester.pumpAndSettle();
+      expect(find.text(strings.premiumMonthly).hitTestable(), findsOneWidget);
+      if (offer == PremiumOfferContext.recipe) {
+        await capturePremium(
+          tester,
+          'premium-recipe-prices-pl',
+          cropAtPricing: false,
+        );
+      }
+      await tester.scrollUntilVisible(find.text('8,99 zł'), 210);
+      expect(find.text('8,99 zł'), findsOneWidget);
+      if (offer == PremiumOfferContext.recipe) {
+        final buyPoints = find.widgetWithText(
+          TextButton,
+          strings.aiEditBuyPoints,
+        );
+        await tester.scrollUntilVisible(buyPoints, 210);
+        await tester.tap(buyPoints);
+        await tester.pump();
+        expect(billing.purchasedPointsId, kPoints10ProductId);
+      }
+      expect(billing.catalogueQueries, 1);
+      expect(tester.takeException(), isNull);
+    });
+  }
   for (final english in [false, true]) {
     testWidgets(
       'general offer shows local plans before shortcuts (${english ? "GB" : "PL"})',
@@ -407,7 +648,10 @@ void main() {
     'unavailable store stays recoverable and does not promise a trial',
     (tester) async {
       await open(tester, _Billing()..available = false);
-      await pricing(tester, 'Try again');
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('premium-plans-retry')),
+        250,
+      );
       expect(find.text('Try for free'), findsNothing);
       expect(
         find.text(

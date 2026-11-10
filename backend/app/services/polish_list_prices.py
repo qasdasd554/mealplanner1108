@@ -12,6 +12,7 @@ from sqlalchemy.orm import joinedload
 
 from app.models import StoreProduct
 from app.services.regional_requirements import MAX_STORED_QUANTITY, to_regional_base_quantity
+from app.services.system_content_language import ingredient_display_name
 from app.services.uk_catalogue_import import canonical_base_unit
 
 
@@ -68,14 +69,25 @@ def _base_quantity(product, amount, unit):
         return _amount(converted), base_unit
 
 
-def _package_count(product, quantity, unit):
-    amount, package = _amount(quantity), _amount(product.default_quantity)
+def offer_package(product, offer):
+    quantity = getattr(offer, "package_quantity", None)
+    unit = getattr(offer, "package_unit", None)
+    if quantity is None and unit is None:
+        return _amount(product.default_quantity), product.unit
+    if unit not in {"g", "kg", "ml", "l", "szt"}:
+        raise ValueError("A compatible retailer package unit is required")
+    return _amount(quantity), unit
+
+
+def _package_count(product, quantity, unit, *, offer=None):
+    amount = _amount(quantity)
+    package, package_unit = offer_package(product, offer)
     count_units = {"szt": "szt", "szt.": "szt", "opak": "opak", "opakowanie": "opak"}
-    if unit in count_units and count_units.get(product.unit) == count_units[unit]:
+    if unit in count_units and count_units.get(package_unit) == count_units[unit]:
         required, packed = amount, package
     else:
         required, dimension = _base_quantity(product, amount, unit)
-        packed, package_dimension = _base_quantity(product, package, product.unit)
+        packed, package_dimension = _base_quantity(product, package, package_unit)
         if dimension != package_dimension:
             raise ValueError("The required quantity and package have different dimensions")
     # Exact ratios avoid losing a final package through float rounding.
@@ -87,7 +99,10 @@ def _package_count(product, quantity, unit):
 
 async def quote_polish_list(db, shopping, stores):
     """One bounded price query; return (row, target offer, quote) per store."""
-    product_ids = {row.store_product.product_id for row in shopping.items if row.store_product is not None}
+    def product_id(row):
+        return row.store_product.product_id if row.store_product is not None else getattr(row, "catalogue_product_id", None)
+
+    product_ids = {identifier for row in shopping.items if (identifier := product_id(row)) is not None}
     offers = list((await db.execute(select(StoreProduct).where(
         StoreProduct.store_id.in_([store.id for store in stores]),
         StoreProduct.product_id.in_(product_ids),
@@ -95,11 +110,12 @@ async def quote_polish_list(db, shopping, stores):
     by_pair = {(offer.store_id, offer.product_id): offer for offer in offers}
     results = {}
     for store in stores:
+        country = getattr(store, "country_code", "PL")
         rows = []
         for row in shopping.items:
             original = row.store_product
             product = original.product if original is not None else None
-            name = product.name if product is not None else row.custom_name or "Nieznany produkt"
+            name = ingredient_display_name(product, country_code=country) if product is not None else row.custom_name or "Nieznany produkt"
             quantity = _positive(row.required_quantity)
             quote, offer = None, None
             if row.regional_snapshot is not None or quantity is None:
@@ -116,12 +132,13 @@ async def quote_polish_list(db, shopping, stores):
                     quote = dict(product_name=name, quantity_needed=quantity, unit=row.unit,
                                  price_in_store=price, price_is_estimated=True, is_checked=True,
                                  store_brand_name=original.store_brand_name)
-            elif product is not None:
-                offer = by_pair.get((store.id, product.id))
+            elif product_id(row) is not None:
+                offer = by_pair.get((store.id, product_id(row)))
                 if offer is not None and offer.is_available and offer.withdrawn_at is None:
+                    product = offer.product
                     price = _positive(offer.price)
                     try:
-                        count = _package_count(product, row.required_quantity, row.unit)
+                        count = _package_count(product, row.required_quantity, row.unit, offer=offer)
                         total = _positive(price * count) if price is not None else None
                     except (ValueError, InvalidOperation, OverflowError, TypeError):
                         total = None

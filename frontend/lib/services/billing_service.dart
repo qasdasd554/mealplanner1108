@@ -32,6 +32,17 @@ const String kPoints10ProductId = 'points_10';
 const String kPoints20ProductId = 'points_20';
 const String kPoints50ProductId = 'points_50';
 
+const kSubscriptionProductIds = {
+  kWeeklyProductId,
+  kMonthlyProductId,
+  kYearlyProductId,
+};
+const kPointsProductIds = {
+  kPoints10ProductId,
+  kPoints20ProductId,
+  kPoints50ProductId,
+};
+
 /// Obsługuje cały przepływ zakupu subskrypcji: odpytanie sklepu o
 /// dostępne produkty (i ich prawdziwe, lokalne ceny), zainicjowanie
 /// zakupu, nasłuchiwanie na wynik, i weryfikację po stronie backendu —
@@ -56,15 +67,11 @@ class BillingService {
                 : null,
       );
 
-  /// Pobiera prawdziwe, lokalne ceny (uwzględniające walutę i podatki
-  /// danego kraju) dla obu planów subskrypcji.
-  Future<ProductDetailsResponse> queryProducts() {
-    return _iap.queryProductDetails({
-      kWeeklyProductId,
-      kMonthlyProductId,
-      kYearlyProductId,
-    });
-  }
+  /// Pobiera lokalne ceny subskrypcji i punktów w jednym zapytaniu.
+  Future<ProductDetailsResponse> queryCatalogue() => _iap.queryProductDetails({
+    ...kSubscriptionProductIds,
+    ...kPointsProductIds,
+  });
 
   /// Rozpoczyna zakup — wynik przyjdzie asynchronicznie przez
   /// [purchaseStream], nie przez zwróconą wartość tej metody.
@@ -227,15 +234,6 @@ class BillingService {
       },
     );
     return response as Map<String, dynamic>;
-  }
-
-  /// Pobiera prawdziwe, lokalne ceny pakietów punktów premium.
-  Future<ProductDetailsResponse> queryPointsProducts() {
-    return _iap.queryProductDetails({
-      kPoints10ProductId,
-      kPoints20ProductId,
-      kPoints50ProductId,
-    });
   }
 
   /// Rozpoczyna zakup pakietu punktów — KONSUMOWALNY zakup

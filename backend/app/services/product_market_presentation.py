@@ -12,7 +12,15 @@ def is_uk_generic_seed(product, *, country_code: str) -> bool:
 def product_brand_for_market(product, *, country_code: str):
     # A reviewed UK food-concept link does not attest sale of its PL example
     # brand. Exact coded SKUs and authored food retain their actual identity.
-    return None if is_uk_generic_seed(product, country_code=country_code) else product.brand
+    return None if _is_regional_generic_seed(product, country_code) else product.brand
+
+
+def _is_regional_generic_seed(product, country_code: str) -> bool:
+    return (
+        country_code in {"GB", "DE"}
+        and getattr(product, "barcode", None) is None
+        and is_system_ingredient(product)
+    )
 
 
 def product_for_market(product, *, country_code: str):
@@ -22,7 +30,7 @@ def product_for_market(product, *, country_code: str):
     local SKU pack facts are separate fields on StoreProductResponse; do not
     copy them into the shared generic product or infer them from an OFF link.
     """
-    if not is_uk_generic_seed(product, country_code=country_code):
+    if not _is_regional_generic_seed(product, country_code):
         return product
     response = ProductResponse.model_validate(product)
     measures = None if response.measure_options is None else [

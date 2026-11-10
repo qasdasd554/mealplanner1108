@@ -131,6 +131,7 @@ class ShoppingListBuilder:
             store_id=meal_plan.store_id,
             user_id=meal_plan.user_id,
             include_pantry=include_pantry,
+            country_code=getattr(store, "country_code", "PL"),
         )
 
         # ── 5. Utwórz listę zakupów ─────────────────────────────────
@@ -221,6 +222,7 @@ class ShoppingListBuilder:
             store_id=meal_plan.store_id,
             user_id=meal_plan.user_id,
             include_pantry=(meal_plan.preferences or {}).get("include_pantry", True),
+            country_code=getattr(store, "country_code", "PL"),
         )
 
         if not is_gb:
@@ -481,6 +483,7 @@ class ShoppingListBuilder:
         store_id: UUID,
         user_id: UUID,
         include_pantry: bool = True,
+        country_code: str = "PL",
     ) -> list[dict[str, Any]]:
         """Uzupełnia dane sklepowe: opakowania, ceny, działy.
 
@@ -544,6 +547,14 @@ class ShoppingListBuilder:
                 continue
 
             product_name = product.name
+            custom_name = product_name
+            if country_code == "DE":
+                from app.services.system_content_language import ingredient_display_name
+                custom_name = ingredient_display_name(product, country_code="DE")[:200]
+            unpriced_identity = (
+                {"catalogue_product_id": product.id}
+                if country_code == "DE" and store_product is None else {}
+            )
             product_unit = getattr(product, "unit", None) or "szt"
 
             if total_qty_grams is None:
@@ -555,8 +566,9 @@ class ShoppingListBuilder:
                     grouped[canonical_measure_code(unit)] += amount
                 for unit, amount in grouped.items():
                     items_data.append(dict(
+                        **unpriced_identity,
                         store_product_id=store_product.id if store_product else None,
-                        custom_name=None if store_product else product_name,
+                        custom_name=None if store_product else custom_name,
                         required_quantity=round(amount, 3), unit=unit,
                         estimated_price=None, department_id=None,
                         is_checked=False, is_from_pantry=False, is_generated=True,
@@ -573,8 +585,9 @@ class ShoppingListBuilder:
 
             if pantry_grams > 0:
                 items_data.append({
+                    **unpriced_identity,
                     "store_product_id": store_product.id if store_product else None,
-                    "custom_name": None if store_product else product_name,
+                    "custom_name": None if store_product else custom_name,
                     "required_quantity": round(grams_to_quantity(
                         product_name, pantry_grams, product_unit,
                         getattr(product, "serving_quantity", None),
@@ -595,8 +608,9 @@ class ShoppingListBuilder:
                 # Nie ukrywamy brakującej części tylko dlatego, że ten
                 # sklep nie ma produktu w katalogu. Ceny nie zgadujemy.
                 items_data.append({
+                    **unpriced_identity,
                     "store_product_id": store_product.id if store_product is not None else None,
-                    "custom_name": None if store_product is not None else product_name,
+                    "custom_name": None if store_product is not None else custom_name,
                     "required_quantity": round(grams_to_quantity(
                         product_name, purchase_grams, product_unit,
                         getattr(product, "serving_quantity", None),

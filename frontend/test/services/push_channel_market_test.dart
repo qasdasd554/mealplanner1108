@@ -34,7 +34,13 @@ void main() {
       expect(channel.importance, Importance.high);
     });
   }
-  for (final country in [null, 'PL', 'DE']) {
+  test('Germany translates the channel and preserves its settings', () {
+    final channel = pushChannelForCountry('DE');
+    expect(channel.name, 'Benachrichtigungen');
+    expect(channel.id, 'meal_planner_default');
+    expect(channel.importance, Importance.high);
+  });
+  for (final country in [null, 'PL', 'AT']) {
     test('$country preserves original Polish channel and settings', () {
       final channel = pushChannelForCountry(country);
       expect(channel.name, 'Powiadomienia');
@@ -48,7 +54,7 @@ void main() {
       expect(channel.enableVibration, isTrue);
     });
   }
-  for (final country in ['PL', 'GB']) {
+  for (final country in ['PL', 'GB', 'DE']) {
     test(
       'push registration receives the persisted $country account market',
       () async {

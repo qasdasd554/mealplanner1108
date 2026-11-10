@@ -84,7 +84,7 @@ class PickedCatalogProduct {
   }
 
   String amountLabelFor(AppLocalizations strings) {
-    if (!strings.localeName.startsWith('en')) return amountLabel;
+    if (strings.localeName.startsWith('pl')) return amountLabel;
     final digits = quantity == quantity.roundToDouble() ? 0 : 1;
     final label = strings.measureQuantityLabel(
       unit,

@@ -23,6 +23,7 @@ def off_product():
         "code": CODE,
         "product_name_pl": "Jogurt naturalny",
         "product_name_en": "Natural yoghurt",
+        "product_name_de": "Naturjoghurt",
         "product_name": "Original label name",
         "brands": "Brand",
         "product_quantity": 500,
@@ -31,7 +32,11 @@ def off_product():
     }
 
 
-@pytest.mark.parametrize("country,name,cc,lc", [("GB", "Natural yoghurt", "uk", "en"), ("PL", "Jogurt naturalny", "pl", "pl")])
+@pytest.mark.parametrize("country,name,cc,lc", [
+    ("GB", "Natural yoghurt", "uk", "en"),
+    ("PL", "Jogurt naturalny", "pl", "pl"),
+    ("DE", "Naturjoghurt", "de", "de"),
+])
 def test_off_barcode_uses_market_language_in_same_single_request(country, name, cc, lc):
     class Client:
         calls = []
@@ -49,6 +54,7 @@ def test_off_barcode_uses_market_language_in_same_single_request(country, name, 
     assert client.calls[0][1]["cc"] == cc
     assert client.calls[0][1]["lc"] == lc
     assert "nutrition_data_per" in client.calls[0][1]["fields"].split(",")
+    assert ("product_name_de" in client.calls[0][1]["fields"].split(",")) == (country == "DE")
     assert result.name == name
     assert result.kcal_per_100 == 60
     assert result.serving_quantity == 500 and result.unit == "ml"
@@ -73,22 +79,27 @@ def test_name_search_cache_is_partitioned_by_market_with_same_request_budget(mon
     pl = asyncio.run(barcode_lookup.search_products_external("Brand", country_code="PL"))
     gb = asyncio.run(barcode_lookup.search_products_external("Brand", country_code="GB"))
     again = asyncio.run(barcode_lookup.search_products_external("Brand", country_code="GB"))
-    assert len(calls) == 2
+    de = asyncio.run(barcode_lookup.search_products_external("Brand", country_code="DE"))
+    assert len(calls) == 3
     assert (calls[0].url.params["cc"], calls[0].url.params["lc"]) == ("pl", "pl")
     assert calls[1].url.host == "search.openfoodfacts.org"
     assert calls[1].url.params["langs"] == "en"
+    assert (calls[2].url.params["cc"], calls[2].url.params["lc"]) == ("de", "de")
+    assert "product_name_de" in calls[2].url.params["fields"].split(",")
     assert all("nutrition_data_per" in x.url.params["fields"].split(",") for x in calls)
     assert pl[0].name == "Jogurt naturalny"
     assert gb[0].name == again[0].name == "Natural yoghurt"
+    assert de[0].name == "Naturjoghurt"
 
 
-def test_internet_nutrition_fallback_retains_market_and_exact_gtin(monkeypatch):
+@pytest.mark.parametrize("country,name", [("GB", "Natural yoghurt"), ("DE", "Naturjoghurt")])
+def test_internet_nutrition_fallback_retains_market_and_exact_gtin(monkeypatch, country, name):
     candidate = barcode_lookup._result_from_off_product(off_product())
     search = AsyncMock(return_value=[candidate])
     monkeypatch.setattr(barcode_lookup, "search_products_external", search)
-    result = asyncio.run(barcode_lookup.find_nutrition_by_name("Natural yoghurt", "Brand", barcode=CODE, country_code="GB"))
+    result = asyncio.run(barcode_lookup.find_nutrition_by_name(name, "Brand", barcode=CODE, country_code=country))
     assert result is candidate
-    search.assert_awaited_once_with("Brand Natural yoghurt", limit=10, country_code="GB")
+    search.assert_awaited_once_with(f"Brand {name}", limit=10, country_code=country)
 
 
 def database_results(*rows):
@@ -105,9 +116,9 @@ def user(country="GB"):
     return SimpleNamespace(id=uuid.uuid4(), country_code=country)
 
 
-@pytest.mark.parametrize("country,suppressed", [("GB", True), ("PL", False)])
+@pytest.mark.parametrize("country,suppressed", [("GB", True), ("DE", True), ("PL", False)])
 @pytest.mark.parametrize("origin", ["catalog", "cache", "external"])
-def test_barcode_route_suppresses_only_gb_legacy_prices_in_every_source(monkeypatch, country, suppressed, origin):
+def test_barcode_route_suppresses_legacy_prices_outside_poland(monkeypatch, country, suppressed, origin):
     row = SimpleNamespace(id=uuid.uuid4(), name="Yoghurt", brand="Brand", unit="ml", serving_quantity=500,
         barcode=CODE, nutrition_per_100={"kcal": 60, "protein": 4, "fat": 2, "carbs": 6},
         source="open_food_facts", price_min=2, price_max=8)

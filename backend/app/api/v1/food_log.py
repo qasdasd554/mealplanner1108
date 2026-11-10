@@ -21,7 +21,7 @@ from sqlalchemy.orm import selectinload
 
 from app.api.deps import get_current_user, get_db
 from app.core.exceptions import NotFoundException
-from app.core.language import account_text
+from app.core.language import account_text, message_for_country
 from app.core.markets import account_country
 from app.services.system_content_language import recipe_display_name
 from app.models.food_log import FoodLogEntry
@@ -91,10 +91,9 @@ def _macros_from_recipe(recipe: Optional[Recipe], servings: float, *, country_co
     """Przelicza makroskładniki przepisu na podaną liczbę porcji."""
     n = recipe.nutrition_total if recipe else None
     if not n or n.get("_incomplete"):
-        raise HTTPException(status_code=422, detail=(
-            "Complete the missing ingredient nutrition before adding this recipe to your diary, or enter the meal's nutrition manually."
-            if country_code == "GB" else
-            "Uzupełnij brakujące dane odżywcze składników przed dodaniem przepisu do dziennika albo wpisz wartości posiłku ręcznie."
+        raise HTTPException(status_code=422, detail=message_for_country(country_code,
+            "Uzupełnij brakujące dane odżywcze składników przed dodaniem przepisu do dziennika albo wpisz wartości posiłku ręcznie.",
+            "Complete the missing ingredient nutrition before adding this recipe to your diary, or enter the meal's nutrition manually.",
         ))
     return {
         "calories": (n.get("kcal", n.get("calories", 0.0)) or 0.0) * servings,
@@ -131,9 +130,9 @@ async def _find_client_entry(db: AsyncSession, entry_id: uuid.UUID, user_id: uui
     entry = (await db.execute(select(FoodLogEntry).where(FoodLogEntry.id == entry_id)
         .options(selectinload(FoodLogEntry.recipe)))).scalar_one_or_none()
     if entry is not None and entry.user_id != user_id:
-        raise HTTPException(status_code=409, detail=(
-            "Please retry with a new entry identifier." if country == "GB" else
-            "Spróbuj ponownie z nowym identyfikatorem wpisu."
+        raise HTTPException(status_code=409, detail=message_for_country(country,
+            "Spróbuj ponownie z nowym identyfikatorem wpisu.",
+            "Please retry with a new entry identifier.",
         ))
     return entry
 

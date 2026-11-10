@@ -67,12 +67,13 @@ class AIRecipeImportError(Exception):
 
 def recipe_message(country_code: str, polish: str, english: str) -> str:
     """Only the immutable account's supported market selects user-facing text."""
-    return english if country_code == "GB" else polish
+    from app.core.language import message_for_country
+    return message_for_country(country_code, polish, english)
 
 
 def _market_kwargs(country_code: str) -> dict:
     # Keep the old PL service-call contract, including existing integrations.
-    return {"country_code": "GB"} if country_code == "GB" else {}
+    return {"country_code": country_code} if country_code != "PL" else {}
 
 
 class _ModelUnavailableError(Exception):
@@ -156,10 +157,14 @@ def _build_prompt(
     products_list = "\n".join(
         f"- {p}" for p in sorted(_select_prompt_products(available_products, context))
     )
-    if country_code == "GB":
+    if country_code in {"GB", "DE"}:
+        language, shop_country = {
+            "GB": ("British English", "UK"),
+            "DE": ("German", "German"),
+        }[country_code]
         return f"""You are a culinary assistant. Return ONE complete recipe as strict JSON.
 Write the recipe name, description, cuisine, instructions and suggested seasonings
-in British English. Keep brand names and the exact names of matching catalogue
+in {language}. Keep brand names and the exact names of matching catalogue
 products unchanged, even when those names are in another language.
 
 A) If the input already contains a recipe (text, recipe-card photo or book page),
@@ -171,7 +176,7 @@ RULES:
 1. Return only raw JSON, with no markdown or surrounding text.
 2. Prefer a genuinely matching catalogue ingredient. If there is no good match,
 keep the original ingredient name; never replace it with an unrelated product.
-Do not translate catalogue names or claim that an item is sold in a UK shop:
+Do not translate catalogue names or claim that an item is sold in a {shop_country} shop:
 catalogue identity does not prove local availability or a price.
 3. The unit API value MUST be one of: g, kg, ml, l, szt.
 Use szt only for genuinely countable foods (such as eggs), never powders,
@@ -187,7 +192,7 @@ Do not convert grams to millilitres without known product-specific information.
 4. The meal_type API value MUST be one of: śniadanie, obiad, kolacja, przekąska, deser.
 5. The difficulty API value MUST be one of: łatwy, średni, trudny.
 These identifiers and JSON keys are fixed API values; do not translate them.
-6. Instructions must be British English steps with precise quantities, clear
+6. Instructions must be {language} steps with precise quantities, clear
 enough for an inexperienced cook (for example: 'Soften the onion (100 g) in oil').
 7. Only for input entirely unrelated to food return exactly:
 {{"error": "No recipe could be recognised in the supplied content."}}

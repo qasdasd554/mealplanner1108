@@ -19,7 +19,7 @@ class User(Base):
     __tablename__ = "users"
     __table_args__ = (
         CheckConstraint("household_size BETWEEN 1 AND 8", name="ck_users_household_size_1_8"),
-        CheckConstraint("country_code IN ('PL', 'GB')", name="ck_users_country_code_supported"),
+        CheckConstraint("country_code IN ('PL', 'GB', 'DE')", name="ck_users_country_code_supported"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(

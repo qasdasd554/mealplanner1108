@@ -81,7 +81,7 @@ def _shopping_list_budget_query(shopping_list_id: UUID, country_code: str):
     from app.models import ShoppingListItem
     from sqlalchemy import case, func
 
-    if country_code == "GB":
+    if country_code in {"GB", "DE"}:
         missing = func.sum(case((and_(
             ShoppingListItem.is_from_pantry.is_(False),
             ShoppingListItem.estimated_price.is_(None),

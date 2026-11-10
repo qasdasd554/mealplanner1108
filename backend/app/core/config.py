@@ -51,6 +51,7 @@ class Settings(BaseSettings):
     # Staged UK rollout. Keep disabled until the English UI, local catalogue,
     # currency display and real PostgreSQL migration have passed release QA.
     UK_MARKET_ENABLED: bool = False
+    DE_MARKET_ENABLED: bool = False
 
     # ── JWT / Bezpieczeństwo ─────────────────────────────────────
     SECRET_KEY: str = _PLACEHOLDER_SECRET

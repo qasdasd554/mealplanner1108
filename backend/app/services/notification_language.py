@@ -1,6 +1,7 @@
 """Notification language belongs to the recipient's immutable account market."""
 
 from app.core.markets import account_country
+from app.core.language import message_for_country
 from app.models.user import User
 
 
@@ -9,7 +10,7 @@ def notification_text(recipient: object, polish: str, english: str) -> str:
 
 
 def country_text(country: str, polish: str, english: str) -> str:
-    return english if country == "GB" else polish
+    return message_for_country(country, polish, english)
 
 
 async def recipient_text(db, user_id, polish: str, english: str) -> str:

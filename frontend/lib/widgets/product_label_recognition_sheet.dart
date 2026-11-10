@@ -184,7 +184,7 @@ class _ProductLabelRecognitionSheetState
         setState(
           () =>
               _error =
-                  context.strings.localeName.startsWith('en')
+                  !context.strings.localeName.startsWith('pl')
                       ? context.strings.productLabelReadFailed
                       : friendlyError(error, strings: context.strings),
         );
@@ -233,7 +233,7 @@ class _ProductLabelRecognitionSheetState
         setState(
           () =>
               _error =
-                  context.strings.localeName.startsWith('en')
+                  !context.strings.localeName.startsWith('pl')
                       ? context.strings.productFormRequestFailed
                       : friendlyError(error, strings: context.strings),
         );

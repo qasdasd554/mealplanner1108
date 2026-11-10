@@ -17,6 +17,7 @@ void main() {
     test('reads the server account country', () {
       expect(User.fromJson(_profile(country: 'GB')).countryCode, 'GB');
       expect(User.fromJson(_profile(country: 'PL')).countryCode, 'PL');
+      expect(User.fromJson(_profile(country: 'DE')).countryCode, 'DE');
     });
 
     test('a profile copy cannot drop the assigned market', () {
@@ -25,7 +26,7 @@ void main() {
     });
 
     test('unsupported server country falls back safely', () {
-      expect(User.fromJson(_profile(country: 'DE')).countryCode, 'PL');
+      expect(User.fromJson(_profile(country: 'AT')).countryCode, 'PL');
     });
   });
 }

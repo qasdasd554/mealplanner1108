@@ -3,6 +3,11 @@ import 'package:smart_meal_planner/services/account_market.dart';
 
 void main() {
   group('registration account market', () {
+    test('normalizes Germany and sends the registration market', () {
+      expect(normalizeAccountCountry(' de '), 'DE');
+      expect(registrationMarketFields('DE'), {'device_region': 'DE'});
+    });
+
     test('accepts Great Britain and its UK compatibility alias', () {
       for (final region in ['GB', 'gb', ' GB ', 'UK', 'uk']) {
         expect(normalizeAccountCountry(region), 'GB');
@@ -11,7 +16,7 @@ void main() {
     });
 
     test('keeps Poland for Polish, unsupported and missing regions', () {
-      for (final region in <String?>['PL', 'pl', null, '', 'US', 'DE', 'en']) {
+      for (final region in <String?>['PL', 'pl', null, '', 'US', 'AT', 'en']) {
         expect(normalizeAccountCountry(region), 'PL');
         expect(registrationMarketFields(region), {'device_region': 'PL'});
       }

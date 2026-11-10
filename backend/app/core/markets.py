@@ -2,10 +2,11 @@
 
 from typing import Literal
 
-MarketCode = Literal["PL", "GB"]
+MarketCode = Literal["PL", "GB", "DE"]
 
 DEFAULT_COUNTRY = "PL"
-SUPPORTED_COUNTRIES = frozenset({"PL", "GB"})
+MARKET_CURRENCIES = {"PL": "PLN", "GB": "GBP", "DE": "EUR"}
+SUPPORTED_COUNTRIES = frozenset(MARKET_CURRENCIES)
 
 
 def registration_country(device_region: object) -> str:
@@ -42,6 +43,11 @@ def signup_country(device_region: object) -> str:
         raise HTTPException(
             status_code=503,
             detail="Meal Planner is not yet available in the United Kingdom.",
+        )
+    if country == "DE" and not settings.DE_MARKET_ENABLED:
+        raise HTTPException(
+            status_code=503,
+            detail="Meal Planner ist in Deutschland noch nicht verfügbar.",
         )
     return country
 

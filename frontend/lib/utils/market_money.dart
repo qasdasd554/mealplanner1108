@@ -5,14 +5,18 @@ import '../services/account_market.dart';
 /// Currency follows the immutable account market, never the device language.
 /// This selects a currency only. It does not perform exchange-rate conversion.
 String currencyForAccountCountry(String? countryCode) =>
-    normalizeAccountCountry(countryCode) == 'GB' ? 'GBP' : 'PLN';
+    switch (normalizeAccountCountry(countryCode)) {
+      'GB' => 'GBP',
+      'DE' => 'EUR',
+      _ => 'PLN',
+    };
 
 /// Reject unsupported or malformed price payloads instead of inventing a
 /// currency. A missing currency on a legacy Polish response is handled by the
 /// response model, not by silently treating arbitrary values as PLN here.
 String supportedCurrencyCode(String currencyCode) {
   final normalized = currencyCode.trim().toUpperCase();
-  if (normalized != 'PLN' && normalized != 'GBP') {
+  if (normalized != 'PLN' && normalized != 'GBP' && normalized != 'EUR') {
     throw const FormatException('Unsupported price currency');
   }
   return normalized;
@@ -24,6 +28,7 @@ final _pounds = NumberFormat.currency(
   symbol: '£',
   decimalDigits: 2,
 );
+final _euros = NumberFormat.currency(locale: 'de_DE', name: 'EUR', symbol: '€');
 
 /// Existing Polish presentation is deliberately unchanged, including its
 /// decimal point and lack of grouping. British amounts use the local notation.
@@ -32,7 +37,9 @@ String formatMarketMoney(num amount, {required String currencyCode}) {
   if (!amount.isFinite) {
     throw const FormatException('Invalid price amount');
   }
-  return currency == 'GBP'
-      ? _pounds.format(amount)
-      : '${amount.toStringAsFixed(2)} zł';
+  return switch (currency) {
+    'GBP' => _pounds.format(amount),
+    'EUR' => _euros.format(amount),
+    _ => '${amount.toStringAsFixed(2)} zł',
+  };
 }

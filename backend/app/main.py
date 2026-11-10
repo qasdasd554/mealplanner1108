@@ -561,6 +561,7 @@ async def _seed_database_if_empty() -> None:
     """
     try:
         from app.db.seed import seed_database
+        from app.db.de_store_catalog import seed_de_stores
         from app.db.uk_store_catalog import seed_uk_stores
         from app.db.session import async_session_factory
 
@@ -571,6 +572,8 @@ async def _seed_database_if_empty() -> None:
             # independent of the existing Polish catalogue.
             if settings.UK_MARKET_ENABLED:
                 await seed_uk_stores(db)
+            if settings.DE_MARKET_ENABLED:
+                await seed_de_stores(db)
             await db.commit()
             logger.info("Dane początkowe zsynchronizowane.")
     except ImportError:

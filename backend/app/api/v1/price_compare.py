@@ -23,7 +23,7 @@ from sqlalchemy.orm import aliased, selectinload
 
 from app.api.deps import get_current_user, get_db
 from app.core.language import account_text
-from app.core.markets import account_country
+from app.core.markets import MARKET_CURRENCIES, account_country
 from app.models.meal_plan import MealPlan, MealPlanEntry
 from app.db.uk_store_catalog import UK_STORES
 from app.models.recipe import Recipe, RecipeIngredient
@@ -36,6 +36,7 @@ from app.services.nutrition_calculator import grams_to_quantity, quantity_to_gra
 from app.services.regional_requirements import aggregate_regional_requirements, subtract_regional_quantity
 from app.services.regional_offer_pricing import select_uk_offer_quote
 from app.services.market_catalog import reviewed_uk_offer_conditions, utc_market_date
+from app.services.system_content_language import ingredient_display_name
 from app.services.regional_shopping import (
     regional_pantry_coverage, regional_snapshot_requirement,
     frozen_regional_purchase_quote,
@@ -112,7 +113,6 @@ async def _compare_uk_prices(db, meal_plan, stores) -> list[PriceCompareStoreRes
     enter this branch. Missing provenance or quantity is unknown, not £0.
     """
     requirements = aggregate_regional_requirements(meal_plan)
-    from app.services.system_content_language import ingredient_display_name
     if not requirements:
         return []
     as_of = utc_market_date()
@@ -214,8 +214,9 @@ async def compare_shopping_list_prices(
     plan = await db.get(MealPlan, shopping.meal_plan_id)
     owner = await db.get(User, plan.user_id) if plan is not None else None
     source = shopping.store
-    if (owner is not None and account_country(owner) == "PL" and source is not None
-            and source.country_code == "PL" and source.currency_code == "PLN"
+    if (owner is not None and source is not None and source.country_code in {"PL", "DE"}
+            and source.country_code == account_country(owner)
+            and source.currency_code == MARKET_CURRENCIES[source.country_code]
             and plan.store_id == shopping.store_id):
         return await _compare_polish_list_prices(db, shopping)
     if (owner is None or owner.country_code != "GB" or source is None
@@ -314,20 +315,22 @@ async def _compare_polish_list_prices(db, shopping):
     if not shopping.items:
         return []
     stores = list((await db.execute(select(Store).where(
-        Store.country_code == "PL", Store.currency_code == "PLN",
+        Store.country_code == shopping.store.country_code,
+        Store.currency_code == shopping.store.currency_code,
     ).order_by(Store.name))).scalars().all())
     quotes = await quote_polish_list(db, shopping, stores)
     results = []
     for store in stores:
         quoted = quotes[store.id]
         missing = [
-            (item.store_product.product.name if item.store_product else item.custom_name) or "Nieznany produkt"
+            (ingredient_display_name(item.store_product.product, country_code=store.country_code)
+             if item.store_product else item.custom_name) or "Nieznany produkt"
             for item, _, quote in quoted if quote is None
         ]
         items = [PriceCompareItem(**quote) for _, _, quote in quoted if quote is not None]
         total = round(sum(item.price_in_store for item in items), 2)
         results.append(PriceCompareStoreResult(
-            store_id=store.id, store_name=store.name, currency_code="PLN",
+            store_id=store.id, store_name=store.name, currency_code=store.currency_code,
             total_price=None if missing else total, is_cheapest=False,
             savings_vs_most_expensive=0, items=items, is_complete=not missing,
             has_estimated_prices=bool(missing) or any(item.price_is_estimated for item in items),
@@ -374,7 +377,7 @@ async def compare_prices(
     # Ownership was verified above: the persisted owner's market is the
     # source of truth, never a device hint or a client-supplied store name.
     country = account_country(current_user)
-    currency = "GBP" if country == "GB" else "PLN"
+    currency = MARKET_CURRENCIES[country]
     planned_store = aliased(Store)
     plan_matches_market = exists(
         select(1).select_from(MealPlan)
@@ -474,56 +477,56 @@ async def compare_prices(
 
         for prod_id, req in product_requirements.items():
             product = req["product"]
+            product_name = ingredient_display_name(product, country_code=country)
             total_grams = req["grams"]
 
             store_product = store_product_by_pair.get((store.id, prod_id))
 
-            if not store_product or not getattr(store_product, "is_available", True):
-                missing_products.append(product.name)
+            if (not store_product or not getattr(store_product, "is_available", True)
+                    or (country == "DE" and store_product.withdrawn_at is not None)):
+                missing_products.append(product_name)
                 continue
 
             price = _positive_finite_float(store_product.price)
             total_grams = _positive_finite_float(total_grams)
             if price is None or total_grams is None or not req["quantity_known"]:
-                missing_products.append(product.name)
+                missing_products.append(product_name)
                 continue
 
             product_unit = product.unit or "szt"
-            default_qty_native = _positive_finite_float(product.default_quantity)
-            if default_qty_native is None:
-                missing_products.append(product.name)
-                continue
-            default_qty_grams = quantity_to_grams(
+            quantity_needed = grams_to_quantity(
                 product.name,
-                default_qty_native,
+                total_grams,
                 product_unit,
                 getattr(product, "serving_quantity", None),
                 getattr(product, "measure_options", None),
             )
-
-            default_qty_grams = _positive_finite_float(default_qty_grams)
-            if default_qty_grams is None:
-                # Brak masy opakowania nie może skutkować zakupem fikcyjnego
-                # jednego opakowania ani sugerowaniem wiarygodnej sumy.
-                missing_products.append(product.name)
-                continue
-
-            package_count = math.ceil(total_grams / default_qty_grams)
+            if country == "DE":
+                from app.services.polish_list_prices import _package_count
+                try:
+                    package_count = _package_count(product, round(quantity_needed, 9), product_unit, offer=store_product)
+                except (ValueError, ArithmeticError, TypeError):
+                    missing_products.append(product_name)
+                    continue
+            else:
+                default_qty_native = _positive_finite_float(product.default_quantity)
+                default_qty_grams = _positive_finite_float(quantity_to_grams(
+                    product.name,
+                    default_qty_native,
+                    product_unit,
+                    getattr(product, "serving_quantity", None),
+                    getattr(product, "measure_options", None),
+                )) if default_qty_native is not None else None
+                if default_qty_grams is None:
+                    missing_products.append(product_name)
+                    continue
+                package_count = math.ceil(total_grams / default_qty_grams)
             item_cost = round(price * package_count, 2)
             total_price += item_cost
 
             items.append(PriceCompareItem(
-                product_name=product.name,
-                quantity_needed=round(
-                    grams_to_quantity(
-                        product.name,
-                        total_grams,
-                        product_unit,
-                        getattr(product, "serving_quantity", None),
-                        getattr(product, "measure_options", None),
-                    ),
-                    2,
-                ),
+                product_name=product_name,
+                quantity_needed=round(quantity_needed, 2),
                 unit=product_unit,
                 price_in_store=item_cost,
                 store_brand_name=store_product.store_brand_name,
@@ -557,7 +560,7 @@ async def compare_prices(
             PriceCompareStoreResult(
                 store_id=res["store_id"],
                 store_name=res["store_name"],
-                total_price=res["total_price"],
+                total_price=None if country == "DE" and not res["items"] else res["total_price"],
                 is_cheapest=(res["is_complete"] and res["total_price"] == cheapest_price),
                 savings_vs_most_expensive=(
                     round(most_expensive_price - res["total_price"], 2)

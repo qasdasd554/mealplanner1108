@@ -96,6 +96,24 @@ def service_error_text(error: ServiceError, *, country_code: str) -> str:
     Exception attributes, not Polish text parsing, carry variable values.
     Unknown service failures must not leak a Polish/internal message into UK.
     """
+    if country_code == "DE":
+        if isinstance(error, InsufficientRecipesError):
+            meal = {"śniadanie": "Frühstück", "obiad": "Mittagessen",
+                    "kolacja": "Abendessen", "przekąska": "Snack",
+                    "deser": "Dessert"}.get(error.meal_type, "diese Mahlzeit")
+            return (f"Zu wenige Rezepte für {meal}: {error.required} benötigt, "
+                    f"{error.available} verfügbar. Wähle eine andere Ernährungsform oder Mahlzeit.")
+        if isinstance(error, StoreNotFoundError):
+            return "Der gewählte Markt wurde nicht gefunden. Wähle ihn erneut aus."
+        if isinstance(error, MealPlanNotFoundError):
+            return "Der Essensplan wurde nicht gefunden."
+        if isinstance(error, ShoppingListNotFoundError):
+            return "Die Einkaufsliste wurde nicht gefunden."
+        if isinstance(error, (ProductNotFoundError, StoreProductNotFoundError)):
+            return "Eines der gewählten Produkte wurde nicht gefunden."
+        if isinstance(error, UserNotFoundError):
+            return "Dein Konto wurde nicht gefunden. Melde dich erneut an."
+        return "Der Plan konnte nicht erstellt werden. Prüfe deine Einstellungen und versuche es erneut."
     if country_code != "GB":
         return str(error)
     if isinstance(error, InsufficientRecipesError):

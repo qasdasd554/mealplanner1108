@@ -20,7 +20,7 @@ from app.schemas.user import UserResponse
 
 @pytest.mark.parametrize(
     ("region", "expected"),
-    [("GB", "GB"), ("gb", "GB"), (" UK ", "GB"), ("PL", "PL"),
+    [("GB", "GB"), ("gb", "GB"), (" UK ", "GB"), ("PL", "PL"), (" de ", "DE"),
      (None, "PL"), ("", "PL"), ("US", "PL"), (123, "PL"), ({}, "PL")],
 )
 def test_registration_region_is_limited_to_supported_markets(region, expected):
@@ -133,7 +133,7 @@ async def test_postgres_migration_emits_immutable_trigger_and_check():
     await ensure_account_market_schema(connection)
     statements = "\n".join(str(call.args[0]) for call in connection.execute.await_args_list)
     assert "DEFAULT 'PL'" in statements
-    assert "CHECK (country_code IN ('PL', 'GB'))" in statements
+    assert "CHECK (country_code IN ('PL', 'GB', 'DE'))" in statements
     assert "NEW.country_code IS DISTINCT FROM OLD.country_code" in statements
     assert "BEFORE UPDATE OF country_code ON users" in statements
     assert "tgrelid = 'users'::regclass" in statements
@@ -148,6 +148,7 @@ def _result(value):
 @pytest.fixture
 def auth_mocks(monkeypatch):
     monkeypatch.setattr(auth.settings, "UK_MARKET_ENABLED", True)
+    monkeypatch.setattr(auth.settings, "DE_MARKET_ENABLED", True)
     monkeypatch.setattr(auth, "verify_turnstile_token", AsyncMock())
     monkeypatch.setattr(auth, "enforce_signup_rate_limit", lambda request: None)
     monkeypatch.setattr(auth, "enforce_google_auth_rate_limit", lambda request: None)
@@ -165,7 +166,7 @@ def auth_mocks(monkeypatch):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("kind", ["register", "google", "apple"])
-@pytest.mark.parametrize(("region", "expected"), [("GB", "GB"), (None, "PL"), ("US", "PL")])
+@pytest.mark.parametrize(("region", "expected"), [("GB", "GB"), ("DE", "DE"), (None, "PL"), ("US", "PL")])
 async def test_all_registration_methods_assign_region_only_to_new_accounts(auth_mocks, kind, region, expected):
     body = {"email": "anna@example.com", "password": "password123", "device_region": region,
             "country_code": "GB", "country": "GB",
@@ -182,7 +183,7 @@ async def test_all_registration_methods_assign_region_only_to_new_accounts(auth_
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("kind", ["google", "apple", "apple_link"])
-@pytest.mark.parametrize(("stored", "device"), [("PL", "GB"), ("GB", "PL")])
+@pytest.mark.parametrize(("stored", "device"), [("PL", "GB"), ("GB", "PL"), ("DE", "PL"), ("GB", "DE")])
 async def test_existing_social_account_never_changes_country(auth_mocks, kind, stored, device):
     existing = User(id=uuid4(), email="anna@example.com", password_hash="test", country_code=stored, is_banned=False)
     request = SimpleNamespace(json=AsyncMock(return_value={
@@ -217,12 +218,13 @@ def test_polish_signup_is_not_changed_by_uk_rollout_switch(monkeypatch, region):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("kind", ["register", "google", "apple"])
-async def test_disabled_uk_signup_never_persists_account(auth_mocks, monkeypatch, kind):
+@pytest.mark.parametrize("country,flag", [("GB", "UK_MARKET_ENABLED"), ("DE", "DE_MARKET_ENABLED")])
+async def test_disabled_regional_signup_never_persists_account(auth_mocks, monkeypatch, kind, country, flag):
     from fastapi import HTTPException
 
-    monkeypatch.setattr(auth.settings, "UK_MARKET_ENABLED", False)
+    monkeypatch.setattr(auth.settings, flag, False)
     request = SimpleNamespace(json=AsyncMock(return_value={
-        "email": "anna@example.com", "password": "password123", "device_region": "GB",
+        "email": "anna@example.com", "password": "password123", "device_region": country,
         "id_token": "google-token", "identity_token": "apple-token",
     }), headers={}, client=None)
     db = AsyncMock()

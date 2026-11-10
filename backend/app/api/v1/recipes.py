@@ -160,9 +160,9 @@ def _apply_recipe_sort(query, sort_by: str, *, country_code: str = "PL"):
     zamiast udawać "0 kcal" i fałszywie zajmować pierwsze miejsca.
     """
     display_name = Recipe.name
-    if country_code == "GB":
+    if country_code in {"GB", "DE"}:
         from app.services.system_content_language import english_system_name_order
-        display_name = english_system_name_order(Recipe, kind="recipes")
+        display_name = english_system_name_order(Recipe, kind="recipes", country_code=country_code)
     if sort_by == "kcal_asc":
         return query.order_by(nullslast(_kcal_per_serving_expr().asc()), display_name, Recipe.id)
     if sort_by == "kcal_desc":
@@ -244,12 +244,12 @@ def _recipe_search_filter(search: str, *, country_code: str = "PL"):
     pattern = f"%{escaped}%"
     product_name_match = Product.name.ilike(pattern, escape="\\")
     translated_title_match = None
-    if country_code == "GB":
+    if country_code in {"GB", "DE"}:
         from app.services.system_content_language import english_system_name_match
 
         product_name_match = or_(product_name_match,
-            english_system_name_match(Product, search, kind="ingredients"))
-        translated_title_match = english_system_name_match(Recipe, search, kind="recipes")
+            english_system_name_match(Product, search, kind="ingredients", country_code=country_code))
+        translated_title_match = english_system_name_match(Recipe, search, kind="recipes", country_code=country_code)
     author_match = exists(
         select(1).where(
             User.id == Recipe.created_by_user_id,
@@ -1139,7 +1139,7 @@ async def _create_ai_recipe(
 
     started_at = time.perf_counter()
     country = account_country(current_user)
-    market_kwargs = {"country_code": country} if country == "GB" else {}
+    market_kwargs = {"country_code": country} if country != "PL" else {}
     source_kind = "text" if payload.text else "photo" if payload.photo_base64 else "url"
     provided = [bool(payload.text), bool(payload.photo_base64), bool(payload.url)]
     if sum(provided) != 1:
@@ -1358,7 +1358,7 @@ async def edit_recipe_with_ai(
 
     user_id = current_user.id
     country = account_country(current_user)
-    market_kwargs = {"country_code": country} if country == "GB" else {}
+    market_kwargs = {"country_code": country} if country != "PL" else {}
     if current_user.premium_points < 1:
         raise HTTPException(status_code=402, detail=recipe_message(country, "Zmiana przez AI kosztuje 1 punkt premium.", "Editing with AI costs 1 Premium point."))
     try:

@@ -30,7 +30,7 @@ class Product(Base):
     __tablename__ = "products"
     __table_args__ = (
         CheckConstraint(
-            "submitted_country_code IN ('PL', 'GB')",
+            "submitted_country_code IN ('PL', 'GB', 'DE')",
             name="ck_products_submission_market",
         ),
     )
@@ -173,6 +173,8 @@ class StoreProduct(Base):
         nullable=True,
     )
     price: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    package_quantity: Mapped[Decimal | None] = mapped_column(Numeric(10, 3))
+    package_unit: Mapped[str | None] = mapped_column(String(8))
     # Marka własna sklepu dla tego konkretnego produktu (np. "Mleczna Dolina"
     # dla mleka w Biedronce, "Pilos" w Lidlu, "Krasula" w Dino). Produkt
     # (Product.name) zostaje ogólny — dzięki temu przepisy, wartości

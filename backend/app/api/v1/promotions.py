@@ -104,7 +104,7 @@ async def list_promotions(
     sklepie i/lub nazwie produktu."""
     # Existing promotion rows/sources are PLN-only and have no market
     # provenance. They must not be presented as offers in a British store.
-    if account_country(current_user) == "GB":
+    if account_country(current_user) != "PL":
         return []
     today = date.today()
     query = select(Promotion).where(
@@ -132,7 +132,7 @@ async def check_promotion(
     """Sprawdza, czy dany produkt ma dziś aktywną promocję (w podanym
     sklepie albo we wszystkich). Zwraca listę pasujących promocji — pustą,
     jeśli żadnej nie znaleziono."""
-    if account_country(current_user) == "GB":
+    if account_country(current_user) != "PL":
         return []
     today = date.today()
     query = select(Promotion).where(

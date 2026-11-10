@@ -269,7 +269,7 @@ class _PriceCompareScreenState extends State<PriceCompareScreen> {
   }
 
   Future<void> _showPriceSources() {
-    if (!context.strings.localeName.startsWith('en')) {
+    if (context.strings.localeName.startsWith('pl')) {
       return showPriceSourceInfo(context);
     }
     final strings = context.strings;

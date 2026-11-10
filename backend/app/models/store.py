@@ -20,7 +20,8 @@ class Store(Base):
         UniqueConstraint("country_code", "name", name="uq_store_country_name"),
         CheckConstraint(
             "(country_code = 'PL' AND currency_code = 'PLN') OR "
-            "(country_code = 'GB' AND currency_code = 'GBP')",
+            "(country_code = 'GB' AND currency_code = 'GBP') OR "
+            "(country_code = 'DE' AND currency_code = 'EUR')",
             name="ck_stores_market_currency",
         ),
     )

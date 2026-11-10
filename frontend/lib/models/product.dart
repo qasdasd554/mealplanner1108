@@ -210,16 +210,19 @@ class StoreProduct {
 
   bool get hasValidGenericReference =>
       isGenericFood &&
-      currencyCode == 'GBP' &&
+      (currencyCode == 'GBP' || currencyCode == 'EUR') &&
       availabilityScope == 'generic_food_reference' &&
-      nameEn?.trim().isNotEmpty == true &&
+      (currencyCode == 'GBP'
+          ? nameEn?.trim().isNotEmpty == true
+          : product?.name.trim().isNotEmpty == true) &&
       product?.id == productId &&
       isAvailable == null &&
       packageQuantity == null &&
       packageUnit == null &&
       (priceBasis == 'unknown'
           ? price == null && priceQuantity == null && priceUnit == null
-          : priceBasis == 'national_quantity_reference' &&
+          : currencyCode == 'GBP' &&
+              priceBasis == 'national_quantity_reference' &&
               price != null &&
               price!.isFinite &&
               price! > 0 &&

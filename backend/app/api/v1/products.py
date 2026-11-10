@@ -20,7 +20,7 @@ from sqlalchemy.orm import selectinload
 from app.api.deps import get_current_admin, get_current_user
 from app.core.exceptions import NotFoundException
 from app.core.language import account_text
-from app.core.markets import account_country, MarketCode
+from app.core.markets import MARKET_CURRENCIES, account_country, MarketCode
 from app.db.session import get_db
 from app.models import (
     BarcodeProductCache,
@@ -64,7 +64,8 @@ logger = logging.getLogger(__name__)
 
 def _external_lookup_context(user: object) -> dict[str, str]:
     """Only the persisted account market controls external lookup language."""
-    return {"country_code": "GB"} if account_country(user) == "GB" else {}
+    country = account_country(user)
+    return {"country_code": country} if country != "PL" else {}
 
 
 def _product_for_account(product, user):
@@ -83,9 +84,15 @@ def _gb_catalogue_product_filter(user):
         product_has_off_uk_evidence(Product.id, as_of=utc_market_date()))
 
 
+def _de_catalogue_product_filter(user):
+    from app.services.system_content_language import generic_system_ingredient_condition
+    return or_(Product.created_by_user_id == user.id, Product.submitted_country_code == "DE",
+               generic_system_ingredient_condition(Product))
+
+
 def _without_legacy_prices(response, user: object):
     """These old ranges are PLN estimates, never a reviewed UK offer."""
-    if account_country(user) == "GB":
+    if account_country(user) != "PL":
         response.price_min = None
         response.price_max = None
     return response
@@ -305,7 +312,7 @@ async def _enrich_recipe_ingredient_product(
                 changed = True
 
     if not _nutrition_values_are_complete(product.nutrition_per_100):
-        context = {"country_code": "GB"} if country_code == "GB" else {}
+        context = {"country_code": country_code} if country_code != "PL" else {}
         external = await lookup_barcode_external(barcode, **context) if barcode else None
         if external is None or not has_complete_nutrition(external):
             by_name = await find_nutrition_by_name(product.name, product.brand, barcode=barcode, **context)
@@ -467,24 +474,27 @@ async def list_products(
     oczekujące pozostają ukryte, dopóki nie zostaną zatwierdzone.
     """
     query = select(Product).where(_visible_product_filter(current_user.id))
-    if account_country(current_user) == "GB":
+    country = account_country(current_user)
+    if country == "GB":
         query = query.where(_gb_catalogue_product_filter(current_user))
+    elif country == "DE":
+        query = query.where(_de_catalogue_product_filter(current_user))
 
     normalized_search = search.strip() if search else ""
     if normalized_search:
         pattern = f"%{normalized_search}%"
         matches = [Product.name.ilike(pattern), Product.brand.ilike(pattern)]
-        if account_country(current_user) == "GB":
+        if country != "PL":
             from app.services.system_content_language import english_system_name_match
-            matches.append(english_system_name_match(Product, normalized_search, kind="ingredients"))
+            matches.append(english_system_name_match(Product, normalized_search, kind="ingredients", country_code=country))
         query = query.where(or_(*matches))
 
     display_name = Product.name
-    if account_country(current_user) == "GB":
+    if country != "PL":
         from app.services.system_content_language import english_system_name_order
-        display_name = english_system_name_order(Product, kind="ingredients")
+        display_name = english_system_name_order(Product, kind="ingredients", country_code=country)
     query = query.order_by(display_name)
-    if account_country(current_user) == "GB":
+    if country != "PL":
         query = query.order_by(Product.id)
     query = query.offset(skip).limit(limit)
 
@@ -944,13 +954,15 @@ async def search_products_by_name(
     matches = [Product.name.ilike(pattern), Product.brand.ilike(pattern)]
     catalog_query = select(Product).where(_visible_product_filter(current_user.id))
     ordering = Product.name
-    if account_country(current_user) == "GB":
+    country = account_country(current_user)
+    if country != "PL":
         from app.services.system_content_language import english_system_name_match, english_system_name_order
-        catalog_query = catalog_query.where(_gb_catalogue_product_filter(current_user))
-        matches.append(english_system_name_match(Product, normalized, kind="ingredients"))
-        ordering = english_system_name_order(Product, kind="ingredients")
+        catalogue_filter = _gb_catalogue_product_filter if country == "GB" else _de_catalogue_product_filter
+        catalog_query = catalog_query.where(catalogue_filter(current_user))
+        matches.append(english_system_name_match(Product, normalized, kind="ingredients", country_code=country))
+        ordering = english_system_name_order(Product, kind="ingredients", country_code=country)
     catalog_query = catalog_query.where(or_(*matches)).order_by(ordering)
-    if account_country(current_user) == "GB":
+    if country != "PL":
         catalog_query = catalog_query.order_by(Product.id)
     catalog_result = await db.execute(catalog_query.limit(limit))
     cache_result = await db.execute(
@@ -1345,7 +1357,7 @@ async def get_product_substitutes(
                 "brand": p.brand,
                 "price": None,
                 "similarity_score": None,
-                "currency_code": "GBP" if account_country(current_user) == "GB" else "PLN",
+                "currency_code": MARKET_CURRENCIES[account_country(current_user)],
             }
             for p in result.scalars().all()
         ]
@@ -1392,7 +1404,7 @@ async def get_product_substitutes(
             "price": reference.total_price if reference else (regional_quote.price_per_package if regional_quote else (store_prod.price if store_prod else None)),
             "kcal": kcal,
             "similarity_score": r.get("similarity_score"),
-            "currency_code": "GBP" if regional_quote or reference else "PLN",
+            "currency_code": MARKET_CURRENCIES[account_country(current_user)],
             "price_basis": "quantity_reference" if reference else "package",
             "price_quantity": float(reference.required_quantity) if reference else None,
             "price_unit": reference.unit if reference else None,

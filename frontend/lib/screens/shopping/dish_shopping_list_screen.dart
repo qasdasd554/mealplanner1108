@@ -122,7 +122,7 @@ class DishShoppingListScreen extends StatelessWidget {
                                   trailing: ConstrainedBox(
                                     constraints: BoxConstraints(
                                       maxWidth:
-                                          item.currencyCode == 'GBP'
+                                          item.currencyCode != 'PLN'
                                               ? MediaQuery.sizeOf(
                                                     context,
                                                   ).width *
@@ -131,9 +131,9 @@ class DishShoppingListScreen extends StatelessWidget {
                                     ),
                                     child: Text(
                                       item.estimatedPrice == null &&
-                                              item.currencyCode == 'GBP'
+                                              item.currencyCode != 'PLN'
                                           ? context.strings.shoppingPriceUnknown
-                                          : '${item.currencyCode == 'GBP' && item.priceIsEstimated ? '~' : ''}${formatMarketMoney(item.estimatedPrice ?? 0, currencyCode: item.currencyCode)}',
+                                          : '${item.currencyCode != 'PLN' && item.priceIsEstimated ? '~' : ''}${formatMarketMoney(item.estimatedPrice ?? 0, currencyCode: item.currencyCode)}',
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                       ),

@@ -4,6 +4,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import '../../l10n/catalog_labels.dart';
 import '../../l10n/market_locale.dart';
+import '../../l10n/recipe_content.dart';
 import '../../models/shopping_list.dart';
 
 class ExportListDialog extends StatelessWidget {
@@ -19,14 +20,14 @@ class ExportListDialog extends StatelessWidget {
   String _formatList(BuildContext context) {
     final buffer = StringBuffer();
     final strings = context.strings;
-    final english = strings.localeName.startsWith('en');
+    final localized = !strings.localeName.startsWith('pl');
     buffer.writeln(strings.exportListHeading(shoppingList.storeName));
     buffer.writeln('----------------------');
 
     shoppingList.itemsByDepartment.forEach((department, items) {
       if (items.isNotEmpty) {
         final departmentLabel =
-            !english
+            !localized
                 ? department
                 : items.every((item) => item.isFromPantry)
                 ? strings.shoppingInPantry
@@ -36,8 +37,13 @@ class ExportListDialog extends StatelessWidget {
         buffer.writeln('\n[$departmentLabel]');
         for (var item in items) {
           final status = item.isChecked ? '[x]' : '[ ]';
+          final name = ingredientNameForLanguage(
+            item.productId ?? '',
+            item.productName,
+            strings.localeName,
+          );
           buffer.writeln(
-            '$status ${item.productName} - ${item.requiredQuantity} ${english ? strings.unitLabel(item.unit) : item.unit}',
+            '$status $name - ${item.requiredQuantity} ${localized ? strings.unitLabel(item.unit) : item.unit}',
           );
         }
       }
@@ -117,33 +123,35 @@ class ExportListDialog extends StatelessWidget {
             title: Text(context.strings.shoppingShare),
             onTap: () => _shareList(context),
           ),
-          const Divider(),
-          ListTile(
-            enabled: !uk,
-            leading: Icon(
-              Icons.shopping_cart,
-              color: uk ? disabledColor : Colors.green,
-            ),
-            title: Text(
-              context.strings.exportListOpenApp(
-                uk ? 'Deliveroo' : 'Żabka Jush',
+          if (accountCountry != 'DE') ...[
+            const Divider(),
+            ListTile(
+              enabled: !uk,
+              leading: Icon(
+                Icons.shopping_cart,
+                color: uk ? disabledColor : Colors.green,
               ),
+              title: Text(
+                context.strings.exportListOpenApp(
+                  uk ? 'Deliveroo' : 'Żabka Jush',
+                ),
+              ),
+              subtitle: uk ? Text(context.strings.exportListComingSoon) : null,
+              onTap: uk ? null : () => _openApp(context, 'jush://'),
             ),
-            subtitle: uk ? Text(context.strings.exportListComingSoon) : null,
-            onTap: uk ? null : () => _openApp(context, 'jush://'),
-          ),
-          ListTile(
-            enabled: !uk,
-            leading: Icon(
-              Icons.delivery_dining,
-              color: uk ? disabledColor : Colors.amber,
+            ListTile(
+              enabled: !uk,
+              leading: Icon(
+                Icons.delivery_dining,
+                color: uk ? disabledColor : Colors.amber,
+              ),
+              title: Text(
+                context.strings.exportListOpenApp(uk ? 'Tesco' : 'Glovo'),
+              ),
+              subtitle: uk ? Text(context.strings.exportListComingSoon) : null,
+              onTap: uk ? null : () => _openApp(context, 'glovo://'),
             ),
-            title: Text(
-              context.strings.exportListOpenApp(uk ? 'Tesco' : 'Glovo'),
-            ),
-            subtitle: uk ? Text(context.strings.exportListComingSoon) : null,
-            onTap: uk ? null : () => _openApp(context, 'glovo://'),
-          ),
+          ],
         ],
       ),
       actions: [

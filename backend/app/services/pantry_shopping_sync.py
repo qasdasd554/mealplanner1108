@@ -11,8 +11,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models import MealPlan, PantryItem, Product, ShoppingList, ShoppingListItem
+from app.models import MealPlan, PantryItem, Product, ShoppingList, ShoppingListItem, StoreProduct
 from app.services.nutrition_calculator import grams_to_quantity, quantity_to_grams
+from app.services.polish_shopping_amounts import item_price
 from app.services.shopping_list_builder import pantry_coverage_grams
 from app.services.regional_shopping import (
     apply_regional_item_quote, load_regional_offers, regional_pantry_coverage,
@@ -94,7 +95,8 @@ async def sync_product_in_shopping_lists(
     for shopping_list in lists:
         if not (shopping_list.meal_plan.preferences or {}).get("include_pantry", True):
             continue
-        if getattr(shopping_list.store, "country_code", "PL") == "GB":
+        country = getattr(shopping_list.store, "country_code", "PL")
+        if country == "GB":
             await _sync_regional_product(db, shopping_list, product, pantry)
             await refresh_regional_plan_budget(db, shopping_list)
             continue
@@ -103,12 +105,15 @@ async def sync_product_in_shopping_lists(
             if (
                 item.store_product is not None
                 and item.store_product.product_id == product_id
-            ) or (
-                item.store_product_id is None
+            ) or item.catalogue_product_id == product_id or (
+                country == "PL"
+                and item.store_product_id is None
                 and item.custom_name is not None
                 and item.custom_name.strip().casefold() == product.name.strip().casefold()
             )
         ]
+        if country == "DE":
+            rows = [item for item in rows if not item.is_checked or item.is_from_pantry]
         if not rows:
             continue
 
@@ -127,6 +132,7 @@ async def sync_product_in_shopping_lists(
             return ShoppingListItem(
                 shopping_list_id=shopping_list.id,
                 store_product_id=template.store_product_id,
+                catalogue_product_id=template.catalogue_product_id,
                 custom_name=template.custom_name,
                 unit=template.unit,
                 is_generated=template.is_generated,
@@ -150,7 +156,29 @@ async def sync_product_in_shopping_lists(
             row.is_from_pantry = False
             row.is_checked = purchase_row.is_checked if purchase_row else False
             store_product = row.store_product or template.store_product
-            if store_product is not None:
+            if country == "DE":
+                # A pantry row may still link to the previous shop after a switch.
+                # Quote the remaining amount using the current shop's pack.
+                offer = (await db.execute(select(StoreProduct).where(
+                    StoreProduct.store_id == shopping_list.store_id,
+                    StoreProduct.product_id == product.id,
+                    StoreProduct.is_available.is_(True),
+                    StoreProduct.withdrawn_at.is_(None),
+                ))).scalar_one_or_none()
+                price = item_price(product, offer, purchase, row.unit) if offer is not None else None
+                row.estimated_price = price
+                if price is not None:
+                    row.store_product_id, row.store_product = offer.id, offer
+                    row.department_id = offer.department_id
+                    row.catalogue_product_id = None
+                    row.custom_name = None
+                else:
+                    from app.services.system_content_language import ingredient_display_name
+                    row.store_product_id, row.store_product = None, None
+                    row.department_id = None
+                    row.catalogue_product_id = product.id
+                    row.custom_name = ingredient_display_name(product, country_code="DE")[:200]
+            elif store_product is not None:
                 row.department_id = store_product.department_id
                 package_grams = quantity_to_grams(
                     product.name,

@@ -40,7 +40,7 @@ _text_search_unavailable_until = 0.0
 
 def _off_locale(country_code: str = "PL") -> tuple[str, str]:
     """OFF uses UK rather than ISO GB; context is not stock availability."""
-    return ("uk", "en") if country_code == "GB" else ("pl", "pl")
+    return {"GB": ("uk", "en"), "DE": ("de", "de")}.get(country_code, ("pl", "pl"))
 
 
 class BarcodeLookupResult:
@@ -392,6 +392,8 @@ def _result_from_off_product(
             "generic_name_en",
         )
     )
+    if country_code == "DE":
+        name_fields = ("product_name_de", "generic_name_de", *name_fields)
     name = next(
         (
             value.strip()
@@ -501,6 +503,8 @@ async def search_products_external(
         "quantity,product_quantity,product_quantity_unit,serving_quantity,"
         "serving_quantity_unit,countries_tags,stores,last_modified_t,obsolete"
     )
+    if country_code == "DE":
+        fields += ",product_name_de,generic_name_de"
     params = {
         "search_terms": normalized_query,
         "search_simple": "1",
@@ -568,7 +572,7 @@ async def find_nutrition_by_name(
     if len(clean_name) < 2:
         return None
     query = " ".join(part for part in (clean_brand, clean_name) if part)
-    context = {"country_code": "GB"} if country_code == "GB" else {}
+    context = {"country_code": country_code} if country_code != "PL" else {}
     results = await search_products_external(query, limit=10, **context)
     if not results and clean_brand:
         results = await search_products_external(clean_name, limit=10, **context)
@@ -637,6 +641,8 @@ async def _fetch_off(
         # Project country evidence in the same requested product response.
         # The account/cc parameter alone is never evidence of UK sales.
         params["fields"] += ",countries_tags,stores,last_modified_t,obsolete"
+    elif country_code == "DE":
+        params["fields"] += ",product_name_de,generic_name_de"
     # UPC-A jest czasem zapisany w OFF jako EAN-13 z początkowym zerem.
     # Nie pytamy o wszystkie zera GTIN-14: to mnożyłoby ruch bez wartości.
     candidates = [barcode]
@@ -790,7 +796,7 @@ async def lookup_barcode_external(
             await asyncio.sleep(0.35)
             return await _fetch_usda(client, normalized)
 
-        context = {"country_code": "GB"} if country_code == "GB" else {}
+        context = {"country_code": country_code} if country_code != "PL" else {}
         tasks = [
             asyncio.create_task(_fetch_off(client, normalized, **context)),
             asyncio.create_task(fetch_usda_after_off_head_start()),

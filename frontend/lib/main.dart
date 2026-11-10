@@ -98,6 +98,7 @@ Future<void> _bootstrap() async {
     await Future.wait([
       initializeDateFormatting('pl_PL', null),
       initializeDateFormatting('en_GB', null),
+      initializeDateFormatting('de_DE', null),
     ]).timeout(const Duration(seconds: 3));
   } catch (error) {
     debugPrint('Nie udało się zainicjalizować polskich dat: $error');

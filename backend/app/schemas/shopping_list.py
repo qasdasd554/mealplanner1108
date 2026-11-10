@@ -39,6 +39,23 @@ class ShoppingListItemResponse(BaseModel):
     price_source: dict | None = None
     pricing_as_of: date | None = None
 
+    @classmethod
+    def for_german_store(cls, item):
+        from app.services.product_market_presentation import product_brand_for_market
+        from app.services.system_content_language import ingredient_display_name
+
+        response = cls.model_validate(item)
+        product = item.store_product.product if item.store_product else None
+        if product is None:
+            return response.model_copy(update={"currency_code": "EUR"})
+        brand = item.store_product.store_brand_name if response.estimated_price is not None else None
+        return response.model_copy(update={
+            "currency_code": "EUR",
+            "product_name": ingredient_display_name(product, country_code="DE"),
+            "brand": brand or product_brand_for_market(product, country_code="DE"),
+            "price_is_estimated": item.store_product.last_verified is None and not response.is_from_pantry,
+        })
+
     @model_validator(mode="before")
     @classmethod
     def get_related_fields(cls, data):
@@ -181,7 +198,10 @@ class ShoppingListResponse(BaseModel):
                 )
                 if dept_name not in items_by_dept:
                     items_by_dept[dept_name] = []
-                items_by_dept[dept_name].append(item)
+                if getattr(data.store, "country_code", "PL") == "DE":
+                    items_by_dept[dept_name].append(ShoppingListItemResponse.for_german_store(item))
+                else:
+                    items_by_dept[dept_name].append(item)
                 if not getattr(item, "is_from_pantry", False) and item.estimated_price is None:
                     missing_prices = True
                 if item.estimated_price:
@@ -203,6 +223,7 @@ class ShoppingListResponse(BaseModel):
                 "status": data.status,
                 "total_estimated_price": None if missing_prices else round(total_price, 2),
                 "has_unpriced_items": missing_prices,
+                "currency_code": getattr(data.store, "currency_code", "PLN"),
                 "items_by_department": items_by_dept,
                 "created_at": data.created_at,
             }

@@ -8,21 +8,32 @@ branch first and through a direct connection, following deployment policy.
 from sqlalchemy import text
 
 
+def ensure_german_market_constraint(table: str, name: str, condition: str) -> str:
+    """Replace the known PL/GB-only constraint once, inside startup's transaction."""
+    return f"""DO $$ BEGIN
+        IF EXISTS (
+            SELECT 1 FROM pg_constraint
+            WHERE conrelid = '{table}'::regclass AND conname = '{name}'
+              AND position('''DE''' in pg_get_constraintdef(oid)) = 0
+        ) THEN
+            ALTER TABLE {table} DROP CONSTRAINT {name};
+        END IF;
+        IF NOT EXISTS (
+            SELECT 1 FROM pg_constraint
+            WHERE conrelid = '{table}'::regclass AND conname = '{name}'
+        ) THEN
+            ALTER TABLE {table} ADD CONSTRAINT {name} CHECK ({condition});
+        END IF;
+    END $$"""
+
+
 POSTGRES_ACCOUNT_MARKET_DDL = (
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS country_code VARCHAR(2) NOT NULL DEFAULT 'PL'",
     "UPDATE users SET country_code = 'PL' WHERE country_code IS NULL",
     "ALTER TABLE users ALTER COLUMN country_code SET DEFAULT 'PL'",
     "ALTER TABLE users ALTER COLUMN country_code SET NOT NULL",
-    """DO $$ BEGIN
-        IF NOT EXISTS (
-            SELECT 1 FROM pg_constraint
-            WHERE conname = 'ck_users_country_code_supported'
-              AND conrelid = 'users'::regclass
-        ) THEN
-            ALTER TABLE users ADD CONSTRAINT ck_users_country_code_supported
-                CHECK (country_code IN ('PL', 'GB'));
-        END IF;
-    END $$""",
+    ensure_german_market_constraint("users", "ck_users_country_code_supported",
+                                    "country_code IN ('PL', 'GB', 'DE')"),
     """CREATE OR REPLACE FUNCTION enforce_user_country_immutable()
     RETURNS trigger LANGUAGE plpgsql AS $$
     BEGIN
@@ -64,7 +75,7 @@ async def ensure_account_market_schema(connection) -> None:
     if "country_code" not in {column[1] for column in columns}:
         await connection.execute(text(
             "ALTER TABLE users ADD COLUMN country_code VARCHAR(2) NOT NULL "
-            "DEFAULT 'PL' CHECK (country_code IN ('PL', 'GB'))"
+            "DEFAULT 'PL' CHECK (country_code IN ('PL', 'GB', 'DE'))"
         ))
     await connection.execute(text("UPDATE users SET country_code = 'PL' WHERE country_code IS NULL"))
     await connection.execute(text("""

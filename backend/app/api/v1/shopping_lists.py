@@ -13,7 +13,7 @@ from sqlalchemy.orm import selectinload
 from app.api.deps import get_current_user
 from app.core.exceptions import NotFoundException, ProductUnavailableException
 from app.core.language import account_text
-from app.core.markets import account_country
+from app.core.markets import MARKET_CURRENCIES, account_country
 from app.services.notification_language import notification_text
 from app.db.session import get_db
 from app.models import (
@@ -99,6 +99,7 @@ def shopping_item_merge_key(item: ShoppingListItem) -> tuple:
     return (
         item.is_from_pantry,
         item.store_product_id,
+        getattr(item, "catalogue_product_id", None),
         (item.custom_name or "").strip().casefold(),
         item.unit,
         item.department_id,
@@ -533,6 +534,7 @@ async def merge_shopping_lists(
                 copied = ShoppingListItem(
                     shopping_list_id=merged.id,
                     store_product_id=item.store_product_id,
+                    catalogue_product_id=item.catalogue_product_id,
                     custom_name=item.custom_name,
                     department_id=item.department_id,
                     required_quantity=item.required_quantity,
@@ -707,8 +709,9 @@ async def update_shopping_list_store(
     ).with_for_update())).scalar_one()
     owner = await db.get(User, plan.user_id)
     source = shopping.store
-    if (owner is not None and account_country(owner) == "PL" and source is not None
-            and source.country_code == "PL" and source.currency_code == "PLN"
+    if (owner is not None and source is not None and source.country_code in {"PL", "DE"}
+            and source.country_code == account_country(owner)
+            and source.currency_code == MARKET_CURRENCIES[source.country_code]
             and plan.store_id == shopping.store_id):
         return await _switch_polish_list_store(db, shopping, plan, payload.store_id, current_user)
     if (owner is None or owner.country_code != "GB" or source is None
@@ -792,8 +795,10 @@ async def update_shopping_list_store(
 
 async def _switch_polish_list_store(db, shopping, plan, target_id, user):
     from app.services.polish_list_prices import quote_polish_list
+    from app.services.polish_shopping_amounts import apply_polish_item_quote
     target = (await db.execute(select(Store).where(
-        Store.id == target_id, Store.country_code == "PL", Store.currency_code == "PLN",
+        Store.id == target_id, Store.country_code == shopping.store.country_code,
+        Store.currency_code == shopping.store.currency_code,
     ))).scalar_one_or_none()
     if target is None:
         raise NotFoundException(detail=account_text(user,
@@ -804,15 +809,7 @@ async def _switch_polish_list_store(db, shopping, plan, target_id, user):
         for item, offer, quote in quoted:
             if item.is_checked or item.is_from_pantry:
                 continue
-            if offer is not None and quote is not None:
-                item.store_product_id, item.store_product = offer.id, offer
-                item.department_id, item.department = offer.department_id, offer.department
-                item.estimated_price = Decimal(str(quote["price_in_store"]))
-            else:
-                # Retain the existing canonical identity (or handwritten name),
-                # never borrow the former shop's price/department/own brand.
-                item.department_id, item.department = None, None
-                item.estimated_price = None
+            apply_polish_item_quote(item, offer, quote, country_code=target.country_code)
         shopping.store_id, shopping.store = target.id, target
         plan.store_id, plan.store = target.id, target
         plan.estimated_min_budget = (None if any(quote is None for _, _, quote in quoted) else
@@ -837,9 +834,10 @@ async def toggle_item_checked(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     payload: ItemCheckUpdate | None = None,
-) -> ShoppingListItem:
+) -> ShoppingListItem | ShoppingListItemResponse:
     """Przełącza status oznaczenia pozycji na liście zakupów (kupione/niekupione)."""
     shopping_list = await _get_shopping_list_or_404(list_id, current_user, db, for_update=True)
+    german_store = account_country(getattr(shopping_list, "store", None)) == "DE"
 
     result = await db.execute(
         select(ShoppingListItem)
@@ -881,7 +879,8 @@ async def toggle_item_checked(
         .execution_options(populate_existing=True)
         .where(ShoppingListItem.id == item_id)
     )
-    return result.scalar_one()
+    saved_item = result.scalar_one()
+    return ShoppingListItemResponse.for_german_store(saved_item) if german_store else saved_item
 
 
 @router.put(
@@ -895,13 +894,14 @@ async def substitute_item(
     payload: SubstituteRequest,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> ShoppingListItem:
+) -> ShoppingListItem | ShoppingListItemResponse:
     """Zamienia produkt na liście zakupów na wskazany zamiennik.
 
     Aktualizuje produkt, cenę jednostkową oraz dział sklepu
     na podstawie danych zamiennika.
     """
     shopping_list = await _get_shopping_list_or_404(list_id, current_user, db, for_update=True)
+    german_store = account_country(getattr(shopping_list, "store", None)) == "DE"
 
     # Znajdź pozycję
     result = await db.execute(
@@ -954,7 +954,8 @@ async def substitute_item(
         .execution_options(populate_existing=True)
         .where(ShoppingListItem.id == item_id)
     )
-    return result.scalar_one()
+    saved_item = result.scalar_one()
+    return ShoppingListItemResponse.for_german_store(saved_item) if german_store else saved_item
 
 
 @router.get(
@@ -980,7 +981,6 @@ async def get_shopping_list_summary(
     remaining_price = total_price - checked_price
 
     completion = (checked_items / total_items * 100) if total_items > 0 else 0.0
-    gb = getattr(shopping_list.store, "country_code", "PL") == "GB"
     unpriced = any(item.estimated_price is None for item in items)
 
     return ShoppingListSummary(
@@ -991,7 +991,8 @@ async def get_shopping_list_summary(
         checked_price=None if any(item.is_checked and item.estimated_price is None for item in items) else round(checked_price, 2),
         remaining_price=None if any(not item.is_checked and item.estimated_price is None for item in items) else round(remaining_price, 2),
         completion_percentage=round(completion, 1),
-        currency_code="GBP" if gb else "PLN", has_unpriced_items=bool(unpriced),
+        currency_code=MARKET_CURRENCIES[account_country(shopping_list.store)],
+        has_unpriced_items=bool(unpriced),
     )
 
 

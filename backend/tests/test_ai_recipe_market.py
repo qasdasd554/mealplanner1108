@@ -48,6 +48,16 @@ def test_legacy_prompt_is_unchanged_for_poland_and_unknown_market():
     assert ai._build_prompt(["Marchew"], country_code="unsupported") == ai._build_prompt(["Marchew"])
 
 
+def test_german_prompt_preserves_existing_recipe_protocol():
+    prompt = ai._build_prompt(["Karotten", "Mövenpick"], country_code="DE")
+    assert "in German" in prompt
+    assert "German shop" in prompt
+    assert "śniadanie, obiad, kolacja, przekąska, deser" in prompt
+    assert "g, kg, ml, l, szt" in prompt
+    assert "- Karotten" in prompt and "- Mövenpick" in prompt
+    assert "British English" not in prompt
+
+
 @pytest.mark.parametrize("kind", ["text", "photo", "edit"])
 def test_gb_service_prompt_and_timeout_keep_existing_request_budget(monkeypatch, kind):
     call = AsyncMock(return_value=json.dumps(recipe_data()))

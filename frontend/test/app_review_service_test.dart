@@ -69,6 +69,29 @@ void main() {
     );
     expect(await service.maybeRequest(), isFalse);
   });
+  testWidgets('brak odpowiedzi sklepu nie blokuje kolejnej prośby o ocenę', (
+    tester,
+  ) async {
+    final stalled = Completer<bool>();
+    var checks = 0;
+    var claims = 0;
+    final service = AppReviewService(
+      isAvailable: () => checks++ == 0 ? stalled.future : Future.value(true),
+      claim: () async {
+        claims++;
+        return true;
+      },
+      requestReview: () async {},
+    );
+    final first = service.maybeRequest();
+    await tester.pump(const Duration(seconds: 5));
+    expect(await first, isFalse);
+    expect(claims, 0);
+    expect(await service.maybeRequest(), isTrue);
+    stalled.complete(true);
+    await tester.pump();
+    expect(claims, 1);
+  });
   test('jedna udana rezerwacja uruchamia natywne API', () async {
     var reviews = 0;
     final service = AppReviewService(

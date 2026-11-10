@@ -59,9 +59,13 @@ def build():
     assert recipe_ingredient_names <= set(ingredient_names), 'Recipe food missing from catalogue'
     english = json.loads((ROOT / 'backend/app/data/system_recipes_en_GB.json').read_text(encoding='utf-8'))
     labels = json.loads((ROOT / 'backend/app/data/system_ingredients_en_GB.json').read_text(encoding='utf-8'))
+    german = json.loads((ROOT / 'backend/app/data/system_recipes_de.json').read_text(encoding='utf-8'))
+    german_labels = json.loads((ROOT / 'backend/app/data/system_ingredients_de.json').read_text(encoding='utf-8'))
     assert len(recipes) == 267
     assert set(english) == {recipe['name'] for recipe in recipes}
     assert set(labels) == set(ingredient_names)
+    assert set(german) == set(english)
+    assert set(german_labels) == set(labels)
     registry = {}
     for recipe in recipes:
         source = {key: recipe.get(key, [] if key in {'instructions', 'suggested_seasonings'} else None)
@@ -75,8 +79,14 @@ def build():
             numbers = lambda value: [number.replace(',', '.') for number in re.findall(
                 r'\d+(?:[.,]\d+)?', json.dumps(value, ensure_ascii=False))]
             assert numbers(source[key]) == numbers(translated[key]), (recipe['name'], key)
-        registry[str(uuid5(NAMESPACE, 'recipe:' + recipe['name']))] = dict(source=source, en_GB=translated)
-    ingredients = {str(uuid5(NAMESPACE, 'product:' + name)): dict(source=name, en_GB=labels[name])
+        de = german[recipe['name']]
+        assert set(source) == set(de)
+        for key in source:
+            if isinstance(source[key], list):
+                assert len(source[key]) == len(de[key])
+            assert numbers(source[key]) == numbers(de[key]), (recipe['name'], key, 'de')
+        registry[str(uuid5(NAMESPACE, 'recipe:' + recipe['name']))] = dict(source=source, en_GB=translated, de=de)
+    ingredients = {str(uuid5(NAMESPACE, 'product:' + name)): dict(source=name, en_GB=labels[name], de=german_labels[name])
                    for name in ingredient_names}
 
     def dart(value):
@@ -89,6 +99,7 @@ def build():
     index = {'recipes': {key: {'source': row['source']['name'],
                               'description': row['source']['description'],
                               'en_GB': row['en_GB']['name'],
+                              'de': row['de']['name'],
                               'detail_sha256': hashlib.sha256(json.dumps(row['source'],
                                   sort_keys=True, ensure_ascii=False, separators=(',', ':')).encode()).hexdigest()}
                          for key, row in registry.items()}, 'ingredients': ingredients}

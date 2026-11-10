@@ -145,8 +145,8 @@ async def _catalogue_candidates(db: AsyncSession, names: set[str], country: str)
     # Only use an exact generic identity. Retail packs with unknown size are
     # kept separate, and shop availability is never inferred from a receipt.
     match = (Product.submitted_country_code == country) & func.lower(Product.name).in_(names)
-    if country == "GB":
-        match = or_(match, english_ingredient_name_in(Product, names))
+    if country in {"GB", "DE"}:
+        match = or_(match, english_ingredient_name_in(Product, names, country_code=country))
     products = (await db.execute(select(Product).where(
         match, Product.review_status == "approved", Product.created_by_user_id.is_(None),
         Product.barcode.is_(None),

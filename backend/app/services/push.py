@@ -231,6 +231,30 @@ _TITLES_EN = {
     "meal_plan_expiring": "Your meal plan ends soon",
 }
 
+_TITLES_DE = {
+    "recipe_comment": "Neuer Kommentar",
+    "comment_like": "Dein Kommentar gefällt jemandem",
+    "shopping_list_share": "Eine Einkaufsliste wurde mit dir geteilt",
+    "shopping_list_accepted": "Einladung angenommen",
+    "weekly_contest": "Rezeptwettbewerb der Woche",
+    "recipe_photo": "Rezeptfoto",
+    "recipe_approved": "Rezept freigegeben",
+    "recipe_rejected": "Rezept abgelehnt",
+    "recipe_import_ready": "Dein Rezept ist fertig",
+    "recipe_import_failed": "Rezeptimport fehlgeschlagen",
+    "promotion_pending_approval": "Angebot wartet auf Prüfung",
+    "recipe_pending_approval": "Rezept wartet auf Prüfung",
+    "product_pending_approval": "Produkt wartet auf Prüfung",
+    "photo_pending_approval": "Foto wartet auf Prüfung",
+    "content_report_pending": "Neue Meldung",
+    "product_reviewed": "Dein eingereichtes Produkt",
+    "friend_invitation": "Neue Freundschaftsanfrage",
+    "friend_accepted": "Freundschaftsanfrage angenommen",
+    "weekly_plan_ready": "Dein Wochenplan ist fertig",
+    "weekly_plan_failed": "Dein Wochenplan braucht deine Aufmerksamkeit",
+    "meal_plan_expiring": "Dein Essensplan endet bald",
+}
+
 
 async def push_for_notification(db: AsyncSession, notification, *, country_code: str | None = None) -> None:
     """Wysyła push odpowiadający powiadomieniu zapisanemu w bazie.
@@ -254,8 +278,8 @@ async def push_for_notification(db: AsyncSession, notification, *, country_code:
         country = country_code if country_code is not None else account_country(
             await db.get(User, notification.user_id)
         )
-        titles = _TITLES_EN if country == "GB" else _TITLES
-        title = titles.get(notification.notification_type, "Meal Planner Polska")
+        titles = {"GB": _TITLES_EN, "DE": _TITLES_DE}.get(country, _TITLES)
+        title = titles.get(notification.notification_type, "Meal Planner" if country == "DE" else "Meal Planner Polska")
         await send_push_to_user(db, notification.user_id, title, notification.message, data)
     except Exception:
         logger.exception("Nieoczekiwany błąd przy wysyłce push — pomijam.")

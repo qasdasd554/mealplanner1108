@@ -3,7 +3,11 @@
 /// keep the existing Polish market; `UK` is accepted as a compatibility alias.
 String normalizeAccountCountry(String? region) {
   final country = region?.trim().toUpperCase();
-  return country == 'GB' || country == 'UK' ? 'GB' : 'PL';
+  return switch (country) {
+    'GB' || 'UK' => 'GB',
+    'DE' => 'DE',
+    _ => 'PL',
+  };
 }
 
 /// Shared by email, Google and Apple account-creation requests. The backend is
