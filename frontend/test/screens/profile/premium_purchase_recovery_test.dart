@@ -49,7 +49,7 @@ class _Billing extends BillingService {
   @override
   Future<bool> isAvailable() async => true;
   @override
-  Future<ProductDetailsResponse> queryProducts() async =>
+  Future<ProductDetailsResponse> queryCatalogue() async =>
       ProductDetailsResponse(
         productDetails: [
           ProductDetails(
@@ -63,9 +63,6 @@ class _Billing extends BillingService {
         ],
         notFoundIDs: [],
       );
-  @override
-  Future<ProductDetailsResponse> queryPointsProducts() async =>
-      ProductDetailsResponse(productDetails: [], notFoundIDs: []);
   @override
   Future<Map<String, dynamic>> verifyPurchase({
     required String purchaseToken,

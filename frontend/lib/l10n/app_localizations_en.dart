@@ -4368,7 +4368,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• A warmer green for the calorie bar, icons and buttons.\n• Centred shortcuts on Home and a matching Add a recipe button.';
+      '• Improved loading for Premium subscriptions and points packs.\n• Notifications open recipes more quickly.';
 
   @override
   String detailPlanPortionHelp(int servings, int baseServings) {
@@ -9727,7 +9727,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get releasePromptChanges =>
-      '• A warmer green for the calorie bar, icons and buttons.\n• Centred shortcuts on Home and a matching Add a recipe button.';
+      '• Improved loading for Premium subscriptions and points packs.\n• Notifications open recipes more quickly.';
 
   @override
   String detailPlanPortionHelp(int servings, int baseServings) {

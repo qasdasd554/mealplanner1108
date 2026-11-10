@@ -44,11 +44,15 @@ void main() {
         expect(body.split('\n'), hasLength(2));
         expect(
           body,
-          contains(english ? 'A warmer green' : 'Cieplejsza zieleń'),
+          contains(english ? 'Improved loading' : 'Poprawiliśmy ładowanie'),
         );
         expect(
           body,
-          contains(english ? 'Centred shortcuts' : 'Wyśrodkowane skróty'),
+          contains(
+            english
+                ? 'Notifications open recipes'
+                : 'Powiadomienia szybciej otwierają',
+          ),
         );
         expect(tester.takeException(), isNull);
       },

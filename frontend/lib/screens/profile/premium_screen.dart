@@ -53,25 +53,23 @@ class PremiumScreen extends StatefulWidget {
 }
 
 class _PremiumScreenState extends State<PremiumScreen> {
+  static const _storeTimeout = Duration(seconds: 8);
   late final BillingService _billing;
   late final ApiClient _api;
+  late final AppLifecycleListener _storeLifecycle;
   bool _monthlyHasSevenDayTrial = false;
   int _offerGeneration = 0;
   final GlobalKey _pricingSectionKey = GlobalKey();
-  final ScrollController _screenScrollController = ScrollController();
   StreamSubscription<List<PurchaseDetails>>? _purchaseSub;
 
-  bool _isLoadingProducts = true;
+  bool _isLoadingCatalogue = false;
   Map<String, ProductDetails> _products = {};
   List<ProductDetails> _allSubscriptionProducts = [];
   Map<String, Map<String, dynamic>> _campaignsFromBackend = {};
   Map<String, Map<String, dynamic>> _activeOffers = {};
   String? _productsError;
 
-  // Osobne od subskrypcji — pakiety punktów to inna kategoria produktów
-  // (konsumowalne), ładowane niezależnie.
   Map<String, ProductDetails> _pointsProducts = {};
-  bool _isLoadingPointsProducts = true;
 
   // Podczas przetwarzania zakupu blokujemy przyciski i pokazujemy
   // spinner — zakup przechodzi przez kilka asynchronicznych kroków
@@ -331,22 +329,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                         pricingContext,
                         duration: const Duration(milliseconds: 450),
                         curve: Curves.easeOutCubic,
-                        alignment: 0.05,
-                      );
-                    } else if (_screenScrollController.hasClients) {
-                      final target =
-                          (_screenScrollController.offset + 520)
-                              .clamp(
-                                0.0,
-                                _screenScrollController
-                                    .position
-                                    .maxScrollExtent,
-                              )
-                              .toDouble();
-                      _screenScrollController.animateTo(
-                        target,
-                        duration: const Duration(milliseconds: 450),
-                        curve: Curves.easeOutCubic,
+                        alignment: 0.18,
                       );
                     }
                   },
@@ -359,18 +342,20 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                context.strings.premiumTrialEligibilityFootnote(
-                  Platform.isIOS ? 'App Store' : 'Google Play',
+              if (_monthlyHasSevenDayTrial) ...[
+                const SizedBox(height: 8),
+                Text(
+                  context.strings.premiumTrialEligibilityFootnote(
+                    Platform.isIOS ? 'App Store' : 'Google Play',
+                  ),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 10.5,
+                    height: 1.35,
+                  ),
                 ),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: AppTheme.textSecondary,
-                  fontSize: 10.5,
-                  height: 1.35,
-                ),
-              ),
+              ],
               const SizedBox(height: 4),
               Align(
                 alignment: Alignment.center,
@@ -399,6 +384,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
     super.initState();
     _billing = widget.billing ?? BillingService();
     _api = widget.client ?? ApiClient();
+    _storeLifecycle = AppLifecycleListener(onResume: _retryVisibleCatalogue);
     _purchaseSub = _billing.purchaseStream.listen(
       _handlePurchaseUpdates,
       onError: (error) {
@@ -417,8 +403,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
           );
       },
     );
-    _loadProducts();
-    _loadPointsProducts();
+    _loadCatalogue();
     _loadCampaigns();
   }
 
@@ -450,11 +435,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
     final generation = ++_offerGeneration;
     final selectedProducts = <String, ProductDetails>{};
     final effectiveCampaigns = <String, Map<String, dynamic>>{};
-    for (final id in const [
-      kWeeklyProductId,
-      kMonthlyProductId,
-      kYearlyProductId,
-    ]) {
+    for (final id in kSubscriptionProductIds) {
       final regular = _billing.selectPreferredSubscriptionOffer(
         _allSubscriptionProducts,
         id,
@@ -485,11 +466,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
     }
     // Pakiety punktów korzystają z czasowej ceny produktu ustawionej w
     // odpowiednim sklepie. Kody ofertowe Apple dotyczą tylko subskrypcji.
-    for (final id in const [
-      kPoints10ProductId,
-      kPoints20ProductId,
-      kPoints50ProductId,
-    ]) {
+    for (final id in kPointsProductIds) {
       final campaign = _campaignsFromBackend[id];
       if (campaign != null) effectiveCampaigns[id] = campaign;
     }
@@ -546,24 +523,39 @@ class _PremiumScreenState extends State<PremiumScreen> {
 
   @override
   void dispose() {
+    _storeLifecycle.dispose();
     _purchaseSub?.cancel();
-    _screenScrollController.dispose();
     super.dispose();
   }
 
-  Future<void> _loadProducts() async {
+  void _retryVisibleCatalogue() {
+    if (_isProcessingPurchase ||
+        _isRestoring ||
+        (_products.isNotEmpty && _pointsProducts.isNotEmpty) ||
+        !TickerMode.of(context) ||
+        ModalRoute.of(context)?.isCurrent != true) {
+      return;
+    }
+    unawaited(_loadCatalogue());
+  }
+
+  Future<void> _loadCatalogue() async {
+    if (_isLoadingCatalogue) return;
     setState(() {
-      _isLoadingProducts = true;
+      _isLoadingCatalogue = true;
       _productsError = null;
+      _products = {};
+      _allSubscriptionProducts = [];
+      _pointsProducts = {};
       _monthlyHasSevenDayTrial = false;
       _offerGeneration++;
     });
     try {
-      final available = await _billing.isAvailable();
+      final available = await _billing.isAvailable().timeout(_storeTimeout);
+      if (!mounted) return;
       if (!available) {
-        if (!mounted) return;
         setState(() {
-          _isLoadingProducts = false;
+          _isLoadingCatalogue = false;
           _productsError = context.strings.premiumPaymentsUnavailable(
             Platform.isIOS ? 'App Store' : 'Google Play',
           );
@@ -571,40 +563,28 @@ class _PremiumScreenState extends State<PremiumScreen> {
         return;
       }
 
-      final response = await _billing.queryProducts();
+      final response = await _billing.queryCatalogue().timeout(_storeTimeout);
       if (!mounted) return;
       setState(() {
-        _allSubscriptionProducts = response.productDetails;
-        _isLoadingProducts = false;
-        if (response.productDetails.isEmpty) {
-          _productsError = context.strings.premiumSubscriptionPricesUnavailable;
-        }
+        _allSubscriptionProducts =
+            response.productDetails
+                .where(
+                  (product) => kSubscriptionProductIds.contains(product.id),
+                )
+                .toList();
+        _pointsProducts = {
+          for (final product in response.productDetails)
+            if (kPointsProductIds.contains(product.id)) product.id: product,
+        };
+        _isLoadingCatalogue = false;
       });
       _refreshAvailableOffers();
-    } catch (e) {
+    } catch (_) {
       if (!mounted) return;
       setState(() {
-        _isLoadingProducts = false;
-        _productsError = friendlyError(e, strings: context.strings);
+        _isLoadingCatalogue = false;
+        _productsError = context.strings.premiumSubscriptionPricesUnavailable;
       });
-    }
-  }
-
-  Future<void> _loadPointsProducts() async {
-    setState(() => _isLoadingPointsProducts = true);
-    try {
-      final response = await _billing.queryPointsProducts();
-      if (!mounted) return;
-      setState(() {
-        _pointsProducts = {for (final p in response.productDetails) p.id: p};
-        _isLoadingPointsProducts = false;
-      });
-    } catch (e) {
-      // Ciche niepowodzenie — punkty to funkcja dodatkowa, nie krytyczna
-      // ścieżka; jeśli się nie uda, sekcja po prostu się nie pokaże,
-      // reszta ekranu Premium działa normalnie.
-      if (!mounted) return;
-      setState(() => _isLoadingPointsProducts = false);
     }
   }
 
@@ -957,7 +937,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
     _restoreReceivedPurchase = false;
     setState(() => _isRestoring = true);
     try {
-      await _billing.restorePurchases();
+      await _billing.restorePurchases().timeout(_storeTimeout);
       // Jeśli coś się znajdzie, przyjdzie przez purchaseStream jako
       // PurchaseStatus.restored — patrz _handlePurchaseUpdates.
       // Dajemy chwilę na dotarcie zdarzenia, zanim uznamy, że nic nie ma.
@@ -977,7 +957,10 @@ class _PremiumScreenState extends State<PremiumScreen> {
           );
       }
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted ||
+          generation != _restoreGeneration ||
+          _restoreReceivedPurchase)
+        return;
       setState(() => _isRestoring = false);
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
@@ -1183,11 +1166,16 @@ class _PremiumScreenState extends State<PremiumScreen> {
     );
   }
 
-  Widget _buildSubscriptionSection(BuildContext context) {
+  Widget _buildPlanPricing(BuildContext context) =>
+      Column(key: _pricingSectionKey, children: _buildPricingSection(context));
+
+  Widget _buildSubscriptionSection(BuildContext context) => Column(
+    children: [_buildPlanPricing(context), _buildSubscriptionFooter(context)],
+  );
+
+  Widget _buildSubscriptionFooter(BuildContext context) {
     return Column(
-      key: _pricingSectionKey,
       children: [
-        ..._buildPricingSection(context),
         const SizedBox(height: 12),
         Center(
           child: TextButton.icon(
@@ -1215,6 +1203,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
     final isPremium = user?.hasPremiumAccess ?? false;
     final features = _features(context);
     final isGeneralOffer = !isPremium && widget.offerContext == null;
+    final isContextualOffer = !isPremium && widget.offerContext != null;
     // A prospective subscriber sees three benefits and the store's offer
     // before operational shortcuts. Existing subscribers keep their shortcuts.
     final primaryFeatures = [features[0], features[5], features[3]];
@@ -1223,7 +1212,6 @@ class _PremiumScreenState extends State<PremiumScreen> {
 
     return Scaffold(
       body: CustomScrollView(
-        controller: _screenScrollController,
         slivers: [
           SliverAppBar(
             title: Text(
@@ -1239,16 +1227,25 @@ class _PremiumScreenState extends State<PremiumScreen> {
             padding: const EdgeInsets.all(20),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                if (!isPremium) ...[
-                  if (widget.offerContext != null) ...[
-                    _buildContextualOfferCard(context),
-                    const SizedBox(height: 20),
-                  ] else ...[
-                    _buildOfferIntro(context),
-                    const SizedBox(height: 20),
-                    ...primaryFeatures.map(_buildFeatureRow),
-                    const SizedBox(height: 8),
-                  ],
+                if (isContextualOffer) ...[
+                  // The scroll target exists whenever the offer button is visible.
+                  Column(
+                    children: [
+                      _buildContextualOfferCard(context),
+                      const SizedBox(height: 20),
+                      _buildPlanPricing(context),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  ..._buildPointsSection(context),
+                  const SizedBox(height: 16),
+                  _buildSubscriptionFooter(context),
+                  const SizedBox(height: 26),
+                ] else if (!isPremium) ...[
+                  _buildOfferIntro(context),
+                  const SizedBox(height: 20),
+                  ...primaryFeatures.map(_buildFeatureRow),
+                  const SizedBox(height: 8),
                   _buildSubscriptionSection(context),
                   const SizedBox(height: 26),
                 ],
@@ -1398,9 +1395,11 @@ class _PremiumScreenState extends State<PremiumScreen> {
                 ...remainingFeatures.map(_buildFeatureRow),
                 const SizedBox(height: 12),
                 if (isPremium) _buildSubscriptionSection(context),
-                const SizedBox(height: 24),
-                ..._buildPointsSection(context),
-                const SizedBox(height: 12),
+                if (!isContextualOffer) ...[
+                  const SizedBox(height: 24),
+                  ..._buildPointsSection(context),
+                  const SizedBox(height: 12),
+                ],
               ]),
             ),
           ),
@@ -1509,7 +1508,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
       ];
     }
 
-    if (_isLoadingProducts) {
+    if (_isLoadingCatalogue) {
       return const [
         Padding(
           padding: EdgeInsets.symmetric(vertical: 24),
@@ -1518,20 +1517,22 @@ class _PremiumScreenState extends State<PremiumScreen> {
       ];
     }
 
-    if (_productsError != null) {
+    if (_products.isEmpty) {
       return [
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 16),
           child: Column(
             children: [
               Text(
-                _productsError!,
+                _productsError ??
+                    context.strings.premiumSubscriptionPricesUnavailable,
                 textAlign: TextAlign.center,
                 style: TextStyle(color: AppTheme.errorColor),
               ),
               const SizedBox(height: 8),
               TextButton(
-                onPressed: _loadProducts,
+                key: const ValueKey('premium-plans-retry'),
+                onPressed: _loadCatalogue,
                 child: Text(context.strings.premiumRetry),
               ),
             ],
@@ -1617,20 +1618,27 @@ class _PremiumScreenState extends State<PremiumScreen> {
     final currentBalance = auth.currentUser?.premiumPoints ?? 0;
 
     return [
-      Row(
+      Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 8,
+        runSpacing: 4,
         children: [
-          Icon(Icons.toll_outlined, color: AppTheme.accentColor, size: 20),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              context.strings.premiumPointsTitle,
-              maxLines: 2,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.toll_outlined, color: AppTheme.accentColor, size: 20),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  context.strings.premiumPointsTitle,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
           Text(
             context.strings.premiumPointsBalance(currentBalance),
             style: TextStyle(
@@ -1646,14 +1654,22 @@ class _PremiumScreenState extends State<PremiumScreen> {
         style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
       ),
       const SizedBox(height: 12),
-      if (_isLoadingPointsProducts)
+      if (_isLoadingCatalogue)
         const Center(child: CircularProgressIndicator())
-      else if (_pointsProducts.isEmpty)
+      else if (_pointsProducts.isEmpty) ...[
         Text(
           context.strings.premiumPointsPricesUnavailable,
           style: TextStyle(color: AppTheme.textSecondary),
-        )
-      else
+        ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton(
+            key: const ValueKey('premium-points-retry'),
+            onPressed: _loadCatalogue,
+            child: Text(context.strings.premiumRetry),
+          ),
+        ),
+      ] else
         LayoutBuilder(
           builder: (context, constraints) {
             final cardWidth =
@@ -1795,18 +1811,18 @@ class _PremiumScreenState extends State<PremiumScreen> {
                 height: 1.25,
               ),
             ),
-            if (discountPercent != null)
-              Text(
-                Platform.isIOS
+            const SizedBox(height: 4),
+            TextButton(
+              onPressed: onTap,
+              child: Text(
+                discountPercent == null
+                    ? context.strings.aiEditBuyPoints
+                    : Platform.isIOS
                     ? context.strings.premiumBuyInApple
                     : context.strings.premiumBuyInGoogle,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Color(0xFF9F1749),
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                ),
               ),
+            ),
           ],
         ),
       ),

@@ -14,6 +14,7 @@ GooglePlayProductDetails android({
   String currency = 'GBP',
   String period = 'P1M',
   bool extraPhase = false,
+  String? priceLabel,
 }) {
   final phases = <PricingPhaseWrapper>[
     if (trial > 0)
@@ -38,6 +39,7 @@ GooglePlayProductDetails android({
       billingCycleCount: 0,
       billingPeriod: period,
       formattedPrice:
+          priceLabel ??
           '${currency == 'GBP' ? '£' : currency}${(amount / 1000000).toStringAsFixed(2)}',
       priceAmountMicros: amount,
       priceCurrencyCode: currency,

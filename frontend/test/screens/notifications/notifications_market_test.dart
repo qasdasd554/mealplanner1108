@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
@@ -136,7 +138,7 @@ void main() {
     );
   }
   testWidgets(
-    'notification still opens its exact recipe and clears the badge',
+    'notification opens its exact recipe even if the badge plugin stalls',
     (tester) async {
       final service = _Notifications([
         AppNotification(
@@ -151,13 +153,15 @@ void main() {
         ),
       ]);
       final recipes = _Recipes();
+      final stalledBadge = Completer<void>();
       var badges = 0;
       await _open(
         tester,
         service,
         recipes: recipes,
-        clearBadge: () async {
+        clearBadge: () {
           badges++;
+          return stalledBadge.future;
         },
       );
       await tester.tap(find.text('Open this recipe'));
@@ -166,6 +170,8 @@ void main() {
       expect(recipes.reads, ['recipe-42']);
       expect(badges, 1);
       expect(find.text('Recipe target: recipe-42'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 3));
+      stalledBadge.complete();
       expect(tester.takeException(), isNull);
     },
   );

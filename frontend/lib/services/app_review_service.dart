@@ -46,6 +46,7 @@ class ReviewPromptSchedule {
 /// Wygląd, dostępność, zamknięcie i limity okna należą do Apple/Google.
 /// Backend atomowo pilnuje dodatkowego limitu 10 dni na konto.
 class AppReviewService {
+  static const _storeTimeout = Duration(seconds: 5);
   AppReviewService({
     Future<bool> Function()? isAvailable,
     Future<bool> Function()? claim,
@@ -73,7 +74,9 @@ class AppReviewService {
     if (_busy || _requestedThisSession) return false;
     _busy = true;
     try {
-      if (!await _isAvailable() || !(stillSafe?.call() ?? true)) return false;
+      if (!await _isAvailable().timeout(_storeTimeout) ||
+          !(stillSafe?.call() ?? true))
+        return false;
       if (!await _claim() || !(stillSafe?.call() ?? true)) return false;
       await _requestReview();
       _requestedThisSession = true;

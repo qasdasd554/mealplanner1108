@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -44,6 +46,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     _load();
   }
 
+  Future<void> _clearBadgeSilently() async {
+    try {
+      await _clearBadge().timeout(const Duration(seconds: 3));
+    } catch (_) {
+      // The device badge is independent of server read status and navigation.
+    }
+  }
+
   Future<void> _load() async {
     setState(() => _isLoading = true);
     try {
@@ -55,7 +65,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         _isLoading = false;
       });
       if (list.every((notification) => notification.isRead)) {
-        await _clearBadge();
+        unawaited(_clearBadgeSilently());
       }
     } catch (e) {
       if (!mounted) return;
@@ -69,7 +79,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Future<void> _markAllRead() async {
     try {
       await _service.markAllAsRead();
-      await _clearBadge();
       if (!mounted) return;
       setState(() {
         _notifications =
@@ -89,6 +98,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 )
                 .toList();
       });
+      unawaited(_clearBadgeSilently());
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
@@ -132,7 +142,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
 
     if (_notifications.every((item) => item.isRead)) {
-      await _clearBadge();
+      unawaited(_clearBadgeSilently());
     }
 
     if (!mounted) return;

@@ -7631,7 +7631,7 @@ abstract class AppLocalizations {
   /// No description provided for @releasePromptChanges.
   ///
   /// In pl, this message translates to:
-  /// **'• Cieplejsza zieleń na pasku kalorii, ikonach i przyciskach.\n• Wyśrodkowane skróty na ekranie Start i dopasowany przycisk „Dodaj przepis”.'**
+  /// **'• Poprawiliśmy ładowanie subskrypcji i pakietów punktów Premium.\n• Powiadomienia szybciej otwierają przepisy.'**
   String get releasePromptChanges;
 
   /// No description provided for @detailPlanPortionHelp.
