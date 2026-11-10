@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_android/billing_client_wrappers.dart';
 // The inherited BillingService field is initialized even with mocked methods.
 // ignore: depend_on_referenced_packages
 import 'package:in_app_purchase_platform_interface/in_app_purchase_platform_interface.dart';
@@ -71,10 +72,12 @@ Future<void> capturePremium(
 
 class _Billing extends BillingService {
   bool eligible = false;
+  bool checkNativeOfferDetails = false;
   bool available = true;
   bool productsFail = false;
   String currency = 'GBP';
   int buys = 0;
+  ProductDetails? lastSubscriptionPurchase;
   int restores = 0;
   String? purchasedPointsId;
   int catalogueQueries = 0;
@@ -127,10 +130,15 @@ class _Billing extends BillingService {
 
   @override
   Future<bool> hasSevenDayFreeTrial(ProductDetails product) =>
-      pending.isEmpty ? Future.value(eligible) : pending.removeAt(0);
+      checkNativeOfferDetails
+          ? super.hasSevenDayFreeTrial(product)
+          : pending.isEmpty
+          ? Future.value(eligible)
+          : pending.removeAt(0);
   @override
   Future<void> buy(ProductDetails product) async {
     buys++;
+    lastSubscriptionPurchase = product;
   }
 
   @override
@@ -457,6 +465,265 @@ void main() {
   }
   for (final english in [false, true]) {
     testWidgets(
+      'prefers the actual seven-day trial and buys its offer (${english ? 'GB' : 'PL'})',
+      (tester) async {
+        final currency = english ? 'GBP' : 'PLN';
+        final trial = fixtures.android(
+          cycles: 0,
+          trialPeriod: 'P1W',
+          trialRecurrence: RecurrenceMode.nonRecurring,
+          trialOfferId: 'seven-days',
+          currency: currency,
+        );
+        final otherOffer = fixtures.android(
+          trial: 14,
+          trialOfferId: 'other-offer',
+          currency: currency,
+        );
+        final billing =
+            _Billing()
+              ..checkNativeOfferDetails = true
+              ..pendingCatalogue = Future.value(
+                ProductDetailsResponse(
+                  productDetails: [
+                    otherOffer,
+                    fixtures.android(trial: 0, currency: currency),
+                    trial,
+                  ],
+                  notFoundIDs: [],
+                ),
+              );
+        final api = _Api();
+        if (!english) {
+          api.campaigns =
+              Completer<dynamic>()..complete([
+                <String, dynamic>{
+                  'product_id': kMonthlyProductId,
+                  'discount_percent': 20,
+                  'android_base_plan_id': 'base',
+                  'android_offer_id': 'other-offer',
+                },
+              ]);
+        }
+        await open(
+          tester,
+          billing,
+          english: english,
+          generalOffer: true,
+          api: api,
+        );
+        final strings = AppLocalizations.of(
+          tester.element(find.byType(PremiumScreen)),
+        );
+        await pricing(tester, strings.premiumMonthly);
+        final button = find.text(strings.premiumTryFree);
+        expect(button, findsOneWidget);
+        await tester.scrollUntilVisible(button, 250);
+        await tester.pumpAndSettle();
+        expect(button.hitTestable(), findsOneWidget);
+        await tester.tap(button);
+        await tester.pump();
+        expect(billing.lastSubscriptionPurchase, same(trial));
+      },
+    );
+  }
+  testWidgets('a stalled catalogue can be retried from a recipe offer', (
+    tester,
+  ) async {
+    final stalled = Completer<ProductDetailsResponse>();
+    final billing = _Billing()..pendingCatalogue = stalled.future;
+    await open(tester, billing, english: false, settle: false);
+    final strings = AppLocalizations.of(
+      tester.element(find.byType(PremiumScreen)),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 20));
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    await tester.ensureVisible(find.text(strings.premiumSeePlans));
+    await tester.tap(find.text(strings.premiumSeePlans));
+    await tester.pumpAndSettle();
+    final retry = find.byKey(const ValueKey('premium-plans-retry'));
+    expect(retry.hitTestable(), findsOneWidget);
+    billing
+      ..pendingCatalogue = null
+      ..includePoints = true;
+    await tester.tap(retry);
+    await tester.pumpAndSettle();
+    await pricing(tester, strings.premiumMonthly);
+    await tester.scrollUntilVisible(find.text('8,99 zł'), 250);
+    expect(find.text('8,99 zł'), findsOneWidget);
+    stalled.complete(
+      ProductDetailsResponse(productDetails: [], notFoundIDs: []),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('8,99 zł'), findsOneWidget);
+    expect(billing.catalogueQueries, 2);
+  });
+
+  testWidgets('a stalled store connection can be retried from points', (
+    tester,
+  ) async {
+    final stalled = Completer<bool>();
+    final billing = _Billing()..pendingAvailability = stalled.future;
+    await open(tester, billing, settle: false);
+    await tester.pump(const Duration(seconds: 8));
+    await tester.pumpAndSettle();
+    final retry = find.byKey(const ValueKey('premium-points-retry'));
+    await tester.scrollUntilVisible(retry, 250);
+    expect(billing.catalogueQueries, 0);
+    billing
+      ..pendingAvailability = null
+      ..includePoints = true
+      ..includeSubscriptions = false;
+    await tester.tap(retry);
+    await tester.pumpAndSettle();
+    expect(find.text('£1.99'), findsOneWidget);
+    final strings = AppLocalizations.of(
+      tester.element(find.byType(PremiumScreen)),
+    );
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, 500));
+    await tester.pumpAndSettle();
+    expect(
+      find.text(strings.premiumSubscriptionPricesUnavailable),
+      findsOneWidget,
+    );
+    stalled.complete(true);
+    await tester.pumpAndSettle();
+    expect(billing.catalogueQueries, 1);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Premium tab retries missing prices on foreground return', (
+    tester,
+  ) async {
+    final binding = tester.binding;
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    final stalled = Completer<ProductDetailsResponse>();
+    final billing = _Billing()..pendingCatalogue = stalled.future;
+    await open(
+      tester,
+      billing,
+      generalOffer: true,
+      english: false,
+      settle: false,
+    );
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 8));
+    await tester.pumpAndSettle();
+    final retry = find.byKey(const ValueKey('premium-plans-retry'));
+    expect(retry, findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(billing.catalogueQueries, 1);
+
+    billing
+      ..pendingCatalogue = null
+      ..includePoints = true;
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+    await pricing(tester, 'Miesięcznie');
+    expect(find.text('24,99 zł', findRichText: true), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('8,99 zł'), 250);
+    expect(find.text('8,99 zł'), findsOneWidget);
+    expect(billing.catalogueQueries, 2);
+    stalled.complete(
+      ProductDetailsResponse(productDetails: [], notFoundIDs: []),
+    );
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a stalled restore releases the button and allows retry', (
+    tester,
+  ) async {
+    final stalled = Completer<void>();
+    final billing = _Billing()..pendingRestore = stalled.future;
+    await open(tester, billing, generalOffer: true);
+    final strings = AppLocalizations.of(
+      tester.element(find.byType(PremiumScreen)),
+    );
+    final restore = find.widgetWithText(
+      TextButton,
+      strings.premiumRestorePurchases,
+    );
+    await tester.scrollUntilVisible(restore, 250);
+    await tester.pumpAndSettle();
+    expect(restore.hitTestable(), findsOneWidget);
+    await tester.tap(restore);
+    await tester.pump();
+    expect(tester.widget<TextButton>(restore).onPressed, isNull);
+    await tester.pump(const Duration(seconds: 8));
+    await tester.pumpAndSettle();
+    expect(tester.widget<TextButton>(restore).onPressed, isNotNull);
+    billing.pendingRestore = null;
+    await tester.tap(restore);
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
+    expect(billing.restores, 2);
+    expect(find.text(strings.premiumRestoreEmpty), findsOneWidget);
+    stalled.complete();
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+  });
+
+  for (final offer in PremiumOfferContext.values) {
+    testWidgets('offer $offer opens live plan and point sections', (
+      tester,
+    ) async {
+      final billing = _Billing()..includePoints = true;
+      await open(
+        tester,
+        billing,
+        offerContext: offer,
+        english: false,
+        branded: true,
+        fullscreen: true,
+        viewport: const Size(414, 980),
+      );
+      final strings = AppLocalizations.of(
+        tester.element(find.byType(PremiumScreen)),
+      );
+      if (offer == PremiumOfferContext.recipe) {
+        await capturePremium(
+          tester,
+          'premium-recipe-notice-pl',
+          cropAtPricing: false,
+        );
+      }
+      final seePlans = find.text(strings.premiumSeePlans);
+      await tester.ensureVisible(seePlans);
+      await tester.tap(seePlans);
+      await tester.pumpAndSettle();
+      expect(find.text(strings.premiumMonthly).hitTestable(), findsOneWidget);
+      if (offer == PremiumOfferContext.recipe) {
+        await capturePremium(
+          tester,
+          'premium-recipe-prices-pl',
+          cropAtPricing: false,
+        );
+      }
+      await tester.scrollUntilVisible(find.text('8,99 zł'), 210);
+      expect(find.text('8,99 zł'), findsOneWidget);
+      if (offer == PremiumOfferContext.recipe) {
+        final buyPoints = find.widgetWithText(
+          TextButton,
+          strings.aiEditBuyPoints,
+        );
+        await tester.scrollUntilVisible(buyPoints, 210);
+        await tester.tap(buyPoints);
+        await tester.pump();
+        expect(billing.purchasedPointsId, kPoints10ProductId);
+      }
+      expect(billing.catalogueQueries, 1);
+      expect(tester.takeException(), isNull);
+    });
+  }
+  for (final english in [false, true]) {
+    testWidgets(
       'general offer shows local plans before shortcuts (${english ? "GB" : "PL"})',
       (tester) async {
         await open(
@@ -562,7 +829,7 @@ void main() {
   testWidgets(
     'GB offer and real prices are English without an unverified trial',
     (tester) async {
-      final billing = _Billing();
+      final billing = _Billing()..checkNativeOfferDetails = true;
       await open(tester, billing);
       expect(find.text('Turn an idea into a recipe'), findsOneWidget);
       expect(find.text('7 DAYS FREE*'), findsNothing);

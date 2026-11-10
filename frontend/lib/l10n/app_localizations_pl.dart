@@ -4348,7 +4348,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• Cieplejsza zieleń na pasku kalorii, ikonach i przyciskach.\n• Wyśrodkowane skróty na ekranie Start i dopasowany przycisk „Dodaj przepis”.';
+      '• Uporządkowaliśmy wyświetlanie 7-dniowego okresu próbnego Premium dla uprawnionych kont.';
 
   @override
   String detailPlanPortionHelp(int servings, int baseServings) {

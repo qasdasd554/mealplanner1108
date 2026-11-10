@@ -443,6 +443,11 @@ class _PremiumScreenState extends State<PremiumScreen> {
       if (regular != null) selectedProducts[id] = regular;
       final campaign = _campaignsFromBackend[id];
       if (campaign == null) continue;
+      if (id == kMonthlyProductId &&
+          regular != null &&
+          hasGooglePlaySevenDayTrial(regular)) {
+        continue;
+      }
       if (Platform.isIOS) {
         effectiveCampaigns[id] = campaign;
         continue;
@@ -920,7 +925,9 @@ class _PremiumScreenState extends State<PremiumScreen> {
   }
 
   Future<void> _useSubscriptionOffer(String productId) async {
-    if (Platform.isIOS && _activeOffers.containsKey(productId)) {
+    final usesTrial =
+        productId == kMonthlyProductId && _monthlyHasSevenDayTrial;
+    if (!usesTrial && Platform.isIOS && _activeOffers.containsKey(productId)) {
       await _openOffer(productId);
       return;
     }
@@ -1565,7 +1572,10 @@ class _PremiumScreenState extends State<PremiumScreen> {
           highlight: false,
           primaryAction: true,
           discountPercent:
-              _activeOffers[kMonthlyProductId]?['discount_percent'] as int?,
+              _monthlyHasSevenDayTrial
+                  ? null
+                  : _activeOffers[kMonthlyProductId]?['discount_percent']
+                      as int?,
           onTap:
               _isProcessingPurchase
                   ? null

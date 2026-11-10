@@ -2570,7 +2570,7 @@
   "releasePromptTitle": "An update is available",
   "releasePromptRequired": "This version is no longer supported. Update the app to continue.",
   "releasePromptStoreError": "Could not open the app store.",
-  "releasePromptChanges": "• A warmer green for the calorie bar, icons and buttons.\n• Centred shortcuts on Home and a matching Add a recipe button.",
+  "releasePromptChanges": "• Improved how the 7-day Premium trial is shown to eligible accounts.",
   "detailPlanPortionHelp": "Ingredients are scaled to {servings} portions. Quantities written in the method refer to the original recipe ({baseServings} portions).",
   "@detailPlanPortionHelp": {
     "placeholders": {

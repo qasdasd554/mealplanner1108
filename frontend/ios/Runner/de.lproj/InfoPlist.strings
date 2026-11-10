@@ -1,0 +1,3 @@
+"CFBundleDisplayName" = "Meal Planner";
+"NSCameraUsageDescription" = "Meal Planner verwendet die Kamera, um Barcodes zu scannen und Fotos für Rezepte, Kommentare und dein Profil aufzunehmen.";
+"NSPhotoLibraryUsageDescription" = "Meal Planner benötigt Zugriff auf deine Fotomediathek, damit du Fotos für Rezepte, Kommentare und dein Profil auswählen kannst.";

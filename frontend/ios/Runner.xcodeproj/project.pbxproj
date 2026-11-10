@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		B22000000000000000000001 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = B22000000000000000000002 /* InfoPlist.strings */; };
 		B22000000000000000000005 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = B22000000000000000000006 /* Localizable.strings */; };
+		B2200000000000000000000C /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = B2200000000000000000000B /* InfoPlist.strings */; };
 		A10000000000000000000001 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000002 /* ShareViewController.swift */; };
 		A1000000000000000000000E /* ShareExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = A10000000000000000000005 /* ShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		A10000000000000000000013 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
@@ -72,6 +73,9 @@
 		B22000000000000000000004 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		B22000000000000000000007 /* pl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pl; path = pl.lproj/Localizable.strings; sourceTree = "<group>"; };
 		B22000000000000000000008 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		B22000000000000000000009 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		B2200000000000000000000A /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
+		B2200000000000000000000D /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		A10000000000000000000002 /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
 		A10000000000000000000003 /* ShareExtension Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A10000000000000000000004 /* ShareExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ShareExtension.entitlements; sourceTree = "<group>"; };
@@ -138,6 +142,7 @@
 			isa = PBXGroup;
 			children = (
 				B22000000000000000000006 /* Localizable.strings */,
+				B2200000000000000000000B /* InfoPlist.strings */,
 				A10000000000000000000002 /* ShareViewController.swift */,
 				A10000000000000000000003 /* ShareExtension Info.plist */,
 				A10000000000000000000004 /* ShareExtension.entitlements */,
@@ -336,6 +341,7 @@
 			developmentRegion = pl;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				de,
 				en,
 				pl,
 				Base,
@@ -361,6 +367,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B22000000000000000000005 /* Localizable.strings in Resources */,
+				B2200000000000000000000C /* InfoPlist.strings in Resources */,
 				A10000000000000000000013 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -530,6 +537,7 @@
 			children = (
 				B22000000000000000000003 /* pl */,
 				B22000000000000000000004 /* en */,
+				B22000000000000000000009 /* de */,
 			);
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
@@ -539,8 +547,17 @@
 			children = (
 				B22000000000000000000007 /* pl */,
 				B22000000000000000000008 /* en */,
+				B2200000000000000000000A /* de */,
 			);
 			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+		B2200000000000000000000B /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				B2200000000000000000000D /* de */,
+			);
+			name = InfoPlist.strings;
 			sourceTree = "<group>";
 		};
 		97C146FA1CF9000F007C117D /* Main.storyboard */ = {

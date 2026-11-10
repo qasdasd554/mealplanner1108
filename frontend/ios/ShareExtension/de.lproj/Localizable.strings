@@ -1,0 +1,8 @@
+"share_reading" = "Link wird gelesen…";
+"share_done" = "Fertig";
+"share_no_link" = "Es wurde kein Rezeptlink empfangen.";
+"share_prompt" = "Teile einen Link zu einem Video oder einer Rezeptseite.";
+"share_no_address" = "In den geteilten Inhalten wurde keine Webadresse gefunden.";
+"share_invalid_address" = "Die geteilte Adresse ist kein gültiger Link.";
+"share_save_failed" = "Der Link konnte nicht gespeichert werden.";
+"share_saved" = "Link gespeichert. Öffne Meal Planner, um die Rezepterkennung zu starten.";

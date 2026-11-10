@@ -15,6 +15,28 @@ SubscriptionOfferDetailsWrapper? _googleOffer(
   return offers[index];
 }
 
+/// Google Play can report a one-time phase with zero billing cycles.
+bool hasGooglePlaySevenDayTrial(ProductDetails product) {
+  if (product is! GooglePlayProductDetails) return false;
+  final offer = _googleOffer(product);
+  if (offer == null || offer.offerIdToken.isEmpty) return false;
+  final phases = offer.pricingPhases;
+  if (phases.length != 2) return false;
+  final trial = phases.first, regular = phases.last;
+  final once = switch (trial.recurrenceMode) {
+    RecurrenceMode.finiteRecurring => trial.billingCycleCount == 1,
+    RecurrenceMode.nonRecurring => trial.billingCycleCount == 0,
+    _ => false,
+  };
+  return trial.priceAmountMicros == 0 &&
+      once &&
+      const {'P7D', 'P1W'}.contains(trial.billingPeriod) &&
+      regular.billingPeriod == 'P1M' &&
+      regular.recurrenceMode == RecurrenceMode.infiniteRecurring &&
+      regular.priceAmountMicros > 0 &&
+      trial.priceCurrencyCode == regular.priceCurrencyCode;
+}
+
 /// A display claim, never an entitlement. Unknown/error means no free-trial
 /// promise; the customer can still see the actual offer in the store sheet.
 Future<bool> confirmedSevenDayTrial(
@@ -23,17 +45,7 @@ Future<bool> confirmedSevenDayTrial(
 }) async {
   if (product.id != 'premium_monthly') return false;
   if (product is GooglePlayProductDetails) {
-    final phases = _googleOffer(product)?.pricingPhases;
-    if (phases == null || phases.length != 2) return false;
-    final trial = phases.first, regular = phases.last;
-    return trial.priceAmountMicros == 0 &&
-        trial.billingCycleCount == 1 &&
-        trial.recurrenceMode == RecurrenceMode.finiteRecurring &&
-        const {'P7D', 'P1W'}.contains(trial.billingPeriod) &&
-        regular.billingPeriod == 'P1M' &&
-        regular.recurrenceMode == RecurrenceMode.infiniteRecurring &&
-        regular.priceAmountMicros > 0 &&
-        trial.priceCurrencyCode == regular.priceCurrencyCode;
+    return hasGooglePlaySevenDayTrial(product);
   }
   bool configured = false;
   if (product is AppStoreProduct2Details) {

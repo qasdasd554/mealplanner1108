@@ -85,12 +85,14 @@ async def claim_contextual_premium_offer(
     if is_premium_active(current_user):
         return PremiumOfferClaimResponse(allowed=False)
 
+    # Rollback expires the ORM instance, so keep its ID for the follow-up query.
+    user_id = current_user.id
     now = datetime.now(timezone.utc)
     threshold = now - PREMIUM_OFFER_COOLDOWN
     statement = (
         update(User)
         .where(
-            User.id == current_user.id,
+            User.id == user_id,
             or_(
                 User.premium_offer_last_shown_at.is_(None),
                 User.premium_offer_last_shown_at <= threshold,
@@ -114,7 +116,7 @@ async def claim_contextual_premium_offer(
     # Ktoś pokazał ofertę niedawno albo równoległe żądanie wygrało wyścig.
     await db.rollback()
     last_shown_at = await db.scalar(
-        select(User.premium_offer_last_shown_at).where(User.id == current_user.id)
+        select(User.premium_offer_last_shown_at).where(User.id == user_id)
     )
     return PremiumOfferClaimResponse(
         allowed=False,

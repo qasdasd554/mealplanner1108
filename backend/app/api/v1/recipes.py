@@ -426,6 +426,9 @@ async def list_available_recipes(
             StoreProduct.store_id == store_id,
             StoreProduct.is_available == True,  # noqa: E712
         )
+    country = account_country(current_user)
+    if country == "DE":
+        available_product_ids = available_product_ids.where(StoreProduct.withdrawn_at.is_(None))
     has_product_ingredient = exists(
         select(1).where(
             RecipeIngredient.recipe_id == Recipe.id,
@@ -445,8 +448,8 @@ async def list_available_recipes(
     # selected UK store; missing optional seasonings never exclude a dish.
     availability_conditions = (
         (recipe_market_availability("GB", store_id=store_id),)
-        if account_country(current_user) == "GB"
-        else (recipe_origin_in_market("PL"), has_product_ingredient, ~has_unavailable_ingredient)
+        if country == "GB"
+        else (recipe_origin_in_market(country), has_product_ingredient, ~has_unavailable_ingredient)
     )
 
     blocked_ids = await get_blocked_user_ids(db, current_user.id)

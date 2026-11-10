@@ -10,7 +10,7 @@ import pytest
 from fastapi import HTTPException
 from sqlalchemy import select
 
-from app.api.v1 import shopping_lists, stores
+from app.api.v1 import recipes, shopping_lists, stores
 from app.api.v1.price_compare import compare_prices, compare_shopping_list_prices
 from app.core.config import settings
 from app.core.exceptions import NotFoundException
@@ -33,6 +33,35 @@ def test_german_registration_requires_explicit_rollout(monkeypatch):
     assert error.value.status_code == 503
     monkeypatch.setattr(settings, "DE_MARKET_ENABLED", True)
     assert signup_country("de") == "DE"
+
+
+def test_available_recipes_use_german_store_and_author_market(db):
+    session, adapter, _, product, substitute = db
+    german = User(id=uuid4(), email="de-recipes@example.test", password_hash="fixture", country_code="DE")
+    polish = User(id=uuid4(), email="pl-recipes@example.test", password_hash="fixture", country_code="PL")
+    session.add_all([german, polish])
+    run(seed_de_stores(adapter))
+    store = DE_STORES[0]
+    session.add(StoreProduct(id=uuid4(), store_id=store.id, product_id=product.id, price=Decimal("1.25")))
+
+    def add_recipe(name, author, ingredient):
+        recipe = Recipe(id=uuid4(), name=name, meal_type="obiad", servings=2, visibility="public",
+                        created_by_user_id=author.id if author else None)
+        recipe.ingredients = [RecipeIngredient(
+            id=uuid4(), product_id=ingredient.id, quantity=Decimal("100"), unit="g", is_optional=False,
+        )]
+        session.add(recipe)
+
+    add_recipe("Verfügbares Rezept", german, product)
+    add_recipe("System recipe", None, product)
+    add_recipe("Polski przepis", polish, product)
+    add_recipe("Nicht verfügbar", german, substitute)
+    session.commit()
+
+    available = run(recipes.list_available_recipes(
+        store.id, skip=0, limit=30, current_user=german, db=adapter,
+    ))
+    assert {recipe.name for recipe in available} == {"System recipe", "Verfügbares Rezept"}
 
 
 def test_german_development_catalogue_keeps_prices_and_package_units(db, monkeypatch):
