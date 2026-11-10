@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_android/billing_client_wrappers.dart';
 // The inherited BillingService field is initialized even with mocked methods.
 // ignore: depend_on_referenced_packages
 import 'package:in_app_purchase_platform_interface/in_app_purchase_platform_interface.dart';
@@ -71,10 +72,12 @@ Future<void> capturePremium(
 
 class _Billing extends BillingService {
   bool eligible = false;
+  bool checkNativeOfferDetails = false;
   bool available = true;
   bool productsFail = false;
   String currency = 'GBP';
   int buys = 0;
+  ProductDetails? lastSubscriptionPurchase;
   int restores = 0;
   String? purchasedPointsId;
   int catalogueQueries = 0;
@@ -127,10 +130,15 @@ class _Billing extends BillingService {
 
   @override
   Future<bool> hasSevenDayFreeTrial(ProductDetails product) =>
-      pending.isEmpty ? Future.value(eligible) : pending.removeAt(0);
+      checkNativeOfferDetails
+          ? super.hasSevenDayFreeTrial(product)
+          : pending.isEmpty
+          ? Future.value(eligible)
+          : pending.removeAt(0);
   @override
   Future<void> buy(ProductDetails product) async {
     buys++;
+    lastSubscriptionPurchase = product;
   }
 
   @override
@@ -260,6 +268,70 @@ void main() {
     await loadProductFormFonts();
   });
   setUp(() => SharedPreferences.setMockInitialValues({}));
+  for (final english in [false, true]) {
+    testWidgets(
+      'prefers the actual seven-day trial and buys its offer (${english ? 'GB' : 'PL'})',
+      (tester) async {
+        final currency = english ? 'GBP' : 'PLN';
+        final trial = fixtures.android(
+          cycles: 0,
+          trialPeriod: 'P1W',
+          trialRecurrence: RecurrenceMode.nonRecurring,
+          trialOfferId: 'seven-days',
+          currency: currency,
+        );
+        final otherOffer = fixtures.android(
+          trial: 14,
+          trialOfferId: 'other-offer',
+          currency: currency,
+        );
+        final billing =
+            _Billing()
+              ..checkNativeOfferDetails = true
+              ..pendingCatalogue = Future.value(
+                ProductDetailsResponse(
+                  productDetails: [
+                    otherOffer,
+                    fixtures.android(trial: 0, currency: currency),
+                    trial,
+                  ],
+                  notFoundIDs: [],
+                ),
+              );
+        final api = _Api();
+        if (!english) {
+          api.campaigns =
+              Completer<dynamic>()..complete([
+                <String, dynamic>{
+                  'product_id': kMonthlyProductId,
+                  'discount_percent': 20,
+                  'android_base_plan_id': 'base',
+                  'android_offer_id': 'other-offer',
+                },
+              ]);
+        }
+        await open(
+          tester,
+          billing,
+          english: english,
+          generalOffer: true,
+          api: api,
+        );
+        final strings = AppLocalizations.of(
+          tester.element(find.byType(PremiumScreen)),
+        );
+        await pricing(tester, strings.premiumMonthly);
+        final button = find.text(strings.premiumTryFree);
+        expect(button, findsOneWidget);
+        await tester.scrollUntilVisible(button, 250);
+        await tester.pumpAndSettle();
+        expect(button.hitTestable(), findsOneWidget);
+        await tester.tap(button);
+        await tester.pump();
+        expect(billing.lastSubscriptionPurchase, same(trial));
+      },
+    );
+  }
   testWidgets('a stalled catalogue can be retried from a recipe offer', (
     tester,
   ) async {
@@ -562,7 +634,7 @@ void main() {
   testWidgets(
     'GB offer and real prices are English without an unverified trial',
     (tester) async {
-      final billing = _Billing();
+      final billing = _Billing()..checkNativeOfferDetails = true;
       await open(tester, billing);
       expect(find.text('Turn an idea into a recipe'), findsOneWidget);
       expect(find.text('7 DAYS FREE*'), findsNothing);

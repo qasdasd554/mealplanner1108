@@ -4348,7 +4348,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• Poprawiliśmy ładowanie subskrypcji i pakietów punktów Premium.\n• Powiadomienia szybciej otwierają przepisy.';
+      '• Uporządkowaliśmy wyświetlanie 7-dniowego okresu próbnego Premium dla uprawnionych kont.';
 
   @override
   String detailPlanPortionHelp(int servings, int baseServings) {

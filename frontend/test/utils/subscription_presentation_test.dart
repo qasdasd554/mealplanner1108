@@ -10,6 +10,9 @@ GooglePlayProductDetails android({
   String id = 'premium_monthly',
   int trial = 7,
   int cycles = 1,
+  RecurrenceMode trialRecurrence = RecurrenceMode.finiteRecurring,
+  String? trialPeriod,
+  String trialOfferId = 'trial',
   int amount = 4990000,
   String currency = 'GBP',
   String period = 'P1M',
@@ -20,11 +23,11 @@ GooglePlayProductDetails android({
     if (trial > 0)
       PricingPhaseWrapper(
         billingCycleCount: cycles,
-        billingPeriod: 'P${trial}D',
+        billingPeriod: trialPeriod ?? 'P${trial}D',
         formattedPrice: '0',
         priceAmountMicros: 0,
         priceCurrencyCode: currency,
-        recurrenceMode: RecurrenceMode.finiteRecurring,
+        recurrenceMode: trialRecurrence,
       ),
     if (extraPhase)
       PricingPhaseWrapper(
@@ -56,9 +59,9 @@ GooglePlayProductDetails android({
       subscriptionOfferDetails: [
         SubscriptionOfferDetailsWrapper(
           basePlanId: 'base',
-          offerId: trial == 0 ? null : 'trial',
+          offerId: trial == 0 ? null : trialOfferId,
           offerTags: [],
-          offerIdToken: 'token',
+          offerIdToken: trial == 0 ? 'base-token' : '$trialOfferId-token',
           pricingPhases: phases,
         ),
       ],
@@ -112,6 +115,24 @@ void main() {
       expect(await confirmedSevenDayTrial(android(cycles: 2)), isFalse);
       expect(await confirmedSevenDayTrial(android(extraPhase: true)), isFalse);
       expect(await confirmedSevenDayTrial(android(period: 'P1Y')), isFalse);
+    },
+  );
+  test(
+    'Android recognises a non-recurring week with zero billing cycles',
+    () async {
+      final product = android(
+        cycles: 0,
+        trialPeriod: 'P1W',
+        trialRecurrence: RecurrenceMode.nonRecurring,
+      );
+      expect(await confirmedSevenDayTrial(product), isTrue);
+      expect(await confirmedSevenDayTrial(android(cycles: 0)), isFalse);
+      expect(
+        await confirmedSevenDayTrial(
+          android(trialRecurrence: RecurrenceMode.infiniteRecurring, cycles: 0),
+        ),
+        isFalse,
+      );
     },
   );
   test(

@@ -123,21 +123,30 @@ class BillingService {
   ) {
     ProductDetails? fallback;
     ProductDetails? regular;
+    ProductDetails? otherFreeOffer;
     for (final product in products) {
       if (product.id != productId) continue;
       fallback ??= product;
       if (product is! GooglePlayProductDetails) return product;
       final index = product.subscriptionIndex;
       final offers = product.productDetails.subscriptionOfferDetails;
-      if (index == null || offers == null || index >= offers.length) continue;
+      if (index == null ||
+          offers == null ||
+          index < 0 ||
+          index >= offers.length)
+        continue;
       final offer = offers[index];
       if (offer.pricingPhases.isNotEmpty &&
           offer.pricingPhases.first.priceAmountMicros == 0) {
-        return product;
+        if (productId != kMonthlyProductId ||
+            hasGooglePlaySevenDayTrial(product)) {
+          return product;
+        }
+        otherFreeOffer ??= product;
       }
       if (offer.offerId == null) regular ??= product;
     }
-    return regular ?? fallback;
+    return otherFreeOffer ?? regular ?? fallback;
   }
 
   /// Zwraca cenę regularną po bezpłatnym okresie próbnym. Google Play może

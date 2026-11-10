@@ -41,17 +41,13 @@ void main() {
             .widgetList<Text>(find.byType(Text))
             .map((value) => value.data ?? '')
             .firstWhere((value) => value.startsWith('•'));
-        expect(body.split('\n'), hasLength(2));
-        expect(
-          body,
-          contains(english ? 'Improved loading' : 'Poprawiliśmy ładowanie'),
-        );
+        expect(body.split('\n'), hasLength(1));
         expect(
           body,
           contains(
             english
-                ? 'Notifications open recipes'
-                : 'Powiadomienia szybciej otwierają',
+                ? '7-day Premium trial'
+                : '7-dniowego okresu próbnego Premium',
           ),
         );
         expect(tester.takeException(), isNull);

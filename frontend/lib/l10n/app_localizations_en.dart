@@ -4368,7 +4368,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get releasePromptChanges =>
-      '• Improved loading for Premium subscriptions and points packs.\n• Notifications open recipes more quickly.';
+      '• Improved how the 7-day Premium trial is shown to eligible accounts.';
 
   @override
   String detailPlanPortionHelp(int servings, int baseServings) {
@@ -9727,7 +9727,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get releasePromptChanges =>
-      '• Improved loading for Premium subscriptions and points packs.\n• Notifications open recipes more quickly.';
+      '• Improved how the 7-day Premium trial is shown to eligible accounts.';
 
   @override
   String detailPlanPortionHelp(int servings, int baseServings) {

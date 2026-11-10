@@ -7631,7 +7631,7 @@ abstract class AppLocalizations {
   /// No description provided for @releasePromptChanges.
   ///
   /// In pl, this message translates to:
-  /// **'• Poprawiliśmy ładowanie subskrypcji i pakietów punktów Premium.\n• Powiadomienia szybciej otwierają przepisy.'**
+  /// **'• Uporządkowaliśmy wyświetlanie 7-dniowego okresu próbnego Premium dla uprawnionych kont.'**
   String get releasePromptChanges;
 
   /// No description provided for @detailPlanPortionHelp.
