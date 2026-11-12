@@ -3679,13 +3679,13 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get premiumTrialDisclosureGoogle =>
-      'Verlängert sich automatisch jeden Monat. Stornieren in Google Play.';
+      'Verlängert sich automatisch jeden Monat. Du kannst das Abo in Google Play kündigen.';
 
   @override
   String get premiumRestorePurchases => 'Käufe wiederherstellen';
 
   @override
-  String get premiumPointsTitle => 'Prämienpunkte';
+  String get premiumPointsTitle => 'Premium-Punkte';
 
   @override
   String premiumPointsBalance(int balance) {
@@ -3741,7 +3741,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String premiumPriceAfterTrial(String price) {
-    return 'Dann $price pro Monat';
+    return 'Danach $price pro Monat';
   }
 
   @override
@@ -3750,13 +3750,13 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get premiumTryFree => 'Probieren Sie es kostenlos';
+  String get premiumTryFree => 'Kostenlos testen';
 
   @override
-  String get premiumBuy => 'Get Premium';
+  String get premiumBuy => 'Premium buchen';
 
   @override
-  String get premiumRedeemCode => 'Get-Angebotscode';
+  String get premiumRedeemCode => 'Angebotscode einlösen';
 
   @override
   String get premiumBuyDiscount => 'Kaufen zum Angebotspreis';

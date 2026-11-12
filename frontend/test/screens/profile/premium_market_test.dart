@@ -119,7 +119,11 @@ class _Billing extends BillingService {
             id: kPoints10ProductId,
             title: '10 points',
             description: '',
-            price: currency == 'PLN' ? '8,99 zł' : '£1.99',
+            price: switch (currency) {
+              'PLN' => '8,99 zł',
+              'EUR' => '1,99 €',
+              _ => '£1.99',
+            },
             rawPrice: currency == 'PLN' ? 8.99 : 1.99,
             currencyCode: currency,
           ),
@@ -166,6 +170,7 @@ Future<void> open(
   WidgetTester tester,
   _Billing billing, {
   bool english = true,
+  Locale? locale,
   bool narrow = false,
   Size? viewport,
   double? textScale,
@@ -183,7 +188,13 @@ Future<void> open(
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
-  billing.currency = english ? 'GBP' : 'PLN';
+  final testLocale =
+      locale ?? (english ? const Locale('en', 'GB') : const Locale('pl', 'PL'));
+  billing.currency = switch (testLocale.countryCode) {
+    'DE' => 'EUR',
+    'PL' => 'PLN',
+    _ => 'GBP',
+  };
   final auth = AuthProvider(readToken: () async => null);
   addTearDown(auth.dispose);
   AppTheme.setDark(dark);
@@ -223,7 +234,7 @@ Future<void> open(
       value: auth,
       child: MaterialApp(
         theme: theme,
-        locale: english ? const Locale('en', 'GB') : const Locale('pl', 'PL'),
+        locale: testLocale,
         supportedLocales: AppLocalizations.supportedLocales,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         builder:
@@ -268,6 +279,62 @@ void main() {
     await loadProductFormFonts();
   });
   setUp(() => SharedPreferences.setMockInitialValues({}));
+
+  for (final hasTrial in [false, true]) {
+    testWidgets('German monthly checkout with store trial=$hasTrial', (
+      tester,
+    ) async {
+      final regular = fixtures.android(
+        trial: 0,
+        currency: 'EUR',
+        priceLabel: '4,99 €',
+      );
+      final trial = fixtures.android(currency: 'EUR', priceLabel: '4,99 €');
+      final billing =
+          _Billing()
+            ..checkNativeOfferDetails = true
+            ..pendingCatalogue = Future.value(
+              ProductDetailsResponse(
+                productDetails: [regular, if (hasTrial) trial],
+                notFoundIDs: [],
+              ),
+            );
+
+      await open(tester, billing, locale: const Locale('de', 'DE'));
+      expect(
+        find.text('7 TAGE KOSTENLOS*'),
+        hasTrial ? findsOneWidget : findsNothing,
+      );
+      await pricing(tester, 'Monatlich');
+      expect(
+        find.text(hasTrial ? 'Danach 4,99 € pro Monat' : '4,99 €'),
+        findsOneWidget,
+      );
+      final purchase = find.text(
+        hasTrial ? 'Kostenlos testen' : 'Premium buchen',
+      );
+      await tester.scrollUntilVisible(purchase, 250, maxScrolls: 8);
+      await tester.tap(purchase.hitTestable());
+      await tester.pump();
+      expect(
+        billing.lastSubscriptionPurchase,
+        same(hasTrial ? trial : regular),
+      );
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('German points display and buy the EUR pack', (tester) async {
+    final billing = _Billing()..includePoints = true;
+    await open(tester, billing, locale: const Locale('de', 'DE'));
+    final pack = find.text('1,99 €');
+    await tester.scrollUntilVisible(pack, 350, maxScrolls: 20);
+    await tester.tap(pack.hitTestable());
+    await tester.pump();
+    expect(billing.purchasedPointsId, kPoints10ProductId);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('a stalled catalogue can be retried from a recipe offer', (
     tester,
   ) async {
