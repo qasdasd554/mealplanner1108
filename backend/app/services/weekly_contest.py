@@ -114,14 +114,20 @@ async def process_weekly_contest_payout(db: AsyncSession) -> WeeklyContestPayout
             f"Last week's winners: {winner_names_en} — congratulations! "
             "Share your recipes and enjoy this week's contest."
         )
+        winner_names_de = ", ".join(name or "Teilnehmende Person" for _, name, _ in winners)
+        german_message = (
+            "Eine neue Runde des Rezeptwettbewerbs hat begonnen! "
+            f"Gewonnen haben letzte Woche: {winner_names_de}. Herzlichen Glückwunsch!"
+        )
     else:
+        german_message = "Eine neue Runde des Rezeptwettbewerbs hat begonnen! Reiche dein Rezept ein und sichere dir einen Platz auf dem Siegertreppchen."
         message = "Nowy tydzień konkursu przepisów właśnie się zaczął! Dodaj przepis i zawalcz o podium."
         english_message = "A new week of the recipe contest has started! Share a recipe and compete for a place on the podium."
 
     all_users = await db.execute(select(User.id, User.country_code))
     for recipient_id, country in all_users.all():
         db.add(Notification(user_id=recipient_id, notification_type="weekly_contest",
-            message=country_text(country, message, english_message)))
+            message=country_text(country, message, english_message, german=german_message)))
 
     await db.commit()
     return payout

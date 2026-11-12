@@ -132,7 +132,7 @@ void main() {
       expect(find.text('01/07/2026 – 10/07/2026'), findsOneWidget);
     },
   );
-  for (final market in ['PL', 'GB']) {
+  for (final market in ['PL', 'GB', 'DE']) {
     testWidgets('list and disable stay in selected $market market', (
       tester,
     ) async {

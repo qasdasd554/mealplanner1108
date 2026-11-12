@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../services/api_client.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
+import '../../utils/market_money.dart';
 import '../../l10n/market_locale.dart';
 import '../../l10n/catalog_labels.dart';
 
@@ -197,7 +198,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
                             [
                               if ((p['brand'] as String?)?.isNotEmpty ?? false)
                                 p['brand'],
-                              '${p['submitted_price'] ?? '—'} ${widget.market == 'GB' ? 'GBP' : 'zł'}',
+                              '${p['submitted_price'] ?? '—'} ${widget.market == 'PL' ? 'zł' : currencyForAccountCountry(widget.market)}',
                               context.strings.unitLabel(
                                 p['unit'] as String? ?? '',
                               ),

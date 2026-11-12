@@ -37,10 +37,11 @@ class PantryItemResponse(BaseModel):
 
 
 def _pantry_item_for_account(item, user):
-    if account_country(user) != "GB":
+    country = account_country(user)
+    if country == "PL":
         return item
     from app.services.product_market_presentation import product_for_market
-    projected = product_for_market(item.product, country_code=account_country(user))
+    projected = product_for_market(item.product, country_code=country)
     if projected is item.product:
         return item
     return PantryItemResponse.model_validate(item).model_copy(update={"product": projected})

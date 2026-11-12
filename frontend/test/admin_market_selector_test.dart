@@ -49,6 +49,11 @@ void main() {
     await tester.tap(find.text('Wielka Brytania').last);
     await tester.pumpAndSettle();
     expect(chosen, 'GB');
+    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Niemcy').last);
+    await tester.pumpAndSettle();
+    expect(chosen, 'DE');
     expect(tester.takeException(), isNull);
   });
 

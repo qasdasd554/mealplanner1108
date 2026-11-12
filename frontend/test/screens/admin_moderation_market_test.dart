@@ -137,7 +137,7 @@ void main() {
     );
   }
   for (final english in [false, true]) {
-    for (final market in ['PL', 'GB']) {
+    for (final market in ['PL', 'GB', 'DE']) {
       testWidgets(
         'product actions follow account language, not market $market/$english',
         (tester) async {
@@ -153,6 +153,9 @@ void main() {
             findsOneWidget,
           );
           expect(find.text('Original product test'), findsOneWidget);
+          if (market == 'DE') {
+            expect(find.textContaining('1.99 EUR'), findsOneWidget);
+          }
           final approve = find.text(english ? 'Approve' : 'Akceptuj');
           expect(approve.hitTestable(), findsOneWidget);
           await tester.tap(approve);

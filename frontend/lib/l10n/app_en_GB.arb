@@ -2968,6 +2968,7 @@
   "adminMainAiKeyMissing": "The API key is not configured.",
   "adminMainScanTitle": "Scan promotional leaflets",
   "adminMainScanHelp": "AI searches online for the shop’s current leaflet and recognises its promotions. Results go to the approval queue below — nothing changes automatically.",
+  "adminMainDeScanUnavailable": "Scanning offers for German shops is currently unavailable.",
   "adminMainUkScanUnavailable": "UK promotion sources are being prepared. The Polish leaflet scanner does not create GBP promotions.",
   "adminMainScanShop": "Scan {store}",
   "adminMainScanningShop": "Scanning {store} is continuing in the background. You can leave this panel.",
@@ -2984,6 +2985,7 @@
   "campaignConfirm": "Confirm",
   "campaignDeleteTitle": "Delete campaign?",
   "campaignDeleteBody": "Campaign “{name}” will be removed from this panel. You must disable the store offer separately.",
+  "campaignMarketDe": "Market: Germany • EUR • Europe/Berlin",
   "campaignMarketGb": "Market: United Kingdom • GBP • Europe/London",
   "campaignMarketPl": "Market: Poland • PLN • Europe/Warsaw",
   "campaignHeading": "Premium and points promotion",
@@ -3015,6 +3017,7 @@
   "adminMarketBusy": "Wait for the current operation to finish.",
   "adminMarketHelp": "Changes the data view, not your account’s country.",
   "adminMarketPl": "Poland",
+  "adminMarketDe": "Germany",
   "adminMarketGb": "United Kingdom",
   "@adminMainBroadcastSent": {
     "placeholders": {

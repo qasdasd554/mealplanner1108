@@ -1670,7 +1670,8 @@ async def update_own_product(
     zatwierdzony — inaczej użytkownik mógłby podmienić dane zatwierdzonego
     produktu (np. na coś nieodpowiedniego) bez ponownej moderacji.
     """
-    product = await db.get(Product, product_id)
+    country = account_country(current_user)
+    product = await db.get(Product, product_id, with_for_update=country == "DE")
     if product is None:
         raise HTTPException(status_code=404, detail=account_text(current_user, "Nie znaleziono produktu", "Product not found."))
     if product.created_by_user_id != current_user.id:
@@ -1742,6 +1743,10 @@ async def update_own_product(
 
     db.add(product)
     try:
+        if country == "DE":
+            from app.services.de_submission_prices import sync_german_submission_prices
+
+            await sync_german_submission_prices(db, product)
         if was_recipe_placeholder:
             from app.services.recipe_ingredient_catalogue import refresh_incomplete_recipes_for_product
             await refresh_incomplete_recipes_for_product(db, product.id)
@@ -1808,14 +1813,18 @@ async def review_product(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_admin),
 ) -> None:
-    product = await db.get(Product, product_id)
+    product = await db.get(Product, product_id, with_for_update=True)
     if product is None:
         raise HTTPException(status_code=404, detail=account_text(current_user, "Nie znaleziono produktu", "Product not found."))
 
     product.review_status = "approved" if approve else "rejected"
     db.add(product)
-    # Samą decyzję zapisujemy przed operacjami dodatkowymi. Błędny sklep
-    # lub awaria powiadomienia nie może cofnąć akceptacji.
+    is_german_submission = getattr(product, "submitted_country_code", None) == "DE"
+    if is_german_submission:
+        from app.services.de_submission_prices import sync_german_submission_prices
+
+        await sync_german_submission_prices(db, product)
+    # Powiadomienie wysyłamy po zapisaniu decyzji.
     await db.commit()
 
     # Przy akceptacji: każdy sklep zaproponowany przez zgłaszającego
@@ -1825,7 +1834,7 @@ async def review_product(
     # jakiś wpis dla tego produktu (ograniczenie unikalności store+product
     # i tak by to odrzuciło, ale sprawdzamy jawnie, żeby dać się temu
     # wykonać bezpiecznie również przy PONOWNEJ akceptacji po edycji).
-    if (approve and isinstance(product.requested_store_ids, list)
+    if (approve and not is_german_submission and isinstance(product.requested_store_ids, list)
             and product.submitted_price is not None
             and product.submitted_price > 0):
         from app.models.product import StoreProduct
@@ -1893,6 +1902,8 @@ async def review_product(
                     + ("dodany do katalogu." if approve else "odrzucony."),
                     f'Your product "{product.name}" has been '
                     + ("added to the catalogue." if approve else "rejected."),
+                    german=f'Dein Produkt „{product.name}“ wurde '
+                    + ("zum Katalog hinzugefügt." if approve else "abgelehnt."),
                 ),
             )
             db.add(n)

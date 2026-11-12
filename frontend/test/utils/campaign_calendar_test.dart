@@ -4,7 +4,7 @@ import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
 void main() {
-  for (final country in ['PL', 'GB']) {
+  for (final country in ['PL', 'GB', 'DE']) {
     for (final day in [
       DateTime(2026, 1, 14),
       DateTime(2026, 7, 1),
@@ -42,7 +42,7 @@ void main() {
     expect(campaignBoundaryUtc(day, 'GB'), DateTime.utc(2026, 10, 20, 23));
     expect(campaignBoundaryUtc(day, 'PL'), DateTime.utc(2026, 10, 20, 22));
   });
-  for (final country in ['PL', 'GB']) {
+  for (final country in ['PL', 'GB', 'DE']) {
     for (final entry in [(3, 29, 23), (10, 25, 25)]) {
       test('$country keeps the whole calendar day across DST $entry', () {
         final day = DateTime(2026, entry.$1, entry.$2);

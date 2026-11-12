@@ -108,6 +108,7 @@ async def verify_purchase(
             current_user.id,
             "Premium aktywne! Masz teraz dostęp do wszystkich funkcji aplikacji.",
             english_message="Premium is active! You now have access to all app features.",
+            german_message="Premium ist aktiv! Dir stehen jetzt alle Funktionen der App zur Verfügung.",
         )
     return current_user
 
@@ -253,6 +254,7 @@ async def verify_points_purchase(
             db, user_id,
             f"Doładowano {points_to_add} punktów premium. Masz ich teraz {current_user.premium_points}.",
             english_message=f"Added {points_to_add} Premium points. Your balance is now {current_user.premium_points}.",
+            german_message=f"Dir wurden {points_to_add} Premium-Punkte gutgeschrieben. Dein Punktestand: {current_user.premium_points}.",
         )
 
     try:
@@ -271,7 +273,10 @@ async def verify_points_purchase(
     await db.refresh(current_user)
     return VerifyPointsPurchaseResponse(premium_points=current_user.premium_points)
 
-async def _notify(db, user_id, message: str, ntype: str = "billing", *, english_message: str | None = None) -> None:
+async def _notify(
+    db, user_id, message: str, ntype: str = "billing", *,
+    english_message: str | None = None, german_message: str | None = None,
+) -> None:
     """Tworzy powiadomienie i (jeśli włączony) wysyła push.
 
     Wydzielone, bo billing przyznaje premium i punkty w kilku miejscach,
@@ -284,7 +289,7 @@ async def _notify(db, user_id, message: str, ntype: str = "billing", *, english_
         from app.services.notification_language import recipient_text
 
         if english_message is not None:
-            message = await recipient_text(db, user_id, message, english_message)
+            message = await recipient_text(db, user_id, message, english_message, german=german_message)
         n = Notification(user_id=user_id, notification_type=ntype, message=message)
         db.add(n)
         await db.commit()

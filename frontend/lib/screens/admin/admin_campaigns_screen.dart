@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../services/account_market.dart';
 import '../../services/api_client.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
@@ -23,7 +24,7 @@ class _AdminCampaignsScreenState extends State<AdminCampaignsScreen> {
   int _marketEpoch = 0;
   final _busyIds = <String>{};
 
-  String get _market => widget.market == 'GB' ? 'GB' : 'PL';
+  String get _market => normalizeAccountCountry(widget.market);
   String _path(String suffix, {String? query}) =>
       '/purchase-campaigns/admin$suffix?market=$_market${query == null ? '' : '&$query'}';
   final _name = TextEditingController();
@@ -296,9 +297,11 @@ class _AdminCampaignsScreenState extends State<AdminCampaignsScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           Text(
-            _market == 'GB'
-                ? context.strings.campaignMarketGb
-                : context.strings.campaignMarketPl,
+            switch (_market) {
+              'DE' => context.strings.campaignMarketDe,
+              'GB' => context.strings.campaignMarketGb,
+              _ => context.strings.campaignMarketPl,
+            },
           ),
           const SizedBox(height: 8),
           Text(

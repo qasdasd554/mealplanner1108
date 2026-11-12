@@ -11,7 +11,7 @@ import pytest
 from fastapi import HTTPException
 from sqlalchemy import select
 
-from app.api.v1 import recipes, shopping_lists, stores
+from app.api.v1 import pantry, products, recipes, shopping_lists, stores
 from app.api.v1.price_compare import compare_prices, compare_shopping_list_prices
 from app.core.config import settings
 from app.core.exceptions import NotFoundException
@@ -29,6 +29,85 @@ from app.services.polish_list_prices import quote_polish_list
 from app.services.shopping_list_builder import ShoppingListBuilder
 from app.services.system_content_language import _index
 from tests.test_regional_shopping import db, loaded, make_plan, run
+
+
+def test_german_approved_submission_prices_the_reported_pack(db):
+    from app.services.product_measures import build_measure_options
+
+    session, adapter, _, _, _ = db
+    user = User(id=uuid4(), email="de-submission@example.test", password_hash="fixture", country_code="DE")
+    session.add(user)
+    run(seed_de_stores(adapter))
+    shop = DE_STORES[0]
+    foreign = UK_STORES[0]
+    food = Product(
+        id=uuid4(), name="Beispiel-Haferflocken", unit="g", default_quantity=Decimal("100"),
+        serving_quantity=500, measure_options=build_measure_options("Beispiel-Haferflocken", "g", 100, 500),
+        created_by_user_id=user.id, review_status="pending", submitted_country_code="DE",
+        submitted_price=Decimal("1.59"), requested_store_ids=[str(shop.id), str(foreign.id)],
+    )
+    session.add(food)
+    session.commit()
+    admin = SimpleNamespace(id=uuid4(), country_code="PL", role="admin")
+
+    def review(approve):
+        run(products.review_product(food.id, approve, db=adapter, current_user=admin))
+
+    review(True)
+    review(True)
+    offer = session.scalars(select(StoreProduct).where(StoreProduct.product_id == food.id)).one()
+    assert (offer.store_id, offer.package_quantity, offer.package_unit) == (shop.id, Decimal("500"), "g")
+    assert offer.last_verified is None
+    rows = run(stores.list_store_products(
+        shop.id, skip=0, limit=20, search=food.name, department_id=None,
+        include_generic_foods=False, db=adapter, current_user=user,
+    ))
+    assert len(rows) == 1
+    assert (rows[0].price, rows[0].currency_code) == (1.59, "EUR")
+
+    item = SimpleNamespace(
+        store_product=None, catalogue_product_id=food.id, custom_name=food.name,
+        required_quantity=Decimal("650"), unit="g",
+        regional_snapshot=None, is_checked=False, is_from_pantry=False,
+    )
+    quote = run(quote_polish_list(adapter, SimpleNamespace(items=[item]), [session.get(Store, shop.id)]))
+    assert quote[shop.id][0][2]["price_in_store"] == 3.18
+
+    changed = products.ProductSubmission(
+        name=food.name, price=Decimal("2.19"), unit="g",
+        store_ids=[shop.id], serving_quantity=400, serving_unit="g",
+    )
+    run(products.update_own_product(food.id, changed, db=adapter, current_user=user))
+    assert not offer.is_available
+    assert run(stores.list_store_products(
+        shop.id, skip=0, limit=20, search=food.name, department_id=None,
+        include_generic_foods=False, db=adapter, current_user=user,
+    )) == []
+    review(True)
+    assert offer.is_available
+    assert (offer.price, offer.package_quantity) == (Decimal("2.19"), Decimal("400"))
+    review(False)
+    assert not offer.is_available
+
+
+def test_german_pantry_projects_the_same_generic_food_as_the_catalogue(db):
+    from app.db.seed import _uid
+
+    session, adapter, _, _, _ = db
+    user = User(id=uuid4(), email="de-pantry@example.test", password_hash="fixture", country_code="DE")
+    food = Product(
+        id=_uid("product:Jabłka"), name="Jabłka", unit="szt",
+        brand="PL sample brand", default_quantity=Decimal("1"), serving_quantity=150,
+    )
+    session.add_all([user, food])
+    session.add(PantryItem(id=uuid4(), user_id=user.id, product_id=food.id, quantity=2, unit="szt"))
+    session.commit()
+
+    [row] = run(pantry.get_pantry(current_user=user, db=adapter))
+    assert row.product.name == "Äpfel"
+    assert row.product.brand is None
+    assert row.product.serving_quantity is None
+    assert (row.quantity, row.unit) == (2, "szt")
 
 
 def test_german_registration_requires_explicit_rollout(monkeypatch):

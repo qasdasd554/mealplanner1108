@@ -5067,6 +5067,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'AI searches online for the shop’s current leaflet and recognises its promotions. Results go to the approval queue below — nothing changes automatically.';
 
   @override
+  String get adminMainDeScanUnavailable =>
+      'Scanning offers for German shops is currently unavailable.';
+
+  @override
   String get adminMainUkScanUnavailable =>
       'UK promotion sources are being prepared. The Polish leaflet scanner does not create GBP promotions.';
 
@@ -5124,6 +5128,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String campaignDeleteBody(String name) {
     return 'Campaign “$name” will be removed from this panel. You must disable the store offer separately.';
   }
+
+  @override
+  String get campaignMarketDe => 'Market: Germany • EUR • Europe/Berlin';
 
   @override
   String get campaignMarketGb => 'Market: United Kingdom • GBP • Europe/London';
@@ -5222,6 +5229,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminMarketPl => 'Poland';
+
+  @override
+  String get adminMarketDe => 'Germany';
 
   @override
   String get adminMarketGb => 'United Kingdom';
@@ -10426,6 +10436,10 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
       'AI searches online for the shop’s current leaflet and recognises its promotions. Results go to the approval queue below — nothing changes automatically.';
 
   @override
+  String get adminMainDeScanUnavailable =>
+      'Scanning offers for German shops is currently unavailable.';
+
+  @override
   String get adminMainUkScanUnavailable =>
       'UK promotion sources are being prepared. The Polish leaflet scanner does not create GBP promotions.';
 
@@ -10483,6 +10497,9 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
   String campaignDeleteBody(String name) {
     return 'Campaign “$name” will be removed from this panel. You must disable the store offer separately.';
   }
+
+  @override
+  String get campaignMarketDe => 'Market: Germany • EUR • Europe/Berlin';
 
   @override
   String get campaignMarketGb => 'Market: United Kingdom • GBP • Europe/London';
@@ -10581,6 +10598,9 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get adminMarketPl => 'Poland';
+
+  @override
+  String get adminMarketDe => 'Germany';
 
   @override
   String get adminMarketGb => 'United Kingdom';

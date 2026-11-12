@@ -4,6 +4,7 @@ import 'package:timezone/timezone.dart' as tz;
 tz.Location _campaignZone(String countryCode) {
   final zoneName = switch (countryCode) {
     'GB' => 'Europe/London',
+    'DE' => 'Europe/Berlin',
     'PL' => 'Europe/Warsaw',
     _ => throw ArgumentError.value(countryCode, 'countryCode'),
   };

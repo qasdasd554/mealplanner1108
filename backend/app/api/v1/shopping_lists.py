@@ -1242,6 +1242,8 @@ async def share_shopping_list(
             "Otwórz Zakupy → Zaproszenia, żeby ją przyjąć.",
             f"{current_user.display_name or 'Someone'} shared a shopping list with you. "
             "Open Shopping → Invitations to accept it.",
+            german=f"{current_user.display_name or 'Jemand'} hat eine Einkaufsliste mit dir geteilt. "
+            "Unter Einkaufen → Einladungen kannst du sie annehmen.",
         ),
     )
     db.add(notification)
@@ -1376,6 +1378,7 @@ async def accept_share(
             f"{current_user.display_name or 'Ktoś'} przyjął(-ęła) Twoje "
             "zaproszenie do listy zakupów.",
             f"{current_user.display_name or 'Someone'} accepted your shopping list invitation.",
+            german=f"{current_user.display_name or 'Jemand'} hat deine Einladung zur Einkaufsliste angenommen.",
         ),
     )
     db.add(accept_notification)

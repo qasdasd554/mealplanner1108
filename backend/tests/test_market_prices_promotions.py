@@ -138,6 +138,18 @@ def test_existing_polish_promotions_are_not_returned_to_uk_user(market_price_db)
     assert asyncio.run(promotions.list_promotions(store_name=None, search=None, db=db, current_user=pl)) == [row]
 
 
+@pytest.mark.parametrize("market", ["GB", "DE"])
+def test_pending_polish_promotions_are_isolated_from_other_admin_markets(market_price_db, market):
+    row = _promotion(market_price_db)
+    db = Database(market_price_db)
+    admin = SimpleNamespace(country_code="PL", role="admin")
+    assert asyncio.run(promotions.list_pending_promotions(current_user=admin, db=db, market=market)) == []
+    regional_admin = SimpleNamespace(country_code=market, role="admin")
+    assert asyncio.run(promotions.list_pending_promotions(current_user=regional_admin, db=db)) == []
+    assert db.statements == []
+    assert asyncio.run(promotions.list_pending_promotions(current_user=admin, db=db, market="PL")) == [row]
+
+
 def test_approval_targets_polish_lidl_without_duplicate_store_exception(market_price_db):
     _, pl_price, gb_price = _stores_prices(market_price_db)
     row = _promotion(market_price_db)

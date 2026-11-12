@@ -29,25 +29,27 @@ def no_external_push(monkeypatch):
 @pytest.mark.asyncio
 @pytest.mark.parametrize("preview", ["Hello", "", "X" * 100])
 async def test_comment_fanout_localises_each_recipient_not_the_author(monkeypatch, preview):
-    polish, english = _user("PL"), _user("GB")
+    polish, english, german = _user("PL"), _user("GB"), _user("DE")
     actor = _user("PL", None)
     recipe = SimpleNamespace(id=uuid4(), name="Original dish", created_by_user_id=english.id)
     result = MagicMock()
     result.scalars.return_value.all.return_value = []
     db = _database(execute=lambda query: result)
-    monkeypatch.setattr(recipe_comments, "_notification_recipients", AsyncMock(return_value=[polish, english]))
+    monkeypatch.setattr(recipe_comments, "_notification_recipients", AsyncMock(return_value=[polish, english, german]))
     send = AsyncMock()
     monkeypatch.setattr(recipe_comments, "_send_pushes", send)
     comment = SimpleNamespace(id=uuid4(), text=preview)
     await recipe_comments._notify_thread_participants(db, recipe, comment, actor)
     notices = [call.args[0] for call in db.add.call_args_list]
-    assert len(notices) == 2
+    assert len(notices) == 3
     pl_preview = preview[:80] + "…" if len(preview) > 80 else preview or "dodał(a) zdjęcie"
     en_preview = preview[:80] + "…" if len(preview) > 80 else preview or "added a photo"
     assert notices[0].message == f'Ktoś skomentował(a) "Original dish": {pl_preview}'
     assert notices[1].message == f'Someone commented on "Original dish": {en_preview}'
+    de_preview = preview[:80] + "…" if len(preview) > 80 else preview or "Foto hinzugefügt"
+    assert notices[2].message == f'Jemand hat „Original dish“ kommentiert: {de_preview}'
     assert [(n.user_id, n.recipe_id, n.comment_id, n.notification_type) for n in notices] == [
-        (user.id, recipe.id, comment.id, "recipe_comment") for user in (polish, english)]
+        (user.id, recipe.id, comment.id, "recipe_comment") for user in (polish, english, german)]
     db.commit.assert_awaited_once()
     send.assert_awaited_once_with(db, notices)
 
@@ -74,20 +76,21 @@ async def test_comment_like_uses_comment_owner_country(monkeypatch, country):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("country", ["PL", "GB"])
+@pytest.mark.parametrize("country", ["PL", "GB", "DE"])
 @pytest.mark.parametrize("approved", [True, False])
 async def test_product_review_uses_submitter_not_admin_market(country, approved):
     recipient = _user(country)
     product = SimpleNamespace(id=uuid4(), review_status="pending", requested_store_ids=None,
         submitted_price=None, created_by_user_id=recipient.id, name="Original product")
-    db = _database(get=lambda model, key: product if model is Product else recipient)
+    db = _database(get=lambda model, key, **kwargs: product if model is Product else recipient)
     await products.review_product(product.id, approve=approved, db=db,
         current_user=_user("GB" if country == "PL" else "PL"))
     notice = db.add.call_args_list[-1].args[0]
     assert notice.user_id == recipient.id and notice.notification_type == "product_reviewed"
     assert notice.message == (
         'Your product "Original product" has been ' + ("added to the catalogue." if approved else "rejected.")
-        if country == "GB" else 'Twój produkt "Original product" został ' + ("dodany do katalogu." if approved else "odrzucony."))
+        if country == "GB" else 'Dein Produkt „Original product“ wurde ' + ("zum Katalog hinzugefügt." if approved else "abgelehnt.")
+        if country == "DE" else 'Twój produkt "Original product" został ' + ("dodany do katalogu." if approved else "odrzucony."))
     assert product.review_status == ("approved" if approved else "rejected")
 
 
@@ -154,19 +157,19 @@ async def test_admin_fanout_uses_each_admin_country_in_one_lookup():
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("country", ["PL", "GB"])
+@pytest.mark.parametrize("country", ["PL", "GB", "DE"])
 async def test_billing_notification_translates_copy_without_touching_purchase_state(country):
     recipient = _user(country)
     db = _database(get=lambda model, key: recipient)
-    await billing._notify(db, recipient.id, "Polskie potwierdzenie", english_message="English confirmation")
+    await billing._notify(db, recipient.id, "Polskie potwierdzenie", english_message="English confirmation", german_message="Deutsche Bestätigung")
     notice = db.add.call_args.args[0]
     assert notice.user_id == recipient.id and notice.notification_type == "billing"
-    assert notice.message == ("English confirmation" if country == "GB" else "Polskie potwierdzenie")
+    assert notice.message == {"PL": "Polskie potwierdzenie", "GB": "English confirmation", "DE": "Deutsche Bestätigung"}[country]
     db.commit.assert_awaited_once()
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("country", ["PL", "GB"])
+@pytest.mark.parametrize("country", ["PL", "GB", "DE"])
 async def test_share_acceptance_uses_original_sender_country(country):
     sender = _user(country)
     receiver = _user("GB" if country == "PL" else "PL", "Alex")
@@ -180,11 +183,12 @@ async def test_share_acceptance_uses_original_sender_country(country):
     assert response.status == "accepted"
     assert notice.user_id == sender.id and notice.notification_type == "shopping_list_accepted"
     assert notice.message == ("Alex accepted your shopping list invitation." if country == "GB"
+        else "Alex hat deine Einladung zur Einkaufsliste angenommen." if country == "DE"
         else "Alex przyjął(-ęła) Twoje zaproszenie do listy zakupów.")
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("country", ["PL", "GB"])
+@pytest.mark.parametrize("country", ["PL", "GB", "DE"])
 async def test_new_share_uses_target_country_and_keeps_duplicate_noop(monkeypatch, country):
     recipient = _user(country)
     recipient.email = "recipient@example.invalid"
@@ -208,6 +212,7 @@ async def test_new_share_uses_target_country_and_keeps_duplicate_noop(monkeypatc
     assert response.status == "pending" and response.meal_plan_id == plan.id
     assert notice.user_id == recipient.id and notice.notification_type == "shopping_list_share"
     assert notice.message == ("Alex shared a shopping list with you. Open Shopping → Invitations to accept it." if country == "GB"
+        else "Alex hat eine Einkaufsliste mit dir geteilt. Unter Einkaufen → Einladungen kannst du sie annehmen." if country == "DE"
         else "Alex udostępnił(a) Ci listę zakupów. Otwórz Zakupy → Zaproszenia, żeby ją przyjąć.")
     existing = MagicMock()
     existing.scalar_one_or_none.return_value = SimpleNamespace(id=response.id,

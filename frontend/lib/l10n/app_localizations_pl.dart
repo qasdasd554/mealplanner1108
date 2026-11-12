@@ -5055,6 +5055,10 @@ class AppLocalizationsPl extends AppLocalizations {
       'AI przeszuka internet w poszukiwaniu aktualnej gazetki danego sklepu i rozpozna z niej promocje. Wynik trafi poniżej do akceptacji — nic nie zmienia się automatycznie.';
 
   @override
+  String get adminMainDeScanUnavailable =>
+      'Skanowanie promocji dla niemieckich sklepów jest jeszcze niedostępne.';
+
+  @override
   String get adminMainUkScanUnavailable =>
       'Brytyjskie źródła promocji są w przygotowaniu. Skaner polskich gazetek nie tworzy promocji w GBP.';
 
@@ -5113,6 +5117,9 @@ class AppLocalizationsPl extends AppLocalizations {
   String campaignDeleteBody(String name) {
     return 'Kampania „$name” zniknie z panelu. Ofertę w sklepie trzeba wyłączyć osobno.';
   }
+
+  @override
+  String get campaignMarketDe => 'Rynek: Niemcy • EUR • Europe/Berlin';
 
   @override
   String get campaignMarketGb => 'Rynek: Wielka Brytania • GBP • Europe/London';
@@ -5210,6 +5217,9 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get adminMarketPl => 'Polska';
+
+  @override
+  String get adminMarketDe => 'Niemcy';
 
   @override
   String get adminMarketGb => 'Wielka Brytania';

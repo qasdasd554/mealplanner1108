@@ -3063,6 +3063,7 @@
   "adminMainAiKeyMissing": "Klucz API nie jest skonfigurowany.",
   "adminMainScanTitle": "Skanuj gazetki promocyjne",
   "adminMainScanHelp": "AI przeszuka internet w poszukiwaniu aktualnej gazetki danego sklepu i rozpozna z niej promocje. Wynik trafi poniżej do akceptacji — nic nie zmienia się automatycznie.",
+  "adminMainDeScanUnavailable": "Skanowanie promocji dla niemieckich sklepów jest jeszcze niedostępne.",
   "adminMainUkScanUnavailable": "Brytyjskie źródła promocji są w przygotowaniu. Skaner polskich gazetek nie tworzy promocji w GBP.",
   "adminMainScanShop": "Skanuj {store}",
   "adminMainScanningShop": "Skanowanie {store} trwa w tle. Możesz opuścić panel.",
@@ -3079,6 +3080,7 @@
   "campaignConfirm": "Potwierdzam",
   "campaignDeleteTitle": "Usunąć kampanię?",
   "campaignDeleteBody": "Kampania „{name}” zniknie z panelu. Ofertę w sklepie trzeba wyłączyć osobno.",
+  "campaignMarketDe": "Rynek: Niemcy • EUR • Europe/Berlin",
   "campaignMarketGb": "Rynek: Wielka Brytania • GBP • Europe/London",
   "campaignMarketPl": "Rynek: Polska • PLN • Europe/Warsaw",
   "campaignHeading": "Promocja Premium i punktów",
@@ -3110,6 +3112,7 @@
   "adminMarketBusy": "Poczekaj na zakończenie bieżącej operacji.",
   "adminMarketHelp": "Zmienia widok danych, nie kraj Twojego konta.",
   "adminMarketPl": "Polska",
+  "adminMarketDe": "Niemcy",
   "adminMarketGb": "Wielka Brytania",
   "@adminMainBroadcastSent": {
     "placeholders": {

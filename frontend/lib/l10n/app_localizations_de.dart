@@ -5149,6 +5149,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'KI sucht online nach dem aktuellen Merkblatt des Shops und erkennt dessen Promotions. Die Ergebnisse gehen in die unten stehende Genehmigungswarteschlange – nichts ändert sich automatisch.';
 
   @override
+  String get adminMainDeScanUnavailable =>
+      'Angebote deutscher Supermärkte können derzeit noch nicht gescannt werden.';
+
+  @override
   String get adminMainUkScanUnavailable =>
       'Die britischen Werbequellen werden derzeit vorbereitet, der polnische Flugblattscanner erstellt keine Werbeaktionen im GBP-Bereich.';
 
@@ -5207,6 +5211,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String campaignDeleteBody(String name) {
     return 'Die Kampagne „$name wird aus diesem Panel entfernt. Sie müssen das Shopangebot separat deaktivieren.';
   }
+
+  @override
+  String get campaignMarketDe => 'Markt: Deutschland • EUR • Europe/Berlin';
 
   @override
   String get campaignMarketGb =>
@@ -5307,6 +5314,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get adminMarketPl => 'Polen';
+
+  @override
+  String get adminMarketDe => 'Deutschland';
 
   @override
   String get adminMarketGb => 'Vereinigtes Königreich';

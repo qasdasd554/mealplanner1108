@@ -169,6 +169,7 @@ async def _notify_thread_participants(
             message=notification_text(recipient,
                 f'{author.display_name or "Ktoś"} skomentował(a) "{recipe.name}": {preview or "dodał(a) zdjęcie"}',
                 f'{author.display_name or "Someone"} commented on "{recipe.name}": {preview or "added a photo"}',
+                german=f'{author.display_name or "Jemand"} hat „{recipe.name}“ kommentiert: {preview or "Foto hinzugefügt"}',
             ),
             recipe_id=recipe.id,
             comment_id=new_comment.id,
@@ -356,6 +357,7 @@ async def like_recipe_comment(
                 notification_text(recipients[0],
                     f"{current_user.display_name or 'Ktoś'} polubił(a) Twój komentarz.",
                     f"{current_user.display_name or 'Someone'} liked your comment.",
+                    german=f"{current_user.display_name or 'Jemand'} gefällt dein Kommentar.",
                 )
             ),
             recipe_id=recipe_id,

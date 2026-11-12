@@ -1077,7 +1077,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
               style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
             ),
             const SizedBox(height: 16),
-            if (_market == 'GB')
+            if (_market == 'DE')
+              Text(context.strings.adminMainDeScanUnavailable)
+            else if (_market == 'GB')
               Text(context.strings.adminMainUkScanUnavailable)
             else
               Wrap(
@@ -1107,7 +1109,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                       );
                     }).toList(),
               ),
-            if (_scanningStore != null) ...[
+            if (_market == 'PL' && _scanningStore != null) ...[
               const SizedBox(height: 8),
               Text(
                 context.strings.adminMainScanningShop(_scanningStore!),

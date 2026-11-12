@@ -422,9 +422,8 @@ async def list_pending_promotions(
 ):
     """Zwraca wszystkie promocje znalezione przez AI, które jeszcze nie
     zostały zaakceptowane ani odrzucone."""
-    # The current flyer pipeline only produces Polish offers. Do not re-label
-    # pending PLN offers as UK data in the administrator's selected context.
-    if market == "GB":
+    # The existing flyer pipeline only produces Polish offers.
+    if (market or account_country(current_user)) != "PL":
         return []
     result = await db.execute(
         select(Promotion)

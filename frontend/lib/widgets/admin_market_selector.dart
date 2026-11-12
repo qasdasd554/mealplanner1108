@@ -41,6 +41,10 @@ class AdminMarketSelector extends StatelessWidget {
           value: 'GB',
           child: Text(context.strings.adminMarketGb, maxLines: 2),
         ),
+        DropdownMenuItem(
+          value: 'DE',
+          child: Text(context.strings.adminMarketDe, maxLines: 2),
+        ),
       ],
       onChanged:
           isBusy

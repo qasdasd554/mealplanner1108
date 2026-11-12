@@ -894,6 +894,7 @@ async def approve_recipe(
                 message=await recipient_text(db, recipe.created_by_user_id,
                     f'Twój przepis "{recipe.name}" został zaakceptowany i jest teraz widoczny dla wszystkich!',
                     f'Your recipe "{recipe.name}" has been approved and is now public!',
+                    german=f'Dein Rezept „{recipe.name}“ wurde freigegeben und ist jetzt öffentlich.',
                 ),
                 recipe_id=recipe.id,
             )
@@ -1942,6 +1943,7 @@ async def approve_recipe_photo(
                 message=await recipient_text(db, submitter_id,
                     f'Twoje zdjęcie do przepisu "{recipe.name}" zostało zaakceptowane.',
                     f'Your photo for recipe "{recipe.name}" has been approved.',
+                    german=f'Dein Foto zum Rezept „{recipe.name}“ wurde freigegeben.',
                 ),
                 recipe_id=recipe.id,
             )
@@ -1982,6 +1984,7 @@ async def reject_recipe_photo(
                 message=await recipient_text(db, submitter_id,
                     f'Twoje zdjęcie do przepisu "{recipe.name}" nie zostało zaakceptowane.',
                     f'Your photo for recipe "{recipe.name}" was not approved.',
+                    german=f'Dein Foto zum Rezept „{recipe.name}“ wurde abgelehnt.',
                 ),
                 recipe_id=recipe.id,
             )

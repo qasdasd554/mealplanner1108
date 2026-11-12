@@ -8844,6 +8844,12 @@ abstract class AppLocalizations {
   /// **'AI przeszuka internet w poszukiwaniu aktualnej gazetki danego sklepu i rozpozna z niej promocje. Wynik trafi poniżej do akceptacji — nic nie zmienia się automatycznie.'**
   String get adminMainScanHelp;
 
+  /// No description provided for @adminMainDeScanUnavailable.
+  ///
+  /// In pl, this message translates to:
+  /// **'Skanowanie promocji dla niemieckich sklepów jest jeszcze niedostępne.'**
+  String get adminMainDeScanUnavailable;
+
   /// No description provided for @adminMainUkScanUnavailable.
   ///
   /// In pl, this message translates to:
@@ -8939,6 +8945,12 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Kampania „{name}” zniknie z panelu. Ofertę w sklepie trzeba wyłączyć osobno.'**
   String campaignDeleteBody(String name);
+
+  /// No description provided for @campaignMarketDe.
+  ///
+  /// In pl, this message translates to:
+  /// **'Rynek: Niemcy • EUR • Europe/Berlin'**
+  String get campaignMarketDe;
 
   /// No description provided for @campaignMarketGb.
   ///
@@ -9125,6 +9137,12 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Polska'**
   String get adminMarketPl;
+
+  /// No description provided for @adminMarketDe.
+  ///
+  /// In pl, this message translates to:
+  /// **'Niemcy'**
+  String get adminMarketDe;
 
   /// No description provided for @adminMarketGb.
   ///
