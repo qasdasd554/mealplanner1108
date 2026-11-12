@@ -262,7 +262,7 @@ async def _scan_and_queue_promotions(store_name: str, db: AsyncSession, *, count
                     timeout=15,
                 )
             except Exception:
-                logger.warning("Promocje ALDI Nord zapisano, ale powiadomienie administratorów nie dotarło.")
+                logger.warning("Promocje %s zapisano, ale powiadomienie administratorów nie dotarło.", store_name)
         return result
 
     from app.services.promo_ai_scanner import PromoAIScanError, find_promotions_for_store

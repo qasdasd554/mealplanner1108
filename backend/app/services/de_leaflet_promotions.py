@@ -12,7 +12,14 @@ from bs4 import BeautifulSoup
 from app.core.market_clock import market_today
 
 ALDI_NORD_LEAFLET_URL = "https://www.aldi-nord.de/angebote.html"
-DE_PROMOTION_STORES = ("ALDI Nord",)
+ALDI_SUED_LEAFLET_URL = (
+    "https://www.aldi-sued.de/produkte/wochenangebote/frischeprodukte-im-angebot/k/1588161427299187"
+)
+DE_LEAFLET_SOURCES = {
+    "ALDI Nord": ("aldi_nord_leaflet", ALDI_NORD_LEAFLET_URL),
+    "ALDI SÜD": ("aldi_sued_leaflet", ALDI_SUED_LEAFLET_URL),
+}
+DE_PROMOTION_STORES = tuple(DE_LEAFLET_SOURCES)
 
 # Retailer leaflet variants can have a different identifier from the
 # same product in the regular catalogue. Only reviewed pairs may set a price.
@@ -132,13 +139,119 @@ def parse_aldi_nord_leaflet(html: bytes, *, today: date, catalogue_skus: set[str
     return [offer for sku, offer in offers.items() if sku not in ambiguous]
 
 
-async def fetch_aldi_nord_promotions(catalogue_skus: set[str]) -> list[LeafletOffer]:
+_WEEKDAYS = ("Mo", "Di", "Mi", "Do", "Fr", "Sa", "So")
+_SUED_WEEK = re.compile(
+    r"Angebote der aktuellen Woche\. (\w{2})\., (\d{2})\.(\d{2})\. [–-] (\w{2})\., (\d{2})\.(\d{2})\."
+)
+_SUED_LIMITED_STOCK = (
+    "² Bitte beachte, dass dieser Artikel nur in begrenzter Anzahl zur Verfügung stehen kann "
+    "und daher zu bestimmten Zeiten der Aktion ausverkauft sein könnte."
+)
+
+
+def _aldi_sued_current_week(label: str, today: date) -> tuple[date, date] | None:
+    match = _SUED_WEEK.fullmatch(label)
+    if match is None:
+        return None
+    for year in (today.year - 1, today.year):
+        try:
+            start = date(year, int(match[3]), int(match[2]))
+            end = date(year + (int(match[6]) < start.month), int(match[6]), int(match[5]))
+        except ValueError:
+            continue
+        if (start <= today <= end <= start + timedelta(days=6)
+                and _WEEKDAYS[start.weekday()] == match[1] and _WEEKDAYS[end.weekday()] == match[4]):
+            return start, end
+    return None
+
+
+def _aldi_sued_offer(tile, window: tuple[date, date], catalogue_skus: set[str], footnotes: set[str]):
+    name = tile.select_one(".product-tile__name")
+    brand = tile.select_one(".product-tile__brandname")
+    pack = tile.select_one(".product-tile__unit-of-measurement")
+    link = tile.select_one("a.product-tile__link[href]")
+    prices = tile.select(".base-price")
+    if name is None or pack is None or link is None or len(prices) != 1:
+        return None
+    sku_match = re.fullmatch(r"/produkt/[a-z0-9-]+-(\d{18})", link["href"])
+    amount_match = re.fullmatch(r"(\d+(?:,\d+)?)\s*(g|kg|ml|l)", pack.get_text(strip=True), re.I)
+    if sku_match is None or amount_match is None:
+        return None
+
+    price = prices[0]
+    discounted = price.select("ins.base-price__discounted")
+    original = price.select(".base-price__was-price del")
+    tags = price.select(".base-price__discount-tag__wrapper")
+    markers = price.select(".base-price__superscript")
+    if ("base-price--on-sale" not in price.get("class", ()) or len(discounted) != 1 or len(original) != 1
+            or len(tags) != 1 or not re.fullmatch(r"(?:|Spare \d{1,2} %)", tags[0].get_text(" ", strip=True))
+            or len(markers) != 1 or markers[0].get_text(strip=True) != "²"
+            or footnotes != {_SUED_LIMITED_STOCK}):
+        return None
+
+    discount, regular = (
+        re.fullmatch(r"(\d{1,5},\d{2})\s*€", element.get_text(strip=True))
+        for element in (discounted[0], original[0])
+    )
+    if (discount is None or regular is None
+            or discounted[0].get("aria-label") != f"Reduzierter Preis: {discounted[0].get_text(strip=True)}"
+            or original[0].get("aria-label") != f"Originalpreis: {original[0].get_text(strip=True)}"):
+        return None
+    discount_price = Decimal(discount[1].replace(",", "."))
+    regular_price = Decimal(regular[1].replace(",", "."))
+    quantity = Decimal(amount_match[1].replace(",", "."))
+    title = name.get_text(" ", strip=True)
+    if not (0 < discount_price < regular_price <= 10_000 and 0 < quantity and 0 < len(title) <= 300):
+        return None
+    sku = sku_match[1]
+    return LeafletOffer(
+        sku, sku if sku in catalogue_skus else None, title, brand.get_text(" ", strip=True) if brand else "",
+        pack.get_text(" ", strip=True), quantity, amount_match[2].lower(), regular_price, discount_price, *window,
+    )
+
+
+def parse_aldi_sued_leaflet(html: bytes, *, today: date, catalogue_skus: set[str]) -> list[LeafletOffer]:
+    page = BeautifulSoup(html, "html.parser")
+    viewers = page.select("main .product-listing-viewer")
+    dates = [p.get_text(" ", strip=True) for p in page.select("main .base-rich-text p")
+             if p.get_text(strip=True).startswith("Angebote der aktuellen Woche.")]
+    if len(viewers) != 1 or len(dates) != 1 or not _SUED_WEEK.fullmatch(dates[0]):
+        raise ValueError("ALDI SÜD fresh offers or published dates are missing")
+    window = _aldi_sued_current_week(dates[0], today)
+    if window is None:
+        return []
+    viewer = viewers[0]
+    footnotes = {" ".join(p.get_text(" ", strip=True).split())
+                 for p in viewer.select(".product-listing-viewer__disclaimers p")}
+    tiles = viewer.select(".product-grid .product-tile")
+    if not tiles:
+        raise ValueError("ALDI SÜD leaflet contains no product records")
+    offers = {}
+    ambiguous = set()
+    for tile in tiles:
+        offer = _aldi_sued_offer(tile, window, catalogue_skus, footnotes)
+        if offer is not None and offers.setdefault(offer.sku, offer) != offer:
+            ambiguous.add(offer.sku)
+    return [offer for sku, offer in offers.items() if sku not in ambiguous]
+
+
+async def _download_leaflet(url: str) -> bytes:
     html = bytearray()
     async with httpx.AsyncClient(timeout=15) as client:
-        async with client.stream("GET", ALDI_NORD_LEAFLET_URL) as response:
+        async with client.stream("GET", url) as response:
             response.raise_for_status()
             async for chunk in response.aiter_bytes():
                 html.extend(chunk)
                 if len(html) > 4_000_000:
-                    raise ValueError("ALDI Nord leaflet exceeds the expected size")
-    return parse_aldi_nord_leaflet(bytes(html), today=market_today("DE"), catalogue_skus=catalogue_skus)
+                    raise ValueError("Retailer leaflet exceeds the expected size")
+    return bytes(html)
+
+
+async def fetch_aldi_nord_promotions(catalogue_skus: set[str]) -> list[LeafletOffer]:
+    html = await _download_leaflet(ALDI_NORD_LEAFLET_URL)
+    return parse_aldi_nord_leaflet(html, today=market_today("DE"), catalogue_skus=catalogue_skus)
+
+
+async def fetch_aldi_sued_promotions(catalogue_skus: set[str]) -> list[LeafletOffer]:
+    html = await _download_leaflet(ALDI_SUED_LEAFLET_URL)
+    return parse_aldi_sued_leaflet(html, today=market_today("DE"), catalogue_skus=catalogue_skus)

@@ -5068,7 +5068,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminMainDeScanHelp =>
-      'Read the current ALDI Nord leaflet. Offers will appear below for approval.';
+      'Read the shop’s current offers. They will appear below for approval.';
 
   @override
   String get adminMainUkScanUnavailable =>
@@ -10437,7 +10437,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get adminMainDeScanHelp =>
-      'Read the current ALDI Nord leaflet. Offers will appear below for approval.';
+      'Read the shop’s current offers. They will appear below for approval.';
 
   @override
   String get adminMainUkScanUnavailable =>

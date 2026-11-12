@@ -10,11 +10,17 @@ from sqlalchemy import func, select
 from app.core.market_clock import market_today
 from app.models import Product, Store, StoreProduct
 from app.models.promotion import Promotion
-from app.services.de_leaflet_promotions import ALDI_NORD_LEAFLET_URL, fetch_aldi_nord_promotions
+from app.services.de_leaflet_promotions import (
+    DE_LEAFLET_SOURCES,
+    fetch_aldi_nord_promotions,
+    fetch_aldi_sued_promotions,
+)
 from app.services.system_content_language import ingredient_display_name
 
 
 async def scan_de_leaflet(store_name, db) -> dict:
+    source, source_url = DE_LEAFLET_SOURCES[store_name]
+    fetch = {"ALDI Nord": fetch_aldi_nord_promotions, "ALDI SÜD": fetch_aldi_sued_promotions}[store_name]
     store_id = await db.scalar(select(Store.id).where(
         Store.name == store_name, Store.country_code == "DE", Store.currency_code == "EUR",
     ))
@@ -25,7 +31,7 @@ async def scan_de_leaflet(store_name, db) -> dict:
     )))
     await db.commit()
     try:
-        offers = await fetch_aldi_nord_promotions(skus)
+        offers = await fetch(skus)
     except (ValueError, httpx.HTTPError) as exc:
         raise HTTPException(502, "Der aktuelle Prospekt konnte nicht gelesen werden.") from exc
 
@@ -47,7 +53,10 @@ async def scan_de_leaflet(store_name, db) -> dict:
         StoreProduct.is_available.is_(True), StoreProduct.withdrawn_at.is_(None),
         StoreProduct.last_verified.is_not(None), Product.review_status == "approved",
     ))).all() if skus else []
-    by_sku = {row.retailer_sku: (row, product) for row, product in products}
+    by_sku = {}
+    for row, product in products:
+        sku = row.retailer_sku
+        by_sku[sku] = None if sku in by_sku else (row, product)
     queued = 0
     for offer in offers:
         key = (offer.sku, offer.start, offer.end, offer.regular, offer.discount)
@@ -65,13 +74,13 @@ async def scan_de_leaflet(store_name, db) -> dict:
         db.add(Promotion(
             country_code="DE", store_name=store_name, product_name=display_name,
             store_product_id=attached, regular_price=offer.regular, promo_price=offer.discount,
-            promo_description=f"{offer.name} · {pack} · ALDI Nord",
+            promo_description=f"{offer.name} · {pack} · {store_name}",
             promo_details={
                 "leaflet_sku": offer.sku, "catalogue_sku": offer.catalogue_sku,
-                "source_url": ALDI_NORD_LEAFLET_URL, "package_quantity": str(offer.quantity),
+                "source_url": source_url, "package_quantity": str(offer.quantity),
                 "package_unit": offer.unit, "brand": offer.brand,
             },
-            source="aldi_nord_leaflet", promo_type="price_cut",
+            source=source, promo_type="price_cut",
             valid_from=offer.start, valid_until=offer.end,
             review_status="pending", is_active=True,
         ))
@@ -83,7 +92,8 @@ async def scan_de_leaflet(store_name, db) -> dict:
 
 
 async def _exact_german_offer(db, promotion):
-    if promotion.store_product_id is None or promotion.source != "aldi_nord_leaflet":
+    leaflet = DE_LEAFLET_SOURCES.get(promotion.store_name)
+    if promotion.store_product_id is None or leaflet is None or promotion.source != leaflet[0]:
         return None
     details = promotion.promo_details or {}
     row = await db.scalar(select(StoreProduct).join(Store).where(

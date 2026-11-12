@@ -8847,7 +8847,7 @@ abstract class AppLocalizations {
   /// No description provided for @adminMainDeScanHelp.
   ///
   /// In pl, this message translates to:
-  /// **'Pobierz aktualne oferty z gazetki ALDI Nord. Promocje pojawią się poniżej do akceptacji.'**
+  /// **'Pobierz aktualne oferty sklepu. Promocje pojawią się poniżej do akceptacji.'**
   String get adminMainDeScanHelp;
 
   /// No description provided for @adminMainUkScanUnavailable.

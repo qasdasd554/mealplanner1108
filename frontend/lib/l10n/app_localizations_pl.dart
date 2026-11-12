@@ -5056,7 +5056,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get adminMainDeScanHelp =>
-      'Pobierz aktualne oferty z gazetki ALDI Nord. Promocje pojawią się poniżej do akceptacji.';
+      'Pobierz aktualne oferty sklepu. Promocje pojawią się poniżej do akceptacji.';
 
   @override
   String get adminMainUkScanUnavailable =>

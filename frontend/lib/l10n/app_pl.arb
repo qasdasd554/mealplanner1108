@@ -3063,7 +3063,7 @@
   "adminMainAiKeyMissing": "Klucz API nie jest skonfigurowany.",
   "adminMainScanTitle": "Skanuj gazetki promocyjne",
   "adminMainScanHelp": "AI przeszuka internet w poszukiwaniu aktualnej gazetki danego sklepu i rozpozna z niej promocje. Wynik trafi poniżej do akceptacji — nic nie zmienia się automatycznie.",
-  "adminMainDeScanHelp": "Pobierz aktualne oferty z gazetki ALDI Nord. Promocje pojawią się poniżej do akceptacji.",
+  "adminMainDeScanHelp": "Pobierz aktualne oferty sklepu. Promocje pojawią się poniżej do akceptacji.",
   "adminMainUkScanUnavailable": "Brytyjskie źródła promocji są w przygotowaniu. Skaner polskich gazetek nie tworzy promocji w GBP.",
   "adminMainScanShop": "Skanuj {store}",
   "adminMainScanningShop": "Skanowanie {store} trwa w tle. Możesz opuścić panel.",

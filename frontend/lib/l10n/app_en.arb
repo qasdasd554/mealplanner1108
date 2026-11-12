@@ -2968,7 +2968,7 @@
   "adminMainAiKeyMissing": "The API key is not configured.",
   "adminMainScanTitle": "Scan promotional leaflets",
   "adminMainScanHelp": "AI searches online for the shop’s current leaflet and recognises its promotions. Results go to the approval queue below — nothing changes automatically.",
-  "adminMainDeScanHelp": "Read the current ALDI Nord leaflet. Offers will appear below for approval.",
+  "adminMainDeScanHelp": "Read the shop’s current offers. They will appear below for approval.",
   "adminMainUkScanUnavailable": "UK promotion sources are being prepared. The Polish leaflet scanner does not create GBP promotions.",
   "adminMainScanShop": "Scan {store}",
   "adminMainScanningShop": "Scanning {store} is continuing in the background. You can leave this panel.",

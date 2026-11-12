@@ -52,7 +52,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   final TextEditingController _broadcastController = TextEditingController();
   bool _isSendingBroadcast = false;
   List<String> get _stores => switch (_market) {
-    'DE' => const ['ALDI Nord'],
+    'DE' => const ['ALDI Nord', 'ALDI SÜD'],
     'GB' => const [],
     _ => kPromotionScanStores,
   };

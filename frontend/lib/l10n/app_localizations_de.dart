@@ -5150,7 +5150,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get adminMainDeScanHelp =>
-      'Lies den aktuellen Prospekt von ALDI Nord ein. Die Angebote erscheinen unten zur Freigabe.';
+      'Lies die aktuellen Angebote des Markts ein. Sie erscheinen unten zur Freigabe.';
 
   @override
   String get adminMainUkScanUnavailable =>

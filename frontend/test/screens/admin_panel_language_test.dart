@@ -169,23 +169,25 @@ Future<void> _reveal(WidgetTester tester, Finder finder) async {
 }
 
 void main() {
-  testWidgets('admin can scan the ALDI Nord leaflet for Germany', (
-    tester,
-  ) async {
-    final promotions = _Promotions();
-    await _mount(tester, false, promotions: promotions);
-    await tester.tap(find.byType(DropdownButtonFormField<String>));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Niemcy').last);
-    await tester.pumpAndSettle();
-    final scan = find.text('Skanuj ALDI Nord');
-    await _reveal(tester, scan);
-    await tester.tap(scan);
-    await tester.pumpAndSettle();
-    expect(promotions.scans, [('ALDI Nord', 'DE')]);
-    expect(promotions.markets, ['PL', 'DE', 'DE']);
-    expect(tester.takeException(), isNull);
-  });
+  for (final store in ['ALDI Nord', 'ALDI SÜD']) {
+    testWidgets('admin can scan the $store leaflet for Germany', (
+      tester,
+    ) async {
+      final promotions = _Promotions();
+      await _mount(tester, false, promotions: promotions);
+      await tester.tap(find.byType(DropdownButtonFormField<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Niemcy').last);
+      await tester.pumpAndSettle();
+      final scan = find.text('Skanuj $store');
+      await _reveal(tester, scan);
+      await tester.tap(scan);
+      await tester.pumpAndSettle();
+      expect(promotions.scans, [(store, 'DE')]);
+      expect(promotions.markets, ['PL', 'DE', 'DE']);
+      expect(tester.takeException(), isNull);
+    });
+  }
 
   for (final english in [false, true]) {
     testWidgets(
