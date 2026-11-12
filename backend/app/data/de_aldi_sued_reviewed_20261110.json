@@ -1,0 +1,35 @@
+{
+  "store_slug": "aldi-sued",
+  "currency": "EUR",
+  "reviewed_on": "2026-11-10",
+  "purpose": "observed retailer catalogue prices",
+  "sources": {
+    "pasta": "https://www.aldi-sued.de/produkte/nudeln-reis-huelsenfruechte/k/1588161425467115",
+    "rice": "https://www.aldi-sued.de/produkte/nudeln-reis-huelsenfruechte/reis/k/1588161425467117",
+    "eggs": "https://www.aldi-sued.de/produkte/milchprodukte-eier/eier/k/1588161425467100",
+    "yoghurt": "https://www.aldi-sued.de/produkte",
+    "mozzarella": "https://www.aldi-sued.de/produkte/kaese/mozzarella/k/1588161425467089",
+    "butter": "https://www.aldi-sued.de/produkte/milchprodukte-eier/butter-margarine/k/1588161425467099",
+    "oil": "https://www.aldi-sued.de/produkte/saucen-oele-gewuerze/essig-oel/k/1588161425467129",
+    "canned": "https://www.aldi-sued.de/produkte/konserven-fertiggerichte/gemuesekonserven/k/1588161425467137"
+  },
+  "products": [
+    {"canonical": "Makaron penne", "brand": "CUCINA", "quantity": 500, "unit": "g", "price": "0.69", "source": "pasta"},
+    {"canonical": "Makaron spaghetti", "brand": "CUCINA", "quantity": 500, "unit": "g", "price": "0.69", "source": "pasta"},
+    {"canonical": "Makaron fusilli", "brand": "CUCINA", "quantity": 500, "unit": "g", "price": "0.69", "source": "pasta"},
+    {"canonical": "Makaron tagliatelle", "brand": "CUCINA NOBILE", "quantity": 500, "unit": "g", "price": "1.29", "source": "pasta"},
+    {"canonical": "Makaron lasagne", "brand": "CUCINA", "quantity": 500, "unit": "g", "price": "1.19", "source": "pasta"},
+    {"canonical": "Ryż biały", "brand": "BON-RI", "quantity": 1, "unit": "kg", "price": "1.39", "source": "rice"},
+    {"canonical": "Jajka", "brand": "LANDFREUDE", "quantity": 10, "unit": "szt", "price": "2.99", "source": "eggs"},
+    {"canonical": "Jogurt naturalny", "brand": "MILSANI", "quantity": 500, "unit": "g", "price": "0.89", "source": "yoghurt"},
+    {"canonical": "Mozzarella", "brand": "CUCINA NOBILE", "quantity": 125, "unit": "g", "price": "0.89", "source": "mozzarella"},
+    {"canonical": "Masło klarowane ghee", "brand": "MILSANI", "quantity": 500, "unit": "g", "price": "5.69", "source": "butter"},
+    {"canonical": "Oliwa z oliwek", "brand": "LYTTOS", "quantity": 500, "unit": "ml", "price": "5.99", "source": "oil"},
+    {"canonical": "Olej rzepakowy", "brand": "BELLASAN", "quantity": 500, "unit": "ml", "price": "1.39", "source": "oil"},
+    {"canonical": "Olej słonecznikowy", "brand": "BIO", "quantity": 500, "unit": "ml", "price": "1.45", "source": "oil"},
+    {"canonical": "Krem balsamiczny", "brand": "CUCINA", "quantity": 250, "unit": "ml", "price": "1.49", "source": "oil"},
+    {"canonical": "Passata pomidorowa", "brand": "KING'S CROWN", "quantity": 500, "unit": "g", "price": "0.65", "source": "canned"},
+    {"canonical": "Koncentrat pomidorowy", "brand": "KING'S CROWN", "quantity": 200, "unit": "g", "price": "0.89", "source": "canned"},
+    {"canonical": "Fasola czerwona konserwowa", "brand": "KING'S CROWN", "quantity": 255, "unit": "g", "price": "0.69", "source": "canned"}
+  ]
+}

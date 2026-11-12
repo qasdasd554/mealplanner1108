@@ -1,0 +1,29 @@
+{
+  "store_slug": "aldi-sued",
+  "currency": "EUR",
+  "reviewed_on": "2026-11-12",
+  "purpose": "observed retailer catalogue prices",
+  "sources": {
+    "butter": "https://www.aldi-sued.de/produkt/milsani-deutsche-markenbutter-250-g-000000000000202682",
+    "cheese": "https://www.aldi-sued.de/produkte/kaese/schnittkaese/k/1588161425467084",
+    "toast": "https://www.aldi-sued.de/produkte/backwaren-aufstriche-cerealien/toastbrot/k/1588161425467103",
+    "chicken": "https://www.aldi-sued.de/produkte/fleisch-fisch/gefluegel/k/1588161425467059",
+    "produce": "https://www.aldi-sued.de/produkte/wochenangebote/k/1588161426582123",
+    "tomatoes": "https://www.aldi-sued.de/produkt/natur-lieblinge-datteltomaten-500-g-000000000000230372",
+    "salt": "https://www.aldi-sued.de/produkt/le-gusto-jodsalz-500-g-000000000000194379",
+    "curry": "https://www.aldi-sued.de/produkt/le-gusto-curry-45-g-000000000616990001",
+    "coconut": "https://www.aldi-sued.de/produkt/asia-green-garden-kokosnussmilch-400-ml-000000000191455001"
+  },
+  "products": [
+    {"canonical": "Masło extra", "brand": "MILSANI", "quantity": 250, "unit": "g", "price": "1.19", "source": "butter"},
+    {"canonical": "Ser żółty gouda", "brand": "HOFBURGER", "quantity": 250, "unit": "g", "price": "1.65", "source": "cheese"},
+    {"canonical": "Chleb pszenny", "brand": "GOLDÄHREN", "quantity": 750, "unit": "g", "price": "1.19", "source": "toast"},
+    {"canonical": "Pierś z kurczaka", "brand": "MEINE METZGEREI", "quantity": 600, "unit": "g", "price": "6.79", "source": "chicken"},
+    {"canonical": "Cebula", "brand": "NATUR LIEBLINGE", "quantity": 1.5, "unit": "kg", "price": "1.39", "source": "produce"},
+    {"canonical": "Awokado", "brand": "", "quantity": 1, "unit": "szt", "price": "0.89", "source": "produce"},
+    {"canonical": "Pomidorki koktajlowe", "brand": "NATUR LIEBLINGE", "quantity": 500, "unit": "g", "price": "1.89", "source": "tomatoes"},
+    {"canonical": "Sól", "brand": "LE GUSTO", "quantity": 500, "unit": "g", "price": "0.29", "source": "salt"},
+    {"canonical": "Curry w proszku", "brand": "LE GUSTO", "quantity": 45, "unit": "g", "price": "0.75", "source": "curry"},
+    {"canonical": "Mleko kokosowe", "brand": "ASIA GREEN GARDEN", "quantity": 400, "unit": "ml", "price": "1.19", "source": "coconut"}
+  ]
+}

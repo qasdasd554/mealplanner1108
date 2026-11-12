@@ -1,5 +1,6 @@
 """DE market regressions using the existing purchase and store paths."""
 
+from datetime import date, timedelta
 from decimal import Decimal
 import json
 from pathlib import Path
@@ -15,12 +16,16 @@ from app.api.v1.price_compare import compare_prices, compare_shopping_list_price
 from app.core.config import settings
 from app.core.exceptions import NotFoundException
 from app.core.markets import signup_country
-from app.db.de_store_catalog import DE_STORES, seed_de_stores, seed_de_test_catalogue
+from app.db.de_store_catalog import (
+    DE_STORES, reviewed_de_catalogue_date, seed_de_stores,
+    seed_de_test_catalogue, stage_reviewed_de_catalogue,
+)
 from app.db.uk_store_catalog import UK_STORES
 from app.models import PantryItem, Product, Recipe, RecipeIngredient, ShoppingList, Store, StoreProduct, User
 from app.schemas.shopping_list import ShoppingListResponse
 from app.services.meal_plan_generator import MealPlanGenerator
 from app.services.pantry_shopping_sync import sync_product_in_shopping_lists
+from app.services.polish_list_prices import quote_polish_list
 from app.services.shopping_list_builder import ShoppingListBuilder
 from app.services.system_content_language import _index
 from tests.test_regional_shopping import db, loaded, make_plan, run
@@ -62,6 +67,90 @@ def test_available_recipes_use_german_store_and_author_market(db):
         store.id, skip=0, limit=30, current_user=german, db=adapter,
     ))
     assert {recipe.name for recipe in available} == {"System recipe", "Verfügbares Rezept"}
+
+
+def test_reviewed_aldi_catalogue_preserves_prices_and_quotes_whole_packs(db):
+    from app.db.seed import PRODUCTS_DATA, RECIPES_DATA, _uid
+
+    session, adapter, _, _, _ = db
+    data_dir = Path(__file__).resolve().parents[1] / "app/data"
+    evidence = json.loads((data_dir / "de_aldi_sued_reviewed_20261110.json").read_text(encoding="utf-8"))
+    extension = json.loads((data_dir / "de_aldi_sued_reviewed_20261112.json").read_text(encoding="utf-8"))
+    observed_on = date(2026, 11, 10)
+    names = {row["canonical"] for row in evidence["products"]}
+    extra_names = {row["canonical"] for row in extension["products"]}
+    assert names.isdisjoint(extra_names)
+    for name, unit, quantity, *_ in PRODUCTS_DATA:
+        if name in names | extra_names:
+            session.add(Product(id=_uid(f"product:{name}"), name=name, unit=unit,
+                                default_quantity=quantity, review_status="approved"))
+    run(seed_de_stores(adapter))
+    definition = next(store for store in DE_STORES if store.slug == "aldi-sued")
+    existing = StoreProduct(id=uuid4(), store_id=definition.id,
+                            product_id=_uid("product:Jogurt naturalny"), price=Decimal("1.09"))
+    session.add(existing)
+    session.commit()
+
+    transaction = session.begin_nested()
+    assert run(stage_reviewed_de_catalogue(adapter, evidence, as_of=observed_on)) == len(names) - 1
+    transaction.rollback()
+    assert session.scalars(select(StoreProduct).where(StoreProduct.store_id == definition.id)).all() == [existing]
+
+    assert run(stage_reviewed_de_catalogue(adapter, evidence, as_of=observed_on)) == len(names) - 1
+    assert run(stage_reviewed_de_catalogue(adapter, evidence, as_of=observed_on)) == 0
+    assert (existing.price, existing.last_verified) == (Decimal("1.09"), None)
+    item = SimpleNamespace(
+        store_product=None, catalogue_product_id=_uid("product:Makaron spaghetti"),
+        custom_name="Spaghetti", required_quantity=Decimal("750"), unit="g",
+        regional_snapshot=None, is_checked=False, is_from_pantry=False,
+    )
+    store = session.get(Store, definition.id)
+    quotes = run(quote_polish_list(adapter, SimpleNamespace(items=[item]), [store]))
+    _, offer, quote = quotes[definition.id][0]
+    assert store.currency_code == "EUR"
+    assert (offer.package_quantity, offer.package_unit) == (Decimal("500"), "g")
+    assert (quote["price_in_store"], quote["package_count"]) == (1.38, 2)
+    assert quote["last_verified"] == observed_on
+    assert quote["price_is_estimated"] is False
+
+    extension_date = date(2026, 11, 12)
+    assert run(stage_reviewed_de_catalogue(adapter, extension, as_of=extension_date)) == len(extra_names)
+    assert run(stage_reviewed_de_catalogue(adapter, extension, as_of=extension_date)) == 0
+    def price_required_ingredients(recipe_name):
+        recipe = next(row for row in RECIPES_DATA if row["name"] == recipe_name)
+        required_items = [SimpleNamespace(
+            store_product=None, catalogue_product_id=_uid(f"product:{name}"),
+            custom_name=name, required_quantity=quantity, unit=unit,
+            regional_snapshot=None, is_checked=False, is_from_pantry=False,
+        ) for name, quantity, unit, optional in recipe["ingredients"] if not optional]
+        basket_quotes = run(quote_polish_list(adapter, SimpleNamespace(items=required_items), [store]))
+        return {row.custom_name: (quote["price_in_store"], quote["package_count"], quote["last_verified"])
+                for row, _, quote in basket_quotes[definition.id]}
+
+    assert price_required_ingredients("Kanapki z pastą jajeczną") == {
+        "Jajka": (2.99, 1, observed_on),
+        "Chleb pszenny": (1.19, 1, extension_date),
+        "Masło extra": (1.19, 1, extension_date),
+    }
+    assert price_required_ingredients("Kurczak curry z ryżem") == {
+        "Pierś z kurczaka": (6.79, 1, extension_date),
+        "Mleko kokosowe": (1.19, 1, extension_date),
+        "Curry w proszku": (0.75, 1, extension_date),
+        "Cebula": (1.39, 1, extension_date),
+        "Ryż biały": (1.39, 1, observed_on),
+    }
+
+
+def test_reviewed_import_rejects_test_estimates_and_outdated_observations():
+    data_dir = Path(__file__).resolve().parents[1] / "app/data"
+    observed_on = date(2026, 11, 10)
+    sample = json.loads((data_dir / "de_aldi_sued_starter.json").read_text(encoding="utf-8"))
+    reviewed = json.loads((data_dir / "de_aldi_sued_reviewed_20261110.json").read_text(encoding="utf-8"))
+    with pytest.raises(ValueError, match="Only observed"):
+        reviewed_de_catalogue_date(sample, as_of=observed_on)
+    for as_of in (observed_on + timedelta(days=8), observed_on - timedelta(days=1)):
+        with pytest.raises(ValueError, match="stale or in the future"):
+            reviewed_de_catalogue_date(reviewed, as_of=as_of)
 
 
 def test_german_development_catalogue_keeps_prices_and_package_units(db, monkeypatch):
