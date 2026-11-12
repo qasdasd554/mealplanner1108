@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/market_money.dart';
 import '../../l10n/market_locale.dart';
 import 'package:provider/provider.dart';
 import '../../models/promotion.dart';
@@ -247,7 +248,7 @@ class _PromotionTile extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '${promo.promoPrice.toStringAsFixed(2)} zł',
+                formatMarketMoney(promo.promoPrice, currencyCode: promo.currencyCode),
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Colors.red,
@@ -255,7 +256,7 @@ class _PromotionTile extends StatelessWidget {
                 ),
               ),
               Text(
-                '${promo.regularPrice.toStringAsFixed(2)} zł',
+                formatMarketMoney(promo.regularPrice, currencyCode: promo.currencyCode),
                 style: TextStyle(
                   color: AppTheme.textSecondary,
                   fontSize: 12,

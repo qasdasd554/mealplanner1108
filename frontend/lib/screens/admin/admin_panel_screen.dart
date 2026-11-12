@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/market_money.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/promotion.dart';
@@ -50,7 +51,11 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   late final ModerationService _moderationService;
   final TextEditingController _broadcastController = TextEditingController();
   bool _isSendingBroadcast = false;
-  final List<String> _stores = kPromotionScanStores;
+  List<String> get _stores => switch (_market) {
+    'DE' => const ['ALDI Nord'],
+    'GB' => const [],
+    _ => kPromotionScanStores,
+  };
   String _market = 'PL';
   int _marketGeneration = 0;
 
@@ -64,6 +69,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     });
     _loadPending();
     _loadPendingRecipes();
+    _resumeScan();
   }
 
   String? _scanningStore;
@@ -464,6 +470,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     try {
       final result = await _service.triggerAiScan(
         storeName,
+        market: _market,
         isActive: () => mounted,
       );
       if (!mounted) return;
@@ -502,9 +509,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     setState(() => _busyPromotionIds.add(promotion.id));
     try {
       if (approve) {
-        await _service.approvePromotion(promotion.id);
+        await _service.approvePromotion(promotion.id, market: _market);
       } else {
-        await _service.rejectPromotion(promotion.id);
+        await _service.rejectPromotion(promotion.id, market: _market);
       }
       if (!mounted) return;
       setState(() {
@@ -538,13 +545,16 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   }
 
   Future<void> _resumeScan() async {
+    if (_stores.isEmpty) return;
+    final generation = _marketGeneration;
+    final market = _market;
     var resumed = false;
     try {
-      final jobs = await _service.activeScans();
-      if (!mounted || jobs.isEmpty || _scanningStore != null) return;
+      final jobs = await _service.activeScans(market: market);
+      if (!mounted || generation != _marketGeneration || jobs.isEmpty || _scanningStore != null) return;
       resumed = true;
       setState(() => _scanningStore = jobs.first['store_name'] as String);
-      await _service.waitForScan(jobs.first, isActive: () => mounted);
+      await _service.waitForScan(jobs.first, market: market, isActive: () => mounted);
       if (mounted) await _loadPending();
     } catch (error) {
       if (mounted && resumed) {
@@ -1073,13 +1083,13 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              context.strings.adminMainScanHelp,
+              _market == 'DE'
+                  ? context.strings.adminMainDeScanHelp
+                  : context.strings.adminMainScanHelp,
               style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
             ),
             const SizedBox(height: 16),
-            if (_market == 'DE')
-              Text(context.strings.adminMainDeScanUnavailable)
-            else if (_market == 'GB')
+            if (_market == 'GB')
               Text(context.strings.adminMainUkScanUnavailable)
             else
               Wrap(
@@ -1109,7 +1119,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                       );
                     }).toList(),
               ),
-            if (_market == 'PL' && _scanningStore != null) ...[
+            if (_scanningStore != null) ...[
               const SizedBox(height: 8),
               Text(
                 context.strings.adminMainScanningShop(_scanningStore!),
@@ -1234,7 +1244,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                         Row(
                           children: [
                             Text(
-                              '${promo.regularPrice.toStringAsFixed(2)} zł',
+                              formatMarketMoney(promo.regularPrice, currencyCode: promo.currencyCode),
                               style: TextStyle(
                                 color: AppTheme.textSecondary,
                                 decoration: TextDecoration.lineThrough,
@@ -1243,7 +1253,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              '${promo.promoPrice.toStringAsFixed(2)} zł',
+                              formatMarketMoney(promo.promoPrice, currencyCode: promo.currencyCode),
                               style: TextStyle(
                                 color: AppTheme.primaryColor,
                                 fontWeight: FontWeight.bold,

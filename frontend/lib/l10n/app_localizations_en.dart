@@ -5067,8 +5067,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'AI searches online for the shop’s current leaflet and recognises its promotions. Results go to the approval queue below — nothing changes automatically.';
 
   @override
-  String get adminMainDeScanUnavailable =>
-      'Scanning offers for German shops is currently unavailable.';
+  String get adminMainDeScanHelp =>
+      'Read the current ALDI Nord leaflet. Offers will appear below for approval.';
 
   @override
   String get adminMainUkScanUnavailable =>
@@ -10436,8 +10436,8 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
       'AI searches online for the shop’s current leaflet and recognises its promotions. Results go to the approval queue below — nothing changes automatically.';
 
   @override
-  String get adminMainDeScanUnavailable =>
-      'Scanning offers for German shops is currently unavailable.';
+  String get adminMainDeScanHelp =>
+      'Read the current ALDI Nord leaflet. Offers will appear below for approval.';
 
   @override
   String get adminMainUkScanUnavailable =>

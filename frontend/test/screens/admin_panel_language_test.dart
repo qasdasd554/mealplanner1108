@@ -27,6 +27,18 @@ class _Auth extends ChangeNotifier implements AuthProvider {
 
 class _Promotions implements PromotionService {
   final markets = <String?>[];
+  final scans = <(String, String?)>[];
+
+  @override
+  Future<Map<String, dynamic>> triggerAiScan(
+    String storeName, {
+    String? market,
+    bool Function()? isActive,
+  }) async {
+    scans.add((storeName, market));
+    return {'status': 'completed', 'found': 1, 'queued_for_review': 1};
+  }
+
   @override
   Future<List<Promotion>> getPendingPromotions({String? market}) async {
     markets.add(market);
@@ -34,7 +46,7 @@ class _Promotions implements PromotionService {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> activeScans() async => [];
+  Future<List<Map<String, dynamic>>> activeScans({String? market}) async => [];
   @override
   dynamic noSuchMethod(Invocation call) => super.noSuchMethod(call);
 }
@@ -157,6 +169,24 @@ Future<void> _reveal(WidgetTester tester, Finder finder) async {
 }
 
 void main() {
+  testWidgets('admin can scan the ALDI Nord leaflet for Germany', (
+    tester,
+  ) async {
+    final promotions = _Promotions();
+    await _mount(tester, false, promotions: promotions);
+    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Niemcy').last);
+    await tester.pumpAndSettle();
+    final scan = find.text('Skanuj ALDI Nord');
+    await _reveal(tester, scan);
+    await tester.tap(scan);
+    await tester.pumpAndSettle();
+    expect(promotions.scans, [('ALDI Nord', 'DE')]);
+    expect(promotions.markets, ['PL', 'DE', 'DE']);
+    expect(tester.takeException(), isNull);
+  });
+
   for (final english in [false, true]) {
     testWidgets(
       'admin account language stays unchanged when selecting UK $english',

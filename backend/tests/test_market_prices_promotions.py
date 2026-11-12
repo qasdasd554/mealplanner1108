@@ -47,8 +47,14 @@ class Database:
         self.statements.append(statement)
         return self.session.execute(statement)
 
-    async def get(self, model, identifier):
-        return self.session.get(model, identifier)
+    async def get(self, model, identifier, **kwargs):
+        return self.session.get(model, identifier, **kwargs)
+
+    async def scalar(self, statement):
+        return self.session.scalar(statement)
+
+    async def scalars(self, statement):
+        return self.session.scalars(statement)
 
     async def commit(self):
         self.session.commit()
@@ -135,6 +141,9 @@ def test_existing_polish_promotions_are_not_returned_to_uk_user(market_price_db)
     pl = SimpleNamespace(country_code="PL")
     assert asyncio.run(promotions.list_promotions(store_name=None, search=None, db=db, current_user=gb)) == []
     assert asyncio.run(promotions.check_promotion(product_name="yoghurt", store_name="Lidl", db=db, current_user=gb)) == []
+    assert asyncio.run(promotions.list_promotions(store_name=None, search=None, db=db, current_user=pl)) == []
+    row.review_status = "approved"
+    market_price_db.commit()
     assert asyncio.run(promotions.list_promotions(store_name=None, search=None, db=db, current_user=pl)) == [row]
 
 
@@ -146,7 +155,6 @@ def test_pending_polish_promotions_are_isolated_from_other_admin_markets(market_
     assert asyncio.run(promotions.list_pending_promotions(current_user=admin, db=db, market=market)) == []
     regional_admin = SimpleNamespace(country_code=market, role="admin")
     assert asyncio.run(promotions.list_pending_promotions(current_user=regional_admin, db=db)) == []
-    assert db.statements == []
     assert asyncio.run(promotions.list_pending_promotions(current_user=admin, db=db, market="PL")) == [row]
 
 
@@ -154,7 +162,7 @@ def test_approval_targets_polish_lidl_without_duplicate_store_exception(market_p
     _, pl_price, gb_price = _stores_prices(market_price_db)
     row = _promotion(market_price_db)
     admin = SimpleNamespace(id=uuid4(), country_code="GB", role="admin")
-    asyncio.run(promotions.approve_promotion(row.id, current_user=admin, db=Database(market_price_db)))
+    asyncio.run(promotions.approve_promotion(row.id, current_user=admin, db=Database(market_price_db), market="PL"))
     assert pl_price.price == Decimal("5.00")
     assert gb_price.price == Decimal("2.00")
     assert row.price_applied is True

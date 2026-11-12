@@ -30,17 +30,17 @@ async def _claim_job():
         job.status = "processing"
         job.started_at = now
         job.attempts += 1
-        identifier, store = job.id, job.store_name
+        identifier, store, country = job.id, job.store_name, job.country_code
         await db.commit()
-        return identifier, store
+        return identifier, store, country
 
 
-async def _run_scan(job_id, store_name):
+async def _run_scan(job_id, store_name, country="PL"):
     from app.api.v1.promotions import _scan_and_queue_promotions
     result, error = None, None
     try:
         async with async_session_factory() as db:
-            result = await asyncio.wait_for(_scan_and_queue_promotions(store_name, db), timeout=SCAN_TIMEOUT)
+            result = await asyncio.wait_for(_scan_and_queue_promotions(store_name, db, country=country), timeout=SCAN_TIMEOUT)
     except asyncio.CancelledError:
         # Trwały rekord zostanie wznowiony po restarcie; nie oznaczaj go jako sukces.
         raise

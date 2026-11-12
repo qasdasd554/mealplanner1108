@@ -8,6 +8,9 @@ class PromotionService {
   final ApiClient _client;
   final Future<void> Function(Duration) _wait;
 
+  String _marketQuery(String? market) =>
+      market == null ? '' : '?market=${Uri.encodeQueryComponent(market)}';
+
   /// Zwraca aktywne, dziś ważne promocje — opcjonalnie tylko dla danego
   /// sklepu i/lub pasujące do wpisanej nazwy produktu.
   Future<List<Promotion>> getPromotions({
@@ -56,21 +59,30 @@ class PromotionService {
   /// akceptacji. To NIE tworzy żadnych aktywnych promocji od razu.
   Future<Map<String, dynamic>> triggerAiScan(
     String storeName, {
+    String? market,
     bool Function()? isActive,
   }) async {
     final response = await _client.post(
-      '/promotions/ai-scan/jobs?store_name=${Uri.encodeComponent(storeName)}',
+      '/promotions/ai-scan/jobs?store_name=${Uri.encodeComponent(storeName)}'
+      '${market == null ? '' : '&market=${Uri.encodeQueryComponent(market)}'}',
     );
-    return waitForScan(response as Map<String, dynamic>, isActive: isActive);
+    return waitForScan(
+      response as Map<String, dynamic>,
+      market: market,
+      isActive: isActive,
+    );
   }
 
-  Future<List<Map<String, dynamic>>> activeScans() async {
-    final response = await _client.get('/promotions/ai-scan/jobs/active');
+  Future<List<Map<String, dynamic>>> activeScans({String? market}) async {
+    final response = await _client.get(
+      '/promotions/ai-scan/jobs/active${_marketQuery(market)}',
+    );
     return (response as List).cast<Map<String, dynamic>>();
   }
 
   Future<Map<String, dynamic>> waitForScan(
     Map<String, dynamic> job, {
+    String? market,
     bool Function()? isActive,
   }) async {
     var current = job;
@@ -97,7 +109,7 @@ class PromotionService {
       try {
         current =
             await _client.get(
-                  '/promotions/ai-scan/jobs/$id',
+                  '/promotions/ai-scan/jobs/$id${_marketQuery(market)}',
                   timeout: const Duration(seconds: 20),
                 )
                 as Map<String, dynamic>;
@@ -134,13 +146,23 @@ class PromotionService {
     return [];
   }
 
-  Future<Promotion> approvePromotion(String promotionId) async {
-    final response = await _client.put('/promotions/$promotionId/approve');
+  Future<Promotion> approvePromotion(
+    String promotionId, {
+    String? market,
+  }) async {
+    final response = await _client.put(
+      '/promotions/$promotionId/approve${_marketQuery(market)}',
+    );
     return Promotion.fromJson(response as Map<String, dynamic>);
   }
 
-  Future<Promotion> rejectPromotion(String promotionId) async {
-    final response = await _client.put('/promotions/$promotionId/reject');
+  Future<Promotion> rejectPromotion(
+    String promotionId, {
+    String? market,
+  }) async {
+    final response = await _client.put(
+      '/promotions/$promotionId/reject${_marketQuery(market)}',
+    );
     return Promotion.fromJson(response as Map<String, dynamic>);
   }
 }

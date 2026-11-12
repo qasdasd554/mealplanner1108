@@ -5142,15 +5142,15 @@ class AppLocalizationsDe extends AppLocalizations {
       'Der API-Schlüssel ist nicht konfiguriert.';
 
   @override
-  String get adminMainScanTitle => 'Scan Promotion Merkblätter';
+  String get adminMainScanTitle => 'Angebotsprospekte einlesen';
 
   @override
   String get adminMainScanHelp =>
       'KI sucht online nach dem aktuellen Merkblatt des Shops und erkennt dessen Promotions. Die Ergebnisse gehen in die unten stehende Genehmigungswarteschlange – nichts ändert sich automatisch.';
 
   @override
-  String get adminMainDeScanUnavailable =>
-      'Angebote deutscher Supermärkte können derzeit noch nicht gescannt werden.';
+  String get adminMainDeScanHelp =>
+      'Lies den aktuellen Prospekt von ALDI Nord ein. Die Angebote erscheinen unten zur Freigabe.';
 
   @override
   String get adminMainUkScanUnavailable =>
@@ -5158,7 +5158,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String adminMainScanShop(String store) {
-    return 'Scan $store';
+    return '$store einlesen';
   }
 
   @override

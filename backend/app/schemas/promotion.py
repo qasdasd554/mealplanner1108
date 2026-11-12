@@ -14,6 +14,7 @@ class PromotionResponse(BaseModel):
     id: uuid.UUID
     product_name: str
     store_name: str
+    currency_code: str = "PLN"
     # UWAGA (naprawa): wcześniej te pola były typu Decimal — Pydantic
     # domyślnie serializuje Decimal do JSON jako STRING (żeby nie tracić
     # precyzji), nie jako liczbę, np. `"regular_price": "5.99"` zamiast

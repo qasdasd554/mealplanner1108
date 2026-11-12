@@ -27,7 +27,7 @@ class Database:
 def test_worker_records_success_after_scan(monkeypatch):
     db = Database()
     monkeypatch.setattr(worker, 'async_session_factory', lambda: db)
-    async def scan(store, session): return {'found': 4, 'queued_for_review': 3}
+    async def scan(store, session, *, country): return {'found': 4, 'queued_for_review': 3}
     monkeypatch.setattr(promotions, '_scan_and_queue_promotions', scan)
     asyncio.run(worker._run_scan(uuid4(), 'Carrefour'))
     assert db.job.status == 'completed'
@@ -37,7 +37,7 @@ def test_worker_records_success_after_scan(monkeypatch):
 def test_worker_records_real_ai_failure(monkeypatch):
     db = Database()
     monkeypatch.setattr(worker, 'async_session_factory', lambda: db)
-    async def scan(store, session): raise HTTPException(422, 'Brak PDF-a')
+    async def scan(store, session, *, country): raise HTTPException(422, 'Brak PDF-a')
     monkeypatch.setattr(promotions, '_scan_and_queue_promotions', scan)
     asyncio.run(worker._run_scan(uuid4(), 'Lidl'))
     assert db.job.status == 'failed' and db.job.error == 'Brak PDF-a'
@@ -47,7 +47,7 @@ def test_worker_timeout_is_persistent_not_phone_timeout(monkeypatch):
     db = Database()
     monkeypatch.setattr(worker, 'async_session_factory', lambda: db)
     monkeypatch.setattr(worker, 'SCAN_TIMEOUT', 0.01)
-    async def scan(store, session): await asyncio.sleep(0.1)
+    async def scan(store, session, *, country): await asyncio.sleep(0.1)
     monkeypatch.setattr(promotions, '_scan_and_queue_promotions', scan)
     asyncio.run(worker._run_scan(uuid4(), 'Dino'))
     assert db.job.status == 'failed' and 'Analiza gazetki' in db.job.error
@@ -56,7 +56,7 @@ def test_worker_timeout_is_persistent_not_phone_timeout(monkeypatch):
 def test_shutdown_leaves_processing_job_recoverable(monkeypatch):
     db = Database()
     monkeypatch.setattr(worker, 'async_session_factory', lambda: db)
-    async def scan(store, session): raise asyncio.CancelledError()
+    async def scan(store, session, *, country): raise asyncio.CancelledError()
     monkeypatch.setattr(promotions, '_scan_and_queue_promotions', scan)
     import pytest
     with pytest.raises(asyncio.CancelledError):

@@ -16,9 +16,10 @@ from __future__ import annotations
 import logging
 from datetime import date
 
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.market_clock import market_today
 from app.models import Product, Store, StoreProduct
 
 # Promotion importowany BEZPOŚREDNIO z modułu, a nie przez app.models —
@@ -48,8 +49,11 @@ async def restore_expired_promotion_prices(db: AsyncSession) -> int:
     result = await db.execute(
         select(Promotion).where(
             Promotion.price_applied.is_(True),
-            Promotion.valid_until < today,
-        )
+            or_(
+                and_(Promotion.country_code == "PL", Promotion.valid_until < today),
+                and_(Promotion.country_code == "DE", Promotion.valid_until < market_today("DE")),
+            ),
+        ).with_for_update(skip_locked=True)
     )
     expired = list(result.scalars().all())
     if not expired:
@@ -57,6 +61,13 @@ async def restore_expired_promotion_prices(db: AsyncSession) -> int:
 
     restored = 0
     for promo in expired:
+        if promo.country_code == "DE":
+            from app.services.de_promotion_queue import restore_de_promotion_price
+
+            restored += int(await restore_de_promotion_price(db, promo))
+            promo.price_applied = False
+            promo.is_active = False
+            continue
         # Existing promotion sources/amounts are Polish (PLN). Same-named
         # British stores must not receive the restoration or cause ambiguity.
         store_result = await db.execute(select(Store).where(

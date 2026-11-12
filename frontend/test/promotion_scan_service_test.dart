@@ -5,18 +5,21 @@ import 'package:smart_meal_planner/services/promotion_service.dart';
 class _Client extends Fake implements ApiClient {
   var posts = 0;
   var gets = 0;
+  final paths = <String>[];
   final List<Object> replies;
   _Client(this.replies);
   @override
   Future<dynamic> post(String path, {dynamic body, Duration? timeout}) async {
     expect(path, startsWith('/promotions/ai-scan/jobs?'));
     posts++;
+    paths.add(path);
     return {'id': 'job', 'status': 'queued', 'store_name': 'Carrefour'};
   }
 
   @override
   Future<dynamic> get(String path, {Duration? timeout}) async {
     gets++;
+    paths.add(path);
     final value = replies.removeAt(0);
     if (value is Exception) throw value;
     return value;
@@ -24,6 +27,21 @@ class _Client extends Fake implements ApiClient {
 }
 
 void main() {
+  test('market is preserved when starting and polling a German scan', () async {
+    final client = _Client([
+      {
+        'id': 'job',
+        'status': 'completed',
+        'result': {'found': 11},
+      },
+    ]);
+    final service = PromotionService(client: client, wait: (_) async {});
+    await service.triggerAiScan('ALDI Nord', market: 'DE');
+    expect(client.paths, [
+      '/promotions/ai-scan/jobs?store_name=ALDI%20Nord&market=DE',
+      '/promotions/ai-scan/jobs/job?market=DE',
+    ]);
+  });
   test(
     'długi skan używa jednego krótkiego POST i odpytywania statusu',
     () async {

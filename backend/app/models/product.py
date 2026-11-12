@@ -175,6 +175,7 @@ class StoreProduct(Base):
     price: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
     package_quantity: Mapped[Decimal | None] = mapped_column(Numeric(10, 3))
     package_unit: Mapped[str | None] = mapped_column(String(8))
+    retailer_sku: Mapped[str | None] = mapped_column(String(100))
     # Marka własna sklepu dla tego konkretnego produktu (np. "Mleczna Dolina"
     # dla mleka w Biedronce, "Pilos" w Lidlu, "Krasula" w Dino). Produkt
     # (Product.name) zostaje ogólny — dzięki temu przepisy, wartości

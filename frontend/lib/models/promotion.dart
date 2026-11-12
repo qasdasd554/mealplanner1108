@@ -2,6 +2,7 @@ class Promotion {
   final String id;
   final String productName;
   final String storeName;
+  final String currencyCode;
   final double regularPrice;
   final double promoPrice;
   final String promoType;
@@ -17,6 +18,7 @@ class Promotion {
     required this.id,
     required this.productName,
     required this.storeName,
+    this.currencyCode = 'PLN',
     required this.regularPrice,
     required this.promoPrice,
     required this.promoType,
@@ -44,6 +46,7 @@ class Promotion {
       id: json['id']?.toString() ?? '',
       productName: json['product_name'] as String? ?? '',
       storeName: json['store_name'] as String? ?? '',
+      currencyCode: json['currency_code'] as String? ?? 'PLN',
       regularPrice: _parseDouble(json['regular_price']),
       promoPrice: _parseDouble(json['promo_price']),
       promoType: json['promo_type'] as String? ?? 'price_cut',

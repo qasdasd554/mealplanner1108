@@ -134,24 +134,25 @@ async def _stage_de_catalogue(session, evidence, *, verified_on: date | None) ->
                 or price != price.quantize(Decimal("0.01")) or row["source"] not in evidence["sources"]):
             raise ValueError(f"Invalid catalogue evidence for {name}")
         department_id = uuid5(definition.id, f"department:{department_names[department]}")
-        prices[product_id] = (name, unit, size, department_id, price, row["brand"], pack_size, pack_unit)
+        prices[product_id] = (name, unit, size, department_id, price, row["brand"], pack_size, pack_unit, row.get("retailer_sku"))
 
     if not prices:
         raise ValueError("The German catalogue has no offers")
 
     products = (await session.scalars(select(Product).where(Product.id.in_(prices)))).all()
-    existing = set(await session.scalars(select(StoreProduct.product_id).where(
+    existing = {offer.product_id: offer for offer in await session.scalars(select(StoreProduct).where(
         StoreProduct.store_id == definition.id,
         StoreProduct.product_id.in_(prices),
-    )))
+    ))}
     if len(products) != len(prices):
         raise ValueError("The shared system catalogue must be seeded before the German sample")
     rows = []
     for product in products:
-        name, unit, size, department_id, price, brand, pack_size, pack_unit = prices[product.id]
+        name, unit, size, department_id, price, brand, pack_size, pack_unit, sku = prices[product.id]
         if product.name != name or product.unit != unit or product.default_quantity != size:
             raise ValueError(f"The stored canonical purchase unit changed for {name}")
-        if product.id not in existing:
+        existing_offer = existing.get(product.id)
+        if existing_offer is None:
             rows.append(StoreProduct(
                 id=uuid5(definition.id, f"product:{product.id}"),
                 store_id=definition.id,
@@ -160,10 +161,16 @@ async def _stage_de_catalogue(session, evidence, *, verified_on: date | None) ->
                 price=price,
                 package_quantity=pack_size,
                 package_unit=pack_unit,
+                retailer_sku=sku if verified_on is not None else None,
                 store_brand_name=brand,
                 is_available=True,
                 last_verified=verified_on,
             ))
+        elif (sku and verified_on and existing_offer.retailer_sku is None
+              and (existing_offer.price, existing_offer.package_quantity, existing_offer.package_unit,
+                   existing_offer.store_brand_name, existing_offer.last_verified)
+              == (price, pack_size, pack_unit, brand, verified_on)):
+            existing_offer.retailer_sku = sku
     session.add_all(rows)
     await session.flush()
     return len(rows)

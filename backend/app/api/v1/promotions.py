@@ -18,7 +18,9 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_admin, get_current_user, get_db
-from app.core.markets import account_country, MarketCode
+from app.core.market_clock import market_today
+from app.core.markets import account_country, requested_market, MARKET_CURRENCIES, MarketCode
+from app.services.de_leaflet_promotions import DE_PROMOTION_STORES
 from app.models.promotion import Promotion
 from app.models.store import Store
 from app.models.product import Product, StoreProduct
@@ -30,8 +32,17 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
+def _require_scan_store(store_name: str, country: str) -> None:
+    from app.services.promo_ai_scanner import _AGGREGATOR_SLUGS
+
+    supported = _AGGREGATOR_SLUGS if country == "PL" else DE_PROMOTION_STORES if country == "DE" else ()
+    if store_name not in supported:
+        raise HTTPException(422, "Für diesen Supermarkt ist kein Prospekt verfügbar." if country == "DE"
+                            else "Ten sklep nie ma skonfigurowanego skanera gazetek.")
+
+
 def _scan_job_response(job: PromotionScanJob) -> dict:
-    return {"id": str(job.id), "store_name": job.store_name,
+    return {"id": str(job.id), "store_name": job.store_name, "country_code": job.country_code,
             "status": job.status, "result": job.result, "error": job.error}
 
 
@@ -40,28 +51,27 @@ async def create_promotion_scan_job(
     store_name: str = Query(..., min_length=1, max_length=80),
     current_user: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
+    market: MarketCode | None = None,
 ):
-    from app.services.promo_ai_scanner import _AGGREGATOR_SLUGS
-    if store_name not in _AGGREGATOR_SLUGS:
-        raise HTTPException(422, "Ten sklep nie ma skonfigurowanego skanera gazetek.")
-    # This scanner reads Polish flyers; an identically named UK chain is
-    # not the same store or currency. Do not infer market from its name.
+    country = requested_market(current_user, market)
+    _require_scan_store(store_name, country)
     store = await db.scalar(select(Store.id).where(
-        Store.name == store_name, Store.country_code == "PL", Store.currency_code == "PLN",
+        Store.name == store_name, Store.country_code == country, Store.currency_code == MARKET_CURRENCIES[country],
     ))
     if store is None:
         raise HTTPException(404, "Nie znaleziono sklepu.")
     # Jeden aktywny skan na sklep, także przy ponowieniu POST po utracie sieci.
-    lock_key = int.from_bytes(hashlib.sha256(("promotion-scan:" + store_name).encode()).digest()[:8], "big", signed=True)
+    lock_key = int.from_bytes(hashlib.sha256(f"promotion-scan:{country}:{store_name}".encode()).digest()[:8], "big", signed=True)
     await db.execute(select(func.pg_advisory_xact_lock(lock_key)))
     job = await db.scalar(
         select(PromotionScanJob).where(
             PromotionScanJob.store_name == store_name,
+            PromotionScanJob.country_code == country,
             PromotionScanJob.status.in_(["queued", "processing"]),
         ).order_by(PromotionScanJob.created_at).limit(1)
     )
     if job is None:
-        job = PromotionScanJob(user_id=current_user.id, store_name=store_name, status="queued", attempts=0)
+        job = PromotionScanJob(user_id=current_user.id, store_name=store_name, country_code=country, status="queued", attempts=0)
         db.add(job)
     await db.commit()
     await db.refresh(job)
@@ -71,8 +81,10 @@ async def create_promotion_scan_job(
 @router.get("/ai-scan/jobs/active")
 async def active_promotion_scan_jobs(
     current_user: User = Depends(get_current_admin), db: AsyncSession = Depends(get_db),
+    market: MarketCode | None = None,
 ):
     result = await db.execute(select(PromotionScanJob).where(
+        PromotionScanJob.country_code == requested_market(current_user, market),
         PromotionScanJob.status.in_(["queued", "processing"])
     ).order_by(PromotionScanJob.created_at).limit(10))
     return [_scan_job_response(job) for job in result.scalars()]
@@ -82,9 +94,10 @@ async def active_promotion_scan_jobs(
 async def get_promotion_scan_job(
     job_id: UUID, current_user: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
+    market: MarketCode | None = None,
 ):
     job = await db.get(PromotionScanJob, job_id)
-    if job is None:
+    if job is None or job.country_code != requested_market(current_user, market):
         raise HTTPException(404, "Nie znaleziono zadania skanowania.")
     return _scan_job_response(job)
 
@@ -102,12 +115,13 @@ async def list_promotions(
 ):
     """Zwraca aktywne promocje ważne dziś, opcjonalnie filtrowane po
     sklepie i/lub nazwie produktu."""
-    # Existing promotion rows/sources are PLN-only and have no market
-    # provenance. They must not be presented as offers in a British store.
-    if account_country(current_user) != "PL":
+    country = account_country(current_user)
+    if country == "GB":
         return []
-    today = date.today()
+    today = market_today(country) if country == "DE" else date.today()
     query = select(Promotion).where(
+        Promotion.country_code == country,
+        Promotion.review_status == "approved",
         Promotion.is_active.is_(True),
         Promotion.valid_from <= today,
         Promotion.valid_until >= today,
@@ -132,10 +146,13 @@ async def check_promotion(
     """Sprawdza, czy dany produkt ma dziś aktywną promocję (w podanym
     sklepie albo we wszystkich). Zwraca listę pasujących promocji — pustą,
     jeśli żadnej nie znaleziono."""
-    if account_country(current_user) != "PL":
+    country = account_country(current_user)
+    if country == "GB":
         return []
-    today = date.today()
+    today = market_today(country) if country == "DE" else date.today()
     query = select(Promotion).where(
+        Promotion.country_code == country,
+        Promotion.review_status == "approved",
         Promotion.is_active.is_(True),
         Promotion.valid_from <= today,
         Promotion.valid_until >= today,
@@ -211,6 +228,7 @@ async def trigger_ai_scan(
     ),
     current_user: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
+    market: MarketCode | None = None,
 ):
     """Szuka aktualnej gazetki promocyjnej danego sklepu w internecie
     (przez niezależny serwis agregujący gazetki, nie bezpośrednio stronę
@@ -226,10 +244,27 @@ async def trigger_ai_scan(
     wywołuje AI), więc celowo nie jest dostępna dla zwykłych użytkowników
     ani nawet kont Premium.
     """
-    return await _scan_and_queue_promotions(store_name, db)
+    country = requested_market(current_user, market)
+    _require_scan_store(store_name, country)
+    return await _scan_and_queue_promotions(store_name, db, country=country)
 
 
-async def _scan_and_queue_promotions(store_name: str, db: AsyncSession) -> dict:
+async def _scan_and_queue_promotions(store_name: str, db: AsyncSession, *, country: str = "PL") -> dict:
+    if country == "DE":
+        from app.services.de_promotion_queue import scan_de_leaflet
+
+        _require_scan_store(store_name, country)
+        result = await scan_de_leaflet(store_name, db)
+        if result["queued_for_review"]:
+            try:
+                await asyncio.wait_for(
+                    _notify_admins_pending_promotions(db, store_name, result["queued_for_review"], country=country),
+                    timeout=15,
+                )
+            except Exception:
+                logger.warning("Promocje ALDI Nord zapisano, ale powiadomienie administratorów nie dotarło.")
+        return result
+
     from app.services.promo_ai_scanner import PromoAIScanError, find_promotions_for_store
 
     store_result = await db.execute(select(Store).where(
@@ -345,6 +380,7 @@ async def _scan_and_queue_promotions(store_name: str, db: AsyncSession) -> dict:
         # po przycięciu białych znaków z obu stron.
         existing_result = await db.execute(
             select(Promotion.id).where(
+                Promotion.country_code == "PL",
                 func.lower(func.trim(Promotion.product_name)) == product.name.strip().lower(),
                 func.lower(func.trim(Promotion.store_name)) == store_name.strip().lower(),
                 Promotion.review_status.in_(["pending", "approved"]),
@@ -396,17 +432,23 @@ async def _scan_and_queue_promotions(store_name: str, db: AsyncSession) -> dict:
     }
 
 
-async def _notify_admins_pending_promotions(db: AsyncSession, store_name: str, count: int) -> None:
+async def _notify_admins_pending_promotions(
+    db: AsyncSession, store_name: str, count: int, *, country: str = "PL",
+) -> None:
     """Powiadamia wszystkich administratorów o nowych promocjach
     czekających na akceptację."""
     from app.services.admin_notifications import notify_admins_pending_review
 
     message = f"AI znalazło {count} nowych promocji w gazetce {store_name} — czekają na akceptację."
+    english = f"AI found {count} new promotions in the {store_name} leaflet — approval required."
+    if country == "DE":
+        message = f"W gazetce {store_name} znaleziono {count} promocji. Czekają na akceptację."
+        english = f"{count} offers from the {store_name} leaflet are awaiting approval."
     await notify_admins_pending_review(
         db,
         notification_type="promotion_pending_approval",
         message=message,
-        english_message=f"AI found {count} new promotions in the {store_name} leaflet — approval required.",
+        english_message=english,
     )
 
 
@@ -422,14 +464,13 @@ async def list_pending_promotions(
 ):
     """Zwraca wszystkie promocje znalezione przez AI, które jeszcze nie
     zostały zaakceptowane ani odrzucone."""
-    # The existing flyer pipeline only produces Polish offers.
-    if (market or account_country(current_user)) != "PL":
+    country = requested_market(current_user, market)
+    if country == "GB":
         return []
-    result = await db.execute(
-        select(Promotion)
-        .where(Promotion.review_status == "pending")
-        .order_by(Promotion.created_at.desc())
-    )
+    query = select(Promotion).where(Promotion.country_code == country, Promotion.review_status == "pending")
+    if country == "DE":
+        query = query.where(Promotion.valid_until >= market_today(country))
+    result = await db.execute(query.order_by(Promotion.created_at.desc()))
     return result.scalars().all()
 
 
@@ -439,9 +480,10 @@ async def list_pending_promotions(
     summary="Zaakceptuj promocję znalezioną przez AI (admin)",
 )
 async def approve_promotion(
-    promotion_id: str,
+    promotion_id: UUID,
     current_user: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
+    market: MarketCode | None = None,
 ):
     """Akceptuje promocję — od tego momentu WPŁYWA na cenę widoczną
     w aplikacji (aktualizuje StoreProduct.price dla dopasowanego produktu
@@ -457,9 +499,23 @@ async def approve_promotion(
     zatwierdzamy samą promocję (widoczną z opisem warunku), ale NIE
     ruszamy ceny bazowej w katalogu.
     """
-    promotion = await db.get(Promotion, promotion_id)
-    if promotion is None:
+    country = requested_market(current_user, market)
+    promotion = await db.get(Promotion, promotion_id, with_for_update=True)
+    if promotion is None or promotion.country_code != country:
         raise HTTPException(status_code=404, detail="Nie znaleziono promocji")
+
+    if country == "DE":
+        from app.services.de_promotion_queue import apply_de_promotion_price
+
+        today = market_today(country)
+        if not promotion.valid_from <= today <= promotion.valid_until or not promotion.is_active:
+            raise HTTPException(409, "Dieses Angebot ist nicht mehr gültig.")
+        if promotion.review_status == "pending":
+            await apply_de_promotion_price(db, promotion)
+            promotion.review_status = "approved"
+        await db.commit()
+        await db.refresh(promotion)
+        return promotion
 
     promotion.review_status = "approved"
 
@@ -496,15 +552,21 @@ async def approve_promotion(
     summary="Odrzuć promocję znalezioną przez AI (admin)",
 )
 async def reject_promotion(
-    promotion_id: str,
+    promotion_id: UUID,
     current_user: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
+    market: MarketCode | None = None,
 ):
-    """Odrzuca promocję — NIE wpływa na żadne ceny."""
-    promotion = await db.get(Promotion, promotion_id)
-    if promotion is None:
+    country = requested_market(current_user, market)
+    promotion = await db.get(Promotion, promotion_id, with_for_update=True)
+    if promotion is None or promotion.country_code != country:
         raise HTTPException(status_code=404, detail="Nie znaleziono promocji")
 
+    if country == "DE" and promotion.price_applied:
+        from app.services.de_promotion_queue import restore_de_promotion_price
+
+        await restore_de_promotion_price(db, promotion)
+        promotion.price_applied = False
     promotion.review_status = "rejected"
     promotion.is_active = False
     await db.commit()

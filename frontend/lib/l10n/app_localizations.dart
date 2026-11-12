@@ -8844,11 +8844,11 @@ abstract class AppLocalizations {
   /// **'AI przeszuka internet w poszukiwaniu aktualnej gazetki danego sklepu i rozpozna z niej promocje. Wynik trafi poniżej do akceptacji — nic nie zmienia się automatycznie.'**
   String get adminMainScanHelp;
 
-  /// No description provided for @adminMainDeScanUnavailable.
+  /// No description provided for @adminMainDeScanHelp.
   ///
   /// In pl, this message translates to:
-  /// **'Skanowanie promocji dla niemieckich sklepów jest jeszcze niedostępne.'**
-  String get adminMainDeScanUnavailable;
+  /// **'Pobierz aktualne oferty z gazetki ALDI Nord. Promocje pojawią się poniżej do akceptacji.'**
+  String get adminMainDeScanHelp;
 
   /// No description provided for @adminMainUkScanUnavailable.
   ///

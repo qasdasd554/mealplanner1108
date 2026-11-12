@@ -8,6 +8,7 @@ from decimal import Decimal
 
 from sqlalchemy import (
     Boolean,
+    CheckConstraint,
     Date,
     DateTime,
     ForeignKey,
@@ -35,6 +36,12 @@ class Promotion(Base):
     """
 
     __tablename__ = "promotions"
+    __table_args__ = (CheckConstraint("country_code IN ('PL', 'DE')", name="ck_promotion_country"),)
+
+    country_code: Mapped[str] = mapped_column(String(2), nullable=False, server_default="PL", index=True)
+    store_product_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("store_products.id", ondelete="SET NULL"), nullable=True,
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -55,11 +62,11 @@ class Promotion(Base):
     # Ceny
     regular_price: Mapped[Decimal] = mapped_column(
         Numeric(10, 2), nullable=False,
-        comment="Cena regularna w PLN",
+        comment="Cena regularna w walucie danego rynku",
     )
     promo_price: Mapped[Decimal] = mapped_column(
         Numeric(10, 2), nullable=False,
-        comment="Cena promocyjna w PLN",
+        comment="Cena promocyjna w walucie danego rynku",
     )
 
     # Typ i szczegóły promocji
@@ -131,6 +138,10 @@ class Promotion(Base):
             f"<Promotion {self.product_name!r} @ {self.store_name}: "
             f"{self.regular_price}→{self.promo_price} ({self.promo_type})>"
         )
+
+    @property
+    def currency_code(self) -> str:
+        return "EUR" if self.country_code == "DE" else "PLN"
 
     @property
     def savings(self) -> Decimal:

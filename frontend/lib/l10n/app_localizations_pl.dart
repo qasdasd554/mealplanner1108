@@ -5055,8 +5055,8 @@ class AppLocalizationsPl extends AppLocalizations {
       'AI przeszuka internet w poszukiwaniu aktualnej gazetki danego sklepu i rozpozna z niej promocje. Wynik trafi poniżej do akceptacji — nic nie zmienia się automatycznie.';
 
   @override
-  String get adminMainDeScanUnavailable =>
-      'Skanowanie promocji dla niemieckich sklepów jest jeszcze niedostępne.';
+  String get adminMainDeScanHelp =>
+      'Pobierz aktualne oferty z gazetki ALDI Nord. Promocje pojawią się poniżej do akceptacji.';
 
   @override
   String get adminMainUkScanUnavailable =>
