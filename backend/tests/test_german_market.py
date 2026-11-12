@@ -153,6 +153,41 @@ def test_reviewed_import_rejects_test_estimates_and_outdated_observations():
             reviewed_de_catalogue_date(reviewed, as_of=as_of)
 
 
+def test_catalogue_coverage_counts_each_shop_and_ignores_expired_files(tmp_path, monkeypatch):
+    from app.db import seed
+    from scripts.import_de_catalogue import recipe_coverage
+
+    def recipe(meal, *names):
+        return {"meal_type": meal, "ingredients": [(name, 1, "g", False) for name in names]}
+
+    monkeypatch.setattr(seed, "RECIPES_DATA", [
+        recipe("breakfast", "Jajka"),
+        recipe("lunch", "Jajka", "Mleko kokosowe"),
+        recipe("lunch", "Jajka", "Mleko kokosowe", "Curry w proszku"),
+    ])
+
+    def source(slug, observed_on, *products):
+        path = tmp_path / f"{slug}-{observed_on}.json"
+        path.write_text(json.dumps({
+            "store_slug": slug, "currency": "EUR", "reviewed_on": observed_on,
+            "purpose": "observed retailer catalogue prices",
+            "products": [{"canonical": name} for name in products],
+        }), encoding="utf-8")
+        return path
+
+    aldi = source("aldi-sued", "2026-11-10", "Jajka")
+    rewe = source("rewe", "2026-11-11", "Mleko kokosowe")
+    expired = source("aldi-sued", "2026-11-01", "Curry w proszku")
+    report = recipe_coverage([aldi, rewe, expired], as_of=date(2026, 11, 12))
+    assert report["expired_sources"] == [expired.name]
+    assert [(shop["store"], shop["covered_recipes"]) for shop in report["stores"]] == [
+        ("aldi-sued", 1), ("rewe", 0),
+    ]
+    assert report["stores"][0]["next_pairs"] == [
+        {"products": ("Curry w proszku", "Mleko kokosowe"), "recipes_unlocked": 2},
+    ]
+
+
 def test_german_development_catalogue_keeps_prices_and_package_units(db, monkeypatch):
     from app.db.seed import AUTUMN_PRODUCT_NAMES, NUTRITION_DATA, PRODUCTS_DATA, RECIPES_DATA, _uid, calculate_nutrition
     from app.services.product_measures import build_measure_options
