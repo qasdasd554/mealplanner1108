@@ -49,16 +49,21 @@ def test_available_recipes_use_german_store_and_author_market(db):
     store = DE_STORES[0]
     session.add(StoreProduct(id=uuid4(), store_id=store.id, product_id=product.id, price=Decimal("1.25")))
 
-    def add_recipe(name, author, ingredient):
+    def add_recipe(name, author, ingredient, optional=None):
         recipe = Recipe(id=uuid4(), name=name, meal_type="obiad", servings=2, visibility="public",
                         created_by_user_id=author.id if author else None)
         recipe.ingredients = [RecipeIngredient(
             id=uuid4(), product_id=ingredient.id, quantity=Decimal("100"), unit="g", is_optional=False,
         )]
+        if optional is not None:
+            recipe.ingredients.append(RecipeIngredient(
+                id=uuid4(), product_id=optional.id, quantity=Decimal("5"), unit="g", is_optional=True,
+            ))
         session.add(recipe)
 
     add_recipe("Verfügbares Rezept", german, product)
     add_recipe("System recipe", None, product)
+    add_recipe("Optionale Zutat", None, product, optional=substitute)
     add_recipe("Polski przepis", polish, product)
     add_recipe("Nicht verfügbar", german, substitute)
     session.commit()
@@ -66,7 +71,7 @@ def test_available_recipes_use_german_store_and_author_market(db):
     available = run(recipes.list_available_recipes(
         store.id, skip=0, limit=30, current_user=german, db=adapter,
     ))
-    assert {recipe.name for recipe in available} == {"System recipe", "Verfügbares Rezept"}
+    assert {recipe.name for recipe in available} == {"System recipe", "Verfügbares Rezept", "Optionale Zutat"}
 
 
 def test_reviewed_aldi_catalogue_preserves_prices_and_quotes_whole_packs(db):

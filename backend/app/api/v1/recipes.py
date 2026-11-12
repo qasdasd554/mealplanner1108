@@ -427,25 +427,23 @@ async def list_available_recipes(
             StoreProduct.is_available == True,  # noqa: E712
         )
     country = account_country(current_user)
+    ingredient_conditions = [
+        RecipeIngredient.recipe_id == Recipe.id,
+        RecipeIngredient.product_id.is_not(None),
+    ]
     if country == "DE":
         available_product_ids = available_product_ids.where(StoreProduct.withdrawn_at.is_(None))
-    has_product_ingredient = exists(
-        select(1).where(
-            RecipeIngredient.recipe_id == Recipe.id,
-            RecipeIngredient.product_id.is_not(None),
-        )
-    )
+        ingredient_conditions.append(RecipeIngredient.is_optional.is_(False))
+    has_product_ingredient = exists(select(1).where(*ingredient_conditions))
     has_unavailable_ingredient = exists(
         select(1).where(
-            RecipeIngredient.recipe_id == Recipe.id,
-            RecipeIngredient.product_id.is_not(None),
+            *ingredient_conditions,
             RecipeIngredient.product_id.not_in(available_product_ids),
         )
     )
 
-    # Keep the Polish result set unchanged. For UK choices use the same
-    # required-ingredient predicate as the catalogue, scoped further to the
-    # selected UK store; missing optional seasonings never exclude a dish.
+    # UK uses the catalogue's required-ingredient predicate with shop scope.
+    # Germany uses its store offers and ignores optional ingredients as the planner does.
     availability_conditions = (
         (recipe_market_availability("GB", store_id=store_id),)
         if country == "GB"
