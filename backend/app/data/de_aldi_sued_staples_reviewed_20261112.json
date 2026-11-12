@@ -1,0 +1,42 @@
+{
+  "store_slug": "aldi-sued",
+  "currency": "EUR",
+  "reviewed_on": "2026-11-12",
+  "purpose": "observed retailer catalogue prices",
+  "sources": {
+    "rye": "https://www.aldi-sued.de/produkt/nur-nur-natur-bio-roggenvollkornbrot-375-g-000000000000495763",
+    "greek_yoghurt": "https://www.aldi-sued.de/produkt/mevgal-original-griechischer-joghurt-200-g-10-fett-000000000269961002",
+    "skyr": "https://www.aldi-sued.de/produkt/milsani-skyr-500-g-000000000000203092",
+    "peas": "https://www.aldi-sued.de/produkt/bio-bio-gemuesesortiment-750-g-junge-erbsen-000000000584753003",
+    "lentils": "https://www.aldi-sued.de/produkt/bio-bio-huelsenfruechte-500-g-rote-linsen-000000000194190004",
+    "cod": "https://www.aldi-sued.de/produkt/golden-seafood-kabeljau-rueckenfilet-250-g-000000000000211760",
+    "smoked_salmon": "https://www.aldi-sued.de/produkt/almare-raeucherlachs-200-g-000000000000107223",
+    "beef": "https://www.aldi-sued.de/produkt/meine-metzgerei-hackfleisch-vom-rind-500-g-000000000000550925",
+    "mixed_mince": "https://www.aldi-sued.de/produkt/meine-metzgerei-hackfleisch-gemischt-500-g-000000000000648898",
+    "soy_sauce": "https://www.aldi-sued.de/produkt/kikkoman-sojasauce-500-ml-000000000000564916",
+    "cheddar": "https://www.aldi-sued.de/produkt/meine-kaesetheke-irischer-cheddar-200-g-reibekaese-000000000202503002",
+    "feta": "https://www.aldi-sued.de/produkt/gut-bio-bio-feta-200-g-000000000000202291",
+    "chopped_tomatoes": "https://www.aldi-sued.de/produkt/bio-bio-tomaten-gehackt-400-g-natur-000000000606508001",
+    "corn": "https://www.aldi-sued.de/produkt/king-s-crown-sonnenmais-285-g-000000000000192131",
+    "almond_drink": "https://www.aldi-sued.de/produkt/my-vay-bio-mandeldrink-1-l-ungesuesst-000000000480661002",
+    "icing_sugar": "https://www.aldi-sued.de/produkt/diadem-puderzucker-250-g-000000000000187113"
+  },
+  "products": [
+    {"canonical": "Chleb żytni razowy", "brand": "NUR NUR NATUR", "quantity": 375, "unit": "g", "price": "0.99", "source": "rye", "retailer_sku": "000000000000495763"},
+    {"canonical": "Jogurt grecki", "brand": "MEVGAL", "quantity": 200, "unit": "g", "price": "1.49", "source": "greek_yoghurt", "retailer_sku": "000000000269961002"},
+    {"canonical": "Skyr naturalny", "brand": "MILSANI", "quantity": 500, "unit": "g", "price": "1.29", "source": "skyr", "retailer_sku": "000000000000203092"},
+    {"canonical": "Groszek zielony mrożony", "brand": "BIO", "quantity": 750, "unit": "g", "price": "2.69", "source": "peas", "retailer_sku": "000000000584753003"},
+    {"canonical": "Soczewica czerwona", "brand": "BIO", "quantity": 500, "unit": "g", "price": "1.45", "source": "lentils", "retailer_sku": "000000000194190004"},
+    {"canonical": "Dorsz filet", "brand": "GOLDEN SEAFOOD", "quantity": 250, "unit": "g", "price": "7.99", "source": "cod", "retailer_sku": "000000000000211760"},
+    {"canonical": "Łosoś wędzony", "brand": "ALMARE", "quantity": 200, "unit": "g", "price": "4.29", "source": "smoked_salmon", "retailer_sku": "000000000000107223"},
+    {"canonical": "Wołowina mielona", "brand": "MEINE METZGEREI", "quantity": 500, "unit": "g", "price": "5.79", "source": "beef", "retailer_sku": "000000000000550925"},
+    {"canonical": "Mielone wieprzowo-wołowe", "brand": "MEINE METZGEREI", "quantity": 500, "unit": "g", "price": "4.99", "source": "mixed_mince", "retailer_sku": "000000000000648898"},
+    {"canonical": "Sos sojowy", "brand": "KIKKOMAN", "quantity": 500, "unit": "ml", "price": "6.99", "source": "soy_sauce", "retailer_sku": "000000000000564916"},
+    {"canonical": "Ser cheddar", "brand": "MEINE KÄSETHEKE", "quantity": 200, "unit": "g", "price": "2.19", "source": "cheddar", "retailer_sku": "000000000202503002"},
+    {"canonical": "Ser feta", "brand": "GUT BIO", "quantity": 200, "unit": "g", "price": "2.89", "source": "feta", "retailer_sku": "000000000000202291"},
+    {"canonical": "Pomidory krojone", "brand": "BIO", "quantity": 400, "unit": "g", "price": "0.65", "source": "chopped_tomatoes", "retailer_sku": "000000000606508001"},
+    {"canonical": "Kukurydza konserwowa", "brand": "KING'S CROWN", "quantity": 285, "unit": "g", "price": "0.89", "source": "corn", "retailer_sku": "000000000000192131", "quantity_basis": "drained"},
+    {"canonical": "Mleko migdałowe", "brand": "MY VAY", "quantity": 1, "unit": "l", "price": "1.35", "source": "almond_drink", "retailer_sku": "000000000480661002"},
+    {"canonical": "Cukier puder", "brand": "DIADEM", "quantity": 250, "unit": "g", "price": "0.49", "source": "icing_sugar", "retailer_sku": "000000000000187113"}
+  ]
+}

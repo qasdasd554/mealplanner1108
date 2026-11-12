@@ -160,12 +160,18 @@ def test_reviewed_aldi_catalogue_preserves_prices_and_quotes_whole_packs(db):
     data_dir = Path(__file__).resolve().parents[1] / "app/data"
     evidence = json.loads((data_dir / "de_aldi_sued_reviewed_20261110.json").read_text(encoding="utf-8"))
     extension = json.loads((data_dir / "de_aldi_sued_reviewed_20261112.json").read_text(encoding="utf-8"))
+    weekly = json.loads((data_dir / "de_aldi_sued_weekly_reviewed_20261112.json").read_text(encoding="utf-8"))
+    staples = json.loads((data_dir / "de_aldi_sued_staples_reviewed_20261112.json").read_text(encoding="utf-8"))
     observed_on = date(2026, 11, 10)
     names = {row["canonical"] for row in evidence["products"]}
     extra_names = {row["canonical"] for row in extension["products"]}
+    weekly_names = {row["canonical"] for row in weekly["products"]}
+    staple_names = {row["canonical"] for row in staples["products"]}
     assert names.isdisjoint(extra_names)
+    all_previous = names | extra_names | weekly_names
+    assert staple_names.isdisjoint(all_previous)
     for name, unit, quantity, *_ in PRODUCTS_DATA:
-        if name in names | extra_names:
+        if name in all_previous | staple_names:
             session.add(Product(id=_uid(f"product:{name}"), name=name, unit=unit,
                                 default_quantity=quantity, review_status="approved"))
     run(seed_de_stores(adapter))
@@ -200,6 +206,15 @@ def test_reviewed_aldi_catalogue_preserves_prices_and_quotes_whole_packs(db):
     extension_date = date(2026, 11, 12)
     assert run(stage_reviewed_de_catalogue(adapter, extension, as_of=extension_date)) == len(extra_names)
     assert run(stage_reviewed_de_catalogue(adapter, extension, as_of=extension_date)) == 0
+    assert run(stage_reviewed_de_catalogue(adapter, weekly, as_of=extension_date)) == len(weekly_names)
+    assert run(stage_reviewed_de_catalogue(adapter, staples, as_of=extension_date)) == len(staple_names)
+    assert run(stage_reviewed_de_catalogue(adapter, staples, as_of=extension_date)) == 0
+    cod_offer = session.scalar(select(StoreProduct).where(
+        StoreProduct.store_id == store.id,
+        StoreProduct.product_id == _uid("product:Dorsz filet"),
+    ))
+    assert cod_offer.retailer_sku == "000000000000211760"
+
     def price_required_ingredients(recipe_name):
         recipe = next(row for row in RECIPES_DATA if row["name"] == recipe_name)
         required_items = [SimpleNamespace(
@@ -223,6 +238,9 @@ def test_reviewed_aldi_catalogue_preserves_prices_and_quotes_whole_packs(db):
         "Cebula": (1.39, 1, extension_date),
         "Ryż biały": (1.39, 1, observed_on),
     }
+    cod_basket = price_required_ingredients("Dorsz pieczony z cytryną i ziołami")
+    assert all(price is not None for price, _, _ in cod_basket.values())
+    assert cod_basket["Dorsz filet"] == (15.98, 2, extension_date)
 
 
 def test_reviewed_import_rejects_test_estimates_and_outdated_observations():
