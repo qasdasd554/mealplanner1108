@@ -8,13 +8,13 @@ branch first and through a direct connection, following deployment policy.
 from sqlalchemy import text
 
 
-def ensure_german_market_constraint(table: str, name: str, condition: str) -> str:
-    """Replace the known PL/GB-only constraint once, inside startup's transaction."""
+def ensure_german_market_constraint(table: str, name: str, condition: str, *, required_market: str = "DE") -> str:
+    """Replace the older market constraint once, inside startup's transaction."""
     return f"""DO $$ BEGIN
         IF EXISTS (
             SELECT 1 FROM pg_constraint
             WHERE conrelid = '{table}'::regclass AND conname = '{name}'
-              AND position('''DE''' in pg_get_constraintdef(oid)) = 0
+              AND position('''{required_market}''' in pg_get_constraintdef(oid)) = 0
         ) THEN
             ALTER TABLE {table} DROP CONSTRAINT {name};
         END IF;

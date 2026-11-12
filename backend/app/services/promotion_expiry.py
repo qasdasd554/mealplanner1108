@@ -52,6 +52,7 @@ async def restore_expired_promotion_prices(db: AsyncSession) -> int:
             or_(
                 and_(Promotion.country_code == "PL", Promotion.valid_until < today),
                 and_(Promotion.country_code == "DE", Promotion.valid_until < market_today("DE")),
+                and_(Promotion.country_code == "GB", Promotion.valid_until < market_today("GB")),
             ),
         ).with_for_update(skip_locked=True)
     )
@@ -61,10 +62,10 @@ async def restore_expired_promotion_prices(db: AsyncSession) -> int:
 
     restored = 0
     for promo in expired:
-        if promo.country_code == "DE":
-            from app.services.de_promotion_queue import restore_de_promotion_price
+        if promo.country_code != "PL":
+            from app.services.retailer_promotion_queue import restore_retailer_promotion_price
 
-            restored += int(await restore_de_promotion_price(db, promo))
+            restored += int(await restore_retailer_promotion_price(db, promo))
             promo.price_applied = False
             promo.is_active = False
             continue

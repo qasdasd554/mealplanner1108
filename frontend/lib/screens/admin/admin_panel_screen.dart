@@ -53,16 +53,18 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   bool _isSendingBroadcast = false;
   List<String> get _stores => switch (_market) {
     'DE' => const ['ALDI Nord', 'ALDI SÜD'],
-    'GB' => const [],
+    'GB' => const ['Lidl'],
     _ => kPromotionScanStores,
   };
   String _market = 'PL';
+  String? _selectedScanStore;
   int _marketGeneration = 0;
 
   void _changeMarket(String market) {
     if (market == _market) return;
     setState(() {
       _market = market;
+      _selectedScanStore = null;
       _marketGeneration++;
       _pending = [];
       _pendingRecipes = [];
@@ -474,19 +476,21 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         isActive: () => mounted,
       );
       if (!mounted) return;
+      final strings = context.strings;
+      final message = switch (result) {
+        {'reused': true} => strings.adminMainScanReused,
+        {'status': 'completed'} => strings.adminMainScanSummary(
+          '${result['found']}',
+          '${result['queued_for_review']}',
+        ),
+        _ => strings.adminMainScanPending,
+      };
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 3),
-            content: Text(
-              result['status'] == 'completed'
-                  ? context.strings.adminMainScanSummary(
-                    '${result['found']}',
-                    '${result['queued_for_review']}',
-                  )
-                  : context.strings.adminMainScanPending,
-            ),
+            content: Text(message),
           ),
         );
       await _loadPending();
@@ -1083,42 +1087,56 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              _market == 'DE'
-                  ? context.strings.adminMainDeScanHelp
-                  : context.strings.adminMainScanHelp,
+              _market == 'PL'
+                  ? context.strings.adminMainScanHelp
+                  : context.strings.adminMainRetailerScanHelp,
               style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
             ),
             const SizedBox(height: 16),
-            if (_market == 'GB')
-              Text(context.strings.adminMainUkScanUnavailable)
-            else
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children:
-                    _stores.map((store) {
-                      final isBusy = _scanningStore == store;
-                      return ElevatedButton.icon(
-                        onPressed:
-                            _scanningStore != null ? null : () => _scan(store),
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(0, 44),
-                        ),
-                        icon:
-                            isBusy
-                                ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                                : const Icon(Icons.search, size: 18),
-                        label: Text(context.strings.adminMainScanShop(store)),
-                      );
-                    }).toList(),
-              ),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                if (_stores.length == 1)
+                  Text(_stores.single)
+                else
+                  DropdownButton<String>(
+                    key: const ValueKey('promotion-scan-store'),
+                    value: _selectedScanStore ?? _stores.first,
+                    onChanged:
+                        _scanningStore != null
+                            ? null
+                            : (store) =>
+                                setState(() => _selectedScanStore = store),
+                    items: [
+                      for (final store in _stores)
+                        DropdownMenuItem(value: store, child: Text(store)),
+                    ],
+                  ),
+                ElevatedButton.icon(
+                  onPressed:
+                      _scanningStore != null
+                          ? null
+                          : () => _scan(_selectedScanStore ?? _stores.first),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(0, 44),
+                  ),
+                  icon:
+                      _scanningStore != null
+                          ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                          : const Icon(Icons.search, size: 18),
+                  label: Text(context.strings.adminMainScanButton),
+                ),
+              ],
+            ),
             if (_scanningStore != null) ...[
               const SizedBox(height: 8),
               Text(

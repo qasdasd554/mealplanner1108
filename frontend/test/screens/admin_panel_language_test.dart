@@ -169,22 +169,35 @@ Future<void> _reveal(WidgetTester tester, Finder finder) async {
 }
 
 void main() {
-  for (final store in ['ALDI Nord', 'ALDI SÜD']) {
-    testWidgets('admin can scan the $store leaflet for Germany', (
+  for (final (country, marketName, store) in [
+    ('DE', 'Niemcy', 'ALDI Nord'),
+    ('DE', 'Niemcy', 'ALDI SÜD'),
+    ('GB', 'Wielka Brytania', 'Lidl'),
+  ]) {
+    testWidgets('one promotion scan action starts $store in $country', (
       tester,
     ) async {
       final promotions = _Promotions();
       await _mount(tester, false, promotions: promotions);
       await tester.tap(find.byType(DropdownButtonFormField<String>));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Niemcy').last);
+      await tester.tap(find.text(marketName).last);
       await tester.pumpAndSettle();
-      final scan = find.text('Skanuj $store');
+      final scan = find.text('Skanuj promocje');
+      if (store == 'ALDI SÜD') {
+        final picker = find.byKey(const ValueKey('promotion-scan-store'));
+        await _reveal(tester, picker);
+        await tester.tap(picker);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(store).last);
+        await tester.pumpAndSettle();
+      }
       await _reveal(tester, scan);
+      expect(scan, findsOneWidget);
       await tester.tap(scan);
       await tester.pumpAndSettle();
-      expect(promotions.scans, [(store, 'DE')]);
-      expect(promotions.markets, ['PL', 'DE', 'DE']);
+      expect(promotions.scans, [(store, country)]);
+      expect(promotions.markets, ['PL', country, country]);
       expect(tester.takeException(), isNull);
     });
   }
@@ -221,11 +234,7 @@ void main() {
         );
         await _reveal(
           tester,
-          find.text(
-            english
-                ? 'UK promotion sources are being prepared. The Polish leaflet scanner does not create GBP promotions.'
-                : 'Brytyjskie źródła promocji są w przygotowaniu. Skaner polskich gazetek nie tworzy promocji w GBP.',
-          ),
+          find.text(english ? 'Scan promotions' : 'Skanuj promocje'),
         );
         expect(tester.takeException(), isNull);
       },

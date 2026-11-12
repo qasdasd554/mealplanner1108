@@ -22,6 +22,7 @@ from sqlalchemy.dialects.postgresql import JSON, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
+from app.core.markets import MARKET_CURRENCIES
 
 
 class Promotion(Base):
@@ -36,7 +37,7 @@ class Promotion(Base):
     """
 
     __tablename__ = "promotions"
-    __table_args__ = (CheckConstraint("country_code IN ('PL', 'DE')", name="ck_promotion_country"),)
+    __table_args__ = (CheckConstraint("country_code IN ('PL', 'GB', 'DE')", name="ck_promotion_country"),)
 
     country_code: Mapped[str] = mapped_column(String(2), nullable=False, server_default="PL", index=True)
     store_product_id: Mapped[uuid.UUID | None] = mapped_column(
@@ -141,7 +142,7 @@ class Promotion(Base):
 
     @property
     def currency_code(self) -> str:
-        return "EUR" if self.country_code == "DE" else "PLN"
+        return MARKET_CURRENCIES.get(self.country_code, "PLN")
 
     @property
     def savings(self) -> Decimal:

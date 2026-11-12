@@ -9,7 +9,7 @@ from app.db.session import Base
 
 class PromotionScanJob(Base):
     __tablename__ = "promotion_scan_jobs"
-    __table_args__ = (CheckConstraint("country_code IN ('PL', 'DE')", name="ck_promotion_scan_country"),)
+    __table_args__ = (CheckConstraint("country_code IN ('PL', 'GB', 'DE')", name="ck_promotion_scan_country"),)
     country_code: Mapped[str] = mapped_column(String(2), nullable=False, server_default="PL", index=True)
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)

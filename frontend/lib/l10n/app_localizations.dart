@@ -8844,23 +8844,23 @@ abstract class AppLocalizations {
   /// **'AI przeszuka internet w poszukiwaniu aktualnej gazetki danego sklepu i rozpozna z niej promocje. Wynik trafi poniżej do akceptacji — nic nie zmienia się automatycznie.'**
   String get adminMainScanHelp;
 
-  /// No description provided for @adminMainDeScanHelp.
+  /// No description provided for @adminMainRetailerScanHelp.
   ///
   /// In pl, this message translates to:
   /// **'Pobierz aktualne oferty sklepu. Promocje pojawią się poniżej do akceptacji.'**
-  String get adminMainDeScanHelp;
+  String get adminMainRetailerScanHelp;
 
-  /// No description provided for @adminMainUkScanUnavailable.
+  /// No description provided for @adminMainScanButton.
   ///
   /// In pl, this message translates to:
-  /// **'Brytyjskie źródła promocji są w przygotowaniu. Skaner polskich gazetek nie tworzy promocji w GBP.'**
-  String get adminMainUkScanUnavailable;
+  /// **'Skanuj promocje'**
+  String get adminMainScanButton;
 
-  /// No description provided for @adminMainScanShop.
+  /// No description provided for @adminMainScanReused.
   ///
   /// In pl, this message translates to:
-  /// **'Skanuj {store}'**
-  String adminMainScanShop(String store);
+  /// **'Użyto wyniku ostatniego skanowania.'**
+  String get adminMainScanReused;
 
   /// No description provided for @adminMainScanningShop.
   ///

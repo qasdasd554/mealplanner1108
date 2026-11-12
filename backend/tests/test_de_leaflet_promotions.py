@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+from dataclasses import replace
 from datetime import date, timedelta
 from decimal import Decimal
 from types import SimpleNamespace
@@ -15,7 +16,7 @@ from app.api.v1 import promotions
 from app.models import Product, Store, StoreProduct
 from app.models.promotion import Promotion
 from app.schemas.promotion import PromotionResponse
-from app.services import de_promotion_queue, promotion_expiry
+from app.services import retailer_promotion_queue, promotion_expiry
 from app.services.de_leaflet_promotions import (
     ALDI_SUED_LEAFLET_URL,
     parse_aldi_nord_leaflet,
@@ -134,22 +135,23 @@ class LocalDatabase(Database):
 
 
 @pytest.mark.parametrize("pack, applied", [(300, True), (600, False)])
-@pytest.mark.parametrize("store, sku, fetch_name, fetch, discount, source", [
-    ("ALDI Nord", "lachsfilet-1870", "fetch_aldi_nord_promotions", lambda: _parse(_offer()), "4.89", "aldi_nord_leaflet"),
-    ("ALDI SÜD", _SUED_SKU, "fetch_aldi_sued_promotions", lambda: _parse_sued(_SUED_TILE), "4.49", "aldi_sued_leaflet"),
+@pytest.mark.parametrize("store, sku, fetch, discount, source", [
+    ("ALDI Nord", "lachsfilet-1870", lambda: _parse(_offer()), "4.89", "aldi_nord_leaflet"),
+    ("ALDI SÜD", _SUED_SKU, lambda: _parse_sued(_SUED_TILE), "4.49", "aldi_sued_leaflet"),
 ])
 def test_german_moderation_is_scoped_and_only_updates_matching_packs(
-    market_price_db, monkeypatch, pack, applied, store, sku, fetch_name, fetch, discount, source,
+    market_price_db, monkeypatch, pack, applied, store, sku, fetch, discount, source,
 ):
     today = date(2026, 11, 12)
-    for module in (de_promotion_queue, promotion_expiry, promotions):
+    for module in (retailer_promotion_queue, promotion_expiry, promotions):
         monkeypatch.setattr(module, "market_today", lambda _: today)
 
     async def leaflet(skus):
         assert skus == {sku}
         return fetch()
 
-    monkeypatch.setattr(de_promotion_queue, fetch_name, leaflet)
+    sources = retailer_promotion_queue.RETAILER_LEAFLETS
+    monkeypatch.setitem(sources, ("DE", store), replace(sources["DE", store], fetch=leaflet))
     db = LocalDatabase(market_price_db)
     admin = SimpleNamespace(country_code="PL", role="admin")
     de_user = SimpleNamespace(country_code="DE")

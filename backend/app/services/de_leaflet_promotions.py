@@ -2,24 +2,18 @@
 
 import json
 import re
-from dataclasses import dataclass
 from datetime import date, timedelta
 from decimal import Decimal
 
-import httpx
 from bs4 import BeautifulSoup
 
 from app.core.market_clock import market_today
+from app.services.retailer_leaflet import LeafletOffer, download_leaflet
 
 ALDI_NORD_LEAFLET_URL = "https://www.aldi-nord.de/angebote.html"
 ALDI_SUED_LEAFLET_URL = (
     "https://www.aldi-sued.de/produkte/wochenangebote/frischeprodukte-im-angebot/k/1588161427299187"
 )
-DE_LEAFLET_SOURCES = {
-    "ALDI Nord": ("aldi_nord_leaflet", ALDI_NORD_LEAFLET_URL),
-    "ALDI SÜD": ("aldi_sued_leaflet", ALDI_SUED_LEAFLET_URL),
-}
-DE_PROMOTION_STORES = tuple(DE_LEAFLET_SOURCES)
 
 # Retailer leaflet variants can have a different identifier from the
 # same product in the regular catalogue. Only reviewed pairs may set a price.
@@ -30,21 +24,6 @@ _LEAFLET_FOODS = {
     "gurke-7024", "cherrydatteltomaten-1005532", "kakis-1007112",
     "speisemoehren-1029249", "lachsfiletportion-18700000003",
 }
-
-
-@dataclass(frozen=True)
-class LeafletOffer:
-    sku: str
-    catalogue_sku: str | None
-    name: str
-    brand: str
-    pack: str
-    quantity: Decimal | None
-    unit: str | None
-    regular: Decimal
-    discount: Decimal
-    start: date
-    end: date
 
 
 def _package(label: str) -> tuple[Decimal | None, str | None]:
@@ -235,23 +214,11 @@ def parse_aldi_sued_leaflet(html: bytes, *, today: date, catalogue_skus: set[str
     return [offer for sku, offer in offers.items() if sku not in ambiguous]
 
 
-async def _download_leaflet(url: str) -> bytes:
-    html = bytearray()
-    async with httpx.AsyncClient(timeout=15) as client:
-        async with client.stream("GET", url) as response:
-            response.raise_for_status()
-            async for chunk in response.aiter_bytes():
-                html.extend(chunk)
-                if len(html) > 4_000_000:
-                    raise ValueError("Retailer leaflet exceeds the expected size")
-    return bytes(html)
-
-
 async def fetch_aldi_nord_promotions(catalogue_skus: set[str]) -> list[LeafletOffer]:
-    html = await _download_leaflet(ALDI_NORD_LEAFLET_URL)
+    html = await download_leaflet(ALDI_NORD_LEAFLET_URL)
     return parse_aldi_nord_leaflet(html, today=market_today("DE"), catalogue_skus=catalogue_skus)
 
 
 async def fetch_aldi_sued_promotions(catalogue_skus: set[str]) -> list[LeafletOffer]:
-    html = await _download_leaflet(ALDI_SUED_LEAFLET_URL)
+    html = await download_leaflet(ALDI_SUED_LEAFLET_URL)
     return parse_aldi_sued_leaflet(html, today=market_today("DE"), catalogue_skus=catalogue_skus)

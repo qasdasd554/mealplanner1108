@@ -7,13 +7,15 @@ class _Client extends Fake implements ApiClient {
   var gets = 0;
   final paths = <String>[];
   final List<Object> replies;
-  _Client(this.replies);
+  final Map<String, dynamic>? postReply;
+  _Client(this.replies, {this.postReply});
   @override
   Future<dynamic> post(String path, {dynamic body, Duration? timeout}) async {
     expect(path, startsWith('/promotions/ai-scan/jobs?'));
     posts++;
     paths.add(path);
-    return {'id': 'job', 'status': 'queued', 'store_name': 'Carrefour'};
+    return postReply ??
+        {'id': 'job', 'status': 'queued', 'store_name': 'Carrefour'};
   }
 
   @override
@@ -27,6 +29,25 @@ class _Client extends Fake implements ApiClient {
 }
 
 void main() {
+  test('recent UK scan returns immediately without status polling', () async {
+    final client = _Client(
+      [],
+      postReply: {
+        'id': 'job',
+        'status': 'completed',
+        'result': {'found': 1},
+        'reused': true,
+      },
+    );
+    final result = await PromotionService(
+      client: client,
+    ).triggerAiScan('Lidl', market: 'GB');
+    expect(client.paths, [
+      '/promotions/ai-scan/jobs?store_name=Lidl&market=GB',
+    ]);
+    expect(result, {'status': 'completed', 'found': 1, 'reused': true});
+  });
+
   test('market is preserved when starting and polling a German scan', () async {
     final client = _Client([
       {

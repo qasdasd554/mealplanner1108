@@ -5055,17 +5055,14 @@ class AppLocalizationsPl extends AppLocalizations {
       'AI przeszuka internet w poszukiwaniu aktualnej gazetki danego sklepu i rozpozna z niej promocje. Wynik trafi poniżej do akceptacji — nic nie zmienia się automatycznie.';
 
   @override
-  String get adminMainDeScanHelp =>
+  String get adminMainRetailerScanHelp =>
       'Pobierz aktualne oferty sklepu. Promocje pojawią się poniżej do akceptacji.';
 
   @override
-  String get adminMainUkScanUnavailable =>
-      'Brytyjskie źródła promocji są w przygotowaniu. Skaner polskich gazetek nie tworzy promocji w GBP.';
+  String get adminMainScanButton => 'Skanuj promocje';
 
   @override
-  String adminMainScanShop(String store) {
-    return 'Skanuj $store';
-  }
+  String get adminMainScanReused => 'Użyto wyniku ostatniego skanowania.';
 
   @override
   String adminMainScanningShop(String store) {

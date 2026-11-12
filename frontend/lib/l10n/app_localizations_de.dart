@@ -5149,17 +5149,15 @@ class AppLocalizationsDe extends AppLocalizations {
       'KI sucht online nach dem aktuellen Merkblatt des Shops und erkennt dessen Promotions. Die Ergebnisse gehen in die unten stehende Genehmigungswarteschlange – nichts ändert sich automatisch.';
 
   @override
-  String get adminMainDeScanHelp =>
+  String get adminMainRetailerScanHelp =>
       'Lies die aktuellen Angebote des Markts ein. Sie erscheinen unten zur Freigabe.';
 
   @override
-  String get adminMainUkScanUnavailable =>
-      'Die britischen Werbequellen werden derzeit vorbereitet, der polnische Flugblattscanner erstellt keine Werbeaktionen im GBP-Bereich.';
+  String get adminMainScanButton => 'Angebote scannen';
 
   @override
-  String adminMainScanShop(String store) {
-    return '$store einlesen';
-  }
+  String get adminMainScanReused =>
+      'Das Ergebnis des letzten Scans wird angezeigt.';
 
   @override
   String adminMainScanningShop(String store) {

@@ -5067,17 +5067,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'AI searches online for the shop’s current leaflet and recognises its promotions. Results go to the approval queue below — nothing changes automatically.';
 
   @override
-  String get adminMainDeScanHelp =>
+  String get adminMainRetailerScanHelp =>
       'Read the shop’s current offers. They will appear below for approval.';
 
   @override
-  String get adminMainUkScanUnavailable =>
-      'UK promotion sources are being prepared. The Polish leaflet scanner does not create GBP promotions.';
+  String get adminMainScanButton => 'Scan promotions';
 
   @override
-  String adminMainScanShop(String store) {
-    return 'Scan $store';
-  }
+  String get adminMainScanReused => 'Showing the result of the latest scan.';
 
   @override
   String adminMainScanningShop(String store) {
@@ -10436,17 +10433,14 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
       'AI searches online for the shop’s current leaflet and recognises its promotions. Results go to the approval queue below — nothing changes automatically.';
 
   @override
-  String get adminMainDeScanHelp =>
+  String get adminMainRetailerScanHelp =>
       'Read the shop’s current offers. They will appear below for approval.';
 
   @override
-  String get adminMainUkScanUnavailable =>
-      'UK promotion sources are being prepared. The Polish leaflet scanner does not create GBP promotions.';
+  String get adminMainScanButton => 'Scan promotions';
 
   @override
-  String adminMainScanShop(String store) {
-    return 'Scan $store';
-  }
+  String get adminMainScanReused => 'Showing the result of the latest scan.';
 
   @override
   String adminMainScanningShop(String store) {

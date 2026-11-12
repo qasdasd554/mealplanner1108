@@ -3063,9 +3063,9 @@
   "adminMainAiKeyMissing": "Klucz API nie jest skonfigurowany.",
   "adminMainScanTitle": "Skanuj gazetki promocyjne",
   "adminMainScanHelp": "AI przeszuka internet w poszukiwaniu aktualnej gazetki danego sklepu i rozpozna z niej promocje. Wynik trafi poniżej do akceptacji — nic nie zmienia się automatycznie.",
-  "adminMainDeScanHelp": "Pobierz aktualne oferty sklepu. Promocje pojawią się poniżej do akceptacji.",
-  "adminMainUkScanUnavailable": "Brytyjskie źródła promocji są w przygotowaniu. Skaner polskich gazetek nie tworzy promocji w GBP.",
-  "adminMainScanShop": "Skanuj {store}",
+  "adminMainRetailerScanHelp": "Pobierz aktualne oferty sklepu. Promocje pojawią się poniżej do akceptacji.",
+  "adminMainScanButton": "Skanuj promocje",
+  "adminMainScanReused": "Użyto wyniku ostatniego skanowania.",
   "adminMainScanningShop": "Skanowanie {store} trwa w tle. Możesz opuścić panel.",
   "adminMainPendingTitle": "Oczekujące na akceptację",
   "adminMainPromotionsEmpty": "Brak promocji czekających na akceptację.",
@@ -3161,13 +3161,6 @@
         "type": "String"
       },
       "difficulty": {
-        "type": "String"
-      }
-    }
-  },
-  "@adminMainScanShop": {
-    "placeholders": {
-      "store": {
         "type": "String"
       }
     }

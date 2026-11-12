@@ -14,7 +14,7 @@ async def ensure_promotion_market_schema(connection) -> None:
             f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS country_code VARCHAR(2) NOT NULL DEFAULT 'PL'"
         ))
         await connection.execute(text(ensure_german_market_constraint(
-            table, constraint, "country_code IN ('PL', 'DE')",
+            table, constraint, "country_code IN ('PL', 'GB', 'DE')", required_market="GB",
         )))
         await connection.execute(text(
             f"CREATE INDEX IF NOT EXISTS ix_{table}_country_code ON {table} (country_code)"

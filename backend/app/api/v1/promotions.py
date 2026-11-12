@@ -20,14 +20,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_current_admin, get_current_user, get_db
 from app.core.market_clock import market_today
 from app.core.markets import account_country, requested_market, MARKET_CURRENCIES, MarketCode
-from app.services.de_leaflet_promotions import DE_PROMOTION_STORES
 from app.models.promotion import Promotion
 from app.models.store import Store
 from app.models.product import Product, StoreProduct
 from app.models.user import User
 from app.models.promotion_scan_job import PromotionScanJob
 from app.schemas.promotion import PromotionResponse
+from app.services.retailer_promotion_queue import (
+    RETAILER_LEAFLETS,
+    apply_retailer_promotion_price,
+    restore_retailer_promotion_price,
+    scan_retailer_leaflet,
+)
 
+SCAN_RESULT_REUSE = timedelta(minutes=10)
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
@@ -35,10 +41,14 @@ logger = logging.getLogger(__name__)
 def _require_scan_store(store_name: str, country: str) -> None:
     from app.services.promo_ai_scanner import _AGGREGATOR_SLUGS
 
-    supported = _AGGREGATOR_SLUGS if country == "PL" else DE_PROMOTION_STORES if country == "DE" else ()
-    if store_name not in supported:
-        raise HTTPException(422, "Für diesen Supermarkt ist kein Prospekt verfügbar." if country == "DE"
-                            else "Ten sklep nie ma skonfigurowanego skanera gazetek.")
+    supported = store_name in _AGGREGATOR_SLUGS if country == "PL" else (country, store_name) in RETAILER_LEAFLETS
+    if not supported:
+        message = {
+            "DE": "Für diesen Supermarkt ist kein Prospekt verfügbar.",
+            "GB": "Leaflet scanning is unavailable for this shop.",
+            "PL": "Ten sklep nie ma skonfigurowanego skanera gazetek.",
+        }
+        raise HTTPException(422, message[country])
 
 
 def _scan_job_response(job: PromotionScanJob) -> dict:
@@ -71,6 +81,16 @@ async def create_promotion_scan_job(
         ).order_by(PromotionScanJob.created_at).limit(1)
     )
     if job is None:
+        recent = await db.scalar(select(PromotionScanJob).where(
+            PromotionScanJob.store_name == store_name,
+            PromotionScanJob.country_code == country,
+            PromotionScanJob.status == "completed",
+            PromotionScanJob.finished_at >= datetime.now(timezone.utc) - SCAN_RESULT_REUSE,
+        ).order_by(PromotionScanJob.finished_at.desc()).limit(1))
+        if recent is not None:
+            response = {**_scan_job_response(recent), "reused": True}
+            await db.commit()
+            return response
         job = PromotionScanJob(user_id=current_user.id, store_name=store_name, country_code=country, status="queued", attempts=0)
         db.add(job)
     await db.commit()
@@ -116,9 +136,7 @@ async def list_promotions(
     """Zwraca aktywne promocje ważne dziś, opcjonalnie filtrowane po
     sklepie i/lub nazwie produktu."""
     country = account_country(current_user)
-    if country == "GB":
-        return []
-    today = market_today(country) if country == "DE" else date.today()
+    today = date.today() if country == "PL" else market_today(country)
     query = select(Promotion).where(
         Promotion.country_code == country,
         Promotion.review_status == "approved",
@@ -147,9 +165,7 @@ async def check_promotion(
     sklepie albo we wszystkich). Zwraca listę pasujących promocji — pustą,
     jeśli żadnej nie znaleziono."""
     country = account_country(current_user)
-    if country == "GB":
-        return []
-    today = market_today(country) if country == "DE" else date.today()
+    today = date.today() if country == "PL" else market_today(country)
     query = select(Promotion).where(
         Promotion.country_code == country,
         Promotion.review_status == "approved",
@@ -250,11 +266,9 @@ async def trigger_ai_scan(
 
 
 async def _scan_and_queue_promotions(store_name: str, db: AsyncSession, *, country: str = "PL") -> dict:
-    if country == "DE":
-        from app.services.de_promotion_queue import scan_de_leaflet
-
+    if country != "PL":
         _require_scan_store(store_name, country)
-        result = await scan_de_leaflet(store_name, db)
+        result = await scan_retailer_leaflet(store_name, db, country=country)
         if result["queued_for_review"]:
             try:
                 await asyncio.wait_for(
@@ -441,7 +455,7 @@ async def _notify_admins_pending_promotions(
 
     message = f"AI znalazło {count} nowych promocji w gazetce {store_name} — czekają na akceptację."
     english = f"AI found {count} new promotions in the {store_name} leaflet — approval required."
-    if country == "DE":
+    if country != "PL":
         message = f"W gazetce {store_name} znaleziono {count} promocji. Czekają na akceptację."
         english = f"{count} offers from the {store_name} leaflet are awaiting approval."
     await notify_admins_pending_review(
@@ -465,10 +479,8 @@ async def list_pending_promotions(
     """Zwraca wszystkie promocje znalezione przez AI, które jeszcze nie
     zostały zaakceptowane ani odrzucone."""
     country = requested_market(current_user, market)
-    if country == "GB":
-        return []
     query = select(Promotion).where(Promotion.country_code == country, Promotion.review_status == "pending")
-    if country == "DE":
+    if country != "PL":
         query = query.where(Promotion.valid_until >= market_today(country))
     result = await db.execute(query.order_by(Promotion.created_at.desc()))
     return result.scalars().all()
@@ -504,14 +516,13 @@ async def approve_promotion(
     if promotion is None or promotion.country_code != country:
         raise HTTPException(status_code=404, detail="Nie znaleziono promocji")
 
-    if country == "DE":
-        from app.services.de_promotion_queue import apply_de_promotion_price
-
+    if country != "PL":
         today = market_today(country)
         if not promotion.valid_from <= today <= promotion.valid_until or not promotion.is_active:
-            raise HTTPException(409, "Dieses Angebot ist nicht mehr gültig.")
+            message = "Dieses Angebot ist nicht mehr gültig." if country == "DE" else "This offer is no longer valid."
+            raise HTTPException(409, message)
         if promotion.review_status == "pending":
-            await apply_de_promotion_price(db, promotion)
+            await apply_retailer_promotion_price(db, promotion)
             promotion.review_status = "approved"
         await db.commit()
         await db.refresh(promotion)
@@ -562,10 +573,8 @@ async def reject_promotion(
     if promotion is None or promotion.country_code != country:
         raise HTTPException(status_code=404, detail="Nie znaleziono promocji")
 
-    if country == "DE" and promotion.price_applied:
-        from app.services.de_promotion_queue import restore_de_promotion_price
-
-        await restore_de_promotion_price(db, promotion)
+    if country != "PL" and promotion.price_applied:
+        await restore_retailer_promotion_price(db, promotion)
         promotion.price_applied = False
     promotion.review_status = "rejected"
     promotion.is_active = False

@@ -96,6 +96,7 @@ class PromotionService {
         return {
           ...?current['result'] as Map<String, dynamic>?,
           'status': 'completed',
+          if (current['reused'] == true) 'reused': true,
         };
       }
       if (current['status'] == 'failed') {
@@ -127,6 +128,7 @@ class PromotionService {
       return {
         ...?current['result'] as Map<String, dynamic>?,
         'status': 'completed',
+        if (current['reused'] == true) 'reused': true,
       };
     }
     return current;

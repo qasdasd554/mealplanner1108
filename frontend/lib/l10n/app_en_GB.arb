@@ -2968,9 +2968,9 @@
   "adminMainAiKeyMissing": "The API key is not configured.",
   "adminMainScanTitle": "Scan promotional leaflets",
   "adminMainScanHelp": "AI searches online for the shop’s current leaflet and recognises its promotions. Results go to the approval queue below — nothing changes automatically.",
-  "adminMainDeScanHelp": "Read the shop’s current offers. They will appear below for approval.",
-  "adminMainUkScanUnavailable": "UK promotion sources are being prepared. The Polish leaflet scanner does not create GBP promotions.",
-  "adminMainScanShop": "Scan {store}",
+  "adminMainRetailerScanHelp": "Read the shop’s current offers. They will appear below for approval.",
+  "adminMainScanButton": "Scan promotions",
+  "adminMainScanReused": "Showing the result of the latest scan.",
   "adminMainScanningShop": "Scanning {store} is continuing in the background. You can leave this panel.",
   "adminMainPendingTitle": "Awaiting approval",
   "adminMainPromotionsEmpty": "No promotions are awaiting approval.",
@@ -3066,13 +3066,6 @@
         "type": "String"
       },
       "difficulty": {
-        "type": "String"
-      }
-    }
-  },
-  "@adminMainScanShop": {
-    "placeholders": {
-      "store": {
         "type": "String"
       }
     }
