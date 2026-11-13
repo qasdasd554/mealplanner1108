@@ -39,6 +39,9 @@ _NON_FOOD = re.compile(
     r"(?:dog|cat|pet) food|(?:cat|pet) litter|(?:washing up |hand )?soap|"
     r"pasta do zębów|szampon|proszek do prania|płyn do naczyń|"
     r"papier toaletowy|mydło|karma|reklamówka|torba zakupowa|carrier bag|"
+    r"hunde(?:futter|snacks?)|katzen(?:futter|streu|snacks?)|tierfutter|"
+    r"sp[üu]lmittel|waschmittel|weichsp[üu]ler|toilettenpapier|zahnpasta|seife|"
+    r"tragetasche|pfand|pfandbon|mehrwertsteuer|zwischensumme|"
     r"discount|rabat|coupon|kupon|deposit|kaucja|VAT|subtotal|razem do zapłaty)\b",
     re.IGNORECASE,
 )

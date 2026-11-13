@@ -46,7 +46,7 @@ def _photo():
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("country,food", [("PL", "Marchew"), ("GB", "Carrots")])
+@pytest.mark.parametrize("country,food", [("PL", "Marchew"), ("GB", "Carrots"), ("DE", "Karotten")])
 async def test_receipt_flow_filters_and_imports_only_confirmed_food_once(db, monkeypatch, country, food):
     user = _user(db, country)
     other = _user(db, country)
@@ -60,14 +60,15 @@ async def test_receipt_flow_filters_and_imports_only_confirmed_food_once(db, mon
 
     async def gemini(parts, **options):
         calls.append(options["country_code"])
-        assert ("British English" if country == "GB" else "Polish") in parts[0]["text"]
+        assert {"PL": "Polish", "GB": "British English", "DE": "German"}[country] in parts[0]["text"]
         image = Image.open(BytesIO(base64.b64decode(parts[1]["inlineData"]["data"])))
         assert not image.getexif()
         return json.dumps({"items": [
             {"kind": "human_food", "receipt_line": food, "name": food, "quantity": 200, "unit": "g"},
             {"kind": "human_food", "receipt_line": food, "name": food, "quantity": 100, "unit": "g"},
             {"kind": "human_food", "receipt_line": "OAT DRINK", "name": "Oat drink", "quantity": 2, "unit": "opak"},
-            {"kind": "human_food", "receipt_line": "DOG FOOD", "name": "Dog food", "quantity": 1, "unit": "opak"},
+            {"kind": "human_food", "receipt_line": "HUNDEFUTTER" if country == "DE" else "DOG FOOD",
+             "name": "Hundefutter" if country == "DE" else "Dog food", "quantity": 1, "unit": "opak"},
             {"kind": "non_food", "receipt_line": "DETERGENT", "name": "Detergent", "quantity": 1, "unit": "opak"},
             {"kind": "unknown", "receipt_line": "ABC", "name": "ABC", "quantity": 1, "unit": "opak"},
         ]})
@@ -103,7 +104,7 @@ async def test_receipt_flow_filters_and_imports_only_confirmed_food_once(db, mon
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("country,expired", [("PL", False), ("GB", True)])
+@pytest.mark.parametrize("country,expired", [("PL", False), ("GB", True), ("DE", False), ("DE", True)])
 async def test_standard_and_expired_accounts_cannot_scan_or_save(db, monkeypatch, country, expired):
     user = _user(db, country, premium=expired)
     if expired:
