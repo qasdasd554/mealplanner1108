@@ -22,6 +22,7 @@ from app.services.de_leaflet_promotions import (
     parse_aldi_nord_leaflet,
     parse_aldi_sued_leaflet,
 )
+from app.services.polish_list_prices import quote_polish_list
 from tests.test_market_prices_promotions import Database, market_price_db
 
 
@@ -41,10 +42,12 @@ def _offer(**overrides):
     }
 
 
-def _parse(*items, today=date(2026, 11, 12)):
+def _parse(*items, today=date(2026, 11, 12), catalogue_skus=None):
     payload = json.dumps({"props": {"pageProps": {"apiData": json.dumps([{"products": items}])}}})
     html = f'<script id="__NEXT_DATA__" type="application/json">{payload}</script>'
-    return parse_aldi_nord_leaflet(html.encode(), today=today, catalogue_skus={"lachsfilet-1870"})
+    return parse_aldi_nord_leaflet(html.encode(), today=today, catalogue_skus=(
+        {"lachsfilet-1870"} if catalogue_skus is None else catalogue_skus
+    ))
 
 
 def test_leaflet_uses_published_dates_and_deduplicates():
@@ -65,6 +68,26 @@ def test_rejects_unknown_products_and_conditional_or_reference_prices():
     with pytest.raises(ValueError):
         parse_aldi_nord_leaflet(b"<html>Unexpected response</html>",
                                today=date(2026, 11, 12), catalogue_skus=set())
+
+
+@pytest.mark.parametrize("sku, label, metadata, expected", [
+    ("kichererbsen-1006602", "425-ml-Dose",
+     {"isDrainedWeight": True, "drainedWeightValue": 265, "drainedWeightUnit": "g"}, (265, "g")),
+    ("naturjoghurt-nach-griechischer-art-4x150g-1006080", "4x150-g-Packung", {}, (600, "g")),
+    ("wraps-weizen-141", "372-g-Packung", {"shortDescription": "6 Stück"}, (6, "szt")),
+])
+def test_nord_uses_the_sellable_pack_in_the_catalogue_unit(sku, label, metadata, expected):
+    row = _offer(productSlug=sku, salesUnit=label, **metadata)
+    [offer] = _parse(row, catalogue_skus={sku})
+    assert (offer.quantity, offer.unit) == expected
+    assert offer.catalogue_sku == sku
+    assert _parse(row, today=date(2026, 11, 15), catalogue_skus={sku}) == []
+
+
+def test_nord_refuses_to_quote_a_drained_pack_without_a_drained_weight():
+    sku = "kichererbsen-1006602"
+    assert _parse(_offer(productSlug=sku, salesUnit="425-ml-Dose", isDrainedWeight=True,
+                         drainedWeightValue=0, drainedWeightUnit="g"), catalogue_skus={sku}) == []
 
 
 _SUED_SKU = "000000000000211235"
@@ -132,6 +155,58 @@ class LocalDatabase(Database):
         if "pg_advisory_xact_lock" in str(statement):
             return None
         return await super().execute(statement)
+
+
+def test_nord_prices_two_drained_packs_after_approval_and_restores_the_original(market_price_db, monkeypatch):
+    today = date(2026, 11, 12)
+    for module in (retailer_promotion_queue, promotion_expiry, promotions):
+        monkeypatch.setattr(module, "market_today", lambda _: today)
+
+    sku = "kichererbsen-1006602"
+    entry = _offer(productSlug=sku, name="Kichererbsen", brandName="ALL SEASONS",
+                   salesUnit="425-ml-Dose", isDrainedWeight=True, drainedWeightUnit="g",
+                   drainedWeightValue=265)
+    entry["promotionPrices"][0].update(priceValue=0.49, strikePrice={"strikePriceValue": 0.59})
+
+    async def leaflet(skus):
+        return _parse(entry, today=today, catalogue_skus=skus)
+
+    sources = retailer_promotion_queue.RETAILER_LEAFLETS
+    key = ("DE", "ALDI Nord")
+    monkeypatch.setitem(sources, key, replace(sources[key], fetch=leaflet))
+    db = LocalDatabase(market_price_db)
+    store = Store(id=uuid4(), name="ALDI Nord", country_code="DE", currency_code="EUR")
+    product = Product(id=uuid4(), name="Ciecierzyca konserwowa", unit="g", default_quantity=400)
+    offer = StoreProduct(id=uuid4(), store_id=store.id, product_id=product.id, price=Decimal("0.59"),
+                         package_quantity=265, package_unit="g", last_verified=today,
+                         retailer_sku=sku, store_brand_name="ALL SEASONS")
+    market_price_db.add_all([store, product, offer])
+    market_price_db.commit()
+    shopping = SimpleNamespace(items=[SimpleNamespace(
+        store_product=offer, required_quantity=Decimal(400), unit="g",
+        regional_snapshot=None, is_checked=False, is_from_pantry=False,
+    )])
+    admin = SimpleNamespace(country_code="PL", role="admin")
+
+    async def cost():
+        result = await quote_polish_list(db, shopping, [store])
+        return result[store.id][0][2]
+
+    async def scenario():
+        assert (await promotions._scan_and_queue_promotions(store.name, db, country="DE"))["queued_for_review"] == 1
+        [row] = await promotions.list_pending_promotions(current_user=admin, db=db, market="DE")
+        assert row.store_product_id == offer.id
+        assert (await cost())["price_in_store"] == 1.18
+        await promotions.approve_promotion(row.id, current_user=admin, db=db, market="DE")
+        discounted = await cost()
+        assert (discounted["price_in_store"], discounted["package_count"]) == (0.98, 2)
+        monkeypatch.setattr(promotion_expiry, "market_today", lambda _: row.valid_until)
+        assert await promotion_expiry.restore_expired_promotion_prices(db) == 0
+        monkeypatch.setattr(promotion_expiry, "market_today", lambda _: row.valid_until + timedelta(days=1))
+        assert await promotion_expiry.restore_expired_promotion_prices(db) == 1
+        assert (await cost())["price_in_store"] == 1.18
+
+    asyncio.run(scenario())
 
 
 @pytest.mark.parametrize("pack, applied", [(300, True), (600, False)])

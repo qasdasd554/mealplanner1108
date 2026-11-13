@@ -18,6 +18,7 @@ ALDI_SUED_LEAFLET_URL = (
 # Retailer leaflet variants can have a different identifier from the
 # same product in the regular catalogue. Only reviewed pairs may set a price.
 _CATALOGUE_SKUS = {"lachsfiletportion-18700000003": "lachsfilet-1870"}
+_COUNTED_PACK_SKUS = {"wraps-weizen-141"}
 _LEAFLET_FOODS = {
     "orangen-6143", "knollensellerie-6207", "wirsingkohl-6213",
     "zitronen-6219", "clementinen-6222", "bananen-fairtrade-6307",
@@ -26,14 +27,24 @@ _LEAFLET_FOODS = {
 }
 
 
-def _package(label: str) -> tuple[Decimal | None, str | None]:
+def _package(row: dict, label: str) -> tuple[Decimal | None, str | None]:
+    if row.get("isDrainedWeight"):
+        weight = row.get("drainedWeightValue")
+        if (row.get("drainedWeightUnit") == "g" and type(weight) in {int, float}
+                and 0 < weight <= 100_000):
+            return Decimal(str(weight)), "g"
+        return None, None
     if label == "Stück":
         return Decimal(1), "szt"
-    match = re.fullmatch(r"([0-9.,]+)-(g|kg|ml|L)-[A-Za-zÄÖÜäöüß]+", label)
+    match = re.fullmatch(r"(?:(\d{1,3})[x×])?([0-9.,]+)-(g|kg|ml|L)-[A-Za-zÄÖÜäöüß]+", label)
     if match is None:
         return None, None
-    amount = Decimal(match[1].replace(".", "").replace(",", "."))
-    return amount, match[2].lower()
+    if row["productSlug"] in _COUNTED_PACK_SKUS:
+        count = re.fullmatch(r"([1-9]\d?) Stück", row.get("shortDescription") or "")
+        if count is not None and match[1] is None:
+            return Decimal(count[1]), "szt"
+    amount = Decimal(match[2].replace(".", "").replace(",", "."))
+    return Decimal(match[1] or 1) * amount, match[3].lower()
 
 
 def _unconditional_price_cut(promo: dict) -> tuple[Decimal, Decimal] | None:
@@ -69,7 +80,7 @@ def _parse_offer(row: dict, today: date, catalogue_skus: set[str]):
     name = row.get("name")
     if not isinstance(name, str) or not 0 < len(name.strip()) <= 300 or not isinstance(pack, str):
         return
-    quantity, unit = _package(pack)
+    quantity, unit = _package(row, pack)
     if not (quantity and quantity > 0) and pack != "kg-Preis":
         return
     for promo in row.get("promotionPrices", []):
