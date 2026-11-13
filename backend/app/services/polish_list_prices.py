@@ -142,7 +142,8 @@ async def quote_polish_list(db, shopping, stores):
                 if offer is not None and offer.is_available and offer.withdrawn_at is None:
                     if product is None:
                         product = offer.product
-                    price = _positive(current_prices.get(offer.id, offer.price))
+                    package_price = current_prices.get(offer.id, offer.price) if country == "DE" else offer.price
+                    price = _positive(package_price)
                     try:
                         count = _package_count(product, row.required_quantity, row.unit, offer=offer)
                         total = _positive(price * count) if price is not None else None

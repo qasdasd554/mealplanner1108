@@ -1390,7 +1390,9 @@ async def get_product_substitutes(
         ):
             continue
         store_prod = r.get("store_product")
-        catalogue_price = current_prices.get(store_prod.id, store_prod.price) if store_prod else None
+        catalogue_price = store_prod.price if store_prod else None
+        if market == "DE" and store_prod is not None:
+            catalogue_price = current_prices.get(store_prod.id, catalogue_price)
         regional_quote = r.get("regional_quote") if account_country(current_user) == "GB" else None
         reference = r.get('reference_quote') if account_country(current_user) == 'GB' and r.get('generic_reference') else None
         if account_country(current_user) == "GB":

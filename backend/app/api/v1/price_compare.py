@@ -491,7 +491,10 @@ async def compare_prices(
                 missing_products.append(product_name)
                 continue
 
-            price = _positive_finite_float(current_prices.get(store_product.id, store_product.price))
+            package_price = store_product.price
+            if country == "DE":
+                package_price = current_prices.get(store_product.id, package_price)
+            price = _positive_finite_float(package_price)
             total_grams = _positive_finite_float(total_grams)
             if price is None or total_grams is None or not req["quantity_known"]:
                 missing_products.append(product_name)

@@ -649,8 +649,8 @@ class ShoppingListBuilder:
             stored_unit = product_unit
             if stored <= 0 or (product_unit in {"kg", "l"} and abs(native - stored) > Decimal("0.000000001")):
                 stored, stored_unit = product_amount(product, Decimal(str(purchase_grams)), canonical_base_unit(product))
-            estimated_price = item_price(product, store_product, stored, stored_unit,
-                                         package_price=current_prices.get(store_product.id))
+            package_price = current_prices.get(store_product.id) if country_code == "DE" else None
+            estimated_price = item_price(product, store_product, stored, stored_unit, package_price=package_price)
 
             # Dział
             department_id = getattr(store_product, "department_id", None)
