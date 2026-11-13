@@ -340,12 +340,15 @@ class MealPlanGenerator:
             preferences = {**preferences, "diet": saved_diet["diet"]}
 
         # Krok 2 — przepisy kwalifikujące się
+        country_code = account_country(user)
+        german_store_recipes: set[UUID] = set()
         eligible_recipes = await self._filter_eligible_recipes(
             allergen_ids=allergen_ids,
             store_id=store_id,
             diet=preferences.get("diet"),
             user_id=user_id,
-            country_code=account_country(user),
+            country_code=country_code,
+            german_store_recipes=german_store_recipes,
         )
         pantry_product_ids = (
             await self._load_pantry_product_ids(user_id)
@@ -369,6 +372,7 @@ class MealPlanGenerator:
             liked_ingredient_ids=liked_ids,
             disliked_ingredient_ids=disliked_ids,
             preference_warnings=preference_warnings,
+            preferred_store_recipe_ids=german_store_recipes,
         )
 
         # Krok 4 — macierz dzień × slot
@@ -510,6 +514,7 @@ class MealPlanGenerator:
         diet: str | None = None,
         user_id: UUID | None = None,
         country_code: str = "PL",
+        german_store_recipes: set[UUID] | None = None,
     ) -> list[Recipe]:
         """Zwraca przepisy kwalifikujące się do planu.
 
@@ -632,6 +637,13 @@ class MealPlanGenerator:
                 )
             else:
                 available = self._recipe_ingredients_available(recipe, available_product_ids)
+            if country_code == "DE":
+                # German catalogue coverage is partial. Keep recipes usable
+                # and let shopping show missing prices without inventing stock.
+                if available and german_store_recipes is not None:
+                    german_store_recipes.add(recipe.id)
+                eligible.append(recipe)
+                continue
             if not available:
                 continue
             eligible.append(recipe)
@@ -723,6 +735,7 @@ class MealPlanGenerator:
         liked_ingredient_ids: set[UUID] | None = None,
         disliked_ingredient_ids: set[UUID] | None = None,
         preference_warnings: list[str] | None = None,
+        preferred_store_recipe_ids: set[UUID] | None = None,
     ) -> list[tuple[int, str, Recipe]]:
         """Zachłanny algorytm selekcji przepisów z reuse składników.
 
@@ -740,6 +753,10 @@ class MealPlanGenerator:
             # Przepisy bez przypisanego meal_type trafiają też jako fallback
             if mt not in MEAL_TYPES:
                 pools["obiad"].append(recipe)
+        preferred_pools = {
+            meal_type: [recipe for recipe in pool if recipe.id in preferred_store_recipe_ids]
+            for meal_type, pool in pools.items()
+        } if preferred_store_recipe_ids else {}
 
         # UWAGA (naprawa): potrzebne do oszacowania "sprawiedliwego udziału"
         # celu kalorycznego przy PIERWSZYM posiłku dnia — patrz komentarz
@@ -783,6 +800,9 @@ class MealPlanGenerator:
             daily_recipe_ids = {recipe.id for recipe in daily_recipes}
             daily_recipe_families = {_recipe_family_key(recipe) for recipe in daily_recipes}
             search_pools = [pool]
+            preferred_pool = preferred_pools.get(meal_type)
+            if preferred_pool:
+                search_pools.insert(0, preferred_pool)
             if pool is not eligible_recipes:
                 search_pools.append(eligible_recipes)
 
@@ -859,7 +879,7 @@ class MealPlanGenerator:
         if target_kcal:
             selected = self._top_up_low_calorie_days(
                 selected=selected,
-                pools=pools,
+                pools=preferred_pools if preferred_pools else pools,
                 used_ingredient_ids=used_ingredient_ids,
                 recipe_usage_count=recipe_usage_count,
                 target_kcal=target_kcal,

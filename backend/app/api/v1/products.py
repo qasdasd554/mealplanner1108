@@ -1375,6 +1375,13 @@ async def get_product_substitutes(
         )
     response_list = []
     from app.services.product_market_presentation import product_brand_for_market
+    market = account_country(current_user)
+    current_prices = {}
+    if market == "DE":
+        from app.services.retailer_promotion_queue import german_retailer_prices
+        current_prices = await german_retailer_prices(
+            db, (offer for row in results if (offer := row.get("store_product")) is not None),
+        )
     for r in results:
         prod = r["product"]
         if not (
@@ -1383,6 +1390,7 @@ async def get_product_substitutes(
         ):
             continue
         store_prod = r.get("store_product")
+        catalogue_price = current_prices.get(store_prod.id, store_prod.price) if store_prod else None
         regional_quote = r.get("regional_quote") if account_country(current_user) == "GB" else None
         reference = r.get('reference_quote') if account_country(current_user) == 'GB' and r.get('generic_reference') else None
         if account_country(current_user) == "GB":
@@ -1401,7 +1409,7 @@ async def get_product_substitutes(
             "id": prod.id,
             "name": reference.name_en if reference else (regional_quote.name_en if regional_quote else prod.name),
             "brand": product_brand_for_market(prod, country_code=account_country(current_user)),
-            "price": reference.total_price if reference else (regional_quote.price_per_package if regional_quote else (store_prod.price if store_prod else None)),
+            "price": reference.total_price if reference else (regional_quote.price_per_package if regional_quote else catalogue_price),
             "kcal": kcal,
             "similarity_score": r.get("similarity_score"),
             "currency_code": MARKET_CURRENCIES[account_country(current_user)],

@@ -116,7 +116,7 @@ def shopping_item_merge_key(item: ShoppingListItem) -> tuple:
 async def get_my_shopping_lists(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> list[ShoppingList]:
+) -> list[ShoppingList | ShoppingListResponse]:
     """Zwraca listy zakupów utworzone przez /from-recipes — te, do
     których można dopisywać kolejne przepisy. NIE zwraca zwykłych list
     powiązanych z prawdziwymi, wielodniowymi planami posiłków.
@@ -167,7 +167,7 @@ async def get_my_shopping_lists(
         for index, shopping in enumerate(lists):
             if needs_repair(shopping):
                 lists[index] = await _repair_legacy_list(shopping.meal_plan_id, current_user, db)
-    return lists
+    return await ShoppingListResponse.with_current_german_prices(db, lists)
 
 
 @router.post(
@@ -667,13 +667,13 @@ async def get_shopping_list(
     list_id: UUID,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> ShoppingList:
+) -> ShoppingList | ShoppingListResponse:
     """Zwraca listę zakupów z pozycjami pogrupowanymi po działach sklepu."""
     shopping = await _get_shopping_list_or_404(list_id, current_user, db)
     from app.services.shopping_list_repair import needs_repair
     if account_country(current_user) == 'GB' and needs_repair(shopping):
-        return await _repair_legacy_list(list_id, current_user, db)
-    return shopping
+        shopping = await _repair_legacy_list(list_id, current_user, db)
+    return (await ShoppingListResponse.with_current_german_prices(db, [shopping]))[0]
 
 
 async def _repair_legacy_list(list_id, user, db):
@@ -864,7 +864,14 @@ async def toggle_item_checked(
     # New clients send the intended value. Repeating a successful request
     # after a lost response or from a second device must not undo it.
     # Keep no-body toggles for already installed older clients.
-    item.is_checked = payload.is_checked if payload is not None else not item.is_checked
+    checked = payload.is_checked if payload is not None else not item.is_checked
+    if german_store and item.is_checked != checked:
+        from app.services.polish_shopping_amounts import open_german_item_prices
+        item.is_checked = False
+        current_prices = await open_german_item_prices(db, [shopping_list], item_id=item_id)
+        if item.id in current_prices:
+            item.estimated_price = current_prices[item.id]
+    item.is_checked = checked
     db.add(item)
     await db.commit()
 
@@ -976,12 +983,15 @@ async def get_shopping_list_summary(
     checked_items = sum(1 for i in items if i.is_checked)
     unchecked_items = total_items - checked_items
 
-    total_price = sum(float(i.estimated_price or 0) for i in items)
+    from app.services.polish_shopping_amounts import open_german_item_prices
+    current_prices = await open_german_item_prices(db, [shopping_list])
+    prices = [(item, current_prices.get(item.id, item.estimated_price)) for item in items]
+    total_price = sum(float(price or 0) for _, price in prices)
     checked_price = sum(float(i.estimated_price or 0) for i in items if i.is_checked)
     remaining_price = total_price - checked_price
 
     completion = (checked_items / total_items * 100) if total_items > 0 else 0.0
-    unpriced = any(item.estimated_price is None for item in items)
+    unpriced = any(price is None for _, price in prices)
 
     return ShoppingListSummary(
         total_items=total_items,
@@ -989,7 +999,7 @@ async def get_shopping_list_summary(
         unchecked_items=unchecked_items,
         total_estimated_price=None if unpriced else round(total_price, 2),
         checked_price=None if any(item.is_checked and item.estimated_price is None for item in items) else round(checked_price, 2),
-        remaining_price=None if any(not item.is_checked and item.estimated_price is None for item in items) else round(remaining_price, 2),
+        remaining_price=None if any(not item.is_checked and price is None for item, price in prices) else round(remaining_price, 2),
         completion_percentage=round(completion, 1),
         currency_code=MARKET_CURRENCIES[account_country(shopping_list.store)],
         has_unpriced_items=bool(unpriced),
@@ -1553,7 +1563,12 @@ async def add_item_to_shopping_list(
         store_product_id=store_product.id, department_id=store_product.department_id,
         is_checked=False, is_from_pantry=False, is_generated=False)
     item.required_quantity, item.unit = quantity, unit
-    item.estimated_price = item_price(product, store_product, quantity, unit)
+    package_price = None
+    if account_country(shopping_list.store) == "DE":
+        from app.services.retailer_promotion_queue import german_retailer_prices
+        prices = await german_retailer_prices(db, [store_product])
+        package_price = prices.get(store_product.id)
+    item.estimated_price = item_price(product, store_product, quantity, unit, package_price=package_price)
     db.add(item)
     await db.commit()
     await db.refresh(item)

@@ -36,16 +36,37 @@ def combined_amount(product, left, left_unit, right, right_unit):
     return stored_amount(left + right), left_unit
 
 
-def item_price(product, offer, quantity, unit):
+def item_price(product, offer, quantity, unit, *, package_price=None):
     """Unknown pack conversion is an unknown cost, never a single-pack price."""
     try:
         count = _package_count(product, quantity, unit, offer=offer)
-        price = Decimal(str(offer.price)) * count
+        price = Decimal(str(offer.price if package_price is None else package_price)) * count
         if not price.is_finite() or not 0 <= price <= Decimal("99999999.99"):
             return None
         return price.quantize(Decimal("0.01"))
     except (ValueError, ArithmeticError, TypeError):
         return None
+
+
+async def open_german_item_prices(db, lists, *, item_id=None) -> dict:
+    """Refresh displayed costs in one query, preserving saved purchases."""
+    from app.services.retailer_promotion_queue import german_retailer_prices
+
+    items = [
+        item for shopping in lists
+        if getattr(shopping.store, "country_code", None) == "DE" and shopping.status in {"pending", "in_progress"}
+        for item in shopping.items if not item.is_checked and not item.is_from_pantry
+        and item.store_product is not None and item.store_product.store_id == shopping.store_id
+        and (item_id is None or item.id == item_id)
+    ]
+    prices = await german_retailer_prices(db, (item.store_product for item in items))
+    costs = {}
+    for item in items:
+        offer = item.store_product
+        costs[item.id] = item_price(
+            offer.product, offer, item.required_quantity, item.unit, package_price=prices.get(offer.id),
+        ) if offer.is_available and offer.withdrawn_at is None else None
+    return costs
 
 
 async def complete_polish_items_to_pantry(db, shopping, user):

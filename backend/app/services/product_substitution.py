@@ -556,7 +556,12 @@ class ProductSubstitutionService:
             stored_unit = canonical_base_unit(selected)
         if getattr(substitute_sp, "package_quantity", None) is not None or getattr(substitute_sp, "package_unit", None) is not None:
             from app.services.polish_shopping_amounts import item_price
-            cost = item_price(selected, substitute_sp, stored_quantity, stored_unit)
+            package_price = None
+            if store is not None and store.country_code == "DE":
+                from app.services.retailer_promotion_queue import german_retailer_prices
+                prices = await german_retailer_prices(self.db, [substitute_sp])
+                package_price = prices.get(substitute_sp.id)
+            cost = item_price(selected, substitute_sp, stored_quantity, stored_unit, package_price=package_price)
         else:
             pack_quantity = float(selected.default_quantity or 0)
             if not math.isfinite(pack_quantity) or pack_quantity <= 0:

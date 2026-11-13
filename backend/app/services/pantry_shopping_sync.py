@@ -165,7 +165,10 @@ async def sync_product_in_shopping_lists(
                     StoreProduct.is_available.is_(True),
                     StoreProduct.withdrawn_at.is_(None),
                 ))).scalar_one_or_none()
-                price = item_price(product, offer, purchase, row.unit) if offer is not None else None
+                from app.services.retailer_promotion_queue import german_retailer_prices
+                current_prices = await german_retailer_prices(db, [offer]) if offer is not None else {}
+                price = item_price(product, offer, purchase, row.unit,
+                                   package_price=current_prices.get(offer.id)) if offer is not None else None
                 row.estimated_price = price
                 if price is not None:
                     row.store_product_id, row.store_product = offer.id, offer

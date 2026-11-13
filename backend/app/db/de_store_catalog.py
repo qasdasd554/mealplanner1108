@@ -48,6 +48,18 @@ async def seed_de_stores(session) -> None:
     await seed_store_definitions(session, DE_STORES)
 
 
+async def seed_fresh_reviewed_de_prices(session, *, as_of: date) -> int:
+    """Publish only recent retailer observations included in the release."""
+    data_dir = Path(__file__).resolve().parents[1] / "data"
+    inserted = 0
+    for path in sorted(data_dir.glob("de_*_reviewed_*.json")):
+        evidence = json.loads(path.read_bytes())
+        observed_on = date.fromisoformat(evidence["reviewed_on"])
+        if as_of - DE_CATALOGUE_MAX_AGE <= observed_on <= as_of:
+            inserted += await stage_reviewed_de_catalogue(session, evidence, as_of=as_of)
+    return inserted
+
+
 async def seed_de_test_catalogue(session, *, store_slug: str = "aldi-sued") -> int:
     """Insert a reviewed German shop sample in a development database only.
 

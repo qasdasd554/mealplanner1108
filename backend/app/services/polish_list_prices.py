@@ -108,6 +108,11 @@ async def quote_polish_list(db, shopping, stores):
         StoreProduct.product_id.in_(product_ids),
     ).options(joinedload(StoreProduct.department), joinedload(StoreProduct.product)))).scalars().unique().all()) if product_ids else []
     by_pair = {(offer.store_id, offer.product_id): offer for offer in offers}
+    german_stores = {store.id for store in stores if getattr(store, "country_code", "PL") == "DE"}
+    from app.services.retailer_promotion_queue import german_retailer_prices
+    current_prices = await german_retailer_prices(
+        db, (offer for offer in offers if offer.store_id in german_stores),
+    )
     results = {}
     for store in stores:
         country = getattr(store, "country_code", "PL")
@@ -137,7 +142,7 @@ async def quote_polish_list(db, shopping, stores):
                 if offer is not None and offer.is_available and offer.withdrawn_at is None:
                     if product is None:
                         product = offer.product
-                    price = _positive(offer.price)
+                    price = _positive(current_prices.get(offer.id, offer.price))
                     try:
                         count = _package_count(product, row.required_quantity, row.unit, offer=offer)
                         total = _positive(price * count) if price is not None else None

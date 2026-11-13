@@ -317,7 +317,7 @@ async def friend_shopping_lists(
     friend_id: UUID,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> list[ShoppingList]:
+) -> list[ShoppingList | ShoppingListResponse]:
     await _get_connection(db, current_user.id, friend_id, country_code=account_country(current_user))
     result = await db.execute(
         select(ShoppingList)
@@ -334,4 +334,4 @@ async def friend_shopping_lists(
         .order_by(ShoppingList.created_at.desc())
         .limit(10)
     )
-    return list(result.scalars().all())
+    return await ShoppingListResponse.with_current_german_prices(db, list(result.scalars().all()))

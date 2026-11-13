@@ -40,11 +40,14 @@ class ShoppingListItemResponse(BaseModel):
     pricing_as_of: date | None = None
 
     @classmethod
-    def for_german_store(cls, item):
+    def for_german_store(cls, item, *, prices=None):
         from app.services.product_market_presentation import product_brand_for_market
         from app.services.system_content_language import ingredient_display_name
 
         response = cls.model_validate(item)
+        if prices is not None and item.id in prices:
+            price = prices[item.id]
+            response = response.model_copy(update={"estimated_price": float(price) if price is not None else None})
         product = item.store_product.product if item.store_product else None
         if product is None:
             return response.model_copy(update={"currency_code": "EUR"})
@@ -156,9 +159,20 @@ class ShoppingListResponse(BaseModel):
     has_unpriced_items: bool = False
     price_is_estimated: bool = False
 
+    @classmethod
+    async def with_current_german_prices(cls, db, lists):
+        from app.services.polish_shopping_amounts import open_german_item_prices
+
+        prices = await open_german_item_prices(db, lists)
+        return [
+            cls.model_validate(shopping, context={"german_item_prices": prices})
+            if getattr(shopping.store, "country_code", None) == "DE" else shopping
+            for shopping in lists
+        ]
+
     @model_validator(mode="before")
     @classmethod
-    def get_related_fields(cls, data):
+    def get_related_fields(cls, data, info):
         if hasattr(data, "store") and data.store is not None:
             if getattr(data.store, "country_code", "PL") == "GB":
                 grouped = {}
@@ -191,7 +205,9 @@ class ShoppingListResponse(BaseModel):
             items_by_dept = {}
             total_price = 0.0
             missing_prices = False
+            current_prices = (info.context or {}).get("german_item_prices", {})
             for item in (data.items or []):
+                price = current_prices.get(item.id, item.estimated_price)
                 dept_name = (
                     "W spiżarni" if getattr(item, "is_from_pantry", False) else
                     item.department.name if item.department else "Inne"
@@ -199,13 +215,13 @@ class ShoppingListResponse(BaseModel):
                 if dept_name not in items_by_dept:
                     items_by_dept[dept_name] = []
                 if getattr(data.store, "country_code", "PL") == "DE":
-                    items_by_dept[dept_name].append(ShoppingListItemResponse.for_german_store(item))
+                    items_by_dept[dept_name].append(ShoppingListItemResponse.for_german_store(item, prices=current_prices))
                 else:
                     items_by_dept[dept_name].append(item)
-                if not getattr(item, "is_from_pantry", False) and item.estimated_price is None:
+                if not getattr(item, "is_from_pantry", False) and price is None:
                     missing_prices = True
-                if item.estimated_price:
-                    total_price += float(item.estimated_price)
+                if price:
+                    total_price += float(price)
             pantry_items = items_by_dept.pop("W spiżarni", None)
             if pantry_items is not None:
                 items_by_dept["W spiżarni"] = pantry_items

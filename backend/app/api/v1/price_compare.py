@@ -469,6 +469,10 @@ async def compare_prices(
         store_product_by_pair = {
             (row.store_id, row.product_id): row for row in store_products
         }
+    current_prices = {}
+    if country == "DE":
+        from app.services.retailer_promotion_queue import german_retailer_prices
+        current_prices = await german_retailer_prices(db, store_product_by_pair.values())
 
     for store in stores:
         total_price = 0.0
@@ -487,7 +491,7 @@ async def compare_prices(
                 missing_products.append(product_name)
                 continue
 
-            price = _positive_finite_float(store_product.price)
+            price = _positive_finite_float(current_prices.get(store_product.id, store_product.price))
             total_grams = _positive_finite_float(total_grams)
             if price is None or total_grams is None or not req["quantity_known"]:
                 missing_products.append(product_name)

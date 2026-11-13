@@ -563,7 +563,8 @@ async def _seed_database_if_empty() -> None:
     """
     try:
         from app.db.seed import seed_database
-        from app.db.de_store_catalog import seed_de_stores
+        from app.core.market_clock import market_today
+        from app.db.de_store_catalog import seed_de_stores, seed_fresh_reviewed_de_prices
         from app.db.uk_store_catalog import seed_uk_stores
         from app.db.session import async_session_factory
 
@@ -576,7 +577,10 @@ async def _seed_database_if_empty() -> None:
                 await seed_uk_stores(db)
             if settings.DE_MARKET_ENABLED:
                 await seed_de_stores(db)
+                inserted = await seed_fresh_reviewed_de_prices(db, as_of=market_today("DE"))
             await db.commit()
+            if settings.DE_MARKET_ENABLED:
+                logger.info("Zweryfikowane ceny DE: dodano %d nowych ofert.", inserted)
             logger.info("Dane początkowe zsynchronizowane.")
     except ImportError:
         logger.debug("Moduł seed_database nie jest dostępny — pomijam seedowanie.")

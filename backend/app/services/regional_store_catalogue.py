@@ -25,11 +25,14 @@ async def list_german_store_products(
     """Show actual shop rows first, then labelled German food references."""
     order = english_system_name_order(Product, kind="ingredients", country_code="DE")
     offers = offers.where(StoreProduct.withdrawn_at.is_(None))
-    found = (await db.execute(offers.order_by(order, Product.id).offset(skip).limit(limit))).scalars()
+    found = (await db.execute(offers.order_by(order, Product.id).offset(skip).limit(limit))).scalars().all()
+    from app.services.retailer_promotion_queue import german_retailer_prices
+    current_prices = await german_retailer_prices(db, found)
     output = [
         StoreProductResponse.model_validate(row).model_copy(update={
             "currency_code": "EUR",
             "product": product_for_market(row.product, country_code="DE"),
+            "price": float(current_prices.get(row.id, row.price)),
         })
         for row in found
     ]

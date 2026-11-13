@@ -18,7 +18,7 @@ from app.core.exceptions import NotFoundException
 from app.core.markets import signup_country
 from app.db.de_store_catalog import (
     DE_STORES, reviewed_de_catalogue_date, seed_de_stores,
-    seed_de_test_catalogue, stage_reviewed_de_catalogue,
+    seed_de_test_catalogue, seed_fresh_reviewed_de_prices, stage_reviewed_de_catalogue,
 )
 from app.db.uk_store_catalog import UK_STORES
 from app.models import PantryItem, Product, Recipe, RecipeIngredient, ShoppingList, Store, StoreProduct, User
@@ -300,6 +300,24 @@ def test_reviewed_import_rejects_test_estimates_and_outdated_observations():
             reviewed_de_catalogue_date(reviewed, as_of=as_of)
 
 
+def test_german_startup_only_seeds_fresh_verified_catalogues(db):
+    from app.db.seed import PRODUCTS_DATA, _uid
+
+    session, adapter, _, _, _ = db
+    for name, unit, quantity, *_ in PRODUCTS_DATA:
+        session.add(Product(id=_uid(f"product:{name}"), name=name, unit=unit,
+                            default_quantity=quantity, review_status="approved"))
+    run(seed_de_stores(adapter))
+    today = date(2026, 11, 13)
+    assert run(seed_fresh_reviewed_de_prices(adapter, as_of=today + timedelta(days=8))) == 0
+    assert run(seed_fresh_reviewed_de_prices(adapter, as_of=today)) == 129
+    assert run(seed_fresh_reviewed_de_prices(adapter, as_of=today)) == 0
+    stores = {store.slug: store.id for store in DE_STORES}
+    offers = session.scalars(select(StoreProduct).where(StoreProduct.store_id.in_(stores.values()))).all()
+    assert {row.store_id for row in offers} == {stores["aldi-nord"], stores["aldi-sued"]}
+    assert all(row.last_verified is not None for row in offers)
+
+
 def test_catalogue_coverage_counts_each_shop_and_ignores_expired_files(tmp_path, monkeypatch):
     from app.db import seed
     from scripts.import_de_catalogue import recipe_coverage
@@ -388,6 +406,18 @@ def test_german_development_catalogue_keeps_prices_and_package_units(db, monkeyp
         ) for name, quantity, unit, optional in ingredients]
         session.add(recipe)
     session.commit()
+    # Production markets initially have shop identities before receiving prices.
+    no_prices_plan = run(MealPlanGenerator(adapter).generate(
+        user.id, definitions["rewe"].id, duration_days=7, meals_per_day=3, include_pantry=False,
+        preferences={"meal_types": ["śniadanie", "obiad", "kolacja"]}, household_size=2,
+    ))
+    for day in range(1, 8):
+        assert {entry.meal_slot for entry in no_prices_plan.entries if entry.day_number == day} == meal_types
+    shopping_id = session.scalar(select(ShoppingList.id).where(ShoppingList.meal_plan_id == no_prices_plan.id))
+    without_prices = ShoppingListResponse.model_validate(loaded(session, shopping_id))
+    assert without_prices.has_unpriced_items and without_prices.total_estimated_price is None
+    assert no_prices_plan.estimated_min_budget is None
+
     for slug, days in (("aldi-sued", 5), ("aldi-nord", 3), ("kaufland", 3)):
         plan = run(MealPlanGenerator(adapter).generate(
             user.id, definitions[slug].id, duration_days=days, meals_per_day=3, include_pantry=False,

@@ -12,8 +12,8 @@ import pytest
 from fastapi import HTTPException
 from sqlalchemy import select
 
-from app.api.v1 import promotions
-from app.models import Product, Store, StoreProduct
+from app.api.v1 import promotions, shopping_lists
+from app.models import Product, ShoppingList, ShoppingListItem, Store, StoreProduct, User
 from app.models.promotion import Promotion
 from app.schemas.promotion import PromotionResponse
 from app.services import retailer_promotion_queue, promotion_expiry
@@ -24,6 +24,7 @@ from app.services.de_leaflet_promotions import (
 )
 from app.services.polish_list_prices import quote_polish_list
 from tests.test_market_prices_promotions import Database, market_price_db
+from tests.test_regional_shopping import make_plan
 
 
 def _offer(**overrides):
@@ -159,8 +160,9 @@ class LocalDatabase(Database):
 
 def test_nord_prices_two_drained_packs_after_approval_and_restores_the_original(market_price_db, monkeypatch):
     today = date(2026, 11, 12)
+    current_day = today
     for module in (retailer_promotion_queue, promotion_expiry, promotions):
-        monkeypatch.setattr(module, "market_today", lambda _: today)
+        monkeypatch.setattr(module, "market_today", lambda _: current_day)
 
     sku = "kichererbsen-1006602"
     entry = _offer(productSlug=sku, name="Kichererbsen", brandName="ALL SEASONS",
@@ -180,19 +182,26 @@ def test_nord_prices_two_drained_packs_after_approval_and_restores_the_original(
     offer = StoreProduct(id=uuid4(), store_id=store.id, product_id=product.id, price=Decimal("0.59"),
                          package_quantity=265, package_unit="g", last_verified=today,
                          retailer_sku=sku, store_brand_name="ALL SEASONS")
-    market_price_db.add_all([store, product, offer])
+    user = User(id=uuid4(), country_code="DE", email="de-price@example.test", password_hash="fixture")
+    market_price_db.add_all([store, product, offer, user])
     market_price_db.commit()
-    shopping = SimpleNamespace(items=[SimpleNamespace(
-        store_product=offer, required_quantity=Decimal(400), unit="g",
-        regional_snapshot=None, is_checked=False, is_from_pantry=False,
-    )])
+    plan = make_plan(market_price_db, user, product, quantity="400", store_id=store.id)
+    shopping = ShoppingList(id=uuid4(), meal_plan_id=plan.id, store=store, status="pending")
+    bought = ShoppingListItem(id=uuid4(), store_product=offer, required_quantity=400, unit="g",
+                              is_checked=True, estimated_price=Decimal("0.98"))
+    remaining = ShoppingListItem(id=uuid4(), store_product=offer, required_quantity=400, unit="g",
+                                  is_checked=False, estimated_price=Decimal("0.98"))
+    shopping.items = [remaining, bought]
+    market_price_db.add(shopping)
+    market_price_db.commit()
     admin = SimpleNamespace(country_code="PL", role="admin")
 
     async def cost():
-        result = await quote_polish_list(db, shopping, [store])
+        result = await quote_polish_list(db, SimpleNamespace(items=[remaining]), [store])
         return result[store.id][0][2]
 
     async def scenario():
+        nonlocal current_day
         assert (await promotions._scan_and_queue_promotions(store.name, db, country="DE"))["queued_for_review"] == 1
         [row] = await promotions.list_pending_promotions(current_user=admin, db=db, market="DE")
         assert row.store_product_id == offer.id
@@ -200,11 +209,24 @@ def test_nord_prices_two_drained_packs_after_approval_and_restores_the_original(
         await promotions.approve_promotion(row.id, current_user=admin, db=db, market="DE")
         discounted = await cost()
         assert (discounted["price_in_store"], discounted["package_count"]) == (0.98, 2)
-        monkeypatch.setattr(promotion_expiry, "market_today", lambda _: row.valid_until)
+        current_day = row.valid_until
         assert await promotion_expiry.restore_expired_promotion_prices(db) == 0
-        monkeypatch.setattr(promotion_expiry, "market_today", lambda _: row.valid_until + timedelta(days=1))
-        assert await promotion_expiry.restore_expired_promotion_prices(db) == 1
+        assert (await cost())["price_in_store"] == 0.98
+        current_day += timedelta(days=1)
+        assert offer.price == Decimal("0.49")
         assert (await cost())["price_in_store"] == 1.18
+        response = await shopping_lists.get_shopping_list(plan.id, user, db)
+        assert response.total_estimated_price == 2.16
+        summary = await shopping_lists.get_shopping_list_summary(plan.id, user, db)
+        assert (summary.checked_price, summary.remaining_price) == (0.98, 1.18)
+        assert remaining.estimated_price == Decimal("0.98")
+        checked = shopping_lists.ItemCheckUpdate(is_checked=True)
+        new_purchase = await shopping_lists.toggle_item_checked(plan.id, remaining.id, user, db, checked)
+        assert new_purchase.estimated_price == 1.18
+        old_purchase = await shopping_lists.toggle_item_checked(plan.id, bought.id, user, db, checked)
+        assert old_purchase.estimated_price == 0.98
+        assert await promotion_expiry.restore_expired_promotion_prices(db) == 1
+        assert offer.price == Decimal("0.59")
 
     asyncio.run(scenario())
 

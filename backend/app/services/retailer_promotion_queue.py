@@ -8,7 +8,7 @@ from typing import Awaitable, Callable
 
 import httpx
 from fastapi import HTTPException
-from sqlalchemy import func, select
+from sqlalchemy import and_, func, select
 
 from app.core.market_clock import market_today
 from app.core.markets import MARKET_CURRENCIES
@@ -116,19 +116,68 @@ async def scan_retailer_leaflet(store_name, db, *, country: str) -> dict:
             "skipped_duplicates": len(offers) - queued}
 
 
+def _matches_retailer_pack(row, promotion) -> bool:
+    details = promotion.promo_details or {}
+    sku = details.get("catalogue_sku")
+    try:
+        quantity = Decimal(details["package_quantity"])
+    except (KeyError, TypeError, ArithmeticError, ValueError):
+        return False
+    return bool(sku and row.retailer_sku == sku and quantity.is_finite()
+                and row.package_quantity == quantity and row.package_unit == details.get("package_unit")
+                and (row.store_brand_name or "") == details.get("brand"))
+
+
+def _still_has_applied_price(row, promotion) -> bool:
+    return (_matches_retailer_pack(row, promotion) and row.price == promotion.promo_price
+            and row.last_verified is not None
+            and row.last_verified.isoformat() == (promotion.promo_details or {}).get("price_verified_at"))
+
+
+async def german_retailer_prices(db, offers) -> dict:
+    """Use the regular price after local midnight, including before cleanup runs."""
+    ids = {row.id for row in offers if row.retailer_sku and row.last_verified}
+    if not ids:
+        return {}
+
+    # Read the current catalogue price and expiry marker in the same snapshot.
+    # Cleanup can commit between the caller's catalogue query and this one.
+    current = await db.execute(select(
+        StoreProduct.id, StoreProduct.price, StoreProduct.retailer_sku, StoreProduct.package_quantity,
+        StoreProduct.package_unit, StoreProduct.store_brand_name, StoreProduct.last_verified,
+        Store.name.label("store_name"), Promotion,
+    ).join(
+        Store, Store.id == StoreProduct.store_id,
+    ).outerjoin(Promotion, and_(
+        Promotion.store_product_id == StoreProduct.id, Promotion.country_code == "DE",
+        Promotion.store_name == Store.name, Promotion.price_applied.is_(True),
+        Promotion.valid_until < market_today("DE"),
+    )).where(
+        StoreProduct.id.in_(ids), Store.country_code == "DE", Store.currency_code == "EUR",
+    ).order_by(Promotion.valid_until.desc(), Promotion.created_at.desc(), Promotion.id.desc()))
+    prices = {}
+    restored = set()
+    for row in current:
+        prices.setdefault(row.id, row.price)
+        promotion = row[-1]
+        leaflet = RETAILER_LEAFLETS.get(("DE", row.store_name))
+        if (row.id not in restored and promotion is not None and leaflet is not None
+                and promotion.source == leaflet.name and _still_has_applied_price(row, promotion)):
+            prices[row.id] = promotion.regular_price
+            restored.add(row.id)
+    return prices
+
+
 async def _exact_retailer_offer(db, promotion):
     country = promotion.country_code
     leaflet = RETAILER_LEAFLETS.get((country, promotion.store_name))
     if promotion.store_product_id is None or leaflet is None or promotion.source != leaflet.name:
         return None
-    details = promotion.promo_details or {}
     row = await db.scalar(select(StoreProduct).join(Store).where(
         StoreProduct.id == promotion.store_product_id,
         Store.name == promotion.store_name, Store.country_code == country, Store.currency_code == MARKET_CURRENCIES[country],
     ).with_for_update(of=StoreProduct))
-    if (row is None or row.retailer_sku != details.get("catalogue_sku")
-            or row.package_unit != details.get("package_unit") or row.store_brand_name != details.get("brand")
-            or row.package_quantity != Decimal(details["package_quantity"])):
+    if row is None or not _matches_retailer_pack(row, promotion):
         return None
     return row
 
@@ -146,8 +195,7 @@ async def apply_retailer_promotion_price(db, promotion) -> None:
 
 async def restore_retailer_promotion_price(db, promotion) -> bool:
     row = await _exact_retailer_offer(db, promotion)
-    if (row is None or row.price != promotion.promo_price or row.last_verified is None
-            or row.last_verified.isoformat() != promotion.promo_details.get("price_verified_at")):
+    if row is None or not _still_has_applied_price(row, promotion):
         return False
     row.price = promotion.regular_price
     return True
