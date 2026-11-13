@@ -1,0 +1,34 @@
+{
+  "store_slug": "aldi-nord",
+  "currency": "EUR",
+  "reviewed_on": "2026-11-13",
+  "purpose": "observed retailer catalogue prices",
+  "sources": {
+    "quark": "https://www.aldi-nord.de/produkt/speisequark-1006078.html",
+    "skyr": "https://www.aldi-nord.de/produkt/skyr-natur-4458.html",
+    "yoghurt": "https://www.aldi-nord.de/produkt/naturjoghurt-nach-griechischer-art-4x150g-1006080.html",
+    "chickpeas": "https://www.aldi-nord.de/produkt/kichererbsen-1006602.html",
+    "walnuts": "https://www.aldi-nord.de/produkt/walnusskerne-3614.html",
+    "cocoa": "https://www.aldi-nord.de/produkt/kakaopulver-3372.html",
+    "almonds": "https://www.aldi-nord.de/produkt/gemahlene-mandeln-1038616.html",
+    "pork": "https://www.aldi-nord.de/produkt/minutensteaks-8682.html",
+    "chicken": "https://www.aldi-nord.de/produkt/haehnchen-unterkeulen-5047.html",
+    "raisins": "https://www.aldi-nord.de/produkt/sultaninen-2264.html",
+    "pine_nuts": "https://www.aldi-nord.de/produkt/pinienkerne-1604.html",
+    "wraps": "https://www.aldi-nord.de/produkt/wraps-weizen-141.html"
+  },
+  "products": [
+    {"canonical": "Twaróg półtłusty", "brand": "MILSANI", "quantity": 250, "unit": "g", "price": "0.69", "source": "quark", "retailer_sku": "speisequark-1006078"},
+    {"canonical": "Skyr naturalny", "brand": "MILSANI", "quantity": 500, "unit": "g", "price": "1.29", "source": "skyr", "retailer_sku": "skyr-natur-4458"},
+    {"canonical": "Jogurt grecki", "brand": "LYTTOS", "quantity": 600, "unit": "g", "price": "1.39", "source": "yoghurt", "retailer_sku": "naturjoghurt-nach-griechischer-art-4x150g-1006080"},
+    {"canonical": "Ciecierzyca konserwowa", "brand": "ALL SEASONS", "quantity": 265, "unit": "g", "price": "0.59", "source": "chickpeas", "retailer_sku": "kichererbsen-1006602"},
+    {"canonical": "Orzechy włoskie", "brand": "TRADER JOE’S", "quantity": 200, "unit": "g", "price": "2.49", "source": "walnuts", "retailer_sku": "walnusskerne-3614"},
+    {"canonical": "Kakao ciemne", "brand": "BACK FAMILY", "quantity": 250, "unit": "g", "price": "3.29", "source": "cocoa", "retailer_sku": "kakaopulver-3372"},
+    {"canonical": "Mąka migdałowa", "brand": "BACK FAMILY", "quantity": 200, "unit": "g", "price": "2.49", "source": "almonds", "retailer_sku": "gemahlene-mandeln-1038616"},
+    {"canonical": "Schab wieprzowy", "brand": "MEINE METZGEREI", "quantity": 400, "unit": "g", "price": "2.99", "source": "pork", "retailer_sku": "minutensteaks-8682"},
+    {"canonical": "Podudzia z kurczaka", "brand": "MEINE METZGEREI", "quantity": 600, "unit": "g", "price": "3.99", "source": "chicken", "retailer_sku": "haehnchen-unterkeulen-5047"},
+    {"canonical": "Rodzynki", "brand": "TRADER JOE’S", "quantity": 250, "unit": "g", "price": "1.29", "source": "raisins", "retailer_sku": "sultaninen-2264"},
+    {"canonical": "Orzeszki piniowe", "brand": "TRADER JOE’S", "quantity": 50, "unit": "g", "price": "2.49", "source": "pine_nuts", "retailer_sku": "pinienkerne-1604"},
+    {"canonical": "Tortilla pszenna", "brand": "GOLDÄHREN", "quantity": 6, "unit": "szt", "price": "1.19", "source": "wraps", "retailer_sku": "wraps-weizen-141"}
+  ]
+}

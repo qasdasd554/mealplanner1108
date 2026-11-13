@@ -243,6 +243,51 @@ def test_reviewed_aldi_catalogue_preserves_prices_and_quotes_whole_packs(db):
     assert cod_basket["Dorsz filet"] == (15.98, 2, extension_date)
 
 
+def test_reviewed_aldi_nord_extension_quotes_drained_weight_and_wrap_count(db):
+    from app.db.seed import PRODUCTS_DATA, RECIPES_DATA, _uid
+
+    session, adapter, _, _, _ = db
+    data_dir = Path(__file__).resolve().parents[1] / "app/data"
+    original, extension = (
+        json.loads((data_dir / filename).read_bytes())
+        for filename in ("de_aldi_nord_reviewed_20261112.json", "de_aldi_nord_staples_reviewed_20261113.json")
+    )
+    original_names = {row["canonical"] for row in original["products"]}
+    new_names = {row["canonical"] for row in extension["products"]}
+    assert original_names.isdisjoint(new_names)
+    for name, unit, quantity, *_ in PRODUCTS_DATA:
+        if name in original_names | new_names:
+            session.add(Product(id=_uid(f"product:{name}"), name=name, unit=unit,
+                                default_quantity=quantity, review_status="approved"))
+    run(seed_de_stores(adapter))
+    today = date(2026, 11, 13)
+    assert run(stage_reviewed_de_catalogue(adapter, original, as_of=today)) == len(original_names)
+    assert run(stage_reviewed_de_catalogue(adapter, extension, as_of=today)) == len(new_names)
+    assert run(stage_reviewed_de_catalogue(adapter, extension, as_of=today)) == 0
+
+    definition = next(store for store in DE_STORES if store.slug == "aldi-nord")
+    store = session.get(Store, definition.id)
+    recipe = next(row for row in RECIPES_DATA if row["name"] == "Pieczona chrupiąca ciecierzyca")
+    ingredients = [(name, quantity, unit) for name, quantity, unit, optional in recipe["ingredients"] if not optional]
+    ingredients.append(("Tortilla pszenna", Decimal(7), "szt"))
+    items = [SimpleNamespace(
+        store_product=None, catalogue_product_id=_uid(f"product:{name}"),
+        custom_name=name, required_quantity=quantity, unit=unit,
+        regional_snapshot=None, is_checked=False, is_from_pantry=False,
+    ) for name, quantity, unit in ingredients]
+    quotes = run(quote_polish_list(adapter, SimpleNamespace(items=items), [store]))
+    priced = {item.custom_name: (offer, quote) for item, offer, quote in quotes[store.id]}
+    assert store.currency_code == "EUR"
+    assert all(quote["price_in_store"] is not None and not quote["price_is_estimated"]
+               for _, quote in priced.values())
+    chickpeas, quote = priced["Ciecierzyca konserwowa"]
+    assert (chickpeas.package_quantity, chickpeas.package_unit) == (Decimal(265), "g")
+    assert (quote["price_in_store"], quote["package_count"], quote["last_verified"]) == (1.18, 2, today)
+    wraps, quote = priced["Tortilla pszenna"]
+    assert (wraps.package_quantity, wraps.package_unit) == (Decimal(6), "szt")
+    assert (quote["price_in_store"], quote["package_count"], quote["last_verified"]) == (2.38, 2, today)
+
+
 def test_reviewed_import_rejects_test_estimates_and_outdated_observations():
     data_dir = Path(__file__).resolve().parents[1] / "app/data"
     observed_on = date(2026, 11, 10)
