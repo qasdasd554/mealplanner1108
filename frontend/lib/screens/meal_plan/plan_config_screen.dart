@@ -12,6 +12,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/store_provider.dart';
 import '../../providers/meal_plan_provider.dart';
 import '../../services/shopping_list_limit_offer.dart';
+import '../../services/product_analytics.dart';
 import '../../models/store.dart';
 import '../../models/meal_plan.dart';
 import '../../config/constants.dart';
@@ -163,6 +164,7 @@ class _PlanConfigScreenState extends State<PlanConfigScreen> {
       listen: false,
     );
     final success = await mealPlanProvider.generatePlan(request);
+    if (success) ProductAnalytics.instance.mealPlanGenerated();
 
     if (mounted) {
       if (success) {

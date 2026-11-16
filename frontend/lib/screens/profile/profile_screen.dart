@@ -11,6 +11,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 
 import '../../widgets/decorative_circles.dart';
+import '../../widgets/product_analytics_setting.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -478,6 +479,7 @@ class ProfileScreen extends StatelessWidget {
                   icon: Icons.manage_accounts_outlined,
                   children: [
                     const AppDocumentLinks(showAccountHelp: true),
+                    const ProductAnalyticsSetting(),
                     const SizedBox(height: 16),
                     if (hasPremiumAccess) ...[
                       _buildProfileSettingTile(

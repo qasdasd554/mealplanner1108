@@ -32,6 +32,7 @@ import '../profile/premium_screen.dart';
 import '../tracker/calorie_tracker_screen.dart';
 import '../../data/cooking_tips.dart';
 import '../../services/app_review_service.dart';
+import '../../services/product_analytics.dart';
 import '../../services/contextual_premium_offer_service.dart';
 import '../../models/premium_offer.dart';
 import '../../services/premium_offer_success_signal.dart';
@@ -198,6 +199,15 @@ class _HomeScreenState extends State<HomeScreen> {
     _tabs[index] ??= _createTab(index);
   }
 
+  void _selectTab(int index) {
+    if (_currentIndex == index) return;
+    setState(() {
+      _ensureTab(index);
+      _currentIndex = index;
+    });
+    ProductAnalytics.instance.selectHomeTab(ModalRoute.of(context), index);
+  }
+
   @override
   Widget build(BuildContext context) {
     final reduceMotion =
@@ -206,7 +216,7 @@ class _HomeScreenState extends State<HomeScreen> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop && _currentIndex != 0) {
-          setState(() => _currentIndex = 0);
+          _selectTab(0);
         }
       },
       child: Scaffold(
@@ -332,10 +342,7 @@ class _HomeScreenState extends State<HomeScreen> {
               //   }
               // }
               if (!mounted) return;
-              setState(() {
-                _ensureTab(index);
-                _currentIndex = index;
-              });
+              _selectTab(index);
             },
             items: [
               BottomNavigationBarItem(
@@ -515,6 +522,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           MaterialPageRoute(
                             builder:
                                 (_) => const PantryScreen(openAddOnStart: true),
+                            settings: const RouteSettings(name: '/pantry'),
                           ),
                         );
                       },
@@ -741,6 +749,9 @@ class HomeTab extends StatelessWidget {
                                   () => Navigator.of(context).push(
                                     MaterialPageRoute(
                                       builder: (_) => const PantryScreen(),
+                                      settings: const RouteSettings(
+                                        name: '/pantry',
+                                      ),
                                     ),
                                   ),
                             ),
@@ -1427,7 +1438,7 @@ class HomeTab extends StatelessWidget {
               ),
             ),
             trailing: Icon(Icons.arrow_forward, color: colors.primary),
-            onTap: () => Navigator.of(context).pushNamed('/plan/config'),
+            onTap: () => _openNewPlan(context),
           ),
         ],
       ),
@@ -1685,13 +1696,18 @@ class HomeTab extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           ElevatedButton(
-            onPressed: () => Navigator.of(context).pushNamed('/plan/config'),
+            onPressed: () => _openNewPlan(context),
             child: Text(context.strings.homeCreatePlan),
           ),
         ],
       ),
     );
   }
+}
+
+void _openNewPlan(BuildContext context) {
+  ProductAnalytics.instance.newPlanTapped();
+  Navigator.of(context).pushNamed('/plan/config');
 }
 
 class _ContextualPremiumCard extends StatefulWidget {

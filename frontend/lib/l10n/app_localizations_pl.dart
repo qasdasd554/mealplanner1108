@@ -3122,6 +3122,17 @@ class AppLocalizationsPl extends AppLocalizations {
   String get profilePrivacy => 'Konto i prywatność';
 
   @override
+  String get profileAnalytics => 'Analityka aplikacji';
+
+  @override
+  String get profileAnalyticsHint =>
+      'Udostępniaj w Google Analytics dane o otwieranych ekranach, czasie korzystania i wybranych kliknięciach, aby pomóc ulepszać Meal Planner.';
+
+  @override
+  String get profileAnalyticsSaveError =>
+      'Nie udało się zmienić ustawienia analityki. Spróbuj ponownie.';
+
+  @override
   String get profileAddUsername => 'Dodaj nazwę użytkownika';
 
   @override

@@ -34,6 +34,7 @@ import 'screens/promotions/promotions_screen.dart';
 import 'screens/notifications/notifications_screen.dart';
 import 'utils/calendar_day.dart';
 import 'services/update_service.dart';
+import 'services/product_analytics.dart';
 import 'models/meal_plan.dart';
 import 'l10n/app_localizations.dart';
 import 'l10n/market_locale.dart';
@@ -73,12 +74,16 @@ class _SmartMealPlannerAppState extends State<SmartMealPlannerApp>
     _observedAuth?.removeListener(_onAuthChanged);
     _observedAuth = auth;
     _wasAuthenticated = auth.isAuthenticated;
+    ProductAnalytics.instance.setMarket(auth.currentUser?.countryCode);
     auth.addListener(_onAuthChanged);
   }
 
   void _onAuthChanged() {
     if (!mounted) return;
     final authenticated = _observedAuth!.isAuthenticated;
+    ProductAnalytics.instance.setMarket(
+      _observedAuth!.currentUser?.countryCode,
+    );
     final endedSession = _wasAuthenticated && !authenticated;
     _wasAuthenticated = authenticated;
     if (!endedSession) return;
@@ -211,6 +216,7 @@ class _SmartMealPlannerAppState extends State<SmartMealPlannerApp>
           // więc koszt jest bez znaczenia.
           key: ValueKey(themeProvider.isDark),
           navigatorKey: SmartMealPlannerApp.navigatorKey,
+          navigatorObservers: [ProductAnalytics.instance],
           title: 'Meal Planner Polska',
           locale: localeForMarket(
             accountCountry:

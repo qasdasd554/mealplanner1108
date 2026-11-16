@@ -10,6 +10,16 @@
 	<string>Meal Planner Polska</string>
 	<key>FirebaseAppDelegateProxyEnabled</key>
 	<true/>
+	<key>FIREBASE_ANALYTICS_COLLECTION_ENABLED</key>
+	<false/>
+	<key>FirebaseAutomaticScreenReportingEnabled</key>
+	<false/>
+	<key>GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_STORAGE</key>
+	<false/>
+	<key>GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_USER_DATA</key>
+	<false/>
+	<key>GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_PERSONALIZATION_SIGNALS</key>
+	<false/>
 	<!-- NAPRAWA AWARYJNA: brak tych dwóch kluczy powodował NATYCHMIASTOWY
 	     twardy crash aplikacji (do ekranu głównego iOS) przy KAŻDEJ próbie
 	     użycia aparatu lub galerii — skanowanie przepisu przez AI, zdjęcie

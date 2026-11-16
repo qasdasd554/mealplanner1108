@@ -1,4 +1,6 @@
 import 'dart:async';
+
+import 'product_analytics.dart';
 import 'dart:io' show Platform;
 
 import 'package:firebase_core/firebase_core.dart';
@@ -122,6 +124,7 @@ class PushService {
     try {
       await Firebase.initializeApp().timeout(const Duration(seconds: 10));
       _available = true;
+      unawaited(ProductAnalytics.instance.initialize());
     } catch (e) {
       debugPrint('Firebase niedostępny — push wyłączony: $e');
       _available = false;

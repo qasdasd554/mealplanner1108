@@ -15,6 +15,7 @@ import 'dart:async';
 import '../../theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/billing_service.dart';
+import '../../services/product_analytics.dart';
 import '../../services/api_client.dart';
 import '../../models/premium_offer.dart';
 import '../../utils/error_utils.dart';
@@ -81,6 +82,23 @@ class _PremiumScreenState extends State<PremiumScreen> {
   final Set<String> _verifiedPurchases = {};
   int _restoreGeneration = 0;
   bool _restoreReceivedPurchase = false;
+
+  String get _analyticsEntryPoint => ProductAnalytics.premiumEntryPoint(
+    offerContext: widget.offerContext,
+    shoppingListLimit: widget.shoppingListLimit,
+    fromTab: !widget.popAfterSuccess,
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (widget.popAfterSuccess) {
+      ProductAnalytics.instance.describePremiumPage(
+        ModalRoute.of(context),
+        _analyticsEntryPoint,
+      );
+    }
+  }
 
   IconData get _contextIcon => switch (widget.offerContext!) {
     PremiumOfferContext.recipe => Icons.menu_book_rounded,
@@ -925,6 +943,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
   }
 
   Future<void> _useSubscriptionOffer(String productId) async {
+    ProductAnalytics.instance.premiumCheckoutTapped(_analyticsEntryPoint);
     final usesTrial =
         productId == kMonthlyProductId && _monthlyHasSevenDayTrial;
     if (!usesTrial && Platform.isIOS && _activeOffers.containsKey(productId)) {

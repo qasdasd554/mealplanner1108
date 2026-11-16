@@ -3112,6 +3112,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profilePrivacy => 'Account and privacy';
 
   @override
+  String get profileAnalytics => 'App analytics';
+
+  @override
+  String get profileAnalyticsHint =>
+      'Share the screens you open, time spent and selected taps with Google Analytics to help improve Meal Planner.';
+
+  @override
+  String get profileAnalyticsSaveError =>
+      'Could not update your analytics preference. Please try again.';
+
+  @override
   String get profileAddUsername => 'Add a username';
 
   @override
@@ -8476,6 +8487,17 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get profilePrivacy => 'Account and privacy';
+
+  @override
+  String get profileAnalytics => 'App analytics';
+
+  @override
+  String get profileAnalyticsHint =>
+      'Share the screens you open, time spent and selected taps with Google Analytics to help improve Meal Planner.';
+
+  @override
+  String get profileAnalyticsSaveError =>
+      'Could not update your analytics preference. Please try again.';
 
   @override
   String get profileAddUsername => 'Add a username';

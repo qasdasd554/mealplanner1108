@@ -5542,6 +5542,24 @@ abstract class AppLocalizations {
   /// **'Konto i prywatność'**
   String get profilePrivacy;
 
+  /// No description provided for @profileAnalytics.
+  ///
+  /// In pl, this message translates to:
+  /// **'Analityka aplikacji'**
+  String get profileAnalytics;
+
+  /// No description provided for @profileAnalyticsHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Udostępniaj w Google Analytics dane o otwieranych ekranach, czasie korzystania i wybranych kliknięciach, aby pomóc ulepszać Meal Planner.'**
+  String get profileAnalyticsHint;
+
+  /// No description provided for @profileAnalyticsSaveError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się zmienić ustawienia analityki. Spróbuj ponownie.'**
+  String get profileAnalyticsSaveError;
+
   /// No description provided for @profileAddUsername.
   ///
   /// In pl, this message translates to:
