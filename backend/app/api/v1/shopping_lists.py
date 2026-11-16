@@ -1473,20 +1473,11 @@ async def add_item_to_shopping_list(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Dokłada produkt do istniejącej listy zakupów.
-
-    Pozycja listy wskazuje na StoreProduct (produkt W KONKRETNYM
-    SKLEPIE), nie na sam produkt — bo z tego biorą się cena i dział
-    alejki. Dlatego szukamy produktu w sklepie przypisanym do TEJ listy.
-
-    Jeśli produkt już na liście jest, sumujemy ilość zamiast tworzyć
-    duplikat — inaczej dwukrotne dodanie tego samego dałoby dwie osobne
-    pozycje do odhaczenia.
-    """
+    """Add a catalogue product, valuing it only if the list's shop has an offer."""
     shopping_list = await _get_shopping_list_or_404(list_id, current_user, db, for_update=True)
 
     product = await db.get(Product, payload.product_id)
-    if product is None:
+    if product is None or (product.review_status != "approved" and product.created_by_user_id != current_user.id):
         raise NotFoundException(detail=account_text(current_user, "Produkt nie istnieje", "Product not found."))
 
     if payload.quantity <= 0:
@@ -1498,8 +1489,6 @@ async def add_item_to_shopping_list(
             "Ta lista zakupów jest już zakończona.", "This shopping list is completed."))
 
     if getattr(shopping_list.store, "country_code", "PL") == "GB":
-        if product.review_status != "approved" and product.created_by_user_id != current_user.id:
-            raise NotFoundException(detail=account_text(current_user, "Produkt nie istnieje", "Product not found."))
         offers = await load_regional_offers(db, {product.id}, shopping_list.store_id)
         quantity, unit = resolve_manual_regional_quantity(
             product, Decimal(str(payload.quantity)), payload.unit, offers,
@@ -1528,8 +1517,6 @@ async def add_item_to_shopping_list(
                 if existing else account_text(current_user, "Dodano produkt do listy", "Product added"),
                 "item_id": str(item.id)}
 
-    if product.review_status != "approved" and product.created_by_user_id != current_user.id:
-        raise NotFoundException(detail=account_text(current_user, "Produkt nie istnieje", "Product not found."))
     store_product_result = await db.execute(
         select(StoreProduct).where(
             StoreProduct.store_id == shopping_list.store_id,
@@ -1539,17 +1526,19 @@ async def add_item_to_shopping_list(
         )
     )
     store_product = store_product_result.scalar_one_or_none()
-    if store_product is None:
-        raise HTTPException(status_code=400, detail=account_text(current_user,
-            f'Produkt "{product.name}" nie jest dostępny w wybranym sklepie',
-            "This product is not available in the selected shop."))
-
     from app.services.polish_shopping_amounts import product_amount, combined_amount, item_price
+    from app.services.system_content_language import ingredient_display_name
+
     quantity, unit = product_amount(product, Decimal(str(payload.quantity)), payload.unit)
     existing = None
     for candidate in shopping_list.items:
-        if (candidate.store_product_id != store_product.id or candidate.is_from_pantry
-                or candidate.is_checked or candidate.is_generated):
+        if candidate.is_from_pantry or candidate.is_checked or candidate.is_generated:
+            continue
+        candidate_product_id = (
+            candidate.store_product.product_id if candidate.store_product is not None
+            else candidate.catalogue_product_id
+        )
+        if candidate_product_id != product.id:
             continue
         try:
             combined, combined_unit = combined_amount(product, candidate.required_quantity,
@@ -1560,15 +1549,24 @@ async def add_item_to_shopping_list(
         break
 
     item = existing or ShoppingListItem(shopping_list_id=shopping_list.id,
-        store_product_id=store_product.id, department_id=store_product.department_id,
         is_checked=False, is_from_pantry=False, is_generated=False)
     item.required_quantity, item.unit = quantity, unit
-    package_price = None
-    if account_country(shopping_list.store) == "DE":
-        from app.services.retailer_promotion_queue import german_retailer_prices
-        prices = await german_retailer_prices(db, [store_product])
-        package_price = prices.get(store_product.id)
-    item.estimated_price = item_price(product, store_product, quantity, unit, package_price=package_price)
+    item.store_product = store_product
+    item.department_id = store_product.department_id if store_product is not None else None
+    item.catalogue_product_id = product.id if store_product is None else None
+    country = account_country(shopping_list.store)
+    item.custom_name = (
+        ingredient_display_name(product, country_code=country)[:200]
+        if store_product is None else None
+    )
+    item.estimated_price = None
+    if store_product is not None:
+        package_price = None
+        if country == "DE":
+            from app.services.retailer_promotion_queue import german_retailer_prices
+            prices = await german_retailer_prices(db, [store_product])
+            package_price = prices.get(store_product.id)
+        item.estimated_price = item_price(product, store_product, quantity, unit, package_price=package_price)
     db.add(item)
     await db.commit()
     await db.refresh(item)
@@ -1607,6 +1605,7 @@ async def add_custom_item_to_shopping_list(
             item
             for item in shopping_list.items
             if item.custom_name is not None
+            and item.catalogue_product_id is None
             and (getattr(item, "regional_snapshot", None) is None or item.regional_snapshot.product_id is None)
             and not item.is_from_pantry
             and not item.is_checked

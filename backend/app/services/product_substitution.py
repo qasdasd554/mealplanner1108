@@ -528,14 +528,16 @@ class ProductSubstitutionService:
                 product_id=substitute_product_id, store_id=store_id
             )
 
-        # Pobierz oryginalny product_id
-        orig_stmt = select(StoreProduct).options(joinedload(StoreProduct.product)).where(StoreProduct.id == item.store_product_id)
-        orig_res = await self.db.execute(orig_stmt)
-        original_sp = orig_res.scalar_one_or_none()
-        if original_sp is None or original_sp.product is None:
-            raise ProductUnavailableException(product_id=substitute_product_id, store_id=store_id)
-        original, selected = original_sp.product, substitute_sp.product
-        if selected is None or selected.review_status != "approved":
+        if item.store_product_id is not None:
+            original = (await self.db.execute(
+                select(Product).join(StoreProduct, StoreProduct.product_id == Product.id)
+                .where(StoreProduct.id == item.store_product_id)
+            )).scalar_one_or_none()
+        else:
+            catalogue_id = getattr(item, "catalogue_product_id", None)
+            original = await self.db.get(Product, catalogue_id) if catalogue_id else None
+        selected = substitute_sp.product
+        if original is None or selected is None or selected.review_status != "approved":
             raise ProductUnavailableException(product_id=substitute_product_id, store_id=store_id)
         # Preserve the original physical amount, then express it in the new
         # product's unit. Never reinterpret one old package as one gram.
@@ -571,8 +573,10 @@ class ProductSubstitutionService:
                 or not Decimal(0) < stored_quantity <= Decimal("9999999.999")):
             raise ValueError("The product quantity or cost exceeds the supported range")
 
-        item.substituted_for = original_sp.product_id
+        item.substituted_for = original.id
         item.store_product_id = substitute_sp.id
+        item.catalogue_product_id = None
+        item.custom_name = None
         item.department_id = substitute_sp.department_id
         item.required_quantity = stored_quantity
         item.unit = stored_unit

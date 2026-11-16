@@ -71,24 +71,33 @@ async def open_german_item_prices(db, lists, *, item_id=None) -> dict:
 
 async def complete_polish_items_to_pantry(db, shopping, user):
     """Validate the whole transfer before touching any pantry rows."""
+    bought = [item for item in shopping.items if item.is_checked and not item.is_from_pantry]
+    catalogue_ids = {item.catalogue_product_id for item in bought
+        if item.store_product is None and item.catalogue_product_id is not None}
+    catalogue = {product.id: product for product in (await db.execute(
+        select(Product).where(Product.id.in_(catalogue_ids))
+    )).scalars().all()} if catalogue_ids else {}
+
     purchases = {}
     try:
-        for item in shopping.items:
-            if not item.is_checked or item.is_from_pantry or item.store_product is None:
-                continue
-            product = item.store_product.product
+        for item in bought:
+            offer = item.store_product
+            if offer is None and item.catalogue_product_id is None:
+                continue  # Free-text purchase without a product identity.
+            product = offer.product if offer is not None else catalogue.get(item.catalogue_product_id)
             if product is None:
                 raise ValueError("Missing product")
             quantity, unit = product_amount(product, item.required_quantity, item.unit)
-            try:
-                # A priced purchase represents complete packages, just as in GB.
-                # Without a reliable pack conversion, retain the stated amount.
-                packs = _package_count(product, item.required_quantity, item.unit, offer=item.store_product)
-                pack_size, pack_unit = offer_package(product, item.store_product)
-            except (ValueError, ArithmeticError, TypeError):
-                pass
-            else:
-                quantity, unit = product_amount(product, pack_size * packs, pack_unit)
+            if offer is not None:
+                try:
+                    # Priced purchases represent whole packages. Without a
+                    # reliable conversion, keep the user-entered amount.
+                    packs = _package_count(product, item.required_quantity, item.unit, offer=offer)
+                    pack_size, pack_unit = offer_package(product, offer)
+                except (ValueError, ArithmeticError, TypeError):
+                    pass
+                else:
+                    quantity, unit = product_amount(product, pack_size * packs, pack_unit)
             if product.id in purchases:
                 _, old, old_unit = purchases[product.id]
                 quantity, unit = combined_amount(product, old, old_unit, quantity, unit)

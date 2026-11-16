@@ -19,7 +19,7 @@ from app.db.seed import (
     _uid,
     seed_database,
 )
-from app.models.product import ProductAllergen, StoreProduct
+from app.models.product import Product, ProductAllergen, StoreProduct
 from app.models.store import Store, StoreDepartment
 from app.models import Base, Recipe
 
@@ -113,6 +113,12 @@ def test_seven_stores_have_all_419_planning_products_and_departments():
 
     assert len(STORE_NAMES) == len(set(STORE_NAMES)) == 7
     assert NEW_STORES <= set(STORE_NAMES)
+    product_id = _uid("retailer-product:PL:biedronka:291390")
+    packaged_food = session.rows[(Product, product_id)]
+    assert (packaged_food.name, packaged_food.brand, packaged_food.serving_quantity) == (
+        "Cordon Bleu z kurczaka 500 g", "Yeemy", 500,
+    )
+    assert all(offer.product_id != product_id for offer in session.store_products)
     assert len(session.store_products) == 419 * 7
     assert len([row for row in session.rows.values() if isinstance(row, Store)]) == 7
     departments = [

@@ -127,7 +127,7 @@ class ShoppingListItemResponse(BaseModel):
         if getattr(data, "custom_name", None):
             return {
                 "id": data.id,
-                "product_id": None,
+                "product_id": getattr(data, "catalogue_product_id", None),
                 "product_name": data.custom_name,
                 "brand": None,
                 "department_name": "W spiżarni" if getattr(data, "is_from_pantry", False) else "Inne",

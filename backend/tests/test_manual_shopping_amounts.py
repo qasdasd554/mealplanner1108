@@ -225,3 +225,68 @@ async def test_http_manual_append_and_summary_serialize_the_same_amount_and_cost
         summary = await client.get(f"/shopping/{plan_id}/summary")
         assert summary.status_code == 200, summary.text
         assert summary.json()["total_estimated_price"] == 4
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(("state", "has_withdrawn_offer"),
+    [("PL", False), ("PL", True), ("DE", False), ("GB", False)], indirect=["state"])
+async def test_catalogue_product_without_store_offer_can_be_added(state, has_withdrawn_offer):
+    session, db, (user_id, _, plan_id, _, _) = state
+    user = await db.get(User, user_id)
+    plan = await db.get(MealPlan, plan_id)
+    shop = await db.get(api.Store, plan.store_id)
+    if user.country_code == "DE":
+        shop.country_code, shop.currency_code = "DE", "EUR"
+    name = {"PL": "Cordon Bleu z kurczaka 500 g", "DE": "Hähnchen-Cordon-bleu", "GB": "Chicken cordon bleu"}[user.country_code]
+    product = Product(id=uuid4(), name=name, unit="g", default_quantity=500,
+        review_status="approved", submitted_country_code=user.country_code,
+        measure_options=[{"code": "g", "base_unit": "g", "base_quantity": 1}])
+    db.add(product)
+    shopping = ShoppingList(id=uuid4(), meal_plan_id=plan_id, store_id=shop.id)
+    db.add(shopping)
+    if has_withdrawn_offer:
+        db.add(StoreProduct(id=uuid4(), store_id=shop.id, product_id=product.id,
+            price=Decimal("13.49"), is_available=False))
+    await db.commit()
+    await add(db, user, product, plan_id, 100, "g")
+    await add(db, user, product, plan_id, 200, "g")
+    shopping = await api._get_shopping_list_or_404(plan_id, user, db, refresh=True)
+    assert len(shopping.items) == 1
+    row = shopping.items[0]
+    assert row.required_quantity == 300
+    assert row.store_product_id is None
+    assert row.estimated_price is None
+    response = api.ShoppingListResponse.model_validate(await api.get_shopping_list(plan_id, user, db))
+    displayed = next(iter(response.items_by_department.values()))[0]
+    assert displayed.product_id == product.id and displayed.product_name == name
+    assert response.has_unpriced_items
+    await api.add_custom_item_to_shopping_list(plan_id,
+        api.AddCustomItemRequest(name=name, quantity=1, unit="g"), user, db)
+    shopping = await api._get_shopping_list_or_404(plan_id, user, db, refresh=True)
+    assert sorted(item.required_quantity for item in shopping.items) == [1, 300]
+    for item in shopping.items:
+        item.is_checked = True
+    await db.commit()
+    completed = await api.complete_shopping_list(plan_id, True, user, db)
+    assert completed["moved_to_pantry"] == 1
+    pantry = (await db.execute(select(PantryItem).where(PantryItem.user_id == user_id))).scalar_one()
+    assert (pantry.product_id, pantry.quantity, pantry.unit) == (product.id, 300, "g")
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("state", ["PL"], indirect=True)
+async def test_cordon_bleu_found_by_common_spelling_and_brand(state, monkeypatch):
+    from app.api.v1.products import search_products_by_name
+
+    async def no_external_results(*args, **kwargs):
+        return []
+
+    monkeypatch.setattr("app.services.barcode_lookup.search_products_external", no_external_results)
+    session, db, (user_id, _, _, _, _) = state
+    user = await db.get(User, user_id)
+    product = Product(id=uuid4(), name="Cordon Bleu z kurczaka 500 g", brand="Yeemy",
+        unit="g", default_quantity=500, review_status="approved")
+    db.add(product)
+    await db.commit()
+    for query in ["cordon blue", "Yeemy cordon bleu", "cordon-bleu"]:
+        matches = await search_products_by_name(query, 10, db, user)
+        assert any(match.existing_product_id == product.id for match in matches), query

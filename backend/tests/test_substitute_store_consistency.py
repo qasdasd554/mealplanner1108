@@ -45,7 +45,8 @@ def test_uk_legacy_row_without_snapshot_can_save_a_real_selected_store_offer(db)
 
 
 @pytest.mark.parametrize("withdrawn", [False, True])
-def test_pl_save_matches_availability_filter_and_prices_all_required_packs(db, withdrawn):
+@pytest.mark.parametrize("original_has_offer", [False, True])
+def test_pl_save_matches_availability_filter_and_prices_all_required_packs(db, withdrawn, original_has_offer):
     original, selected = food("Makaron penne"), food("Makaron spaghetti")
     db.add_all([original, selected])
     shop = Store(id=uuid4(), name="PL fixture", country_code="PL", currency_code="PLN")
@@ -54,18 +55,26 @@ def test_pl_save_matches_availability_filter_and_prices_all_required_packs(db, w
     selected_sp = StoreProduct(id=uuid4(), product_id=selected.id, store_id=shop.id, price=4,
         is_available=True, withdrawn_at=datetime.now(timezone.utc) if withdrawn else None)
     selected.default_quantity = 500
-    db.add_all([original_sp, selected_sp])
+    db.add(selected_sp)
+    if original_has_offer:
+        db.add(original_sp)
     db.commit()
-    item = ShoppingListItem(id=uuid4(), store_product_id=original_sp.id, required_quantity=Decimal(750),
-                            unit="g", is_checked=True)
+    item = ShoppingListItem(
+        id=uuid4(), store_product_id=original_sp.id if original_has_offer else None,
+        catalogue_product_id=None if original_has_offer else original.id,
+        custom_name=None if original_has_offer else original.name,
+        required_quantity=Decimal(750), unit="g", is_checked=True,
+    )
     service = ProductSubstitutionService(Database(db))
     if withdrawn:
         with pytest.raises(ProductUnavailableException):
             asyncio.run(service.substitute_shopping_list_item(item, selected.id, shop.id))
-        assert item.store_product_id == original_sp.id
+        assert item.store_product_id == (original_sp.id if original_has_offer else None)
     else:
         asyncio.run(service.substitute_shopping_list_item(item, selected.id, shop.id))
         assert item.estimated_price == Decimal("8.00") and item.required_quantity == 750
+        assert item.catalogue_product_id is None and item.custom_name is None
+        assert item.substituted_for == original.id
         assert not item.is_checked
 
 

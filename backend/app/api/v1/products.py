@@ -11,7 +11,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-from sqlalchemy import or_, select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -949,9 +949,20 @@ async def search_products_by_name(
     a dopiero potem Open Food Facts — ta sama zewnętrzna baza, z której
     korzysta skanowanie kodów kreskowych.
     """
-    normalized = " ".join(query.strip().split())
-    pattern = f"%{normalized}%"
-    matches = [Product.name.ilike(pattern), Product.brand.ilike(pattern)]
+    normalized = " ".join(query.split())
+    normalized = re.sub(r"\bcordon[\s\-]+blu(?:e)?\b", "cordon bleu", normalized, flags=re.IGNORECASE)
+
+    # Match words like "Yeemy cordon bleu" across both fields.
+    words = re.findall(r"[^\W_]+", normalized)
+    terms = words if 1 < len(words) <= 8 else [normalized]
+
+    def name_or_brand_matches(model):
+        return and_(*(or_(
+            model.name.icontains(term, autoescape=True),
+            model.brand.icontains(term, autoescape=True),
+        ) for term in terms))
+
+    matches = [name_or_brand_matches(Product)]
     catalog_query = select(Product).where(_visible_product_filter(current_user.id))
     ordering = Product.name
     country = account_country(current_user)
@@ -967,12 +978,7 @@ async def search_products_by_name(
     catalog_result = await db.execute(catalog_query.limit(limit))
     cache_result = await db.execute(
         select(BarcodeProductCache)
-        .where(
-            or_(
-                BarcodeProductCache.name.ilike(pattern),
-                BarcodeProductCache.brand.ilike(pattern),
-            )
-        )
+        .where(name_or_brand_matches(BarcodeProductCache))
         .order_by(BarcodeProductCache.updated_at.desc())
         .limit(limit)
     )

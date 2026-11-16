@@ -5233,6 +5233,18 @@ async def seed_database(session: AsyncSession) -> None:
     session.add_all(new_store_products)
     await session.flush()
 
+    # Biedronka's dated public assortment list identifies retailer SKU 291390.
+    # It supplies the product and pack size, with no current branch stock or price.
+    await session.merge(Product(
+        id=_uid("retailer-product:PL:biedronka:291390"),
+        name="Cordon Bleu z kurczaka 500 g",
+        brand="Yeemy",
+        unit="g",
+        default_quantity=Decimal(500),
+        serving_quantity=500,
+        measure_options=build_measure_options("Cordon Bleu z kurczaka", "g", 500, 500),
+    ))
+
     # Gotowe dania restauracyjne są częścią katalogu żywieniowego, ale nie
     # udajemy, że można je kupić w każdym supermarkecie. Dlatego celowo nie
     # tworzymy dla nich StoreProduct; są dostępne w wyszukiwaniu Dziennika.
