@@ -3116,7 +3116,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileAnalyticsHint =>
-      'Share the screens you open, time spent and selected taps with Google Analytics to help improve Meal Planner.';
+      'We analyse app usage to improve how the app works.';
+
+  @override
+  String get profileAnalyticsEnable => 'Enable analytics';
+
+  @override
+  String get profileAnalyticsDecline => 'Continue without analytics';
 
   @override
   String get profileAnalyticsSaveError =>
@@ -8493,7 +8499,13 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get profileAnalyticsHint =>
-      'Share the screens you open, time spent and selected taps with Google Analytics to help improve Meal Planner.';
+      'We analyse app usage to improve how the app works.';
+
+  @override
+  String get profileAnalyticsEnable => 'Enable analytics';
+
+  @override
+  String get profileAnalyticsDecline => 'Continue without analytics';
 
   @override
   String get profileAnalyticsSaveError =>

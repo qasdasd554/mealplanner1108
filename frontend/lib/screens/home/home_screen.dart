@@ -447,6 +447,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       sheetContext,
                       icon: Icons.barcode_reader,
                       title: sheetContext.strings.scanProduct,
+                      shortcut: AnalyticsShortcut.scanProduct,
                       subtitle: sheetContext.strings.barcodeDestinations,
                       onTap: () async {
                         Navigator.pop(sheetContext);
@@ -457,6 +458,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       sheetContext,
                       icon: Icons.qr_code_2,
                       title: sheetContext.strings.batchScan,
+                      shortcut: AnalyticsShortcut.batchScan,
                       subtitle: sheetContext.strings.batchDestinationHint,
                       trailing: const PremiumFeatureTag(),
                       onTap: () {
@@ -468,6 +470,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       sheetContext,
                       icon: Icons.receipt_long_outlined,
                       title: sheetContext.strings.receiptScanTitle,
+                      shortcut: AnalyticsShortcut.scanReceipt,
                       subtitle: sheetContext.strings.receiptQuickAddHint,
                       trailing: const PremiumFeatureTag(),
                       onTap: () async {
@@ -489,6 +492,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       sheetContext,
                       icon: Icons.auto_awesome,
                       title: sheetContext.strings.addRecipeWithAi,
+                      shortcut: AnalyticsShortcut.aiRecipe,
                       subtitle: sheetContext.strings.aiRecipeSources,
                       trailing: PremiumFeatureTag(
                         label: sheetContext.strings.premiumTwoPoints,
@@ -506,6 +510,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       sheetContext,
                       icon: Icons.restaurant_menu,
                       title: sheetContext.strings.addMeal,
+                      shortcut: AnalyticsShortcut.addMeal,
                       subtitle: sheetContext.strings.recordCaloriesAndMacros,
                       onTap: () {
                         Navigator.pop(sheetContext);
@@ -516,6 +521,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       sheetContext,
                       icon: Icons.inventory_2_outlined,
                       title: sheetContext.strings.addToPantry,
+                      shortcut: AnalyticsShortcut.addToPantry,
                       onTap: () {
                         Navigator.pop(sheetContext);
                         Navigator.of(context).push(
@@ -539,6 +545,7 @@ class _HomeScreenState extends State<HomeScreen> {
     BuildContext context, {
     required IconData icon,
     required String title,
+    required AnalyticsShortcut shortcut,
     String? subtitle,
     Widget? trailing,
     required VoidCallback onTap,
@@ -560,7 +567,13 @@ class _HomeScreenState extends State<HomeScreen> {
           titleMaxLines: 2,
           subtitleMaxLines: 3,
           trailing: trailing,
-          onTap: onTap,
+          onTap: () {
+            ProductAnalytics.instance.shortcutTapped(
+              shortcut,
+              AnalyticsShortcutSurface.quickAdd,
+            );
+            onTap();
+          },
         ),
       ),
     );
@@ -722,6 +735,7 @@ class HomeTab extends StatelessWidget {
                               width: width,
                               compact: compact,
                               title: context.strings.promotions,
+                              shortcut: AnalyticsShortcut.promotions,
                               icon: Icons.local_offer_outlined,
                               onTap:
                                   () => Navigator.of(
@@ -733,6 +747,7 @@ class HomeTab extends StatelessWidget {
                               width: width,
                               compact: compact,
                               title: context.strings.productDatabase,
+                              shortcut: AnalyticsShortcut.products,
                               icon: Icons.storefront_outlined,
                               onTap:
                                   () => Navigator.of(
@@ -744,6 +759,7 @@ class HomeTab extends StatelessWidget {
                               width: width,
                               compact: compact,
                               title: context.strings.pantry,
+                              shortcut: AnalyticsShortcut.pantry,
                               icon: Icons.inventory_2_outlined,
                               onTap:
                                   () => Navigator.of(context).push(
@@ -1451,9 +1467,18 @@ class HomeTab extends StatelessWidget {
     required bool compact,
     required String title,
     required IconData icon,
+    required AnalyticsShortcut shortcut,
     required VoidCallback onTap,
   }) {
     final theme = Theme.of(context);
+    void handleTap() {
+      ProductAnalytics.instance.shortcutTapped(
+        shortcut,
+        AnalyticsShortcutSurface.homeShortcuts,
+      );
+      onTap();
+    }
+
     final label = Text(
       title,
       textAlign: compact ? TextAlign.center : TextAlign.start,
@@ -1472,7 +1497,7 @@ class HomeTab extends StatelessWidget {
         child:
             compact
                 ? InkWell(
-                  onTap: onTap,
+                  onTap: handleTap,
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(minHeight: 94),
                     child: Padding(
@@ -1491,7 +1516,7 @@ class HomeTab extends StatelessWidget {
                   leading: symbol,
                   title: label,
                   trailing: const Icon(Icons.chevron_right, size: 20),
-                  onTap: onTap,
+                  onTap: handleTap,
                 ),
       ),
     );

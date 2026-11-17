@@ -5551,8 +5551,20 @@ abstract class AppLocalizations {
   /// No description provided for @profileAnalyticsHint.
   ///
   /// In pl, this message translates to:
-  /// **'Udostępniaj w Google Analytics dane o otwieranych ekranach, czasie korzystania i wybranych kliknięciach, aby pomóc ulepszać Meal Planner.'**
+  /// **'Analizujemy ruch, aby ulepszać działanie aplikacji.'**
   String get profileAnalyticsHint;
+
+  /// No description provided for @profileAnalyticsEnable.
+  ///
+  /// In pl, this message translates to:
+  /// **'Włącz analitykę'**
+  String get profileAnalyticsEnable;
+
+  /// No description provided for @profileAnalyticsDecline.
+  ///
+  /// In pl, this message translates to:
+  /// **'Bez analityki'**
+  String get profileAnalyticsDecline;
 
   /// No description provided for @profileAnalyticsSaveError.
   ///

@@ -1,13 +1,32 @@
+// FlutterFire exposes the test doubles through its platform packages.
+// ignore_for_file: depend_on_referenced_packages
+
 import 'dart:async';
 
+import 'package:firebase_analytics_platform_interface/firebase_analytics_platform_interface.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_core_platform_interface/test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_meal_planner/l10n/app_localizations.dart';
 import 'package:smart_meal_planner/models/store.dart';
 import 'package:smart_meal_planner/providers/auth_provider.dart';
 import 'package:smart_meal_planner/providers/store_provider.dart';
 import 'package:smart_meal_planner/screens/onboarding/onboarding_screen.dart';
+import 'package:smart_meal_planner/services/product_analytics.dart';
+
+class _AnalyticsPlatform extends FirebaseAnalyticsPlatform {
+  @override
+  FirebaseAnalyticsPlatform delegateFor({
+    required FirebaseApp app,
+    Map<String, dynamic>? webOptions,
+  }) => this;
+
+  @override
+  Future<void> setAnalyticsCollectionEnabled(bool enabled) async {}
+}
 
 class _Auth extends ChangeNotifier implements AuthProvider {
   int saveCalls = 0;
@@ -334,4 +353,55 @@ void main() {
       await tester.pumpWidget(const SizedBox.shrink());
     });
   }
+
+  group('analytics choice at the end of onboarding', () {
+    late FirebaseAnalyticsPlatform previousPlatform;
+    setUpAll(() async {
+      setupFirebaseCoreMocks();
+      await Firebase.initializeApp();
+      previousPlatform = FirebaseAnalyticsPlatform.instance;
+      FirebaseAnalyticsPlatform.instance = _AnalyticsPlatform();
+    });
+    tearDownAll(() => FirebaseAnalyticsPlatform.instance = previousPlatform);
+
+    for (final enabled in [false, true]) {
+      testWidgets('completion follows explicit consent or refusal ($enabled)', (
+        tester,
+      ) async {
+        await tester.runAsync(() async {
+          SharedPreferences.setMockInitialValues({});
+          await ProductAnalytics.instance.initialize();
+        });
+        final auth = _Auth();
+        final stores = _Stores();
+        addTearDown(auth.dispose);
+        addTearDown(stores.dispose);
+        await _open(tester, false, auth, stores, _Routes());
+        tester.view.physicalSize = const Size(360, 640);
+        await tester.pumpAndSettle();
+        expect(find.text('Włącz analitykę'), findsNothing);
+        await tester.tap(find.text('Synthetic shop'));
+        await tester.pump();
+        await _toDone(tester, false);
+        final done = find.widgetWithText(ElevatedButton, 'Gotowe!');
+        await tester.tap(done);
+        await tester.pumpAndSettle();
+        expect(auth.saveCalls, 0);
+        final accept = find.widgetWithText(FilledButton, 'Włącz analitykę');
+        final decline = find.widgetWithText(FilledButton, 'Bez analityki');
+        expect(accept.hitTestable(), findsOneWidget);
+        expect(decline.hitTestable(), findsOneWidget);
+        await tester.tap(enabled ? accept : decline);
+        await tester.pumpAndSettle();
+        expect(ProductAnalytics.instance.choice.value, enabled);
+        expect(ProductAnalytics.instance.needsChoice, isFalse);
+        await tester.tap(done);
+        expect(auth.saveCalls, 1);
+        auth.pendingSave.complete(true);
+        await tester.pumpAndSettle();
+        expect(find.text('synthetic-home'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+    }
+  });
 }

@@ -3126,7 +3126,13 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get profileAnalyticsHint =>
-      'Udostępniaj w Google Analytics dane o otwieranych ekranach, czasie korzystania i wybranych kliknięciach, aby pomóc ulepszać Meal Planner.';
+      'Analizujemy ruch, aby ulepszać działanie aplikacji.';
+
+  @override
+  String get profileAnalyticsEnable => 'Włącz analitykę';
+
+  @override
+  String get profileAnalyticsDecline => 'Bez analityki';
 
   @override
   String get profileAnalyticsSaveError =>

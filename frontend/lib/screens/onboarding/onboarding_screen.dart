@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
@@ -6,8 +8,10 @@ import '../../providers/auth_provider.dart';
 import '../../providers/store_provider.dart';
 import '../../models/store.dart';
 import '../../config/constants.dart';
+import '../../services/product_analytics.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/premium_feature_tag.dart';
+import '../../widgets/product_analytics_setting.dart';
 import 'welcome_bonus_screen.dart';
 import '../recipes/pantry_screen.dart';
 import '../tracker/calorie_calculator_screen.dart';
@@ -23,6 +27,7 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
+  final _analyticsChoiceKey = GlobalKey();
   int _currentPage = 0;
   bool _isSaving = false;
 
@@ -107,6 +112,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             backgroundColor: AppTheme.errorColor,
           ),
         );
+      return;
+    }
+    if (ProductAnalytics.instance.needsChoice) {
+      final choiceContext = _analyticsChoiceKey.currentContext;
+      if (choiceContext != null) {
+        unawaited(
+          Scrollable.ensureVisible(
+            choiceContext,
+            duration: const Duration(milliseconds: 250),
+            alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
+          ),
+        );
+      }
       return;
     }
 
@@ -776,84 +794,91 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ),
     );
 
-    return ListView(
+    return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-      children: [
-        Icon(
-          Icons.auto_awesome_outlined,
-          size: 58,
-          color: AppTheme.primaryColor,
-        ),
-        const SizedBox(height: 10),
-        Center(
-          child: PremiumFeatureTag(
-            label: context.strings.onboardingPremiumOrPoints,
-            fontSize: 10,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Icon(
+            Icons.auto_awesome_outlined,
+            size: 58,
+            color: AppTheme.primaryColor,
           ),
-        ),
-        const SizedBox(height: 18),
-        Text(
-          context.strings.onboardingAiTitle,
-          style: Theme.of(context).textTheme.displaySmall,
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 12),
-        Text(
-          context.strings.onboardingAiDescription,
-          style: Theme.of(context).textTheme.bodyMedium,
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 22),
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: AppTheme.accentTintColor.withOpacity(0.45),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: AppTheme.actionAccentColor.withOpacity(0.45),
+          const SizedBox(height: 10),
+          Center(
+            child: PremiumFeatureTag(
+              label: context.strings.onboardingPremiumOrPoints,
+              fontSize: 10,
             ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                context.strings.onboardingAiImport,
-                style: TextStyle(
-                  color: AppTheme.actionAccentColor,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 13,
-                ),
-              ),
-              const SizedBox(height: 6),
-              option(
-                Icons.photo_camera_outlined,
-                context.strings.onboardingAiPhoto,
-                context.strings.onboardingAiPhotoDescription,
-              ),
-              option(
-                Icons.text_snippet_outlined,
-                context.strings.onboardingAiText,
-                context.strings.onboardingAiTextDescription,
-              ),
-              option(
-                Icons.link,
-                context.strings.onboardingAiLink,
-                context.strings.onboardingAiLinkDescription,
-              ),
-            ],
+          const SizedBox(height: 18),
+          Text(
+            context.strings.onboardingAiTitle,
+            style: Theme.of(context).textTheme.displaySmall,
+            textAlign: TextAlign.center,
           ),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          context.strings.onboardingAiShareExample,
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
-        const SizedBox(height: 10),
-        Text(
-          context.strings.onboardingAiPointCosts,
-          style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
-        ),
-      ],
+          const SizedBox(height: 12),
+          Text(
+            context.strings.onboardingAiDescription,
+            style: Theme.of(context).textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 22),
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: AppTheme.accentTintColor.withOpacity(0.45),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppTheme.actionAccentColor.withOpacity(0.45),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  context.strings.onboardingAiImport,
+                  style: TextStyle(
+                    color: AppTheme.actionAccentColor,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                option(
+                  Icons.photo_camera_outlined,
+                  context.strings.onboardingAiPhoto,
+                  context.strings.onboardingAiPhotoDescription,
+                ),
+                option(
+                  Icons.text_snippet_outlined,
+                  context.strings.onboardingAiText,
+                  context.strings.onboardingAiTextDescription,
+                ),
+                option(
+                  Icons.link,
+                  context.strings.onboardingAiLink,
+                  context.strings.onboardingAiLinkDescription,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            context.strings.onboardingAiShareExample,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            context.strings.onboardingAiPointCosts,
+            style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+          ),
+          ProductAnalyticsSetting(
+            key: _analyticsChoiceKey,
+            initialChoice: true,
+          ),
+        ],
+      ),
     );
   }
 

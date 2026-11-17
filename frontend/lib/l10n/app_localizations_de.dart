@@ -3167,7 +3167,13 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get profileAnalyticsHint =>
-      'Teile mit Google Analytics, welche Ansichten du öffnest, wie lange du die App nutzt und welche Aktionen du auswählst. So hilfst du, Meal Planner zu verbessern.';
+      'Wir analysieren die Nutzung, um die App zu verbessern.';
+
+  @override
+  String get profileAnalyticsEnable => 'Analyse aktivieren';
+
+  @override
+  String get profileAnalyticsDecline => 'Ohne Analyse fortfahren';
 
   @override
   String get profileAnalyticsSaveError =>

@@ -7,6 +7,29 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/premium_offer.dart';
 
+enum AnalyticsShortcut {
+  promotions('promotions'),
+  products('products'),
+  pantry('pantry'),
+  scanProduct('scan_product'),
+  batchScan('batch_scan'),
+  scanReceipt('scan_receipt'),
+  aiRecipe('ai_recipe'),
+  addMeal('add_meal'),
+  addToPantry('add_to_pantry');
+
+  const AnalyticsShortcut(this.eventKey);
+  final String eventKey;
+}
+
+enum AnalyticsShortcutSurface {
+  homeShortcuts('home_shortcuts'),
+  quickAdd('quick_add');
+
+  const AnalyticsShortcutSurface(this.eventKey);
+  final String eventKey;
+}
+
 class ProductAnalytics extends NavigatorObserver {
   ProductAnalytics._();
 
@@ -44,10 +67,12 @@ class ProductAnalytics extends NavigatorObserver {
   final _selectedTabs = Expando<int>();
   final _premiumPages = Expando<String>();
   SharedPreferences? _preferences;
+  bool _hasDecided = false;
   Route<dynamic>? _currentPage;
   String? _market;
 
   ValueListenable<bool?> get choice => _choice;
+  bool get needsChoice => _preferences != null && !_hasDecided;
 
   Future<void> initialize() async {
     if (kIsWeb ||
@@ -57,9 +82,11 @@ class ProductAnalytics extends NavigatorObserver {
     }
     try {
       final preferences = await SharedPreferences.getInstance();
-      final enabled = preferences.getBool(_preferenceKey) ?? false;
+      final savedChoice = preferences.getBool(_preferenceKey);
+      final enabled = savedChoice ?? false;
       await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(enabled);
       _preferences = preferences;
+      _hasDecided = savedChoice != null;
       _choice.value = enabled;
       if (enabled) _logCurrentScreen();
     } catch (_) {
@@ -71,22 +98,32 @@ class ProductAnalytics extends NavigatorObserver {
     final preferences = _preferences;
     final previous = _choice.value;
     if (preferences == null || previous == null) return false;
-    if (previous == enabled) return true;
+    final savedChoice = preferences.getBool(_preferenceKey);
+    if (savedChoice == enabled) return true;
     if (!enabled) _choice.value = false;
     try {
       if (!await preferences.setBool(_preferenceKey, enabled)) {
         throw StateError('Could not save analytics preference');
       }
-      await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(enabled);
+      if (previous != enabled) {
+        await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(enabled);
+      }
+      _hasDecided = true;
       _choice.value = enabled;
       if (enabled) _logCurrentScreen();
       return true;
     } catch (_) {
       try {
-        await preferences.setBool(_preferenceKey, previous);
+        if (savedChoice == null) {
+          await preferences.remove(_preferenceKey);
+        } else {
+          await preferences.setBool(_preferenceKey, savedChoice);
+        }
       } catch (_) {
         debugPrint('[Analytics] Could not restore preference');
       }
+      // An explicit refusal can finish setup even if local storage failed.
+      if (!enabled && !previous) _hasDecided = true;
       _choice.value = previous;
       return false;
     }
@@ -130,6 +167,14 @@ class ProductAnalytics extends NavigatorObserver {
   void newPlanTapped() => _event('new_plan_tap');
 
   void mealPlanGenerated() => _event('meal_plan_generated');
+
+  void shortcutTapped(
+    AnalyticsShortcut shortcut,
+    AnalyticsShortcutSurface surface,
+  ) => _event(
+    'feature_${shortcut.eventKey}_tap',
+    parameters: {'entry_point': surface.eventKey},
+  );
 
   static String premiumEntryPoint({
     required PremiumOfferContext? offerContext,

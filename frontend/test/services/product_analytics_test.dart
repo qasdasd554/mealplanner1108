@@ -60,8 +60,21 @@ void main() {
 
       analytics.setMarket('GB');
       await analytics.initialize();
+      expect(analytics.needsChoice, isTrue);
       analytics.didChangeTop(home, null);
       analytics.newPlanTapped();
+      analytics.shortcutTapped(
+        AnalyticsShortcut.promotions,
+        AnalyticsShortcutSurface.homeShortcuts,
+      );
+      expect(await analytics.setEnabled(false), isTrue);
+      expect(analytics.needsChoice, isFalse);
+      expect(
+        (await SharedPreferences.getInstance()).getBool(
+          'product_analytics_enabled',
+        ),
+        isFalse,
+      );
       expect(platform.collection, [false]);
       expect(platform.events, isEmpty);
 
@@ -72,6 +85,14 @@ void main() {
       analytics.selectHomeTab(home, 0);
       analytics.newPlanTapped();
       analytics.mealPlanGenerated();
+      analytics.shortcutTapped(
+        AnalyticsShortcut.promotions,
+        AnalyticsShortcutSurface.homeShortcuts,
+      );
+      analytics.shortcutTapped(
+        AnalyticsShortcut.scanReceipt,
+        AnalyticsShortcutSurface.quickAdd,
+      );
 
       analytics.setMarket('DE');
       analytics.didChangeTop(premium, home);
@@ -91,11 +112,21 @@ void main() {
         'screen_view',
         'new_plan_tap',
         'meal_plan_generated',
+        'feature_promotions_tap',
+        'feature_scan_receipt_tap',
         'screen_view',
         'premium_offer_view',
       ]);
       expect(platform.events[2].$2, {
         'entry_point': 'premium_tab',
+        'app_market': 'GB',
+      });
+      expect(platform.events[7].$2, {
+        'entry_point': 'home_shortcuts',
+        'app_market': 'GB',
+      });
+      expect(platform.events[8].$2, {
+        'entry_point': 'quick_add',
         'app_market': 'GB',
       });
       expect(platform.events.last.$2, {
@@ -107,7 +138,7 @@ void main() {
       analytics.setMarket('PL');
       analytics.newPlanTapped();
       expect(platform.collection, [false, true, false]);
-      expect(platform.events, hasLength(9));
+      expect(platform.events, hasLength(11));
       final preferences = await SharedPreferences.getInstance();
       expect(preferences.getBool('product_analytics_enabled'), isFalse);
     },

@@ -8,11 +8,13 @@ import '../config/app_links.dart';
 /// Shared legal/contact destinations; wrapping preserves large-text layouts.
 class AppDocumentLinks extends StatelessWidget {
   final bool showAccountHelp;
+  final bool privacyOnly;
   final Future<bool> Function(Uri)? openLink;
 
   const AppDocumentLinks({
     super.key,
     this.showAccountHelp = false,
+    this.privacyOnly = false,
     this.openLink,
   });
 
@@ -80,6 +82,9 @@ class AppDocumentLinks extends StatelessWidget {
       onPressed: () => _open(context, uri),
       child: Text(label, textAlign: TextAlign.center),
     );
+    if (privacyOnly) {
+      return link(context.strings.documentPrivacy, Uri.parse(links.privacy));
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
