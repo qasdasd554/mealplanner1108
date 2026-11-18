@@ -14,7 +14,7 @@ echo "=== Pobieranie zaleznosci Fluttera ==="
 flutter pub get
 
 echo "=== Generowanie FlutterGeneratedPluginSwiftPackage ==="
-flutter build ios --config-only --release --no-codesign
+flutter build ios --config-only --release --no-codesign --build-name=1.32
 
 echo "=== Rozwiazywanie zaleznosci Swift Package Manager ==="
 cd ios
